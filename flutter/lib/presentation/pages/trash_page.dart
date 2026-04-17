@@ -371,8 +371,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                       final item = filteredItems[index];
                       return _TrashItemCard(
                         item: item,
-                        onRestore: () => _restoreItem(item),
-                        onPurge: () => _confirmPurge(context, item),
+                        onRestore: (item) => _restoreItem(item),
+                        onPurge: (item) => _confirmPurge(context, item),
                         onDetail: () => _showDetail(context, item),
                       );
                     },
@@ -411,8 +411,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }
   }
 
-  void _confirmPurge(BuildContext context, DeletedItemInfo item) {
-    showDialog(
+  Future<void> _confirmPurge(BuildContext context, DeletedItemInfo item) async {
+    await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -458,14 +458,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _purgeItem(item);
-            },
+            onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
@@ -473,7 +470,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
         ],
       ),
-    );
+    ).then((confirmed) async {
+      if (confirmed == true) {
+        await _purgeItem(item);
+      }
+    });
   }
 
   Future<void> _purgeItem(DeletedItemInfo item) async {
@@ -841,10 +842,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 }
 
-class _TrashItemCard extends StatelessWidget {
+class _TrashItemCard extends StatefulWidget {
   final DeletedItemInfo item;
-  final VoidCallback onRestore;
-  final VoidCallback onPurge;
+  final Future<void> Function(DeletedItemInfo item) onRestore;
+  final Future<void> Function(DeletedItemInfo item) onPurge;
   final VoidCallback onDetail;
 
   const _TrashItemCard({
@@ -855,14 +856,74 @@ class _TrashItemCard extends StatelessWidget {
   });
 
   @override
+  State<_TrashItemCard> createState() => _TrashItemCardState();
+}
+
+class _TrashItemCardState extends State<_TrashItemCard> {
+  bool _isRestoring = false;
+  bool _isPurging = false;
+
+  bool get _isProcessing => _isRestoring || _isPurging;
+
+  Future<void> _handleRestore() async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isRestoring = true;
+    });
+
+    try {
+      await widget.onRestore(widget.item);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isRestoring = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to restore ${widget.item.itemLabel}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handlePurge() async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isPurging = true;
+    });
+
+    try {
+      await widget.onPurge(widget.item);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isPurging = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to purge ${widget.item.itemLabel}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final daysRemaining = 30 - DateTime.now().difference(item.deletedAt).inDays;
+    final daysRemaining = 30 - DateTime.now().difference(widget.item.deletedAt).inDays;
     final isExpiringSoon = daysRemaining <= 7;
 
     return Card(
       child: InkWell(
-        onTap: onDetail,
+        onTap: _isProcessing ? null : widget.onDetail,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -879,7 +940,7 @@ class _TrashItemCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      _getSectionIcon(item.section),
+                      _getSectionIcon(widget.item.section),
                       color: Colors.orange,
                       size: 20,
                     ),
@@ -890,7 +951,7 @@ class _TrashItemCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.itemLabel,
+                          widget.item.itemLabel,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -899,7 +960,7 @@ class _TrashItemCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${_getItemTypeLabel(item.itemType)} - ${_getSectionLabel(item.section)}',
+                          '${_getItemTypeLabel(widget.item.itemType)} - ${_getSectionLabel(widget.item.section)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -934,16 +995,22 @@ class _TrashItemCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Deleted ${_formatTimeAgo(item.deletedAt)}',
+                    'Deleted ${_formatTimeAgo(widget.item.deletedAt)}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const Spacer(),
                   TextButton.icon(
-                    onPressed: onRestore,
-                    icon: const Icon(Icons.restore, size: 16),
-                    label: const Text('Restore'),
+                    onPressed: _isRestoring ? null : _handleRestore,
+                    icon: _isRestoring
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.restore, size: 16),
+                    label: Text(_isRestoring ? 'Restoring...' : 'Restore'),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       minimumSize: Size.zero,
@@ -951,9 +1018,15 @@ class _TrashItemCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   TextButton.icon(
-                    onPressed: onPurge,
-                    icon: const Icon(Icons.delete_forever, size: 16),
-                    label: const Text('Purge'),
+                    onPressed: _isPurging ? null : _handlePurge,
+                    icon: _isPurging
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_forever, size: 16),
+                    label: Text(_isPurging ? 'Purging...' : 'Purge'),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       minimumSize: Size.zero,
