@@ -705,7 +705,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Change master password for current account
-  /// 1. Verify old password
+  /// 1. Verify old password (via unlockVault which also sets encryption key)
   /// 2. Generate new salt, derive new key
   /// 3. Re-encrypt profile with new key
   /// 4. Update stored credentials
@@ -717,13 +717,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return (success: false, error: 'No account selected');
     }
 
-    // Step 1: Verify old password
-    final isValid = await _storage.verifyPassword(_selectedAccountId!, currentPassword);
-    if (!isValid) {
+    // Step 1: Verify old password AND set encryption key via unlockVault
+    // unlockVault verifies the password AND sets the encryption key needed for loadProfile
+    final isUnlocked = await unlockVault(currentPassword);
+    if (!isUnlocked) {
       return (success: false, error: 'Current password is incorrect');
     }
 
-    // Step 2: Get current profile data (still encrypted with old key)
+    // Step 2: Get current profile data (now with encryption key properly set)
     final currentProfile = await _profileStorage.loadProfile(_selectedAccountId!);
     if (currentProfile == null) {
       return (success: false, error: 'Failed to load profile');
