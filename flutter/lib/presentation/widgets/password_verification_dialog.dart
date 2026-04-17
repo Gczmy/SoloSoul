@@ -24,7 +24,67 @@ Future<String?> showPasswordVerificationDialog({
   String? error;
   bool isVerifyingDialog = false;
   bool isPasswordEmpty = true;
-  bool showHintBanner = false;
+
+  void showHintOverlay(BuildContext ctx, String hint) {
+    final overlay = Overlay.of(ctx);
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (overlayCtx) => Positioned(
+        top: MediaQuery.of(ctx).padding.top + kToolbarHeight + 8,
+        left: 16,
+        right: 16,
+        child: SafeArea(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade700,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_outline, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Password Hint: $hint',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => entry.remove(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Timer(const Duration(seconds: 4), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
+  }
 
   return showDialog<String>(
     context: context,
@@ -66,7 +126,8 @@ Future<String?> showPasswordVerificationDialog({
                       const SizedBox(width: 4),
                       InkWell(
                         onTap: () {
-                          setDialogState(() => showHintBanner = !showHintBanner);
+                          // Use overlay to show hint without changing dialog size
+                          showHintOverlay(context, passwordHint);
                         },
                         borderRadius: BorderRadius.circular(4),
                         child: Padding(
@@ -75,13 +136,13 @@ Future<String?> showPasswordVerificationDialog({
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                showHintBanner ? Icons.visibility_off : Icons.help_outline,
+                                Icons.help_outline,
                                 color: Colors.orange.shade700,
                                 size: 18,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                showHintBanner ? 'Hide Hint' : 'Hint',
+                                'Hint',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.orange.shade700,
@@ -96,10 +157,6 @@ Future<String?> showPasswordVerificationDialog({
                   ],
                 ),
               ),
-              if (showHintBanner && passwordHint != null) ...[
-                const SizedBox(height: 8),
-                _HintBanner(hint: passwordHint),
-              ],
               const SizedBox(height: 16),
               TextField(
                 controller: controller,
@@ -175,53 +232,4 @@ Future<String?> showPasswordVerificationDialog({
       },
     ),
   );
-}
-
-/// Overlay hint banner that shows password hint, auto-hides after 4 seconds
-class _HintBanner extends StatefulWidget {
-  final String hint;
-
-  const _HintBanner({required this.hint});
-
-  @override
-  State<_HintBanner> createState() => _HintBannerState();
-}
-
-class _HintBannerState extends State<_HintBanner> {
-  @override
-  void initState() {
-    super.initState();
-    // Auto-hide after 4 seconds
-    Timer(const Duration(seconds: 4), () {
-      if (mounted) {
-        Navigator.of(context).maybePop();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.amber.shade100,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Icon(Icons.lightbulb_outline, color: Colors.amber.shade800, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                widget.hint,
-                style: TextStyle(
-                  color: Colors.amber.shade900,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -58,13 +58,23 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      final password = await showPasswordVerificationDialog(
-        context: context,
-        ref: ref,
-        message: 'Verify your identity to enable biometric unlock.',
-        passwordHint: selectedAccount.passwordHint,
-        onVerify: authNotifier.verifyPasswordForSensitiveData,
-      );
+      // Check if sensitive access is already verified (within 5 minutes)
+      final accessState = ref.read(sensitivePageAccessProvider);
+      String? password;
+
+      if (accessState.isVerified) {
+        // Skip password verification if already verified
+        password = ''; // Non-null placeholder to indicate verified
+      } else {
+        // Show password verification dialog
+        password = await showPasswordVerificationDialog(
+          context: context,
+          ref: ref,
+          message: 'Verify your identity to enable biometric unlock.',
+          passwordHint: selectedAccount.passwordHint,
+          onVerify: authNotifier.verifyPasswordForSensitiveData,
+        );
+      }
 
       if (password == null) {
         // User cancelled
