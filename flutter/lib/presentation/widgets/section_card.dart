@@ -139,6 +139,7 @@ class SectionCard extends StatelessWidget {
   final List<Widget> children;
   final IconData? actionIcon;
   final VoidCallback? onAction;
+  final Color? titleColor;
 
   const SectionCard({
     super.key,
@@ -147,6 +148,7 @@ class SectionCard extends StatelessWidget {
     required this.children,
     this.actionIcon,
     this.onAction,
+    this.titleColor,
   });
 
   @override
@@ -166,7 +168,7 @@ class SectionCard extends StatelessWidget {
                 Icon(
                   icon,
                   size: 20,
-                  color: theme.colorScheme.primary,
+                  color: titleColor ?? theme.colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -174,6 +176,7 @@ class SectionCard extends StatelessWidget {
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: titleColor,
                     ),
                   ),
                 ),

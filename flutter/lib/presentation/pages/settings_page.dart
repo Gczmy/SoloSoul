@@ -266,6 +266,23 @@ class SettingsPage extends ConsumerWidget {
 
             const SizedBox(height: 32),
 
+            // Danger Zone Section
+            SectionCard(
+              title: 'Danger Zone',
+              icon: Icons.warning_outlined,
+              titleColor: AppTheme.errorColor,
+              children: [
+                _SettingsTile(
+                  icon: Icons.delete_forever_outlined,
+                  title: 'Delete Account',
+                  subtitle: 'Permanently delete this account and all data',
+                  onTap: () => _confirmDeleteAccount(context, ref),
+                ),
+              ],
+            ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05, end: 0),
+
+            const SizedBox(height: 32),
+
             // SoloSoul Ad
             Container(
               padding: const EdgeInsets.all(20),
@@ -423,6 +440,251 @@ class SettingsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    String? errorMessage;
+    bool isDeleting = false;
+
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: !isDeleting,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.warning_amber, color: AppTheme.errorColor),
+                const SizedBox(width: 8),
+                const Text('Delete Account'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '删除账户后，该账号的所有数据都会被清空，确定要删除吗？',
+                          style: TextStyle(
+                            color: Colors.red.shade900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Form(
+                  key: formKey,
+                  child: TextFormField(
+                    controller: passwordController,
+                    obscureText: true,
+                    autofocus: true,
+                    enabled: !isDeleting,
+                    decoration: InputDecoration(
+                      labelText: 'Enter password to confirm',
+                      errorText: errorMessage,
+                      prefixIcon: const Icon(Icons.lock_outline),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) return;
+
+                        setState(() {
+                          isDeleting = true;
+                          errorMessage = null;
+                        });
+
+                        final authNotifier = ref.read(authNotifierProvider.notifier);
+                        final success = await authNotifier.deleteAccount(passwordController.text);
+
+                        if (!success) {
+                          if (context.mounted) {
+                            setState(() {
+                              isDeleting = false;
+                              errorMessage = 'Incorrect password';
+                            });
+                          }
+                          return;
+                        }
+
+                        if (context.mounted) {
+                          Navigator.pop(context, true);
+                          // Navigate to login
+                          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                        }
+                      },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                ),
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Delete Account'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: !isDeleting,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.warning_amber, color: AppTheme.errorColor),
+                const SizedBox(width: 8),
+                const Text('Delete Account'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '删除账户后，该账号的所有数据都会被清空，确定要删除吗？',
+                          style: TextStyle(
+                            color: Colors.red.shade900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Form(
+                  key: formKey,
+                  child: TextFormField(
+                    controller: passwordController,
+                    obscureText: true,
+                    autofocus: true,
+                    enabled: !isDeleting,
+                    decoration: InputDecoration(
+                      labelText: 'Enter password to confirm',
+                      errorText: errorMessage,
+                      prefixIcon: const Icon(Icons.lock_outline),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) return;
+
+                        setState(() {
+                          isDeleting = true;
+                          errorMessage = null;
+                        });
+
+                        final authNotifier = ref.read(authNotifierProvider.notifier);
+                        final success = await authNotifier.deleteAccount(passwordController.text);
+
+                        if (!success) {
+                          if (context.mounted) {
+                            setState(() {
+                              isDeleting = false;
+                              errorMessage = 'Incorrect password';
+                            });
+                          }
+                          return;
+                        }
+
+                        if (context.mounted) {
+                          Navigator.pop(context, true);
+                          // Navigate to login
+                          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                        }
+                      },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                ),
+                child: isDeleting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Delete Account'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    passwordController.dispose();
   }
 }
 

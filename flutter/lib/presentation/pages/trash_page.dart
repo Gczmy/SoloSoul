@@ -26,6 +26,15 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   String _searchQuery = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Load profile if not already loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileNotifierProvider.notifier).loadProfile();
+    });
+  }
+
+  @override
   void dispose() {
     _passwordController.dispose();
     _searchController.dispose();
