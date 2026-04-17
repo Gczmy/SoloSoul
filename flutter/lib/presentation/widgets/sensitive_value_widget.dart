@@ -101,6 +101,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
 
     // Show password dialog
     final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
     // Use verifyPasswordForSensitiveData instead of unlockVault to avoid auth state changes
     // unlockVault changes auth state to loading/unlocked which triggers page rebuilds
     // and causes the revealed state to be lost
@@ -108,6 +109,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
       context: context,
       ref: ref,
       message: 'Restricted field. Enter your master password to view.',
+      passwordHint: selectedAccount?.passwordHint,
       onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
 

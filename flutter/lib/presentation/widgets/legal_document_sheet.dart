@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 /// Shows a legal document (Privacy Policy or Terms of Service) in a scrollable sheet
 Future<void> showLegalDocumentSheet({
@@ -89,11 +90,11 @@ class _LegalDocumentSheet extends StatelessWidget {
 
           // Content
           Expanded(
-            child: SingleChildScrollView(
+            child: Markdown(
+              data: content,
               padding: const EdgeInsets.all(20),
-              child: SelectableText(
-                content,
-                style: theme.textTheme.bodyMedium?.copyWith(
+              styleSheet: MarkdownStyleSheet(
+                p: theme.textTheme.bodyMedium?.copyWith(
                   height: 1.6,
                   color: theme.colorScheme.onSurface,
                 ),
