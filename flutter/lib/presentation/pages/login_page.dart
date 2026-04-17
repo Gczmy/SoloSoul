@@ -625,12 +625,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (selectedAccount.passwordHint != null)
-                        IconButton(
+                      Visibility(
+                        visible: selectedAccount.passwordHint != null,
+                        child: IconButton(
                           icon: const Icon(Icons.help_outline, size: 20),
                           onPressed: () => _showPasswordHint(selectedAccount.passwordHint!),
                           tooltip: 'Show password hint',
                         ),
+                      ),
                       IconButton(
                         icon: Icon(
                           _obscurePassword

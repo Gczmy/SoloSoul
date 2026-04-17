@@ -284,6 +284,7 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
@@ -306,18 +307,18 @@ class SettingsPage extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'SoloSoul',
+                              'SoloSoul 独灵',
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.primaryColor,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             Text(
-                              '独灵',
+                              'Your Local Digital Twin. Privacy-First Universal Identity.',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
+                                height: 1.4,
                               ),
                             ),
                           ],
@@ -326,15 +327,6 @@ class SettingsPage extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Your Local Digital Twin.\nPrivacy-First Universal Identity.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

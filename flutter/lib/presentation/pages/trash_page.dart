@@ -176,13 +176,14 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                         labelText: 'Master Password',
                         errorText: _error,
                         prefixIcon: const Icon(Icons.key),
-                        suffixIcon: hint != null
-                            ? IconButton(
-                                icon: const Icon(Icons.help_outline, size: 20),
-                                onPressed: () => _showPasswordHint(hint),
-                                tooltip: 'Show password hint',
-                              )
-                            : null,
+                        suffixIcon: Visibility(
+                            visible: hint != null,
+                            child: IconButton(
+                              icon: const Icon(Icons.help_outline, size: 20),
+                              onPressed: () => _showPasswordHint(hint!),
+                              tooltip: 'Show password hint',
+                            ),
+                          ),
                       ),
                     );
                   },
