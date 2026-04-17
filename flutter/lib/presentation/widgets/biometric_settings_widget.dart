@@ -90,18 +90,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Test biometric authentication works
-      final success = await biometricService.authenticate(
-        reason: 'Enable biometric unlock for SoloSoul',
-      );
-
-      if (!success) {
-        setState(() => _error = 'Biometric authentication failed');
-        return;
-      }
-
-      // Enable biometric unlock - persist this preference
-      // TODO: Persist biometric enabled state to secure storage
+      // Enable biometric unlock immediately without testing (test is done via Test button)
       setState(() {
         _biometricEnabled = true;
         _error = null;

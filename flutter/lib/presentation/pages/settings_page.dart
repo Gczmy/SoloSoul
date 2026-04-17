@@ -235,6 +235,7 @@ class SettingsPage extends ConsumerWidget {
                       icon: Icons.code,
                       title: 'Version',
                       subtitle: '1.0.0 (dev)',
+                      onTap: () => _showVersionSheet(context),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
