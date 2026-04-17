@@ -885,6 +885,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
         );
       }
     } finally {
+      // Reset flag after operation completes (success or failure)
       if (mounted) {
         setState(() {
           _isRestoring = false;
@@ -901,6 +902,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
     });
 
     try {
+      // Await the entire purge flow: dialog confirmation + actual deletion
       await widget.onPurge(widget.item);
     } catch (e) {
       if (mounted) {
@@ -913,6 +915,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
         );
       }
     } finally {
+      // Reset flag after operation completes (success or failure)
       if (mounted) {
         setState(() {
           _isPurging = false;
