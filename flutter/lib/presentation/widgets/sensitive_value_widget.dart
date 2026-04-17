@@ -100,8 +100,13 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
       message: 'Restricted field. Enter your master password to view.',
       onVerify: authNotifier.unlockVault,
     );
+
+    // Always reset _isVerifying when dialog closes (success, cancel, or error)
+    if (!mounted) return;
+    setState(() => _isVerifying = false);
+
     if (password == null) {
-      setState(() => _isVerifying = false);
+      // User cancelled - just return, do not reveal
       return;
     }
 

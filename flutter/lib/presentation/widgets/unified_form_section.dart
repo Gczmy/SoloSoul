@@ -166,10 +166,12 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       itemType: widget.title,
     );
     if (confirm) {
-      await widget.onDelete(deleted);
+      // Remove from local list immediately for responsive UI
+      // The async onDelete will persist to storage
       setState(() {
         _items = List.from(_items)..removeAt(index);
       });
+      await widget.onDelete(deleted);
     }
   }
 
