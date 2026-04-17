@@ -104,10 +104,10 @@ class SettingsPage extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            // Security Section
+            // Access Section
             SectionCard(
-                  title: 'Security',
-                  icon: Icons.shield_outlined,
+                  title: 'Access',
+                  icon: Icons.lock_outlined,
                   children: [
                     _SettingsTile(
                       icon: Icons.lock_outline,
@@ -128,7 +128,19 @@ class SettingsPage extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     const BiometricSettingsWidget(),
-                    const Divider(height: 1),
+                  ],
+                )
+                .animate()
+                .fadeIn(delay: 100.ms, duration: 400.ms)
+                .slideX(begin: 0.05, end: 0),
+
+            const SizedBox(height: 16),
+
+            // Security Section
+            SectionCard(
+                  title: 'Security',
+                  icon: Icons.shield_outlined,
+                  children: [
                     _SettingsTile(
                       icon: Icons.security_outlined,
                       title: 'Sensitivity Level Settings',
