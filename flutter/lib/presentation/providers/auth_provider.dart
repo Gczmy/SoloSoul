@@ -788,21 +788,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     // Step 4: Update Dart's Keychain with new salt/verify_hash from Rust
     // Rust has already updated config.json with the new credentials
+    Uint8List saltBytes;
     if (rustResult.salt != null && rustResult.verifyHash != null) {
-      final saltBytes = base64Decode(rustResult.salt!);
+      saltBytes = base64Decode(rustResult.salt!);
       final verifyHashBytes = base64Decode(rustResult.verifyHash!);
       await _storage.updateAccountSalt(
         _selectedAccountId!,
-        Uint8List.fromList(saltBytes),
+        saltBytes,
         Uint8List.fromList(verifyHashBytes),
       );
+    } else {
+      return (success: false, error: 'Failed to get new credentials from vault');
     }
 
     // Step 5: Derive new session key from new password and update encryption key
-    final newSalt = base64Decode(rustResult.salt!);
     final newSessionKey = NativeCryptoService.instance.deriveKey(
       password: newPassword,
-      salt: Uint8List.fromList(newSalt),
+      salt: saltBytes,
       memoryKib: 16384,
       iterations: 1,
       parallelism: 4,

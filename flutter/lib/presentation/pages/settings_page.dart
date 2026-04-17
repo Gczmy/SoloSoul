@@ -51,7 +51,7 @@ class SettingsPage extends ConsumerWidget {
                         _SettingsTile(
                           icon: Icons.person_outline,
                           title: 'Current Account',
-                          subtitle: currentAccount?.name ?? 'Unknown',
+                          subtitle: currentAccount?.name ?? selectedId ?? 'Unknown',
                           trailing: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,

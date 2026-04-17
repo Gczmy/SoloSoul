@@ -495,6 +495,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         );
 
     if (mounted) {
+      // Trigger rebuild to remove item from list immediately
+      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${item.itemLabel} permanently deleted'),
@@ -560,6 +562,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               Navigator.pop(context);
               await ref.read(profileNotifierProvider.notifier).emptyAllTrash();
               if (mounted) {
+                // Trigger rebuild to remove all items immediately
+                setState(() {});
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('All $itemCount items permanently deleted'),
