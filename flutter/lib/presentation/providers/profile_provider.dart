@@ -568,9 +568,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Determine if this is a create or update for operation tracking
     final isCreate = oldTravel == null;
 
-    current.travel = travel;
-    state = current;
-    final result = await saveProfile(current);
+    final updated = current.copyWith(travel: travel);
+    state = updated;
+    final result = await saveProfile(updated);
 
     // Update account operation metadata
     if (result) {
@@ -640,9 +640,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Determine if this is a create or update for operation tracking
     final isCreate = oldFinancial == null;
 
-    current.financial = financial;
-    state = current;
-    final result = await saveProfile(current);
+    final updated = current.copyWith(financial: financial);
+    state = updated;
+    final result = await saveProfile(updated);
 
     // Update account operation metadata
     if (result) {
@@ -703,9 +703,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Determine if this is a create or update for operation tracking
     final isCreate = oldProfessional == null;
 
-    current.professional = professional;
-    state = current;
-    final result = await saveProfile(current);
+    final updated = current.copyWith(professional: professional);
+    state = updated;
+    final result = await saveProfile(updated);
 
     // Update account operation metadata
     if (result) {

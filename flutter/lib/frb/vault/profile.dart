@@ -638,6 +638,22 @@ class ProfileData {
     this.preferences,
   });
 
+  ProfileData copyWith({
+    IdentityData? identity,
+    TravelData? travel,
+    FinancialData? financial,
+    ProfessionalData? professional,
+    PreferencesData? preferences,
+  }) {
+    return ProfileData(
+      identity: identity ?? this.identity,
+      travel: travel ?? this.travel,
+      financial: financial ?? this.financial,
+      professional: professional ?? this.professional,
+      preferences: preferences ?? this.preferences,
+    );
+  }
+
   @override
   int get hashCode =>
       identity.hashCode ^
