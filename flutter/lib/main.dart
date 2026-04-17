@@ -14,6 +14,7 @@ import 'package:solosoul_flutter/presentation/pages/professional_page.dart';
 import 'package:solosoul_flutter/presentation/pages/settings_page.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/pages/sensitivity_settings_page.dart';
+import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
@@ -152,6 +153,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
           '/settings': (context) => const SettingsPage(),
           '/operation_log': (context) => const OperationLogPage(),
           '/sensitivity_settings': (context) => const SensitivitySettingsPage(),
+          '/trash': (context) => const TrashPage(),
         },
       ),
     );

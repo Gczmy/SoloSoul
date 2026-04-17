@@ -183,6 +183,13 @@ class HomePage extends ConsumerWidget {
               onTap: () => Navigator.pushNamed(context, '/settings'),
             ),
 
+            _QuickActionCard(
+              icon: Icons.delete_outline,
+              title: 'Trash',
+              subtitle: 'View and restore deleted items',
+              onTap: () => Navigator.pushNamed(context, '/trash'),
+            ),
+
             const SizedBox(height: 32),
 
             // Security status
