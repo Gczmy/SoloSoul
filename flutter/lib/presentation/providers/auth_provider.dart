@@ -721,8 +721,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     RustVaultService.instance.lockVault();
     // Clear encryption key
     _profileStorage.clearEncryptionKey();
-    _selectedAccountId = null;
-    _selectedAccountInfo = null;
+    // Keep _selectedAccountId and _selectedAccountInfo so user can re-unlock
     state = AuthState.locked;
   }
 
@@ -753,9 +752,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Change master password for current account
-  /// 1. Call Rust's change_password to update config.json and get new credentials
-  /// 2. Update Dart's Keychain with new salt/verify_hash
-  /// 3. Re-encrypt profile with new key
+  /// 1. Unlock vault with current password to verify
+  /// 2. Load profile data with current encryption key
+  /// 3. Call Rust's change_password to update config.json and get new credentials
+  /// 4. Update Dart's Keychain with new salt/verify_hash
+  /// 5. Derive new session key and re-save profile with new encryption
   Future<({bool success, String? error})> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -765,7 +766,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return (success: false, error: 'No account selected');
     }
 
-    // Step 1: Call Rust to change password (updates Rust's config.json)
+    // Step 1: Unlock vault with current password to verify identity
+    final isUnlocked = await unlockVault(currentPassword);
+    if (!isUnlocked) {
+      return (success: false, error: 'Invalid current password');
+    }
+
+    // Step 2: Load profile data with current encryption key BEFORE password change
+    final currentProfile = await _profileStorage.loadProfile(_selectedAccountId!);
+
+    // Step 3: Call Rust to change password (updates Rust's config.json)
     final rustResult = NativeVaultService.instance.changePassword(
       accountId: _selectedAccountId!,
       oldPassword: currentPassword,
@@ -776,15 +786,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return (success: false, error: rustResult?.error ?? 'Failed to change password in vault');
     }
 
-    // Step 2: Get current profile data with OLD encryption key before updating
-    // First unlock with old password to get the data
-    final isUnlocked = await unlockVault(currentPassword);
-    if (!isUnlocked) {
-      return (success: false, error: 'Failed to unlock vault with current password');
-    }
-    final currentProfile = await _profileStorage.loadProfile(_selectedAccountId!);
-
-    // Step 3: Update Dart's Keychain with new salt/verify_hash from Rust
+    // Step 4: Update Dart's Keychain with new salt/verify_hash from Rust
     // Rust has already updated config.json with the new credentials
     if (rustResult.salt != null && rustResult.verifyHash != null) {
       final saltBytes = base64Decode(rustResult.salt!);
@@ -796,7 +798,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     }
 
-    // Step 4: Derive new session key from new password and update encryption key
+    // Step 5: Derive new session key from new password and update encryption key
     final newSalt = base64Decode(rustResult.salt!);
     final newSessionKey = NativeCryptoService.instance.deriveKey(
       password: newPassword,
@@ -809,13 +811,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return (success: false, error: 'Failed to derive new session key');
     }
 
-    // Step 5: Update encryption key and re-save profile if it exists
+    // Step 6: Update encryption key and re-save profile if it exists
     _profileStorage.setEncryptionKey(newSessionKey);
     if (currentProfile != null) {
       await _profileStorage.saveProfile(_selectedAccountId!, currentProfile);
     }
 
-    // Step 6: Update password hint if provided
+    // Step 7: Update password hint if provided
     if (newPasswordHint != null) {
       await _updateAccountPasswordHint(_selectedAccountId!, newPasswordHint);
     }
