@@ -51,9 +51,11 @@ Future<bool> verifyPasswordForRestrictedField({
 
   // Show password dialog
   final authNotifier = ref.read(authNotifierProvider.notifier);
+  final selectedAccount = authNotifier.selectedAccount;
   final password = await showPasswordVerificationDialog(
     context: context,
     ref: ref,
+    passwordHint: selectedAccount?.passwordHint,
     onVerify: authNotifier.verifyPasswordForSensitiveData,
   );
   if (password == null) {

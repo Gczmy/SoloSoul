@@ -6,6 +6,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.dart';
+import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 
 // Forward declaration for accounts provider
 final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
@@ -107,6 +110,26 @@ class SettingsPage extends ConsumerWidget {
                   icon: Icons.shield_outlined,
                   children: [
                     _SettingsTile(
+                      icon: Icons.lock_outline,
+                      title: 'Lock Vault',
+                      subtitle: 'Lock now and require password',
+                      onTap: () {
+                        final authNotifier = ref.read(authNotifierProvider.notifier);
+                        authNotifier.lockVault();
+                        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.password_outlined,
+                      title: 'Change Master Password',
+                      subtitle: 'Update your vault password',
+                      onTap: () => showChangePasswordDialog(context: context, ref: ref),
+                    ),
+                    const Divider(height: 1),
+                    const BiometricSettingsWidget(),
+                    const Divider(height: 1),
+                    _SettingsTile(
                       icon: Icons.security_outlined,
                       title: 'Sensitivity Level Settings',
                       subtitle: 'Configure field sensitivity',
@@ -179,14 +202,22 @@ class SettingsPage extends ConsumerWidget {
                       icon: Icons.description_outlined,
                       title: 'Privacy Policy',
                       subtitle: 'View our privacy policy',
-                      onTap: () {},
+                      onTap: () => showLegalDocumentSheet(
+                        context: context,
+                        title: 'Privacy Policy',
+                        filePath: '${Directory.current.path}/docs/PRIVACY_POLICY.md',
+                      ),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
                       icon: Icons.article_outlined,
                       title: 'Terms of Service',
                       subtitle: 'View terms of service',
-                      onTap: () {},
+                      onTap: () => showLegalDocumentSheet(
+                        context: context,
+                        title: 'Terms of Service',
+                        filePath: '${Directory.current.path}/docs/TERMS_OF_SERVICE.md',
+                      ),
                     ),
                   ],
                 )

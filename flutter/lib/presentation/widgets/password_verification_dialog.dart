@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,12 +17,14 @@ Future<String?> showPasswordVerificationDialog({
   required BuildContext context,
   required WidgetRef ref,
   String message = 'Restricted field. Enter your master password to proceed.',
+  String? passwordHint,
   required Future<bool> Function(String password) onVerify,
 }) async {
   final controller = TextEditingController();
   String? error;
   bool isVerifyingDialog = false;
   bool isPasswordEmpty = true;
+  bool showHintBanner = false;
 
   return showDialog<String>(
     context: context,
@@ -59,9 +62,44 @@ Future<String?> showPasswordVerificationDialog({
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),
+                    if (passwordHint != null) ...[
+                      const SizedBox(width: 4),
+                      InkWell(
+                        onTap: () {
+                          setDialogState(() => showHintBanner = !showHintBanner);
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                showHintBanner ? Icons.visibility_off : Icons.help_outline,
+                                color: Colors.orange.shade700,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                showHintBanner ? 'Hide Hint' : 'Hint',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
+              if (showHintBanner && passwordHint != null) ...[
+                const SizedBox(height: 8),
+                _HintBanner(hint: passwordHint),
+              ],
               const SizedBox(height: 16),
               TextField(
                 controller: controller,
@@ -137,4 +175,53 @@ Future<String?> showPasswordVerificationDialog({
       },
     ),
   );
+}
+
+/// Overlay hint banner that shows password hint, auto-hides after 4 seconds
+class _HintBanner extends StatefulWidget {
+  final String hint;
+
+  const _HintBanner({required this.hint});
+
+  @override
+  State<_HintBanner> createState() => _HintBannerState();
+}
+
+class _HintBannerState extends State<_HintBanner> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto-hide after 4 seconds
+    Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        Navigator.of(context).maybePop();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.amber.shade100,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(Icons.lightbulb_outline, color: Colors.amber.shade800, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.hint,
+                style: TextStyle(
+                  color: Colors.amber.shade900,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
