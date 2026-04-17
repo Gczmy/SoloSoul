@@ -458,8 +458,8 @@ class SettingsPage extends ConsumerWidget {
 
     await showDialog<bool>(
       context: context,
-      barrierDismissible: !isDeleting,
-      builder: (context) => StatefulBuilder(
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
             title: Row(
