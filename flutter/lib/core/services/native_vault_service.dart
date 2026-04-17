@@ -130,6 +130,7 @@ class NativeVaultService {
   static const String actionUnlockVault = 'unlock_vault';
   static const String actionLockVault = 'lock_vault';
   static const String actionCreateAccount = 'create_account';
+  static const String actionDeleteAccount = 'delete_account';
 
   /// Make a vault request and return the response
   Map<String, dynamic>? _request(String action, [Map<String, dynamic>? payload]) {
@@ -345,5 +346,11 @@ class NativeVaultService {
       verifyHash: data['verify_hash'] as String?,
       cryptoVersion: data['crypto_version'] as int?,
     );
+  }
+
+  /// Delete an account and all its data from Rust vault
+  bool deleteAccount({required String accountId}) {
+    final response = _request(actionDeleteAccount, {'account_id': accountId});
+    return _isSuccess(response);
   }
 }

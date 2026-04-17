@@ -740,7 +740,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final isValid = await _storage.verifyPassword(_selectedAccountId!, password);
     if (!isValid) return false;
 
-    // Delete the account
+    // Delete the account from Rust vault first (removes from accounts.json and deletes account directory)
+    RustVaultService.instance.deleteAccount(_selectedAccountId!);
+
+    // Delete the account from Dart's Keychain
     final success = await _storage.deleteAccount(_selectedAccountId!);
     if (success) {
       _profileStorage.clearEncryptionKey();

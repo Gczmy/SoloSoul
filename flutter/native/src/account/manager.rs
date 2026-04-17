@@ -584,6 +584,27 @@ impl AccountManager {
             last_accessed: None,
         })
     }
+
+    /// Delete an account and all its data
+    pub fn delete_account(&self, account_id: &str) -> Result<(), String> {
+        // Remove from accounts cache
+        {
+            let mut cache = self.accounts_cache.write().unwrap();
+            cache.remove(account_id);
+        }
+
+        // Save updated accounts cache
+        self.save_accounts_cache()?;
+
+        // Delete account directory and all its data
+        let account_dir = self.account_dir(account_id);
+        if account_dir.exists() {
+            fs::remove_dir_all(&account_dir)
+                .map_err(|e| format!("Failed to delete account directory: {}", e))?;
+        }
+
+        Ok(())
+    }
 }
 
 /// Simple base64 encoding (URL-safe, no padding)

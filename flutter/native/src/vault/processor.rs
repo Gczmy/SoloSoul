@@ -120,6 +120,7 @@ pub fn handle_vault_request(
         "create_account" => handle_create_account(request.payload, account_manager),
         "change_password" => handle_change_password(request.payload, account_manager),
         "get_account_config" => handle_get_account_config(request.payload, account_manager),
+        "delete_account" => handle_delete_account(request.payload, account_manager),
         "search_profiles" => handle_search_profiles(request.payload, account_manager),
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
@@ -410,6 +411,23 @@ fn handle_get_account_config(payload: Option<serde_json::Value>, manager: &Accou
             "crypto_version": info.crypto_version,
         })),
         None => VaultResponse::error("Account not found".to_string()),
+    }
+}
+
+fn handle_delete_account(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let account_id = match payload {
+        Some(p) => {
+            match p.get("account_id").and_then(|v| v.as_str()) {
+                Some(id) => id.to_string(),
+                None => return VaultResponse::error("Missing account_id".to_string()),
+            }
+        }
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    match manager.delete_account(&account_id) {
+        Ok(()) => VaultResponse::success(serde_json::json!({"deleted": true})),
+        Err(e) => VaultResponse::error(format!("Failed to delete account: {}", e)),
     }
 }
 

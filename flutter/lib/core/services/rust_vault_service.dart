@@ -192,6 +192,11 @@ class RustVaultService {
     NativeVaultService.instance.lockVault();
   }
 
+  /// Delete an account and all its data from Rust vault
+  bool deleteAccount(String accountId) {
+    return NativeVaultService.instance.deleteAccount(accountId: accountId);
+  }
+
   /// Get vault statistics
   Map<String, dynamic>? getVaultStats() {
     return NativeVaultService.instance.getVaultStats();
