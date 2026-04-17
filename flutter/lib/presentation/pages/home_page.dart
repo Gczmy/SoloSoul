@@ -177,17 +177,17 @@ class HomePage extends ConsumerWidget {
             ),
 
             _QuickActionCard(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
-              subtitle: 'Account, security, sync',
-              onTap: () => Navigator.pushNamed(context, '/settings'),
-            ),
-
-            _QuickActionCard(
               icon: Icons.delete_outline,
               title: 'Trash',
               subtitle: 'View and restore deleted items',
               onTap: () => Navigator.pushNamed(context, '/trash'),
+            ),
+
+            _QuickActionCard(
+              icon: Icons.settings_outlined,
+              title: 'Settings',
+              subtitle: 'Account, security, sync',
+              onTap: () => Navigator.pushNamed(context, '/settings'),
             ),
 
             const SizedBox(height: 32),

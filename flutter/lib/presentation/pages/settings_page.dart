@@ -235,7 +235,6 @@ class SettingsPage extends ConsumerWidget {
                       icon: Icons.code,
                       title: 'Version',
                       subtitle: '1.0.0 (dev)',
-                      onTap: () => _showVersionSheet(context),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -955,8 +954,7 @@ class _VersionSheet extends StatelessWidget {
                     icon: Icons.phone_android,
                     title: 'Platform',
                     value:
-                        Platform.operatingSystem[0].toUpperCase() +
-                        Platform.operatingSystem.substring(1),
+                        Platform.isMacOS ? 'macOS' : Platform.operatingSystem[0].toUpperCase() + Platform.operatingSystem.substring(1),
                   ),
                   const Divider(height: 1),
                   _VersionInfoTile(
