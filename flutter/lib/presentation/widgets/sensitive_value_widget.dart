@@ -28,6 +28,7 @@ class SensitiveValueWidget extends ConsumerStatefulWidget {
 
 class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
   bool _isRevealed = false;
+  bool _userExplicitlyHid = false;
   Timer? _autoHideTimer;
   bool _isVerifying = false;
 
@@ -47,7 +48,10 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     // Auto-hide after 30 seconds
     _autoHideTimer = Timer(const Duration(seconds: 30), () {
       if (mounted) {
-        setState(() => _isRevealed = false);
+        setState(() {
+          _isRevealed = false;
+          _userExplicitlyHid = true;
+        });
       }
     });
   }
@@ -56,7 +60,10 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     // If already revealed, toggle to hide
     if (_isRevealed) {
       _cancelAutoHide();
-      setState(() => _isRevealed = false);
+      setState(() {
+        _isRevealed = false;
+        _userExplicitlyHid = true;
+      });
       return;
     }
 
@@ -167,8 +174,8 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     }
 
     // For restricted fields, check if recently verified - if so, auto-reveal
-    // This ensures revealed state persists across rebuilds
-    final bool revealed = (fieldLevel == SensitivityLevel.restricted && hasRecentVerification)
+    // But if user explicitly hid it, respect their choice
+    final bool revealed = (fieldLevel == SensitivityLevel.restricted && hasRecentVerification && !_userExplicitlyHid)
         ? true
         : _isRevealed;
     final String displayText = revealed ? widget.value : _maskedValue(widget.value);

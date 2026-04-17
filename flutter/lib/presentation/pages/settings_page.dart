@@ -217,7 +217,7 @@ class SettingsPage extends ConsumerWidget {
                       onTap: () => showLegalDocumentSheet(
                         context: context,
                         title: 'Privacy Policy',
-                        filePath: '${Directory.current.parent.path}/docs/PRIVACY_POLICY.md',
+                        assetPath: 'assets/docs/PRIVACY_POLICY.md',
                       ),
                     ),
                     const Divider(height: 1),
@@ -228,7 +228,7 @@ class SettingsPage extends ConsumerWidget {
                       onTap: () => showLegalDocumentSheet(
                         context: context,
                         title: 'Terms of Service',
-                        filePath: '${Directory.current.parent.path}/docs/TERMS_OF_SERVICE.md',
+                        assetPath: 'assets/docs/TERMS_OF_SERVICE.md',
                       ),
                     ),
                   ],

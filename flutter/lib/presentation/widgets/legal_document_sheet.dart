@@ -1,20 +1,15 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Shows a legal document (Privacy Policy or Terms of Service) in a scrollable sheet
 Future<void> showLegalDocumentSheet({
   required BuildContext context,
   required String title,
-  required String filePath,
+  required String assetPath,
 }) async {
   String content = '';
   try {
-    final file = File(filePath);
-    if (await file.exists()) {
-      content = await file.readAsString();
-    } else {
-      content = 'Document not found: $filePath';
-    }
+    content = await rootBundle.loadString(assetPath);
   } catch (e) {
     content = 'Error loading document: $e';
   }
