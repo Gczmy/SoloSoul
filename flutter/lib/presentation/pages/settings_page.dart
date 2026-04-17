@@ -266,19 +266,19 @@ class SettingsPage extends ConsumerWidget {
 
             const SizedBox(height: 32),
 
-            // Danger Zone Section
-            SectionCard(
-              title: 'Danger Zone',
-              icon: Icons.warning_outlined,
-              titleColor: AppTheme.errorColor,
-              children: [
-                _SettingsTile(
-                  icon: Icons.delete_forever_outlined,
-                  title: 'Delete Account',
-                  subtitle: 'Permanently delete this account and all data',
-                  onTap: () => _confirmDeleteAccount(context, ref),
-                ),
-              ],
+            // Delete Account
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTheme.errorColor),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: _SettingsTile(
+                icon: Icons.delete_forever_outlined,
+                title: 'Delete Account',
+                subtitle: 'Permanently delete this account and all data',
+                iconColor: AppTheme.errorColor,
+                onTap: () => _confirmDeleteAccount(context, ref),
+              ),
             ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05, end: 0),
 
             const SizedBox(height: 32),
@@ -1296,6 +1296,7 @@ class _SettingsTile extends StatelessWidget {
   final String subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final Color? iconColor;
 
   const _SettingsTile({
     required this.icon,
@@ -1303,6 +1304,7 @@ class _SettingsTile extends StatelessWidget {
     required this.subtitle,
     this.trailing,
     this.onTap,
+    this.iconColor,
   });
 
   @override
@@ -1315,7 +1317,7 @@ class _SettingsTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+            Icon(icon, size: 20, color: iconColor ?? theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
