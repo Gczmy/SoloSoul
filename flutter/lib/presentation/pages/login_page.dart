@@ -97,6 +97,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } else if (mounted) {
       setState(() => _isLoading = false);
+      _passwordController.clear();
       showOverlaySnackBar(context, content: 'Invalid master password', type: SnackBarType.error);
     }
   }
