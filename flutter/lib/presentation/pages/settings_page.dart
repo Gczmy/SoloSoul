@@ -124,7 +124,35 @@ class SettingsPage extends ConsumerWidget {
                       icon: Icons.password_outlined,
                       title: 'Change Master Password',
                       subtitle: 'Update your vault password',
-                      onTap: () => showChangePasswordDialog(context: context, ref: ref),
+                      onTap: () async {
+                        final success = await showChangePasswordDialog(
+                          context: context,
+                          ref: ref,
+                        );
+                        if (success && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Master password changed successfully'),
+                                ],
+                              ),
+                              backgroundColor: AppTheme.successColor,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              margin: const EdgeInsets.all(16),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const Divider(height: 1),
                     const BiometricSettingsWidget(),
