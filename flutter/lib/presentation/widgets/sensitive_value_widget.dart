@@ -138,6 +138,12 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final isPrivacyShieldEnabled = settings.displayMode == SensitivityDisplayMode.hidePrivate;
     final fieldLevel = settings.getFieldLevel(widget.fieldId);
 
+    // Watch sensitive page access to detect recent verification
+    final sensitiveAccess = ref.watch(sensitivePageAccessProvider);
+    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+
     // Determine if we should mask this field
     bool shouldMask = false;
     switch (fieldLevel) {
@@ -160,8 +166,11 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
       return widget.child ?? SelectableText(widget.value);
     }
 
-    // Determine display content and icon based on state
-    final bool revealed = _isRevealed;
+    // For restricted fields, check if recently verified - if so, auto-reveal
+    // This ensures revealed state persists across rebuilds
+    final bool revealed = (fieldLevel == SensitivityLevel.restricted && hasRecentVerification)
+        ? true
+        : _isRevealed;
     final String displayText = revealed ? widget.value : _maskedValue(widget.value);
     final bool isMasked = !revealed;
     final IconData icon = _isVerifying

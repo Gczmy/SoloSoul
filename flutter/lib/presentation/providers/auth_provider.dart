@@ -725,10 +725,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
 
     // Step 2: Get current profile data (now with encryption key properly set)
+    // If profile doesn't exist yet (new account with no data), that's OK - skip re-encryption
     final currentProfile = await _profileStorage.loadProfile(_selectedAccountId!);
-    if (currentProfile == null) {
-      return (success: false, error: 'Failed to load profile');
-    }
 
     // Step 3: Generate new salt and derive new key
     final newSalt = NativeCryptoService.instance.generateSalt();
@@ -750,8 +748,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // Step 4: Update encryption key for profile re-encryption
     _profileStorage.setEncryptionKey(newVerifyKey);
 
-    // Step 5: Re-save profile (will re-encrypt with new key)
-    await _profileStorage.saveProfile(_selectedAccountId!, currentProfile);
+    // Step 5: Re-save profile if it exists (will re-encrypt with new key)
+    if (currentProfile != null) {
+      await _profileStorage.saveProfile(_selectedAccountId!, currentProfile);
+    }
 
     // Step 6: Update stored account credentials
     await _storage.updateAccountSalt(

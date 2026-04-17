@@ -806,67 +806,69 @@ class _VersionSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                // App icon
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  // App icon
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.account_circle,
+                      size: 40,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.account_circle,
-                    size: 40,
-                    color: AppTheme.primaryColor,
+                  const SizedBox(height: 16),
+                  Text(
+                    'SoloSoul',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'SoloSoul',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Version info items
-                _VersionInfoTile(
-                  icon: Icons.info_outline,
-                  title: 'Current Version',
-                  value: currentVersion,
-                ),
-                const Divider(height: 1),
-                _VersionInfoTile(
-                  icon: Icons.cloud_download_outlined,
-                  title: 'Latest Version',
-                  value: latestVersion,
-                ),
-                const Divider(height: 1),
-                _VersionInfoTile(
-                  icon: hasUpdate ? Icons.update : Icons.check_circle_outline,
-                  title: 'Update Status',
-                  value: hasUpdate ? 'Update available' : 'Up to date',
-                  valueColor: hasUpdate ? Colors.orange : AppTheme.successColor,
-                ),
-                const Divider(height: 1),
-                _VersionInfoTile(
-                  icon: Icons.phone_android,
-                  title: 'Platform',
-                  value:
-                      Platform.operatingSystem[0].toUpperCase() +
-                      Platform.operatingSystem.substring(1),
-                ),
-                const Divider(height: 1),
-                _VersionInfoTile(
-                  icon: Icons.code,
-                  title: 'Build Type',
-                  value: 'Development',
-                ),
-              ],
+                  // Version info items
+                  _VersionInfoTile(
+                    icon: Icons.info_outline,
+                    title: 'Current Version',
+                    value: currentVersion,
+                  ),
+                  const Divider(height: 1),
+                  _VersionInfoTile(
+                    icon: Icons.cloud_download_outlined,
+                    title: 'Latest Version',
+                    value: latestVersion,
+                  ),
+                  const Divider(height: 1),
+                  _VersionInfoTile(
+                    icon: hasUpdate ? Icons.update : Icons.check_circle_outline,
+                    title: 'Update Status',
+                    value: hasUpdate ? 'Update available' : 'Up to date',
+                    valueColor: hasUpdate ? Colors.orange : AppTheme.successColor,
+                  ),
+                  const Divider(height: 1),
+                  _VersionInfoTile(
+                    icon: Icons.phone_android,
+                    title: 'Platform',
+                    value:
+                        Platform.operatingSystem[0].toUpperCase() +
+                        Platform.operatingSystem.substring(1),
+                  ),
+                  const Divider(height: 1),
+                  _VersionInfoTile(
+                    icon: Icons.code,
+                    title: 'Build Type',
+                    value: 'Development',
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),
