@@ -1,0 +1,819 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
+import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+
+/// Device info for tracking recent device logins
+class DeviceInfo {
+  final String deviceName;
+  final DateTime lastUsed;
+  const DeviceInfo({required this.deviceName, required this.lastUsed});
+
+  factory DeviceInfo.fromJson(Map<String, dynamic> json) {
+    return DeviceInfo(
+      deviceName: json['device_name'] as String,
+      lastUsed: DateTime.parse(json['last_used'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'device_name': deviceName,
+    'last_used': lastUsed.toIso8601String(),
+  };
+}
+
+/// Account info
+class AccountInfo {
+  final String id;
+  final String name;
+  final String? passwordHint;
+  final DateTime? lastAccessed;
+  final DateTime? createdAt;
+  final DateTime? lastLoginAt;
+  final DateTime? lastOperationAt;
+  final String? lastOperationDesc;
+  final List<DeviceInfo> recentDevices;
+
+  const AccountInfo({
+    required this.id,
+    required this.name,
+    this.passwordHint,
+    this.lastAccessed,
+    this.createdAt,
+    this.lastLoginAt,
+    this.lastOperationAt,
+    this.lastOperationDesc,
+    this.recentDevices = const [],
+  });
+
+  factory AccountInfo.fromJson(Map<String, dynamic> json) {
+    return AccountInfo(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      passwordHint: json['password_hint'] as String?,
+      lastAccessed: json['last_accessed'] != null
+          ? DateTime.parse(json['last_accessed'] as String)
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : null,
+      lastLoginAt: json['last_login_at'] != null
+          ? DateTime.parse(json['last_login_at'] as String)
+          : null,
+      lastOperationAt: json['last_operation_at'] != null
+          ? DateTime.parse(json['last_operation_at'] as String)
+          : null,
+      lastOperationDesc: json['last_operation_desc'] as String?,
+      recentDevices: (json['recent_devices'] as List<dynamic>?)
+              ?.map((e) => DeviceInfo.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'password_hint': passwordHint,
+    'last_accessed': lastAccessed?.toIso8601String(),
+    'created_at': createdAt?.toIso8601String(),
+    'last_login_at': lastLoginAt?.toIso8601String(),
+    'last_operation_at': lastOperationAt?.toIso8601String(),
+    'last_operation_desc': lastOperationDesc,
+    'recent_devices': recentDevices.map((e) => e.toJson()).toList(),
+  };
+}
+
+/// Auth state
+enum AuthState { initial, locked, unlocked, loading }
+
+/// Secure storage for account data using FlutterSecureStorage (Keychain on macOS)
+class SecureAccountStorage {
+  static const _accountsKey = 'solosoul_accounts';
+  static const _accountDataPrefix = 'solosoul_account_';
+
+  const SecureAccountStorage._();
+
+  static const SecureAccountStorage _instance = SecureAccountStorage._();
+  static SecureAccountStorage get instance => _instance;
+
+  FlutterSecureStorage get _secureStorage {
+    // FlutterSecureStorage uses Keychain on macOS automatically
+    return const FlutterSecureStorage();
+  }
+
+  /// List all accounts
+  Future<List<AccountInfo>> listAccounts() async {
+    final data = await _secureStorage.read(key: _accountsKey);
+
+    if (data == null || data.isEmpty) {
+      return [];
+    }
+
+    final decoded = jsonDecode(data) as List<dynamic>;
+    final accounts = decoded.map((e) => AccountInfo.fromJson(e as Map<String, dynamic>)).toList();
+
+    return accounts;
+  }
+
+  /// Save accounts list
+  Future<void> _saveAccounts(List<AccountInfo> accounts) async {
+    final jsonData = jsonEncode(accounts.map((e) => e.toJson()).toList());
+    await _secureStorage.write(
+      key: _accountsKey,
+      value: jsonData,
+    );
+  }
+
+  /// Get account data (includes password hash)
+  Future<Map<String, dynamic>?> getAccountData(String id) async {
+    final data = await _secureStorage.read(key: '$_accountDataPrefix$id');
+    if (data == null) {
+      return null;
+    }
+    return jsonDecode(data) as Map<String, dynamic>;
+  }
+
+  /// Save account data
+  Future<void> saveAccountData(String id, Map<String, dynamic> data) async {
+    await _secureStorage.write(
+      key: '$_accountDataPrefix$id',
+      value: jsonEncode(data),
+    );
+  }
+
+  /// Create a new account using Argon2id from Rust
+  /// [salt] and [verifyHashFromRust] - if provided, store them directly instead of deriving
+  /// This ensures Dart and Rust store identical verification data
+  Future<({bool success, String? error, AccountInfo? account, Uint8List? sessionKey})> createAccount(
+    String name,
+    String password, {
+    String? passwordHint,
+    String? accountId,
+    String? salt,               // Optional: Rust-generated salt (Base64)
+    String? verifyHashFromRust, // Optional: Rust-generated verify_hash (Hex)
+  }) async {
+    // Validation
+    if (name.trim().isEmpty) {
+      return (success: false, error: 'Account name is required', account: null, sessionKey: null);
+    }
+    if (password.length < 8) {
+      return (
+        success: false,
+        error: 'Password must be at least 8 characters',
+        account: null,
+        sessionKey: null,
+      );
+    }
+
+    // Check if name is available
+    final accounts = await listAccounts();
+    if (accounts.any((a) => a.name.toLowerCase() == name.toLowerCase())) {
+      return (
+        success: false,
+        error: 'This account name is already taken',
+        account: null,
+        sessionKey: null,
+      );
+    }
+
+    // Use provided accountId or generate one
+    final effectiveAccountId = accountId ?? 'acc_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Use provided salt/verifyHash or generate using Dart's algorithm
+    String saltToStore;
+    String hashToStore;
+    Uint8List? sessionKey;
+
+    if (salt != null && verifyHashFromRust != null) {
+      // Use Rust-provided values (consistent with Rust vault)
+      saltToStore = salt;
+      hashToStore = verifyHashFromRust;
+      // Also derive session key for profile encryption
+      sessionKey = NativeCryptoService.instance.deriveKey(
+        password: password,
+        salt: base64Decode(salt),
+        memoryKib: 16384,
+        iterations: 1,
+        parallelism: 4,
+      );
+    } else {
+      // Fallback: generate using Dart's algorithm (for backwards compat)
+      final dartSalt = NativeCryptoService.instance.generateSalt();
+      if (dartSalt == null) {
+        return (success: false, error: 'Failed to generate salt', account: null, sessionKey: null);
+      }
+      saltToStore = base64Encode(dartSalt);
+      final verifyKey = NativeCryptoService.instance.deriveKey(
+        password: password,
+        salt: dartSalt,
+        memoryKib: 16384,
+        iterations: 1,
+        parallelism: 4,
+      );
+      if (verifyKey == null) {
+        return (success: false, error: 'Failed to derive key', account: null, sessionKey: null);
+      }
+      hashToStore = base64Encode(verifyKey);
+      sessionKey = verifyKey;
+    }
+
+    // Create account metadata
+    final now = DateTime.now();
+    final account = AccountInfo(
+      id: effectiveAccountId,
+      name: name.trim(),
+      passwordHint: passwordHint,
+      lastAccessed: now,
+      createdAt: now,
+      lastLoginAt: now,
+    );
+
+    // Save account data (salt + verify hash) to Keychain
+    await saveAccountData(effectiveAccountId, {
+      'salt': saltToStore,
+      'verify_hash': hashToStore,
+    });
+
+    // Add to accounts list
+    accounts.add(account);
+    await _saveAccounts(accounts);
+
+    return (success: true, error: null, account: account, sessionKey: sessionKey);
+  }
+
+  /// Unlock account with password using Argon2id from Rust
+  Future<({bool success, String? error, Uint8List? sessionKey})> unlockAccount(
+    String accountId,
+    String password,
+  ) async {
+    final accountData = await getAccountData(accountId);
+    if (accountData == null) {
+      return (success: false, error: 'Account not found', sessionKey: null);
+    }
+
+    final salt = base64Decode(accountData['salt'] as String);
+    final storedHash = accountData['verify_hash'] as String;
+
+    // Derive key from provided password using Argon2id
+    final derivedKey = NativeCryptoService.instance.deriveKey(
+      password: password,
+      salt: Uint8List.fromList(salt),
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+
+    if (derivedKey == null) {
+      return (success: false, error: 'Key derivation failed', sessionKey: null);
+    }
+
+    final derivedHash = base64Encode(derivedKey);
+
+    if (derivedHash != storedHash) {
+      return (success: false, error: 'Invalid password', sessionKey: null);
+    }
+
+    // Update last accessed and last login
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      final existing = accounts[idx];
+      accounts[idx] = AccountInfo(
+        id: existing.id,
+        name: existing.name,
+        passwordHint: existing.passwordHint,
+        lastAccessed: DateTime.now(),
+        createdAt: existing.createdAt,
+        lastLoginAt: DateTime.now(),
+        lastOperationAt: existing.lastOperationAt,
+        lastOperationDesc: existing.lastOperationDesc,
+        recentDevices: existing.recentDevices,
+      );
+      await _saveAccounts(accounts);
+    }
+
+    return (success: true, error: null, sessionKey: derivedKey);
+  }
+
+  /// Verify password before deletion
+  Future<bool> verifyPassword(String accountId, String password) async {
+    final accountData = await getAccountData(accountId);
+    if (accountData == null) return false;
+
+    final salt = base64Decode(accountData['salt'] as String);
+    final storedHash = accountData['verify_hash'] as String;
+
+    final derivedKey = NativeCryptoService.instance.deriveKey(
+      password: password,
+      salt: Uint8List.fromList(salt),
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+
+    if (derivedKey == null) return false;
+
+    return base64Encode(derivedKey) == storedHash;
+  }
+
+  /// Delete an account and all its data
+  Future<bool> deleteAccount(String accountId) async {
+    try {
+      // Remove from accounts list
+      final accounts = await listAccounts();
+      accounts.removeWhere((a) => a.id == accountId);
+      await _saveAccounts(accounts);
+
+      // Delete account data from Keychain
+      await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Update account salt and verification hash (for password change)
+  Future<void> updateAccountSalt(String accountId, Uint8List salt, Uint8List verifyHash) async {
+    await saveAccountData(accountId, {
+      'salt': base64Encode(salt),
+      'verify_hash': base64Encode(verifyHash),
+    });
+  }
+
+  /// Update crypto version marker for account migration
+  /// Returns true if update was successful
+  Future<bool> updateAccountCryptoVersion(String accountId, int cryptoVersion) async {
+    final data = await getAccountData(accountId);
+    if (data == null) return false;
+    data['crypto_version'] = cryptoVersion;
+    await saveAccountData(accountId, data);
+    return true;
+  }
+
+  /// Update account operation metadata (last operation time and description)
+  Future<void> updateAccountOperation(String accountId, String operationDesc) async {
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      final existing = accounts[idx];
+      accounts[idx] = AccountInfo(
+        id: existing.id,
+        name: existing.name,
+        passwordHint: existing.passwordHint,
+        lastAccessed: existing.lastAccessed,
+        createdAt: existing.createdAt,
+        lastLoginAt: existing.lastLoginAt,
+        lastOperationAt: DateTime.now(),
+        lastOperationDesc: operationDesc,
+        recentDevices: existing.recentDevices,
+      );
+      await _saveAccounts(accounts);
+    }
+  }
+
+  /// Update account metadata (lastLoginAt, lastOperationAt, device info)
+  Future<void> updateAccountMetadata(
+    String accountId, {
+    DateTime? lastLoginAt,
+    DateTime? lastOperationAt,
+    String? lastOperationDesc,
+    Map<String, dynamic>? device,
+  }) async {
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx < 0) return;
+
+    final existing = accounts[idx];
+    final recentDevices = List<DeviceInfo>.from(existing.recentDevices);
+
+    if (device != null) {
+      final existingIdx = recentDevices.indexWhere(
+        (d) => d.deviceName == device['device_name'],
+      );
+      if (existingIdx >= 0) {
+        recentDevices[existingIdx] = DeviceInfo(
+          deviceName: device['device_name'] as String,
+          lastUsed: DateTime.parse(device['last_used'] as String),
+        );
+      } else {
+        if (recentDevices.length >= 5) {
+          recentDevices.removeAt(0);
+        }
+        recentDevices.add(DeviceInfo(
+          deviceName: device['device_name'] as String,
+          lastUsed: DateTime.parse(device['last_used'] as String),
+        ));
+      }
+    }
+
+    accounts[idx] = AccountInfo(
+      id: existing.id,
+      name: existing.name,
+      passwordHint: existing.passwordHint,
+      lastAccessed: existing.lastAccessed,
+      createdAt: existing.createdAt,
+      lastLoginAt: lastLoginAt ?? existing.lastLoginAt,
+      lastOperationAt: lastOperationAt ?? existing.lastOperationAt,
+      lastOperationDesc: lastOperationDesc ?? existing.lastOperationDesc,
+      recentDevices: recentDevices,
+    );
+    await _saveAccounts(accounts);
+  }
+}
+class AuthNotifier extends StateNotifier<AuthState> {
+  AuthNotifier() : super(AuthState.initial);
+
+  final SecureAccountStorage _storage = SecureAccountStorage.instance;
+  final ProfileStorageService _profileStorage = ProfileStorageService.instance;
+  String? _selectedAccountId;
+  AccountInfo? _selectedAccountInfo;
+  String? get selectedAccountId => _selectedAccountId;
+  AccountInfo? get selectedAccount => _selectedAccountInfo;
+  bool get isUnlocked => state == AuthState.unlocked;
+
+  /// Get all accounts sorted by most recent access
+  Future<List<AccountInfo>> getAccountsSortedByRecent() async {
+    final accounts = await _storage.listAccounts();
+    accounts.sort((a, b) {
+      if (a.lastAccessed == null && b.lastAccessed == null) return 0;
+      if (a.lastAccessed == null) return 1;
+      if (b.lastAccessed == null) return -1;
+      return b.lastAccessed!.compareTo(a.lastAccessed!);
+    });
+    return accounts;
+  }
+
+  /// Get all accounts
+  Future<List<AccountInfo>> getAccounts() async {
+    return _storage.listAccounts();
+  }
+
+  /// Select an account
+  Future<void> selectAccount(String? accountId) async {
+    _selectedAccountId = accountId;
+    if (accountId != null) {
+      final accounts = await _storage.listAccounts();
+      _selectedAccountInfo = accounts.cast<AccountInfo?>().firstWhere(
+        (a) => a?.id == accountId,
+        orElse: () => null,
+      );
+    } else {
+      _selectedAccountInfo = null;
+    }
+    // Trigger state change
+    state = state == AuthState.initial ? AuthState.locked : state;
+    if (state == AuthState.unlocked) {
+      state = AuthState.locked;
+    }
+  }
+
+  /// Create a new account
+  Future<({bool success, String? error})> createAccount(
+    String name,
+    String password, {
+    String? passwordHint,
+  }) async {
+    state = AuthState.loading;
+
+    // First create account in Rust vault (this also auto-unlocks)
+    final vaultResult = RustVaultService.instance.createAccount(
+      name: name,
+      password: password,
+    );
+
+    if (!vaultResult.success) {
+      state = AuthState.locked;
+      return (success: false, error: vaultResult.error ?? 'Failed to create vault account');
+    }
+
+    // Also create account in SecureAccountStorage (Dart Keychain)
+    // Use the SAME accountId, salt, and verify_hash that Rust generated so both are in sync
+    final result = await _storage.createAccount(
+      name,
+      password,
+      passwordHint: passwordHint,
+      accountId: vaultResult.accountId,
+      salt: vaultResult.salt,
+      verifyHashFromRust: vaultResult.verifyHash,
+    );
+
+    if (result.success && result.account != null && result.sessionKey != null) {
+      _selectedAccountId = result.account!.id;
+      _selectedAccountInfo = result.account;
+      // Set encryption key for profile storage
+      _profileStorage.setEncryptionKey(result.sessionKey!);
+      // Keep vault locked after account creation - user must explicitly unlock
+      // This ensures the home page shows "Locked" state on first entry
+      state = AuthState.locked;
+      return (success: true, error: null);
+    } else {
+      state = AuthState.locked;
+      return (success: false, error: result.error);
+    }
+  }
+
+  /// Unlock vault with master password
+  /// Handles automatic migration from V1 to V2 crypto on successful login
+  Future<bool> unlockVault(String password) async {
+    if (_selectedAccountId == null) return false;
+    if (password.isEmpty) {
+      state = AuthState.locked;
+      return false;
+    }
+
+    state = AuthState.loading;
+
+    // Step 1: Unlock Rust vault (source of truth for authentication)
+    final vaultResult = RustVaultService.instance.unlockVault(
+      accountId: _selectedAccountId!,
+      password: password,
+    );
+
+    if (!vaultResult.success) {
+      // Rust unlock failed - password incorrect or account not found in Rust
+      state = AuthState.locked;
+      return false;
+    }
+
+    // Step 2: Rust unlock succeeded - get session key for profile encryption
+    // Derive session key from password using the same params Rust used
+    final accountData = await _storage.getAccountData(_selectedAccountId!);
+    if (accountData == null) {
+      // Account not in Keychain but in Rust - migrate it
+      await _migrateAccountFromRust(
+        _selectedAccountId!,
+        vaultResult.cryptoVersion ?? 2,
+      );
+    } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
+      // V1 account - migrate to V2 after successful login
+      await _migrateAccountToV2(
+        _selectedAccountId!,
+        password,
+        vaultResult.cryptoVersion ?? 2,
+      );
+    }
+
+    // Step 3: Get fresh account data after potential migration
+    final freshData = await _storage.getAccountData(_selectedAccountId!);
+    if (freshData == null) {
+      state = AuthState.locked;
+      return false;
+    }
+
+    // Derive session key from fresh Keychain data
+    final salt = base64Decode(freshData['salt'] as String);
+    final sessionKey = NativeCryptoService.instance.deriveKey(
+      password: password,
+      salt: Uint8List.fromList(salt),
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+
+    if (sessionKey == null) {
+      state = AuthState.locked;
+      return false;
+    }
+
+    _profileStorage.setEncryptionKey(sessionKey);
+
+    // Reload account info
+    final accounts = await _storage.listAccounts();
+    _selectedAccountInfo = accounts.cast<AccountInfo?>().firstWhere(
+      (a) => a?.id == _selectedAccountId,
+      orElse: () => null,
+    );
+
+    state = AuthState.unlocked;
+    return true;
+  }
+
+  /// Migrate a V1 account to V2: re-derive credentials using Rust's salt/verify_hash
+  Future<void> _migrateAccountToV2(
+    String accountId,
+    String password,
+    int cryptoVersion,
+  ) async {
+    try {
+      // Get salt from Rust vault (it's stored in config.json there)
+      // For now, we re-derive using Dart's algorithm but store with V2 version marker
+      final salt = NativeCryptoService.instance.generateSalt();
+      if (salt == null) {
+        return;
+      }
+
+      final verifyKey = NativeCryptoService.instance.deriveKey(
+        password: password,
+        salt: salt,
+        memoryKib: 16384,
+        iterations: 1,
+        parallelism: 4,
+      );
+      if (verifyKey == null) {
+        return;
+      }
+
+      // Update salt and verify hash
+      await _storage.updateAccountSalt(accountId, salt, verifyKey);
+
+      // Clear sensitive data from memory immediately after use
+      for (var i = 0; i < salt.length; i++) {
+        salt[i] = 0;
+      }
+      for (var i = 0; i < verifyKey.length; i++) {
+        verifyKey[i] = 0;
+      }
+
+      // Update crypto version marker with retry logic
+      bool versionUpdated = await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
+      if (!versionUpdated) {
+        // Retry once after brief delay
+        await Future.delayed(const Duration(milliseconds: 100));
+        versionUpdated = await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
+      }
+    } catch (e) {
+      // Migration errors are handled silently - will retry on next login
+    }
+  }
+
+  /// Migrate an account that exists in Rust but not in Dart Keychain
+  Future<void> _migrateAccountFromRust(String accountId, int cryptoVersion) async {
+    // Get account info from Rust vault
+    // For now, this is a placeholder - full implementation would need
+    // a Rust FFI call to get account name and store it in Keychain
+    // Since Rust list_accounts returns AccountInfo with name, we could call that
+    final accounts = await _storage.listAccounts();
+    final account = accounts.cast<AccountInfo?>().firstWhere(
+      (a) => a?.id == accountId,
+      orElse: () => null,
+    );
+    if (account == null) return;
+
+    // Update crypto version marker
+    await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
+  }
+
+  /// Verify password for sensitive data access (does NOT change auth state)
+  Future<bool> verifyPasswordForSensitiveData(String password) async {
+    if (_selectedAccountId == null) return false;
+    if (password.isEmpty) return false;
+
+    // Just verify password without changing any state
+    return await _storage.verifyPassword(_selectedAccountId!, password);
+  }
+
+  /// Lock the vault
+  void lockVault() {
+    // Lock Rust vault (clears session key, closes database)
+    RustVaultService.instance.lockVault();
+    // Clear encryption key
+    _profileStorage.clearEncryptionKey();
+    _selectedAccountId = null;
+    _selectedAccountInfo = null;
+    state = AuthState.locked;
+  }
+
+  /// Check if vault exists
+  Future<bool> vaultExists() async {
+    final accounts = await _storage.listAccounts();
+    return accounts.isNotEmpty;
+  }
+
+  /// Delete the current account
+  /// Requires password verification first
+  Future<bool> deleteAccount(String password) async {
+    if (_selectedAccountId == null) return false;
+
+    // Verify password first
+    final isValid = await _storage.verifyPassword(_selectedAccountId!, password);
+    if (!isValid) return false;
+
+    // Delete the account
+    final success = await _storage.deleteAccount(_selectedAccountId!);
+    if (success) {
+      _profileStorage.clearEncryptionKey();
+      _selectedAccountId = null;
+      _selectedAccountInfo = null;
+      state = AuthState.locked;
+    }
+    return success;
+  }
+
+  /// Change master password for current account
+  /// 1. Verify old password
+  /// 2. Generate new salt, derive new key
+  /// 3. Re-encrypt profile with new key
+  /// 4. Update stored credentials
+  Future<({bool success, String? error})> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (_selectedAccountId == null) {
+      return (success: false, error: 'No account selected');
+    }
+
+    // Step 1: Verify old password
+    final isValid = await _storage.verifyPassword(_selectedAccountId!, currentPassword);
+    if (!isValid) {
+      return (success: false, error: 'Current password is incorrect');
+    }
+
+    // Step 2: Get current profile data (still encrypted with old key)
+    final currentProfile = await _profileStorage.loadProfile(_selectedAccountId!);
+    if (currentProfile == null) {
+      return (success: false, error: 'Failed to load profile');
+    }
+
+    // Step 3: Generate new salt and derive new key
+    final newSalt = NativeCryptoService.instance.generateSalt();
+    if (newSalt == null) {
+      return (success: false, error: 'Failed to generate salt');
+    }
+
+    final newVerifyKey = NativeCryptoService.instance.deriveKey(
+      password: newPassword,
+      salt: newSalt,
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+    if (newVerifyKey == null) {
+      return (success: false, error: 'Failed to derive key');
+    }
+
+    // Step 4: Update encryption key for profile re-encryption
+    _profileStorage.setEncryptionKey(newVerifyKey);
+
+    // Step 5: Re-save profile (will re-encrypt with new key)
+    await _profileStorage.saveProfile(_selectedAccountId!, currentProfile);
+
+    // Step 6: Update stored account credentials
+    await _storage.updateAccountSalt(
+      _selectedAccountId!,
+      newSalt,
+      newVerifyKey,
+    );
+
+    return (success: true, error: null);
+  }
+
+  /// Update operation metadata for the current account
+  Future<void> updateOperation(String operationDesc) async {
+    if (_selectedAccountId == null) return;
+    await _storage.updateAccountOperation(_selectedAccountId!, operationDesc);
+  }
+}
+
+/// Auth state provider
+final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  return AuthNotifier();
+});
+
+/// Accounts provider - lists all accounts sorted by recent access
+final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
+  // Watch authNotifierProvider so this re-evaluates when auth state changes
+  ref.watch(authNotifierProvider);
+  final notifier = ref.read(authNotifierProvider.notifier);
+  return notifier.getAccountsSortedByRecent();
+});
+
+/// Sensitive page access state - tracks password verification for sensitive pages
+class SensitivePageAccessState {
+  final DateTime? lastVerified;
+
+  const SensitivePageAccessState({this.lastVerified});
+
+  bool get isVerified {
+    if (lastVerified == null) return false;
+    // Verification is valid for 5 minutes
+    return DateTime.now().difference(lastVerified!).inMinutes < 5;
+  }
+
+  SensitivePageAccessState copyWith({DateTime? lastVerified}) {
+    return SensitivePageAccessState(lastVerified: lastVerified ?? this.lastVerified);
+  }
+}
+
+/// Notifier for sensitive page access
+class SensitivePageAccessNotifier extends StateNotifier<SensitivePageAccessState> {
+  SensitivePageAccessNotifier() : super(const SensitivePageAccessState());
+
+  void markVerified() {
+    state = state.copyWith(lastVerified: DateTime.now());
+  }
+
+  void clear() {
+    state = const SensitivePageAccessState();
+  }
+}
+
+/// Provider for sensitive page access (shared between Operation Log and Sensitivity Settings)
+final sensitivePageAccessProvider =
+    StateNotifierProvider<SensitivePageAccessNotifier, SensitivePageAccessState>((ref) {
+  return SensitivePageAccessNotifier();
+});

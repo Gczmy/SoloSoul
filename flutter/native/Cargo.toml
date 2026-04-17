@@ -1,0 +1,77 @@
+[package]
+name = "solosoul_core"
+version = "0.1.0"
+edition = "2021"
+authors = ["SoloSoul"]
+description = "SoloSoul Core - Rust Core Library for Flutter"
+
+[dependencies]
+# Encryption
+argon2 = "0.5"
+aes-gcm = "0.10"
+rand = "0.8"
+zeroize = { version = "1.7", features = ["derive"] }
+
+# Storage (rusqlite - SQLCipher removed for Android cross-compile)
+rusqlite = { version = "0.31", default-features = false, features = ["bundled"] }
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# UUID
+uuid = { version = "1.8", features = ["v4", "serde"] }
+
+# Hex encoding
+hex = "0.4"
+
+# DateTime
+chrono = { version = "0.4", features = ["serde"] }
+
+# Use rustls for reqwest to avoid OpenSSL on Android
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], rustls-tls = true }
+
+# WebSocket
+tokio-tungstenite = "0.21"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Wasm (for plugin sandbox)
+wasmtime = "21.0"
+wasmtime-wasi = "21.0"
+
+# SHA-256 for plugin handshake
+sha2 = "0.10"
+
+# Base64 encoding
+base64 = "0.21"
+
+# Flutter Rust Bridge
+flutter_rust_bridge = "=2.12.0"
+
+# Lazy static
+lazy_static = "1.4"
+
+# C-compatible FFI
+libc = "0.2"
+
+[lib]
+name = "solosoul_core"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dev-dependencies]
+tempfile = "3.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

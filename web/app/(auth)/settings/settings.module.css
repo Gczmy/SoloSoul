@@ -1,0 +1,628 @@
+.container {
+  min-height: 100vh;
+  background: var(--color-bg);
+  margin-left: 180px;
+}
+
+.content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.section {
+  margin-bottom: var(--space-8);
+}
+
+.section h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-4);
+  transition: border-color 0.15s;
+}
+
+.card:hover {
+  border-color: oklch(50% 0 0 / 0.3);
+}
+
+.card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-5);
+  margin-top: var(--space-1);
+  line-height: 1.5;
+}
+
+/* Account management */
+.accountList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.accountItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.accountItem:hover {
+  border-color: var(--color-border);
+  background: oklch(50% 0 0 / 0.02);
+}
+
+.accountItem.isCurrent {
+  border-color: oklch(65% 0.15 250 / 0.4);
+  background: oklch(65% 0.15 250 / 0.05);
+}
+
+.accountIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, oklch(65% 0.15 250), oklch(55% 0.15 280));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.accountDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.accountName {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 2px;
+}
+
+.currentBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: oklch(65% 0.15 250 / 0.15);
+  color: oklch(65% 0.15 250);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+}
+
+.accountMeta {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.accountMeta span {
+  margin: 0 var(--space-1);
+  opacity: 0.5;
+}
+
+.accountActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.actionButton {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.actionButton:hover {
+  background: var(--color-bg);
+  border-color: oklch(50% 0 0 / 0.3);
+}
+
+.actionButton.danger {
+  color: var(--color-error);
+  border-color: oklch(65% 0.2 25 / 0.3);
+}
+
+.actionButton.danger:hover {
+  background: oklch(65% 0.2 25 / 0.08);
+}
+
+.actionButton.primary {
+  background: oklch(65% 0.15 250);
+  color: white;
+  border-color: transparent;
+}
+
+.actionButton.primary:hover {
+  opacity: 0.9;
+}
+
+/* Create account form */
+.createForm {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.createForm input {
+  flex: 1;
+}
+
+/* Security section */
+.field {
+  margin-bottom: var(--space-4);
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+
+.message {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-4);
+}
+
+.message.success {
+  background: oklch(70% 0.15 145 / 0.12);
+  color: oklch(70% 0.15 145);
+  border: 1px solid oklch(70% 0.15 145 / 0.2);
+}
+
+.message.error {
+  background: oklch(65% 0.2 25 / 0.1);
+  color: var(--color-error);
+  border: 1px solid oklch(65% 0.2 25 / 0.2);
+}
+
+/* Lock vault card */
+.lockCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.lockInfo p {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Export card */
+.exportCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.exportInfo p {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* About card */
+.version {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+  font-family: monospace;
+}
+
+.description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin-top: var(--space-3);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.toolbar h1 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* Danger zone */
+.dangerZone {
+  border-color: oklch(65% 0.2 25 / 0.3);
+}
+
+/* Create account button */
+.createButton {
+  display: block;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-4);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.createButton:hover {
+  border-color: oklch(65% 0.15 250);
+  color: oklch(65% 0.15 250);
+  background: oklch(65% 0.15 250 / 0.05);
+}
+
+.dangerZone h3 {
+  color: var(--color-error);
+}
+
+/* Row grid */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.btnRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .accountItem {
+    flex-wrap: wrap;
+  }
+
+  .accountActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .createForm {
+    flex-direction: column;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+
+  .lockCard,
+  .exportCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Collapsible change password section */
+.collapseHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapseHeader:focus-visible {
+  outline: 2px solid oklch(65% 0.15 250);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+.collapseTitle h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.collapseTitle p {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.collapseIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  /* Apple-style spring for rotation */
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0.15s;
+  flex-shrink: 0;
+}
+
+.collapseIcon.open {
+  transform: rotate(90deg);
+}
+
+.collapseHeader:hover .collapseIcon {
+  background: oklch(50% 0 0 / 0.1);
+  color: var(--color-text);
+}
+
+.collapseContent {
+  /* Apple-style spring animation using grid trick for smooth height */
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.25s ease;
+  overflow: hidden;
+}
+
+.collapseContent.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.collapseContent > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.collapseContent.open > div {
+  padding-top: var(--space-5);
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInput {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  transition: opacity 150ms ease;
+}
+
+.togglePassword:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.togglePassword:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Delete Confirmation Modal - Apple-style */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: oklch(0% 0 0 / 0.6);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+  animation: overlayIn 0.3s ease-out;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px) saturate(100%);
+    -webkit-backdrop-filter: blur(0px) saturate(100%);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+}
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid oklch(0% 0 0 / 0.08);
+  border-radius: 20px;
+  padding: var(--space-8);
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.05) inset,
+    0 25px 50px -12px oklch(0% 0 0 / 0.35),
+    0 12px 24px -8px oklch(0% 0 0 / 0.25);
+  animation: modalIn 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center center;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modalIcon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--space-5);
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(65% 0.2 25 / 0.15), oklch(60% 0.22 25 / 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-error);
+}
+
+.modalTitle {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.modalText {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+  line-height: 1.5;
+}
+
+.modalText strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.modalWarning {
+  font-size: 0.8125rem;
+  color: oklch(65% 0.2 25);
+  background: oklch(65% 0.2 25 / 0.08);
+  padding: var(--space-4);
+  border-radius: 12px;
+  margin-bottom: var(--space-6);
+  line-height: 1.6;
+  border: 1px solid oklch(65% 0.2 25 / 0.12);
+}
+
+.modalActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.modalCancel {
+  flex: 1;
+  padding: var(--space-3) var(--space-5);
+  border-radius: 11px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.modalCancel:hover {
+  background: oklch(0% 0 0 / 0.06);
+  border-color: oklch(0% 0 0 / 0.12);
+  transform: translateY(-1px);
+}
+
+.modalCancel:active {
+  transform: translateY(0);
+  background: oklch(0% 0 0 / 0.08);
+}
+
+.modalConfirm {
+  flex: 1;
+  padding: var(--space-3) var(--space-5);
+  border-radius: 11px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  background: var(--color-error);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 12px oklch(65% 0.25 25 / 0.25);
+}
+
+.modalConfirm:hover {
+  background: oklch(65% 0.25 25);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px oklch(65% 0.25 25 / 0.3);
+}
+
+.modalConfirm:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px oklch(65% 0.25 25 / 0.2);
+}

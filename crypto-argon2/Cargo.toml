@@ -1,0 +1,20 @@
+[package]
+name = "solosoul-crypto"
+version = "0.1.0"
+edition = "2021"
+authors = ["SoloSoul"]
+description = "High-performance Argon2id for SoloSoul"
+
+[dependencies]
+argon2 = "0.5"
+aes-gcm = "0.10"
+rand = "0.8"
+
+[lib]
+name = "solosoul_crypto"
+crate-type = ["staticlib", "cdylib"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

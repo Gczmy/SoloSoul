@@ -1,0 +1,746 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+
+class SensitivitySettingsPage extends ConsumerStatefulWidget {
+  const SensitivitySettingsPage({super.key});
+
+  @override
+  ConsumerState<SensitivitySettingsPage> createState() => _SensitivitySettingsPageState();
+}
+
+class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPage> {
+  final _passwordController = TextEditingController();
+  final _searchController = TextEditingController();
+  bool _isLoading = false;
+  String? _error;
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showPasswordHint(String hint) {
+    // Use Overlay so the timer persists across navigation
+    final overlay = Overlay.of(context);
+    late OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (ctx) => Positioned(
+        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+        left: 16,
+        right: 16,
+        child: SafeArea(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.help_outline, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Password Hint: $hint',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => entry.remove(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+    Timer(const Duration(seconds: 4), () {
+      if (entry.mounted) {
+        entry.remove();
+      }
+    });
+  }
+
+  Future<void> _verifyPassword() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final success = await authNotifier.unlockVault(_passwordController.text);
+
+    if (success) {
+      // Mark as verified in shared sensitive page access
+      ref.read(sensitivePageAccessProvider.notifier).markVerified();
+      if (mounted) {
+        _passwordController.clear();
+        setState(() => _isLoading = false);
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _error = 'Invalid password';
+          _isLoading = false;
+        });
+      }
+      _passwordController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Check shared verification state
+    final accessState = ref.watch(sensitivePageAccessProvider);
+
+    // If already verified recently, show settings directly
+    if (accessState.isVerified) {
+      return _buildSettingsView();
+    }
+
+    // Otherwise show password verification
+    return _buildPasswordVerification();
+  }
+
+  Widget _buildPasswordVerification() {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sensitivity Settings'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Password Required',
+                style: theme.textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Enter your master password to access sensitivity settings',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: 300,
+                child: Builder(
+                  builder: (ctx) {
+                    final authNotifier = ref.read(authNotifierProvider.notifier);
+                    final hint = authNotifier.selectedAccount?.passwordHint;
+                    return TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      autofocus: true,
+                      onSubmitted: (_) => _verifyPassword(),
+                      decoration: InputDecoration(
+                        labelText: 'Master Password',
+                        errorText: _error,
+                        prefixIcon: const Icon(Icons.key),
+                        suffixIcon: hint != null
+                            ? IconButton(
+                                icon: const Icon(Icons.help_outline, size: 20),
+                                onPressed: () => _showPasswordHint(hint),
+                                tooltip: 'Show password hint',
+                              )
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _verifyPassword,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Verify'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsView() {
+    final settings = ref.watch(sensitivitySettingsProvider);
+    final notifier = ref.read(sensitivitySettingsProvider.notifier);
+
+    // Filter fields based on search query
+    List<FieldSensitivity> filterFields(List<FieldSensitivity> fields) {
+      if (_searchQuery.isEmpty) return fields;
+      final query = _searchQuery.toLowerCase();
+      return fields.where((f) {
+        return f.fieldName.toLowerCase().contains(query) ||
+            FieldRegistry.getSectionDisplayName(f.fieldSection).toLowerCase().contains(query);
+      }).toList();
+    }
+
+    final publicFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.public));
+    final privateFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.private));
+    final restrictedFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.restricted));
+
+    final hasResults = publicFields.isNotEmpty || privateFields.isNotEmpty || restrictedFields.isNotEmpty;
+    final totalFields = settings.fieldSettings.length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sensitivity Settings'),
+      ),
+      body: settings.fieldSettings.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    decoration: InputDecoration(
+                      hintText: 'Search fields...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+
+                // Results count
+                if (_searchQuery.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Text(
+                          hasResults
+                              ? 'Found ${publicFields.length + privateFields.length + restrictedFields.length} result(s)'
+                              : 'No results found',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: hasResults
+                                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                                    : Colors.orange,
+                              ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$totalFields total fields',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 8),
+
+                // Sections list
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      // Header info
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.security,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.primaryColor,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn(duration: 400.ms),
+
+                      const SizedBox(height: 24),
+
+                      // Restricted Section (Highest)
+                      if (restrictedFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Restricted',
+                          subtitle: 'Highest sensitivity - requires additional verification',
+                          icon: Icons.lock,
+                          color: Colors.red,
+                          fields: restrictedFields,
+                          onUpgrade: null, // Can't upgrade further
+                          onDowngrade: (fieldId) => _showDowngradeConfirmation(
+                            context,
+                            ref,
+                            fieldId,
+                          ),
+                          isHighest: true,
+                        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+
+                      if (restrictedFields.isNotEmpty) const SizedBox(height: 16),
+
+                      // Private Section (Medium)
+                      if (privateFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Private',
+                          subtitle: 'Medium sensitivity - can be hidden by display settings',
+                          icon: Icons.visibility_off,
+                          color: Colors.orange,
+                          fields: privateFields,
+                          onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
+                          onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
+                          isHighest: false,
+                          isLowest: false,
+                        ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+
+                      if (privateFields.isNotEmpty) const SizedBox(height: 16),
+
+                      // Public Section (Lowest)
+                      if (publicFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Public',
+                          subtitle: 'Lowest sensitivity - always visible',
+                          icon: Icons.public,
+                          color: Colors.blue,
+                          fields: publicFields,
+                          onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
+                          onDowngrade: null, // Can't downgrade further
+                          isHighest: false,
+                          isLowest: true,
+                        ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+
+                      // No results message
+                      if (!hasResults && _searchQuery.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No fields match "$_searchQuery"',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                                child: const Text('Clear search'),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 32),
+
+                      // Field count summary
+                      Center(
+                        child: Text(
+                          '$totalFields fields configured',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  void _showDowngradeConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    String fieldId,
+  ) {
+    final field = ref.read(sensitivitySettingsProvider).fieldSettings
+        .firstWhere((f) => f.fieldId == fieldId);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange.shade700),
+            const SizedBox(width: 8),
+            const Text('Confirm Downgrade'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You are about to downgrade "${field.fieldName}" to a lower sensitivity level.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This field will be visible with fewer protections. Continue?',
+                      style: TextStyle(
+                        color: Colors.orange.shade900,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              ref.read(sensitivitySettingsProvider.notifier).downgradeField(fieldId);
+              Navigator.pop(context);
+              _showSnackBar(
+                context,
+                '"${field.fieldName}" moved to Private',
+                SnackBarType.info,
+              );
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.orange,
+            ),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String content, SnackBarType type) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(content),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+class _SensitivitySection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final List<FieldSensitivity> fields;
+  final void Function(String fieldId)? onUpgrade;
+  final void Function(String fieldId)? onDowngrade;
+  final bool isHighest;
+  final bool isLowest;
+
+  const _SensitivitySection({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.fields,
+    this.onUpgrade,
+    this.onDowngrade,
+    this.isHighest = false,
+    this.isLowest = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: color,
+                                ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${fields.length}',
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+
+            // Fields List
+            if (fields.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Text(
+                    'No fields in this section',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+              )
+            else
+              ...fields.map((field) => _FieldListTile(
+                    field: field,
+                    onUpgrade: onUpgrade,
+                    onDowngrade: onDowngrade,
+                    isHighest: isHighest,
+                    isLowest: isLowest,
+                  )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldListTile extends StatelessWidget {
+  final FieldSensitivity field;
+  final void Function(String fieldId)? onUpgrade;
+  final void Function(String fieldId)? onDowngrade;
+  final bool isHighest;
+  final bool isLowest;
+
+  const _FieldListTile({
+    required this.field,
+    this.onUpgrade,
+    this.onDowngrade,
+    this.isHighest = false,
+    this.isLowest = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sectionName = FieldRegistry.getSectionDisplayName(field.fieldSection);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          // Field info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  field.fieldName,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  sectionName,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+
+          // Level change buttons
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            tooltip: 'Change sensitivity level',
+            onSelected: (value) {
+              if (value == 'upgrade' && onUpgrade != null) {
+                onUpgrade!(field.fieldId);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('"${field.fieldName}" moved to higher sensitivity'),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              } else if (value == 'downgrade' && onDowngrade != null) {
+                onDowngrade!(field.fieldId);
+              }
+            },
+            itemBuilder: (context) => [
+              if (onUpgrade != null)
+                PopupMenuItem(
+                  value: 'upgrade',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.arrow_upward,
+                        color: Colors.red.shade700,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isHighest ? 'Keep at Highest' : 'Move to Higher',
+                        style: TextStyle(color: Colors.red.shade700),
+                      ),
+                    ],
+                  ),
+                ),
+              if (onDowngrade != null)
+                PopupMenuItem(
+                  value: 'downgrade',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.arrow_downward,
+                        color: Colors.orange.shade700,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isLowest ? 'Keep at Lowest' : 'Move to Lower',
+                        style: TextStyle(color: Colors.orange.shade700),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

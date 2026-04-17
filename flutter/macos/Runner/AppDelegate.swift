@@ -1,0 +1,275 @@
+import Cocoa
+import FlutterMacOS
+import LocalAuthentication
+import Security
+
+@main
+class AppDelegate: FlutterAppDelegate {
+  override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    return true
+  }
+
+  override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+    return true
+  }
+
+  override func applicationDidFinishLaunching(_ notification: Notification) {
+    // Setup native channel for Keychain and biometrics
+    setupNativeChannels()
+
+    // Setup menu bar
+    setupMenuBar()
+  }
+
+  private func setupNativeChannels() {
+    // Get the Flutter engine via window
+    guard let flutterWindow = mainFlutterWindow,
+          let flutterViewController = flutterWindow.contentViewController as? FlutterViewController else {
+      return
+    }
+
+    let flutterEngine = flutterViewController.engine
+
+    let keychainChannel = FlutterMethodChannel(
+      name: "com.solosoul/keychain",
+      binaryMessenger: flutterEngine.binaryMessenger
+    )
+
+    keychainChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
+      switch call.method {
+      case "authenticateWithBiometrics":
+        self?.authenticateWithBiometrics(result: result)
+      case "saveToKeychain":
+        if let args = call.arguments as? [String: Any],
+           let key = args["key"] as? String,
+           let value = args["value"] as? String {
+          self?.saveToKeychain(key: key, value: value, result: result)
+        } else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing key or value", details: nil))
+        }
+      case "readFromKeychain":
+        if let args = call.arguments as? [String: Any],
+           let key = args["key"] as? String {
+          self?.readFromKeychain(key: key, result: result)
+        } else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing key", details: nil))
+        }
+      case "deleteFromKeychain":
+        if let args = call.arguments as? [String: Any],
+           let key = args["key"] as? String {
+          self?.deleteFromKeychain(key: key, result: result)
+        } else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing key", details: nil))
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+
+    // Setup lock vault notification observer
+    DistributedNotificationCenter.default().addObserver(
+      self,
+      selector: #selector(handleLockVault),
+      name: NSNotification.Name("com.solosoul.lockVault"),
+      object: nil
+    )
+  }
+
+  @objc private func handleLockVault() {
+    guard let flutterWindow = mainFlutterWindow,
+          let flutterViewController = flutterWindow.contentViewController as? FlutterViewController else {
+      return
+    }
+
+    let flutterEngine = flutterViewController.engine
+    let channel = FlutterMethodChannel(
+      name: "com.solosoul/native",
+      binaryMessenger: flutterEngine.binaryMessenger
+    )
+    channel.invokeMethod("lockVault", arguments: nil)
+  }
+
+  // MARK: - TouchID / Biometrics
+
+  private func authenticateWithBiometrics(result: @escaping FlutterResult) {
+    let context = LAContext()
+    var error: NSError?
+
+    if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+      context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
+                            localizedReason: "Unlock SoloSoul Vault") { success, authError in
+        DispatchQueue.main.async {
+          if success {
+            result(["success": true, "biometryType": self.biometryType()])
+          } else {
+            result(["success": false, "error": authError?.localizedDescription ?? "Authentication failed"])
+          }
+        }
+      }
+    } else {
+      result(["success": false, "error": error?.localizedDescription ?? "Biometrics not available"])
+    }
+  }
+
+  private func biometryType() -> String {
+    let context = LAContext()
+    var error: NSError?
+
+    guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+      return "none"
+    }
+
+    switch context.biometryType {
+    case .faceID:
+      return "faceID"
+    case .touchID:
+      return "touchID"
+    case .opticID:
+      return "opticID"
+    case .none:
+      return "none"
+    @unknown default:
+      return "unknown"
+    }
+  }
+
+  // MARK: - Keychain
+
+  private func saveToKeychain(key: String, value: String, result: @escaping FlutterResult) {
+    guard let data = value.data(using: .utf8) else {
+      result(["success": false, "error": "Invalid string data"])
+      return
+    }
+
+    let deleteQuery: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrAccount as String: key,
+      kSecAttrService as String: "com.solosoul"
+    ]
+    SecItemDelete(deleteQuery as CFDictionary)
+
+    let addQuery: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrAccount as String: key,
+      kSecAttrService as String: "com.solosoul",
+      kSecValueData as String: data,
+      kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+    ]
+
+    let status = SecItemAdd(addQuery as CFDictionary, nil)
+    if status == errSecSuccess {
+      result(["success": true])
+    } else {
+      result(["success": false, "error": "Keychain save failed: \(status)"])
+    }
+  }
+
+  private func readFromKeychain(key: String, result: @escaping FlutterResult) {
+    let query: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrAccount as String: key,
+      kSecAttrService as String: "com.solosoul",
+      kSecReturnData as String: true,
+      kSecMatchLimit as String: kSecMatchLimitOne
+    ]
+
+    var item: CFTypeRef?
+    let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+    if status == errSecSuccess, let data = item as? Data, let value = String(data: data, encoding: .utf8) {
+      result(["success": true, "value": value])
+    } else if status == errSecItemNotFound {
+      result(["success": false, "error": "Item not found"])
+    } else {
+      result(["success": false, "error": "Keychain read failed: \(status)"])
+    }
+  }
+
+  private func deleteFromKeychain(key: String, result: @escaping FlutterResult) {
+    let query: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrAccount as String: key,
+      kSecAttrService as String: "com.solosoul"
+    ]
+
+    let status = SecItemDelete(query as CFDictionary)
+    if status == errSecSuccess || status == errSecItemNotFound {
+      result(["success": true])
+    } else {
+      result(["success": false, "error": "Keychain delete failed: \(status)"])
+    }
+  }
+
+  // MARK: - Menu Bar
+
+  private func setupMenuBar() {
+    let mainMenu = NSMenu()
+
+    // App menu
+    let appMenuItem = NSMenuItem()
+    let appMenu = NSMenu()
+    appMenu.addItem(withTitle: "About SoloSoul", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+    appMenu.addItem(NSMenuItem.separator())
+    appMenu.addItem(withTitle: "Preferences...", action: nil, keyEquivalent: ",")
+    appMenu.addItem(NSMenuItem.separator())
+    appMenu.addItem(withTitle: "Hide SoloSoul", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+    appMenu.addItem(withTitle: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
+    appMenu.addItem(withTitle: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
+    appMenu.addItem(NSMenuItem.separator())
+    appMenu.addItem(withTitle: "Quit SoloSoul", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    appMenuItem.submenu = appMenu
+    mainMenu.addItem(appMenuItem)
+
+    // File menu
+    let fileMenuItem = NSMenuItem()
+    let fileMenu = NSMenu(title: "File")
+    fileMenu.addItem(withTitle: "Lock Vault", action: #selector(lockVaultFromMenu), keyEquivalent: "l")
+    fileMenu.addItem(NSMenuItem.separator())
+    fileMenu.addItem(withTitle: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+    fileMenuItem.submenu = fileMenu
+    mainMenu.addItem(fileMenuItem)
+
+    // Edit menu
+    let editMenuItem = NSMenuItem()
+    let editMenu = NSMenu(title: "Edit")
+    editMenu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+    editMenu.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+    editMenu.addItem(NSMenuItem.separator())
+    editMenu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+    editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+    editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+    editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+    editMenuItem.submenu = editMenu
+    mainMenu.addItem(editMenuItem)
+
+    // View menu
+    let viewMenuItem = NSMenuItem()
+    let viewMenu = NSMenu(title: "View")
+    viewMenu.addItem(withTitle: "Enter Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
+    viewMenuItem.submenu = viewMenu
+    mainMenu.addItem(viewMenuItem)
+
+    // Window menu
+    let windowMenuItem = NSMenuItem()
+    let windowMenu = NSMenu(title: "Window")
+    windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+    windowMenu.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
+    windowMenu.addItem(NSMenuItem.separator())
+    windowMenu.addItem(withTitle: "Bring All to Front", action: #selector(NSApplication.arrangeInFront(_:)), keyEquivalent: "")
+    windowMenuItem.submenu = windowMenu
+    mainMenu.addItem(windowMenuItem)
+
+    // Help menu
+    let helpMenuItem = NSMenuItem()
+    let helpMenu = NSMenu(title: "Help")
+    helpMenu.addItem(withTitle: "SoloSoul Help", action: #selector(NSApplication.showHelp(_:)), keyEquivalent: "?")
+    helpMenuItem.submenu = helpMenu
+    mainMenu.addItem(helpMenuItem)
+
+    NSApplication.shared.mainMenu = mainMenu
+  }
+
+  @objc private func lockVaultFromMenu() {
+    handleLockVault()
+  }
+}

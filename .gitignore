@@ -1,0 +1,72 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Flutter/Dart
+flutter/.dart_tool/
+flutter/.pub-cache/
+flutter/.pub/
+flutter/build/
+flutter/coverage/
+flutter/*.symbols
+flutter/*.map.json
+
+# Rust
+crypto-argon2/target/
+flutter/native/target/
+.cargo/registry/
+vendor/
+
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+solosoul
+solosould
+solosould_server
+
+# Test binaries
+*.test
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log
+
+# TypeScript
+*.tsbuildinfo
+
+# Next.js
+web/next-env.d.ts
+
+# OMC (oh-my-claude) state
+.claude/
+.omc/
+
+# Temp files
+*.tmp
+*.temp
