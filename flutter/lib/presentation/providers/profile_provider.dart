@@ -602,36 +602,30 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     if (old == null || newData == null) return;
 
     // Compare passports
-    final oldPassports = old.passports ?? [];
-    final newPassports = newData.passports ?? [];
     _logSimpleListChanges(
-      oldList: oldPassports.length,
-      newList: newPassports.length,
+      oldList: old.passports.length,
+      newList: newData.passports.length,
       section: LogSection.passport,
       itemType: 'passport',
-      itemLabel: newPassports.isNotEmpty ? newPassports.first.number : null,
+      itemLabel: newData.passports.isNotEmpty ? newData.passports.first.number : null,
     );
 
     // Compare visas
-    final oldVisas = old.visas ?? [];
-    final newVisas = newData.visas ?? [];
     _logSimpleListChanges(
-      oldList: oldVisas.length,
-      newList: newVisas.length,
+      oldList: old.visas.length,
+      newList: newData.visas.length,
       section: LogSection.visa,
       itemType: 'visa',
-      itemLabel: newVisas.isNotEmpty ? newVisas.first.country : null,
+      itemLabel: newData.visas.isNotEmpty ? newData.visas.first.country : null,
     );
 
     // Compare travel history
-    final oldHistory = old.travelHistory ?? [];
-    final newHistory = newData.travelHistory ?? [];
     _logSimpleListChanges(
-      oldList: oldHistory.length,
-      newList: newHistory.length,
+      oldList: old.travelHistory.length,
+      newList: newData.travelHistory.length,
       section: LogSection.travelHistory,
       itemType: 'travel history entry',
-      itemLabel: newHistory.isNotEmpty ? newHistory.first.destination : null,
+      itemLabel: newData.travelHistory.isNotEmpty ? newData.travelHistory.first.destination : null,
     );
   }
 
@@ -680,25 +674,21 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     if (old == null || newData == null) return;
 
     // Compare bank accounts
-    final oldAccounts = old.bankAccounts ?? [];
-    final newAccounts = newData.bankAccounts ?? [];
     _logSimpleListChanges(
-      oldList: oldAccounts.length,
-      newList: newAccounts.length,
+      oldList: old.bankAccounts.length,
+      newList: newData.bankAccounts.length,
       section: LogSection.bankAccount,
       itemType: 'bank account',
-      itemLabel: newAccounts.isNotEmpty ? newAccounts.first.bankName : null,
+      itemLabel: newData.bankAccounts.isNotEmpty ? newData.bankAccounts.first.bankName : null,
     );
 
     // Compare cards
-    final oldCards = old.cards ?? [];
-    final newCards = newData.cards ?? [];
     _logSimpleListChanges(
-      oldList: oldCards.length,
-      newList: newCards.length,
+      oldList: old.cards.length,
+      newList: newData.cards.length,
       section: LogSection.card,
       itemType: 'card',
-      itemLabel: newCards.isNotEmpty ? newCards.first.cardType : null,
+      itemLabel: newData.cards.isNotEmpty ? newData.cards.first.cardType : null,
     );
   }
 
@@ -750,49 +740,41 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     if (old == null || newData == null) return;
 
     // Compare education
-    final oldEducation = old.education ?? [];
-    final newEducation = newData.education ?? [];
     _logSimpleListChanges(
-      oldList: oldEducation.length,
-      newList: newEducation.length,
+      oldList: old.education.length,
+      newList: newData.education.length,
       section: LogSection.education,
       itemType: 'education entry',
-      itemLabel: newEducation.isNotEmpty
-          ? newEducation.first.institution
+      itemLabel: newData.education.isNotEmpty
+          ? newData.education.first.institution
           : null,
     );
 
     // Compare employment
-    final oldEmployment = old.employment ?? [];
-    final newEmployment = newData.employment ?? [];
     _logSimpleListChanges(
-      oldList: oldEmployment.length,
-      newList: newEmployment.length,
+      oldList: old.employment.length,
+      newList: newData.employment.length,
       section: LogSection.employment,
       itemType: 'employment entry',
-      itemLabel: newEmployment.isNotEmpty ? newEmployment.first.company : null,
+      itemLabel: newData.employment.isNotEmpty ? newData.employment.first.company : null,
     );
 
     // Compare skills
-    final oldSkills = old.skills ?? [];
-    final newSkills = newData.skills ?? [];
     _logSimpleListChanges(
-      oldList: oldSkills.length,
-      newList: newSkills.length,
+      oldList: old.skills.length,
+      newList: newData.skills.length,
       section: LogSection.skill,
       itemType: 'skill',
-      itemLabel: newSkills.isNotEmpty ? newSkills.first.toString() : null,
+      itemLabel: newData.skills.isNotEmpty ? newData.skills.first.toString() : null,
     );
 
     // Compare languages
-    final oldLanguages = old.languages ?? [];
-    final newLanguages = newData.languages ?? [];
     _logSimpleListChanges(
-      oldList: oldLanguages.length,
-      newList: newLanguages.length,
+      oldList: old.languages.length,
+      newList: newData.languages.length,
       section: LogSection.language,
       itemType: 'language',
-      itemLabel: newLanguages.isNotEmpty ? newLanguages.first.toString() : null,
+      itemLabel: newData.languages.isNotEmpty ? newData.languages.first.toString() : null,
     );
   }
 
@@ -822,72 +804,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // the index in the unfiltered storage list (which may include soft-deleted items).
     final actualIndex = _findActualStorageIndex(current, section, itemType, deletedItem, index);
     final newProfile = _markItemDeleted(current, section, itemType, actualIndex, now);
-
-    // Verify the item was marked as deleted (check the correct section/type)
-    bool? verifiedIsDeleted;
-    DateTime? verifiedDeletedAt;
-    switch (section) {
-      case 'travel':
-        if (itemType == 'passport') {
-          verifiedIsDeleted = newProfile.travel?.passports[actualIndex]?.isDeleted;
-          verifiedDeletedAt = newProfile.travel?.passports[actualIndex]?.deletedAt;
-        } else if (itemType == 'visa') {
-          verifiedIsDeleted = newProfile.travel?.visas[actualIndex]?.isDeleted;
-          verifiedDeletedAt = newProfile.travel?.visas[actualIndex]?.deletedAt;
-        } else if (itemType == 'travel_history') {
-          verifiedIsDeleted =
-              newProfile.travel?.travelHistory[actualIndex]?.isDeleted;
-          verifiedDeletedAt =
-              newProfile.travel?.travelHistory[actualIndex]?.deletedAt;
-        }
-        break;
-      case 'financial':
-        if (itemType == 'bank_account') {
-          verifiedIsDeleted =
-              newProfile.financial?.bankAccounts[actualIndex]?.isDeleted;
-          verifiedDeletedAt =
-              newProfile.financial?.bankAccounts[actualIndex]?.deletedAt;
-        } else if (itemType == 'card') {
-          verifiedIsDeleted = newProfile.financial?.cards[actualIndex]?.isDeleted;
-          verifiedDeletedAt = newProfile.financial?.cards[actualIndex]?.deletedAt;
-        }
-        break;
-      case 'professional':
-        if (itemType == 'education') {
-          verifiedIsDeleted =
-              newProfile.professional?.education[actualIndex]?.isDeleted;
-          verifiedDeletedAt =
-              newProfile.professional?.education[actualIndex]?.deletedAt;
-        } else if (itemType == 'employment') {
-          verifiedIsDeleted =
-              newProfile.professional?.employment[actualIndex]?.isDeleted;
-          verifiedDeletedAt =
-              newProfile.professional?.employment[actualIndex]?.deletedAt;
-        } else if (itemType == 'skill') {
-          verifiedIsDeleted = newProfile.professional?.skills[actualIndex]?.isDeleted;
-          verifiedDeletedAt = newProfile.professional?.skills[actualIndex]?.deletedAt;
-        } else if (itemType == 'language') {
-          verifiedIsDeleted =
-              newProfile.professional?.languages[actualIndex]?.isDeleted;
-          verifiedDeletedAt =
-              newProfile.professional?.languages[actualIndex]?.deletedAt;
-        }
-        break;
-      case 'profile':
-        if (itemType == 'contact') {
-          verifiedIsDeleted =
-              newProfile.identity?.contact?.entries[actualIndex]?.isDeleted;
-          verifiedDeletedAt =
-              newProfile.identity?.contact?.entries[actualIndex]?.deletedAt;
-        } else if (itemType == 'idCard') {
-          verifiedIsDeleted = newProfile.identity?.idCards?[actualIndex]?.isDeleted;
-          verifiedDeletedAt = newProfile.identity?.idCards?[actualIndex]?.deletedAt;
-        } else if (itemType == 'address') {
-          verifiedIsDeleted = newProfile.identity?.addresses?[actualIndex]?.isDeleted;
-          verifiedDeletedAt = newProfile.identity?.addresses?[actualIndex]?.deletedAt;
-        }
-        break;
-    }
 
     // Log the delete operation
     _logSoftDelete(section, itemType, deletedItem);
@@ -1686,7 +1602,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
           _logPermanentDelete(
             'travel',
             'travel_history',
-            profile.travel!.travelHistory[i].destination ?? 'Travel History',
+            profile.travel!.travelHistory[i].destination,
           );
         }
       }

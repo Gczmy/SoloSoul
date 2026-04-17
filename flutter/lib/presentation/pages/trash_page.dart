@@ -559,12 +559,13 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
           FilledButton(
             onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
               await ref.read(profileNotifierProvider.notifier).emptyAllTrash();
               if (mounted) {
                 // Trigger rebuild to remove all items immediately
                 setState(() {});
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text('All $itemCount items permanently deleted'),
                     behavior: SnackBarBehavior.floating,
