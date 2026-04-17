@@ -1341,6 +1341,18 @@ class ProfileStorageService {
           ));
         }
       }
+      for (var i = 0; i < profile.financial!.taxIds.length; i++) {
+        final t = profile.financial!.taxIds[i];
+        if (t.isDeleted) {
+          items.add(DeletedItemInfo(
+            section: 'financial',
+            itemType: 'tax_id',
+            index: i,
+            itemLabel: t.taxIdType ?? 'Tax ID',
+            deletedAt: t.deletedAt ?? DateTime.now(),
+          ));
+        }
+      }
     }
 
     // Professional section
@@ -1483,6 +1495,11 @@ class ProfileStorageService {
             isDeleted: false,
             deletedAt: null,
           );
+        } else if (itemType == 'tax_id' && index < profile.financial!.taxIds.length) {
+          profile.financial!.taxIds[index] = profile.financial!.taxIds[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
         }
         break;
       case 'professional':
@@ -1562,6 +1579,10 @@ class ProfileStorageService {
           final updated = List<CardData>.from(profile.financial!.cards);
           updated.removeAt(index);
           profile.financial = profile.financial!.copyWith(cards: updated);
+        } else if (itemType == 'tax_id' && index < profile.financial!.taxIds.length) {
+          final updated = List<TaxIdData>.from(profile.financial!.taxIds);
+          updated.removeAt(index);
+          profile.financial = profile.financial!.copyWith(taxIds: updated);
         }
         break;
       case 'professional':
@@ -1628,6 +1649,9 @@ class ProfileStorageService {
       profile.financial!.cards.removeWhere(
         (c) => c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
       );
+      profile.financial!.taxIds.removeWhere(
+        (t) => t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
+      );
     }
 
     // Professional section
@@ -1668,6 +1692,9 @@ class ProfileStorageService {
           ) ||
           profile.financial!.cards.any(
             (c) => c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
+          ) ||
+          profile.financial!.taxIds.any(
+            (t) => t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
           );
     }
     if (profile.professional != null) {
@@ -1697,6 +1724,7 @@ class ProfileStorageService {
     if (profile.financial != null) {
       profile.financial!.bankAccounts.removeWhere((b) => b.isDeleted);
       profile.financial!.cards.removeWhere((c) => c.isDeleted);
+      profile.financial!.taxIds.removeWhere((t) => t.isDeleted);
     }
 
     // Professional section

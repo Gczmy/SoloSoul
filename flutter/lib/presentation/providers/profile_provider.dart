@@ -895,6 +895,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
             financial: FinancialData(
               bankAccounts: updated,
               cards: financial.cards,
+              taxIds: financial.taxIds,
             ),
             professional: current.professional,
           );
@@ -910,6 +911,23 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
             financial: FinancialData(
               bankAccounts: financial.bankAccounts,
               cards: updated,
+              taxIds: financial.taxIds,
+            ),
+            professional: current.professional,
+          );
+        } else if (itemType == 'tax_id' && index < financial.taxIds.length) {
+          final updated = List<TaxIdData>.from(financial.taxIds);
+          updated[index] = updated[index].copyWith(
+            isDeleted: true,
+            deletedAt: deletedAt,
+          );
+          return ProfileData(
+            identity: current.identity,
+            travel: current.travel,
+            financial: FinancialData(
+              bankAccounts: financial.bankAccounts,
+              cards: financial.cards,
+              taxIds: updated,
             ),
             professional: current.professional,
           );
@@ -1180,6 +1198,11 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
               return financial.cards[index];
             }
             break;
+          case 'tax_id':
+            if (index >= 0 && index < financial.taxIds.length) {
+              return financial.taxIds[index];
+            }
+            break;
         }
         break;
       case 'professional':
@@ -1368,6 +1391,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
             financial: FinancialData(
               bankAccounts: updated,
               cards: financial.cards,
+              taxIds: financial.taxIds,
             ),
             professional: current.professional,
           );
@@ -1383,6 +1407,23 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
             financial: FinancialData(
               bankAccounts: financial.bankAccounts,
               cards: updated,
+              taxIds: financial.taxIds,
+            ),
+            professional: current.professional,
+          );
+        } else if (itemType == 'tax_id' && index < financial.taxIds.length) {
+          final updated = List<TaxIdData>.from(financial.taxIds);
+          updated[index] = updated[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return ProfileData(
+            identity: current.identity,
+            travel: current.travel,
+            financial: FinancialData(
+              bankAccounts: financial.bankAccounts,
+              cards: financial.cards,
+              taxIds: updated,
             ),
             professional: current.professional,
           );
