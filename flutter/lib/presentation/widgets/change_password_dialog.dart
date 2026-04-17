@@ -185,6 +185,9 @@ Future<bool> showChangePasswordDialog({
                       final result = await authNotifier.changePassword(
                         currentPassword: current,
                         newPassword: newPwd,
+                        newPasswordHint: newPasswordHintController.text.isNotEmpty
+                            ? newPasswordHintController.text
+                            : null,
                       );
 
                       if (result.success && dialogContext.mounted) {

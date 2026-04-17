@@ -110,7 +110,7 @@ class SettingsPage extends ConsumerWidget {
                   icon: Icons.lock_outlined,
                   children: [
                     _SettingsTile(
-                      icon: Icons.lock_outline,
+                      icon: Icons.lock_open_outlined,
                       title: 'Lock Vault',
                       subtitle: 'Lock now and require password',
                       onTap: () {

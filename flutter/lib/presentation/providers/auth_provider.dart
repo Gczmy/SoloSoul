@@ -376,6 +376,27 @@ class SecureAccountStorage {
     }
   }
 
+  /// Update password hint for an account
+  Future<void> updatePasswordHint(String accountId, String hint) async {
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      final existing = accounts[idx];
+      accounts[idx] = AccountInfo(
+        id: existing.id,
+        name: existing.name,
+        passwordHint: hint,
+        lastAccessed: existing.lastAccessed,
+        createdAt: existing.createdAt,
+        lastLoginAt: existing.lastLoginAt,
+        lastOperationAt: existing.lastOperationAt,
+        lastOperationDesc: existing.lastOperationDesc,
+        recentDevices: existing.recentDevices,
+      );
+      await _saveAccounts(accounts);
+    }
+  }
+
   /// Update account metadata (lastLoginAt, lastOperationAt, device info)
   Future<void> updateAccountMetadata(
     String accountId, {
@@ -712,6 +733,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<({bool success, String? error})> changePassword({
     required String currentPassword,
     required String newPassword,
+    String? newPasswordHint,
   }) async {
     if (_selectedAccountId == null) {
       return (success: false, error: 'No account selected');
@@ -760,7 +782,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
       newVerifyKey,
     );
 
+    // Step 7: Update password hint if provided
+    if (newPasswordHint != null) {
+      await _updateAccountPasswordHint(_selectedAccountId!, newPasswordHint);
+    }
+
     return (success: true, error: null);
+  }
+
+  /// Update the password hint for an account
+  Future<void> _updateAccountPasswordHint(String accountId, String hint) async {
+    await _storage.updatePasswordHint(accountId, hint);
+    // Refresh local cache
+    final accounts = await _storage.listAccounts();
+    _selectedAccountInfo = accounts.cast<AccountInfo?>().firstWhere(
+      (a) => a?.id == accountId,
+      orElse: () => null,
+    );
   }
 
   /// Update operation metadata for the current account

@@ -1174,14 +1174,23 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required int index,
   }) async {
     if (state == null) {
-      return;
+      throw Exception('No profile loaded');
     }
 
     final accountId = _ref
         .read(authNotifierProvider.notifier)
         .selectedAccountId;
     if (accountId == null) {
-      return;
+      throw Exception('No account selected');
+    }
+
+    // Verify item exists and is deleted at this index
+    final itemAtIndex = _getItemAtIndex(state!, section, itemType, index);
+    if (itemAtIndex == null) {
+      throw Exception('$itemType not found at index $index');
+    }
+    if (!_isItemDeleted(itemAtIndex)) {
+      throw Exception('$itemType is not in trash');
     }
 
     final current = state!;
@@ -1200,6 +1209,120 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .updateOperation('Restored $itemType');
   }
 
+  /// Check if an item is deleted
+  bool _isItemDeleted(dynamic item) {
+    if (item == null) return false;
+    // Check for isDeleted field via reflection-like approach
+    // Each data type has isDeleted property
+    try {
+      return item.isDeleted == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Get item at specific index (returns null if not found or wrong type)
+  dynamic _getItemAtIndex(
+    ProfileData profile,
+    String section,
+    String itemType,
+    int index,
+  ) {
+    switch (section) {
+      case 'travel':
+        final travel = profile.travel;
+        if (travel == null) return null;
+        switch (itemType) {
+          case 'passport':
+            if (index >= 0 && index < travel.passports.length) {
+              return travel.passports[index];
+            }
+            break;
+          case 'visa':
+            if (index >= 0 && index < travel.visas.length) {
+              return travel.visas[index];
+            }
+            break;
+          case 'travel_history':
+            if (index >= 0 && index < travel.travelHistory.length) {
+              return travel.travelHistory[index];
+            }
+            break;
+        }
+        break;
+      case 'financial':
+        final financial = profile.financial;
+        if (financial == null) return null;
+        switch (itemType) {
+          case 'bank_account':
+            if (index >= 0 && index < financial.bankAccounts.length) {
+              return financial.bankAccounts[index];
+            }
+            break;
+          case 'card':
+            if (index >= 0 && index < financial.cards.length) {
+              return financial.cards[index];
+            }
+            break;
+        }
+        break;
+      case 'professional':
+        final professional = profile.professional;
+        if (professional == null) return null;
+        switch (itemType) {
+          case 'education':
+            if (index >= 0 && index < professional.education.length) {
+              return professional.education[index];
+            }
+            break;
+          case 'employment':
+            if (index >= 0 && index < professional.employment.length) {
+              return professional.employment[index];
+            }
+            break;
+          case 'skill':
+            if (index >= 0 && index < professional.skills.length) {
+              return professional.skills[index];
+            }
+            break;
+          case 'language':
+            if (index >= 0 && index < professional.languages.length) {
+              return professional.languages[index];
+            }
+            break;
+        }
+        break;
+      case 'profile':
+        final identity = profile.identity;
+        if (identity == null) return null;
+        switch (itemType) {
+          case 'contact':
+            if (identity.contact != null &&
+                index >= 0 &&
+                index < identity.contact!.entries.length) {
+              return identity.contact!.entries[index];
+            }
+            break;
+          case 'idCard':
+            if (identity.idCards != null &&
+                index >= 0 &&
+                index < identity.idCards!.length) {
+              return identity.idCards![index];
+            }
+            break;
+          case 'address':
+            if (identity.addresses != null &&
+                index >= 0 &&
+                index < identity.addresses!.length) {
+              return identity.addresses![index];
+            }
+            break;
+        }
+        break;
+    }
+    return null;
+  }
+
   /// Permanently delete an item (remove from list completely)
   Future<void> permanentDelete({
     required String section,
@@ -1207,14 +1330,23 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required int index,
   }) async {
     if (state == null) {
-      return;
+      throw Exception('No profile loaded');
     }
 
     final accountId = _ref
         .read(authNotifierProvider.notifier)
         .selectedAccountId;
     if (accountId == null) {
-      return;
+      throw Exception('No account selected');
+    }
+
+    // Verify item exists and is deleted at this index
+    final itemAtIndex = _getItemAtIndex(state!, section, itemType, index);
+    if (itemAtIndex == null) {
+      throw Exception('$itemType not found at index $index');
+    }
+    if (!_isItemDeleted(itemAtIndex)) {
+      throw Exception('$itemType is not in trash');
     }
 
     // Get item label BEFORE deletion (since item will be removed)
