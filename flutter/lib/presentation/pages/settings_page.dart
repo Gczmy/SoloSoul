@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -21,9 +23,7 @@ class SettingsPage extends ConsumerWidget {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -37,10 +37,12 @@ class SettingsPage extends ConsumerWidget {
                 accountsAsync.when(
                   data: (accounts) {
                     final selectedId = authNotifier.selectedAccountId;
-                    final currentAccount = accounts.cast<AccountInfo?>().firstWhere(
-                      (a) => a?.id == selectedId,
-                      orElse: () => null,
-                    );
+                    final currentAccount = accounts
+                        .cast<AccountInfo?>()
+                        .firstWhere(
+                          (a) => a?.id == selectedId,
+                          orElse: () => null,
+                        );
                     return Column(
                       children: [
                         _SettingsTile(
@@ -48,9 +50,14 @@ class SettingsPage extends ConsumerWidget {
                           title: 'Current Account',
                           subtitle: currentAccount?.name ?? 'Unknown',
                           trailing: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppTheme.successColor.withValues(alpha: 0.1),
+                              color: AppTheme.successColor.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -62,13 +69,19 @@ class SettingsPage extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          onTap: () => _showCurrentAccountSheet(
+                            context,
+                            ref,
+                            currentAccount,
+                          ),
                         ),
                         const Divider(height: 1),
                         _SettingsTile(
                           icon: Icons.history,
                           title: 'All Accounts',
                           subtitle: '${accounts.length} account(s)',
-                          onTap: () => Navigator.pushReplacementNamed(context, '/login'),
+                          onTap: () =>
+                              _showAllAccountsSheet(context, ref, accounts),
                         ),
                       ],
                     );
@@ -84,46 +97,32 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
               ],
-            )
-                .animate()
-                .fadeIn(duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
+            ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0),
 
             const SizedBox(height: 16),
 
             // Security Section
             SectionCard(
-              title: 'Security',
-              icon: Icons.shield_outlined,
-              children: [
-                _SettingsTile(
-                  icon: Icons.lock_outline,
-                  title: 'Lock Vault',
-                  subtitle: 'Lock now and require password',
-                  onTap: () {
-                    authNotifier.lockVault();
-                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  icon: Icons.password_outlined,
-                  title: 'Change Master Password',
-                  subtitle: 'Update your vault password',
-                  onTap: () => _showComingSoon(context, 'Password change'),
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  icon: Icons.fingerprint,
-                  title: 'Biometric Unlock',
-                  subtitle: 'Use TouchID to unlock',
-                  trailing: Switch(
-                    value: false,
-                    onChanged: (value) => _showComingSoon(context, 'Biometric setup'),
-                  ),
-                ),
-              ],
-            )
+                  title: 'Security',
+                  icon: Icons.shield_outlined,
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.security_outlined,
+                      title: 'Sensitivity Level Settings',
+                      subtitle: 'Configure field sensitivity',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/sensitivity_settings'),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.history,
+                      title: 'Operation Log',
+                      subtitle: 'View activity history',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/operation_log'),
+                    ),
+                  ],
+                )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
@@ -132,31 +131,32 @@ class SettingsPage extends ConsumerWidget {
 
             // Sync Section
             SectionCard(
-              title: 'Sync',
-              icon: Icons.sync_outlined,
-              children: [
-                _SettingsTile(
-                  icon: Icons.cloud_outlined,
-                  title: 'Cloud Sync',
-                  subtitle: 'Not configured',
-                  trailing: Switch(
-                    value: false,
-                    onChanged: (value) => _showComingSoon(context, 'Cloud sync setup'),
-                  ),
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  icon: Icons.wifi_off_outlined,
-                  title: 'Offline Mode',
-                  subtitle: 'Local data only',
-                  trailing: Icon(
-                    Icons.check_circle,
-                    color: AppTheme.successColor,
-                    size: 20,
-                  ),
-                ),
-              ],
-            )
+                  title: 'Sync',
+                  icon: Icons.sync_outlined,
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.cloud_outlined,
+                      title: 'Cloud Sync',
+                      subtitle: 'Not configured',
+                      trailing: Switch(
+                        value: false,
+                        onChanged: (value) =>
+                            _showComingSoon(context, 'Cloud sync setup'),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.wifi_off_outlined,
+                      title: 'Offline Mode',
+                      subtitle: 'Local data only',
+                      trailing: Icon(
+                        Icons.check_circle,
+                        color: AppTheme.successColor,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                )
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
@@ -165,30 +165,31 @@ class SettingsPage extends ConsumerWidget {
 
             // App Info Section
             SectionCard(
-              title: 'About',
-              icon: Icons.info_outlined,
-              children: [
-                _SettingsTile(
-                  icon: Icons.code,
-                  title: 'Version',
-                  subtitle: '1.0.0 (dev)',
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  icon: Icons.description_outlined,
-                  title: 'Privacy Policy',
-                  subtitle: 'View our privacy policy',
-                  onTap: () {},
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  icon: Icons.article_outlined,
-                  title: 'Terms of Service',
-                  subtitle: 'View terms of service',
-                  onTap: () {},
-                ),
-              ],
-            )
+                  title: 'About',
+                  icon: Icons.info_outlined,
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.code,
+                      title: 'Version',
+                      subtitle: '1.0.0 (dev)',
+                      onTap: () => _showVersionSheet(context),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.description_outlined,
+                      title: 'Privacy Policy',
+                      subtitle: 'View our privacy policy',
+                      onTap: () {},
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.article_outlined,
+                      title: 'Terms of Service',
+                      subtitle: 'View terms of service',
+                      onTap: () {},
+                    ),
+                  ],
+                )
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
@@ -231,12 +232,59 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ],
               ),
-            )
-                .animate()
-                .fadeIn(delay: 400.ms, duration: 400.ms),
+            ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
           ],
         ),
       ),
+    );
+  }
+
+  void _showCurrentAccountSheet(
+    BuildContext context,
+    WidgetRef ref,
+    AccountInfo? account,
+  ) {
+    if (account == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _CurrentAccountSheet(account: account),
+    );
+  }
+
+  void _showAllAccountsSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<AccountInfo> accounts,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AllAccountsSheet(
+        accounts: accounts,
+        selectedAccountId: ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId,
+        onSelectAccount: (accountId) async {
+          final authNotifier = ref.read(authNotifierProvider.notifier);
+          await authNotifier.selectAccount(accountId);
+          if (context.mounted) {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        },
+      ),
+    );
+  }
+
+  void _showVersionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _VersionSheet(),
     );
   }
 
@@ -245,11 +293,614 @@ class SettingsPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(feature),
-        content: const Text('This feature will be available in a future update.'),
+        content: const Text(
+          'This feature will be available in a future update.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CurrentAccountSheet extends StatelessWidget {
+  final AccountInfo account;
+
+  const _CurrentAccountSheet({required this.account});
+
+  String _formatDateTime(DateTime? dt) {
+    if (dt == null) return 'N/A';
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  IconData _getDeviceIcon(String deviceName) {
+    final lower = deviceName.toLowerCase();
+    if (lower.contains('iphone') || lower.contains('ios'))
+      return Icons.phone_iphone;
+    if (lower.contains('android')) return Icons.phone_android;
+    if (lower.contains('mac') || lower.contains('darwin'))
+      return Icons.laptop_mac;
+    if (lower.contains('windows')) return Icons.desktop_windows;
+    if (lower.contains('linux')) return Icons.computer;
+    if (lower.contains('web') || lower.contains('browser')) return Icons.web;
+    return Icons.devices;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                // Account name header
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.account_circle,
+                        size: 32,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            account.name,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Account ID: ${account.id}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Account info items with icons
+                _InfoTile(
+                  icon: Icons.calendar_today_outlined,
+                  title: 'Created',
+                  value: _formatDateTime(account.createdAt),
+                ),
+                const Divider(height: 1),
+                _InfoTile(
+                  icon: Icons.login_outlined,
+                  title: 'Last Login',
+                  value: _formatDateTime(account.lastLoginAt),
+                ),
+                const Divider(height: 1),
+                _InfoTile(
+                  icon: Icons.update_outlined,
+                  title: 'Last Operation',
+                  value: account.lastOperationDesc ?? 'No recent operations',
+                  subtitle: account.lastOperationAt != null
+                      ? _formatDateTime(account.lastOperationAt)
+                      : null,
+                ),
+                const Divider(height: 1),
+                _InfoTile(
+                  icon: Icons.devices_outlined,
+                  title: 'Login Devices',
+                  value: account.recentDevices.isEmpty
+                      ? 'No devices recorded'
+                      : '${account.recentDevices.length} device(s)',
+                ),
+              ],
+            ),
+          ),
+
+          // Login devices list
+          if (account.recentDevices.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent Devices',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...account.recentDevices.map(
+                    (device) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getDeviceIcon(device.deviceName),
+                            size: 18,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              device.deviceName,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                          Text(
+                            _formatDateTime(device.lastUsed),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final String? subtitle;
+
+  const _InfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: AppTheme.primaryColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(value, style: theme.textTheme.bodyMedium),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AllAccountsSheet extends StatelessWidget {
+  final List<AccountInfo> accounts;
+  final String? selectedAccountId;
+  final Future<void> Function(String accountId) onSelectAccount;
+
+  const _AllAccountsSheet({
+    required this.accounts,
+    required this.selectedAccountId,
+    required this.onSelectAccount,
+  });
+
+  String _formatDateTime(DateTime? dt) {
+    if (dt == null) return 'N/A';
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  }
+
+  IconData _getDeviceIcon(String deviceName) {
+    final lower = deviceName.toLowerCase();
+    if (lower.contains('iphone') || lower.contains('ios'))
+      return Icons.phone_iphone;
+    if (lower.contains('android')) return Icons.phone_android;
+    if (lower.contains('mac') || lower.contains('darwin'))
+      return Icons.laptop_mac;
+    if (lower.contains('windows')) return Icons.desktop_windows;
+    if (lower.contains('linux')) return Icons.computer;
+    if (lower.contains('web') || lower.contains('browser')) return Icons.web;
+    return Icons.devices;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.manage_accounts_outlined,
+                  color: AppTheme.primaryColor,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'All Accounts',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${accounts.length} account(s)',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              itemCount: accounts.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final account = accounts[index];
+                final isSelected = account.id == selectedAccountId;
+
+                return Material(
+                  color: isSelected
+                      ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                      : theme.colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.3,
+                        ),
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: isSelected
+                        ? null
+                        : () => onSelectAccount(account.id),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                                  : theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.account_circle,
+                              color: isSelected
+                                  ? AppTheme.primaryColor
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      account.name,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                    if (isSelected) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.successColor
+                                              .withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Active',
+                                          style: TextStyle(
+                                            color: AppTheme.successColor,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Last login: ${_formatDateTime(account.lastLoginAt)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (account.recentDevices.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              _getDeviceIcon(
+                                account.recentDevices.first.deviceName,
+                              ),
+                              size: 18,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ],
+                          if (!isSelected)
+                            Icon(
+                              Icons.chevron_right,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _VersionSheet extends StatelessWidget {
+  const _VersionSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const currentVersion = '1.0.0 (dev)';
+    const latestVersion = '1.0.0';
+    const hasUpdate = false;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                // App icon
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.account_circle,
+                    size: 40,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'SoloSoul',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Version info items
+                _VersionInfoTile(
+                  icon: Icons.info_outline,
+                  title: 'Current Version',
+                  value: currentVersion,
+                ),
+                const Divider(height: 1),
+                _VersionInfoTile(
+                  icon: Icons.cloud_download_outlined,
+                  title: 'Latest Version',
+                  value: latestVersion,
+                ),
+                const Divider(height: 1),
+                _VersionInfoTile(
+                  icon: hasUpdate ? Icons.update : Icons.check_circle_outline,
+                  title: 'Update Status',
+                  value: hasUpdate ? 'Update available' : 'Up to date',
+                  valueColor: hasUpdate ? Colors.orange : AppTheme.successColor,
+                ),
+                const Divider(height: 1),
+                _VersionInfoTile(
+                  icon: Icons.phone_android,
+                  title: 'Platform',
+                  value:
+                      Platform.operatingSystem[0].toUpperCase() +
+                      Platform.operatingSystem.substring(1),
+                ),
+                const Divider(height: 1),
+                _VersionInfoTile(
+                  icon: Icons.code,
+                  title: 'Build Type',
+                  value: 'Development',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: SizedBox(
+              width: double.infinity,
+              child: hasUpdate
+                  ? ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.download),
+                      label: const Text('Download Update'),
+                    )
+                  : OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.check),
+                      label: const Text('You\'re all set!'),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _VersionInfoTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color? valueColor;
+
+  const _VersionInfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: AppTheme.primaryColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(title, style: theme.textTheme.bodyMedium)),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: valueColor ?? theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -282,20 +933,13 @@ class _SettingsTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyLarge,
-                  ),
+                  Text(title, style: theme.textTheme.bodyLarge),
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
