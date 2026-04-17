@@ -72,6 +72,14 @@ pub struct CreateAccountPayload {
     pub password: String,
 }
 
+/// Payload for change_password action
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ChangePasswordPayload {
+    pub account_id: String,
+    pub old_password: String,
+    pub new_password: String,
+}
+
 /// Profile summary for JSON serialization
 #[derive(Debug, Serialize)]
 pub struct JsonProfileSummary {
@@ -110,6 +118,8 @@ pub fn handle_vault_request(
         "unlock_vault" => handle_unlock_vault(request.payload, account_manager),
         "lock_vault" => handle_lock_vault(account_manager),
         "create_account" => handle_create_account(request.payload, account_manager),
+        "change_password" => handle_change_password(request.payload, account_manager),
+        "get_account_config" => handle_get_account_config(request.payload, account_manager),
         "search_profiles" => handle_search_profiles(request.payload, account_manager),
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
@@ -356,6 +366,50 @@ fn handle_create_account(payload: Option<serde_json::Value>, manager: &AccountMa
             "created": true
         })),
         Err(e) => VaultResponse::error(format!("Failed to create account: {}", e)),
+    }
+}
+
+fn handle_change_password(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let payload: ChangePasswordPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    match manager.change_password(&payload.account_id, &payload.old_password, &payload.new_password) {
+        Ok(info) => VaultResponse::success(serde_json::json!({
+            "id": info.id,
+            "name": info.name,
+            "salt": info.salt,
+            "verify_hash": info.verify_hash,
+            "crypto_version": info.crypto_version,
+        })),
+        Err(e) => VaultResponse::error(format!("Failed to change password: {}", e)),
+    }
+}
+
+fn handle_get_account_config(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let account_id = match payload {
+        Some(p) => {
+            match p.get("account_id").and_then(|v| v.as_str()) {
+                Some(id) => id.to_string(),
+                None => return VaultResponse::error("Missing account_id".to_string()),
+            }
+        }
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    match manager.get_account_config(&account_id) {
+        Some(info) => VaultResponse::success(serde_json::json!({
+            "id": info.id,
+            "name": info.name,
+            "salt": info.salt,
+            "verify_hash": info.verify_hash,
+            "crypto_version": info.crypto_version,
+        })),
+        None => VaultResponse::error("Account not found".to_string()),
     }
 }
 

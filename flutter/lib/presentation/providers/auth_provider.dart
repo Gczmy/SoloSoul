@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
+import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 
@@ -663,20 +664,46 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Migrate an account that exists in Rust but not in Dart Keychain
+  /// This syncs account credentials (salt, verify_hash) from Rust to Dart Keychain
   Future<void> _migrateAccountFromRust(String accountId, int cryptoVersion) async {
-    // Get account info from Rust vault
-    // For now, this is a placeholder - full implementation would need
-    // a Rust FFI call to get account name and store it in Keychain
-    // Since Rust list_accounts returns AccountInfo with name, we could call that
+    // Get account config from Rust (salt, verify_hash, name)
+    final rustConfig = NativeVaultService.instance.getAccountConfig(
+      accountId: accountId,
+    );
+
+    if (rustConfig == null || rustConfig.salt == null || rustConfig.verifyHash == null) {
+      // Fallback: just update crypto version if we can't get full config
+      await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
+      return;
+    }
+
+    // Decode the credentials from Rust
+    final saltBytes = base64Decode(rustConfig.salt!);
+    final verifyHashBytes = base64Decode(rustConfig.verifyHash!);
+
+    // Check if account already exists in Keychain
     final accounts = await _storage.listAccounts();
-    final account = accounts.cast<AccountInfo?>().firstWhere(
+    final existingAccount = accounts.cast<AccountInfo?>().firstWhere(
       (a) => a?.id == accountId,
       orElse: () => null,
     );
-    if (account == null) return;
 
-    // Update crypto version marker
-    await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
+    if (existingAccount == null) {
+      // Account doesn't exist in Keychain at all - create it
+      await _storage.saveAccountData(accountId, {
+        'salt': rustConfig.salt,
+        'verify_hash': rustConfig.verifyHash,
+        'crypto_version': cryptoVersion,
+      });
+    } else {
+      // Account exists but credentials are stale - update them
+      await _storage.updateAccountSalt(
+        accountId,
+        Uint8List.fromList(saltBytes),
+        Uint8List.fromList(verifyHashBytes),
+      );
+      await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
+    }
   }
 
   /// Verify password for sensitive data access (does NOT change auth state)
@@ -726,10 +753,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Change master password for current account
-  /// 1. Verify old password (via unlockVault which also sets encryption key)
-  /// 2. Generate new salt, derive new key
+  /// 1. Call Rust's change_password to update config.json and get new credentials
+  /// 2. Update Dart's Keychain with new salt/verify_hash
   /// 3. Re-encrypt profile with new key
-  /// 4. Update stored credentials
   Future<({bool success, String? error})> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -739,50 +765,57 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return (success: false, error: 'No account selected');
     }
 
-    // Step 1: Verify old password AND set encryption key via unlockVault
-    // unlockVault verifies the password AND sets the encryption key needed for loadProfile
+    // Step 1: Call Rust to change password (updates Rust's config.json)
+    final rustResult = NativeVaultService.instance.changePassword(
+      accountId: _selectedAccountId!,
+      oldPassword: currentPassword,
+      newPassword: newPassword,
+    );
+
+    if (rustResult == null || !rustResult.success) {
+      return (success: false, error: rustResult?.error ?? 'Failed to change password in vault');
+    }
+
+    // Step 2: Get current profile data with OLD encryption key before updating
+    // First unlock with old password to get the data
     final isUnlocked = await unlockVault(currentPassword);
     if (!isUnlocked) {
-      return (success: false, error: 'Current password is incorrect');
+      return (success: false, error: 'Failed to unlock vault with current password');
     }
-
-    // Step 2: Get current profile data (now with encryption key properly set)
-    // If profile doesn't exist yet (new account with no data), that's OK - skip re-encryption
     final currentProfile = await _profileStorage.loadProfile(_selectedAccountId!);
 
-    // Step 3: Generate new salt and derive new key
-    final newSalt = NativeCryptoService.instance.generateSalt();
-    if (newSalt == null) {
-      return (success: false, error: 'Failed to generate salt');
+    // Step 3: Update Dart's Keychain with new salt/verify_hash from Rust
+    // Rust has already updated config.json with the new credentials
+    if (rustResult.salt != null && rustResult.verifyHash != null) {
+      final saltBytes = base64Decode(rustResult.salt!);
+      final verifyHashBytes = base64Decode(rustResult.verifyHash!);
+      await _storage.updateAccountSalt(
+        _selectedAccountId!,
+        Uint8List.fromList(saltBytes),
+        Uint8List.fromList(verifyHashBytes),
+      );
     }
 
-    final newVerifyKey = NativeCryptoService.instance.deriveKey(
+    // Step 4: Derive new session key from new password and update encryption key
+    final newSalt = base64Decode(rustResult.salt!);
+    final newSessionKey = NativeCryptoService.instance.deriveKey(
       password: newPassword,
-      salt: newSalt,
+      salt: Uint8List.fromList(newSalt),
       memoryKib: 16384,
       iterations: 1,
       parallelism: 4,
     );
-    if (newVerifyKey == null) {
-      return (success: false, error: 'Failed to derive key');
+    if (newSessionKey == null) {
+      return (success: false, error: 'Failed to derive new session key');
     }
 
-    // Step 4: Update encryption key for profile re-encryption
-    _profileStorage.setEncryptionKey(newVerifyKey);
-
-    // Step 5: Re-save profile if it exists (will re-encrypt with new key)
+    // Step 5: Update encryption key and re-save profile if it exists
+    _profileStorage.setEncryptionKey(newSessionKey);
     if (currentProfile != null) {
       await _profileStorage.saveProfile(_selectedAccountId!, currentProfile);
     }
 
-    // Step 6: Update stored account credentials
-    await _storage.updateAccountSalt(
-      _selectedAccountId!,
-      newSalt,
-      newVerifyKey,
-    );
-
-    // Step 7: Update password hint if provided
+    // Step 6: Update password hint if provided
     if (newPasswordHint != null) {
       await _updateAccountPasswordHint(_selectedAccountId!, newPasswordHint);
     }

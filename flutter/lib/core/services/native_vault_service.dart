@@ -302,4 +302,48 @@ class NativeVaultService {
   void lockVault() {
     _request(actionLockVault);
   }
+
+  /// Change account password
+  /// Returns new salt and verify_hash on success
+  ({bool success, String? error, String? salt, String? verifyHash})? changePassword({
+    required String accountId,
+    required String oldPassword,
+    required String newPassword,
+  }) {
+    final payload = {
+      'account_id': accountId,
+      'old_password': oldPassword,
+      'new_password': newPassword,
+    };
+    final response = _request('change_password', payload);
+    if (!_isSuccess(response)) {
+      return (success: false, error: _getError(response), salt: null, verifyHash: null);
+    }
+    final data = response!['data'] as Map<String, dynamic>;
+    return (
+      success: true,
+      error: null,
+      salt: data['salt'] as String?,
+      verifyHash: data['verify_hash'] as String?,
+    );
+  }
+
+  /// Get account config (salt and verify_hash) for Keychain migration
+  ({String? id, String? name, String? salt, String? verifyHash, int? cryptoVersion})? getAccountConfig({
+    required String accountId,
+  }) {
+    final payload = {'account_id': accountId};
+    final response = _request('get_account_config', payload);
+    if (!_isSuccess(response)) {
+      return null;
+    }
+    final data = response!['data'] as Map<String, dynamic>;
+    return (
+      id: data['id'] as String?,
+      name: data['name'] as String?,
+      salt: data['salt'] as String?,
+      verifyHash: data['verify_hash'] as String?,
+      cryptoVersion: data['crypto_version'] as int?,
+    );
+  }
 }
