@@ -876,9 +876,6 @@ class _TrashItemCardState extends State<_TrashItemCard> {
       await widget.onRestore(widget.item);
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isRestoring = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to restore ${widget.item.itemLabel}'),
@@ -886,6 +883,12 @@ class _TrashItemCardState extends State<_TrashItemCard> {
             backgroundColor: Colors.orange,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRestoring = false;
+        });
       }
     }
   }
@@ -901,9 +904,6 @@ class _TrashItemCardState extends State<_TrashItemCard> {
       await widget.onPurge(widget.item);
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isPurging = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to purge ${widget.item.itemLabel}'),
@@ -911,6 +911,12 @@ class _TrashItemCardState extends State<_TrashItemCard> {
             backgroundColor: Colors.orange,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPurging = false;
+        });
       }
     }
   }
