@@ -20,6 +20,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/core/utils/global_error_handler.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/presentation/widgets/lock_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -101,15 +102,11 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     if (elapsed >= _autoLockDuration) {
       final authNotifier = ref.read(authNotifierProvider.notifier);
       if (authNotifier.isUnlocked) {
-        // Wipe sensitive state before navigation
+        // Wipe sensitive state before locking
         _wipeSensitiveState();
         authNotifier.lockVault();
-        // Navigate to login with blur effect
+        // Lock overlay will automatically appear via builder pattern
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/login',
-            (route) => false,
-          );
           GlobalErrorHandler.showSnackBar(
             context,
             'Vault auto-locked after ${_autoLockDuration.inMinutes} minutes of inactivity',
@@ -143,6 +140,26 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
         home: const SplashPage(),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              child ?? const SizedBox(),
+              // LockScreen overlay - shown when vault is locked
+              Consumer(
+                builder: (context, ref, _) {
+                  final authState = ref.watch(authNotifierProvider);
+                  return AnimatedOpacity(
+                    opacity: authState == AuthState.locked ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: authState == AuthState.locked
+                        ? const LockScreen()
+                        : const SizedBox.shrink(),
+                  );
+                },
+              ),
+            ],
+          );
+        },
         routes: {
           '/login': (context) => const LoginPage(),
           '/home': (context) => const HomePage(),
