@@ -11,7 +11,7 @@ use super::migration::run_migrations;
 
 /// Vault store with双重加密
 pub struct VaultStore {
-    conn: Mutex<Connection>,
+    conn: Mutex<Option<Connection>>,
     config: VaultConfig,
     state: VaultState,
 }
@@ -39,7 +39,7 @@ impl VaultStore {
         run_migrations(&mut conn).map_err(|e| format!("Migration failed: {}", e))?;
 
         Ok(Self {
-            conn: Mutex::new(conn),
+            conn: Mutex::new(Some(conn)),
             config,
             state: VaultState::Unlocked,
         })
@@ -129,7 +129,8 @@ impl VaultStore {
 
     /// Get vault statistics
     pub fn stats(&self) -> Result<VaultStats, String> {
-        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_ref().ok_or("Vault is locked")?;
 
         let profile_count: usize = conn
             .query_row("SELECT COUNT(*) FROM profiles", [], |row| row.get(0))
@@ -156,6 +157,16 @@ impl VaultStore {
 
     /// Lock the vault
     pub fn lock(&mut self) {
+        // Properly close the connection to release file locks
+        if let Ok(mut conn_guard) = self.conn.lock() {
+            if let Some(conn) = conn_guard.take() {
+                // Execute WAL checkpoint to flush data to main db
+                let _ = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE)");
+                // Connection will be dropped here when it goes out of scope
+                // This properly closes the connection and releases file locks
+            }
+        }
+
         self.state = VaultState::Locked;
         // Clear SQLCipher key from memory
         if let Some(ref mut key) = self.config.sqlcipher_key {
@@ -165,7 +176,8 @@ impl VaultStore {
 
     /// Save a profile (INSERT or UPDATE)
     pub fn save_profile(&self, profile: &crate::vault::Profile) -> Result<(), String> {
-        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
         let now = chrono::Utc::now().to_rfc3339();
 
         conn.execute(
@@ -192,7 +204,8 @@ impl VaultStore {
 
     /// Load a profile by ID
     pub fn load_profile(&self, id: &str) -> Result<Option<crate::vault::Profile>, String> {
-        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
 
         let mut stmt = conn
             .prepare("SELECT id, name, data, created_at, updated_at, version FROM profiles WHERE id = ?1")
@@ -222,7 +235,8 @@ impl VaultStore {
 
     /// Delete a profile by ID
     pub fn delete_profile(&self, id: &str) -> Result<(), String> {
-        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
 
         let affected = conn
             .execute("DELETE FROM profiles WHERE id = ?1", rusqlite::params![id])
@@ -237,7 +251,8 @@ impl VaultStore {
 
     /// List all profile summaries
     pub fn list_profiles(&self) -> Result<Vec<crate::vault::ProfileSummary>, String> {
-        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
 
         let mut stmt = conn
             .prepare("SELECT id, name, created_at, updated_at, version FROM profiles ORDER BY updated_at DESC")
@@ -268,7 +283,8 @@ impl VaultStore {
 
     /// Search profiles by name (case-insensitive LIKE)
     pub fn search_profiles(&self, query: &str) -> Result<Vec<crate::vault::ProfileSummary>, String> {
-        let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
 
         let pattern = format!("%{}%", query.to_lowercase());
         let mut stmt = conn

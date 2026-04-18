@@ -376,17 +376,32 @@ impl AccountManager {
             Ok(vault) => {
                 let mut vault_store = self.vault_store.write().unwrap();
                 *vault_store = Some(vault);
+                VerifyResult {
+                    success: true,
+                    error: None,
+                    crypto_version: config.crypto_version,
+                }
             }
             Err(e) => {
-                // Vault failed to open but account is unlocked - log error
+                // Vault failed to open - clear partial unlock state
+                {
+                    let mut session = self.session_key.write().unwrap();
+                    if let Some(ref mut key) = *session {
+                        key.zeroize();
+                    }
+                    session.take();
+                }
+                {
+                    let mut unlocked = self.unlocked_account.write().unwrap();
+                    unlocked.take();
+                }
                 eprintln!("Failed to open vault: {}", e);
+                VerifyResult {
+                    success: false,
+                    error: Some(format!("Failed to open vault: {}", e)),
+                    crypto_version: config.crypto_version,
+                }
             }
-        }
-
-        VerifyResult {
-            success: true,
-            error: None,
-            crypto_version: config.crypto_version,
         }
     }
 
@@ -400,13 +415,12 @@ impl AccountManager {
             }
             vault_store.take();
         }
-        // Clear session key
+        // Clear session key - extract from Option before zeroizing to ensure proper cleanup
         {
             let mut session = self.session_key.write().unwrap();
-            if let Some(ref mut key) = *session {
+            if let Some(mut key) = session.take() {
                 key.zeroize();
             }
-            session.take();
         }
         {
             let mut unlocked = self.unlocked_account.write().unwrap();

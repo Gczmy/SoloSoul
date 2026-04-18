@@ -174,22 +174,32 @@ fn handle_save_profile(payload: Option<serde_json::Value>, manager: &AccountMana
         Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
     };
 
-    // Check if profile exists
+    // Check if profile exists by name
     let existing = vault.list_profiles()
         .ok()
         .and_then(|profiles| profiles.into_iter().find(|p| p.name == payload.name));
 
-    let profile = if let Some(existing) = existing {
+    // Delete any existing profile with a different ID (legacy data with random UUID)
+    if let Some(ref existing_profile) = existing {
+        if existing_profile.id != payload.name {
+            // Delete the old profile with wrong ID
+            let _ = vault.delete_profile(&existing_profile.id);
+        }
+    }
+
+    let profile = if existing.is_some() {
+        // Use the existing profile's created_at since we're updating
         Profile {
-            id: existing.id,
+            id: payload.name.clone(),  // Use name as ID for consistent lookups
             name: payload.name.clone(),
             data,
-            created_at: existing.created_at,
+            created_at: existing.as_ref().unwrap().created_at,
             updated_at: chrono::Utc::now(),
-            version: existing.version + 1,
+            version: existing.as_ref().unwrap().version + 1,
         }
     } else {
-        Profile::new(&payload.name, data)
+        // Use profile name as ID so Flutter can look it up by accountId
+        Profile::new_with_id(&payload.name, &payload.name, data)
     };
 
     let summary = ProfileSummary::from_profile(&profile);
@@ -225,7 +235,7 @@ fn handle_create_profile(payload: Option<serde_json::Value>, manager: &AccountMa
         Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
     };
 
-    let profile = Profile::new(&payload.name, data);
+    let profile = Profile::new_with_id(&payload.name, &payload.name, data);
     let summary = ProfileSummary::from_profile(&profile);
 
     if let Err(e) = vault.save_profile(&profile) {

@@ -39,17 +39,22 @@ pub struct ProfileSummary {
 }
 
 impl Profile {
-    /// Create a new profile
-    pub fn new(name: &str, encrypted_data: Vec<u8>) -> Self {
+    /// Create a new profile with a specific ID (e.g., account ID)
+    pub fn new_with_id(id: &str, name: &str, encrypted_data: Vec<u8>) -> Self {
         let now = Utc::now();
         Self {
-            id: Uuid::new_v4().to_string(),
+            id: id.to_string(),
             name: name.to_string(),
             data: encrypted_data,
             created_at: now,
             updated_at: now,
             version: 1,
         }
+    }
+
+    /// Create a new profile with a random ID
+    pub fn new(name: &str, encrypted_data: Vec<u8>) -> Self {
+        Self::new_with_id(&Uuid::new_v4().to_string(), name, encrypted_data)
     }
 
     /// Update profile data
