@@ -29,6 +29,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     _isLoading = true;
 
     try {
+      // Check auth state is still unlocked (may have changed while awaiting)
       final authState = _ref.read(authNotifierProvider);
       if (authState != AuthState.unlocked) return;
 
@@ -40,6 +41,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       final encryptionKey = _storage.encryptionKey;
       if (encryptionKey != null) {
         OperationLogService.instance.setEncryptionKey(encryptionKey);
+      } else {
+        // Vault is locked, cannot load profile without encryption key
+        return;
       }
 
       // Initialize operation log service for this account
@@ -48,9 +52,20 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       // Auto-purge items deleted more than 30 days ago
       await _storage.purgeOldDeletedItemsIfNeeded(accountId);
 
+      // Re-check auth state before loading (may have changed during awaits)
+      final authStateBeforeLoad = _ref.read(authNotifierProvider);
+      if (authStateBeforeLoad != AuthState.unlocked) return;
+
       final profile = await _storage.loadProfile(accountId);
-      // Only update state if we're still the current notifier
-      state = profile ?? ProfileData();
+
+      // Final auth state check before updating state
+      final authStateAfterLoad = _ref.read(authNotifierProvider);
+      if (authStateAfterLoad != AuthState.unlocked) return;
+
+      // Only update state if profile was successfully loaded
+      if (profile != null) {
+        state = profile;
+      }
     } finally {
       _isLoading = false;
     }
@@ -785,14 +800,19 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required int index,
     required dynamic deletedItem,
   }) async {
+    print('[softDelete] START section=$section itemType=$itemType index=$index');
+    print('[softDelete] state is null = ${state == null}');
     if (state == null) {
+      print('[softDelete] state is null, returning early');
       return;
     }
 
     final accountId = _ref
         .read(authNotifierProvider.notifier)
         .selectedAccountId;
+    print('[softDelete] accountId=$accountId');
     if (accountId == null) {
+      print('[softDelete] accountId is null, returning early');
       return;
     }
 
@@ -803,19 +823,50 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // This is necessary because the caller passes the filtered index, but we need
     // the index in the unfiltered storage list (which may include soft-deleted items).
     final actualIndex = _findActualStorageIndex(current, section, itemType, deletedItem, index);
+    print('[softDelete] actualIndex=$actualIndex');
+
+    // DEBUG: Check bank accounts before marking deleted
+    if (section == 'financial' && itemType == 'bank_account') {
+      print('[softDelete] BEFORE: bankAccounts count=${current.financial?.bankAccounts.length}');
+      for (var i = 0; i < (current.financial?.bankAccounts.length ?? 0); i++) {
+        final b = current.financial!.bankAccounts[i];
+        print('[softDelete]   [$i] ${b.bankName} isDeleted=${b.isDeleted}');
+      }
+    }
+
     final newProfile = _markItemDeleted(current, section, itemType, actualIndex, now);
+
+    // DEBUG: Check bank accounts after marking deleted
+    if (section == 'financial' && itemType == 'bank_account') {
+      print('[softDelete] AFTER: bankAccounts count=${newProfile.financial?.bankAccounts.length}');
+      for (var i = 0; i < (newProfile.financial?.bankAccounts.length ?? 0); i++) {
+        final b = newProfile.financial!.bankAccounts[i];
+        print('[softDelete]   [$i] ${b.bankName} isDeleted=${b.isDeleted}');
+      }
+    }
 
     // Log the delete operation
     _logSoftDelete(section, itemType, deletedItem);
 
     // Save and update state
     state = newProfile;
-    await saveProfile(newProfile);
+    print('[softDelete] calling saveProfile...');
+    final saved = await saveProfile(newProfile);
+    print('[softDelete] saveProfile returned saved=$saved');
+    if (!saved) {
+      // Log error but don't throw - UI already updated
+      _addLogEntry(
+        section: LogSectionConfig.getLogSection(section, itemType),
+        action: LogAction.update,
+        description: 'ERROR: Failed to save soft delete for $itemType',
+      );
+    }
 
     // Update account operation metadata
     await _ref
         .read(authNotifierProvider.notifier)
         .updateOperation('Deleted $itemType');
+    print('[softDelete] END');
   }
 
   /// Mark an item as deleted in the profile
