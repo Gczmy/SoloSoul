@@ -73,25 +73,40 @@ class RustVaultService {
   ///
   /// Returns nonce + ciphertext combined, or null on failure
   Uint8List? _encryptData(Uint8List data) {
-    if (_encryptionKey == null) return null;
+    print('[RustVaultService._encryptData] BEGIN, data length=${data.length}');
+    if (_encryptionKey == null) {
+      print('[RustVaultService._encryptData] ERROR: _encryptionKey is null');
+      return null;
+    }
+    print('[RustVaultService._encryptData] _encryptionKey is set');
 
     final nonce = NativeCryptoService.instance.generateSalt();
-    if (nonce == null) return null;
+    if (nonce == null) {
+      print('[RustVaultService._encryptData] ERROR: generateSalt returned null');
+      return null;
+    }
+    print('[RustVaultService._encryptData] nonce generated (length=${nonce.length})');
 
     // Use first 12 bytes of 32-byte salt as nonce
     final nonce12 = Uint8List.fromList(nonce.sublist(0, 12));
 
+    print('[RustVaultService._encryptData] calling NativeCryptoService.instance.encrypt...');
     final encrypted = NativeCryptoService.instance.encrypt(
       data: data,
       key: _encryptionKey!,
       nonce: nonce12,
     );
-    if (encrypted == null) return null;
+    if (encrypted == null) {
+      print('[RustVaultService._encryptData] ERROR: encrypt returned null');
+      return null;
+    }
+    print('[RustVaultService._encryptData] encrypt success (length=${encrypted.length})');
 
     // Combine nonce + ciphertext
     final combined = Uint8List(12 + encrypted.length);
     combined.setRange(0, 12, nonce12);
     combined.setRange(12, combined.length, encrypted);
+    print('[RustVaultService._encryptData] returning combined (length=${combined.length})');
     return combined;
   }
 
@@ -99,17 +114,31 @@ class RustVaultService {
   ///
   /// Expects nonce + ciphertext combined format
   Uint8List? _decryptData(Uint8List combined) {
-    if (_encryptionKey == null) return null;
-    if (combined.length < 13) return null;
+    print('[RustVaultService._decryptData] BEGIN, combined length=${combined.length}');
+    if (_encryptionKey == null) {
+      print('[RustVaultService._decryptData] ERROR: _encryptionKey is null');
+      return null;
+    }
+    if (combined.length < 13) {
+      print('[RustVaultService._decryptData] ERROR: combined.length < 13');
+      return null;
+    }
 
     final nonce = combined.sublist(0, 12);
     final encryptedData = combined.sublist(12);
 
-    return NativeCryptoService.instance.decrypt(
+    print('[RustVaultService._decryptData] calling NativeCryptoService.instance.decrypt...');
+    final result = NativeCryptoService.instance.decrypt(
       encrypted: encryptedData,
       key: _encryptionKey!,
       nonce: Uint8List.fromList(nonce),
     );
+    if (result == null) {
+      print('[RustVaultService._decryptData] ERROR: decrypt returned null');
+      return null;
+    }
+    print('[RustVaultService._decryptData] decrypt success (length=${result.length})');
+    return result;
   }
 
   // ===========================================================================
@@ -144,8 +173,14 @@ class RustVaultService {
   ///
   /// Returns the encrypted profile data (to be decrypted by caller), or null if not found
   Future<Uint8List?> loadProfile(String id) async {
+    print('[RustVaultService.loadProfile] BEGIN, id=$id');
     final result = NativeVaultService.instance.loadProfile(id);
-    return result?.data;
+    if (result == null) {
+      print('[RustVaultService.loadProfile] result is null (profile not found or error)');
+      return null;
+    }
+    print('[RustVaultService.loadProfile] success, data length=${result.data.length}');
+    return result.data;
   }
 
   /// Delete a profile by ID
@@ -216,13 +251,31 @@ class RustVaultService {
     String name,
     String jsonData,
   ) async {
-    if (_encryptionKey == null) return null;
+    print('[RustVaultService] saveProfileEncrypted BEGIN');
+    print('[RustVaultService] name=$name');
+    print('[RustVaultService] jsonData length=${jsonData.length}');
+
+    if (_encryptionKey == null) {
+      print('[RustVaultService] ERROR: _encryptionKey is null');
+      return null;
+    }
+    print('[RustVaultService] _encryptionKey is set (length=${_encryptionKey!.length})');
 
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
-    final encryptedData = _encryptData(jsonBytes);
-    if (encryptedData == null) return null;
+    print('[RustVaultService] jsonBytes length=${jsonBytes.length}');
 
-    return saveProfile(name, encryptedData);
+    print('[RustVaultService] calling _encryptData...');
+    final encryptedData = _encryptData(jsonBytes);
+    if (encryptedData == null) {
+      print('[RustVaultService] ERROR: _encryptData returned null');
+      return null;
+    }
+    print('[RustVaultService] _encryptData success (length=${encryptedData.length})');
+
+    print('[RustVaultService] calling saveProfile (native)...');
+    final result = await saveProfile(name, encryptedData);
+    print('[RustVaultService] saveProfile result=$result');
+    return result;
   }
 
   /// Load and decrypt a profile by ID
@@ -231,12 +284,26 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadProfileDecrypted(String id) async {
+    print('[RustVaultService.loadProfileDecrypted] BEGIN, id=$id');
+
+    print('[RustVaultService.loadProfileDecrypted] calling loadProfile...');
     final encryptedData = await loadProfile(id);
-    if (encryptedData == null) return null;
+    if (encryptedData == null) {
+      print('[RustVaultService.loadProfileDecrypted] loadProfile returned null');
+      return null;
+    }
+    print('[RustVaultService.loadProfileDecrypted] loadProfile success (length=${encryptedData.length})');
 
+    print('[RustVaultService.loadProfileDecrypted] calling _decryptData...');
     final decrypted = _decryptData(encryptedData);
-    if (decrypted == null) return null;
+    if (decrypted == null) {
+      print('[RustVaultService.loadProfileDecrypted] _decryptData returned null');
+      return null;
+    }
+    print('[RustVaultService.loadProfileDecrypted] _decryptData success (length=${decrypted.length})');
 
-    return utf8.decode(decrypted);
+    final result = utf8.decode(decrypted);
+    print('[RustVaultService.loadProfileDecrypted] utf8.decode success (length=${result.length})');
+    return result;
   }
 }

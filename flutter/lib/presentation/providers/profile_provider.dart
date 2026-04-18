@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -5,11 +8,20 @@ import 'package:solosoul_flutter/core/services/log_section_config.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
+/// Debounce duration for profile saves (500ms)
+const _kSaveDebounceDuration = Duration(milliseconds: 500);
+
 /// Profile notifier for loading and saving profile data
 class ProfileNotifier extends StateNotifier<ProfileData?> {
   final ProfileStorageService _storage = ProfileStorageService.instance;
   final Ref _ref;
   bool _isLoading = false;
+
+  /// Timer for debouncing saves
+  Timer? _saveDebounceTimer;
+
+  /// Last saved JSON string (for change detection)
+  String? _lastSavedJson;
 
   ProfileNotifier(this._ref) : super(null);
 
@@ -17,6 +29,10 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
   /// Clear profile state (when auth is locked or reset)
   Future<void> clearProfile() async {
+    // Cancel any pending debounced save
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = null;
+    _lastSavedJson = null;
     state = null;
     // Clear operation logs for current account (waits for pending saves to complete)
     await OperationLogService.instance.clearForCurrentAccount();
@@ -24,60 +40,152 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
   /// Load profile for the currently unlocked account
   Future<void> loadProfile() async {
+    print('[ProfileNotifier] loadProfile() BEGIN');
+
     // Prevent concurrent loads
-    if (_isLoading) return;
+    if (_isLoading) {
+      print('[ProfileNotifier] loadProfile: already loading, returning');
+      return;
+    }
     _isLoading = true;
 
     try {
       // Check auth state is still unlocked (may have changed while awaiting)
       final authState = _ref.read(authNotifierProvider);
-      if (authState != AuthState.unlocked) return;
+      if (authState != AuthState.unlocked) {
+        print('[ProfileNotifier] loadProfile: authState is $authState (not unlocked), returning');
+        return;
+      }
+      print('[ProfileNotifier] loadProfile: authState is unlocked');
 
       final authNotifier = _ref.read(authNotifierProvider.notifier);
       final accountId = authNotifier.selectedAccountId;
-      if (accountId == null) return;
+      if (accountId == null) {
+        print('[ProfileNotifier] loadProfile: accountId is null, returning');
+        return;
+      }
+      print('[ProfileNotifier] loadProfile: accountId=$accountId');
 
       // Sync encryption key to OperationLogService (logs use same encryption)
       final encryptionKey = _storage.encryptionKey;
       if (encryptionKey != null) {
+        print('[ProfileNotifier] loadProfile: encryptionKey is set, syncing to OperationLogService');
         OperationLogService.instance.setEncryptionKey(encryptionKey);
       } else {
         // Vault is locked, cannot load profile without encryption key
+        print('[ProfileNotifier] loadProfile: ERROR - encryptionKey is null, cannot load');
         return;
       }
 
       // Initialize operation log service for this account
+      print('[ProfileNotifier] loadProfile: initializing OperationLogService...');
       await OperationLogService.instance.initializeForAccount(accountId);
 
       // Auto-purge items deleted more than 30 days ago
+      print('[ProfileNotifier] loadProfile: checking for old deleted items...');
       await _storage.purgeOldDeletedItemsIfNeeded(accountId);
 
       // Re-check auth state before loading (may have changed during awaits)
       final authStateBeforeLoad = _ref.read(authNotifierProvider);
-      if (authStateBeforeLoad != AuthState.unlocked) return;
+      if (authStateBeforeLoad != AuthState.unlocked) {
+        print('[ProfileNotifier] loadProfile: authState changed to $authStateBeforeLoad before load, returning');
+        return;
+      }
+      print('[ProfileNotifier] loadProfile: calling _storage.loadProfile...');
 
       final profile = await _storage.loadProfile(accountId);
+      print('[ProfileNotifier] loadProfile: _storage.loadProfile returned ${profile != null}');
 
       // Final auth state check before updating state
       final authStateAfterLoad = _ref.read(authNotifierProvider);
-      if (authStateAfterLoad != AuthState.unlocked) return;
+      if (authStateAfterLoad != AuthState.unlocked) {
+        print('[ProfileNotifier] loadProfile: authState changed to $authStateAfterLoad after load, not updating state');
+        return;
+      }
 
       // Only update state if profile was successfully loaded
       if (profile != null) {
+        print('[ProfileNotifier] loadProfile: updating state with profile');
         state = profile;
+        // Initialize lastSavedJson for change detection
+        _lastSavedJson = jsonEncode(profile.toJson());
+        print('[ProfileNotifier] loadProfile: state updated successfully, _lastSavedJson initialized');
+      } else {
+        print('[ProfileNotifier] loadProfile: profile is null, not updating state');
       }
     } finally {
       _isLoading = false;
+      print('[ProfileNotifier] loadProfile() COMPLETE');
     }
   }
 
-  /// Save profile for the currently unlocked account
-  Future<bool> saveProfile(ProfileData profile) async {
+  /// Save profile for the currently unlocked account (debounced)
+  /// Returns true if save was queued or completed successfully
+  Future<bool> saveProfile(ProfileData profile, {bool immediate = false}) async {
+    // Build JSON for comparison
+    final newJson = jsonEncode(profile.toJson());
+
+    // Check if data has actually changed
+    if (newJson == _lastSavedJson) {
+      print('[saveProfile] SKIP - data unchanged (same as last save)');
+      return true;
+    }
+
+    // Verify vault is unlocked before saving
+    final authState = _ref.read(authNotifierProvider);
+    if (authState != AuthState.unlocked) {
+      print('[saveProfile] ERROR: vault is not unlocked (state=$authState), cannot save');
+      return false;
+    }
+
+    final encryptionKey = _storage.encryptionKey;
+    if (encryptionKey == null) {
+      print('[saveProfile] ERROR: encryption key is null, cannot save');
+      return false;
+    }
+
     final authNotifier = _ref.read(authNotifierProvider.notifier);
     final accountId = authNotifier.selectedAccountId;
-    if (accountId == null) return false;
+    if (accountId == null) {
+      print('[saveProfile] ERROR: no account selected, cannot save');
+      return false;
+    }
 
-    return await _storage.saveProfile(accountId, profile);
+    // Helper to perform the actual save
+    Future<bool> doSave() async {
+      print('[saveProfile] calling _storage.saveProfile...');
+      final result = await _storage.saveProfile(accountId, profile);
+      if (result) {
+        _lastSavedJson = newJson;
+        print('[saveProfile] _storage.saveProfile returned=$result, _lastSavedJson updated');
+      } else {
+        print('[saveProfile] _storage.saveProfile returned=$result');
+      }
+      return result;
+    }
+
+    if (immediate) {
+      // Cancel any pending debounced save and save now
+      _saveDebounceTimer?.cancel();
+      _saveDebounceTimer = null;
+      return doSave();
+    }
+
+    // Debounce: cancel previous timer and schedule new save
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = Timer(_kSaveDebounceDuration, () async {
+      print('[saveProfile] debounce timer fired, performing save');
+      _saveDebounceTimer = null;
+      await doSave();
+    });
+
+    print('[saveProfile] DEBOUNCED - save scheduled in ${_kSaveDebounceDuration.inMilliseconds}ms');
+    return true;
+  }
+
+  /// Force an immediate save (bypasses debounce)
+  Future<bool> saveProfileImmediate(ProfileData profile) async {
+    return saveProfile(profile, immediate: true);
   }
 
   /// Update identity data
@@ -98,16 +206,21 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       financial: current.financial,
       professional: current.professional,
     );
-    state = newProfile;
+
+    // Save FIRST, then update state only on success
     final result = await saveProfile(newProfile);
+    if (!result) {
+      print('[updateIdentity] ERROR: saveProfile failed');
+      return false;
+    }
+
+    state = newProfile;
 
     // Update account operation metadata
-    if (result) {
-      await _ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(_summarizeIdentityChanges(oldIdentity, identity, isCreate));
-    }
-    return result;
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeIdentityChanges(oldIdentity, identity, isCreate));
+    return true;
   }
 
   /// Summarize identity changes into a human-readable operation string.
@@ -584,15 +697,29 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final isCreate = oldTravel == null;
 
     final updated = current.copyWith(travel: travel);
-    state = updated;
+
+    // DEBUG logging
+    print('[updateTravel] BEGIN');
+    print('[updateTravel] current.travel passports=${current.travel?.passports.length ?? 0}');
+    print('[updateTravel] updated.travel passports=${updated.travel?.passports.length ?? 0}');
+
+    // Save FIRST, then update state only on success (FIX: was incorrectly mutating state before save)
     final result = await saveProfile(updated);
 
-    // Update account operation metadata
-    if (result) {
-      await _ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(_summarizeTravelChanges(oldTravel, travel, isCreate));
+    print('[updateTravel] saveProfile result=$result');
+
+    if (!result) {
+      print('[updateTravel] ERROR: saveProfile failed, NOT updating state');
+      return false;
     }
+
+    state = updated;
+    print('[updateTravel] state updated successfully');
+
+    // Update account operation metadata
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeTravelChanges(oldTravel, travel, isCreate));
     return result;
   }
 
@@ -656,15 +783,29 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final isCreate = oldFinancial == null;
 
     final updated = current.copyWith(financial: financial);
-    state = updated;
+
+    // DEBUG logging
+    print('[updateFinancial] BEGIN');
+    print('[updateFinancial] current.financial bankAccounts=${current.financial?.bankAccounts.length ?? 0}');
+    print('[updateFinancial] updated.financial bankAccounts=${updated.financial?.bankAccounts.length ?? 0}');
+
+    // Save FIRST, then update state only on success (FIX: was incorrectly mutating state before save)
     final result = await saveProfile(updated);
 
-    // Update account operation metadata
-    if (result) {
-      await _ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(_summarizeFinancialChanges(oldFinancial, financial, isCreate));
+    print('[updateFinancial] saveProfile result=$result');
+
+    if (!result) {
+      print('[updateFinancial] ERROR: saveProfile failed, NOT updating state');
+      return false;
     }
+
+    state = updated;
+    print('[updateFinancial] state updated successfully');
+
+    // Update account operation metadata
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeFinancialChanges(oldFinancial, financial, isCreate));
     return result;
   }
 
@@ -719,15 +860,29 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final isCreate = oldProfessional == null;
 
     final updated = current.copyWith(professional: professional);
-    state = updated;
+
+    // DEBUG logging
+    print('[updateProfessional] BEGIN');
+    print('[updateProfessional] current.professional education=${current.professional?.education.length ?? 0}');
+    print('[updateProfessional] updated.professional education=${updated.professional?.education.length ?? 0}');
+
+    // Save FIRST, then update state only on success (FIX: was incorrectly mutating state before save)
     final result = await saveProfile(updated);
 
-    // Update account operation metadata
-    if (result) {
-      await _ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(_summarizeProfessionalChanges(oldProfessional, professional, isCreate));
+    print('[updateProfessional] saveProfile result=$result');
+
+    if (!result) {
+      print('[updateProfessional] ERROR: saveProfile failed, NOT updating state');
+      return false;
     }
+
+    state = updated;
+    print('[updateProfessional] state updated successfully');
+
+    // Update account operation metadata
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeProfessionalChanges(oldProfessional, professional, isCreate));
     return result;
   }
 
@@ -795,78 +950,46 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
   /// Soft delete an item (marks as deleted but doesn't remove)
   Future<void> softDelete({
-    required String section, // 'travel', 'financial', 'professional'
-    required String itemType, // 'passport', 'visa', 'bank_account', etc.
+    required String section,
+    required String itemType,
     required int index,
     required dynamic deletedItem,
   }) async {
-    print('[softDelete] START section=$section itemType=$itemType index=$index');
-    print('[softDelete] state is null = ${state == null}');
-    if (state == null) {
-      print('[softDelete] state is null, returning early');
-      return;
-    }
+    if (state == null) return;
 
     final accountId = _ref
         .read(authNotifierProvider.notifier)
         .selectedAccountId;
-    print('[softDelete] accountId=$accountId');
-    if (accountId == null) {
-      print('[softDelete] accountId is null, returning early');
-      return;
-    }
+    if (accountId == null) return;
 
     final current = state!;
     final now = DateTime.now();
 
-    // Find the correct index in the unfiltered storage list by matching the deleted item.
-    // This is necessary because the caller passes the filtered index, but we need
-    // the index in the unfiltered storage list (which may include soft-deleted items).
+    // Find the correct index in the unfiltered storage list
     final actualIndex = _findActualStorageIndex(current, section, itemType, deletedItem, index);
-    print('[softDelete] actualIndex=$actualIndex');
-
-    // DEBUG: Check bank accounts before marking deleted
-    if (section == 'financial' && itemType == 'bank_account') {
-      print('[softDelete] BEFORE: bankAccounts count=${current.financial?.bankAccounts.length}');
-      for (var i = 0; i < (current.financial?.bankAccounts.length ?? 0); i++) {
-        final b = current.financial!.bankAccounts[i];
-        print('[softDelete]   [$i] ${b.bankName} isDeleted=${b.isDeleted}');
-      }
-    }
-
     final newProfile = _markItemDeleted(current, section, itemType, actualIndex, now);
-
-    // DEBUG: Check bank accounts after marking deleted
-    if (section == 'financial' && itemType == 'bank_account') {
-      print('[softDelete] AFTER: bankAccounts count=${newProfile.financial?.bankAccounts.length}');
-      for (var i = 0; i < (newProfile.financial?.bankAccounts.length ?? 0); i++) {
-        final b = newProfile.financial!.bankAccounts[i];
-        print('[softDelete]   [$i] ${b.bankName} isDeleted=${b.isDeleted}');
-      }
-    }
 
     // Log the delete operation
     _logSoftDelete(section, itemType, deletedItem);
 
-    // Save and update state
-    state = newProfile;
-    print('[softDelete] calling saveProfile...');
+    // Save FIRST, then update state only on success
     final saved = await saveProfile(newProfile);
-    print('[softDelete] saveProfile returned saved=$saved');
     if (!saved) {
-      // Log error but don't throw - UI already updated
+      print('[softDelete] ERROR: saveProfile failed');
       _addLogEntry(
         section: LogSectionConfig.getLogSection(section, itemType),
         action: LogAction.update,
         description: 'ERROR: Failed to save soft delete for $itemType',
       );
+      return;
     }
+
+    state = newProfile;
 
     // Update account operation metadata
     await _ref
         .read(authNotifierProvider.notifier)
         .updateOperation('Deleted $itemType');
-    print('[softDelete] END');
   }
 
   /// Mark an item as deleted in the profile
@@ -1170,12 +1293,12 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     }
 
     // Verify item exists and is deleted at this index
+    // NOTE: Index may be stale if item was already restored via another operation
     final itemAtIndex = _getItemAtIndex(state!, section, itemType, index);
-    if (itemAtIndex == null) {
-      throw Exception('$itemType not found at index $index');
-    }
-    if (!_isItemDeleted(itemAtIndex)) {
-      throw Exception('$itemType is not in trash');
+    if (itemAtIndex == null || !_isItemDeleted(itemAtIndex)) {
+      // Item doesn't exist or was already restored - silently return
+      print('[restore] Item already restored or index stale, skipping restore');
+      return;
     }
 
     final current = state!;
@@ -1184,9 +1307,19 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Log the restore operation
     _logRestore(section, itemType, index);
 
-    // Save and update state
+    // Save FIRST, then update state only on success
+    final saved = await saveProfile(newProfile);
+    if (!saved) {
+      print('[restore] ERROR: saveProfile failed');
+      _addLogEntry(
+        section: LogSectionConfig.getLogSection(section, itemType),
+        action: LogAction.update,
+        description: 'ERROR: Failed to save restore for $itemType',
+      );
+      return;
+    }
+
     state = newProfile;
-    await saveProfile(newProfile);
 
     // Update account operation metadata
     await _ref
