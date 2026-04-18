@@ -21,9 +21,7 @@ import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
-import 'package:solosoul_flutter/core/utils/global_error_handler.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
-import 'package:solosoul_flutter/presentation/widgets/lock_screen.dart';
 import 'package:solosoul_flutter/presentation/widgets/privacy_blur_overlay.dart';
 
 void main() async {
@@ -62,6 +60,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
   DateTime? _pausedAt;
   Timer? _autoLockTimer;
   bool _isInBackground = false;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -132,13 +131,22 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     if (authNotifier.isUnlocked) {
       _wipeSensitiveState();
       authNotifier.lockVault();
-      if (mounted) {
-        GlobalErrorHandler.showSnackBar(
-          context,
-          'Vault auto-locked after leaving the app',
-          isWarning: true,
-        );
-      }
+      // Defer navigation using microtask to avoid frame conflict during widget rebuild/dispose
+      Future.microtask(() {
+        final navContext = _navigatorKey.currentContext;
+        if (navContext != null) {
+          ScaffoldMessenger.of(navContext).showSnackBar(
+            const SnackBar(
+              content: Text('Vault auto-locked after leaving the app'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+        }
+      });
     }
     _pausedAt = null;
   }
@@ -149,10 +157,9 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     final delayMinutes = SecurityService.instance.settings.autoLockDelayMinutes;
     if (delayMinutes == -1) return; // Never auto-lock
 
-    final elapsed = DateTime.now().difference(_pausedAt!);
-    final threshold = Duration(minutes: delayMinutes);
+    final elapsedMinutes = DateTime.now().difference(_pausedAt!).inMinutes;
 
-    if (elapsed >= threshold) {
+    if (elapsedMinutes >= delayMinutes) {
       _triggerAutoLock();
     }
     _pausedAt = null;
@@ -176,6 +183,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
+        navigatorKey: _navigatorKey,
         home: const SplashPage(),
         builder: (context, child) {
           return Stack(
@@ -187,19 +195,6 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
                   final authState = ref.watch(authNotifierProvider);
                   final showBlur = _isInBackground && authState == AuthState.unlocked;
                   return PrivacyBlurOverlay(visible: showBlur);
-                },
-              ),
-              // LockScreen overlay - shown when vault is locked
-              Consumer(
-                builder: (context, ref, _) {
-                  final authState = ref.watch(authNotifierProvider);
-                  return AnimatedOpacity(
-                    opacity: authState == AuthState.locked ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: authState == AuthState.locked
-                        ? const LockScreen()
-                        : const SizedBox.shrink(),
-                  );
                 },
               ),
             ],

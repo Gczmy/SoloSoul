@@ -9,6 +9,7 @@ import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -20,7 +21,12 @@ class SettingsPage extends ConsumerWidget {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -69,7 +75,6 @@ class SettingsPage extends ConsumerWidget {
                           onTap: () => _showCurrentAccountSheet(
                             context,
                             ref,
-                            currentAccount,
                           ),
                         ),
                         const Divider(height: 1),
@@ -108,8 +113,8 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Lock Vault',
                       subtitle: 'Lock now and require password',
                       onTap: () {
-                        final authNotifier = ref.read(authNotifierProvider.notifier);
-                        authNotifier.lockVault();
+                        ref.read(sensitivePageAccessProvider.notifier).clear();
+                        ref.read(authNotifierProvider.notifier).lockVault();
                         Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                       },
                     ),
@@ -388,9 +393,18 @@ class SettingsPage extends ConsumerWidget {
   void _showCurrentAccountSheet(
     BuildContext context,
     WidgetRef ref,
-    AccountInfo? account,
-  ) {
+  ) async {
+    // Reload fresh account data so last operation is up to date
+    final accounts = await SecureAccountStorage.instance.listAccounts();
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedId = authNotifier.selectedAccountId;
+    final account = accounts.cast<AccountInfo?>().firstWhere(
+      (a) => a?.id == selectedId,
+      orElse: () => null,
+    );
     if (account == null) return;
+
+    if (!context.mounted) return;
 
     showModalBottomSheet(
       context: context,
