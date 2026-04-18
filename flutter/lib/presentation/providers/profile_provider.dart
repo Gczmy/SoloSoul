@@ -81,10 +81,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       print('[ProfileNotifier] loadProfile: initializing OperationLogService...');
       await OperationLogService.instance.initializeForAccount(accountId);
 
-      // Auto-purge items deleted more than 30 days ago
-      print('[ProfileNotifier] loadProfile: checking for old deleted items...');
-      await _storage.purgeOldDeletedItemsIfNeeded(accountId);
-
       // Re-check auth state before loading (may have changed during awaits)
       final authStateBeforeLoad = _ref.read(authNotifierProvider);
       if (authStateBeforeLoad != AuthState.unlocked) {
@@ -94,6 +90,10 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       print('[ProfileNotifier] loadProfile: calling _storage.loadProfile...');
 
       final profile = await _storage.loadProfile(accountId);
+
+      // Auto-purge items deleted more than 30 days ago (using already-loaded profile)
+      print('[ProfileNotifier] loadProfile: checking for old deleted items...');
+      await _storage.purgeOldDeletedItemsIfNeeded(accountId, existingProfile: profile);
       print('[ProfileNotifier] loadProfile: _storage.loadProfile returned ${profile != null}');
 
       // Final auth state check before updating state

@@ -1886,8 +1886,11 @@ class ProfileStorageService {
   }
 
   /// Check and purge old deleted items (called on app startup)
-  Future<void> purgeOldDeletedItemsIfNeeded(String accountId) async {
-    final profile = await loadProfile(accountId);
+  ///
+  /// If [existingProfile] is provided (already loaded), uses it instead of
+  /// loading again to avoid redundant decryption.
+  Future<void> purgeOldDeletedItemsIfNeeded(String accountId, {ProfileData? existingProfile}) async {
+    final profile = existingProfile ?? await loadProfile(accountId);
     if (profile == null) return;
 
     final cutoff = DateTime.now().subtract(const Duration(days: 30));
