@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:solosoul_flutter/core/services/security_service.dart';
 
 /// Monitors clipboard for sensitive data and auto-clears after a delay.
 /// Uses Timer to delay the clear operation.
 class ClipboardMonitorService {
   static ClipboardMonitorService? _instance;
   Timer? _clearTimer;
-
-  /// Default delay before clearing clipboard (30 seconds).
-  /// Will be replaced by SecurityService.instance.clipboardClearDelay when available.
-  static const Duration _defaultClearDelay = Duration(seconds: 30);
 
   ClipboardMonitorService._();
 
@@ -21,11 +18,17 @@ class ClipboardMonitorService {
   /// Notify that sensitive data was copied to clipboard.
   /// Starts a timer to clear the clipboard after the configured delay.
   Future<void> notifySensitiveCopied() async {
-    // Cancel any existing timer
     _clearTimer?.cancel();
 
-    // Start new timer to clear clipboard
-    _clearTimer = Timer(_defaultClearDelay, () {
+    // Get delay from SecurityService if available, otherwise use default
+    final delaySeconds = SecurityService.instance.isInitialized
+        ? SecurityService.instance.settings.clipboardClearDelaySeconds
+        : 60;
+
+    // -1 means "Never" - don't clear
+    if (delaySeconds < 0) return;
+
+    _clearTimer = Timer(Duration(seconds: delaySeconds), () {
       clearClipboard();
     });
   }
