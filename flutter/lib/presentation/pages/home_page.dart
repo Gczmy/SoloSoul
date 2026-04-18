@@ -15,9 +15,7 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SoloSoul'),
-        actions: const [
-          HeaderActionButtons(),
-        ],
+        actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

@@ -58,10 +58,9 @@ class HeaderActionButtons extends ConsumerWidget {
             // Also clear sensitive access
             ref.read(sensitivePageAccessProvider.notifier).clear();
             // Clear entire route stack to prevent back-navigation to destroyed pages
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/login',
-              (route) => false,
-            );
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/login', (route) => false);
           },
           tooltip: 'Lock Vault',
         ),

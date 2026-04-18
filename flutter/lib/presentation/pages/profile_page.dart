@@ -93,9 +93,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _isSavingName = false;
 
   Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    final accountId = ref
+        .read(authNotifierProvider.notifier)
+        .selectedAccount
+        ?.id;
     if (accountId != null) {
-      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+      await ref
+          .read(authNotifierProvider.notifier)
+          .updateOperation(operationDesc);
     }
   }
 
@@ -424,9 +429,14 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   late List<_EntryWithIndex<ContactEntry>> _entries;
 
   Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    final accountId = ref
+        .read(authNotifierProvider.notifier)
+        .selectedAccount
+        ?.id;
     if (accountId != null) {
-      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+      await ref
+          .read(authNotifierProvider.notifier)
+          .updateOperation(operationDesc);
     }
   }
 
@@ -1004,9 +1014,14 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   late List<_EntryWithIndex<IdCardData>> _idCards;
 
   Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    final accountId = ref
+        .read(authNotifierProvider.notifier)
+        .selectedAccount
+        ?.id;
     if (accountId != null) {
-      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+      await ref
+          .read(authNotifierProvider.notifier)
+          .updateOperation(operationDesc);
     }
   }
 
@@ -1648,9 +1663,14 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   late List<_EntryWithIndex<AddressData>> _addresses;
 
   Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    final accountId = ref
+        .read(authNotifierProvider.notifier)
+        .selectedAccount
+        ?.id;
     if (accountId != null) {
-      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+      await ref
+          .read(authNotifierProvider.notifier)
+          .updateOperation(operationDesc);
     }
   }
 
