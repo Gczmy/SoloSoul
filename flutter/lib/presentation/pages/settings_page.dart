@@ -471,6 +471,7 @@ class SettingsPage extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     String? errorMessage;
     bool isDeleting = false;
+    bool obscurePassword = true;
 
     await showDialog<bool>(
       context: context,
@@ -513,13 +514,53 @@ class SettingsPage extends ConsumerWidget {
                   key: formKey,
                   child: TextFormField(
                     controller: passwordController,
-                    obscureText: true,
+                    obscureText: obscurePassword,
                     autofocus: true,
                     enabled: !isDeleting,
                     decoration: InputDecoration(
                       labelText: 'Enter password to confirm',
+                      labelStyle: TextStyle(
+                        color: errorMessage != null
+                            ? Colors.red.shade700
+                            : Theme.of(dialogInnerContext).colorScheme.onSurface,
+                      ),
                       errorText: errorMessage,
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      errorStyle: TextStyle(
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: errorMessage != null
+                            ? Colors.red.shade700
+                            : Theme.of(dialogInnerContext).colorScheme.onSurfaceVariant,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          size: 20,
+                          color: errorMessage != null
+                              ? Colors.red.shade700
+                              : Theme.of(dialogInnerContext).colorScheme.onSurfaceVariant,
+                        ),
+                        onPressed: () {
+                          setState(() => obscurePassword = !obscurePassword);
+                        },
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade400),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.red.shade300),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.red.shade500, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {

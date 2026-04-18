@@ -79,6 +79,7 @@ SoloSoul/
 ### 代码质量优化
 - [ ] 3个 section 类 (Contact/IdCard/Address) 代码复用 ~90% → 提取 base class
 - [ ] `SensitivityLevel` 字符串 → enum 改造
+- [ ] 密码框边框代码在多处重复 (8处) → 方案1: 创建静态工厂方法 `AppInputDecoration.errorBorder()` | 方案2: 在 `MaterialApp` 的 `theme` 中统一定义 `inputDecorationTheme`
 - [ ] `getFieldLevel` 异常控制流 → `firstWhereOrNull`
 - [ ] `getDeletedItems()` 列表重建 → 添加缓存
 - [ ] 教育/就业页面 CollapsibleSectionCard 集成

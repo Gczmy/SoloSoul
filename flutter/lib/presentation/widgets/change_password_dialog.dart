@@ -70,6 +70,18 @@ Future<bool> showChangePasswordDialog({
                       icon: Icon(obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setDialogState(() => obscureCurrent = !obscureCurrent),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red.shade300),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red.shade500, width: 2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -86,6 +98,18 @@ Future<bool> showChangePasswordDialog({
                       icon: Icon(obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setDialogState(() => obscureNew = !obscureNew),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red.shade300),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red.shade500, width: 2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -100,6 +124,18 @@ Future<bool> showChangePasswordDialog({
                     suffixIcon: IconButton(
                       icon: Icon(obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setDialogState(() => obscureConfirm = !obscureConfirm),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red.shade300),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red.shade500, width: 2),
                     ),
                   ),
                 ),

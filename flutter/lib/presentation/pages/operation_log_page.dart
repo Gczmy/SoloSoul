@@ -476,6 +476,7 @@ class OperationLogPage extends ConsumerStatefulWidget {
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
   bool _filterExpanded = false;
   String? _error;
 
@@ -626,23 +627,64 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                   builder: (ctx) {
                     final authNotifier = ref.read(authNotifierProvider.notifier);
                     final hint = authNotifier.selectedAccount?.passwordHint;
+                    final hasError = _error != null;
+                    final errorColor = Colors.red.shade700;
+                    final normalColor = Theme.of(ctx).colorScheme.onSurfaceVariant;
                     return TextField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       autofocus: true,
                       onSubmitted: (_) => _verifyPassword(),
                       decoration: InputDecoration(
                         labelText: 'Master Password',
+                        labelStyle: TextStyle(
+                          color: hasError ? errorColor : Theme.of(ctx).colorScheme.onSurface,
+                        ),
                         errorText: _error,
-                        prefixIcon: const Icon(Icons.key),
-                        suffixIcon: Visibility(
-                            visible: hint != null,
-                            child: IconButton(
-                              icon: const Icon(Icons.help_outline, size: 20),
-                              onPressed: () => _showPasswordHint(hint!),
-                              tooltip: 'Show password hint',
+                        errorStyle: TextStyle(
+                          color: errorColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        prefixIcon: Icon(Icons.key, color: hasError ? errorColor : normalColor),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (hint != null)
+                              IconButton(
+                                icon: Icon(
+                                  Icons.help_outline,
+                                  size: 20,
+                                  color: hasError ? errorColor : normalColor,
+                                ),
+                                onPressed: () => _showPasswordHint(hint),
+                                tooltip: 'Show password hint',
+                              ),
+                            IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                size: 20,
+                                color: hasError ? errorColor : normalColor,
+                              ),
+                              onPressed: () {
+                                setState(() => _obscurePassword = !_obscurePassword);
+                              },
                             ),
-                          ),
+                          ],
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade400),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.red.shade300),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.red.shade500, width: 2),
+                        ),
                       ),
                     );
                   },

@@ -246,6 +246,18 @@ class _PasswordVerificationDialogContentState
                 color: Colors.red.shade700,
                 fontWeight: FontWeight.w500,
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade400),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.red.shade300),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.red.shade500, width: 2),
+              ),
             ),
             onSubmitted: (_) => _verify(),
           ),

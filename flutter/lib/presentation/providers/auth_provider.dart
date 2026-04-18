@@ -860,9 +860,10 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
 
 /// Accounts provider - lists all accounts sorted by recent access
 final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
-  // Watch authNotifierProvider so this re-evaluates when auth state changes
-  ref.watch(authNotifierProvider);
   final notifier = ref.read(authNotifierProvider.notifier);
+  // Watch the notifier object - it only changes when account selection changes,
+  // NOT when lock/unlock state changes
+  ref.watch(authNotifierProvider.notifier);
   return notifier.getAccountsSortedByRecent();
 });
 

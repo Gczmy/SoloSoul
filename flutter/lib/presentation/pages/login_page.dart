@@ -26,6 +26,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _showCreateAccount = false;
   bool _accountsExpanded = false;
 
+  // Password verification error state
+  bool _hasPasswordError = false;
+  String? _passwordErrorMessage;
+
   // Biometric unlock state
   bool _biometricsEnabled = false;
   String _biometricType = 'Biometric';
@@ -47,6 +51,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void initState() {
     super.initState();
     _checkBiometrics();
+    _passwordController.addListener(_onPasswordTyping);
+  }
+
+  void _onPasswordTyping() {
+    if (!_hasPasswordError || _passwordController.text.isEmpty) return;
+    setState(() {
+      _hasPasswordError = false;
+      _passwordErrorMessage = null;
+    });
   }
 
   Future<void> _checkBiometrics() async {
@@ -127,6 +140,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void dispose() {
     _passwordHintTimer?.cancel();
     _passwordHintOverlayEntry?.remove();
+    _passwordHintOverlayEntry = null;
+    _passwordController.removeListener(_onPasswordTyping);
     _passwordController.dispose();
     _newAccountNameController.dispose();
     _newPasswordController.dispose();
@@ -191,13 +206,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
       }
     } else if (mounted) {
-      setState(() => _isLoading = false);
-      _passwordController.clear();
-      showOverlaySnackBar(
-        context,
-        content: 'Invalid master password',
-        type: SnackBarType.error,
-      );
+      setState(() {
+        _isLoading = false;
+        _hasPasswordError = true;
+        _passwordErrorMessage = 'Invalid master password';
+      });
     }
   }
 
@@ -322,7 +335,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => _passwordHintOverlayEntry?.remove(),
+                    onPressed: () {
+                      _passwordHintOverlayEntry?.remove();
+                      _passwordHintOverlayEntry = null;
+                    },
                   ),
                 ],
               ),
@@ -336,6 +352,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     // Use explicit Timer so it persists across navigation (not tied to widget lifecycle)
     _passwordHintTimer = Timer(const Duration(seconds: 4), () {
       _passwordHintOverlayEntry?.remove();
+      _passwordHintOverlayEntry = null;
     });
   }
 
@@ -343,12 +360,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-    ref.watch(authNotifierProvider); // Watch to rebuild on auth state changes
+    // Use ref.read to avoid rebuilds when auth state changes during setState
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final selectedAccountId = authNotifier.selectedAccountId;
 
-    // Use FutureBuilder for accounts
-    final accountsAsync = ref.watch(accountsProvider);
+    // Use ref.read to avoid FutureProvider re-execution on setState rebuilds
+    final accountsAsync = ref.read(accountsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -681,7 +698,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ],
-        ).animate().fadeIn(duration: 300.ms),
+        ),
 
         const SizedBox(height: 32),
 
@@ -691,7 +708,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
-        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+        ),
 
         const SizedBox(height: 8),
 
@@ -701,7 +718,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
-        ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
+        ),
 
         const SizedBox(height: 32),
 
@@ -719,14 +736,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     decoration: InputDecoration(
                       labelText: 'Master Password',
                       hintText: 'Enter your password',
-                      prefixIcon: const Icon(Icons.key),
+                      labelStyle: TextStyle(
+                        color: _hasPasswordError
+                            ? Colors.red.shade700
+                            : Theme.of(context).colorScheme.onSurface,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.key,
+                        color: _hasPasswordError
+                            ? Colors.red.shade700
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      errorText: _hasPasswordError ? _passwordErrorMessage : null,
+                      errorStyle: TextStyle(
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
                       suffixIcon: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Visibility(
                             visible: selectedAccount.passwordHint != null,
                             child: IconButton(
-                              icon: const Icon(Icons.help_outline, size: 20),
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.all(8),
+                              icon: Icon(
+                                Icons.help_outline,
+                                size: 20,
+                                color: _hasPasswordError
+                                    ? Colors.red.shade700
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
                               onPressed: () => _showPasswordHint(
                                 selectedAccount.passwordHint!,
                               ),
@@ -734,10 +774,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           ),
                           IconButton(
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.all(8),
                             icon: Icon(
                               _obscurePassword
                                   ? Icons.visibility_outlined
                                   : Icons.visibility_off_outlined,
+                              size: 20,
+                              color: _hasPasswordError
+                                  ? Colors.red.shade700
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                             onPressed: () {
                               setState(
@@ -757,10 +803,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       }
                       return null;
                     },
-                  )
-                  .animate()
-                  .fadeIn(delay: 200.ms, duration: 400.ms)
-                  .slideY(begin: 0.2, end: 0),
+                  ),
 
               const SizedBox(height: 24),
 
@@ -779,10 +822,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           )
                         : const Text('Unlock'),
-                  )
-                  .animate()
-                  .fadeIn(delay: 300.ms, duration: 400.ms)
-                  .slideY(begin: 0.2, end: 0),
+                  ),
 
               // Face ID / Touch ID button
               if (_biometricsEnabled) ...[
@@ -802,7 +842,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       vertical: 12,
                     ),
                   ),
-                ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+                ),
               ],
             ],
           ),
