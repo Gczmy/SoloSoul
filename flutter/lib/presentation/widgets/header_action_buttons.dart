@@ -38,10 +38,16 @@ class HeaderActionButtons extends ConsumerWidget {
             },
             tooltip: 'Lock Sensitivity Access',
           ),
-        // Settings
+        // Settings - do nothing if already on settings page
         IconButton(
           icon: const Icon(Icons.settings_outlined),
-          onPressed: () => Navigator.pushNamed(context, '/settings'),
+          onPressed: () {
+            final currentRoute = ModalRoute.of(context)?.settings.name;
+            if (currentRoute == '/settings') {
+              return; // Already on settings page, do nothing
+            }
+            Navigator.pushNamed(context, '/settings');
+          },
           tooltip: 'Settings',
         ),
         // Lock Vault

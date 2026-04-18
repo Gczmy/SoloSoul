@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class SecuritySettingsPage extends ConsumerStatefulWidget {
   const SecuritySettingsPage({super.key});
@@ -48,6 +49,9 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Security Settings'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

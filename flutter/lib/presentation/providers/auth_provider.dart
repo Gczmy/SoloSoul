@@ -540,42 +540,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Unlock vault with master password
   /// Handles automatic migration from V1 to V2 crypto on successful login
   Future<bool> unlockVault(String password) async {
-    print('[AuthNotifier] unlockVault() BEGIN, _selectedAccountId=$_selectedAccountId');
     if (_selectedAccountId == null) {
-      print('[AuthNotifier] unlockVault: _selectedAccountId is null, returning false');
       return false;
     }
     if (password.isEmpty) {
-      print('[AuthNotifier] unlockVault: password is empty');
       state = AuthState.locked;
-      print('[AuthNotifier] state changed to: $state');
       return false;
     }
 
     state = AuthState.loading;
-    print('[AuthNotifier] unlockVault: state changed to: $state');
 
     // Step 1: Unlock Rust vault (source of truth for authentication)
-    print('[AuthNotifier] unlockVault: calling RustVaultService.instance.unlockVault...');
     final vaultResult = RustVaultService.instance.unlockVault(
       accountId: _selectedAccountId!,
       password: password,
     );
-    print('[AuthNotifier] unlockVault: vaultResult.success=${vaultResult.success}');
 
     if (!vaultResult.success) {
       // Rust unlock failed - password incorrect or account not found in Rust
-      print('[AuthNotifier] unlockVault: Rust unlock failed, error=${vaultResult.error}');
       state = AuthState.locked;
       return false;
     }
 
     // Step 2: Rust unlock succeeded - get session key for profile encryption
     // Derive session key from password using the same params Rust used
-    print('[AuthNotifier] unlockVault: Rust unlock succeeded, getting account data...');
     final accountData = await _storage.getAccountData(_selectedAccountId!);
     if (accountData == null) {
-      print('[AuthNotifier] unlockVault: accountData is null, migrating from Rust...');
       // Account not in Keychain but in Rust - migrate it
       await _migrateAccountFromRust(
         _selectedAccountId!,
@@ -583,7 +573,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
       // V1 account - migrate to V2 after successful login
-      print('[AuthNotifier] unlockVault: V1 account, migrating to V2...');
       await _migrateAccountToV2(
         _selectedAccountId!,
         password,
@@ -592,16 +581,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
 
     // Step 3: Get fresh account data after potential migration
-    print('[AuthNotifier] unlockVault: getting fresh account data...');
     final freshData = await _storage.getAccountData(_selectedAccountId!);
     if (freshData == null) {
-      print('[AuthNotifier] unlockVault: freshData is null, failing');
       state = AuthState.locked;
       return false;
     }
 
     // Derive session key from fresh Keychain data
-    print('[AuthNotifier] unlockVault: deriving session key...');
     final salt = base64Decode(freshData['salt'] as String);
     final sessionKey = NativeCryptoService.instance.deriveKey(
       password: password,
@@ -612,13 +598,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     if (sessionKey == null) {
-      print('[AuthNotifier] unlockVault: sessionKey derivation failed');
       state = AuthState.locked;
       return false;
     }
-    print('[AuthNotifier] unlockVault: sessionKey derived successfully');
 
-    print('[AuthNotifier] unlockVault: calling _profileStorage.setEncryptionKey...');
     _profileStorage.setEncryptionKey(sessionKey);
 
     // Reload account info
@@ -628,9 +611,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       orElse: () => null,
     );
 
-    print('[AuthNotifier] unlockVault: NOW setting state = AuthState.unlocked');
     state = AuthState.unlocked;
-    print('[AuthNotifier] unlockVault() COMPLETE, state=$state');
 
     // NOTE: Do NOT call loadProfile here directly!
     // The ref.listen in profile_provider will trigger loadProfile when state becomes unlocked.
@@ -741,16 +722,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Lock the vault
   void lockVault() {
-    print('[AuthNotifier] lockVault() BEGIN');
     // Lock Rust vault (clears session key, closes database)
-    print('[AuthNotifier] calling RustVaultService.instance.lockVault()...');
     RustVaultService.instance.lockVault();
     // Clear encryption key
-    print('[AuthNotifier] calling _profileStorage.clearEncryptionKey()...');
     _profileStorage.clearEncryptionKey();
     // Keep _selectedAccountId and _selectedAccountInfo so user can re-unlock
     state = AuthState.locked;
-    print('[AuthNotifier] lockVault() COMPLETE, state=$state');
   }
 
   /// Check if vault exists

@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
@@ -243,6 +244,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       appBar: AppBar(
         title: const Text('Trash'),
         actions: [
+          const HeaderActionButtons(),
           if (filteredItems.isNotEmpty)
             TextButton.icon(
               onPressed: () => _confirmEmptyTrash(context, filteredItems.length),

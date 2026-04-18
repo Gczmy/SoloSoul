@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef;
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -32,7 +33,12 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Professional')),
+      appBar: AppBar(
+        title: const Text('Professional'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

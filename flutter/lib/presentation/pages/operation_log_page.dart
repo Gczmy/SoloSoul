@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
 // Section identifiers for operation logs
@@ -672,6 +673,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
       appBar: AppBar(
         title: const Text('Operation Log'),
         actions: [
+          const HeaderActionButtons(),
           if (entries.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),

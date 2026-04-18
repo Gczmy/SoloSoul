@@ -23,6 +23,7 @@ import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dar
 import 'package:solosoul_flutter/core/services/log_section_config.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -42,7 +43,8 @@ Future<bool> verifyPasswordForRestrictedField({
   // Check if user was verified within the last 1 minute (password cache)
   final sensitiveAccess = ref.read(sensitivePageAccessProvider);
   final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-  final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+  final hasRecentVerification =
+      sensitiveAccess.lastVerified != null &&
       sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
 
   if (hasRecentVerification) {
@@ -89,6 +91,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _nameController = TextEditingController();
   String? _nameError;
   bool _isSavingName = false;
+
+  Future<void> _persistOperation(String operationDesc) async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    if (accountId != null) {
+      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+    }
+  }
 
   @override
   void initState() {
@@ -156,6 +165,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       setState(() => _isSavingName = false);
       if (success) {
         setState(() => _isEditingName = false);
+        // Persist operation to account metadata
+        await _persistOperation('Updated Full Name');
         // Show top notification for operation feedback
         final isPrivacyMode =
             ref.read(sensitivitySettingsProvider).displayMode ==
@@ -280,7 +291,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final fullName = identity?.fullName ?? 'Unnamed';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: const [HeaderActionButtons()],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -409,6 +423,13 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   int _editingIndex = -1;
   late List<_EntryWithIndex<ContactEntry>> _entries;
 
+  Future<void> _persistOperation(String operationDesc) async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    if (accountId != null) {
+      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+    }
+  }
+
   // Form controllers for inline editing
   final _labelController = TextEditingController();
   final _valueController = TextEditingController();
@@ -469,7 +490,11 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     final fieldId = entry.type == 'email' ? 'contact.email' : 'contact.phone';
 
     // Verify password for restricted fields
-    final verified = await verifyPasswordForRestrictedField(context: context, ref: ref, fieldId: fieldId);
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: fieldId,
+    );
     if (!verified) return;
 
     if (!mounted) return;
@@ -492,10 +517,16 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
   void _deleteEntry(int index) async {
     final deleted = _entries[index];
-    final fieldId = deleted.entry.type == 'email' ? 'contact.email' : 'contact.phone';
+    final fieldId = deleted.entry.type == 'email'
+        ? 'contact.email'
+        : 'contact.phone';
 
     // Verify password for restricted fields BEFORE showing delete confirmation
-    final verified = await verifyPasswordForRestrictedField(context: context, ref: ref, fieldId: fieldId);
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: fieldId,
+    );
     if (!verified) return;
 
     if (!mounted) return;
@@ -559,6 +590,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    // Persist operation to account metadata
+    await _persistOperation('Deleted $itemName');
+
     OperationNotification.show(
       context,
       message: OperationLogger.createNotification(
@@ -572,11 +606,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       onUndo: () async {
         await ref
             .read(profileNotifierProvider.notifier)
-            .restore(
-              section: section,
-              itemType: itemType,
-              id: deletedId,
-            );
+            .restore(section: section, itemType: itemType, id: deletedId);
       },
     );
   }
@@ -614,6 +644,10 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         final displayName =
             itemName ??
             (_entries.isNotEmpty ? _entries.last.entry.label : 'Contact');
+
+        // Persist operation to account metadata
+        await _persistOperation('Updated Contact');
+
         OperationNotification.show(
           context,
           message: OperationLogger.createNotification(
@@ -646,7 +680,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       return;
     }
 
-    final entryId = _mode == 'editing' ? _entries[_editingIndex].entry.id : generateEntryId();
+    final entryId = _mode == 'editing'
+        ? _entries[_editingIndex].entry.id
+        : generateEntryId();
     final entry = ContactEntry(
       id: entryId,
       label: label,
@@ -760,7 +796,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
             _ContactEntryTile(
               entry: displayEntries[i].entry,
               onCopy: () {
-                Clipboard.setData(ClipboardData(text: displayEntries[i].entry.value));
+                Clipboard.setData(
+                  ClipboardData(text: displayEntries[i].entry.value),
+                );
                 showOverlaySnackBar(context, content: 'Copied!');
               },
               onEdit: () => _startEditing(i),
@@ -912,14 +950,8 @@ class _ContactEntryTile extends ConsumerWidget {
           Expanded(
             child: ResponsiveLabelField(
               fields: [
-                LabelValueField(
-                  label: 'Label',
-                  value: entry.label,
-                ),
-                LabelValueField(
-                  label: 'Type',
-                  value: entry.type,
-                ),
+                LabelValueField(label: 'Label', value: entry.label),
+                LabelValueField(label: 'Type', value: entry.type),
                 LabelValueField(
                   label: 'Value',
                   value: entry.value,
@@ -970,6 +1002,13 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   String _mode = 'idle';
   int _editingIndex = -1;
   late List<_EntryWithIndex<IdCardData>> _idCards;
+
+  Future<void> _persistOperation(String operationDesc) async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    if (accountId != null) {
+      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+    }
+  }
 
   final _labelController = TextEditingController();
   final _numberController = TextEditingController();
@@ -1032,7 +1071,11 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
     final card = _idCards[index].entry;
 
     // Verify password for restricted fields (idCard.number is restricted)
-    final verified = await verifyPasswordForRestrictedField(context: context, ref: ref, fieldId: 'idCard.number');
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: 'idCard.number',
+    );
     if (!verified) return;
 
     if (!mounted) return;
@@ -1068,14 +1111,19 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
     final deletedCard = _idCards[index];
 
     // Verify password for restricted fields BEFORE showing delete confirmation
-    final verified = await verifyPasswordForRestrictedField(context: context, ref: ref, fieldId: 'idCard.number');
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: 'idCard.number',
+    );
     if (!verified) return;
 
     if (!mounted) return;
 
     final confirm = await showDeleteConfirmationDialog(
       context: context,
-      itemName: deletedCard.entry.label ?? deletedCard.entry.number ?? 'ID Card',
+      itemName:
+          deletedCard.entry.label ?? deletedCard.entry.number ?? 'ID Card',
       itemType: 'ID Card',
     );
     if (!confirm) return;
@@ -1129,6 +1177,9 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    // Persist operation to account metadata
+    await _persistOperation('Deleted $itemName');
+
     OperationNotification.show(
       context,
       message: OperationLogger.createNotification(
@@ -1142,11 +1193,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
       onUndo: () async {
         await ref
             .read(profileNotifierProvider.notifier)
-            .restore(
-              section: section,
-              itemType: itemType,
-              id: deletedId,
-            );
+            .restore(section: section, itemType: itemType, id: deletedId);
       },
     );
   }
@@ -1181,6 +1228,10 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
         final isPrivacyMode =
             ref.read(sensitivitySettingsProvider).displayMode ==
             SensitivityDisplayMode.hidePrivate;
+
+        // Persist operation to account metadata
+        await _persistOperation('Updated ID Card');
+
         OperationNotification.show(
           context,
           message: OperationLogger.createNotification(
@@ -1202,7 +1253,9 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   }
 
   void _submitForm() {
-    final cardId = _mode == 'editing' ? _idCards[_editingIndex].entry.id : generateEntryId();
+    final cardId = _mode == 'editing'
+        ? _idCards[_editingIndex].entry.id
+        : generateEntryId();
     final card = IdCardData(
       id: cardId,
       label: _labelController.text.isEmpty ? null : _labelController.text,
@@ -1492,41 +1545,51 @@ class _IdCardTile extends ConsumerWidget {
       fields.add(LabelValueField(label: 'Label', value: card.label!));
     }
     if (card.number != null && card.number!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'ID Number',
-        value: card.number!,
-        fieldId: 'idCard.number',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'ID Number',
+          value: card.number!,
+          fieldId: 'idCard.number',
+          isSensitive: true,
+        ),
+      );
     }
     if (card.holderName != null && card.holderName!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Holder Name',
-        value: card.holderName!,
-        fieldId: 'idCard.holderName',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Holder Name',
+          value: card.holderName!,
+          fieldId: 'idCard.holderName',
+          isSensitive: true,
+        ),
+      );
     }
     if (card.country != null && card.country!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Country',
-        value: card.country!,
-        fieldId: 'idCard.country',
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Country',
+          value: card.country!,
+          fieldId: 'idCard.country',
+        ),
+      );
     }
     if (card.issueDate != null && card.issueDate!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Issue Date',
-        value: card.issueDate!,
-        fieldId: 'idCard.issueDate',
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Issue Date',
+          value: card.issueDate!,
+          fieldId: 'idCard.issueDate',
+        ),
+      );
     }
     if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Expiry Date',
-        value: card.expiryDate!,
-        fieldId: 'idCard.expiryDate',
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Expiry Date',
+          value: card.expiryDate!,
+          fieldId: 'idCard.expiryDate',
+        ),
+      );
     }
 
     return Padding(
@@ -1583,6 +1646,13 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   String _mode = 'idle';
   int _editingIndex = -1;
   late List<_EntryWithIndex<AddressData>> _addresses;
+
+  Future<void> _persistOperation(String operationDesc) async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
+    if (accountId != null) {
+      await ref.read(authNotifierProvider.notifier).updateOperation(operationDesc);
+    }
+  }
 
   final _labelController = TextEditingController();
   final _streetController = TextEditingController();
@@ -1643,7 +1713,11 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
     final addr = _addresses[index].entry;
 
     // Verify password for restricted fields (address.postalCode is restricted)
-    final verified = await verifyPasswordForRestrictedField(context: context, ref: ref, fieldId: 'address.postalCode');
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: 'address.postalCode',
+    );
     if (!verified) return;
 
     if (!mounted) return;
@@ -1677,14 +1751,19 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
     final deletedAddr = _addresses[index];
 
     // Verify password for restricted fields BEFORE showing delete confirmation
-    final verified = await verifyPasswordForRestrictedField(context: context, ref: ref, fieldId: 'address.postalCode');
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: 'address.postalCode',
+    );
     if (!verified) return;
 
     if (!mounted) return;
 
     final confirm = await showDeleteConfirmationDialog(
       context: context,
-      itemName: deletedAddr.entry.label ?? deletedAddr.entry.street ?? 'Address',
+      itemName:
+          deletedAddr.entry.label ?? deletedAddr.entry.street ?? 'Address',
       itemType: 'Address',
     );
     if (!confirm) return;
@@ -1737,6 +1816,9 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    // Persist operation to account metadata
+    await _persistOperation('Deleted $itemName');
+
     OperationNotification.show(
       context,
       message: OperationLogger.createNotification(
@@ -1750,11 +1832,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
       onUndo: () async {
         await ref
             .read(profileNotifierProvider.notifier)
-            .restore(
-              section: section,
-              itemType: itemType,
-              id: deletedId,
-            );
+            .restore(section: section, itemType: itemType, id: deletedId);
       },
     );
   }
@@ -1791,6 +1869,10 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
         final isPrivacyMode =
             ref.read(sensitivitySettingsProvider).displayMode ==
             SensitivityDisplayMode.hidePrivate;
+
+        // Persist operation to account metadata
+        await _persistOperation('Updated Address');
+
         OperationNotification.show(
           context,
           message: OperationLogger.createNotification(
@@ -1812,7 +1894,9 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   }
 
   void _submitForm() {
-    final addrId = _mode == 'editing' ? _addresses[_editingIndex].entry.id : generateEntryId();
+    final addrId = _mode == 'editing'
+        ? _addresses[_editingIndex].entry.id
+        : generateEntryId();
     final addr = AddressData(
       id: addrId,
       label: _labelController.text.isEmpty ? null : _labelController.text,
@@ -2088,33 +2172,41 @@ class _AddressTile extends ConsumerWidget {
       fields.add(LabelValueField(label: 'Label', value: address.label!));
     }
     if (address.street != null && address.street!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Street',
-        value: address.street!,
-        fieldId: 'address.street',
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Street',
+          value: address.street!,
+          fieldId: 'address.street',
+        ),
+      );
     }
     if (address.city != null && address.city!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'City',
-        value: address.city!,
-        fieldId: 'address.city',
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'City',
+          value: address.city!,
+          fieldId: 'address.city',
+        ),
+      );
     }
     if (address.postalCode != null && address.postalCode!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Postal Code',
-        value: address.postalCode!,
-        fieldId: 'address.postalCode',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Postal Code',
+          value: address.postalCode!,
+          fieldId: 'address.postalCode',
+          isSensitive: true,
+        ),
+      );
     }
     if (address.country != null && address.country!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Country',
-        value: address.country!,
-        fieldId: 'address.country',
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Country',
+          value: address.country!,
+          fieldId: 'address.country',
+        ),
+      );
     }
 
     return Padding(

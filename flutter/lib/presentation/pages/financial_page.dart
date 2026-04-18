@@ -12,6 +12,7 @@ import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef;
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
   const FinancialPage({super.key});
@@ -32,7 +33,12 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Financial')),
+      appBar: AppBar(
+        title: const Text('Financial'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(

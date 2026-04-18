@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/pages/home_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -32,8 +33,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscureConfirmPassword = true;
   String? _createError;
 
+  // Password hint overlay tracking
+  OverlayEntry? _passwordHintOverlayEntry;
+  Timer? _passwordHintTimer;
+
   @override
   void dispose() {
+    _passwordHintTimer?.cancel();
+    _passwordHintOverlayEntry?.remove();
     _passwordController.dispose();
     _newAccountNameController.dispose();
     _newPasswordController.dispose();
@@ -93,7 +100,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
       }
     } else if (mounted) {
       setState(() => _isLoading = false);
@@ -168,13 +177,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _showPasswordHint(String hint) {
+    // Guard against stale context
+    if (!mounted) return;
+
+    // Dismiss any existing hint overlay before showing a new one
+    _passwordHintTimer?.cancel();
+    _passwordHintOverlayEntry?.remove();
+
     // Use Overlay instead of ScaffoldMessenger.showSnackBar so the timer persists
     // across navigation. SnackBar's built-in timer is cancelled when the widget
     // tree is unmounted (e.g. pushReplacementNamed to home).
     final overlay = Overlay.of(context);
-    late OverlayEntry entry;
 
-    entry = OverlayEntry(
+    _passwordHintOverlayEntry = OverlayEntry(
       builder: (ctx) => Positioned(
         top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
         left: 16,
@@ -213,7 +228,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     icon: const Icon(Icons.close, color: Colors.white70, size: 18),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => entry.remove(),
+                    onPressed: () => _passwordHintOverlayEntry?.remove(),
                   ),
                 ],
               ),
@@ -223,12 +238,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
     );
 
-    overlay.insert(entry);
+    overlay.insert(_passwordHintOverlayEntry!);
     // Use explicit Timer so it persists across navigation (not tied to widget lifecycle)
-    Timer(const Duration(seconds: 4), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
+    _passwordHintTimer = Timer(const Duration(seconds: 4), () {
+      _passwordHintOverlayEntry?.remove();
     });
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -10,46 +11,12 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final authState = ref.watch(authNotifierProvider);
-    final sensitiveAccess = ref.watch(sensitivePageAccessProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('SoloSoul'),
-        actions: [
-          // Sensitive access indicator
-          if (sensitiveAccess.isVerified)
-            IconButton(
-              icon: const Icon(
-                Icons.lock_open_outlined,
-                color: AppTheme.successColor,
-              ),
-              onPressed: () {
-                // Manual lock - clear sensitive page access
-                ref.read(sensitivePageAccessProvider.notifier).clear();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Sensitive access locked'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-              tooltip: 'Lock Sensitive Access',
-            ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-            tooltip: 'Settings',
-          ),
-          IconButton(
-            icon: const Icon(Icons.lock_outline),
-            onPressed: () {
-              ref.read(authNotifierProvider.notifier).lockVault();
-              // Also clear sensitive access
-              ref.read(sensitivePageAccessProvider.notifier).clear();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-            tooltip: 'Lock Vault',
-          ),
+        actions: const [
+          HeaderActionButtons(),
         ],
       ),
       body: SingleChildScrollView(

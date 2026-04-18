@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class SensitivitySettingsPage extends ConsumerStatefulWidget {
   const SensitivitySettingsPage({super.key});
@@ -232,6 +233,9 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensitivity Settings'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
       ),
       body: settings.fieldSettings.isEmpty
           ? const Center(child: CircularProgressIndicator())

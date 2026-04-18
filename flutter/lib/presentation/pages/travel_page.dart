@@ -12,6 +12,7 @@ import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef;
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
   const TravelPage({super.key});
@@ -36,7 +37,12 @@ class _TravelPageState extends ConsumerState<TravelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Travel')),
+      appBar: AppBar(
+        title: const Text('Travel'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
