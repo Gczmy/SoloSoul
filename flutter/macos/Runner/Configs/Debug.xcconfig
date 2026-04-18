@@ -1,4 +1,6 @@
 #include "../../Flutter/Flutter-Debug.xcconfig"
 #include "Warnings.xcconfig"
 
+LIBRARY_SEARCH_PATHS = "$(SRCROOT)/Runner/Frameworks";
+
 EXCLUDED_ARCHS = $(inherited) x86_64;

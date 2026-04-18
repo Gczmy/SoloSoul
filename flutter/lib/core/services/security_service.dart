@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Security settings for the app including auto-lock and clipboard behavior.
@@ -99,27 +100,7 @@ class SecurityService {
     try {
       final data = await _storage.read(key: _keySettings);
       if (data != null && data.isNotEmpty) {
-        final json = Map<String, dynamic>.from(
-          data.split(',').fold<Map<String, dynamic>>(
-            {},
-            (map, pair) {
-              final parts = pair.split(':');
-              if (parts.length == 2) {
-                final key = parts[0].trim();
-                final value = parts[1].trim();
-                if (value == 'true') {
-                  map[key] = true;
-                } else if (value == 'false') {
-                  map[key] = false;
-                } else {
-                  final intVal = int.tryParse(value);
-                  map[key] = intVal ?? value;
-                }
-              }
-              return map;
-            },
-          ),
-        );
+        final json = Map<String, dynamic>.from(jsonDecode(data) as Map);
         _settings = SecuritySettings.fromJson(json);
       }
       _initialized = true;
@@ -130,9 +111,7 @@ class SecurityService {
 
   /// Save current settings to secure storage.
   Future<void> saveSettings() async {
-    final data = _settings.toJson().entries
-        .map((e) => '${e.key}:${e.value}')
-        .join(',');
+    final data = jsonEncode(_settings.toJson());
     await _storage.write(key: _keySettings, value: data);
   }
 

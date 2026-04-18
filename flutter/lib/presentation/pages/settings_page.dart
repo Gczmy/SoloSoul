@@ -10,12 +10,6 @@ import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dar
 import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 
-// Forward declaration for accounts provider
-final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
-  final notifier = ref.read(authNotifierProvider.notifier);
-  return notifier.getAccountsSortedByRecent();
-});
-
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
