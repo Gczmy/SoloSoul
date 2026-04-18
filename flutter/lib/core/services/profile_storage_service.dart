@@ -2,42 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 
 /// Maximum character limits for form fields
 const int kMaxFieldLength = 32;
 const int kMaxNameLength = 16;
 
+const _uuid = Uuid();
+
 /// Sentinel value for copyWith to distinguish "not provided" from "explicitly null"
 class _DeletedAtSentinel {
   const _DeletedAtSentinel();
 }
 
-/// Base class for all profile entry types with unique ID and timestamps
-/// All entry types (IdCardData, PassportData, etc.) should extend this class
-abstract class ProfileEntry {
-  String get id;
-  int get updatedAt;
-  bool get isDeleted;
-  DateTime? get deletedAt;
-
-  /// Creates a copy with new values
-  ProfileEntry copyWithNew({
-    String? id,
-    int? updatedAt,
-    bool? isDeleted,
-    DateTime? deletedAt,
-  });
-}
-
 /// Generates a new unique ID using UUID v4
-String generateEntryId() {
-  // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-  // We use a simple implementation to avoid adding another dependency
-  final random = DateTime.now().microsecondsSinceEpoch;
-  final hex = random.toRadixString(16).padLeft(12, '0');
-  return '${hex.substring(0, 8)}-${hex.substring(4, 8)}-4${hex.substring(9, 12)}-${(random % 14 + 2).toRadixString(16)}${hex.substring(10, 12)}-${hex.substring(0, 12)}${hex.substring(0, 8)}';
-}
+String generateEntryId() => _uuid.v4();
 
 /// Returns current timestamp in milliseconds since epoch
 int currentTimestamp() => DateTime.now().millisecondsSinceEpoch;
