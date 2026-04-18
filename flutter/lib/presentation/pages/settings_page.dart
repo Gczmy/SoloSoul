@@ -170,6 +170,14 @@ class SettingsPage extends ConsumerWidget {
                   icon: Icons.shield_outlined,
                   children: [
                     _SettingsTile(
+                      icon: Icons.lock_clock_outlined,
+                      title: 'Auto-Lock & Privacy',
+                      subtitle: 'Configure timeout and privacy settings',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/security_settings'),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
                       icon: Icons.security_outlined,
                       title: 'Sensitivity Level Settings',
                       subtitle: 'Configure field sensitivity',
@@ -460,14 +468,10 @@ class SettingsPage extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (dialogInnerContext, setState) {
           return AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.warning_amber, color: AppTheme.errorColor),
-                const SizedBox(width: 8),
-                const Text('Delete Account'),
-              ],
+            title: const Center(
+              child: Text('Delete Account'),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -521,7 +525,7 @@ class SettingsPage extends ConsumerWidget {
             ),
             actions: [
               TextButton(
-                onPressed: isDeleting ? null : () => Navigator.pop(context, false),
+                onPressed: isDeleting ? null : () => Navigator.pop(dialogInnerContext, false),
                 child: const Text('Cancel'),
               ),
               FilledButton(
@@ -539,7 +543,7 @@ class SettingsPage extends ConsumerWidget {
                         final success = await authNotifier.deleteAccount(passwordController.text);
 
                         if (!success) {
-                          if (context.mounted) {
+                          if (dialogInnerContext.mounted) {
                             setState(() {
                               isDeleting = false;
                               errorMessage = 'Incorrect password';
@@ -548,9 +552,11 @@ class SettingsPage extends ConsumerWidget {
                           return;
                         }
 
+                        if (dialogInnerContext.mounted) {
+                          Navigator.pop(dialogInnerContext, true);
+                        }
+                        // Navigate to login after dialog is dismissed
                         if (context.mounted) {
-                          Navigator.pop(context, true);
-                          // Navigate to login
                           Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                         }
                       },
