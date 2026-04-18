@@ -5,6 +5,9 @@ import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
+    show authNotifierProvider, sensitivePageAccessProvider;
 
 /// Field definition for a single form field
 class FormFieldDef {
@@ -34,6 +37,9 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   final Future<void> Function(Map<String, String> values, T? editingItem)
       onSave;
   final void Function(T item, String fieldId, String value)? onCopy;
+  /// Optional callback for copying all fields at once
+  /// Optional callback for copying all fields at once (async to allow password verification)
+  final Future<void> Function(T item, String formattedText)? onCopyAll;
   final int maxVisibleItems;
   final T Function(Map<String, String> values, {String? id})? itemFactory;
   /// Converts a T item to a Map of fieldId -> value for populating edit form
@@ -61,6 +67,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     required this.onDelete,
     required this.onSave,
     this.onCopy,
+    this.onCopyAll,
     this.maxVisibleItems = 3,
     this.itemFactory,
     this.itemToMap,
@@ -337,24 +344,45 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
                   onCopy: widget.onCopy != null
                       ? (fieldId, value) => widget.onCopy!(item, fieldId, value)
                       : null,
+                  onCopyAllPressed: widget.onCopyAll != null
+                      ? () => _handleCopyAllWithVerification(context, item)
+                      : null,
                 ),
               );
             }).toList(),
     );
   }
 
-  void _showItemActions(BuildContext context, T item, int index) {
+  Future<void> _showItemActions(BuildContext context, T item, int index) async {
+    if (widget.onCopyAll != null) {
+      final hasRestricted = _hasRestrictedField(item);
+      if (hasRestricted) {
+        final verified = await _verifyPasswordForRestricted(context);
+        if (!verified) return;
+      }
+    }
+
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (widget.onCopyAll != null)
+              ListTile(
+                leading: const Icon(Icons.copy_all),
+                title: const Text('Copy All'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await widget.onCopyAll!(item, _formatAllFields(item));
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
               title: const Text('Edit'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(ctx);
                 _startEditing(index);
               },
             ),
@@ -362,7 +390,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
               leading: const Icon(Icons.delete_outline),
               title: const Text('Delete'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(ctx);
                 _deleteEntry(index);
               },
             ),
@@ -370,6 +398,81 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
         ),
       ),
     );
+  }
+
+  bool _hasRestrictedField(T item) {
+    for (final field in widget.fieldDefs) {
+      if (field.sensitivity == SensitivityLevel.restricted) {
+        final values = widget.itemToMap?.call(item);
+        final value = values?[field.fieldId];
+        if (value != null && value.isNotEmpty) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  Future<bool> _verifyPasswordForRestricted(BuildContext context) async {
+    final settings = ref.read(sensitivitySettingsProvider);
+    // Find a representative restricted field ID for verification
+    String? restrictedFieldId;
+    for (final field in widget.fieldDefs) {
+      if (field.sensitivity == SensitivityLevel.restricted) {
+        restrictedFieldId = field.fieldId;
+        break;
+      }
+    }
+    if (restrictedFieldId == null) return true;
+
+    final level = settings.getFieldLevel(restrictedFieldId);
+    if (level != SensitivityLevel.restricted) return true;
+
+    // Check if user was verified within the last 1 minute (password cache)
+    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
+    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+    if (hasRecentVerification) return true;
+
+    // Show password dialog
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
+    final password = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
+    );
+    if (password == null) return false;
+
+    ref.read(sensitivePageAccessProvider.notifier).markVerified();
+    return true;
+  }
+
+  Future<void> _handleCopyAllWithVerification(BuildContext context, T item) async {
+    final hasRestricted = _hasRestrictedField(item);
+    if (hasRestricted) {
+      final verified = await _verifyPasswordForRestricted(context);
+      if (!verified) return;
+    }
+    if (!mounted) return;
+    final formattedText = _formatAllFields(item);
+    await widget.onCopyAll?.call(item, formattedText);
+  }
+
+  String _formatAllFields(T item) {
+    if (widget.itemToMap == null) return '';
+    final values = widget.itemToMap!(item);
+    final buffer = StringBuffer();
+    buffer.writeln(widget.title);
+    for (final field in widget.fieldDefs) {
+      final value = values[field.fieldId];
+      if (value != null && value.isNotEmpty) {
+        buffer.writeln('${field.label}: $value');
+      }
+    }
+    return buffer.toString().trim();
   }
 }
 
@@ -380,6 +483,8 @@ class _FormSectionItem<T> extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final void Function(String fieldId, String value)? onCopy;
+  /// Called when copy-all button is pressed. Parent handles verification + formatting.
+  final VoidCallback? onCopyAllPressed;
 
   const _FormSectionItem({
     required this.item,
@@ -387,6 +492,7 @@ class _FormSectionItem<T> extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.onCopy,
+    this.onCopyAllPressed,
   });
 
   @override
@@ -399,6 +505,13 @@ class _FormSectionItem<T> extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: displayItemBuilder(item)),
+              if (onCopyAllPressed != null)
+                IconButton(
+                  icon: const Icon(Icons.copy_all, size: 20),
+                  tooltip: 'Copy All',
+                  onPressed: onCopyAllPressed,
+                  visualDensity: VisualDensity.compact,
+                ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
                 tooltip: 'Edit',

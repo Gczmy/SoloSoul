@@ -1,7 +1,7 @@
 # SoloSoul Native Client Development Roadmap
 
 > 创建日期: 2026-04-14
-> 最后更新: 2026-04-14
+> 最后更新: 2026-04-18
 > 版本: 5.0
 >
 > **技术栈更新 (v2.0)**: Go Core → **Rust Core** + flutter_rust_bridge
@@ -1170,6 +1170,9 @@ class OfflineQueue {
 | TouchID/FaceID | 🔄 待集成 | 🔄 | 🔄 | 🔄 |
 | 原生导航 | ✅ | 🔄 | 🔄 | 🔄 |
 | 系统通知 | 🔄 | 🔄 | 🔄 | 🔄 |
+| DMG 分发 | ✅ | 🔄 | 🔄 | 🔄 |
+
+> **注意**: macOS DMG 构建使用 `build_dmg.sh` 自动化脚本，位于项目根目录
 
 ### Phase 6: 功能完善 🔄 部分完成
 
@@ -1180,6 +1183,7 @@ class OfflineQueue {
 | Plugin 系统 | 🔄 预留接口 | 尚未实现 Wasm 沙盒 |
 | 多语言支持 | 🔄 待开发 | i18n 框架未集成 |
 | Riverpod 3.x 升级 | 🔄 待开发 | 当前 2.6.1，需迁移到 3.x |
+| macOS Release Build | ✅ 完成 | macOS Release 构建已完成 |
 
 ---
 

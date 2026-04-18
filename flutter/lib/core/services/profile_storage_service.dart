@@ -1382,6 +1382,136 @@ class DeletedItemInfo {
   });
 }
 
+/// Single historical value entry for a field
+class FieldHistoryEntry {
+  final String value;
+  final DateTime timestamp;
+
+  const FieldHistoryEntry({
+    required this.value,
+    required this.timestamp,
+  });
+
+  factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) {
+    return FieldHistoryEntry(
+      value: json['value'] as String? ?? '',
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'] as String)
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'value': value,
+    'timestamp': timestamp.toIso8601String(),
+  };
+}
+
+/// Complete history for a specific field on an item
+class FieldHistory {
+  final String fieldId;
+  final String itemId;
+  final List<FieldHistoryEntry> entries;
+
+  const FieldHistory({
+    required this.fieldId,
+    required this.itemId,
+    required this.entries,
+  });
+
+  factory FieldHistory.fromJson(Map<String, dynamic> json) {
+    return FieldHistory(
+      fieldId: json['field_id'] as String? ?? '',
+      itemId: json['item_id'] as String? ?? '',
+      entries: (json['entries'] as List<dynamic>?)
+              ?.map((e) => FieldHistoryEntry.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'field_id': fieldId,
+    'item_id': itemId,
+    'entries': entries.map((e) => e.toJson()).toList(),
+  };
+
+  FieldHistory copyWith({
+    String? fieldId,
+    String? itemId,
+    List<FieldHistoryEntry>? entries,
+  }) {
+    return FieldHistory(
+      fieldId: fieldId ?? this.fieldId,
+      itemId: itemId ?? this.itemId,
+      entries: entries ?? this.entries,
+    );
+  }
+}
+
+/// All field histories for a profile, keyed by item id and field id
+class ProfileFieldHistories {
+  final Map<String, Map<String, FieldHistory>> histories; // itemId -> fieldId -> FieldHistory
+
+  ProfileFieldHistories({Map<String, Map<String, FieldHistory>>? histories})
+      : histories = histories ?? {};
+
+  factory ProfileFieldHistories.fromJson(Map<String, dynamic> json) {
+    final result = <String, Map<String, FieldHistory>>{};
+    final data = json['histories'] as Map<String, dynamic>? ?? {};
+    for (final itemEntry in data.entries) {
+      final itemId = itemEntry.key;
+      final fields = itemEntry.value as Map<String, dynamic>? ?? {};
+      result[itemId] = {};
+      for (final fieldEntry in fields.entries) {
+        final fieldId = fieldEntry.key;
+        final historyData = fieldEntry.value as Map<String, dynamic>? ?? {};
+        result[itemId]![fieldId] = FieldHistory.fromJson(historyData);
+      }
+    }
+    return ProfileFieldHistories(histories: result);
+  }
+
+  Map<String, dynamic> toJson() => {
+    'histories': histories.map((itemId, fields) =>
+        MapEntry(itemId, fields.map((fieldId, h) => MapEntry(fieldId, h.toJson())))),
+  };
+
+  /// Get history for a specific field
+  FieldHistory? getHistory(String itemId, String fieldId) {
+    return histories[itemId]?[fieldId];
+  }
+
+  /// Get all histories for an item
+  Map<String, FieldHistory> getItemHistories(String itemId) {
+    return histories[itemId] ?? {};
+  }
+
+  /// Add a new history entry for a field
+  ProfileFieldHistories addEntry(String itemId, String fieldId, String value) {
+    final entry = FieldHistoryEntry(value: value, timestamp: DateTime.now());
+    final newHistories = Map<String, Map<String, FieldHistory>>.from(
+      histories.map((k, v) => MapEntry(k, Map<String, FieldHistory>.from(v))),
+    );
+
+    newHistories[itemId] ??= {};
+    final existing = newHistories[itemId]![fieldId];
+    if (existing != null) {
+      newHistories[itemId]![fieldId] = existing.copyWith(
+        entries: [...existing.entries, entry],
+      );
+    } else {
+      newHistories[itemId]![fieldId] = FieldHistory(
+        fieldId: fieldId,
+        itemId: itemId,
+        entries: [entry],
+      );
+    }
+
+    return ProfileFieldHistories(histories: newHistories);
+  }
+}
+
 /// Profile storage service - stores encrypted profile data locally
 /// Delegates to RustVaultService via FFI for SQLCipher-encrypted storage
 class ProfileStorageService {
@@ -1971,5 +2101,53 @@ class ProfileStorageService {
     }
 
     await saveProfile(accountId, profile);
+  }
+
+  /// Load field histories for an account
+  Future<ProfileFieldHistories> loadFieldHistories(String accountId) async {
+    try {
+      final dir = await storageDir;
+      final file = File('${dir.path}/${accountId}_field_histories.json');
+      if (!await file.exists()) {
+        return ProfileFieldHistories();
+      }
+      final contents = await file.readAsString();
+      final json = jsonDecode(contents) as Map<String, dynamic>;
+      return ProfileFieldHistories.fromJson(json);
+    } catch (e) {
+      print('[ProfileStorageService] loadFieldHistories($accountId): EXCEPTION $e');
+      return ProfileFieldHistories();
+    }
+  }
+
+  /// Save field histories for an account
+  Future<bool> saveFieldHistories(String accountId, ProfileFieldHistories histories) async {
+    try {
+      final dir = await storageDir;
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      final file = File('${dir.path}/${accountId}_field_histories.json');
+      final json = jsonEncode(histories.toJson());
+      await file.writeAsString(json);
+      return true;
+    } catch (e) {
+      print('[ProfileStorageService] saveFieldHistories($accountId): EXCEPTION $e');
+      return false;
+    }
+  }
+
+  /// Add a field history entry when a field is updated
+  Future<ProfileFieldHistories> addFieldHistory({
+    required String accountId,
+    required String itemId,
+    required String fieldId,
+    required String value,
+    ProfileFieldHistories? existingHistories,
+  }) async {
+    final histories = existingHistories ?? await loadFieldHistories(accountId);
+    final updated = histories.addEntry(itemId, fieldId, value);
+    await saveFieldHistories(accountId, updated);
+    return updated;
   }
 }

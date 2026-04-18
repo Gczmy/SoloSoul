@@ -7,6 +7,7 @@ class SecuritySettings {
   final int clipboardClearDelaySeconds;
   final bool lockOnWindowBlur;
   final bool biometricsEnabled;
+  final bool faceIdEnabled;
   final bool privacyScreenEnabled;
 
   const SecuritySettings({
@@ -14,6 +15,7 @@ class SecuritySettings {
     this.clipboardClearDelaySeconds = 60,
     this.lockOnWindowBlur = true,
     this.biometricsEnabled = false,
+    this.faceIdEnabled = false,
     this.privacyScreenEnabled = true,
   });
 
@@ -22,6 +24,7 @@ class SecuritySettings {
     int? clipboardClearDelaySeconds,
     bool? lockOnWindowBlur,
     bool? biometricsEnabled,
+    bool? faceIdEnabled,
     bool? privacyScreenEnabled,
   }) {
     return SecuritySettings(
@@ -29,6 +32,7 @@ class SecuritySettings {
       clipboardClearDelaySeconds: clipboardClearDelaySeconds ?? this.clipboardClearDelaySeconds,
       lockOnWindowBlur: lockOnWindowBlur ?? this.lockOnWindowBlur,
       biometricsEnabled: biometricsEnabled ?? this.biometricsEnabled,
+      faceIdEnabled: faceIdEnabled ?? this.faceIdEnabled,
       privacyScreenEnabled: privacyScreenEnabled ?? this.privacyScreenEnabled,
     );
   }
@@ -39,6 +43,7 @@ class SecuritySettings {
       'clipboardClearDelaySeconds': clipboardClearDelaySeconds,
       'lockOnWindowBlur': lockOnWindowBlur,
       'biometricsEnabled': biometricsEnabled,
+      'faceIdEnabled': faceIdEnabled,
       'privacyScreenEnabled': privacyScreenEnabled,
     };
   }
@@ -49,6 +54,7 @@ class SecuritySettings {
       clipboardClearDelaySeconds: json['clipboardClearDelaySeconds'] as int? ?? 60,
       lockOnWindowBlur: json['lockOnWindowBlur'] as bool? ?? true,
       biometricsEnabled: json['biometricsEnabled'] as bool? ?? false,
+      faceIdEnabled: json['faceIdEnabled'] as bool? ?? false,
       privacyScreenEnabled: json['privacyScreenEnabled'] as bool? ?? true,
     );
   }
@@ -130,6 +136,18 @@ class SecurityService {
   /// Update lock on window blur setting.
   Future<void> setLockOnWindowBlur(bool enabled) async {
     _settings = _settings.copyWith(lockOnWindowBlur: enabled);
+    await saveSettings();
+  }
+
+  /// Update biometric unlock setting (Touch ID / fingerprint).
+  Future<void> setBiometricsEnabled(bool enabled) async {
+    _settings = _settings.copyWith(biometricsEnabled: enabled);
+    await saveSettings();
+  }
+
+  /// Update Face ID unlock setting.
+  Future<void> setFaceIdEnabled(bool enabled) async {
+    _settings = _settings.copyWith(faceIdEnabled: enabled);
     await saveSettings();
   }
 

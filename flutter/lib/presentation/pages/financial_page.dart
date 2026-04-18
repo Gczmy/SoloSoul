@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
@@ -295,6 +298,10 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
       onDelete: _onAccountDelete,
       onSave: _onAccountSave,
       itemToMap: _accountToMap,
+      onCopyAll: (account, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Bank account copied!');
+      },
     );
   }
 }
@@ -479,6 +486,10 @@ class _CardSectionState extends ConsumerState<_CardSection> {
       onDelete: _onCardDelete,
       onSave: _onCardSave,
       itemToMap: _cardToMap,
+      onCopyAll: (card, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Card copied!');
+      },
     );
   }
 }
@@ -664,6 +675,10 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
       onDelete: _onTaxIdDelete,
       onSave: _onTaxIdSave,
       itemToMap: _taxIdToMap,
+      onCopyAll: (taxId, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Tax ID copied!');
+      },
     );
   }
 }

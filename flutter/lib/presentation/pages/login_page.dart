@@ -8,6 +8,8 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/pages/home_page.dart';
+import 'package:solosoul_flutter/core/services/biometric_service.dart';
+import 'package:solosoul_flutter/core/services/security_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -24,6 +26,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _showCreateAccount = false;
   bool _accountsExpanded = false;
 
+  // Biometric unlock state
+  bool _biometricsEnabled = false;
+  String _biometricType = 'Biometric';
+
   // Create account form fields
   final _newAccountNameController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -36,6 +42,86 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   // Password hint overlay tracking
   OverlayEntry? _passwordHintOverlayEntry;
   Timer? _passwordHintTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    final biometric = BiometricService.instance;
+    final available = await biometric.isAvailable();
+    final settings = SecurityService.instance.settings;
+    final availableBiometrics = await biometric.getAvailableBiometrics();
+
+    String biometricType = 'Biometric';
+    if (availableBiometrics.isNotEmpty) {
+      if (availableBiometrics.any((b) => b == BiometricType.face)) {
+        biometricType = 'Face ID';
+      } else if (availableBiometrics.any((b) => b == BiometricType.fingerprint)) {
+        biometricType = 'Touch ID';
+      } else if (availableBiometrics.any((b) => b == BiometricType.iris)) {
+        biometricType = 'Iris';
+      }
+    }
+
+    setState(() {
+      _biometricsEnabled = settings.biometricsEnabled && available;
+      _biometricType = biometricType;
+    });
+  }
+
+  Future<void> _handleBiometricUnlock() async {
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    if (authNotifier.selectedAccountId == null) return;
+
+    setState(() => _isLoading = true);
+
+    final success = await BiometricService.instance.authenticate(
+      reason: 'Unlock SoloSoul with $_biometricType',
+    );
+
+    if (success && mounted) {
+      await ref.read(profileNotifierProvider.notifier).loadProfile();
+
+      final accountId = authNotifier.selectedAccountId;
+      if (accountId != null) {
+        await SecureAccountStorage.instance.updateAccountMetadata(
+          accountId,
+          lastLoginAt: DateTime.now(),
+          device: DeviceInfo(
+            deviceName: Platform.isMacOS
+                ? 'Mac'
+                : Platform.isIOS
+                    ? 'iPhone'
+                    : Platform.isAndroid
+                        ? 'Android'
+                        : Platform.isLinux
+                            ? 'Linux'
+                            : Platform.isWindows
+                                ? 'Windows'
+                                : 'Flutter Device',
+            lastUsed: DateTime.now(),
+          ).toJson(),
+        );
+        await authNotifier.selectAccount(accountId);
+      }
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      }
+    } else if (mounted) {
+      setState(() => _isLoading = false);
+      showOverlaySnackBar(
+        context,
+        content: 'Biometric authentication failed',
+        type: SnackBarType.error,
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -697,6 +783,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   .animate()
                   .fadeIn(delay: 300.ms, duration: 400.ms)
                   .slideY(begin: 0.2, end: 0),
+
+              // Face ID / Touch ID button
+              if (_biometricsEnabled) ...[
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _handleBiometricUnlock,
+                  icon: Icon(
+                    _biometricType == 'Face ID'
+                        ? Icons.face
+                        : Icons.fingerprint,
+                    size: 22,
+                  ),
+                  label: Text('Use $_biometricType'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+              ],
             ],
           ),
         ),

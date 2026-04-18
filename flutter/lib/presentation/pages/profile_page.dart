@@ -24,6 +24,7 @@ import 'package:solosoul_flutter/core/services/log_section_config.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -923,7 +924,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   }
 }
 
-class _ContactEntryTile extends ConsumerWidget {
+class _ContactEntryTile extends ConsumerStatefulWidget {
   final ContactEntry entry;
   final VoidCallback onCopy;
   final VoidCallback onEdit;
@@ -937,62 +938,111 @@ class _ContactEntryTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final fieldId = entry.type == 'email' ? 'contact.email' : 'contact.phone';
+  ConsumerState<_ContactEntryTile> createState() => _ContactEntryTileState();
+}
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              entry.type == 'email'
-                  ? Icons.email_outlined
-                  : Icons.phone_outlined,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ResponsiveLabelField(
-              fields: [
-                LabelValueField(label: 'Label', value: entry.label),
-                LabelValueField(label: 'Type', value: entry.type),
-                LabelValueField(
-                  label: 'Value',
-                  value: entry.value,
-                  fieldId: fieldId,
-                  isSensitive: true,
+class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
+  bool _showHistory = false;
+
+  String _formatAllFields() {
+    final buffer = StringBuffer();
+    buffer.writeln('Contact Entry');
+    buffer.writeln('Label: ${widget.entry.label}');
+    buffer.writeln('Type: ${widget.entry.type}');
+    buffer.writeln('Value: ${widget.entry.value}');
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final fieldId = widget.entry.type == 'email' ? 'contact.email' : 'contact.phone';
+    final history = ref.watch(fieldHistoriesProvider.notifier).getHistory(widget.entry.id, fieldId);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  widget.entry.type == 'email'
+                      ? Icons.email_outlined
+                      : Icons.phone_outlined,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ],
-              labelValueSpacing: 4,
-              layoutAxis: Axis.vertical,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ResponsiveLabelField(
+                  fields: [
+                    LabelValueField(label: 'Label', value: widget.entry.label),
+                    LabelValueField(label: 'Type', value: widget.entry.type),
+                    LabelValueField(
+                      label: 'Value',
+                      value: widget.entry.value,
+                      fieldId: fieldId,
+                      isSensitive: true,
+                    ),
+                  ],
+                  labelValueSpacing: 4,
+                  layoutAxis: Axis.vertical,
+                ),
+              ),
+              IconButton(
+                  icon: Icon(
+                    Icons.history,
+                    size: 20,
+                    color: _showHistory ? AppTheme.primaryColor : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  tooltip: 'View History',
+                  onPressed: () => setState(() => _showHistory = !_showHistory),
+                  visualDensity: VisualDensity.compact,
+                ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 20),
+                tooltip: 'Copy Value',
+                onPressed: widget.onCopy,
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy_all, size: 20),
+                tooltip: 'Copy All',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: _formatAllFields()));
+                  showOverlaySnackBar(context, content: 'Contact copied!');
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: widget.onEdit,
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: widget.onDelete,
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+        ),
+        if (_showHistory && history != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: fieldId,
+              history: history,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.copy, size: 20),
-            tooltip: 'Copy',
-            onPressed: onCopy,
-            visualDensity: VisualDensity.compact,
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            tooltip: 'Edit',
-            onPressed: onEdit,
-            visualDensity: VisualDensity.compact,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 20),
-            tooltip: 'Delete',
-            onPressed: onDelete,
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -1537,7 +1587,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   }
 }
 
-class _IdCardTile extends ConsumerWidget {
+class _IdCardTile extends ConsumerStatefulWidget {
   final IdCardData card;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -1549,99 +1599,170 @@ class _IdCardTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_IdCardTile> createState() => _IdCardTileState();
+}
+
+class _IdCardTileState extends ConsumerState<_IdCardTile> {
+  bool _showHistory = false;
+
+  String _formatAllFields() {
+    final buffer = StringBuffer();
+    buffer.writeln('ID Card');
+    if (widget.card.label != null && widget.card.label!.isNotEmpty) {
+      buffer.writeln('Label: ${widget.card.label}');
+    }
+    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
+      buffer.writeln('ID Number: ${widget.card.number}');
+    }
+    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
+      buffer.writeln('Holder Name: ${widget.card.holderName}');
+    }
+    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
+      buffer.writeln('Country: ${widget.card.country}');
+    }
+    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
+      buffer.writeln('Issue Date: ${widget.card.issueDate}');
+    }
+    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
+      buffer.writeln('Expiry Date: ${widget.card.expiryDate}');
+    }
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasLabel = card.label != null && card.label!.isNotEmpty;
+    final hasLabel = widget.card.label != null && widget.card.label!.isNotEmpty;
+    final history = ref.watch(fieldHistoriesProvider.notifier).getHistory(widget.card.id, 'idCard.number');
 
     // Build list of fields to display
     final fields = <LabelValueField>[];
 
     if (hasLabel) {
-      fields.add(LabelValueField(label: 'Label', value: card.label!));
+      fields.add(LabelValueField(label: 'Label', value: widget.card.label!));
     }
-    if (card.number != null && card.number!.isNotEmpty) {
+    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'ID Number',
-          value: card.number!,
+          value: widget.card.number!,
           fieldId: 'idCard.number',
           isSensitive: true,
         ),
       );
     }
-    if (card.holderName != null && card.holderName!.isNotEmpty) {
+    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Holder Name',
-          value: card.holderName!,
+          value: widget.card.holderName!,
           fieldId: 'idCard.holderName',
           isSensitive: true,
         ),
       );
     }
-    if (card.country != null && card.country!.isNotEmpty) {
+    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Country',
-          value: card.country!,
+          value: widget.card.country!,
           fieldId: 'idCard.country',
         ),
       );
     }
-    if (card.issueDate != null && card.issueDate!.isNotEmpty) {
+    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Issue Date',
-          value: card.issueDate!,
+          value: widget.card.issueDate!,
           fieldId: 'idCard.issueDate',
         ),
       );
     }
-    if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
+    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Expiry Date',
-          value: card.expiryDate!,
+          value: widget.card.expiryDate!,
           fieldId: 'idCard.expiryDate',
         ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  Icons.credit_card_outlined,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ResponsiveLabelField(
+                  fields: fields,
+                  labelValueSpacing: 4,
+                  layoutAxis: Axis.vertical,
+                ),
+              ),
+              IconButton(
+                  icon: Icon(
+                    Icons.history,
+                    size: 20,
+                    color: _showHistory ? AppTheme.primaryColor : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  tooltip: 'View History',
+                  onPressed: () => setState(() => _showHistory = !_showHistory),
+                  visualDensity: VisualDensity.compact,
+                ),
+              IconButton(
+                icon: const Icon(Icons.copy_all, size: 20),
+                tooltip: 'Copy All',
+                onPressed: () async {
+                  final verified = await verifyPasswordForRestrictedField(
+                    context: context,
+                    ref: ref,
+                    fieldId: 'idCard.number',
+                  );
+                  if (!verified) return;
+                  if (!mounted) return;
+                  Clipboard.setData(ClipboardData(text: _formatAllFields()));
+                  showOverlaySnackBar(context, content: 'ID Card copied!');
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: widget.onEdit,
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: widget.onDelete,
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+        ),
+        if (_showHistory && history != null)
           Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              Icons.credit_card_outlined,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'idCard.number',
+              history: history,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ResponsiveLabelField(
-              fields: fields,
-              labelValueSpacing: 4,
-              layoutAxis: Axis.vertical,
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            tooltip: 'Edit',
-            onPressed: onEdit,
-            visualDensity: VisualDensity.compact,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 20),
-            tooltip: 'Delete',
-            onPressed: onDelete,
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -2168,7 +2289,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   }
 }
 
-class _AddressTile extends ConsumerWidget {
+class _AddressTile extends ConsumerStatefulWidget {
   final AddressData address;
   final String displayText;
   final VoidCallback onEdit;
@@ -2182,95 +2303,156 @@ class _AddressTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AddressTile> createState() => _AddressTileState();
+}
+
+class _AddressTileState extends ConsumerState<_AddressTile> {
+  bool _showHistory = false;
+
+  String _formatAllFields() {
+    final buffer = StringBuffer();
+    buffer.writeln('Address');
+    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
+      buffer.writeln('Label: ${widget.address.label}');
+    }
+    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
+      buffer.writeln('Street: ${widget.address.street}');
+    }
+    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
+      buffer.writeln('City: ${widget.address.city}');
+    }
+    if (widget.address.postalCode != null && widget.address.postalCode!.isNotEmpty) {
+      buffer.writeln('Postal Code: ${widget.address.postalCode}');
+    }
+    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
+      buffer.writeln('Country: ${widget.address.country}');
+    }
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final history = ref.watch(fieldHistoriesProvider.notifier).getHistory(widget.address.id, 'address.postalCode');
 
     // Build list of fields to display
     final fields = <LabelValueField>[];
 
-    if (address.label != null && address.label!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Label', value: address.label!));
+    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
+      fields.add(LabelValueField(label: 'Label', value: widget.address.label!));
     }
-    if (address.street != null && address.street!.isNotEmpty) {
+    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Street',
-          value: address.street!,
+          value: widget.address.street!,
           fieldId: 'address.street',
         ),
       );
     }
-    if (address.city != null && address.city!.isNotEmpty) {
+    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'City',
-          value: address.city!,
+          value: widget.address.city!,
           fieldId: 'address.city',
         ),
       );
     }
-    if (address.postalCode != null && address.postalCode!.isNotEmpty) {
+    if (widget.address.postalCode != null && widget.address.postalCode!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Postal Code',
-          value: address.postalCode!,
+          value: widget.address.postalCode!,
           fieldId: 'address.postalCode',
           isSensitive: true,
         ),
       );
     }
-    if (address.country != null && address.country!.isNotEmpty) {
+    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Country',
-          value: address.country!,
+          value: widget.address.country!,
           fieldId: 'address.country',
         ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  Icons.home_outlined,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: fields.isEmpty
+                    ? SelectableText(
+                        'Tap to add',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      )
+                    : ResponsiveLabelField(
+                        fields: fields,
+                        labelValueSpacing: 4,
+                        layoutAxis: Axis.vertical,
+                      ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.history,
+                  size: 20,
+                  color: _showHistory ? AppTheme.primaryColor : theme.colorScheme.onSurfaceVariant,
+                ),
+                tooltip: 'View History',
+                onPressed: () => setState(() => _showHistory = !_showHistory),
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy_all, size: 20),
+                tooltip: 'Copy All',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: _formatAllFields()));
+                  showOverlaySnackBar(context, content: 'Address copied!');
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: widget.onEdit,
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: widget.onDelete,
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+        ),
+        if (_showHistory && history != null)
           Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(
-              Icons.home_outlined,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'address.postalCode',
+              history: history,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: fields.isEmpty
-                ? SelectableText(
-                    'Tap to add',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  )
-                : ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20),
-            tooltip: 'Edit',
-            onPressed: onEdit,
-            visualDensity: VisualDensity.compact,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 20),
-            tooltip: 'Delete',
-            onPressed: onDelete,
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

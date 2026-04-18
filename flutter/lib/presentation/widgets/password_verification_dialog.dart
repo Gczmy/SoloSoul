@@ -20,18 +20,82 @@ Future<String?> showPasswordVerificationDialog({
   String? passwordHint,
   required Future<bool> Function(String password) onVerify,
 }) async {
-  final controller = TextEditingController();
-  String? error;
-  bool isVerifyingDialog = false;
-  bool isPasswordEmpty = true;
+  return showDialog<String>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => _PasswordVerificationDialogContent(
+      message: message,
+      passwordHint: passwordHint,
+      onVerify: onVerify,
+    ),
+  );
+}
 
-  void showHintOverlay(BuildContext ctx, String hint) {
-    final overlay = Overlay.of(ctx);
+class _PasswordVerificationDialogContent extends StatefulWidget {
+  const _PasswordVerificationDialogContent({
+    required this.message,
+    this.passwordHint,
+    required this.onVerify,
+  });
+
+  final String message;
+  final String? passwordHint;
+  final Future<bool> Function(String password) onVerify;
+
+  @override
+  State<_PasswordVerificationDialogContent> createState() =>
+      _PasswordVerificationDialogContentState();
+}
+
+class _PasswordVerificationDialogContentState
+    extends State<_PasswordVerificationDialogContent> {
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  String? _errorMessage;
+  bool _isVerifying = false;
+  bool _hasError = false;
+  bool _userHasTypedAfterError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    // Clear error only when user types after seeing an error
+    if (_hasError && _controller.text.isNotEmpty && !_userHasTypedAfterError) {
+      _userHasTypedAfterError = true;
+      _hasError = false;
+    }
+    if (_hasError && _controller.text.isEmpty) {
+      _userHasTypedAfterError = false;
+    }
+    setState(() {});
+  }
+
+  void _onFocusChanged() {
+    // Do NOT clear error on focus changes - only on user typing
+  }
+
+  void _showHintOverlay(String hint) {
+    final overlay = Overlay.of(context);
     late OverlayEntry entry;
 
     entry = OverlayEntry(
       builder: (overlayCtx) => Positioned(
-        top: MediaQuery.of(ctx).padding.top + kToolbarHeight + 8,
+        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
         left: 16,
         right: 16,
         child: SafeArea(
@@ -86,150 +150,123 @@ Future<String?> showPasswordVerificationDialog({
     });
   }
 
-  return showDialog<String>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (dialogContext, setDialogState) {
-        isPasswordEmpty = controller.text.isEmpty;
+  Future<void> _verify() async {
+    if (_controller.text.isEmpty) return;
+    setState(() => _isVerifying = true);
+    final success = await widget.onVerify(_controller.text);
+    if (!mounted) return;
+    if (success) {
+      Navigator.of(context).pop(_controller.text);
+    } else {
+      setState(() {
+        _isVerifying = false;
+        _errorMessage = 'Invalid password';
+        _hasError = true;
+        _userHasTypedAfterError = false;
+      });
+    }
+  }
 
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.lock_outline, color: Colors.orange.shade700),
-              const SizedBox(width: 8),
-              const Text('Verify Identity'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        message,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ),
-                    if (passwordHint != null) ...[
-                      const SizedBox(width: 4),
-                      InkWell(
-                        onTap: () {
-                          // Use overlay to show hint without changing dialog size
-                          showHintOverlay(context, passwordHint);
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.help_outline,
-                                color: Colors.orange.shade700,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Hint',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.orange.shade700,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                obscureText: true,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Master Password',
-                  prefixIcon: Icon(Icons.key),
-                ),
-                onChanged: (value) {
-                  if (error != null) {
-                    setDialogState(() => error = null);
-                  }
-                  setDialogState(() => isPasswordEmpty = value.isEmpty);
-                },
-                onSubmitted: (_) async {
-                  if (isPasswordEmpty) return;
-                  setDialogState(() => isVerifyingDialog = true);
-                  final success = await onVerify(controller.text);
-                  if (success && dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop(controller.text);
-                  } else if (dialogContext.mounted) {
-                    setDialogState(() {
-                      isVerifyingDialog = false;
-                      error = 'Invalid password';
-                    });
-                  }
-                },
-              ),
-              if (error != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  error!,
-                  style: TextStyle(
-                    color: Colors.red.shade700,
-                    fontSize: 12,
+  @override
+  Widget build(BuildContext context) {
+    final isPasswordEmpty = _controller.text.isEmpty;
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.lock_outline, color: Colors.orange.shade700),
+          const SizedBox(width: 8),
+          const Text('Verify Identity'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.message,
+                    style: const TextStyle(fontSize: 13),
                   ),
                 ),
+                if (widget.passwordHint != null) ...[
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => _showHintOverlay(widget.passwordHint!),
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.help_outline,
+                            color: Colors.orange.shade700,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Hint',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, null),
-              child: const Text('Cancel'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            obscureText: true,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Master Password',
+              prefixIcon: const Icon(Icons.key),
+              errorText: _hasError ? _errorMessage : null,
+              errorStyle: TextStyle(
+                color: Colors.red.shade700,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            ElevatedButton(
-              onPressed: isPasswordEmpty
-                  ? null
-                  : () async {
-                      if (controller.text.isEmpty) return;
-                      setDialogState(() => isVerifyingDialog = true);
-                      final success = await onVerify(controller.text);
-                      if (success && dialogContext.mounted) {
-                        Navigator.of(dialogContext).pop(controller.text);
-                      } else if (dialogContext.mounted) {
-                        setDialogState(() {
-                          isVerifyingDialog = false;
-                          error = 'Invalid password';
-                        });
-                      }
-                    },
-              child: isVerifyingDialog
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Verify'),
-            ),
-          ],
-        );
-      },
-    ),
-  );
+            onSubmitted: (_) => _verify(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: isPasswordEmpty ? null : _verify,
+          child: _isVerifying
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Verify'),
+        ),
+      ],
+    );
+  }
 }

@@ -79,7 +79,7 @@ class SettingsPage extends ConsumerWidget {
                         ),
                         const Divider(height: 1),
                         _SettingsTile(
-                          icon: Icons.history,
+                          icon: Icons.people_outline,
                           title: 'All Accounts',
                           subtitle: '${accounts.length} account(s)',
                           onTap: () =>

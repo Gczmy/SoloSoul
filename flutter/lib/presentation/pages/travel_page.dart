@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
@@ -272,6 +275,10 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       onDelete: _onPassportDelete,
       onSave: _onPassportSave,
       itemToMap: _passportToMap,
+      onCopyAll: (passport, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Passport copied!');
+      },
     );
   }
 }
@@ -459,6 +466,10 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       onDelete: _onVisaDelete,
       onSave: _onVisaSave,
       itemToMap: _visaToMap,
+      onCopyAll: (visa, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Visa copied!');
+      },
     );
   }
 }
@@ -598,6 +609,10 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       onDelete: _onHistoryDelete,
       onSave: _onHistorySave,
       itemToMap: (item) => {'travel.destination': item.destination},
+      onCopyAll: (item, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Travel history copied!');
+      },
     );
   }
 }

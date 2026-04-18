@@ -2133,3 +2133,50 @@ final professionalProvider = Provider<ProfessionalData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   return profile?.professional;
 });
+
+/// Provider for field histories (loaded on demand)
+final fieldHistoriesProvider = StateNotifierProvider<FieldHistoriesNotifier, ProfileFieldHistories>((ref) {
+  return FieldHistoriesNotifier(ref);
+});
+
+/// Notifier for managing field histories
+class FieldHistoriesNotifier extends StateNotifier<ProfileFieldHistories> {
+  final Ref _ref;
+
+  FieldHistoriesNotifier(this._ref) : super(ProfileFieldHistories());
+
+  /// Load histories for current account
+  Future<void> loadHistories() async {
+    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
+    final storage = ProfileStorageService.instance;
+    state = await storage.loadFieldHistories(accountId);
+  }
+
+  /// Record a field change (called when a field is updated)
+  Future<void> recordFieldChange({
+    required String itemId,
+    required String fieldId,
+    required String oldValue,
+  }) async {
+    if (oldValue.isEmpty) return; // Don't record empty to non-empty as a "change"
+
+    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
+    final storage = ProfileStorageService.instance;
+    state = await storage.addFieldHistory(
+      accountId: accountId,
+      itemId: itemId,
+      fieldId: fieldId,
+      value: oldValue,
+      existingHistories: state,
+    );
+  }
+
+  /// Get history for a specific field
+  FieldHistory? getHistory(String itemId, String fieldId) {
+    return state.getHistory(itemId, fieldId);
+  }
+}

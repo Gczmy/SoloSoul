@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
@@ -295,6 +298,10 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _educationToMap,
+      onCopyAll: (item, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Education copied!');
+      },
     );
   }
 }
@@ -416,6 +423,10 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _employmentToMap,
+      onCopyAll: (item, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Employment copied!');
+      },
     );
   }
 }
@@ -514,6 +525,10 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _skillToMap,
+      onCopyAll: (item, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Skill copied!');
+      },
     );
   }
 }
@@ -612,6 +627,10 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _languageToMap,
+      onCopyAll: (item, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(context, content: 'Language copied!');
+      },
     );
   }
 }

@@ -476,6 +476,7 @@ class OperationLogPage extends ConsumerStatefulWidget {
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _filterExpanded = false;
   String? _error;
 
   @override
@@ -684,8 +685,13 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
       ),
       body: Column(
         children: [
-          // Filter section
-          _buildFilterSection(),
+          // Filter section header with toggle button
+          _buildFilterHeader(),
+          // Collapsible filter content with animation
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _filterExpanded ? _buildFilterSection() : const SizedBox.shrink(),
+          ),
           // Entry list
           Expanded(
             child: entries.isEmpty
@@ -726,6 +732,74 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterHeader() {
+    final theme = Theme.of(context);
+    final actionFilters = ref.watch(logActionFilterProvider);
+    final deviceFilters = ref.watch(logDeviceFilterProvider);
+    final sensitivityFilters = ref.watch(logSensitivityFilterProvider);
+    final hasActiveFilters =
+        actionFilters.isNotEmpty || deviceFilters.isNotEmpty || sensitivityFilters.isNotEmpty;
+
+    return InkWell(
+      onTap: () => setState(() => _filterExpanded = !_filterExpanded),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          border: Border(
+            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.filter_list,
+              size: 20,
+              color: hasActiveFilters
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Filters',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: hasActiveFilters
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (hasActiveFilters) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${actionFilters.length + deviceFilters.length + sensitivityFilters.length}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+            const Spacer(),
+            AnimatedRotation(
+              turns: _filterExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

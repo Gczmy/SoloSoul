@@ -49,6 +49,10 @@ flutter run
 
 # Release 构建
 flutter build macos --release
+
+# DMG 安装包构建 (需要先运行 Release 构建)
+./build_dmg.sh
+# 输出: flutter/build/macos/SoloSoul-v1.0.dmg
 ```
 
 ### Go 后端
@@ -132,7 +136,8 @@ flutter/lib/
 - Profile 页面 (Profile/Travel/Financial/Professional) ✅
 - 数据敏感级别 ✅
 - 操作记录与回收站 ✅
-- macOS Release Build ✅
+- macOS Release Build ✅ (with DMG installer)
+- macOS DMG installer at `flutter/build/macos/SoloSoul-v1.0.dmg`
 
 ### Go 后端 ✅
 - Vault/Profile/Plugin API ✅
@@ -145,6 +150,20 @@ flutter/lib/
 - Flutter Keychain 恢复 (P0)
 - 云同步开发
 - iOS/Android/Windows 平台
+
+## DMG 分发
+
+macOS DMG 安装包构建:
+```bash
+./build_dmg.sh
+```
+
+输出文件: `flutter/build/macos/SoloSoul-v1.0.dmg`
+
+使用 `create-dmg` 工具打包，包含:
+- 应用图标
+- 应用程序拖放链接
+- 安装窗口 (600x400)
 
 ## 文档
 

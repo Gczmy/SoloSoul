@@ -19,6 +19,14 @@ class HeaderActionButtons extends ConsumerWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Search
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            Navigator.pushNamed(context, '/search');
+          },
+          tooltip: 'Search',
+        ),
         // Lock Sensitivity Access - only shown when verified
         if (sensitiveAccess.isVerified)
           IconButton(

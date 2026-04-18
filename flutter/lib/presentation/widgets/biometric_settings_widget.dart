@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
+import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -15,6 +16,7 @@ class BiometricSettingsWidget extends ConsumerStatefulWidget {
 
 class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidget> {
   bool _biometricEnabled = false;
+  bool _faceIdEnabled = false;
   bool _isLoading = true;
   String _biometricType = 'Biometric';
   String? _error;
@@ -27,10 +29,15 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
 
   Future<void> _checkBiometricStatus() async {
     final biometricService = BiometricService.instance;
+    final securityService = SecurityService.instance;
+    await securityService.loadSettings();
     final availableBiometrics = await biometricService.getAvailableBiometrics();
 
     setState(() {
       _isLoading = false;
+      _biometricEnabled = securityService.settings.biometricsEnabled;
+      _faceIdEnabled = securityService.settings.faceIdEnabled;
+
       if (availableBiometrics.isNotEmpty) {
         if (availableBiometrics.any((b) => b == BiometricType.face)) {
           _biometricType = 'Face ID';
@@ -42,8 +49,6 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           _biometricType = 'Biometric';
         }
       }
-      // Note: _biometricEnabled state would be persisted and loaded from secure storage
-      // For now, we default to false until the user enables it
     });
   }
 
@@ -90,7 +95,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Enable biometric unlock immediately without testing (test is done via Test button)
+      // Enable biometric unlock (Touch ID / fingerprint)
+      final securityService = SecurityService.instance;
+      await securityService.setBiometricsEnabled(true);
       setState(() {
         _biometricEnabled = true;
         _error = null;
@@ -106,12 +113,99 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
     } else {
-      // Disable biometric unlock
+      // Disable biometric unlock (Touch ID / fingerprint)
+      final securityService = SecurityService.instance;
+      await securityService.setBiometricsEnabled(false);
       setState(() => _biometricEnabled = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$_biometricType unlock disabled'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleFaceId(bool enable) async {
+    if (enable) {
+      // First verify password before enabling Face ID unlock
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final selectedAccount = authNotifier.selectedAccount;
+
+      if (selectedAccount == null) {
+        setState(() => _error = 'No account selected');
+        return;
+      }
+
+      // Check if sensitive access is already verified (within 5 minutes)
+      final accessState = ref.read(sensitivePageAccessProvider);
+      String? password;
+
+      if (accessState.isVerified) {
+        // Skip password verification if already verified
+        password = '';
+      } else {
+        // Show password verification dialog
+        password = await showPasswordVerificationDialog(
+          context: context,
+          ref: ref,
+          message: 'Verify your identity to enable Face ID unlock.',
+          passwordHint: selectedAccount.passwordHint,
+          onVerify: authNotifier.verifyPasswordForSensitiveData,
+        );
+      }
+
+      if (password == null) {
+        // User cancelled
+        return;
+      }
+
+      // Verify biometric is available
+      final biometricService = BiometricService.instance;
+      final canUse = await biometricService.isAvailable();
+
+      if (!canUse) {
+        setState(() => _error = 'Face ID is not available on this device');
+        return;
+      }
+
+      // Check if Face ID is available on this device
+      final availableBiometrics = await biometricService.getAvailableBiometrics();
+      final hasFaceId = availableBiometrics.any((b) => b == BiometricType.face);
+
+      if (!hasFaceId) {
+        setState(() => _error = 'Face ID is not available on this device');
+        return;
+      }
+
+      // Enable Face ID unlock
+      final securityService = SecurityService.instance;
+      await securityService.setFaceIdEnabled(true);
+      setState(() {
+        _faceIdEnabled = true;
+        _error = null;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Face ID unlock enabled'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+      }
+    } else {
+      // Disable Face ID unlock
+      final securityService = SecurityService.instance;
+      await securityService.setFaceIdEnabled(false);
+      setState(() => _faceIdEnabled = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Face ID unlock disabled'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -184,17 +278,25 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         ],
         _BiometricToggleTile(
           icon: Icons.fingerprint,
-          title: 'Biometric Unlock',
-          subtitle: 'Use $_biometricType to unlock',
+          title: 'Touch ID',
+          subtitle: 'Use Touch ID to unlock',
           value: _biometricEnabled,
           onChanged: _toggleBiometric,
         ),
-        if (_biometricEnabled) ...[
+        const SizedBox(height: 8),
+        _BiometricToggleTile(
+          icon: Icons.face,
+          title: 'Face ID',
+          subtitle: 'Use Face ID to unlock',
+          value: _faceIdEnabled,
+          onChanged: _toggleFaceId,
+        ),
+        if (_biometricEnabled || _faceIdEnabled) ...[
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: _testBiometric,
             icon: const Icon(Icons.check_circle_outline, size: 18),
-            label: Text('Test $_biometricType'),
+            label: const Text('Test Biometric'),
           ),
         ],
       ],

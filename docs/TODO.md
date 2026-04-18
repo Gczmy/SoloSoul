@@ -1,8 +1,7 @@
 # SoloSoul 开发任务清单
 
-> 统一 TODO：以 Flutter 为主项目，Web 为遗留项目（考虑后续移除）
-> 创建: 2026-04-14
-> 更新: 2026-04-17
+> 全面重写：2026-04-18
+> 项目状态：Flutter macOS 发布就绪，Rust Core 完整，云同步待开发
 
 ---
 
@@ -10,284 +9,225 @@
 
 ```
 SoloSoul/
-├── flutter/          # 主项目：跨平台客户端 (macOS/iOS/Android/Windows)
-│   └── lib/
-│       ├── core/          # 核心加密、Rust FFI
-│       ├── presentation/  # UI 页面和组件
-│       └── ...
-├── web/             # 遗留项目：Next.js Web UI (考虑移除)
-└── cmd/             # Go 后端服务
-    ├── solosould/   # HTTP API 服务器
-    └── solosoul/    # CLI 工具
+├── flutter/                    # 主项目：Flutter 跨平台客户端
+│   ├── lib/
+│   │   ├── core/services/    # 17个核心服务
+│   │   │   ├── native_crypto_service.dart    # Rust FFI 加密
+│   │   │   ├── rust_vault_service.dart      # Rust Vault
+│   │   │   ├── profile_storage_service.dart  # Profile 存储
+│   │   │   ├── secure_storage_service.dart   # 安全存储
+│   │   │   ├── keychain_service.dart        # Keychain 封装
+│   │   │   ├── biometric_service.dart       # 生物识别
+│   │   │   ├── security_service.dart        # 安全服务
+│   │   │   ├── operation_logger.dart        # 操作日志
+│   │   │   └── clipboard_monitor_service.dart
+│   │   └── presentation/
+│   │       ├── pages/        # 11个页面
+│   │       │   ├── login_page.dart
+│   │       │   ├── home_page.dart
+│   │       │   ├── profile_page.dart
+│   │       │   ├── travel_page.dart
+│   │       │   ├── financial_page.dart
+│   │       │   ├── professional_page.dart
+│   │       │   ├── settings_page.dart
+│   │       │   ├── security_settings_page.dart
+│   │       │   ├── sensitivity_settings_page.dart
+│   │       │   ├── operation_log_page.dart
+│   │       │   ├── trash_page.dart
+│   │       │   └── splash_page.dart
+│   │       ├── providers/    # Riverpod providers
+│   │       └── widgets/      # 共享组件
+│   └── native/               # Rust 原生库 (FFI)
+│       └── src/
+│           ├── crypto/       # Argon2id + AES-256-GCM
+│           ├── vault/        # 加密存储
+│           ├── account/      # 账户管理
+│           ├── sync/        # 同步引擎 (预留)
+│           └── plugin/      # 插件沙盒 (预留)
+├── cmd/                      # Go 后端服务
+│   ├── solosould/           # HTTP API 服务器
+│   └── solosoul/            # CLI 工具
+└── docs/                    # 文档
 ```
 
 ---
 
-## P0: 关键问题 (Critical Issues)
+## P0: 关键问题 (Critical)
 
-### Flutter: Keychain 恢复
-- **macOS**: ✅ 已完成 - `macos/Runner/AppDelegate.swift` 实现了 Keychain method handler
-- **iOS**: ❌ 未完成 - `ios/Runner/AppDelegate.swift` 缺少 Keychain method handler
-- **临时方案**: 使用 `SimpleSecureStorage` 文件存储 (ProfileStorageService)
+### iOS Keychain Method Handler 🔴 P0
+- **问题**: `ios/Runner/AppDelegate.swift` 缺少 Keychain method handler
+- **影响**: iOS 设备无法安全存储密钥
+- **依赖**: `flutter_secure_storage` 在 iOS release build 需要 native method handler
+- **临时方案**: 使用 `SimpleSecureStorage` 文件存储
 
-**iOS Release 前必须完成**:
-1. 在 `ios/Runner/AppDelegate.swift` 实现 Keychain method handler
-2. 配置 iOS Entitlements 添加 Keychain 权限
-3. 验证 `flutter_secure_storage` 在 iOS release build 下正常工作
-4. 删除临时方案，切换到原生 Keychain
+### macOS 分发配置 🟡
+- [x] DMG 构建脚本 (`./build_dmg.sh`) ✅
+- [x] DMG 产物 (`SoloSoul-v1.0.dmg`, 12MB) ✅
+- [ ] Apple 公证 (Notarization) - 分发给用户前必须完成
 
-### Flutter: open -a 黑屏问题
-- **状态**: 仅开发环境存在，DMG 正式发布不受影响
-- **原因**: Launch Services 数据库中多版本路径混淆
-- **临时 workaround**: 将 app 拖入 Applications 文件夹后再打开
+### 稳定性问题 🟡
+| 问题 | 严重性 | 状态 |
+|------|--------|------|
+| LoginPage `_showPasswordHint` unmounted widget | High | 🔄 调查中 |
+| Profile 切换数据消失 | High | 🔄 调查中 |
+| macOS `open -a` 黑屏 (开发环境) | Low | Workaround 已记录 |
 
 ---
 
-## P1: 安全 (Security)
+## P1: Flutter macOS 稳定性
 
-### Keychain 恢复 (Flutter)
-| 平台 | 存储方案 | 状态 |
-|------|---------|------|
-| macOS | Keychain | ✅ 已完成 |
-| iOS | Keychain | ❌ 需实现 method handler |
-| Android | Keystore | 🔄 待开发 |
-| 通用 | 文件加密 | ✅ 账户数据已加密 (SimpleSecureStorage) |
+### 代码质量优化
+- [ ] 3个 section 类 (Contact/IdCard/Address) 代码复用 ~90% → 提取 base class
+- [ ] `SensitivityLevel` 字符串 → enum 改造
+- [ ] `getFieldLevel` 异常控制流 → `firstWhereOrNull`
+- [ ] `getDeletedItems()` 列表重建 → 添加缓存
+- [ ] 教育/就业页面 CollapsibleSectionCard 集成
 
-### 物理安全 (Flutter)
+### 物理安全
 - [ ] 防截屏 (FLAG_SECURE on Android, iOS snapshot blur)
 - [ ] 多任务视图模糊 (AppLifecycleState blur overlay)
 
 ---
 
-## P2: 核心功能完成 (Flutter)
+## P2: 跨平台构建
 
-### 加密与存储 ✅
-- ✅ Rust Argon2id FFI (64MB, 3 iterations)
-- ✅ Dart FFI 绑定 (`native_crypto_service.dart`)
-- ✅ AES-256-GCM 加密/解密
-- ✅ Profile 数据结构 (`ProfileStorageService`)
-
-### 账户与登录 ✅
-- ✅ 账户创建/解锁 (绕过 Keychain 秒进)
-- ✅ 密码提示词
-- ✅ 账户列表折叠/展开
-- ✅ 账户删除功能
-- ✅ 主页面显示当前账号名
-
-### Profile 页面 ✅
-- ✅ ProfilePage (Contact Info、Identity Documents、Addresses)
-- ✅ TravelPage (Passports、Visas、Travel History)
-- ✅ FinancialPage (Bank Accounts、Cards、Tax IDs)
-- ✅ ProfessionalPage (Education、Employment、Skills)
-- ✅ SettingsPage (Account、Security、Sync、App Info)
-
-### 数据敏感级别 ✅
-- ✅ SensitivityLevel enum (public, private, restricted)
-- ✅ SensitiveValueWidget (分级掩码组件)
-- ✅ Privacy Shield 开关
-- ✅ Operation Log 与 Sensitivity Settings 共享门禁
-
-### 操作记录 ✅
-- ✅ OperationLogPage
-- ✅ Travel/Financial/Professional 页面操作日志记录
-- ✅ 撤销 (Undo) 功能
-- ✅ 回收站 (Trash) 功能
-- ✅ 30天自动清理 + 手动清空
-
-### UI/UX ✅
-- ✅ 提示条系统 (Toast/Snackbar)
-- ✅ CollapsibleSectionCard 组件
-- ✅ SectionCard 共用组件
-- ✅ 表单验证和错误处理
-
----
-
-## P3: 云同步开发 (Flutter)
-
-### 1. Online/Offline 标识修复
-- **问题**: 目前 online/offline 标识逻辑不清晰
-- **期望**: online = 云同步开启 AND 成功连接服务器；offline = 否则
-- **涉及文件**: Settings 页面、Sync 相关状态管理
-
-### 2. Offline 后台自动重连
-- **问题**: 离线时不会自动尝试连接云服务器
-- **期望**: 当云同步功能开启时，offline 状态下后台自动尝试连接云服务器
-- **实现**: 定时器 + 指数退避重连策略
-
-### 3. Offline 标识改为手动连接按钮
-- **问题**: 当前 offline 标识只是状态显示
-- **期望**: 将 offline 标识改为按钮，用户可手动点击立即尝试连接云服务器
-- **UI**: 按钮显示 "Connect" 或重连图标
-
-### 4. 云服务器开发
-- **功能**:
-  - 接收客户端加密信息
-  - 收到其他设备同步请求后，将数据同步到各个设备
-  - 设备注册与身份验证
-  - 冲突解决（最后写入优先）
-- **架构**:
-  - Go 后端服务（与现有 solosould 分离或集成）
-  - WebSocket 或 gRPC 长连接
-  - 端到端加密（服务端不解密用户数据）
-- **数据流**:
-  1. 设备A 加密数据 → 云服务器
-  2. 设备B 请求同步 → 云服务器推送加密数据 → 设备B
-  3. 各设备本地解密
-
-### 5. 条款更新
-- **涉及**:
-  - 隐私政策（数据上传云端说明）
-  - 服务条款（云同步功能条款）
-  - 用户协议
-- **内容**:
-  - 云同步的数据处理方式
-  - 端到端加密说明（服务端不解密）
-  - 数据存储期限
-  - 多设备同步机制
-
----
-
-## P4: 跨平台构建 (Flutter)
-
-### macOS
-- [x] 基础版本完成
+### macOS 🟢 基本完成
+- [x] Release 构建 ✅
+- [x] DMG 安装包 ✅
+- [x] Keychain 集成 (macOS) ✅
 - [ ] Touch ID / Face ID 集成
-- [x] Keychain 密钥存储
-- [ ] 菜单栏应用 (Menu Bar App)
-- [ ] Universal Binary 编译 (arm64 + x86_64)
 
-### iOS
-- [x] 创建 iOS 项目
+### iOS 🔴 待开发
 - [ ] Rust 库编译 (arm64 + x86_64)
-- [ ] Keychain method handler (P0 - 未完成)
+- [ ] Keychain method handler (P0 - 阻塞)
 - [ ] Face ID / Touch ID
-- [ ] 构建与测试
+- [ ] iOS Simulator + 真机构建
 - [ ] TestFlight / App Store 发布
 
-### Android
-- [ ] 创建 Android 项目
+### Android 🔴 待开发
+- [ ] Android 项目初始化
 - [ ] Rust 库编译 (arm64-v8a, armeabi-v7a, x86_64, x86)
-- [ ] Keystore 存储
+- [ ] Android Keystore 集成
 - [ ] BiometricPrompt 集成
-- [ ] 构建与测试
 - [ ] Play Store 发布
 
-### Windows
-- [ ] 创建 Windows 项目
-- [ ] Rust 库编译
+### Windows 🔴 待开发
+- [ ] Windows 项目初始化
+- [ ] Rust 库编译 (.dll)
 - [ ] Windows Credential Manager
 - [ ] Windows Hello 集成
-- [ ] 构建与测试
 - [ ] Microsoft Store 发布
 
-### 分发
-- [ ] macOS: DMG 安装包 + Homebrew
-- [ ] Android: APKs + Google Play
-- [ ] iOS: TestFlight + App Store
-- [ ] Windows: MSI / MSIX
+## 其他
+- [ ] 目前输入密码的对话框，在输入错误等情况，master password文本和眼睛按钮，提示词按钮会变成红色。但是：问题是把鼠标移开再放回来，他们的颜色会变成白色。修复：不要让他们变成白色。
+- [ ] 记录所有字段的历史版本和修改时间，在表单上显示最新的版本和最近的修改时间。增加查看历史记录的按钮和动画效果
+- [ ] 增加整个条目的复制按钮功能，直接复制整个条目下所有字段的内容
+- [ ] 增加全局的字段搜索功能，搜索字段内容或者条目，提示是否打开遮蔽显示。或者加三个勾选框，public是默认勾选的，restricted勾选需要密码。
+- [ ] log页面的过滤选项支持折叠展开
+- [ ] 增加face id解锁功能
 
 ---
 
-## P5: Web 遗留项目 (考虑移除)
+## P3: 云同步开发
 
-> Web 项目为早期实现，后续考虑迁移到 Flutter 或移除
+### 架构设计
+- [ ] 云端存储格式设计
+- [ ] 加密 blob 上传/下载
+- [ ] 版本号机制 (冲突检测)
+- [ ] WebSocket 实时同步通道
+- [ ] 冲突解决 UI (三选项对话框)
 
-### 当前状态: 功能完成，维护模式
-- [x] Next.js 15 + App Router
-- [x] 登录与设置
-- [x] 仪表盘
-- [x] 档案编辑器 (5个标签页)
-- [x] Plugin 管理
-- [x] OCR 扫描页
+### Flutter 端
+- [ ] Online/Offline 标识逻辑修复
+- [ ] 离线后台自动重连 (定时器 + 指数退避)
+- [ ] 离线标识改为手动连接按钮
 
-### 待迁移/移除
-- [ ] LLM 辅助功能 (计划迁移到 Flutter)
-- [ ] 多设备同步 (计划迁移到 Flutter)
-- [ ] Web UI 特定功能 (考虑移除)
+### Go 后端 (solosould)
+- [ ] 云同步服务 API
+- [ ] 设备注册与身份验证
+- [ ] WebSocket 长连接
+- [ ] 冲突解决 (最后写入优先)
 
----
-
-## P6: Go 后端 (solosould)
-
-### 当前状态: 核心功能完成
-- [x] Vault 服务 (Unlock/Lock/ChangePassword)
-- [x] Profile 服务 (Get/Update/Validate/List/Delete)
-- [x] Field 服务 (GetFields/SetFields)
-- [x] Plugin 管理系统
-- [x] OCR API 端点
-- [x] Session Token 管理
-
-### 待完成
-- [ ] Unix Domain Socket 通信
-- [ ] 云同步服务 (与 Flutter 客户端集成)
-- [ ] Plugin: SlotGo (UK Visa Plugin)
+### 法律文本
+- [ ] 隐私政策更新 (数据上传云端)
+- [ ] 服务条款 (云同步功能)
+- [ ] 用户协议
 
 ---
 
-## 待办事项 (TODO)
+## P4: 插件系统
 
-### Flutter UI 优化
+### Wasm 沙盒架构
+- [ ] Wasmtime/Wasmer 集成
+- [ ] Host Functions 接口定义
+- [ ] 插件权限 manifest.json 解析
+- [ ] 用户交互授权弹窗
+- [ ] 插件握手协议 (SHA-256 白名单)
 
-1. **Education/Employment 页面** - CollapsibleSectionCard 集成
+### 安全机制
+- [ ] mlock 内存锁定
+- [ ] Zeroize 敏感数据清理
+- [ ] JIT 即时解密
+- [ ] 网络白名单策略
+- [ ] Rate Limiting + Circuit Breaker
 
-2. **设置页 Version 信息动态化**
+### 官方插件
+- [ ] SlotGo (UK Visa 预约插件)
 
-3. **Riverpod 3.x 升级**
-   - 当前版本: `flutter_riverpod: ^2.6.1`
-   - 目标版本: 3.x (最新稳定版)
-   - 涉及文件: 所有 providers (profile_provider.dart, auth_provider.dart, sensitivity_provider.dart 等)
-   - 主要变更: 代码生成方式、注解语法、Provider 继承方式
-   - 参考: https://riverpod.dev/docs/migration/from_v2_to_v3
+---
 
-4. **代码质量优化** (简化)
-   - 调用版本检测 API 或配置文件
-   - 显示：当前版本、最新版本、是否有更新
+## P5: LLM 辅助功能
 
-3. **代码质量优化** (简化)
-   - [x] `_showPasswordDialog` 重复 → 提取共享组件
-   - [ ] 3个 section 类 (Contact/IdCard/Address) ~90%相同代码 → 提取 base class
-   - [ ] `getDeletedItems()` 每次重建列表 → 添加缓存
-   - [ ] `SensitivityLevel` 字符串状态 → 改用 enum
-   - [ ] `getFieldLevel` 用异常做控制流 → 用 `firstWhereOrNull`
-
-4. **法律文本外部化**
-   - 隐私政策、服务条款从代码移到资源文件
-
-### LLM 辅助 (未来)
 - [ ] LLM API 集成 (OpenAI/Claude)
-- [ ] 脱敏后的申请理由生成
+- [ ] 脱敏后申请理由生成
 - [ ] 非敏感逻辑处理 (润色、翻译)
 
-### 测试
-- [x] Go 单元测试 (crypto, vault, schema, ocr, api)
-- [ ] Flutter 组件测试
+---
+
+## P6: 测试
+
+### Flutter
+- [ ] 组件测试
+- [ ] 集成测试
 - [ ] E2E 测试 (Playwright)
-- [ ] 安全测试
+
+### Go 后端
+- [x] 单元测试 (crypto, vault, schema, ocr, api) ✅
+
+### 安全测试
+- [ ] 渗透测试
+- [ ] 模糊测试
 
 ---
 
-## 已知问题 (Known Issues)
+## P7: 技术演进
 
-| Issue | Severity | Status |
-|-------|----------|--------|
-| iOS Keychain method handler | P0 | 需在 AppDelegate.swift 实现 |
-| macOS Keychain | ✅ | 已完成 |
-| PaddleOCR stub | Medium | 需 Python 依赖 |
-| Profile 切换页面数据消失 | High | 调查中 |
+- [ ] Riverpod 3.x 升级 (当前 2.6.1)
+- [ ] 多语言支持 (i18n)
+- [ ] 法律文本外部化 (从代码移到资源文件)
 
 ---
 
-## 进度统计
+## 项目进度
 
-| Category | Done | In Progress | To Do |
-|----------|------|-------------|-------|
-| Flutter Core Crypto | 5 | 0 | 0 |
-| Flutter UI Pages | 8 | 0 | 2 |
-| Flutter Security | 4 | 1 | 1 |
-| Cloud Sync | 0 | 1 | 4 |
-| Cross-platform Build | 1 | 1 | 11 |
-| Go Backend | 6 | 1 | 2 |
-| Web (Legacy) | 9 | 0 | 3 |
-| **Total** | **33** | **4** | **23** |
+| 模块 | 已完成 | 待完成 | 完成度 |
+|------|--------|--------|--------|
+| Flutter Core Crypto | 5 | 0 | 100% |
+| Flutter UI Pages | 11 | 0 | 100% |
+| Flutter Security | 4 | 3 | 57% |
+| Rust Core | 5 | 0 | 100% |
+| Go Backend | 6 | 2 | 75% |
+| Cloud Sync | 0 | 8 | 0% |
+| Cross-platform Build | 2 | 13 | 13% |
+| Plugin System | 0 | 9 | 0% |
+| LLM Features | 0 | 3 | 0% |
+| Testing | 1 | 5 | 17% |
+| **总计** | **34** | **43** | **44%** |
 
-**完成度**: ~55% (33/60 tasks)
+---
+
+## 快速链接
+
+- [USER_GUIDE](USER_GUIDE.md) - 用户指南
+- [CLIENT_ROADMAP](CLIENT_ROADMAP.md) - 客户端路线图
+- [CLAUDE.md](../CLAUDE.md) - Claude Code 开发指引
