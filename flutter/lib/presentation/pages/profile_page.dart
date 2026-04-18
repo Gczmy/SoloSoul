@@ -535,6 +535,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     // Store values needed after await
     final isMounted = mounted;
     final originalIndex = index;
+    final deletedId = deletedItem.id as String;
 
     await ref
         .read(profileNotifierProvider.notifier)
@@ -574,7 +575,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
             .restore(
               section: section,
               itemType: itemType,
-              index: originalIndex,
+              id: deletedId,
             );
       },
     );
@@ -645,7 +646,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       return;
     }
 
+    final entryId = _mode == 'editing' ? _entries[_editingIndex].entry.id : generateEntryId();
     final entry = ContactEntry(
+      id: entryId,
       label: label,
       type: _selectedType,
       value: value.isEmpty ? '(no value)' : value,
@@ -1102,6 +1105,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
     // Store values needed after await
     final isMounted = mounted;
     final originalIndex = index;
+    final deletedId = deletedItem.id as String;
 
     await ref
         .read(profileNotifierProvider.notifier)
@@ -1141,7 +1145,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
             .restore(
               section: section,
               itemType: itemType,
-              index: originalIndex,
+              id: deletedId,
             );
       },
     );
@@ -1198,7 +1202,9 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   }
 
   void _submitForm() {
+    final cardId = _mode == 'editing' ? _idCards[_editingIndex].entry.id : generateEntryId();
     final card = IdCardData(
+      id: cardId,
       label: _labelController.text.isEmpty ? null : _labelController.text,
       number: _numberController.text.isEmpty ? null : _numberController.text,
       holderName: _holderNameController.text.isEmpty
@@ -1707,6 +1713,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
     // Store values needed after await
     final isMounted = mounted;
     final originalIndex = index;
+    final deletedId = deletedItem.id as String;
 
     await ref
         .read(profileNotifierProvider.notifier)
@@ -1746,7 +1753,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
             .restore(
               section: section,
               itemType: itemType,
-              index: originalIndex,
+              id: deletedId,
             );
       },
     );
@@ -1805,7 +1812,9 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   }
 
   void _submitForm() {
+    final addrId = _mode == 'editing' ? _addresses[_editingIndex].entry.id : generateEntryId();
     final addr = AddressData(
+      id: addrId,
       label: _labelController.text.isEmpty ? null : _labelController.text,
       street: _streetController.text.isEmpty ? null : _streetController.text,
       city: _cityController.text.isEmpty ? null : _cityController.text,

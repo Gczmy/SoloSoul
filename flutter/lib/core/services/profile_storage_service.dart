@@ -13,6 +13,35 @@ class _DeletedAtSentinel {
   const _DeletedAtSentinel();
 }
 
+/// Base class for all profile entry types with unique ID and timestamps
+/// All entry types (IdCardData, PassportData, etc.) should extend this class
+abstract class ProfileEntry {
+  String get id;
+  int get updatedAt;
+  bool get isDeleted;
+  DateTime? get deletedAt;
+
+  /// Creates a copy with new values
+  ProfileEntry copyWithNew({
+    String? id,
+    int? updatedAt,
+    bool? isDeleted,
+    DateTime? deletedAt,
+  });
+}
+
+/// Generates a new unique ID using UUID v4
+String generateEntryId() {
+  // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  // We use a simple implementation to avoid adding another dependency
+  final random = DateTime.now().microsecondsSinceEpoch;
+  final hex = random.toRadixString(16).padLeft(12, '0');
+  return '${hex.substring(0, 8)}-${hex.substring(4, 8)}-4${hex.substring(9, 12)}-${(random % 14 + 2).toRadixString(16)}${hex.substring(10, 12)}-${hex.substring(0, 12)}${hex.substring(0, 8)}';
+}
+
+/// Returns current timestamp in milliseconds since epoch
+int currentTimestamp() => DateTime.now().millisecondsSinceEpoch;
+
 /// Profile data types matching Rust profile.rs
 class ProfileData {
   IdentityData? identity;
@@ -155,25 +184,32 @@ class IdentityData {
 }
 
 class ContactEntry {
+  String id;
   String label; // e.g., "Personal", "Work", "Emergency"
   String type; // "email", "phone", "mobile"
   String value;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   ContactEntry({
+    required this.id,
     required this.label,
     required this.type,
     required this.value,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory ContactEntry.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return ContactEntry(
+      id: id ?? generateEntryId(),
       label: json['label'] ?? '',
       type: json['type'] ?? 'email',
       value: json['value'] ?? '',
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -182,9 +218,11 @@ class ContactEntry {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'label': label,
     'type': type,
     'value': value,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -192,16 +230,20 @@ class ContactEntry {
   static const _sentinel = _DeletedAtSentinel();
 
   ContactEntry copyWith({
+    String? id,
     String? label,
     String? type,
     String? value,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return ContactEntry(
+      id: id ?? this.id,
       label: label ?? this.label,
       type: type ?? this.type,
       value: value ?? this.value,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -238,34 +280,41 @@ class ContactData {
 }
 
 class AddressData {
+  String id;
   String? label;
   String? street;
   String? city;
   String? state;
   String? postalCode;
   String? country;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   AddressData({
+    required this.id,
     this.label,
     this.street,
     this.city,
     this.state,
     this.postalCode,
     this.country,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory AddressData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return AddressData(
+      id: id ?? generateEntryId(),
       label: json['label'],
       street: json['street'],
       city: json['city'],
       state: json['state'],
       postalCode: json['postal_code'],
       country: json['country'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -274,12 +323,14 @@ class AddressData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'label': label,
     'street': street,
     'city': city,
     'state': state,
     'postal_code': postalCode,
     'country': country,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -287,22 +338,26 @@ class AddressData {
   static const _sentinel = _DeletedAtSentinel();
 
   AddressData copyWith({
+    String? id,
     String? label,
     String? street,
     String? city,
     String? state,
     String? postalCode,
     String? country,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return AddressData(
+      id: id ?? this.id,
       label: label ?? this.label,
       street: street ?? this.street,
       city: city ?? this.city,
       state: state ?? this.state,
       postalCode: postalCode ?? this.postalCode,
       country: country ?? this.country,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -310,34 +365,41 @@ class AddressData {
 }
 
 class IdCardData {
+  String id;
   String? label;
   String? number;
   String? issueDate;
   String? expiryDate;
   String? holderName;
   String? country;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   IdCardData({
+    required this.id,
     this.label,
     this.number,
     this.issueDate,
     this.expiryDate,
     this.holderName,
     this.country,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory IdCardData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return IdCardData(
+      id: id ?? generateEntryId(),  // Generate ID if missing (for legacy data)
       label: json['label'],
       number: json['number'],
       issueDate: json['issue_date'],
       expiryDate: json['expiry_date'],
       holderName: json['holder_name'],
       country: json['country'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -346,12 +408,14 @@ class IdCardData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'label': label,
     'number': number,
     'issue_date': issueDate,
     'expiry_date': expiryDate,
     'holder_name': holderName,
     'country': country,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -359,22 +423,26 @@ class IdCardData {
   static const _sentinel = _DeletedAtSentinel();
 
   IdCardData copyWith({
+    String? id,
     String? label,
     String? number,
     String? issueDate,
     String? expiryDate,
     String? holderName,
     String? country,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return IdCardData(
+      id: id ?? this.id,
       label: label ?? this.label,
       number: number ?? this.number,
       issueDate: issueDate ?? this.issueDate,
       expiryDate: expiryDate ?? this.expiryDate,
       holderName: holderName ?? this.holderName,
       country: country ?? this.country,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -382,22 +450,29 @@ class IdCardData {
 }
 
 class TravelHistoryData {
+  String id;
   String destination;
   String? date;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   TravelHistoryData({
+    required this.id,
     required this.destination,
     this.date,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory TravelHistoryData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return TravelHistoryData(
+      id: id ?? generateEntryId(),
       destination: json['destination'] ?? '',
       date: json['date'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -406,21 +481,27 @@ class TravelHistoryData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'destination': destination,
     'date': date,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
 
   TravelHistoryData copyWith({
+    String? id,
     String? destination,
     String? date,
+    int? updatedAt,
     bool? isDeleted,
     DateTime? deletedAt,
   }) {
     return TravelHistoryData(
+      id: id ?? this.id,
       destination: destination ?? this.destination,
       date: date ?? this.date,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,
     );
@@ -501,31 +582,38 @@ class TravelData {
 }
 
 class PassportData {
+  String id;
   String? number;
   String? country;
   String? issueDate;
   String? expiryDate;
   String? holderName;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   PassportData({
+    required this.id,
     this.number,
     this.country,
     this.issueDate,
     this.expiryDate,
     this.holderName,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory PassportData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return PassportData(
+      id: id ?? generateEntryId(),
       number: json['number'],
       country: json['country'],
       issueDate: json['issue_date'],
       expiryDate: json['expiry_date'],
       holderName: json['holder_name'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -534,11 +622,13 @@ class PassportData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'number': number,
     'country': country,
     'issue_date': issueDate,
     'expiry_date': expiryDate,
     'holder_name': holderName,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -546,20 +636,24 @@ class PassportData {
   static const _sentinel = _DeletedAtSentinel();
 
   PassportData copyWith({
+    String? id,
     String? number,
     String? country,
     String? issueDate,
     String? expiryDate,
     String? holderName,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return PassportData(
+      id: id ?? this.id,
       number: number ?? this.number,
       country: country ?? this.country,
       issueDate: issueDate ?? this.issueDate,
       expiryDate: expiryDate ?? this.expiryDate,
       holderName: holderName ?? this.holderName,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -567,31 +661,38 @@ class PassportData {
 }
 
 class VisaData {
+  String id;
   String? country;
   String? visaType;
   String? number;
   String? issueDate;
   String? expiryDate;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   VisaData({
+    required this.id,
     this.country,
     this.visaType,
     this.number,
     this.issueDate,
     this.expiryDate,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory VisaData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return VisaData(
+      id: id ?? generateEntryId(),
       country: json['country'],
       visaType: json['visa_type'],
       number: json['number'],
       issueDate: json['issue_date'],
       expiryDate: json['expiry_date'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -600,11 +701,13 @@ class VisaData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'country': country,
     'visa_type': visaType,
     'number': number,
     'issue_date': issueDate,
     'expiry_date': expiryDate,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -612,15 +715,18 @@ class VisaData {
   static const _sentinel = _DeletedAtSentinel();
 
   VisaData copyWith({
+    String? id,
     String? country,
     String? visaType,
     String? number,
     String? issueDate,
     String? expiryDate,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return VisaData(
+      id: id ?? this.id,
       country: country ?? this.country,
       visaType: visaType ?? this.visaType,
       number: number ?? this.number,
@@ -699,28 +805,35 @@ class FinancialData {
 }
 
 class BankAccountData {
+  String id;
   String? bankName;
   String? accountNumber;
   String? currency;
   String? swiftBic;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   BankAccountData({
+    required this.id,
     this.bankName,
     this.accountNumber,
     this.currency,
     this.swiftBic,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory BankAccountData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return BankAccountData(
+      id: id ?? generateEntryId(),
       bankName: json['bank_name'],
       accountNumber: json['account_number'],
       currency: json['currency'],
       swiftBic: json['swift_bic'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -729,10 +842,12 @@ class BankAccountData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'bank_name': bankName,
     'account_number': accountNumber,
     'currency': currency,
     'swift_bic': swiftBic,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -740,18 +855,22 @@ class BankAccountData {
   static const _sentinel = _DeletedAtSentinel();
 
   BankAccountData copyWith({
+    String? id,
     String? bankName,
     String? accountNumber,
     String? currency,
     String? swiftBic,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return BankAccountData(
+      id: id ?? this.id,
       bankName: bankName ?? this.bankName,
       accountNumber: accountNumber ?? this.accountNumber,
       currency: currency ?? this.currency,
       swiftBic: swiftBic ?? this.swiftBic,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -759,28 +878,35 @@ class BankAccountData {
 }
 
 class CardData {
+  String id;
   String? cardNumber;
   String? cardType;
   String? expiryDate;
   String? holderName;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   CardData({
+    required this.id,
     this.cardNumber,
     this.cardType,
     this.expiryDate,
     this.holderName,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory CardData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return CardData(
+      id: id ?? generateEntryId(),
       cardNumber: json['card_number'],
       cardType: json['card_type'],
       expiryDate: json['expiry_date'],
       holderName: json['holder_name'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -789,10 +915,12 @@ class CardData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'card_number': cardNumber,
     'card_type': cardType,
     'expiry_date': expiryDate,
     'holder_name': holderName,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -800,18 +928,22 @@ class CardData {
   static const _sentinel = _DeletedAtSentinel();
 
   CardData copyWith({
+    String? id,
     String? cardNumber,
     String? cardType,
     String? expiryDate,
     String? holderName,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return CardData(
+      id: id ?? this.id,
       cardNumber: cardNumber ?? this.cardNumber,
       cardType: cardType ?? this.cardType,
       expiryDate: expiryDate ?? this.expiryDate,
       holderName: holderName ?? this.holderName,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -819,28 +951,35 @@ class CardData {
 }
 
 class TaxIdData {
+  String id;
   String? taxIdNumber;
   String? taxIdType;
   String? issuingAuthority;
   String? country;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   TaxIdData({
+    required this.id,
     this.taxIdNumber,
     this.taxIdType,
     this.issuingAuthority,
     this.country,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory TaxIdData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return TaxIdData(
+      id: id ?? generateEntryId(),
       taxIdNumber: json['tax_id_number'],
       taxIdType: json['tax_id_type'],
       issuingAuthority: json['issuing_authority'],
       country: json['country'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -849,10 +988,12 @@ class TaxIdData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'tax_id_number': taxIdNumber,
     'tax_id_type': taxIdType,
     'issuing_authority': issuingAuthority,
     'country': country,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -860,18 +1001,22 @@ class TaxIdData {
   static const _sentinel = _DeletedAtSentinel();
 
   TaxIdData copyWith({
+    String? id,
     String? taxIdNumber,
     String? taxIdType,
     String? issuingAuthority,
     String? country,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return TaxIdData(
+      id: id ?? this.id,
       taxIdNumber: taxIdNumber ?? this.taxIdNumber,
       taxIdType: taxIdType ?? this.taxIdType,
       issuingAuthority: issuingAuthority ?? this.issuingAuthority,
       country: country ?? this.country,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -879,22 +1024,29 @@ class TaxIdData {
 }
 
 class SkillData {
+  String id;
   String name;
   String? level;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   SkillData({
+    required this.id,
     required this.name,
     this.level,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory SkillData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return SkillData(
+      id: id ?? generateEntryId(),
       name: json['name'] ?? '',
       level: json['level'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -903,21 +1055,27 @@ class SkillData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
     'level': level,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
 
   SkillData copyWith({
+    String? id,
     String? name,
     String? level,
+    int? updatedAt,
     bool? isDeleted,
     DateTime? deletedAt,
   }) {
     return SkillData(
+      id: id ?? this.id,
       name: name ?? this.name,
       level: level ?? this.level,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,
     );
@@ -928,22 +1086,29 @@ class SkillData {
 }
 
 class LanguageData {
+  String id;
   String name;
   String? proficiency;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   LanguageData({
+    required this.id,
     required this.name,
     this.proficiency,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory LanguageData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return LanguageData(
+      id: id ?? generateEntryId(),
       name: json['name'] ?? '',
       proficiency: json['proficiency'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -952,21 +1117,27 @@ class LanguageData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
     'proficiency': proficiency,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
 
   LanguageData copyWith({
+    String? id,
     String? name,
     String? proficiency,
+    int? updatedAt,
     bool? isDeleted,
     DateTime? deletedAt,
   }) {
     return LanguageData(
+      id: id ?? this.id,
       name: name ?? this.name,
       proficiency: proficiency ?? this.proficiency,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,
     );
@@ -1063,31 +1234,38 @@ class ProfessionalData {
 }
 
 class EducationData {
+  String id;
   String? institution;
   String? degree;
   String? field;
   String? startDate;
   String? endDate;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   EducationData({
+    required this.id,
     this.institution,
     this.degree,
     this.field,
     this.startDate,
     this.endDate,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory EducationData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return EducationData(
+      id: id ?? generateEntryId(),
       institution: json['institution'],
       degree: json['degree'],
       field: json['field'],
       startDate: json['start_date'],
       endDate: json['end_date'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -1096,11 +1274,13 @@ class EducationData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'institution': institution,
     'degree': degree,
     'field': field,
     'start_date': startDate,
     'end_date': endDate,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -1108,20 +1288,24 @@ class EducationData {
   static const _sentinel = _DeletedAtSentinel();
 
   EducationData copyWith({
+    String? id,
     String? institution,
     String? degree,
     String? field,
     String? startDate,
     String? endDate,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return EducationData(
+      id: id ?? this.id,
       institution: institution ?? this.institution,
       degree: degree ?? this.degree,
       field: field ?? this.field,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -1129,28 +1313,35 @@ class EducationData {
 }
 
 class EmploymentData {
+  String id;
   String? company;
   String? position;
   String? startDate;
   String? endDate;
+  int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
 
   EmploymentData({
+    required this.id,
     this.company,
     this.position,
     this.startDate,
     this.endDate,
+    int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
-  });
+  }) : updatedAt = updatedAt ?? currentTimestamp();
 
   factory EmploymentData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
     return EmploymentData(
+      id: id ?? generateEntryId(),
       company: json['company'],
       position: json['position'],
       startDate: json['start_date'],
       endDate: json['end_date'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
           ? DateTime.tryParse(json['deleted_at'])
@@ -1159,10 +1350,12 @@ class EmploymentData {
   }
 
   Map<String, dynamic> toJson() => {
+    'id': id,
     'company': company,
     'position': position,
     'start_date': startDate,
     'end_date': endDate,
+    'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
@@ -1170,18 +1363,22 @@ class EmploymentData {
   static const _sentinel = _DeletedAtSentinel();
 
   EmploymentData copyWith({
+    String? id,
     String? company,
     String? position,
     String? startDate,
     String? endDate,
+    int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
   }) {
     return EmploymentData(
+      id: id ?? this.id,
       company: company ?? this.company,
       position: position ?? this.position,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
     );
@@ -1192,14 +1389,14 @@ class EmploymentData {
 class DeletedItemInfo {
   final String section;  // 'travel', 'financial', 'professional'
   final String itemType;  // 'passport', 'visa', 'bank_account', 'card', 'education', 'employment'
-  final int index;        // index in the list
+  final String id;        // unique ID of the item
   final String itemLabel; // display name for UI
   final DateTime deletedAt;
 
   const DeletedItemInfo({
     required this.section,
     required this.itemType,
-    required this.index,
+    required this.id,
     required this.itemLabel,
     required this.deletedAt,
   });
@@ -1244,14 +1441,32 @@ class ProfileStorageService {
   /// Load profile data for an account
   /// Returns ProfileData with all fields decrypted, or null if not found
   Future<ProfileData?> loadProfile(String accountId) async {
+    print('[ProfileStorageService] loadProfile BEGIN, accountId=$accountId');
+
     // Try to load from Rust vault
+    print('[ProfileStorageService] calling _rustVault.loadProfileDecrypted...');
     final decrypted = await _rustVault.loadProfileDecrypted(accountId);
-    if (decrypted == null) return null;
+    if (decrypted == null) {
+      print('[ProfileStorageService] loadProfile($accountId): no decrypted data (null returned)');
+      return null;
+    }
+    print('[ProfileStorageService] loadProfile($accountId): decrypted data length=${decrypted.length}');
 
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
-      return ProfileData.fromJson(json);
-    } catch (_) {
+      final profile = ProfileData.fromJson(json);
+      // DEBUG: Log loaded bank accounts
+      if (profile.financial?.bankAccounts != null) {
+        final deleted = profile.financial!.bankAccounts.where((b) => b.isDeleted).toList();
+        print('[ProfileStorageService] loadProfile($accountId): loaded, deletedBankAccounts=${deleted.length}');
+        for (var b in deleted) {
+          print('  Deleted bank: ${b.bankName}, ${b.accountNumber}, isDeleted=${b.isDeleted}');
+        }
+      }
+      print('[ProfileStorageService] loadProfile($accountId): SUCCESS');
+      return profile;
+    } catch (e) {
+      print('[ProfileStorageService] loadProfile($accountId): EXCEPTION $e');
       return null;
     }
   }
@@ -1259,11 +1474,34 @@ class ProfileStorageService {
   /// Save profile data for an account
   /// Encrypts and stores via RustVaultService
   Future<bool> saveProfile(String accountId, ProfileData profile) async {
+    print('[ProfileStorageService] saveProfile BEGIN, accountId=$accountId');
+    print('[ProfileStorageService] saveProfile: profile has financial=${profile.financial != null}');
+
     try {
       final json = jsonEncode(profile.toJson());
+      print('[ProfileStorageService] saveProfile: json encoded, length=${json.length}');
+
+      print('[ProfileStorageService] calling _rustVault.saveProfileEncrypted...');
       final result = await _rustVault.saveProfileEncrypted(accountId, json);
-      return result != null;
-    } catch (_) {
+
+      if (result == null) {
+        print('[ProfileStorageService] saveProfile($accountId): FAILED - saveProfileEncrypted returned null');
+        return false;
+      }
+
+      print('[ProfileStorageService] saveProfile($accountId): SUCCESS, result=$result');
+
+      // DEBUG: Log save success/failure and check bank accounts
+      if (profile.financial?.bankAccounts != null) {
+        final deleted = profile.financial!.bankAccounts.where((b) => b.isDeleted).toList();
+        print('[ProfileStorageService] saveProfile($accountId): deletedBankAccounts=${deleted.length}');
+        for (var b in deleted) {
+          print('  Deleted bank: ${b.bankName}, ${b.accountNumber}, isDeleted=${b.isDeleted}');
+        }
+      }
+      return true;
+    } catch (e) {
+      print('[ProfileStorageService] saveProfile($accountId): EXCEPTION $e');
       return false;
     }
   }
@@ -1279,7 +1517,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'travel',
             itemType: 'passport',
-            index: i,
+            id: p.id,
             itemLabel: p.country ?? 'Passport',
             deletedAt: p.deletedAt ?? DateTime.now(),
           ));
@@ -1295,7 +1533,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'travel',
             itemType: 'visa',
-            index: i,
+            id: v.id,
             itemLabel: v.country ?? 'Visa',
             deletedAt: v.deletedAt ?? DateTime.now(),
           ));
@@ -1307,7 +1545,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'travel',
             itemType: 'travel_history',
-            index: i,
+            id: t.id,
             itemLabel: t.destination,
             deletedAt: t.deletedAt ?? DateTime.now(),
           ));
@@ -1323,7 +1561,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'financial',
             itemType: 'bank_account',
-            index: i,
+            id: b.id,
             itemLabel: b.bankName ?? 'Bank Account',
             deletedAt: b.deletedAt ?? DateTime.now(),
           ));
@@ -1335,7 +1573,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'financial',
             itemType: 'card',
-            index: i,
+            id: c.id,
             itemLabel: c.cardType ?? 'Card',
             deletedAt: c.deletedAt ?? DateTime.now(),
           ));
@@ -1347,7 +1585,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'financial',
             itemType: 'tax_id',
-            index: i,
+            id: t.id,
             itemLabel: t.taxIdType ?? 'Tax ID',
             deletedAt: t.deletedAt ?? DateTime.now(),
           ));
@@ -1363,7 +1601,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'professional',
             itemType: 'education',
-            index: i,
+            id: e.id,
             itemLabel: e.institution ?? 'Education',
             deletedAt: e.deletedAt ?? DateTime.now(),
           ));
@@ -1375,7 +1613,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'professional',
             itemType: 'employment',
-            index: i,
+            id: emp.id,
             itemLabel: emp.company ?? 'Employment',
             deletedAt: emp.deletedAt ?? DateTime.now(),
           ));
@@ -1387,7 +1625,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'professional',
             itemType: 'skill',
-            index: i,
+            id: s.id,
             itemLabel: s.toString(),
             deletedAt: s.deletedAt ?? DateTime.now(),
           ));
@@ -1399,7 +1637,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'professional',
             itemType: 'language',
-            index: i,
+            id: l.id,
             itemLabel: l.toString(),
             deletedAt: l.deletedAt ?? DateTime.now(),
           ));
@@ -1415,7 +1653,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'profile',
             itemType: 'contact',
-            index: i,
+            id: e.id,
             itemLabel: e.label.isNotEmpty ? '${e.label} - ${e.value}' : e.value,
             deletedAt: e.deletedAt ?? DateTime.now(),
           ));
@@ -1431,7 +1669,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'profile',
             itemType: 'idCard',
-            index: i,
+            id: c.id,
             itemLabel: c.label ?? c.number ?? 'ID Card',
             deletedAt: c.deletedAt ?? DateTime.now(),
           ));
@@ -1447,7 +1685,7 @@ class ProfileStorageService {
           items.add(DeletedItemInfo(
             section: 'profile',
             itemType: 'address',
-            index: i,
+            id: a.id,
             itemLabel: a.label ?? 'Address',
             deletedAt: a.deletedAt ?? DateTime.now(),
           ));

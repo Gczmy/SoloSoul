@@ -121,6 +121,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     _passports = [
       ...?(travel?.activePassports.map(
         (p) => PassportData(
+          id: p.id,
           country: p.country,
           number: p.number,
           issueDate: p.issueDate,
@@ -131,8 +132,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     ];
   }
 
-  PassportData _createPassportFromValues(Map<String, String> values) {
+  PassportData _createPassportFromValues(Map<String, String> values, {String? id}) {
     return PassportData(
+      id: generateEntryId(),
       country: values['passport.country']?.isEmpty == true
           ? null
           : values['passport.country'],
@@ -161,6 +163,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final deletedId = passport.id;
     await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
@@ -187,7 +190,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'travel', itemType: 'passport', index: index);
+              .restore(section: 'travel', itemType: 'passport', id: deletedId);
         },
       );
     }
@@ -294,6 +297,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
     _visas = [
       ...?(travel?.activeVisas.map(
         (v) => VisaData(
+          id: v.id,
           country: v.country,
           visaType: v.visaType,
           number: v.number,
@@ -304,8 +308,9 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
     ];
   }
 
-  VisaData _createVisaFromValues(Map<String, String> values) {
+  VisaData _createVisaFromValues(Map<String, String> values, {String? id}) {
     return VisaData(
+      id: generateEntryId(),
       country: values['visa.country']?.isEmpty == true
           ? null
           : values['visa.country'],
@@ -338,6 +343,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final deletedId = visa.id;
     await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
@@ -364,7 +370,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'travel', itemType: 'visa', index: index);
+              .restore(section: 'travel', itemType: 'visa', id: deletedId);
         },
       );
     }
@@ -487,13 +493,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final deletedId = item.id;
     await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
           section: 'travel',
           itemType: 'travel_history',
           index: index,
-          deletedItem: item.destination,
+          deletedItem: item,
         );
 
     setState(() {
@@ -513,7 +520,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'travel', itemType: 'travel_history', index: index);
+              .restore(section: 'travel', itemType: 'travel_history', id: deletedId);
         },
       );
     }
@@ -528,11 +535,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
     final wasAdding = editingItem == null;
 
     if (wasAdding) {
-      _history = List.from(_history)..add(TravelHistoryData(destination: dest));
+      _history = List.from(_history)..add(TravelHistoryData(id: generateEntryId(), destination: dest));
     } else {
       final index = _history.indexOf(editingItem);
       if (index != -1) {
-        _history = List.from(_history)..[index] = TravelHistoryData(destination: dest);
+        _history = List.from(_history)..[index] = TravelHistoryData(id: editingItem.id, destination: dest);
       }
     }
 
@@ -566,7 +573,8 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       icon: Icons.history,
       items: _history,
       maxVisibleItems: 3,
-      itemFactory: (values) => TravelHistoryData(
+      itemFactory: (values, {String? id}) => TravelHistoryData(
+        id: id ?? generateEntryId(),
         destination: values['travel.destination']?.trim() ?? '',
       ),
       fieldDefs: const [

@@ -397,7 +397,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     await ref.read(profileNotifierProvider.notifier).restore(
           section: item.section,
           itemType: item.itemType,
-          index: item.index,
+          id: item.id,
         );
 
     if (mounted) {
@@ -491,7 +491,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     await ref.read(profileNotifierProvider.notifier).permanentDelete(
           section: item.section,
           itemType: item.itemType,
-          index: item.index,
+          id: item.id,
         );
 
     if (mounted) {
@@ -594,86 +594,122 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
     switch (item.section) {
       case 'travel':
-        if (item.itemType == 'passport' && item.index < (profile.travel?.passports.length ?? 0)) {
-          final p = profile.travel!.passports[item.index];
-          detailText = 'Country: ${p.country ?? "N/A"}\n'
-              'Number: ${p.number ?? "N/A"}\n'
-              'Expiry: ${p.expiryDate ?? "N/A"}';
-          deletedAt = p.deletedAt;
-        } else if (item.itemType == 'visa' && item.index < (profile.travel?.visas.length ?? 0)) {
-          final v = profile.travel!.visas[item.index];
-          detailText = 'Country: ${v.country ?? "N/A"}\n'
-              'Type: ${v.visaType ?? "N/A"}\n'
-              'Number: ${v.number ?? "N/A"}\n'
-              'Expiry: ${v.expiryDate ?? "N/A"}';
-          deletedAt = v.deletedAt;
-        } else if (item.itemType == 'travel_history' && item.index < (profile.travel?.travelHistory.length ?? 0)) {
-          final t = profile.travel!.travelHistory[item.index];
-          detailText = 'Destination: ${t.destination}\n'
-              'Date: ${t.date ?? "N/A"}';
-          deletedAt = t.deletedAt;
+        if (item.itemType == 'passport') {
+          final idx = profile.travel?.passports.indexWhere((p) => p.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final p = profile.travel!.passports[idx];
+            detailText = 'Country: ${p.country ?? "N/A"}\n'
+                'Number: ${p.number ?? "N/A"}\n'
+                'Expiry: ${p.expiryDate ?? "N/A"}';
+            deletedAt = p.deletedAt;
+          }
+        } else if (item.itemType == 'visa') {
+          final idx = profile.travel?.visas.indexWhere((v) => v.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final v = profile.travel!.visas[idx];
+            detailText = 'Country: ${v.country ?? "N/A"}\n'
+                'Type: ${v.visaType ?? "N/A"}\n'
+                'Number: ${v.number ?? "N/A"}\n'
+                'Expiry: ${v.expiryDate ?? "N/A"}';
+            deletedAt = v.deletedAt;
+          }
+        } else if (item.itemType == 'travel_history') {
+          final idx = profile.travel?.travelHistory.indexWhere((t) => t.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final t = profile.travel!.travelHistory[idx];
+            detailText = 'Destination: ${t.destination}\n'
+                'Date: ${t.date ?? "N/A"}';
+            deletedAt = t.deletedAt;
+          }
         }
         break;
       case 'financial':
-        if (item.itemType == 'bank_account' && item.index < (profile.financial?.bankAccounts.length ?? 0)) {
-          final b = profile.financial!.bankAccounts[item.index];
-          detailText = 'Bank: ${b.bankName ?? "N/A"}\n'
-              'Account: ${b.accountNumber ?? "N/A"}\n'
-              'Currency: ${b.currency ?? "N/A"}';
-          deletedAt = b.deletedAt;
-        } else if (item.itemType == 'card' && item.index < (profile.financial?.cards.length ?? 0)) {
-          final c = profile.financial!.cards[item.index];
-          detailText = 'Type: ${c.cardType ?? "N/A"}\n'
-              'Number: ${c.cardNumber ?? "N/A"}\n'
-              'Expiry: ${c.expiryDate ?? "N/A"}';
-          deletedAt = c.deletedAt;
+        if (item.itemType == 'bank_account') {
+          final idx = profile.financial?.bankAccounts.indexWhere((b) => b.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final b = profile.financial!.bankAccounts[idx];
+            detailText = 'Bank: ${b.bankName ?? "N/A"}\n'
+                'Account: ${b.accountNumber ?? "N/A"}\n'
+                'Currency: ${b.currency ?? "N/A"}';
+            deletedAt = b.deletedAt;
+          }
+        } else if (item.itemType == 'card') {
+          final idx = profile.financial?.cards.indexWhere((c) => c.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final c = profile.financial!.cards[idx];
+            detailText = 'Type: ${c.cardType ?? "N/A"}\n'
+                'Number: ${c.cardNumber ?? "N/A"}\n'
+                'Expiry: ${c.expiryDate ?? "N/A"}';
+            deletedAt = c.deletedAt;
+          }
         }
         break;
       case 'professional':
-        if (item.itemType == 'education' && item.index < (profile.professional?.education.length ?? 0)) {
-          final e = profile.professional!.education[item.index];
-          detailText = 'Institution: ${e.institution ?? "N/A"}\n'
-              'Degree: ${e.degree ?? "N/A"}\n'
-              'Field: ${e.field ?? "N/A"}';
-          deletedAt = e.deletedAt;
-        } else if (item.itemType == 'employment' && item.index < (profile.professional?.employment.length ?? 0)) {
-          final emp = profile.professional!.employment[item.index];
-          detailText = 'Company: ${emp.company ?? "N/A"}\n'
-              'Position: ${emp.position ?? "N/A"}\n'
-              'Period: ${emp.startDate ?? "N/A"} - ${emp.endDate ?? "N/A"}';
-          deletedAt = emp.deletedAt;
-        } else if (item.itemType == 'skill' && item.index < (profile.professional?.skills.length ?? 0)) {
-          final s = profile.professional!.skills[item.index];
-          detailText = 'Name: ${s.name}\n'
-              'Level: ${s.level ?? "N/A"}';
-          deletedAt = s.deletedAt;
-        } else if (item.itemType == 'language' && item.index < (profile.professional?.languages.length ?? 0)) {
-          final l = profile.professional!.languages[item.index];
-          detailText = 'Name: ${l.name}\n'
-              'Proficiency: ${l.proficiency ?? "N/A"}';
-          deletedAt = l.deletedAt;
+        if (item.itemType == 'education') {
+          final idx = profile.professional?.education.indexWhere((e) => e.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final e = profile.professional!.education[idx];
+            detailText = 'Institution: ${e.institution ?? "N/A"}\n'
+                'Degree: ${e.degree ?? "N/A"}\n'
+                'Field: ${e.field ?? "N/A"}';
+            deletedAt = e.deletedAt;
+          }
+        } else if (item.itemType == 'employment') {
+          final idx = profile.professional?.employment.indexWhere((emp) => emp.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final emp = profile.professional!.employment[idx];
+            detailText = 'Company: ${emp.company ?? "N/A"}\n'
+                'Position: ${emp.position ?? "N/A"}\n'
+                'Period: ${emp.startDate ?? "N/A"} - ${emp.endDate ?? "N/A"}';
+            deletedAt = emp.deletedAt;
+          }
+        } else if (item.itemType == 'skill') {
+          final idx = profile.professional?.skills.indexWhere((s) => s.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final s = profile.professional!.skills[idx];
+            detailText = 'Name: ${s.name}\n'
+                'Level: ${s.level ?? "N/A"}';
+            deletedAt = s.deletedAt;
+          }
+        } else if (item.itemType == 'language') {
+          final idx = profile.professional?.languages.indexWhere((l) => l.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final l = profile.professional!.languages[idx];
+            detailText = 'Name: ${l.name}\n'
+                'Proficiency: ${l.proficiency ?? "N/A"}';
+            deletedAt = l.deletedAt;
+          }
         }
         break;
       case 'profile':
-        if (item.itemType == 'contact' && item.index < (profile.identity?.contact?.entries.length ?? 0)) {
-          final e = profile.identity!.contact!.entries[item.index];
-          detailText = 'Label: ${e.label}\n'
-              'Type: ${e.type}\n'
-              'Value: ${e.value}';
-          deletedAt = e.deletedAt;
-        } else if (item.itemType == 'idCard' && item.index < (profile.identity?.idCards?.length ?? 0)) {
-          final c = profile.identity!.idCards![item.index];
-          detailText = 'Label: ${c.label ?? "N/A"}\n'
-              'Number: ${c.number ?? "N/A"}\n'
-              'Country: ${c.country ?? "N/A"}';
-          deletedAt = c.deletedAt;
-        } else if (item.itemType == 'address' && item.index < (profile.identity?.addresses?.length ?? 0)) {
-          final a = profile.identity!.addresses![item.index];
-          detailText = 'Label: ${a.label ?? "N/A"}\n'
-              'Street: ${a.street ?? "N/A"}\n'
-              'City: ${a.city ?? "N/A"}\n'
-              'Country: ${a.country ?? "N/A"}';
-          deletedAt = a.deletedAt;
+        if (item.itemType == 'contact') {
+          final idx = profile.identity?.contact?.entries.indexWhere((e) => e.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final e = profile.identity!.contact!.entries[idx];
+            detailText = 'Label: ${e.label}\n'
+                'Type: ${e.type}\n'
+                'Value: ${e.value}';
+            deletedAt = e.deletedAt;
+          }
+        } else if (item.itemType == 'idCard') {
+          final idx = profile.identity?.idCards?.indexWhere((c) => c.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final c = profile.identity!.idCards![idx];
+            detailText = 'Label: ${c.label ?? "N/A"}\n'
+                'Number: ${c.number ?? "N/A"}\n'
+                'Country: ${c.country ?? "N/A"}';
+            deletedAt = c.deletedAt;
+          }
+        } else if (item.itemType == 'address') {
+          final idx = profile.identity?.addresses?.indexWhere((a) => a.id == item.id) ?? -1;
+          if (idx >= 0) {
+            final a = profile.identity!.addresses![idx];
+            detailText = 'Label: ${a.label ?? "N/A"}\n'
+                'Street: ${a.street ?? "N/A"}\n'
+                'City: ${a.city ?? "N/A"}\n'
+                'Country: ${a.country ?? "N/A"}';
+            deletedAt = a.deletedAt;
+          }
         }
         break;
     }

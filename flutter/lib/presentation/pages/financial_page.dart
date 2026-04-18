@@ -132,6 +132,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
     _accounts = [
       ...?(financial?.activeBankAccounts.map(
         (b) => BankAccountData(
+          id: b.id,
           bankName: b.bankName,
           accountNumber: b.accountNumber,
           currency: b.currency,
@@ -141,8 +142,9 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
     ];
   }
 
-  BankAccountData _createAccountFromValues(Map<String, String> values) {
+  BankAccountData _createAccountFromValues(Map<String, String> values, {String? id}) {
     return BankAccountData(
+      id: id ?? generateEntryId(),
       bankName: values['bankAccount.bankName']?.isEmpty == true
           ? null
           : values['bankAccount.bankName'],
@@ -176,7 +178,10 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    await ref
+    final deletedId = account.id;
+    print('[FinancialPage] _onAccountDelete: deleting bank account at index=$index, bankName=${account.bankName}');
+
+    final result = await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
           section: 'financial',
@@ -184,6 +189,8 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
           index: index,
           deletedItem: account,
         );
+
+    print('[FinancialPage] _onAccountDelete: softDelete completed');
 
     setState(() {
       _accounts = List.from(_accounts)..removeAt(index);
@@ -202,7 +209,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'financial', itemType: 'bank_account', index: index);
+              .restore(section: 'financial', itemType: 'bank_account', id: deletedId);
         },
       );
     }
@@ -212,7 +219,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
     Map<String, String> values,
     BankAccountData? editingItem,
   ) async {
-    final newAccount = _createAccountFromValues(values);
+    final newAccount = _createAccountFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
     final itemName = newAccount.bankName ?? 'Bank account';
 
@@ -313,6 +320,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
     _cards = [
       ...?(financial?.activeCards.map(
         (c) => CardData(
+          id: c.id,
           cardType: c.cardType,
           cardNumber: c.cardNumber,
           expiryDate: c.expiryDate,
@@ -322,8 +330,9 @@ class _CardSectionState extends ConsumerState<_CardSection> {
     ];
   }
 
-  CardData _createCardFromValues(Map<String, String> values) {
+  CardData _createCardFromValues(Map<String, String> values, {String? id}) {
     return CardData(
+      id: id ?? generateEntryId(),
       cardType: values['card.cardType']?.isEmpty == true
           ? null
           : values['card.cardType'],
@@ -356,6 +365,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final deletedId = card.id;
     await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
@@ -382,7 +392,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'financial', itemType: 'card', index: index);
+              .restore(section: 'financial', itemType: 'card', id: deletedId);
         },
       );
     }
@@ -392,7 +402,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
     Map<String, String> values,
     CardData? editingItem,
   ) async {
-    final newCard = _createCardFromValues(values);
+    final newCard = _createCardFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
     final itemName = newCard.cardType ?? 'Card';
 
@@ -495,6 +505,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
     _taxIds = [
       ...?(financial?.activeTaxIds.map(
         (t) => TaxIdData(
+          id: t.id,
           taxIdNumber: t.taxIdNumber,
           taxIdType: t.taxIdType,
           issuingAuthority: t.issuingAuthority,
@@ -504,8 +515,9 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
     ];
   }
 
-  TaxIdData _createTaxIdFromValues(Map<String, String> values) {
+  TaxIdData _createTaxIdFromValues(Map<String, String> values, {String? id}) {
     return TaxIdData(
+      id: id ?? generateEntryId(),
       taxIdNumber: values['taxId.taxIdNumber']?.isEmpty == true
           ? null
           : values['taxId.taxIdNumber'],
@@ -538,6 +550,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final deletedId = taxId.id;
     await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
@@ -564,7 +577,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'financial', itemType: 'tax_id', index: index);
+              .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
         },
       );
     }
@@ -574,7 +587,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
     Map<String, String> values,
     TaxIdData? editingItem,
   ) async {
-    final newTaxId = _createTaxIdFromValues(values);
+    final newTaxId = _createTaxIdFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
     final itemName = newTaxId.taxIdType ?? 'Tax ID';
 

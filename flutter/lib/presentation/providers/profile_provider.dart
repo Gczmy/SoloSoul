@@ -965,8 +965,12 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final current = state!;
     final now = DateTime.now();
 
-    // Find the correct index in the unfiltered storage list
-    final actualIndex = _findActualStorageIndex(current, section, itemType, deletedItem, index);
+    // Find index by ID (robust, no content comparison needed)
+    final actualIndex = _findIndexById(current, section, itemType, deletedItem.id);
+    if (actualIndex < 0) {
+      print('[softDelete] ERROR: could not find item with id=${deletedItem.id}');
+      return;
+    }
     final newProfile = _markItemDeleted(current, section, itemType, actualIndex, now);
 
     // Log the delete operation
@@ -1279,7 +1283,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
   Future<void> restore({
     required String section,
     required String itemType,
-    required int index,
+    required String id,
   }) async {
     if (state == null) {
       throw Exception('No profile loaded');
@@ -1292,9 +1296,15 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       throw Exception('No account selected');
     }
 
+    // Find the actual index by ID - this is stable even if indices shift
+    final actualIndex = _findIndexById(state!, section, itemType, id);
+    if (actualIndex == -1) {
+      print('[restore] Item not found by id=$id, skipping restore');
+      return;
+    }
+
     // Verify item exists and is deleted at this index
-    // NOTE: Index may be stale if item was already restored via another operation
-    final itemAtIndex = _getItemAtIndex(state!, section, itemType, index);
+    final itemAtIndex = _getItemAtIndex(state!, section, itemType, actualIndex);
     if (itemAtIndex == null || !_isItemDeleted(itemAtIndex)) {
       // Item doesn't exist or was already restored - silently return
       print('[restore] Item already restored or index stale, skipping restore');
@@ -1302,10 +1312,10 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     }
 
     final current = state!;
-    final newProfile = _markItemRestored(current, section, itemType, index);
+    final newProfile = _markItemRestored(current, section, itemType, actualIndex);
 
     // Log the restore operation
-    _logRestore(section, itemType, index);
+    _logRestore(section, itemType, actualIndex);
 
     // Save FIRST, then update state only on success
     final saved = await saveProfile(newProfile);
@@ -1450,7 +1460,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
   Future<void> permanentDelete({
     required String section,
     required String itemType,
-    required int index,
+    required String id,
   }) async {
     if (state == null) {
       throw Exception('No profile loaded');
@@ -1463,17 +1473,23 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       throw Exception('No account selected');
     }
 
+    // Find the actual index by ID
+    final actualIndex = _findIndexById(state!, section, itemType, id);
+    if (actualIndex == -1) {
+      throw Exception('$itemType not found by id=$id');
+    }
+
     // Verify item exists and is deleted at this index
-    final itemAtIndex = _getItemAtIndex(state!, section, itemType, index);
+    final itemAtIndex = _getItemAtIndex(state!, section, itemType, actualIndex);
     if (itemAtIndex == null) {
-      throw Exception('$itemType not found at index $index');
+      throw Exception('$itemType not found at index $actualIndex');
     }
     if (!_isItemDeleted(itemAtIndex)) {
       throw Exception('$itemType is not in trash');
     }
 
     // Get item label BEFORE deletion (since item will be removed)
-    final itemLabel = _getItemLabel(section, itemType, index);
+    final itemLabel = _getItemLabel(section, itemType, actualIndex);
 
     final current = state!;
     await _storage.permanentDeleteItem(
@@ -1481,7 +1497,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       accountId,
       section,
       itemType,
-      index,
+      actualIndex,
     );
 
     // Log the permanent delete operation
@@ -2080,6 +2096,66 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         return _findIndexByContent(targetList, deletedItem, filteredIndex);
       default:
         return filteredIndex;
+    }
+  }
+
+  /// Finds index by ID - the primary and reliable method for item location.
+  /// Returns -1 if not found.
+  int _findIndexById(
+    ProfileData current,
+    String section,
+    String itemType,
+    String id,
+  ) {
+    switch (section) {
+      case 'travel':
+        final list = current.travel;
+        if (list == null) return -1;
+        if (itemType == 'passport') {
+          return list.passports.indexWhere((p) => p.id == id);
+        } else if (itemType == 'visa') {
+          return list.visas.indexWhere((v) => v.id == id);
+        } else if (itemType == 'travel_history') {
+          return list.travelHistory.indexWhere((t) => t.id == id);
+        }
+        return -1;
+      case 'financial':
+        final list = current.financial;
+        if (list == null) return -1;
+        if (itemType == 'bank_account') {
+          return list.bankAccounts.indexWhere((b) => b.id == id);
+        } else if (itemType == 'card') {
+          return list.cards.indexWhere((c) => c.id == id);
+        } else if (itemType == 'tax_id') {
+          return list.taxIds.indexWhere((t) => t.id == id);
+        }
+        return -1;
+      case 'professional':
+        final list = current.professional;
+        if (list == null) return -1;
+        if (itemType == 'education') {
+          return list.education.indexWhere((e) => e.id == id);
+        } else if (itemType == 'employment') {
+          return list.employment.indexWhere((e) => e.id == id);
+        } else if (itemType == 'skill') {
+          return list.skills.indexWhere((s) => s.id == id);
+        } else if (itemType == 'language') {
+          return list.languages.indexWhere((l) => l.id == id);
+        }
+        return -1;
+      case 'profile':
+        final list = current.identity;
+        if (list == null) return -1;
+        if (itemType == 'contact') {
+          return list.contact?.entries.indexWhere((e) => e.id == id) ?? -1;
+        } else if (itemType == 'idCard') {
+          return list.idCards?.indexWhere((c) => c.id == id) ?? -1;
+        } else if (itemType == 'address') {
+          return list.addresses?.indexWhere((a) => a.id == id) ?? -1;
+        }
+        return -1;
+      default:
+        return -1;
     }
   }
 

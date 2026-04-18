@@ -108,6 +108,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeEducation.map((e) => EducationData(
+          id: e.id,
           institution: e.institution,
           degree: e.degree,
           field: e.field,
@@ -128,8 +129,9 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     _loadData();
   }
 
-  EducationData _createFromValues(Map<String, String> values) {
+  EducationData _createFromValues(Map<String, String> values, {String? id}) {
     return EducationData(
+      id: id ?? generateEntryId(),
       institution: values['education.institution']?.isEmpty == true
           ? null
           : values['education.institution'],
@@ -170,6 +172,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     if (index == -1) return;
     final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
+    final deletedId = item.id;
     await ref.read(profileNotifierProvider.notifier).softDelete(
           section: 'professional',
           itemType: 'education',
@@ -193,7 +196,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
           await ref.read(profileNotifierProvider.notifier).restore(
               section: 'professional',
               itemType: 'education',
-              index: index);
+              id: deletedId);
         },
       );
     }
@@ -201,7 +204,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
 
   Future<void> _onSave(
       Map<String, String> values, EducationData? editingItem) async {
-    final newItem = _createFromValues(values);
+    final newItem = _createFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
     if (wasAdding) {
       _items = List.from(_items)..add(newItem);
@@ -316,6 +319,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeEmployment.map(
       (e) => EmploymentData(
+        id: e.id,
         company: e.company,
         position: e.position,
         startDate: e.startDate,
@@ -324,8 +328,9 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     ))];
   }
 
-  EmploymentData _createFromValues(Map<String, String> values) {
+  EmploymentData _createFromValues(Map<String, String> values, {String? id}) {
     return EmploymentData(
+      id: id ?? generateEntryId(),
       company: values['employment.company']?.isEmpty == true ? null : values['employment.company'],
       position: values['employment.position']?.isEmpty == true ? null : values['employment.position'],
       startDate: values['employment.startDate']?.isEmpty == true ? null : values['employment.startDate'],
@@ -350,15 +355,16 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
+    final deletedId = item.id;
     await ref.read(profileNotifierProvider.notifier).softDelete(section: 'professional', itemType: 'employment', index: index, deletedItem: item);
     setState(() { _items = List.from(_items)..removeAt(index); });
     if (mounted) {
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.company ?? 'Employment', isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'employment', index: index); });
+      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.company ?? 'Employment', isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'employment', id: deletedId); });
     }
   }
 
   Future<void> _onSave(Map<String, String> values, EmploymentData? editingItem) async {
-    final newItem = _createFromValues(values);
+    final newItem = _createFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
     if (wasAdding) { _items = List.from(_items)..add(newItem); } else { final index = _items.indexOf(editingItem); if (index != -1) { _items = List.from(_items)..[index] = newItem; } }
     final professional = ProfessionalData(
@@ -435,10 +441,10 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
     _items = [...?(professional?.activeSkills)];
   }
 
-  SkillData _createFromValues(Map<String, String> values) {
+  SkillData _createFromValues(Map<String, String> values, {String? id}) {
     final name = values['skill.name']?.trim() ?? '';
     final level = values['skill.level']?.trim() ?? '';
-    return SkillData(name: name, level: level.isEmpty ? null : level);
+    return SkillData(id: id ?? generateEntryId(), name: name, level: level.isEmpty ? null : level);
   }
 
   Map<String, String> _skillToMap(SkillData skill) {
@@ -452,15 +458,16 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
+    final deletedId = item.id;
     await ref.read(profileNotifierProvider.notifier).softDelete(section: 'professional', itemType: 'skill', index: index, deletedItem: item);
     setState(() { _items = List.from(_items)..removeAt(index); });
     if (mounted) {
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.toString(), isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'skill', index: index); });
+      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.toString(), isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'skill', id: deletedId); });
     }
   }
 
   Future<void> _onSave(Map<String, String> values, SkillData? editingItem) async {
-    final newItem = _createFromValues(values);
+    final newItem = _createFromValues(values, id: editingItem?.id);
     if (newItem.name.isEmpty) return;
     final wasAdding = editingItem == null;
     if (wasAdding) { _items = List.from(_items)..add(newItem); } else { final index = _items.indexOf(editingItem); if (index != -1) { _items = List.from(_items)..[index] = newItem; } }
@@ -532,10 +539,10 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
     _items = [...?(professional?.activeLanguages)];
   }
 
-  LanguageData _createFromValues(Map<String, String> values) {
+  LanguageData _createFromValues(Map<String, String> values, {String? id}) {
     final name = values['language.name']?.trim() ?? '';
     final proficiency = values['language.proficiency']?.trim() ?? '';
-    return LanguageData(name: name, proficiency: proficiency.isEmpty ? null : proficiency);
+    return LanguageData(id: id ?? generateEntryId(), name: name, proficiency: proficiency.isEmpty ? null : proficiency);
   }
 
   Map<String, String> _languageToMap(LanguageData language) {
@@ -549,15 +556,16 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
+    final deletedId = item.id;
     await ref.read(profileNotifierProvider.notifier).softDelete(section: 'professional', itemType: 'language', index: index, deletedItem: item);
     setState(() { _items = List.from(_items)..removeAt(index); });
     if (mounted) {
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.toString(), isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'language', index: index); });
+      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.toString(), isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'language', id: deletedId); });
     }
   }
 
   Future<void> _onSave(Map<String, String> values, LanguageData? editingItem) async {
-    final newItem = _createFromValues(values);
+    final newItem = _createFromValues(values, id: editingItem?.id);
     if (newItem.name.isEmpty) return;
     final wasAdding = editingItem == null;
     if (wasAdding) { _items = List.from(_items)..add(newItem); } else { final index = _items.indexOf(editingItem); if (index != -1) { _items = List.from(_items)..[index] = newItem; } }

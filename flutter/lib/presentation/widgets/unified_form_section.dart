@@ -35,7 +35,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
       onSave;
   final void Function(T item, String fieldId, String value)? onCopy;
   final int maxVisibleItems;
-  final T Function(Map<String, String> values)? itemFactory;
+  final T Function(Map<String, String> values, {String? id})? itemFactory;
   /// Converts a T item to a Map of fieldId -> value for populating edit form
   final Map<String, String> Function(T item)? itemToMap;
   /// Optional custom form builder. If provided, overrides the default
@@ -203,8 +203,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
         }
       } else {
         // For editing, create updated item
-        if (widget.itemFactory != null) {
-          _items[_editingIndex] = widget.itemFactory!(values);
+        if (widget.itemFactory != null && editingItem != null) {
+          _items[_editingIndex] = widget.itemFactory!(values, id: (editingItem as dynamic).id as String?);
         }
       }
       _mode = 'idle';
