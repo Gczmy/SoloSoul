@@ -2084,14 +2084,29 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
   }
 
   /// Finds index by comparing item content (field by field).
-  /// Falls back to filteredIndex if no match found.
+  /// When multiple items have identical content, prefers the filteredIndex if valid.
   int _findIndexByContent(List<dynamic> storageList, dynamic deletedItem, int filteredIndex) {
     if (deletedItem == null) return filteredIndex;
+
+    // Find all matching indices
+    final matchingIndices = <int>[];
     for (var i = 0; i < storageList.length; i++) {
       if (_itemsEqual(storageList[i], deletedItem)) {
-        return i;
+        matchingIndices.add(i);
       }
     }
+
+    // If filteredIndex is one of the matches, it's the correct index
+    // (UI provides filtered index which is trustworthy)
+    if (matchingIndices.contains(filteredIndex)) {
+      return filteredIndex;
+    }
+
+    // Otherwise, use first match if available
+    if (matchingIndices.isNotEmpty) {
+      return matchingIndices.first;
+    }
+
     // Fallback to the filtered index if no match found
     return filteredIndex;
   }
