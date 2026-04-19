@@ -1002,107 +1002,103 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child:
-                  Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _selectAccount(account.id),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isRecent
-                                    ? AppTheme.primaryColor
-                                    : theme.dividerColor,
-                                width: isRecent ? 2 : 1,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              color: isRecent
-                                  ? AppTheme.primaryColor.withValues(
-                                      alpha: 0.05,
-                                    )
-                                  : null,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _selectAccount(account.id),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isRecent
+                            ? AppTheme.primaryColor
+                            : theme.dividerColor,
+                        width: isRecent ? 2 : 1,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      color: isRecent
+                          ? AppTheme.primaryColor.withValues(
+                              alpha: 0.05,
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: AppTheme.primaryColor,
+                          child: Text(
+                            account.name[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
                             ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 22,
-                                  backgroundColor: AppTheme.primaryColor,
-                                  child: Text(
-                                    account.name[0].toUpperCase(),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    account.name,
                                     style: const TextStyle(
-                                      color: Colors.white,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            account.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          if (isRecent) ...[
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: AppTheme.primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                              ),
-                                              child: const Text(
-                                                'Recent',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
+                                  if (isRecent) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Last accessed: ${_formatLastAccessed(account.lastAccessed)}',
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor,
+                                        borderRadius:
+                                            BorderRadius.circular(4),
+                                      ),
+                                      child: const Text(
+                                        'Recent',
                                         style: TextStyle(
-                                          color: theme
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                          fontSize: 13,
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Last accessed: ${_formatLastAccessed(account.lastAccessed)}',
+                                style: TextStyle(
+                                  color: theme
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                  fontSize: 13,
                                 ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      )
-                      .animate()
-                      .fadeIn(delay: (200 + index * 50).ms, duration: 400.ms)
-                      .slideX(begin: 0.1, end: 0),
+                        Icon(
+                          Icons.chevron_right,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             );
           }),
 
@@ -1147,31 +1143,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ],
             ),
-          ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+          ),
         ],
 
         const SizedBox(height: 24),
 
         // Create New Account Button
         OutlinedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _showCreateAccount = true;
-                  _accountsExpanded = false;
-                });
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Create New Account'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            )
-            .animate()
-            .fadeIn(delay: 300.ms, duration: 400.ms)
-            .slideY(begin: 0.1, end: 0),
+          onPressed: () {
+            setState(() {
+              _showCreateAccount = true;
+              _accountsExpanded = false;
+            });
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('Create New Account'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 12,
+            ),
+          ),
+        ),
       ],
     );
   }
