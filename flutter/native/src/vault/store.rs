@@ -66,7 +66,8 @@ impl VaultStore {
             -- Metadata table
             CREATE TABLE IF NOT EXISTS metadata (
                 key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
+                value TEXT NOT NULL,
+                updated_at TEXT
             );
 
             -- Audit log table (append-only)

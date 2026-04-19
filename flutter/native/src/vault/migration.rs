@@ -6,7 +6,7 @@ use rusqlite::{Connection, params};
 use chrono::Utc;
 
 /// Current schema version
-pub const CURRENT_SCHEMA_VERSION: u32 = 2;
+pub const CURRENT_SCHEMA_VERSION: u32 = 3;
 
 /// Get the current schema version from sys_config
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
@@ -81,6 +81,64 @@ pub fn migrate_v1_to_v2(conn: &mut Connection) -> Result<(), String> {
     )
 }
 
+/// Migration v2 -> v3: Add updated_at column to metadata table
+pub fn migrate_v2_to_v3(conn: &mut Connection) -> Result<(), String> {
+    // Check if metadata table exists by querying if it has the key column
+    let metadata_exists: bool = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('metadata') WHERE name = 'key'",
+            [],
+            |row| row.get::<_, i32>(0),
+        )
+        .map(|count| count > 0)
+        .unwrap_or(false);
+
+    // If metadata table doesn't exist, create it
+    if !metadata_exists {
+        conn.execute(
+            "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT)",
+            [],
+        )
+        .map_err(|e| format!("Failed to create metadata table: {}", e))?;
+    } else {
+        // Check if updated_at column exists
+        let has_updated_at: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('metadata') WHERE name = 'updated_at'",
+                [],
+                |row| row.get::<_, i32>(0),
+            )
+            .map(|count| count > 0)
+            .unwrap_or(false);
+
+        // If column doesn't exist, add it
+        if !has_updated_at {
+            conn.execute(
+                "ALTER TABLE metadata ADD COLUMN updated_at TEXT",
+                [],
+            )
+            .map_err(|e| format!("Failed to add updated_at column: {}", e))?;
+        }
+    }
+
+    // Record migration
+    let now = Utc::now().timestamp();
+    conn.execute(
+        "INSERT INTO schema_migrations (version, applied_at, description) VALUES (3, ?1, ?2)",
+        params![now, "Add updated_at column to metadata table"],
+    )
+    .map_err(|e| format!("Failed to record migration: {}", e))?;
+
+    // Update schema version
+    conn.execute(
+        "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('data_version', '3', ?1)",
+        params![Utc::now().to_rfc3339()],
+    )
+    .map_err(|e| format!("Failed to update schema version: {}", e))?;
+
+    Ok(())
+}
+
 /// Run all pending migrations
 pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     let current_version = get_schema_version(conn)?;
@@ -89,10 +147,9 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         migrate_v1_to_v2(conn)?;
     }
 
-    // Future migrations go here:
-    // if current_version < 3 {
-    //     migrate_v2_to_v3(conn)?;
-    // }
+    if current_version < 3 {
+        migrate_v2_to_v3(conn)?;
+    }
 
     let final_version = get_schema_version(conn)?;
     if final_version != current_version {
@@ -241,12 +298,64 @@ mod tests {
         run_migrations(&mut conn).unwrap();
 
         // Verify final version
-        assert_eq!(get_schema_version(&conn).unwrap(), 2);
+        assert_eq!(get_schema_version(&conn).unwrap(), 3);
 
         // Verify extra_data column exists
         let column_exists: i32 = conn
             .query_row(
                 "SELECT COUNT(*) FROM pragma_table_info('profiles') WHERE name = 'extra_data'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(column_exists, 1);
+
+        cleanup(temp_dir);
+    }
+
+    #[test]
+    fn test_run_migrations_v2_to_v3() {
+        let (mut conn, temp_dir) = create_test_db();
+
+        // Initialize schema (simulating v2 setup)
+        conn.execute_batch(
+            r#"
+            CREATE TABLE IF NOT EXISTS sys_config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                version INTEGER PRIMARY KEY,
+                applied_at INTEGER NOT NULL,
+                description TEXT
+            );
+            CREATE TABLE IF NOT EXISTS profiles (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                data BLOB NOT NULL,
+                extra_data TEXT
+            );
+            CREATE TABLE IF NOT EXISTS metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            "#,
+        )
+        .unwrap();
+
+        set_schema_version(&conn, 2).unwrap();
+
+        // Run migrations
+        run_migrations(&mut conn).unwrap();
+
+        // Verify final version
+        assert_eq!(get_schema_version(&conn).unwrap(), 3);
+
+        // Verify updated_at column exists in metadata
+        let column_exists: i32 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('metadata') WHERE name = 'updated_at'",
                 [],
                 |row| row.get(0),
             )
@@ -283,14 +392,14 @@ mod tests {
         )
         .unwrap();
 
-        // Set version to 2 (already migrated)
-        set_schema_version(&conn, 2).unwrap();
+        // Set version to 3 (already at current)
+        set_schema_version(&conn, 3).unwrap();
 
         // Run migrations - should be no-op since already at current
         run_migrations(&mut conn).unwrap();
 
-        // Verify still at version 2
-        assert_eq!(get_schema_version(&conn).unwrap(), 2);
+        // Verify still at version 3
+        assert_eq!(get_schema_version(&conn).unwrap(), 3);
 
         cleanup(temp_dir);
     }
