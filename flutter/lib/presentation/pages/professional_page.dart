@@ -68,17 +68,17 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .fadeIn(delay: 200.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
-            _SkillsSection()
+            _AwardSection()
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
-            _LanguageSection()
+            _SkillsSection()
                 .animate()
                 .fadeIn(delay: 400.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
-            _AwardSection()
+            _LanguageSection()
                 .animate()
                 .fadeIn(delay: 500.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
