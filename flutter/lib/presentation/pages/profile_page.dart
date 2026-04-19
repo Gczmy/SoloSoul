@@ -1005,12 +1005,6 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
                   visualDensity: VisualDensity.compact,
                 ),
               IconButton(
-                icon: const Icon(Icons.copy, size: 20),
-                tooltip: 'Copy Value',
-                onPressed: widget.onCopy,
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
                 icon: const Icon(Icons.copy_all, size: 20),
                 tooltip: 'Copy All',
                 onPressed: () {
