@@ -459,11 +459,14 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     separatorBuilder: (context, index) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final item = filteredItems[index];
+                      final hasHistory = _itemHasHistory(item);
                       return _TrashItemCard(
                         item: item,
-                        onRestore: (item) => _restoreItem(item),
+                        hasHistory: hasHistory,
+                        onRestore: (item) => _confirmRestore(item),
                         onPurge: (item) => _confirmPurge(context, item),
                         onDetail: () => _showDetail(context, item),
+                        onHistory: hasHistory ? () => _showHistoryForItem(context, item) : null,
                       );
                     },
                   ),
@@ -481,6 +484,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         );
 
     if (mounted) {
+      // Trigger rebuild to remove item from list immediately
+      setState(() {});
+
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -498,6 +504,68 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           backgroundColor: Colors.blue,
         ),
       );
+    }
+  }
+
+  Future<void> _confirmRestore(DeletedItemInfo item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.restore, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Text('Confirm Restore'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to restore "${item.itemLabel}"?',
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'The item will be moved back to its original location.',
+                      style: TextStyle(
+                        color: Colors.blue.shade900,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _restoreItem(item);
     }
   }
 
@@ -873,30 +941,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               side: const BorderSide(color: AppTheme.primaryColor),
             ),
           ),
-          OutlinedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _restoreItem(item);
-            },
-            icon: const Icon(Icons.restore, size: 18),
-            label: const Text('Restore'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.primaryColor,
-              side: const BorderSide(color: AppTheme.primaryColor),
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _confirmPurge(context, item);
-            },
-            icon: const Icon(Icons.delete_forever, size: 18),
-            label: const Text('Purge'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.errorColor,
-              side: const BorderSide(color: AppTheme.errorColor),
-            ),
-          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -904,6 +948,60 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         ],
       ),
     );
+  }
+
+  bool _itemHasHistory(DeletedItemInfo item) {
+    String? fieldIdPrefix;
+    switch (item.itemType) {
+      case 'contact':
+        final profile = ref.read(profileNotifierProvider);
+        if (profile?.identity?.contact != null) {
+          final entries = profile!.identity!.contact!.entries;
+          final contactIdx = entries.indexWhere((e) => e.id == item.id);
+          if (contactIdx >= 0) {
+            final contactType = entries[contactIdx].type;
+            fieldIdPrefix = contactType == 'phone' ? 'contact.phone' : 'contact.email';
+          }
+        }
+        break;
+      case 'idCard':
+        fieldIdPrefix = 'idCard.number';
+        break;
+      case 'address':
+        fieldIdPrefix = 'address.postalCode';
+        break;
+      case 'passport':
+        fieldIdPrefix = 'travel.passport';
+        break;
+      case 'visa':
+        fieldIdPrefix = 'travel.visa';
+        break;
+      case 'bank_account':
+        fieldIdPrefix = 'financial.bankAccount';
+        break;
+      case 'card':
+        fieldIdPrefix = 'financial.card';
+        break;
+      case 'education':
+        fieldIdPrefix = 'professional.education';
+        break;
+      case 'employment':
+        fieldIdPrefix = 'professional.employment';
+        break;
+      case 'skill':
+        fieldIdPrefix = 'professional.skill';
+        break;
+      case 'language':
+        fieldIdPrefix = 'professional.language';
+        break;
+      default:
+        fieldIdPrefix = null;
+    }
+
+    if (fieldIdPrefix == null) return false;
+
+    final history = ref.read(fieldHistoriesProvider.notifier).getHistory(item.id, fieldIdPrefix);
+    return history != null && history.entries.isNotEmpty;
   }
 
   LogSection _getLogSection(String section) {
@@ -1086,15 +1184,19 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
 class _TrashItemCard extends StatefulWidget {
   final DeletedItemInfo item;
+  final bool hasHistory;
   final Future<void> Function(DeletedItemInfo item) onRestore;
   final Future<void> Function(DeletedItemInfo item) onPurge;
   final VoidCallback onDetail;
+  final VoidCallback? onHistory;
 
   const _TrashItemCard({
     required this.item,
+    required this.hasHistory,
     required this.onRestore,
     required this.onPurge,
     required this.onDetail,
+    this.onHistory,
   });
 
   @override
@@ -1252,6 +1354,19 @@ class _TrashItemCardState extends State<_TrashItemCard> {
                     ),
                   ),
                   const Spacer(),
+                  if (widget.hasHistory && widget.onHistory != null)
+                    TextButton.icon(
+                      onPressed: widget.onHistory,
+                      icon: const Icon(Icons.history, size: 16),
+                      label: const Text('History'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        foregroundColor: AppTheme.primaryColor,
+                      ),
+                    ),
+                  if (widget.hasHistory && widget.onHistory != null)
+                    const SizedBox(width: 4),
                   TextButton.icon(
                     onPressed: _isRestoring ? null : _handleRestore,
                     icon: _isRestoring
