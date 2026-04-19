@@ -652,19 +652,21 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             border: Border.all(color: AppTheme.errorColor),
             borderRadius: BorderRadius.circular(12),
+            color: _isHovered
+                ? AppTheme.errorColor.withValues(alpha: 0.1)
+                : Colors.transparent,
             boxShadow: _isHovered
                 ? [
                     BoxShadow(
                       color: AppTheme.errorColor.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      blurRadius: 0,
+                      spreadRadius: 0,
                     ),
                   ]
                 : null,
