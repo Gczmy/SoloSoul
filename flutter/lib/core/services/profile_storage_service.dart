@@ -2411,38 +2411,13 @@ class ProfileStorageService {
   }
 
   /// Load field histories for an account (encrypted storage via Rust vault)
-  ///
-  /// Falls back to plaintext file migration if encrypted version doesn't exist.
   Future<ProfileFieldHistories> loadFieldHistories(String accountId) async {
     try {
-      // TODO: [SECURITY-CRITICAL] Field histories now use Rust vault encrypted storage.
-      // Migrated from: File('${dir.path}/${accountId}_field_histories.json').readAsString()
-      // Target: _rustVault.loadFieldHistoriesDecrypted(accountId)
-
-      // Try encrypted storage first
       final decrypted = await _rustVault.loadFieldHistoriesDecrypted(accountId);
       if (decrypted != null) {
         final json = jsonDecode(decrypted) as Map<String, dynamic>;
         return ProfileFieldHistories.fromJson(json);
       }
-
-      // Migration: check for old plaintext file
-      final dir = await storageDir;
-      final plainFile = File('${dir.path}/${accountId}_field_histories.json');
-      if (await plainFile.exists()) {
-        final contents = await plainFile.readAsString();
-        final json = jsonDecode(contents) as Map<String, dynamic>;
-        final histories = ProfileFieldHistories.fromJson(json);
-
-        // Only delete plaintext file after successful encrypted save
-        final saved = await saveFieldHistories(accountId, histories);
-        if (saved) {
-          await _secureDeleteFile(plainFile);
-        }
-
-        return histories;
-      }
-
       return ProfileFieldHistories();
     } catch (e) {
       return ProfileFieldHistories();
@@ -2455,29 +2430,10 @@ class ProfileStorageService {
     ProfileFieldHistories histories,
   ) async {
     try {
-      // TODO: [SECURITY-CRITICAL] Field histories now use Rust vault encrypted storage.
-      // Migrated from: File('${dir.path}/${accountId}_field_histories.json').writeAsString()
-      // Target: _rustVault.saveFieldHistoriesEncrypted(accountId, json)
-
       final json = jsonEncode(histories.toJson());
       return await _rustVault.saveFieldHistoriesEncrypted(accountId, json);
     } catch (e) {
       return false;
-    }
-  }
-
-  /// Securely delete a file by overwriting with zeros before deletion
-  Future<void> _secureDeleteFile(File file) async {
-    try {
-      final length = await file.length();
-      final zeros = List.filled(length, 0);
-      await file.writeAsBytes(zeros);
-      await file.delete();
-    } catch (e) {
-      // If we can't securely wipe, just delete
-      try {
-        await file.delete();
-      } catch (_) {}
     }
   }
 
