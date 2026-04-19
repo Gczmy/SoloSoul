@@ -117,6 +117,25 @@ class _EducationSection extends ConsumerStatefulWidget {
 class _EducationSectionState extends ConsumerState<_EducationSection> {
   late List<EducationData> _items;
 
+  static const _degreeOrder = {
+    'PhD': 0,
+    'Master': 1,
+    'Bachelor': 2,
+    'Senior High': 3,
+    'Junior High': 4,
+    'Elementary': 5,
+  };
+
+  int _degreeSortOrder(EducationData e) {
+    final degree = e.degree ?? '';
+    if (e.degreeCustom != null &&
+        e.degreeCustom!.isNotEmpty &&
+        !_degreeOrder.containsKey(degree)) {
+      return -1; // Custom degrees come before preset options
+    }
+    return _degreeOrder[degree] ?? 6;
+  }
+
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [
@@ -132,6 +151,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
         ),
       )),
     ];
+    _items.sort((a, b) => _degreeSortOrder(a).compareTo(_degreeSortOrder(b)));
   }
 
   @override
