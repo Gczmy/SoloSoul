@@ -94,6 +94,8 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         state = profile;
         // Initialize lastSavedJson for change detection
         _lastSavedJson = jsonEncode(profile.toJson());
+        // Load field histories after profile loads
+        _ref.read(fieldHistoriesProvider.notifier).loadHistories();
       } else {
       }
     } finally {
@@ -2119,7 +2121,26 @@ class FieldHistoriesNotifier extends StateNotifier<ProfileFieldHistories> {
       accountId: accountId,
       itemId: itemId,
       fieldId: fieldId,
-      value: oldValue,
+      values: {fieldId: oldValue},
+      existingHistories: state,
+    );
+  }
+
+  /// Record a snapshot of all fields for an entry when any field changes
+  Future<void> recordEntrySnapshot({
+    required String itemId,
+    required String fieldIdPrefix,
+    required Map<String, String> allFieldValues,
+  }) async {
+    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
+    final storage = ProfileStorageService.instance;
+    state = await storage.addFieldHistory(
+      accountId: accountId,
+      itemId: itemId,
+      fieldId: fieldIdPrefix,
+      values: allFieldValues,
       existingHistories: state,
     );
   }
