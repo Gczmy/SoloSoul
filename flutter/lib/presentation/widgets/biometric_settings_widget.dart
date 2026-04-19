@@ -116,9 +116,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
     } else {
-      // Disable biometric unlock (Touch ID / fingerprint)
-      final securityService = SecurityService.instance;
-      await securityService.setBiometricsEnabled(false);
+      // Disable biometric unlock - update state and snackbar immediately, persist in background
       setState(() => _biometricEnabled = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -128,6 +126,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           ),
         );
       }
+      SecurityService.instance.setBiometricsEnabled(false);
     }
   }
 
@@ -204,9 +203,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
     } else {
-      // Disable Face ID unlock
-      final securityService = SecurityService.instance;
-      await securityService.setFaceIdEnabled(false);
+      // Disable Face ID unlock - update state and snackbar immediately, persist in background
       setState(() => _faceIdEnabled = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -216,6 +213,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           ),
         );
       }
+      SecurityService.instance.setFaceIdEnabled(false);
     }
   }
 
