@@ -391,20 +391,17 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
                         },
                       ),
                     ),
-                    if (isCustomSelected ||
-                        degreeCustomController.text.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: degreeCustomController,
-                          decoration: const InputDecoration(
-                            labelText: 'Custom Degree',
-                            hintText: 'Please specify',
-                            border: OutlineInputBorder(),
-                          ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: degreeCustomController,
+                        decoration: const InputDecoration(
+                          labelText: 'Custom Degree',
+                          hintText: 'Please specify',
+                          border: OutlineInputBorder(),
                         ),
                       ),
-                    ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
