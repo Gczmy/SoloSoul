@@ -35,18 +35,21 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   final Widget Function(T item) displayItemBuilder;
   final Future<void> Function(T item) onDelete;
   final Future<void> Function(Map<String, String> values, T? editingItem)
-      onSave;
+  onSave;
   final void Function(T item, String fieldId, String value)? onCopy;
+
   /// Optional callback for copying all fields at once
   /// Optional callback for copying all fields at once (async to allow password verification)
   final Future<void> Function(T item, String formattedText)? onCopyAll;
   final int maxVisibleItems;
   final T Function(Map<String, String> values, {String? id})? itemFactory;
+
   /// Converts a T item to a Map of fieldId -> value for populating edit form
   final Map<String, String> Function(T item)? itemToMap;
+
   /// Optional custom form builder. If provided, overrides the default
   /// TextField-based form. Parameters: context, theme, controllers, mode,
-  /// onSubmit, onCancel, isSaving.
+  /// onSubmit, onCancel.
   final Widget Function(
     BuildContext,
     ThemeData,
@@ -54,8 +57,12 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     String /*mode*/,
     VoidCallback /*onSubmit*/,
     VoidCallback /*onCancel*/,
-    bool /*isSaving*/,
-  )? customFormBuilder;
+  )?
+  customFormBuilder;
+
+  /// If false, hides the internal copy/edit/delete action buttons on _FormSectionItem.
+  /// Set to false when displayItemBuilder (EntryItemWidget) provides its own actions.
+  final bool showInternalActions;
 
   const UnifiedFormSection({
     super.key,
@@ -72,6 +79,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     this.itemFactory,
     this.itemToMap,
     this.customFormBuilder,
+    this.showInternalActions = true,
   });
 
   @override
@@ -83,7 +91,6 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
   String _mode = 'idle';
   int _editingIndex = -1;
   late List<T> _items;
-  final bool _isSaving = false;
 
   /// Map of TextEditingControllers keyed by fieldId
   final Map<String, TextEditingController> _controllers = {};
@@ -211,7 +218,10 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       } else {
         // For editing, create updated item
         if (widget.itemFactory != null && editingItem != null) {
-          _items[_editingIndex] = widget.itemFactory!(values, id: (editingItem as dynamic).id as String?);
+          _items[_editingIndex] = widget.itemFactory!(
+            values,
+            id: (editingItem as dynamic).id as String?,
+          );
         }
       }
       _mode = 'idle';
@@ -229,7 +239,6 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
         _mode,
         _submitForm,
         _cancelEdit,
-        _isSaving,
       );
     }
 
@@ -270,19 +279,13 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             TextButton(
-              onPressed: _isSaving ? null : _cancelEdit,
+              onPressed: _cancelEdit,
               child: const Text('Cancel'),
             ),
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: _isSaving ? null : _submitForm,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(isAdding ? 'Add' : 'Save'),
+              onPressed: _submitForm,
+              child: Text(isAdding ? 'Add' : 'Save'),
             ),
           ],
         ),
@@ -347,6 +350,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
                   onCopyAllPressed: widget.onCopyAll != null
                       ? () => _handleCopyAllWithVerification(context, item)
                       : null,
+                  showInternalActions: widget.showInternalActions,
                 ),
               );
             }).toList(),
@@ -431,7 +435,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     // Check if user was verified within the last 1 minute (password cache)
     final sensitiveAccess = ref.read(sensitivePageAccessProvider);
     final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+    final hasRecentVerification =
+        sensitiveAccess.lastVerified != null &&
         sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
     if (hasRecentVerification) return true;
 
@@ -450,7 +455,10 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     return true;
   }
 
-  Future<void> _handleCopyAllWithVerification(BuildContext context, T item) async {
+  Future<void> _handleCopyAllWithVerification(
+    BuildContext context,
+    T item,
+  ) async {
     final hasRestricted = _hasRestrictedField(item);
     if (hasRestricted) {
       final verified = await _verifyPasswordForRestricted(context);
@@ -476,6 +484,31 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
   }
 }
 
+/// Context to pass action callbacks from _FormSectionItem to EntryItemWidget
+class EntryActionsContext extends InheritedWidget {
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final Future<void> Function(String)? onCopy;
+
+  const EntryActionsContext({
+    required super.child,
+    this.onEdit,
+    this.onDelete,
+    this.onCopy,
+  });
+
+  static EntryActionsContext? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<EntryActionsContext>();
+  }
+
+  @override
+  bool updateShouldNotify(EntryActionsContext old) {
+    return onEdit != old.onEdit ||
+        onDelete != old.onDelete ||
+        onCopy != old.onCopy;
+  }
+}
+
 /// Wrapper widget that wraps an item with edit/delete actions
 class _FormSectionItem<T> extends StatelessWidget {
   final T item;
@@ -483,8 +516,13 @@ class _FormSectionItem<T> extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final void Function(String fieldId, String value)? onCopy;
+
   /// Called when copy-all button is pressed. Parent handles verification + formatting.
   final VoidCallback? onCopyAllPressed;
+
+  /// If true, shows internal copy/edit/delete buttons. Set to false when
+  /// displayItemBuilder (EntryItemWidget) already provides its own actions.
+  final bool showInternalActions;
 
   const _FormSectionItem({
     required this.item,
@@ -493,18 +531,22 @@ class _FormSectionItem<T> extends StatelessWidget {
     required this.onDelete,
     this.onCopy,
     this.onCopyAllPressed,
+    this.showInternalActions = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: displayItemBuilder(item)),
+    return EntryActionsContext(
+      onEdit: showInternalActions ? null : onEdit,
+      onDelete: showInternalActions ? null : onDelete,
+      onCopy: showInternalActions ? null : (onCopyAllPressed != null ? (text) async => onCopyAllPressed!() : null),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: displayItemBuilder(item)),
+            if (showInternalActions) ...[
               if (onCopyAllPressed != null)
                 IconButton(
                   icon: const Icon(Icons.copy_all, size: 20),
@@ -525,9 +567,9 @@ class _FormSectionItem<T> extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
               ),
             ],
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

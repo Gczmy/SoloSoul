@@ -1,0 +1,123 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/models/entry_configs.dart';
+export 'package:solosoul_flutter/core/models/entry_configs.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
+    show authNotifierProvider, sensitivePageAccessProvider;
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+
+/// Generates standard action buttons based on context and permissions.
+class EntryActionBuilder {
+  /// Build all standard action buttons.
+  static List<Widget> buildActions({
+    required BuildContext context,
+    required WidgetRef ref,
+    required VoidCallback onCopy,
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+    EntryActionsConfig config = const EntryActionsConfig(),
+    bool historyExpanded = false,
+    VoidCallback? onHistoryToggle,
+    bool hasHistory = false,
+    bool isSensitive = false,
+    Future<bool> Function()? onVerifyPassword,
+  }) {
+    final actions = <Widget>[];
+
+    if (config.showCopy) {
+      actions.add(
+        buildButton(
+          icon: Icons.copy_all,
+          tooltip: 'Copy All',
+          onPressed: isSensitive && onVerifyPassword != null
+              ? () => _handleCopyWithVerification(
+                  context: context,
+                  ref: ref,
+                  onVerify: onVerifyPassword,
+                  onSuccess: onCopy,
+                )
+              : onCopy,
+        ),
+      );
+    }
+
+    if (config.showEdit) {
+      actions.add(
+        buildButton(
+          icon: Icons.edit_outlined,
+          tooltip: 'Edit',
+          onPressed: onEdit,
+        ),
+      );
+    }
+
+    if (config.showDelete) {
+      actions.add(
+        buildButton(
+          icon: Icons.delete_outline,
+          tooltip: 'Delete',
+          onPressed: onDelete,
+        ),
+      );
+    }
+
+    if (config.showHistory && hasHistory) {
+      actions.add(
+        buildButton(
+          icon: historyExpanded ? Icons.expand_less : Icons.history,
+          tooltip: 'History',
+          onPressed: onHistoryToggle,
+        ),
+      );
+    }
+
+    return actions;
+  }
+
+  /// Build a single action button.
+  static Widget buildButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onPressed,
+  }) {
+    return IconButton(
+      icon: Icon(icon, size: 20),
+      tooltip: tooltip,
+      onPressed: onPressed,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  /// Handle copy with password verification for sensitive fields.
+  static Future<void> _handleCopyWithVerification({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Future<bool> Function() onVerify,
+    required VoidCallback onSuccess,
+  }) async {
+    // Check if user was verified within the last 1 minute (password cache)
+    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
+    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+    final hasRecentVerification =
+        sensitiveAccess.lastVerified != null &&
+        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+    if (hasRecentVerification) {
+      onSuccess();
+      return;
+    }
+
+    // Show password dialog
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
+    final password = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
+    );
+    if (password == null) return;
+
+    ref.read(sensitivePageAccessProvider.notifier).markVerified();
+    onSuccess();
+  }
+}

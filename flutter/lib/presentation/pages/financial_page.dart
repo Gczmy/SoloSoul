@@ -15,6 +15,8 @@ import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef;
+import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
@@ -38,9 +40,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Financial'),
-        actions: const [
-          HeaderActionButtons(),
-        ],
+        actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -151,16 +151,18 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
     ];
   }
 
-  BankAccountData _createAccountFromValues(Map<String, String> values, {String? id}) {
+  BankAccountData _createAccountFromValues(
+    Map<String, String> values, {
+    String? id,
+  }) {
     return BankAccountData(
       id: id ?? generateEntryId(),
       bankName: values['bankAccount.bankName']?.isEmpty == true
           ? null
           : values['bankAccount.bankName'],
-      accountNumber:
-          values['bankAccount.accountNumber']?.isEmpty == true
-              ? null
-              : values['bankAccount.accountNumber'],
+      accountNumber: values['bankAccount.accountNumber']?.isEmpty == true
+          ? null
+          : values['bankAccount.accountNumber'],
       currency: values['bankAccount.currency']?.isEmpty == true
           ? null
           : values['bankAccount.currency'],
@@ -188,9 +190,8 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = account.id;
-    print('[FinancialPage] _onAccountDelete: deleting bank account at index=$index, bankName=${account.bankName}');
 
-    final result = await ref
+    await ref
         .read(profileNotifierProvider.notifier)
         .softDelete(
           section: 'financial',
@@ -198,8 +199,6 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
           index: index,
           deletedItem: account,
         );
-
-    print('[FinancialPage] _onAccountDelete: softDelete completed');
 
     setState(() {
       _accounts = List.from(_accounts)..removeAt(index);
@@ -218,7 +217,11 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'financial', itemType: 'bank_account', id: deletedId);
+              .restore(
+                section: 'financial',
+                itemType: 'bank_account',
+                id: deletedId,
+              );
         },
       );
     }
@@ -241,10 +244,11 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
       }
     }
 
+    final currentFinancial = ref.read(profileNotifierProvider)?.financial;
     final financial = FinancialData(
       bankAccounts: _accounts,
-      cards: ref.read(profileNotifierProvider)?.financial?.cards ?? [],
-      taxIds: ref.read(profileNotifierProvider)?.financial?.taxIds ?? [],
+      cards: currentFinancial?.cards ?? [],
+      taxIds: currentFinancial?.taxIds ?? [],
     );
     await ref.read(profileNotifierProvider.notifier).updateFinancial(financial);
 
@@ -262,6 +266,40 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         ),
       );
     }
+  }
+
+  Future<void> _handleAccountCopy(BankAccountData account) async {
+    final text = _formatAccountAllFields(account);
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      showOverlaySnackBar(
+        context,
+        content: 'Copied to clipboard',
+        type: SnackBarType.success,
+      );
+    }
+  }
+
+  Future<void> _handleAccountDelete(BankAccountData account) async {
+    await _onAccountDelete(account);
+  }
+
+  String _formatAccountAllFields(BankAccountData account) {
+    final buffer = StringBuffer();
+    buffer.writeln('Bank Account');
+    if (account.bankName != null && account.bankName!.isNotEmpty) {
+      buffer.writeln('Bank Name: ${account.bankName}');
+    }
+    if (account.accountNumber != null && account.accountNumber!.isNotEmpty) {
+      buffer.writeln('Account Number: ${account.accountNumber}');
+    }
+    if (account.currency != null && account.currency!.isNotEmpty) {
+      buffer.writeln('Currency: ${account.currency}');
+    }
+    if (account.swiftBic != null && account.swiftBic!.isNotEmpty) {
+      buffer.writeln('SWIFT/BIC: ${account.swiftBic}');
+    }
+    return buffer.toString().trim();
   }
 
   @override
@@ -294,13 +332,60 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (account) => _BankAccountItem(account: account),
+      displayItemBuilder: (account) => UniversalEntryCard(
+        title: Text(account.bankName ?? 'Bank Account'),
+        subtitle: account.currency != null
+            ? Text(
+                account.currency!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              )
+            : null,
+        leading: Icon(
+          Icons.account_balance,
+          size: 20,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        actions: EntryActionBuilder.buildActions(
+          context: context,
+          ref: ref,
+          onCopy: () => _handleAccountCopy(account),
+          onEdit: () {}, // Edit is handled via UnifiedFormSection's long-press
+          onDelete: () => _handleAccountDelete(account),
+        ),
+        children: [
+          ResponsiveLabelField(
+            fields: [
+              if (account.accountNumber != null &&
+                  account.accountNumber!.isNotEmpty)
+                LabelValueField(
+                  label: 'Account Number',
+                  value: account.accountNumber!,
+                  fieldId: 'bankaccount.accountNumber',
+                  isSensitive: true,
+                ),
+              if (account.swiftBic != null && account.swiftBic!.isNotEmpty)
+                LabelValueField(
+                  label: 'SWIFT/BIC',
+                  value: account.swiftBic!,
+                  fieldId: 'bankaccount.swiftBic',
+                  isSensitive: true,
+                ),
+            ],
+          ),
+        ],
+      ),
       onDelete: _onAccountDelete,
       onSave: _onAccountSave,
       itemToMap: _accountToMap,
       onCopyAll: (account, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -428,11 +513,11 @@ class _CardSectionState extends ConsumerState<_CardSection> {
       }
     }
 
+    final currentFinancial = ref.read(profileNotifierProvider)?.financial;
     final financial = FinancialData(
-      bankAccounts:
-          ref.read(profileNotifierProvider)?.financial?.bankAccounts ?? [],
+      bankAccounts: currentFinancial?.bankAccounts ?? [],
       cards: _cards,
-      taxIds: ref.read(profileNotifierProvider)?.financial?.taxIds ?? [],
+      taxIds: currentFinancial?.taxIds ?? [],
     );
     await ref.read(profileNotifierProvider.notifier).updateFinancial(financial);
 
@@ -450,6 +535,40 @@ class _CardSectionState extends ConsumerState<_CardSection> {
         ),
       );
     }
+  }
+
+  Future<void> _handleCardCopy(CardData card) async {
+    final text = _formatCardAllFields(card);
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      showOverlaySnackBar(
+        context,
+        content: 'Copied to clipboard',
+        type: SnackBarType.success,
+      );
+    }
+  }
+
+  Future<void> _handleCardDelete(CardData card) async {
+    await _onCardDelete(card);
+  }
+
+  String _formatCardAllFields(CardData card) {
+    final buffer = StringBuffer();
+    buffer.writeln('Card');
+    if (card.cardType != null && card.cardType!.isNotEmpty) {
+      buffer.writeln('Card Type: ${card.cardType}');
+    }
+    if (card.cardNumber != null && card.cardNumber!.isNotEmpty) {
+      buffer.writeln('Card Number: ${card.cardNumber}');
+    }
+    if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
+      buffer.writeln('Expiry Date: ${card.expiryDate}');
+    }
+    if (card.holderName != null && card.holderName!.isNotEmpty) {
+      buffer.writeln('Holder Name: ${card.holderName}');
+    }
+    return buffer.toString().trim();
   }
 
   @override
@@ -482,13 +601,59 @@ class _CardSectionState extends ConsumerState<_CardSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (card) => _CardItem(card: card),
+      displayItemBuilder: (card) => UniversalEntryCard(
+        title: Text(card.cardType ?? 'Card'),
+        subtitle: card.expiryDate != null
+            ? Text(
+                card.expiryDate!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              )
+            : null,
+        leading: Icon(
+          Icons.credit_card,
+          size: 20,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        actions: EntryActionBuilder.buildActions(
+          context: context,
+          ref: ref,
+          onCopy: () => _handleCardCopy(card),
+          onEdit: () {},
+          onDelete: () => _handleCardDelete(card),
+        ),
+        children: [
+          ResponsiveLabelField(
+            fields: [
+              if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
+                LabelValueField(
+                  label: 'Card Number',
+                  value: card.cardNumber!,
+                  fieldId: 'card.cardNumber',
+                  isSensitive: true,
+                ),
+              if (card.holderName != null && card.holderName!.isNotEmpty)
+                LabelValueField(
+                  label: 'Holder Name',
+                  value: card.holderName!,
+                  fieldId: 'card.holderName',
+                  isSensitive: true,
+                ),
+            ],
+          ),
+        ],
+      ),
       onDelete: _onCardDelete,
       onSave: _onCardSave,
       itemToMap: _cardToMap,
       onCopyAll: (card, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -498,8 +663,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
 
 class _TaxIdSection extends ConsumerStatefulWidget {
   @override
-  ConsumerState<_TaxIdSection> createState() =>
-      _TaxIdSectionState();
+  ConsumerState<_TaxIdSection> createState() => _TaxIdSectionState();
 }
 
 class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
@@ -617,10 +781,10 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
       }
     }
 
+    final currentFinancial = ref.read(profileNotifierProvider)?.financial;
     final financial = FinancialData(
-      bankAccounts:
-          ref.read(profileNotifierProvider)?.financial?.activeBankAccounts ?? [],
-      cards: ref.read(profileNotifierProvider)?.financial?.activeCards ?? [],
+      bankAccounts: currentFinancial?.activeBankAccounts ?? [],
+      cards: currentFinancial?.activeCards ?? [],
       taxIds: _taxIds,
     );
     await ref.read(profileNotifierProvider.notifier).updateFinancial(financial);
@@ -639,6 +803,40 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         ),
       );
     }
+  }
+
+  Future<void> _handleTaxIdCopy(TaxIdData taxId) async {
+    final text = _formatTaxIdAllFields(taxId);
+    await Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      showOverlaySnackBar(
+        context,
+        content: 'Copied to clipboard',
+        type: SnackBarType.success,
+      );
+    }
+  }
+
+  Future<void> _handleTaxIdDelete(TaxIdData taxId) async {
+    await _onTaxIdDelete(taxId);
+  }
+
+  String _formatTaxIdAllFields(TaxIdData taxId) {
+    final buffer = StringBuffer();
+    buffer.writeln('Tax ID');
+    if (taxId.taxIdType != null && taxId.taxIdType!.isNotEmpty) {
+      buffer.writeln('Tax ID Type: ${taxId.taxIdType}');
+    }
+    if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty) {
+      buffer.writeln('Tax ID Number: ${taxId.taxIdNumber}');
+    }
+    if (taxId.issuingAuthority != null && taxId.issuingAuthority!.isNotEmpty) {
+      buffer.writeln('Issuing Authority: ${taxId.issuingAuthority}');
+    }
+    if (taxId.country != null && taxId.country!.isNotEmpty) {
+      buffer.writeln('Country: ${taxId.country}');
+    }
+    return buffer.toString().trim();
   }
 
   @override
@@ -671,244 +869,30 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (taxId) => _TaxIdItem(taxId: taxId),
-      onDelete: _onTaxIdDelete,
-      onSave: _onTaxIdSave,
-      itemToMap: _taxIdToMap,
-      onCopyAll: (taxId, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
-      },
-    );
-  }
-}
-
-// ============ Detailed Widgets ============
-
-/// Detailed bank account display widget showing all fields with sensitivity masking
-class _BankAccountItem extends ConsumerWidget {
-  final BankAccountData account;
-
-  const _BankAccountItem({required this.account});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      displayItemBuilder: (taxId) => UniversalEntryCard(
+        title: Text(taxId.taxIdType ?? 'Tax ID'),
+        subtitle: taxId.country != null
+            ? Text(
+                taxId.country!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              )
+            : null,
+        leading: Icon(
+          Icons.badge,
+          size: 20,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        actions: EntryActionBuilder.buildActions(
+          context: context,
+          ref: ref,
+          onCopy: () => _handleTaxIdCopy(taxId),
+          onEdit: () {},
+          onDelete: () => _handleTaxIdDelete(taxId),
+        ),
         children: [
-          // Header row
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.account_balance,
-                  size: 20,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      account.bankName ?? 'Bank Account',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (account.currency != null &&
-                        account.currency!.isNotEmpty)
-                      SelectableText(
-                        account.currency!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Field rows using ResponsiveLabelField
           ResponsiveLabelField(
-            layoutAxis: Axis.vertical,
-            fields: [
-              if (account.accountNumber != null &&
-                  account.accountNumber!.isNotEmpty)
-                LabelValueField(
-                  label: 'Account Number',
-                  value: account.accountNumber!,
-                  fieldId: 'bankaccount.accountNumber',
-                  isSensitive: true,
-                ),
-              if (account.swiftBic != null && account.swiftBic!.isNotEmpty)
-                LabelValueField(
-                  label: 'SWIFT/BIC',
-                  value: account.swiftBic!,
-                  fieldId: 'bankaccount.swiftBic',
-                  isSensitive: true,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Detailed card display widget showing all fields with sensitivity masking
-class _CardItem extends ConsumerWidget {
-  final CardData card;
-
-  const _CardItem({required this.card});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.credit_card,
-                  size: 20,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      card.cardType ?? 'Card',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (card.expiryDate != null &&
-                        card.expiryDate!.isNotEmpty)
-                      SelectableText(
-                        card.expiryDate!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Field rows using ResponsiveLabelField
-          ResponsiveLabelField(
-            layoutAxis: Axis.vertical,
-            fields: [
-              if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
-                LabelValueField(
-                  label: 'Card Number',
-                  value: card.cardNumber!,
-                  fieldId: 'card.cardNumber',
-                  isSensitive: true,
-                ),
-              if (card.holderName != null && card.holderName!.isNotEmpty)
-                LabelValueField(
-                  label: 'Holder Name',
-                  value: card.holderName!,
-                  fieldId: 'card.holderName',
-                  isSensitive: true,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Detailed tax ID display widget showing all fields with sensitivity masking
-class _TaxIdItem extends ConsumerWidget {
-  final TaxIdData taxId;
-
-  const _TaxIdItem({required this.taxId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.badge,
-                  size: 20,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      taxId.taxIdType ?? 'Tax ID',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (taxId.country != null &&
-                        taxId.country!.isNotEmpty)
-                      SelectableText(
-                        taxId.country!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Field rows using ResponsiveLabelField
-          ResponsiveLabelField(
-            layoutAxis: Axis.vertical,
             fields: [
               if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
                 LabelValueField(
@@ -917,7 +901,8 @@ class _TaxIdItem extends ConsumerWidget {
                   fieldId: 'taxId.taxIdNumber',
                   isSensitive: true,
                 ),
-              if (taxId.issuingAuthority != null && taxId.issuingAuthority!.isNotEmpty)
+              if (taxId.issuingAuthority != null &&
+                  taxId.issuingAuthority!.isNotEmpty)
                 LabelValueField(
                   label: 'Issuing Authority',
                   value: taxId.issuingAuthority!,
@@ -928,6 +913,17 @@ class _TaxIdItem extends ConsumerWidget {
           ),
         ],
       ),
+      onDelete: _onTaxIdDelete,
+      onSave: _onTaxIdSave,
+      itemToMap: _taxIdToMap,
+      onCopyAll: (taxId, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
+      },
     );
   }
 }

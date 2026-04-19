@@ -1,34 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/models/entry_configs.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
+import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
+    show EntryActionsContext;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
-
-/// Configuration for which action buttons to show on an entry item.
-class EntryActionsConfig {
-  final bool showCopy;
-  final bool showEdit;
-  final bool showDelete;
-  final bool showHistory;
-
-  const EntryActionsConfig({
-    this.showCopy = true,
-    this.showEdit = true,
-    this.showDelete = true,
-    this.showHistory = true,
-  });
-}
 
 /// A reusable template widget for displaying profile/professional entry items.
 /// Standardizes:
 /// - Icon + title/subtitle + custom fields layout
 /// - Action buttons (copy_all, edit, delete)
-/// - History button + FieldHistoryView
+/// - History button + FieldHistoryView (fetches internally when itemId is provided)
 /// - Private data reveal/hide via SensitiveValueWidget
 /// - Restricted password verification
 /// - Copied toast notification
@@ -38,14 +28,29 @@ class EntryItemWidget<T> extends ConsumerStatefulWidget {
   final String? subtitle;
   final IconData icon;
   final List<LabelValueField> fields;
+
+  /// Unique ID for fetching field history. If provided, history is fetched internally.
   final String? itemId;
+
+  /// Field ID prefix for history lookup (e.g., 'contact.email', 'idCard.number')
   final String? historyFieldId;
+
+  /// Optional pre-fetched history. If not provided, fetched internally via itemId + historyFieldId.
   final FieldHistory? history;
   final EntryActionsConfig actionsConfig;
+
+  /// Optional external callbacks. If provided, these override the internal onEdit/onDelete/onCopy.
+  /// Useful when EntryItemWidget is used inside UnifiedFormSection which provides real callbacks.
+  final VoidCallback? externalOnEdit;
+  final VoidCallback? externalOnDelete;
+  final Future<void> Function(String)? externalOnCopy;
+
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+
   /// Async copy - allows password verification for restricted fields before copying.
   final Future<void> Function(String formattedText) onCopy;
+
   /// Converts T item to a map of field values for copying all fields.
   final String Function(T item) formatAllFields;
 
@@ -60,6 +65,9 @@ class EntryItemWidget<T> extends ConsumerStatefulWidget {
     this.historyFieldId,
     this.history,
     this.actionsConfig = const EntryActionsConfig(),
+    this.externalOnEdit,
+    this.externalOnDelete,
+    this.externalOnCopy,
     required this.onEdit,
     required this.onDelete,
     required this.onCopy,
@@ -73,6 +81,15 @@ class EntryItemWidget<T> extends ConsumerStatefulWidget {
 class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
   bool _historyExpanded = false;
 
+  /// Fetches history internally when itemId and historyFieldId are provided.
+  FieldHistory? get _fetchedHistory {
+    if (widget.history != null) return widget.history;
+    if (widget.itemId == null || widget.historyFieldId == null) return null;
+    return ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.itemId!, widget.historyFieldId!);
+  }
+
   Future<void> _handleCopyAll() async {
     final formattedText = widget.formatAllFields(widget.item);
     await widget.onCopy(formattedText);
@@ -80,9 +97,7 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
 
   Future<void> _handleCopyAllWithVerification() async {
     // Check if any field is restricted - if so, verify password first
-    final hasRestricted = widget.fields.any(
-      (f) => f.isSensitive,
-    );
+    final hasRestricted = widget.fields.any((f) => f.isSensitive);
 
     if (hasRestricted) {
       final verified = await _verifyPasswordForRestrictedFields();
@@ -112,7 +127,8 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
     // Check if user was verified within the last 1 minute (password cache)
     final sensitiveAccess = ref.read(sensitivePageAccessProvider);
     final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+    final hasRecentVerification =
+        sensitiveAccess.lastVerified != null &&
         sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
     if (hasRecentVerification) return true;
 
@@ -134,7 +150,14 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasHistory = widget.history != null;
+    final history = _fetchedHistory;
+    final hasHistory = history != null;
+
+    // Check for external callbacks from EntryActionsContext (provided by UnifiedFormSection)
+    final actionsContext = EntryActionsContext.of(context);
+    final extOnEdit = actionsContext?.onEdit;
+    final extOnDelete = actionsContext?.onDelete;
+    final extOnCopy = actionsContext?.onCopy;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,21 +214,23 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
                 IconButton(
                   icon: const Icon(Icons.copy_all, size: 20),
                   tooltip: 'Copy All',
-                  onPressed: _handleCopyAllWithVerification,
+                  onPressed: extOnCopy != null
+                      ? () => extOnCopy(widget.formatAllFields(widget.item))
+                      : _handleCopyAllWithVerification,
                   visualDensity: VisualDensity.compact,
                 ),
               if (widget.actionsConfig.showEdit)
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 20),
                   tooltip: 'Edit',
-                  onPressed: widget.onEdit,
+                  onPressed: extOnEdit ?? widget.onEdit,
                   visualDensity: VisualDensity.compact,
                 ),
               if (widget.actionsConfig.showDelete)
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   tooltip: 'Delete',
-                  onPressed: widget.onDelete,
+                  onPressed: extOnDelete ?? widget.onDelete,
                   visualDensity: VisualDensity.compact,
                 ),
               // History button
@@ -230,7 +255,7 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
               fieldName: widget.historyFieldId ?? widget.title,
-              history: widget.history!,
+              history: history,
             ),
           ),
       ],

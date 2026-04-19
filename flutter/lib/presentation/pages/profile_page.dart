@@ -25,6 +25,8 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
+import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -81,11 +83,11 @@ class _EntryWithIndex<T> {
 }
 
 /// Standalone helper to persist an operation to account metadata
-Future<void> _persistAccountOperation(WidgetRef ref, String operationDesc) async {
-  final accountId = ref
-      .read(authNotifierProvider.notifier)
-      .selectedAccount
-      ?.id;
+Future<void> _persistAccountOperation(
+  WidgetRef ref,
+  String operationDesc,
+) async {
+  final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
   if (accountId != null) {
     await ref
         .read(authNotifierProvider.notifier)
@@ -232,7 +234,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               tooltip: 'Copy Name',
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: fullName));
-                showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
               },
               visualDensity: VisualDensity.compact,
             ),
@@ -656,25 +662,31 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
     // Record field history snapshot for all changed fields
     if (oldEntry != null) {
-      final newEntry = _entries.firstWhere(
-        (e) => e.entry.id == oldEntry.id,
-        orElse: () => _entries.last,
-      ).entry;
-      final fieldId = oldEntry.type == 'email' ? 'contact.email' : 'contact.phone';
+      final newEntry = _entries
+          .firstWhere(
+            (e) => e.entry.id == oldEntry.id,
+            orElse: () => _entries.last,
+          )
+          .entry;
+      final fieldId = oldEntry.type == 'email'
+          ? 'contact.email'
+          : 'contact.phone';
 
       // Check if any field changed
       if (oldEntry.label != newEntry.label ||
           oldEntry.type != newEntry.type ||
           oldEntry.value != newEntry.value) {
-        await ref.read(fieldHistoriesProvider.notifier).recordEntrySnapshot(
-          itemId: oldEntry.id,
-          fieldIdPrefix: fieldId,
-          allFieldValues: {
-            'label': oldEntry.label,
-            'type': oldEntry.type,
-            'value': oldEntry.value,
-          },
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordEntrySnapshot(
+              itemId: oldEntry.id,
+              fieldIdPrefix: fieldId,
+              allFieldValues: {
+                'label': oldEntry.label,
+                'type': oldEntry.type,
+                'value': oldEntry.value,
+              },
+            );
       }
     }
 
@@ -846,14 +858,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       for (var i = 0; i < displayEntries.length; i++)
         Column(
           children: [
-            _ContactEntryTile(
+            _ContactEntryItem(
               entry: displayEntries[i].entry,
-              onCopy: () {
-                Clipboard.setData(
-                  ClipboardData(text: displayEntries[i].entry.value),
-                );
-                showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
-              },
               onEdit: () => _startEditing(i),
               onDelete: () => _deleteEntry(i),
             ),
@@ -966,24 +972,25 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   }
 }
 
-class _ContactEntryTile extends ConsumerStatefulWidget {
+/// Wrapper widget for ContactEntry using UniversalEntryCard + EntryActionBuilder
+class _ContactEntryItem extends ConsumerStatefulWidget {
   final ContactEntry entry;
-  final VoidCallback onCopy;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _ContactEntryTile({
+  const _ContactEntryItem({
     required this.entry,
-    required this.onCopy,
     required this.onEdit,
     required this.onDelete,
   });
 
   @override
-  ConsumerState<_ContactEntryTile> createState() => _ContactEntryTileState();
+  ConsumerState<_ContactEntryItem> createState() => _ContactEntryItemState();
 }
 
-class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
+class _ContactEntryItemState extends ConsumerState<_ContactEntryItem> {
+  bool _historyExpanded = false;
+
   String _formatAllFields() {
     final buffer = StringBuffer();
     buffer.writeln('Contact Entry');
@@ -993,11 +1000,185 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
     return buffer.toString().trim();
   }
 
+  Future<void> _handleCopy() async {
+    Clipboard.setData(ClipboardData(text: _formatAllFields()));
+    showOverlaySnackBar(
+      context,
+      content: 'Copied to clipboard',
+      type: SnackBarType.success,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fieldId = widget.entry.type == 'email'
+        ? 'contact.email'
+        : 'contact.phone';
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.entry.id, fieldId);
+    final hasHistory = history != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          leading: Icon(
+            widget.entry.type == 'email'
+                ? Icons.email_outlined
+                : Icons.phone_outlined,
+            size: 20,
+          ),
+          title: SelectableText(
+            widget.entry.label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          subtitle: SelectableText(
+            widget.entry.type,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          children: [
+            ResponsiveLabelField(
+              fields: [
+                LabelValueField(
+                  label: 'Value',
+                  value: widget.entry.value,
+                  fieldId: fieldId,
+                  isSensitive: true,
+                ),
+              ],
+              labelValueSpacing: 4,
+              layoutAxis: Axis.vertical,
+            ),
+          ],
+          actions: EntryActionBuilder.buildActions(
+            context: context,
+            ref: ref,
+            config: EntryActionsConfig(showHistory: true),
+            hasHistory: hasHistory,
+            historyExpanded: _historyExpanded,
+            onHistoryToggle: () =>
+                setState(() => _historyExpanded = !_historyExpanded),
+            onCopy: _handleCopy,
+            onEdit: widget.onEdit,
+            onDelete: widget.onDelete,
+          ),
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(fieldName: fieldId, history: history),
+          ),
+      ],
+    );
+  }
+}
+
+class _IdCardTile extends ConsumerStatefulWidget {
+  final IdCardData card;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _IdCardTile({
+    required this.card,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  ConsumerState<_IdCardTile> createState() => _IdCardTileState();
+}
+
+class _IdCardTileState extends ConsumerState<_IdCardTile> {
+  String _formatAllFields() {
+    final buffer = StringBuffer();
+    buffer.writeln('ID Card');
+    if (widget.card.label != null && widget.card.label!.isNotEmpty) {
+      buffer.writeln('Label: ${widget.card.label}');
+    }
+    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
+      buffer.writeln('ID Number: ${widget.card.number}');
+    }
+    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
+      buffer.writeln('Holder Name: ${widget.card.holderName}');
+    }
+    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
+      buffer.writeln('Country: ${widget.card.country}');
+    }
+    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
+      buffer.writeln('Issue Date: ${widget.card.issueDate}');
+    }
+    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
+      buffer.writeln('Expiry Date: ${widget.card.expiryDate}');
+    }
+    return buffer.toString().trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fieldId = widget.entry.type == 'email' ? 'contact.email' : 'contact.phone';
-    final history = ref.watch(fieldHistoriesProvider.notifier).getHistory(widget.entry.id, fieldId);
+    final hasLabel = widget.card.label != null && widget.card.label!.isNotEmpty;
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.card.id, 'idCard.number');
+
+    // Build list of fields to display
+    final fields = <LabelValueField>[];
+
+    if (hasLabel) {
+      fields.add(LabelValueField(label: 'Label', value: widget.card.label!));
+    }
+    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'ID Number',
+          value: widget.card.number!,
+          fieldId: 'idCard.number',
+          isSensitive: true,
+        ),
+      );
+    }
+    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Holder Name',
+          value: widget.card.holderName!,
+          fieldId: 'idCard.holderName',
+          isSensitive: true,
+        ),
+      );
+    }
+    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Country',
+          value: widget.card.country!,
+          fieldId: 'idCard.country',
+        ),
+      );
+    }
+    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Issue Date',
+          value: widget.card.issueDate!,
+          fieldId: 'idCard.issueDate',
+        ),
+      );
+    }
+    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Expiry Date',
+          value: widget.card.expiryDate!,
+          fieldId: 'idCard.expiryDate',
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1010,9 +1191,7 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Icon(
-                  widget.entry.type == 'email'
-                      ? Icons.email_outlined
-                      : Icons.phone_outlined,
+                  Icons.credit_card_outlined,
                   size: 20,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -1020,16 +1199,7 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
               const SizedBox(width: 12),
               Expanded(
                 child: ResponsiveLabelField(
-                  fields: [
-                    LabelValueField(label: 'Label', value: widget.entry.label),
-                    LabelValueField(label: 'Type', value: widget.entry.type),
-                    LabelValueField(
-                      label: 'Value',
-                      value: widget.entry.value,
-                      fieldId: fieldId,
-                      isSensitive: true,
-                    ),
-                  ],
+                  fields: fields,
                   labelValueSpacing: 4,
                   layoutAxis: Axis.vertical,
                 ),
@@ -1037,9 +1207,20 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
               IconButton(
                 icon: const Icon(Icons.copy_all, size: 20),
                 tooltip: 'Copy All',
-                onPressed: () {
+                onPressed: () async {
+                  final verified = await verifyPasswordForRestrictedField(
+                    context: context,
+                    ref: ref,
+                    fieldId: 'idCard.number',
+                  );
+                  if (!verified) return;
+                  if (!mounted) return;
                   Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+                  showOverlaySnackBar(
+                    context,
+                    content: 'Copied to clipboard',
+                    type: SnackBarType.success,
+                  );
                 },
                 visualDensity: VisualDensity.compact,
               ),
@@ -1062,7 +1243,7 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
-              fieldName: fieldId,
+              fieldName: 'idCard.number',
               history: history,
             ),
           ),
@@ -1308,10 +1489,12 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
     // Record field history snapshot for all changed fields
     if (oldCard != null) {
-      final newCard = _idCards.firstWhere(
-        (c) => c.entry.id == oldCard.id,
-        orElse: () => _idCards.last,
-      ).entry;
+      final newCard = _idCards
+          .firstWhere(
+            (c) => c.entry.id == oldCard.id,
+            orElse: () => _idCards.last,
+          )
+          .entry;
 
       if (oldCard.label != newCard.label ||
           oldCard.number != newCard.number ||
@@ -1319,18 +1502,20 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
           oldCard.country != newCard.country ||
           oldCard.issueDate != newCard.issueDate ||
           oldCard.expiryDate != newCard.expiryDate) {
-        await ref.read(fieldHistoriesProvider.notifier).recordEntrySnapshot(
-          itemId: oldCard.id,
-          fieldIdPrefix: 'idCard.number',
-          allFieldValues: {
-            'label': oldCard.label ?? '',
-            'number': oldCard.number ?? '',
-            'holderName': oldCard.holderName ?? '',
-            'country': oldCard.country ?? '',
-            'issueDate': oldCard.issueDate ?? '',
-            'expiryDate': oldCard.expiryDate ?? '',
-          },
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordEntrySnapshot(
+              itemId: oldCard.id,
+              fieldIdPrefix: 'idCard.number',
+              allFieldValues: {
+                'label': oldCard.label ?? '',
+                'number': oldCard.number ?? '',
+                'holderName': oldCard.holderName ?? '',
+                'country': oldCard.country ?? '',
+                'issueDate': oldCard.issueDate ?? '',
+                'expiryDate': oldCard.expiryDate ?? '',
+              },
+            );
       }
     }
 
@@ -1483,7 +1668,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
       for (var i = 0; i < displayIdCards.length; i++)
         Column(
           children: [
-            _IdCardTile(
+            _IdCardItem(
               card: displayIdCards[i].entry,
               onEdit: () => _startEditing(i),
               onDelete: () => _deleteEntry(i),
@@ -1644,22 +1829,25 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   }
 }
 
-class _IdCardTile extends ConsumerStatefulWidget {
+/// Wrapper widget for IdCardData using UniversalEntryCard + EntryActionBuilder
+class _IdCardItem extends ConsumerStatefulWidget {
   final IdCardData card;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _IdCardTile({
+  const _IdCardItem({
     required this.card,
     required this.onEdit,
     required this.onDelete,
   });
 
   @override
-  ConsumerState<_IdCardTile> createState() => _IdCardTileState();
+  ConsumerState<_IdCardItem> createState() => _IdCardItemState();
 }
 
-class _IdCardTileState extends ConsumerState<_IdCardTile> {
+class _IdCardItemState extends ConsumerState<_IdCardItem> {
+  bool _historyExpanded = false;
+
   String _formatAllFields() {
     final buffer = StringBuffer();
     buffer.writeln('ID Card');
@@ -1684,15 +1872,31 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
     return buffer.toString().trim();
   }
 
+  Future<void> _handleCopy() async {
+    final verified = await verifyPasswordForRestrictedField(
+      context: context,
+      ref: ref,
+      fieldId: 'idCard.number',
+    );
+    if (!verified) return;
+    if (!mounted) return;
+    Clipboard.setData(ClipboardData(text: _formatAllFields()));
+    showOverlaySnackBar(
+      context,
+      content: 'Copied to clipboard',
+      type: SnackBarType.success,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasLabel = widget.card.label != null && widget.card.label!.isNotEmpty;
-    final history = ref.watch(fieldHistoriesProvider.notifier).getHistory(widget.card.id, 'idCard.number');
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.card.id, 'idCard.number');
+    final hasHistory = history != null;
 
-    // Build list of fields to display
     final fields = <LabelValueField>[];
-
     if (hasLabel) {
       fields.add(LabelValueField(label: 'Label', value: widget.card.label!));
     }
@@ -1747,6 +1951,142 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        UniversalEntryCard(
+          leading: const Icon(Icons.credit_card_outlined, size: 20),
+          title: SelectableText(
+            widget.card.label ?? 'ID Card',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          children: [
+            ResponsiveLabelField(
+              fields: fields,
+              labelValueSpacing: 4,
+              layoutAxis: Axis.vertical,
+            ),
+          ],
+          actions: EntryActionBuilder.buildActions(
+            context: context,
+            ref: ref,
+            config: EntryActionsConfig(showHistory: true),
+            hasHistory: hasHistory,
+            historyExpanded: _historyExpanded,
+            onHistoryToggle: () =>
+                setState(() => _historyExpanded = !_historyExpanded),
+            onCopy: _handleCopy,
+            onEdit: widget.onEdit,
+            onDelete: widget.onDelete,
+          ),
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'idCard.number',
+              history: history,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _AddressTile extends ConsumerStatefulWidget {
+  final AddressData address;
+  final String displayText;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _AddressTile({
+    required this.address,
+    required this.displayText,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  ConsumerState<_AddressTile> createState() => _AddressTileState();
+}
+
+class _AddressTileState extends ConsumerState<_AddressTile> {
+  String _formatAllFields() {
+    final buffer = StringBuffer();
+    buffer.writeln('Address');
+    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
+      buffer.writeln('Label: ${widget.address.label}');
+    }
+    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
+      buffer.writeln('Street: ${widget.address.street}');
+    }
+    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
+      buffer.writeln('City: ${widget.address.city}');
+    }
+    if (widget.address.postalCode != null &&
+        widget.address.postalCode!.isNotEmpty) {
+      buffer.writeln('Postal Code: ${widget.address.postalCode}');
+    }
+    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
+      buffer.writeln('Country: ${widget.address.country}');
+    }
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.address.id, 'address.postalCode');
+
+    // Build list of fields to display
+    final fields = <LabelValueField>[];
+
+    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
+      fields.add(LabelValueField(label: 'Label', value: widget.address.label!));
+    }
+    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Street',
+          value: widget.address.street!,
+          fieldId: 'address.street',
+        ),
+      );
+    }
+    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'City',
+          value: widget.address.city!,
+          fieldId: 'address.city',
+        ),
+      );
+    }
+    if (widget.address.postalCode != null &&
+        widget.address.postalCode!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Postal Code',
+          value: widget.address.postalCode!,
+          fieldId: 'address.postalCode',
+          isSensitive: true,
+        ),
+      );
+    }
+    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
+      fields.add(
+        LabelValueField(
+          label: 'Country',
+          value: widget.address.country!,
+          fieldId: 'address.country',
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
@@ -1755,32 +2095,36 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Icon(
-                  Icons.credit_card_outlined,
+                  Icons.home_outlined,
                   size: 20,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ResponsiveLabelField(
-                  fields: fields,
-                  labelValueSpacing: 4,
-                  layoutAxis: Axis.vertical,
-                ),
+                child: fields.isEmpty
+                    ? SelectableText(
+                        'Tap to add',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      )
+                    : ResponsiveLabelField(
+                        fields: fields,
+                        labelValueSpacing: 4,
+                        layoutAxis: Axis.vertical,
+                      ),
               ),
               IconButton(
                 icon: const Icon(Icons.copy_all, size: 20),
                 tooltip: 'Copy All',
-                onPressed: () async {
-                  final verified = await verifyPasswordForRestrictedField(
-                    context: context,
-                    ref: ref,
-                    fieldId: 'idCard.number',
-                  );
-                  if (!verified) return;
-                  if (!mounted) return;
+                onPressed: () {
                   Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+                  showOverlaySnackBar(
+                    context,
+                    content: 'Copied to clipboard',
+                    type: SnackBarType.success,
+                  );
                 },
                 visualDensity: VisualDensity.compact,
               ),
@@ -1803,7 +2147,7 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
-              fieldName: 'idCard.number',
+              fieldName: 'address.postalCode',
               history: history,
             ),
           ),
@@ -2046,27 +2390,31 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
     // Record field history snapshot for all changed fields
     if (oldAddr != null) {
-      final newAddr = _addresses.firstWhere(
-        (a) => a.entry.id == oldAddr.id,
-        orElse: () => _addresses.last,
-      ).entry;
+      final newAddr = _addresses
+          .firstWhere(
+            (a) => a.entry.id == oldAddr.id,
+            orElse: () => _addresses.last,
+          )
+          .entry;
 
       if (oldAddr.label != newAddr.label ||
           oldAddr.street != newAddr.street ||
           oldAddr.city != newAddr.city ||
           oldAddr.postalCode != newAddr.postalCode ||
           oldAddr.country != newAddr.country) {
-        await ref.read(fieldHistoriesProvider.notifier).recordEntrySnapshot(
-          itemId: oldAddr.id,
-          fieldIdPrefix: 'address.postalCode',
-          allFieldValues: {
-            'label': oldAddr.label ?? '',
-            'street': oldAddr.street ?? '',
-            'city': oldAddr.city ?? '',
-            'postalCode': oldAddr.postalCode ?? '',
-            'country': oldAddr.country ?? '',
-          },
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordEntrySnapshot(
+              itemId: oldAddr.id,
+              fieldIdPrefix: 'address.postalCode',
+              allFieldValues: {
+                'label': oldAddr.label ?? '',
+                'street': oldAddr.street ?? '',
+                'city': oldAddr.city ?? '',
+                'postalCode': oldAddr.postalCode ?? '',
+                'country': oldAddr.country ?? '',
+              },
+            );
       }
     }
 
@@ -2225,9 +2573,8 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
       for (var i = 0; i < displayAddresses.length; i++)
         Column(
           children: [
-            _AddressTile(
+            _AddressItem(
               address: displayAddresses[i].entry,
-              displayText: _displayAddress(displayAddresses[i].entry),
               onEdit: () => _startEditing(i),
               onDelete: () => _deleteEntry(i),
             ),
@@ -2365,24 +2712,25 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   }
 }
 
-class _AddressTile extends ConsumerStatefulWidget {
+/// Wrapper widget for AddressData using UniversalEntryCard + EntryActionBuilder
+class _AddressItem extends ConsumerStatefulWidget {
   final AddressData address;
-  final String displayText;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _AddressTile({
+  const _AddressItem({
     required this.address,
-    required this.displayText,
     required this.onEdit,
     required this.onDelete,
   });
 
   @override
-  ConsumerState<_AddressTile> createState() => _AddressTileState();
+  ConsumerState<_AddressItem> createState() => _AddressItemState();
 }
 
-class _AddressTileState extends ConsumerState<_AddressTile> {
+class _AddressItemState extends ConsumerState<_AddressItem> {
+  bool _historyExpanded = false;
+
   String _formatAllFields() {
     final buffer = StringBuffer();
     buffer.writeln('Address');
@@ -2395,7 +2743,8 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
     if (widget.address.city != null && widget.address.city!.isNotEmpty) {
       buffer.writeln('City: ${widget.address.city}');
     }
-    if (widget.address.postalCode != null && widget.address.postalCode!.isNotEmpty) {
+    if (widget.address.postalCode != null &&
+        widget.address.postalCode!.isNotEmpty) {
       buffer.writeln('Postal Code: ${widget.address.postalCode}');
     }
     if (widget.address.country != null && widget.address.country!.isNotEmpty) {
@@ -2404,14 +2753,23 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
     return buffer.toString().trim();
   }
 
+  Future<void> _handleCopy() async {
+    Clipboard.setData(ClipboardData(text: _formatAllFields()));
+    showOverlaySnackBar(
+      context,
+      content: 'Copied to clipboard',
+      type: SnackBarType.success,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final history = ref.watch(fieldHistoriesProvider.notifier).getHistory(widget.address.id, 'address.postalCode');
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.address.id, 'address.postalCode');
+    final hasHistory = history != null;
 
-    // Build list of fields to display
     final fields = <LabelValueField>[];
-
     if (widget.address.label != null && widget.address.label!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Label', value: widget.address.label!));
     }
@@ -2433,7 +2791,8 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
         ),
       );
     }
-    if (widget.address.postalCode != null && widget.address.postalCode!.isNotEmpty) {
+    if (widget.address.postalCode != null &&
+        widget.address.postalCode!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Postal Code',
@@ -2456,59 +2815,37 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  Icons.home_outlined,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: fields.isEmpty
-                    ? SelectableText(
-                        'Tap to add',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
-                    : ResponsiveLabelField(
-                        fields: fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.copy_all, size: 20),
-                tooltip: 'Copy All',
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: widget.onEdit,
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: widget.onDelete,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
+        UniversalEntryCard(
+          leading: const Icon(Icons.home_outlined, size: 20),
+          title: SelectableText(
+            widget.address.label ?? 'Address',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          children: fields.isEmpty
+              ? []
+              : [
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ],
+          actions: EntryActionBuilder.buildActions(
+            context: context,
+            ref: ref,
+            config: EntryActionsConfig(showHistory: true),
+            hasHistory: hasHistory,
+            historyExpanded: _historyExpanded,
+            onHistoryToggle: () =>
+                setState(() => _historyExpanded = !_historyExpanded),
+            onCopy: _handleCopy,
+            onEdit: widget.onEdit,
+            onDelete: widget.onDelete,
           ),
         ),
-        if (history != null)
+        if (hasHistory && _historyExpanded)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(

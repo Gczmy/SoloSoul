@@ -10,9 +10,12 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef;
+    show UnifiedFormSection, FormFieldDef, EntryActionsContext;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
+import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
+    show ResponsiveLabelField, LabelValueField;
+import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
@@ -201,14 +204,6 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     };
   }
 
-  String _subtitle(EducationData e) {
-    final parts = [
-      e.degree,
-      e.field,
-    ].where((p) => p != null && p.isNotEmpty).join(' - ');
-    return parts.isEmpty ? '' : parts;
-  }
-
   Future<void> _onDelete(EducationData item) async {
     final index = _items.indexOf(item);
     if (index == -1) return;
@@ -300,16 +295,6 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     'PhD',
   ];
 
-  String _displayDegree(EducationData item) {
-    if (item.degree != null && item.degree!.isNotEmpty) {
-      return item.degree!;
-    }
-    if (item.degreeCustom != null && item.degreeCustom!.isNotEmpty) {
-      return item.degreeCustom!;
-    }
-    return '';
-  }
-
   @override
   Widget build(BuildContext context) {
     return UnifiedFormSection<EducationData>(
@@ -351,7 +336,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
         ),
       ],
       customFormBuilder:
-          (ctx, theme, controllers, mode, onSubmit, onCancel, isSaving) {
+          (ctx, theme, controllers, mode, onSubmit, onCancel) {
             final degreeController = controllers['education.degree']!;
             final degreeCustomController =
                 controllers['education.degreeCustom']!;
@@ -453,51 +438,155 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: isSaving ? null : onCancel,
+                      onPressed: onCancel,
                       child: const Text('Cancel'),
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
-                      onPressed: isSaving ? null : onSubmit,
-                      child: isSaving
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(mode == 'adding' ? 'Add' : 'Save'),
+                      onPressed: onSubmit,
+                      child: Text(mode == 'adding' ? 'Add' : 'Save'),
                     ),
                   ],
                 ),
               ],
             );
           },
-      displayItemBuilder: (item) => _ProfessionalItem(
-        title: item.institution ?? 'Institution',
-        subtitle: _subtitle(item),
-        icon: Icons.school,
-        additionalFields: [
-          if (_displayDegree(item).isNotEmpty)
-            LabelValueField(label: 'Degree', value: _displayDegree(item)),
-          if (item.field != null && item.field!.isNotEmpty)
-            LabelValueField(label: 'Field', value: item.field!),
-          if (item.startDate != null && item.startDate!.isNotEmpty)
-            LabelValueField(label: 'Start Date', value: item.startDate!),
-          if (item.endDate != null && item.endDate!.isNotEmpty)
-            LabelValueField(label: 'End Date', value: item.endDate!),
-        ],
-      ),
+      displayItemBuilder: (item) =>
+          _EducationItem(item: item, onEdit: () {}, onDelete: () {}),
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _educationToMap,
-      onCopyAll: (item, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(
+    );
+  }
+}
+
+class _EducationItem extends ConsumerWidget {
+  final EducationData item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _EducationItem({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  String _formatAllFields(EducationData e) {
+    final buffer = StringBuffer();
+    buffer.writeln('Education');
+    if (e.institution != null && e.institution!.isNotEmpty) {
+      buffer.writeln('Institution: ${e.institution}');
+    }
+    final degree = _displayDegree(e);
+    if (degree.isNotEmpty) {
+      buffer.writeln('Degree: $degree');
+    }
+    if (e.field != null && e.field!.isNotEmpty) {
+      buffer.writeln('Field: ${e.field}');
+    }
+    if (e.startDate != null && e.startDate!.isNotEmpty) {
+      buffer.writeln('Start Date: ${e.startDate}');
+    }
+    if (e.endDate != null && e.endDate!.isNotEmpty) {
+      buffer.writeln('End Date: ${e.endDate}');
+    }
+    return buffer.toString().trim();
+  }
+
+  String _displayDegree(EducationData e) {
+    if (e.degree != null && e.degree!.isNotEmpty) {
+      return e.degree!;
+    }
+    if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty) {
+      return e.degreeCustom!;
+    }
+    return '';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subtitleParts = [
+      _displayDegree(item),
+      item.field,
+    ].where((p) => p != null && p.isNotEmpty).join(' - ');
+
+    final fields = <LabelValueField>[
+      if (_displayDegree(item).isNotEmpty)
+        LabelValueField(label: 'Degree', value: _displayDegree(item)),
+      if (item.field != null && item.field!.isNotEmpty)
+        LabelValueField(label: 'Field', value: item.field!),
+      if (item.startDate != null && item.startDate!.isNotEmpty)
+        LabelValueField(label: 'Start Date', value: item.startDate!),
+      if (item.endDate != null && item.endDate!.isNotEmpty)
+        LabelValueField(label: 'End Date', value: item.endDate!),
+    ];
+
+    // Get actions from EntryActionsContext (set by UnifiedFormSection)
+    final actionsContext = EntryActionsContext.of(context);
+
+    return UniversalEntryCard(
+      title: SelectableText(
+        item.institution ?? 'Institution',
+        style: Theme.of(
           context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      subtitle: subtitleParts.isEmpty
+          ? null
+          : SelectableText(
+              subtitleParts,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+      leading: Icon(
+        Icons.school,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      children: fields.isNotEmpty
+          ? [
+              const SizedBox(height: 4),
+              ResponsiveLabelField(
+                fields: fields,
+                labelValueSpacing: 4,
+                layoutAxis: Axis.vertical,
+              ),
+            ]
+          : [],
+      actions: actionsContext != null
+          ? EntryActionBuilder.buildActions(
+              context: context,
+              ref: ref,
+              onCopy: () {
+                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+              onEdit: actionsContext.onEdit ?? onEdit,
+              onDelete: actionsContext.onDelete ?? onDelete,
+              config: EntryActionsConfig(
+                showCopy: false,
+                showEdit: true,
+                showDelete: true,
+                showHistory: false,
+              ),
+            )
+          : [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: onDelete,
+              ),
+            ],
     );
   }
 }
@@ -569,10 +658,6 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
       'employment.startDate': emp.startDate ?? '',
       'employment.endDate': emp.endDate ?? '',
     };
-  }
-
-  String _subtitle(EmploymentData e) {
-    return e.position ?? '';
   }
 
   Future<void> _onDelete(EmploymentData item) async {
@@ -693,36 +778,129 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) => _ProfessionalItem(
-        title: item.company ?? 'Company',
-        subtitle: _subtitle(item),
-        icon: Icons.work,
-        additionalFields: [
-          if (item.position != null && item.position!.isNotEmpty)
-            LabelValueField(label: 'Position', value: item.position!),
-          if (item.responsibilities != null &&
-              item.responsibilities!.isNotEmpty)
-            LabelValueField(
-              label: 'Responsibilities',
-              value: item.responsibilities!,
-            ),
-          if (item.startDate != null && item.startDate!.isNotEmpty)
-            LabelValueField(label: 'Start Date', value: item.startDate!),
-          if (item.endDate != null && item.endDate!.isNotEmpty)
-            LabelValueField(label: 'End Date', value: item.endDate!),
-        ],
-      ),
+      displayItemBuilder: (item) =>
+          _EmploymentItem(item: item, onEdit: () {}, onDelete: () {}),
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _employmentToMap,
-      onCopyAll: (item, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(
+      showInternalActions: false,
+    );
+  }
+}
+
+class _EmploymentItem extends ConsumerWidget {
+  final EmploymentData item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _EmploymentItem({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  String _formatAllFields(EmploymentData e) {
+    final buffer = StringBuffer();
+    buffer.writeln('Employment');
+    if (e.company != null && e.company!.isNotEmpty) {
+      buffer.writeln('Company: ${e.company}');
+    }
+    if (e.position != null && e.position!.isNotEmpty) {
+      buffer.writeln('Position: ${e.position}');
+    }
+    if (e.responsibilities != null && e.responsibilities!.isNotEmpty) {
+      buffer.writeln('Responsibilities: ${e.responsibilities}');
+    }
+    if (e.startDate != null && e.startDate!.isNotEmpty) {
+      buffer.writeln('Start Date: ${e.startDate}');
+    }
+    if (e.endDate != null && e.endDate!.isNotEmpty) {
+      buffer.writeln('End Date: ${e.endDate}');
+    }
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fields = <LabelValueField>[
+      if (item.position != null && item.position!.isNotEmpty)
+        LabelValueField(label: 'Position', value: item.position!),
+      if (item.responsibilities != null && item.responsibilities!.isNotEmpty)
+        LabelValueField(
+          label: 'Responsibilities',
+          value: item.responsibilities!,
+        ),
+      if (item.startDate != null && item.startDate!.isNotEmpty)
+        LabelValueField(label: 'Start Date', value: item.startDate!),
+      if (item.endDate != null && item.endDate!.isNotEmpty)
+        LabelValueField(label: 'End Date', value: item.endDate!),
+    ];
+
+    final actionsContext = EntryActionsContext.of(context);
+
+    return UniversalEntryCard(
+      title: SelectableText(
+        item.company ?? 'Company',
+        style: Theme.of(
           context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      subtitle: item.position != null
+          ? SelectableText(
+              item.position!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
+      leading: Icon(
+        Icons.work,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      children: fields.isNotEmpty
+          ? [
+              const SizedBox(height: 4),
+              ResponsiveLabelField(
+                fields: fields,
+                labelValueSpacing: 4,
+                layoutAxis: Axis.vertical,
+              ),
+            ]
+          : [],
+      actions: actionsContext != null
+          ? EntryActionBuilder.buildActions(
+              context: context,
+              ref: ref,
+              onCopy: () {
+                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+              onEdit: actionsContext.onEdit ?? onEdit,
+              onDelete: actionsContext.onDelete ?? onDelete,
+              config: EntryActionsConfig(
+                showCopy: false,
+                showEdit: true,
+                showDelete: true,
+                showHistory: false,
+              ),
+            )
+          : [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: onDelete,
+              ),
+            ],
     );
   }
 }
@@ -872,26 +1050,101 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) => _ProfessionalItem(
-        title: item.name,
-        subtitle: '',
-        icon: Icons.star,
-        additionalFields: [
-          if (item.level != null && item.level!.isNotEmpty)
-            LabelValueField(label: 'Proficiency', value: item.level!),
-        ],
-      ),
+      displayItemBuilder: (item) =>
+          _SkillItem(item: item, onEdit: () {}, onDelete: () {}),
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _skillToMap,
-      onCopyAll: (item, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(
+      showInternalActions: false,
+    );
+  }
+}
+
+class _SkillItem extends ConsumerWidget {
+  final SkillData item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _SkillItem({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  String _formatAllFields(SkillData s) {
+    final buffer = StringBuffer();
+    buffer.writeln('Skill');
+    buffer.writeln('Name: ${s.name}');
+    if (s.level != null && s.level!.isNotEmpty) {
+      buffer.writeln('Level: ${s.level}');
+    }
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fields = <LabelValueField>[
+      if (item.level != null && item.level!.isNotEmpty)
+        LabelValueField(label: 'Proficiency', value: item.level!),
+    ];
+
+    final actionsContext = EntryActionsContext.of(context);
+
+    return UniversalEntryCard(
+      title: SelectableText(
+        item.name,
+        style: Theme.of(
           context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      leading: Icon(
+        Icons.star,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      children: fields.isNotEmpty
+          ? [
+              const SizedBox(height: 4),
+              ResponsiveLabelField(
+                fields: fields,
+                labelValueSpacing: 4,
+                layoutAxis: Axis.vertical,
+              ),
+            ]
+          : [],
+      actions: actionsContext != null
+          ? EntryActionBuilder.buildActions(
+              context: context,
+              ref: ref,
+              onCopy: () {
+                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+              onEdit: actionsContext.onEdit ?? onEdit,
+              onDelete: actionsContext.onDelete ?? onDelete,
+              config: EntryActionsConfig(
+                showCopy: false,
+                showEdit: true,
+                showDelete: true,
+                showHistory: false,
+              ),
+            )
+          : [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: onDelete,
+              ),
+            ],
     );
   }
 }
@@ -1043,26 +1296,101 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) => _ProfessionalItem(
-        title: item.name,
-        subtitle: '',
-        icon: Icons.translate,
-        additionalFields: [
-          if (item.proficiency != null && item.proficiency!.isNotEmpty)
-            LabelValueField(label: 'Proficiency', value: item.proficiency!),
-        ],
-      ),
+      displayItemBuilder: (item) =>
+          _LanguageItem(item: item, onEdit: () {}, onDelete: () {}),
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _languageToMap,
-      onCopyAll: (item, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(
+      showInternalActions: false,
+    );
+  }
+}
+
+class _LanguageItem extends ConsumerWidget {
+  final LanguageData item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _LanguageItem({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  String _formatAllFields(LanguageData l) {
+    final buffer = StringBuffer();
+    buffer.writeln('Language');
+    buffer.writeln('Name: ${l.name}');
+    if (l.proficiency != null && l.proficiency!.isNotEmpty) {
+      buffer.writeln('Proficiency: ${l.proficiency}');
+    }
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fields = <LabelValueField>[
+      if (item.proficiency != null && item.proficiency!.isNotEmpty)
+        LabelValueField(label: 'Proficiency', value: item.proficiency!),
+    ];
+
+    final actionsContext = EntryActionsContext.of(context);
+
+    return UniversalEntryCard(
+      title: SelectableText(
+        item.name,
+        style: Theme.of(
           context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      leading: Icon(
+        Icons.translate,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      children: fields.isNotEmpty
+          ? [
+              const SizedBox(height: 4),
+              ResponsiveLabelField(
+                fields: fields,
+                labelValueSpacing: 4,
+                layoutAxis: Axis.vertical,
+              ),
+            ]
+          : [],
+      actions: actionsContext != null
+          ? EntryActionBuilder.buildActions(
+              context: context,
+              ref: ref,
+              onCopy: () {
+                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+              onEdit: actionsContext.onEdit ?? onEdit,
+              onDelete: actionsContext.onDelete ?? onDelete,
+              config: EntryActionsConfig(
+                showCopy: false,
+                showEdit: true,
+                showDelete: true,
+                showHistory: false,
+              ),
+            )
+          : [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: onDelete,
+              ),
+            ],
     );
   }
 }
@@ -1234,94 +1562,119 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) => _ProfessionalItem(
-        title: item.title ?? 'Award',
-        subtitle: item.issuer ?? '',
-        icon: Icons.emoji_events,
-        additionalFields: [
-          if (item.date != null && item.date!.isNotEmpty)
-            LabelValueField(label: 'Date', value: item.date!),
-          if (item.description != null && item.description!.isNotEmpty)
-            LabelValueField(label: 'Description', value: item.description!),
-        ],
-      ),
+      displayItemBuilder: (item) =>
+          _AwardItem(item: item, onEdit: () {}, onDelete: () {}),
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _awardToMap,
-      onCopyAll: (item, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(
-          context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
+      showInternalActions: false,
     );
   }
 }
 
-// ============ Shared Widget ============
+class _AwardItem extends ConsumerWidget {
+  final AwardData item;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-class _ProfessionalItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final List<LabelValueField> additionalFields;
-
-  const _ProfessionalItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    this.additionalFields = const [],
+  const _AwardItem({
+    required this.item,
+    required this.onEdit,
+    required this.onDelete,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  String _formatAllFields(AwardData a) {
+    final buffer = StringBuffer();
+    buffer.writeln('Award');
+    if (a.title != null && a.title!.isNotEmpty) {
+      buffer.writeln('Title: ${a.title}');
+    }
+    if (a.issuer != null && a.issuer!.isNotEmpty) {
+      buffer.writeln('Issuer: ${a.issuer}');
+    }
+    if (a.date != null && a.date!.isNotEmpty) {
+      buffer.writeln('Date: ${a.date}');
+    }
+    if (a.description != null && a.description!.isNotEmpty) {
+      buffer.writeln('Description: ${a.description}');
+    }
+    return buffer.toString().trim();
+  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 20, color: AppTheme.primaryColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SelectableText(
-                  title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (subtitle.isNotEmpty)
-                  SelectableText(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                if (additionalFields.isNotEmpty)
-                  ResponsiveLabelField(
-                    fields: additionalFields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-              ],
-            ),
-          ),
-        ],
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fields = <LabelValueField>[
+      if (item.date != null && item.date!.isNotEmpty)
+        LabelValueField(label: 'Date', value: item.date!),
+      if (item.description != null && item.description!.isNotEmpty)
+        LabelValueField(label: 'Description', value: item.description!),
+    ];
+
+    final actionsContext = EntryActionsContext.of(context);
+
+    return UniversalEntryCard(
+      title: SelectableText(
+        item.title ?? 'Award',
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
       ),
+      subtitle: item.issuer != null
+          ? SelectableText(
+              item.issuer!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
+      leading: Icon(
+        Icons.emoji_events,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      children: fields.isNotEmpty
+          ? [
+              const SizedBox(height: 4),
+              ResponsiveLabelField(
+                fields: fields,
+                labelValueSpacing: 4,
+                layoutAxis: Axis.vertical,
+              ),
+            ]
+          : [],
+      actions: actionsContext != null
+          ? EntryActionBuilder.buildActions(
+              context: context,
+              ref: ref,
+              onCopy: () {
+                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+              onEdit: actionsContext.onEdit ?? onEdit,
+              onDelete: actionsContext.onDelete ?? onDelete,
+              config: EntryActionsConfig(
+                showCopy: false,
+                showEdit: true,
+                showDelete: true,
+                showHistory: false,
+              ),
+            )
+          : [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: onDelete,
+              ),
+            ],
     );
   }
 }

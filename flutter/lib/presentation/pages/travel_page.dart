@@ -8,13 +8,16 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
-import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef;
+    show UnifiedFormSection, FormFieldDef, EntryActionsContext;
+import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
+    show ResponsiveLabelField, LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
@@ -272,7 +275,85 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (passport) => _PassportItem(passport: passport),
+      displayItemBuilder: (passport) {
+        final fields = <LabelValueField>[];
+        if (passport.country != null && passport.country!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Country', value: passport.country!),
+          );
+        }
+        if (passport.number != null && passport.number!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Passport Number',
+              value: passport.number!,
+              fieldId: 'passport.number',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (passport.holderName != null && passport.holderName!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Holder Name',
+              value: passport.holderName!,
+              fieldId: 'passport.holderName',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (passport.issueDate != null && passport.issueDate!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Issue Date', value: passport.issueDate!),
+          );
+        }
+        if (passport.expiryDate != null && passport.expiryDate!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Expiry Date', value: passport.expiryDate!),
+          );
+        }
+        return Builder(
+          builder: (ctx) {
+            final actionsContext = EntryActionsContext.of(ctx);
+            final onEdit = actionsContext?.onEdit ?? () {};
+            final onDelete = actionsContext?.onDelete ?? () {};
+            final onCopy = actionsContext?.onCopy ?? (text) async {};
+            return UniversalEntryCard(
+              title: Text(
+                passport.country ?? 'Passport',
+                style: Theme.of(
+                  ctx,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+              ),
+              leading: const Icon(Icons.book, size: 20),
+              actions: EntryActionBuilder.buildActions(
+                context: ctx,
+                ref: ref,
+                onCopy: () =>
+                    onCopy(_passportToMap(passport).values.join(', ')),
+                onEdit: onEdit,
+                onDelete: onDelete,
+                config: EntryActionsConfig(
+                  showCopy: true,
+                  showEdit: true,
+                  showDelete: true,
+                  showHistory: false,
+                ),
+              ),
+              children: fields.isNotEmpty
+                  ? [
+                      const SizedBox(height: 4),
+                      ResponsiveLabelField(
+                        fields: fields,
+                        labelValueSpacing: 4,
+                        layoutAxis: Axis.vertical,
+                      ),
+                    ]
+                  : [],
+            );
+          },
+        );
+      },
       onDelete: _onPassportDelete,
       onSave: _onPassportSave,
       itemToMap: _passportToMap,
@@ -467,7 +548,82 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (visa) => _VisaItem(visa: visa),
+      displayItemBuilder: (visa) {
+        final fields = <LabelValueField>[];
+        if (visa.country != null && visa.country!.isNotEmpty) {
+          fields.add(LabelValueField(label: 'Country', value: visa.country!));
+        }
+        if (visa.visaType != null && visa.visaType!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Type',
+              value: visa.visaType!,
+              fieldId: 'visa.visaType',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (visa.number != null && visa.number!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Visa Number',
+              value: visa.number!,
+              fieldId: 'visa.number',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (visa.issueDate != null && visa.issueDate!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Issue Date', value: visa.issueDate!),
+          );
+        }
+        if (visa.expiryDate != null && visa.expiryDate!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Expiry Date', value: visa.expiryDate!),
+          );
+        }
+        return Builder(
+          builder: (ctx) {
+            final actionsContext = EntryActionsContext.of(ctx);
+            final onEdit = actionsContext?.onEdit ?? () {};
+            final onDelete = actionsContext?.onDelete ?? () {};
+            final onCopy = actionsContext?.onCopy ?? (text) async {};
+            return UniversalEntryCard(
+              title: Text(
+                visa.country ?? 'Visa',
+                style: Theme.of(
+                  ctx,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+              ),
+              leading: const Icon(Icons.article, size: 20),
+              actions: EntryActionBuilder.buildActions(
+                context: ctx,
+                ref: ref,
+                onCopy: () => onCopy(_visaToMap(visa).values.join(', ')),
+                onEdit: onEdit,
+                onDelete: onDelete,
+                config: EntryActionsConfig(
+                  showCopy: true,
+                  showEdit: true,
+                  showDelete: true,
+                  showHistory: false,
+                ),
+              ),
+              children: fields.isNotEmpty
+                  ? [
+                      const SizedBox(height: 4),
+                      ResponsiveLabelField(
+                        fields: fields,
+                        labelValueSpacing: 4,
+                        layoutAxis: Axis.vertical,
+                      ),
+                    ]
+                  : [],
+            );
+          },
+        );
+      },
       onDelete: _onVisaDelete,
       onSave: _onVisaSave,
       itemToMap: _visaToMap,
@@ -707,389 +863,448 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      customFormBuilder: (context, theme, controllers, mode, onSubmit, onCancel, isSaving) {
-        final travelType = controllers['travel.travelType']?.text ?? '';
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              mode == 'adding' ? 'Add Travel History' : 'Edit Travel History',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Travel Type Dropdown
-            DropdownButtonFormField<String>(
-              value: travelType.isEmpty ? null : travelType,
-              decoration: const InputDecoration(
-                labelText: 'Travel Type',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'Airplane', child: Text('Airplane')),
-                DropdownMenuItem(value: 'Train', child: Text('Train')),
-                DropdownMenuItem(value: 'Bus', child: Text('Bus')),
-                DropdownMenuItem(value: 'Taxi', child: Text('Taxi')),
-                DropdownMenuItem(value: 'Drive', child: Text('Drive')),
-                DropdownMenuItem(value: 'Other', child: Text('Other')),
-              ],
-              onChanged: (value) {
-                controllers['travel.travelType']?.text = value ?? '';
-              },
-            ),
-            const SizedBox(height: 12),
-            // Destination (always shown)
-            TextField(
-              controller: controllers['travel.destination'],
-              maxLength: kMaxFieldLength,
-              decoration: const InputDecoration(
-                labelText: 'Destination',
-                border: OutlineInputBorder(),
-                counterText: '',
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Date (always shown)
-            TextField(
-              controller: controllers['travel.date'],
-              maxLength: kMaxFieldLength,
-              decoration: const InputDecoration(
-                labelText: 'Date',
-                border: OutlineInputBorder(),
-                counterText: '',
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Departure/Arrival City (always shown)
-            Row(
+      customFormBuilder:
+          (context, theme, controllers, mode, onSubmit, onCancel) {
+            final travelType = controllers['travel.travelType']?.text ?? '';
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: controllers['travel.departureCity'],
+                Text(
+                  mode == 'adding'
+                      ? 'Add Travel History'
+                      : 'Edit Travel History',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Travel Type Dropdown
+                DropdownButtonFormField<String>(
+                  value: travelType.isEmpty ? null : travelType,
+                  decoration: const InputDecoration(
+                    labelText: 'Travel Type',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'Airplane',
+                      child: Text('Airplane'),
+                    ),
+                    DropdownMenuItem(value: 'Train', child: Text('Train')),
+                    DropdownMenuItem(value: 'Bus', child: Text('Bus')),
+                    DropdownMenuItem(value: 'Taxi', child: Text('Taxi')),
+                    DropdownMenuItem(value: 'Drive', child: Text('Drive')),
+                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  ],
+                  onChanged: (value) {
+                    controllers['travel.travelType']?.text = value ?? '';
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Destination (always shown)
+                TextField(
+                  controller: controllers['travel.destination'],
+                  maxLength: kMaxFieldLength,
+                  decoration: const InputDecoration(
+                    labelText: 'Destination',
+                    border: OutlineInputBorder(),
+                    counterText: '',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Date (always shown)
+                TextField(
+                  controller: controllers['travel.date'],
+                  maxLength: kMaxFieldLength,
+                  decoration: const InputDecoration(
+                    labelText: 'Date',
+                    border: OutlineInputBorder(),
+                    counterText: '',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Departure/Arrival City (always shown)
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: controllers['travel.departureCity'],
+                        maxLength: kMaxFieldLength,
+                        decoration: const InputDecoration(
+                          labelText: 'Departure City',
+                          border: OutlineInputBorder(),
+                          counterText: '',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: controllers['travel.arrivalTime'],
+                        maxLength: kMaxFieldLength,
+                        decoration: const InputDecoration(
+                          labelText: 'Arrival Time',
+                          border: OutlineInputBorder(),
+                          counterText: '',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Conditional fields based on travel type
+                if (travelType == 'Airplane') ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.departureTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Departure Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.arrivalTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Arrival Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.airline'],
                     maxLength: kMaxFieldLength,
                     decoration: const InputDecoration(
-                      labelText: 'Departure City',
+                      labelText: 'Airline',
                       border: OutlineInputBorder(),
                       counterText: '',
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: controllers['travel.arrivalTime'],
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.flightNumber'],
                     maxLength: kMaxFieldLength,
                     decoration: const InputDecoration(
-                      labelText: 'Arrival Time',
+                      labelText: 'Flight Number',
                       border: OutlineInputBorder(),
                       counterText: '',
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.ticketPrice'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Ticket Price',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                  ),
+                ] else if (travelType == 'Train') ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.departureTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Departure Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.arrivalTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Arrival Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.flightNumber'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Train Number',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.ticketPrice'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Ticket Price',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                  ),
+                ] else if (travelType == 'Bus') ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.departureTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Departure Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.arrivalTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Arrival Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.flightNumber'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Bus Number',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.ticketPrice'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Ticket Price',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                  ),
+                ] else if (travelType == 'Taxi') ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.departureTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Departure Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.arrivalTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Arrival Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.ticketPrice'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Price',
+                      border: OutlineInputBorder(),
+                      counterText: '',
+                    ),
+                  ),
+                ] else if (travelType == 'Drive') ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.departureTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Departure Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.arrivalTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Arrival Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  // Other or no type selected
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.departureTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Departure Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: controllers['travel.arrivalTime'],
+                          maxLength: kMaxFieldLength,
+                          decoration: const InputDecoration(
+                            labelText: 'Arrival Time',
+                            border: OutlineInputBorder(),
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: onSubmit,
+                      child: Text(mode == 'adding' ? 'Add' : 'Save'),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            // Conditional fields based on travel type
-            if (travelType == 'Airplane') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.departureTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Departure Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.arrivalTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Arrival Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.airline'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Airline',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.flightNumber'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Flight Number',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.ticketPrice'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Ticket Price',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-            ] else if (travelType == 'Train') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.departureTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Departure Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.arrivalTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Arrival Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.flightNumber'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Train Number',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.ticketPrice'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Ticket Price',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-            ] else if (travelType == 'Bus') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.departureTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Departure Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.arrivalTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Arrival Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.flightNumber'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Bus Number',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.ticketPrice'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Ticket Price',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-            ] else if (travelType == 'Taxi') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.departureTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Departure Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.arrivalTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Arrival Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controllers['travel.ticketPrice'],
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Price',
-                  border: OutlineInputBorder(),
-                  counterText: '',
-                ),
-              ),
-            ] else if (travelType == 'Drive') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.departureTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Departure Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.arrivalTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Arrival Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              // Other or no type selected
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.departureTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Departure Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: controllers['travel.arrivalTime'],
-                      maxLength: kMaxFieldLength,
-                      decoration: const InputDecoration(
-                        labelText: 'Arrival Time',
-                        border: OutlineInputBorder(),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: isSaving ? null : onCancel,
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: isSaving ? null : onSubmit,
-                  child: isSaving
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(mode == 'adding' ? 'Add' : 'Save'),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-      displayItemBuilder: (item) => _TravelItem(
-        title: item.destination,
-        subtitle: item.flightNumber ?? item.date ?? '',
-        icon: Icons.place,
-        additionalFields: [
-          if (item.date != null && item.date!.isNotEmpty)
-            LabelValueField(label: 'Date', value: item.date!),
-          if (item.departureCity != null && item.departureCity!.isNotEmpty)
+            );
+          },
+      displayItemBuilder: (item) {
+        final fields = <LabelValueField>[];
+        if (item.date != null && item.date!.isNotEmpty) {
+          fields.add(LabelValueField(label: 'Date', value: item.date!));
+        }
+        if (item.departureCity != null && item.departureCity!.isNotEmpty) {
+          fields.add(
             LabelValueField(label: 'Departure', value: item.departureCity!),
-          if (item.departureTime != null && item.departureTime!.isNotEmpty)
+          );
+        }
+        if (item.departureTime != null && item.departureTime!.isNotEmpty) {
+          fields.add(
             LabelValueField(
               label: 'Departure Time',
               value: item.departureTime!,
             ),
-          if (item.arrivalTime != null && item.arrivalTime!.isNotEmpty)
+          );
+        }
+        if (item.arrivalTime != null && item.arrivalTime!.isNotEmpty) {
+          fields.add(
             LabelValueField(label: 'Arrival Time', value: item.arrivalTime!),
-          if (item.flightNumber != null && item.flightNumber!.isNotEmpty)
+          );
+        }
+        if (item.flightNumber != null && item.flightNumber!.isNotEmpty) {
+          fields.add(
             LabelValueField(label: 'Flight', value: item.flightNumber!),
-          if (item.ticketPrice != null && item.ticketPrice!.isNotEmpty)
-            LabelValueField(label: 'Price', value: item.ticketPrice!),
-          if (item.airline != null && item.airline!.isNotEmpty)
-            LabelValueField(label: 'Airline', value: item.airline!),
-        ],
-      ),
+          );
+        }
+        if (item.ticketPrice != null && item.ticketPrice!.isNotEmpty) {
+          fields.add(LabelValueField(label: 'Price', value: item.ticketPrice!));
+        }
+        if (item.airline != null && item.airline!.isNotEmpty) {
+          fields.add(LabelValueField(label: 'Airline', value: item.airline!));
+        }
+        return Builder(
+          builder: (ctx) {
+            final actionsContext = EntryActionsContext.of(ctx);
+            final onEdit = actionsContext?.onEdit ?? () {};
+            final onDelete = actionsContext?.onDelete ?? () {};
+            final onCopy = actionsContext?.onCopy ?? (text) async {};
+            return UniversalEntryCard(
+              title: Text(
+                item.destination,
+                style: Theme.of(
+                  ctx,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+              ),
+              subtitle: (item.flightNumber ?? item.date ?? '').isNotEmpty
+                  ? Text(
+                      item.flightNumber ?? item.date ?? '',
+                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : null,
+              leading: const Icon(Icons.place, size: 20),
+              actions: EntryActionBuilder.buildActions(
+                context: ctx,
+                ref: ref,
+                onCopy: () => onCopy(_historyToMap(item)),
+                onEdit: onEdit,
+                onDelete: onDelete,
+                config: EntryActionsConfig(
+                  showCopy: true,
+                  showEdit: true,
+                  showDelete: true,
+                  showHistory: false,
+                ),
+              ),
+              children: fields.isNotEmpty
+                  ? [
+                      const SizedBox(height: 4),
+                      ResponsiveLabelField(
+                        fields: fields,
+                        labelValueSpacing: 4,
+                        layoutAxis: Axis.vertical,
+                      ),
+                    ]
+                  : [],
+            );
+          },
+        );
+      },
       onDelete: _onHistoryDelete,
       onSave: _onHistorySave,
       itemToMap: (item) => {
@@ -1112,235 +1327,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       },
     );
   }
-}
 
-// ============ Shared Widgets ============
-
-/// Detailed passport display widget showing all fields with sensitivity masking
-class _PassportItem extends ConsumerWidget {
-  final PassportData passport;
-
-  const _PassportItem({required this.passport});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    final fields = <LabelValueField>[];
-    if (passport.country != null && passport.country!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Country', value: passport.country!));
-    }
-    if (passport.number != null && passport.number!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Passport Number',
-          value: passport.number!,
-          fieldId: 'passport.number',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (passport.holderName != null && passport.holderName!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Holder Name',
-          value: passport.holderName!,
-          fieldId: 'passport.holderName',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (passport.issueDate != null && passport.issueDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Issue Date', value: passport.issueDate!),
-      );
-    }
-    if (passport.expiryDate != null && passport.expiryDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Expiry Date', value: passport.expiryDate!),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row with icon and country name
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.book, size: 20, color: AppTheme.primaryColor),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      passport.country ?? 'Passport',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ResponsiveLabelField(fields: fields, labelValueSpacing: 4),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Detailed visa display widget showing all fields with sensitivity masking
-class _VisaItem extends ConsumerWidget {
-  final VisaData visa;
-
-  const _VisaItem({required this.visa});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    final fields = <LabelValueField>[];
-    if (visa.country != null && visa.country!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Country', value: visa.country!));
-    }
-    if (visa.visaType != null && visa.visaType!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Type',
-          value: visa.visaType!,
-          fieldId: 'visa.visaType',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (visa.number != null && visa.number!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Visa Number',
-          value: visa.number!,
-          fieldId: 'visa.number',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (visa.issueDate != null && visa.issueDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Issue Date', value: visa.issueDate!));
-    }
-    if (visa.expiryDate != null && visa.expiryDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Expiry Date', value: visa.expiryDate!),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row with icon and country name
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.article,
-                  size: 20,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      visa.country ?? 'Visa',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ResponsiveLabelField(fields: fields, labelValueSpacing: 4),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TravelItem extends ConsumerWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final List<LabelValueField>? additionalFields;
-
-  const _TravelItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    this.additionalFields,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final fields = <LabelValueField>[];
-    if (title.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Destination', value: title));
-    }
-    if (subtitle.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Notes', value: subtitle));
-    }
-    if (additionalFields != null) {
-      fields.addAll(additionalFields!);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 20, color: AppTheme.primaryColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ResponsiveLabelField(fields: fields, labelValueSpacing: 4),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  String _historyToMap(TravelHistoryData item) {
+    return {
+      'travel.destination': item.destination,
+      'travel.date': item.date ?? '',
+      'travel.departureCity': item.departureCity ?? '',
+      'travel.departureTime': item.departureTime ?? '',
+      'travel.arrivalTime': item.arrivalTime ?? '',
+      'travel.flightNumber': item.flightNumber ?? '',
+      'travel.ticketPrice': item.ticketPrice ?? '',
+      'travel.airline': item.airline ?? '',
+    }.values.join(', ');
   }
 }

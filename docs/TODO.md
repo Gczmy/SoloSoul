@@ -84,9 +84,9 @@ SoloSoul/
 - [ ] 各条目只专注于独特内容：图标、字段前缀等客制化内容
 
 ### UI优化 🟡
-- [ ] Operation log 每条记录增加 detail 按钮，查看条目细节信息
-- [ ] Trash 点击 detail 对话框中：restore 按钮放到 purge 左边，close 保持不变
-- [ ] 优化travel history条目，点击添加按钮后，先让用户从下拉列表中选择：[飞机，火车，巴士，taxi，drive,other]等选项，用户点击选项后，再跳出不一样的字段
+- [x] Operation log 每条记录增加 detail 按钮，查看条目细节信息
+- [x] Trash 点击 detail 对话框中：restore 按钮放到 purge 左边，close 保持不变
+- [x] 优化travel history条目，点击添加按钮后，先让用户从下拉列表中选择：[飞机，火车，巴士，taxi，drive,other]等选项，用户点击选项后，再跳出不一样的字段
   - 飞机选项：起飞地点，到达地点，起飞时间，到达时间，航司，航班号，机票价格，行程备注等
   - 火车选项：出发地点，到达地点，出发时间，到达时间，火车车次，火车票价格，行程备注等
   - 巴士选项：出发地点，到达地点，出发时间，到达时间，车次名，车票价格，行程备注等
@@ -104,21 +104,24 @@ SoloSoul/
 当输入框出现时，可以给背景列表增加一个轻微的高斯模糊或半透明遮罩（如果是弹出层级），或者仅仅是通过高亮边框强调当前的输入框，让用户产生“必须处理完这一条”的心理暗示。
 自动聚焦（Auto-focus）：
 输入框一旦出现，必须立即 autofocus: true，直接弹出键盘/获取光标，实现“秒开秒输”。
-- [ ] trash页面在点击条目后跳出细节对话框，对话框里的restore按钮和框外面(条目里的)restore按钮风格不一致，统一修改成框外面(条目里的)restore按钮风格，也就是文本是紫色，背景是白色的,然后对话框里的restore带框线，框线颜色使用和文本一样的紫色，对话框外面条目里的按钮风格保持不变。
-- [ ] trash页面条目的细节对话框里的purge按钮，把框线改成红色的，和文本”purge”的颜色一致。
-- [ ] trash 页面的条目加入history按钮，查看该条目的历史修改信息。
-- [ ] 对条目进行软删除操作时，弹出来的二次确认对话框，文本"This action cannot be undone."修改成该条目将会被移动至trash，将在30天后被永久删除。
+- [x] trash页面在点击条目后跳出细节对话框，对话框里的restore按钮和框外面(条目里的)restore按钮风格不一致，统一修改成框外面(条目里的)restore按钮风格，也就是文本是紫色，背景是白色的,然后对话框里的restore带框线，框线颜色使用和文本一样的紫色，对话框外面条目里的按钮风格保持不变。
+- [x] trash页面条目的细节对话框里的purge按钮，把框线改成红色的，和文本”purge”的颜色一致。
+- [x] trash 页面的条目加入history按钮，查看该条目的历史修改信息。
+- [x] 对条目进行软删除操作时，弹出来的二次确认对话框，文本"This action cannot be undone."修改成该条目将会被移动至trash，将在30天后被永久删除。
+- [ ] trash页面每个条目如果有历史记录的话，也直接在条目上加入history按钮。
+- [ ] trash页面历史记录页，直接显示历史记录，现在还需要再点一下按钮，删除里面的这个按钮。
+
 ---
 
 ## P1: Flutter macOS 稳定性
 
 ### 代码质量优化
-- [ ] 3个 section 类 (Contact/IdCard/Address) 代码复用 ~90% → 提取 base class
-- [ ] `SensitivityLevel` 字符串 → enum 改造
-- [ ] 密码框边框代码在多处重复 (8处) → 方案1: 创建静态工厂方法 `AppInputDecoration.errorBorder()` | 方案2: 在 `MaterialApp` 的 `theme` 中统一定义 `inputDecorationTheme`
-- [ ] `getFieldLevel` 异常控制流 → `firstWhereOrNull`
-- [ ] `getDeletedItems()` 列表重建 → 添加缓存
-- [ ] 教育/就业页面 CollapsibleSectionCard 集成
+- [x] 3个 section 类 (Contact/IdCard/Address) 代码复用 ~90% → 提取 base class
+- [x] `SensitivityLevel` 字符串 → enum 改造
+- [x] 密码框边框代码在多处重复 (8处) → 方案1: 创建静态工厂方法 `AppInputDecoration.errorBorder()` | 方案2: 在 `MaterialApp` 的 `theme` 中统一定义 `inputDecorationTheme`
+- [x] `getFieldLevel` 异常控制流 → `firstWhereOrNull`
+- [x] `getDeletedItems()` 列表重建 → 添加缓存
+- [x] 教育/就业页面 CollapsibleSectionCard 集成
 
 ### 物理安全
 - [ ] 防截屏 (FLAG_SECURE on Android, iOS snapshot blur)
