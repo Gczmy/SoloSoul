@@ -931,8 +931,8 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Log the delete operation
     _logSoftDelete(section, itemType, deletedItem);
 
-    // Save FIRST, then update state only on success
-    final saved = await saveProfile(newProfile);
+    // Save FIRST (immediate to invalidate cache), then update state only on success
+    final saved = await saveProfileImmediate(newProfile);
     if (!saved) {
       _addLogEntry(
         section: LogSectionConfig.getLogSection(section, itemType),

@@ -543,7 +543,7 @@ Future<bool> showDeleteConfirmationDialog({
     builder: (context) => AlertDialog(
       title: Text('Delete $itemType?'),
       content: Text(
-        'Are you sure you want to delete "$itemName"?\n\nThis action cannot be undone.',
+        'Are you sure you want to delete "$itemName"?\n\nThis $itemType will be moved to trash and permanently deleted after 30 days.',
       ),
       actions: [
         TextButton(

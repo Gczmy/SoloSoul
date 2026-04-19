@@ -402,4 +402,45 @@ class AppTheme {
       ),
     );
   }
+
+  /// Password field border styles
+  static OutlineInputBorder get passwordFieldEnabledBorder => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade400),
+      );
+
+  static OutlineInputBorder get passwordFieldErrorBorder => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.red.shade300),
+      );
+
+  static OutlineInputBorder get passwordFieldFocusedErrorBorder =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.red.shade500, width: 2),
+      );
+
+  /// Input decoration utilities for password fields
+  static InputDecoration passwordFieldDecoration({
+    String? labelText,
+    String? hintText,
+    String? errorText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      errorText: errorText,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      errorStyle: const TextStyle(
+        color: errorColor,
+        fontWeight: FontWeight.w500,
+      ),
+      enabledBorder: passwordFieldEnabledBorder,
+      errorBorder: passwordFieldErrorBorder,
+      focusedErrorBorder: passwordFieldFocusedErrorBorder,
+    );
+  }
 }

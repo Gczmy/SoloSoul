@@ -80,6 +80,19 @@ class _EntryWithIndex<T> {
   _EntryWithIndex({required this.entry, required this.originalIndex});
 }
 
+/// Standalone helper to persist an operation to account metadata
+Future<void> _persistAccountOperation(WidgetRef ref, String operationDesc) async {
+  final accountId = ref
+      .read(authNotifierProvider.notifier)
+      .selectedAccount
+      ?.id;
+  if (accountId != null) {
+    await ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(operationDesc);
+  }
+}
+
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 

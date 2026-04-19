@@ -11,6 +11,7 @@ import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
@@ -34,9 +35,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   @override
   void initState() {
     super.initState();
-    // Load profile if not already loaded
+    // Load profile and field histories if not already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileNotifierProvider.notifier).loadProfile();
+      ref.read(fieldHistoriesProvider.notifier).loadHistories();
     });
     _passwordFocusNode.addListener(_onPasswordFocusChange);
   }
@@ -267,18 +269,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                             ),
                           ],
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade400),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.red.shade300),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.red.shade500, width: 2),
-                        ),
+                        enabledBorder: AppTheme.passwordFieldEnabledBorder,
+                        errorBorder: AppTheme.passwordFieldErrorBorder,
+                        focusedErrorBorder: AppTheme.passwordFieldFocusedErrorBorder,
                       ),
                     );
                   },
@@ -871,13 +864,26 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ],
         ),
         actions: [
-          FilledButton.icon(
+          OutlinedButton.icon(
+            onPressed: () => _showHistoryForItem(context, item),
+            icon: const Icon(Icons.history, size: 18),
+            label: const Text('History'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.primaryColor,
+              side: const BorderSide(color: AppTheme.primaryColor),
+            ),
+          ),
+          OutlinedButton.icon(
             onPressed: () {
               Navigator.pop(context);
               _restoreItem(item);
             },
             icon: const Icon(Icons.restore, size: 18),
             label: const Text('Restore'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.primaryColor,
+              side: const BorderSide(color: AppTheme.primaryColor),
+            ),
           ),
           OutlinedButton.icon(
             onPressed: () {
@@ -888,6 +894,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
             label: const Text('Purge'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.errorColor,
+              side: const BorderSide(color: AppTheme.errorColor),
             ),
           ),
           TextButton(
@@ -977,6 +984,103 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  void _showHistoryForItem(BuildContext context, DeletedItemInfo item) {
+    // Determine the fieldId prefix based on item type
+    String? fieldIdPrefix;
+    switch (item.itemType) {
+      case 'contact':
+        // Contact can be email or phone - look up the actual type
+        final profile = ref.read(profileNotifierProvider);
+        if (profile?.identity?.contact != null) {
+          final entries = profile!.identity!.contact!.entries;
+          final contactIdx = entries.indexWhere((e) => e.id == item.id);
+          if (contactIdx >= 0) {
+            final contactType = entries[contactIdx].type;
+            fieldIdPrefix = contactType == 'phone' ? 'contact.phone' : 'contact.email';
+          }
+        }
+        break;
+      case 'idCard':
+        fieldIdPrefix = 'idCard.number';
+        break;
+      case 'address':
+        fieldIdPrefix = 'address.postalCode';
+        break;
+      case 'passport':
+        fieldIdPrefix = 'travel.passport';
+        break;
+      case 'visa':
+        fieldIdPrefix = 'travel.visa';
+        break;
+      case 'bank_account':
+        fieldIdPrefix = 'financial.bankAccount';
+        break;
+      case 'card':
+        fieldIdPrefix = 'financial.card';
+        break;
+      case 'education':
+        fieldIdPrefix = 'professional.education';
+        break;
+      case 'employment':
+        fieldIdPrefix = 'professional.employment';
+        break;
+      case 'skill':
+        fieldIdPrefix = 'professional.skill';
+        break;
+      case 'language':
+        fieldIdPrefix = 'professional.language';
+        break;
+      default:
+        fieldIdPrefix = null;
+    }
+
+    if (fieldIdPrefix == null) {
+      showOverlaySnackBar(
+        context,
+        content: 'History not available for this item type',
+        type: SnackBarType.info,
+      );
+      return;
+    }
+
+    final history = ref.read(fieldHistoriesProvider.notifier).getHistory(item.id, fieldIdPrefix);
+
+    if (history == null || history.entries.isEmpty) {
+      showOverlaySnackBar(
+        context,
+        content: 'No history available for this item',
+        type: SnackBarType.info,
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.history, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Expanded(child: Text('${item.itemLabel} - History')),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: FieldHistoryView(
+            fieldName: fieldIdPrefix!,
+            history: history,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

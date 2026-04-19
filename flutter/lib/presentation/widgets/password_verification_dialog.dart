@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Shared password verification dialog for sensitive operations.
 /// Returns the password if verified, null if cancelled.
@@ -246,18 +247,9 @@ class _PasswordVerificationDialogContentState
                 color: Colors.red.shade700,
                 fontWeight: FontWeight.w500,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade400),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.red.shade300),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.red.shade500, width: 2),
-              ),
+              enabledBorder: AppTheme.passwordFieldEnabledBorder,
+              errorBorder: AppTheme.passwordFieldErrorBorder,
+              focusedErrorBorder: AppTheme.passwordFieldFocusedErrorBorder,
             ),
             onSubmitted: (_) => _verify(),
           ),

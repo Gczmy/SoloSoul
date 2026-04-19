@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Sensitivity display mode
 enum SensitivityDisplayMode {
@@ -545,11 +545,9 @@ class SensitivitySettings {
   }
 
   SensitivityLevel? getFieldLevel(String fieldId) {
-    try {
-      return fieldSettings.firstWhere((f) => f.fieldId == fieldId).level;
-    } catch (_) {
-      return null;
-    }
+    return fieldSettings
+        .firstWhereOrNull((f) => f.fieldId == fieldId)
+        ?.level;
   }
 
   List<FieldSensitivity> getFieldsByLevel(SensitivityLevel level) {

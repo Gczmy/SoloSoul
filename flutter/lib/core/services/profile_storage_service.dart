@@ -445,6 +445,7 @@ class TravelHistoryData {
   String? flightNumber;
   String? ticketPrice;
   String? airline;
+  String? travelType; // Airplane, Train, Bus, Taxi, Drive, Other
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
@@ -459,6 +460,7 @@ class TravelHistoryData {
     this.flightNumber,
     this.ticketPrice,
     this.airline,
+    this.travelType,
     int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
@@ -476,6 +478,7 @@ class TravelHistoryData {
       flightNumber: json['flight_number'],
       ticketPrice: json['ticket_price'],
       airline: json['airline'],
+      travelType: json['travel_type'],
       updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
@@ -494,6 +497,7 @@ class TravelHistoryData {
     'flight_number': flightNumber,
     'ticket_price': ticketPrice,
     'airline': airline,
+    'travel_type': travelType,
     'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
@@ -511,6 +515,7 @@ class TravelHistoryData {
     String? flightNumber,
     String? ticketPrice,
     String? airline,
+    String? travelType,
     int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
@@ -525,6 +530,7 @@ class TravelHistoryData {
       flightNumber: flightNumber ?? this.flightNumber,
       ticketPrice: ticketPrice ?? this.ticketPrice,
       airline: airline ?? this.airline,
+      travelType: travelType ?? this.travelType,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel)
@@ -1745,6 +1751,14 @@ class ProfileStorageService {
   /// Clear the encryption key (on lock)
   void clearEncryptionKey() {
     _rustVault.clearEncryptionKey();
+    _invalidateDeletedItemsCache();
+  }
+
+  // Caching for getDeletedItems - invalidated on any profile mutation
+  List<DeletedItemInfo>? _cachedDeletedItems;
+
+  void _invalidateDeletedItemsCache() {
+    _cachedDeletedItems = null;
   }
 
   /// Load profile data for an account
@@ -1759,13 +1773,6 @@ class ProfileStorageService {
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
-      // DEBUG: Log loaded bank accounts
-      if (profile.financial?.bankAccounts != null) {
-        final deleted = profile.financial!.bankAccounts
-            .where((b) => b.isDeleted)
-            .toList();
-        for (var b in deleted) {}
-      }
       return profile;
     } catch (e) {
       return null;
@@ -1784,13 +1791,9 @@ class ProfileStorageService {
         return false;
       }
 
-      // DEBUG: Log save success/failure and check bank accounts
-      if (profile.financial?.bankAccounts != null) {
-        final deleted = profile.financial!.bankAccounts
-            .where((b) => b.isDeleted)
-            .toList();
-        for (var b in deleted) {}
-      }
+      // Invalidate deleted items cache since profile data changed
+      _invalidateDeletedItemsCache();
+
       return true;
     } catch (e) {
       return false;
@@ -1798,7 +1801,13 @@ class ProfileStorageService {
   }
 
   /// Get all soft-deleted items across all sections
+  /// Results are cached to avoid rebuilding the list on every call
+  /// Cache is invalidated on any profile mutation (restore, permanent delete, etc.)
   List<DeletedItemInfo> getDeletedItems(ProfileData profile) {
+    if (_cachedDeletedItems != null) {
+      return _cachedDeletedItems!;
+    }
+
     final items = <DeletedItemInfo>[];
 
     if (profile.travel != null) {
@@ -2014,6 +2023,9 @@ class ProfileStorageService {
 
     // Sort by deletedAt descending (most recent first)
     items.sort((a, b) => b.deletedAt.compareTo(a.deletedAt));
+
+    // Cache the result
+    _cachedDeletedItems = items;
     return items;
   }
 
@@ -2025,6 +2037,7 @@ class ProfileStorageService {
     String itemType,
     int index,
   ) async {
+    _invalidateDeletedItemsCache();
     switch (section) {
       case 'travel':
         if (profile.travel == null) return;
@@ -2131,6 +2144,7 @@ class ProfileStorageService {
     String itemType,
     int index,
   ) async {
+    _invalidateDeletedItemsCache();
     switch (section) {
       case 'travel':
         if (profile.travel == null) return;
