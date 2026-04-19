@@ -107,23 +107,20 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$_biometricType unlock enabled'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppTheme.successColor,
-          ),
+        showOverlaySnackBar(
+          context,
+          content: '$_biometricType unlock enabled',
+          type: SnackBarType.success,
         );
       }
     } else {
       // Disable biometric unlock - update state and snackbar immediately, persist in background
       setState(() => _biometricEnabled = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$_biometricType unlock disabled'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        showOverlaySnackBar(
+          context,
+          content: '$_biometricType unlock disabled',
+          type: SnackBarType.info,
         );
       }
       SecurityService.instance.setBiometricsEnabled(false);
@@ -194,23 +191,20 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Face ID unlock enabled'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppTheme.successColor,
-          ),
+        showOverlaySnackBar(
+          context,
+          content: 'Face ID unlock enabled',
+          type: SnackBarType.success,
         );
       }
     } else {
       // Disable Face ID unlock - update state and snackbar immediately, persist in background
       setState(() => _faceIdEnabled = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Face ID unlock disabled'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        showOverlaySnackBar(
+          context,
+          content: 'Face ID unlock disabled',
+          type: SnackBarType.info,
         );
       }
       SecurityService.instance.setFaceIdEnabled(false);
@@ -224,20 +218,16 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Biometric authentication successful'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppTheme.successColor,
-        ),
+      showOverlaySnackBar(
+        context,
+        content: 'Biometric authentication successful',
+        type: SnackBarType.success,
       );
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Biometric authentication failed'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppTheme.errorColor,
-        ),
+      showOverlaySnackBar(
+        context,
+        content: 'Biometric authentication failed',
+        type: SnackBarType.error,
       );
     }
   }
