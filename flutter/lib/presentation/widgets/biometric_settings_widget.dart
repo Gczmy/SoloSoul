@@ -86,6 +86,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
+      // Mark as verified so Lock Sensitivity Access button appears in header
+      ref.read(sensitivePageAccessProvider.notifier).markVerified();
+
       // Verify biometric is available
       final biometricService = BiometricService.instance;
       final canUse = await biometricService.isAvailable();
@@ -161,6 +164,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         // User cancelled
         return;
       }
+
+      // Mark as verified so Lock Sensitivity Access button appears in header
+      ref.read(sensitivePageAccessProvider.notifier).markVerified();
 
       // Verify biometric is available
       final biometricService = BiometricService.instance;
