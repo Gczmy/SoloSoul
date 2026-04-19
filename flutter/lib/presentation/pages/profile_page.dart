@@ -219,7 +219,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               tooltip: 'Copy Name',
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: fullName));
-                showOverlaySnackBar(context, content: 'Name copied!');
+                showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
               },
               visualDensity: VisualDensity.compact,
             ),
@@ -810,7 +810,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
                 Clipboard.setData(
                   ClipboardData(text: displayEntries[i].entry.value),
                 );
-                showOverlaySnackBar(context, content: 'Copied!');
+                showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
               },
               onEdit: () => _startEditing(i),
               onDelete: () => _deleteEntry(i),

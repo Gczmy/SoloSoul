@@ -300,7 +300,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
       itemToMap: _accountToMap,
       onCopyAll: (account, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Bank account copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -488,7 +488,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
       itemToMap: _cardToMap,
       onCopyAll: (card, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Card copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -677,7 +677,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
       itemToMap: _taxIdToMap,
       onCopyAll: (taxId, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Tax ID copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }

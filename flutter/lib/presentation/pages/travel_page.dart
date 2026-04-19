@@ -277,7 +277,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       itemToMap: _passportToMap,
       onCopyAll: (passport, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Passport copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -468,7 +468,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       itemToMap: _visaToMap,
       onCopyAll: (visa, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Visa copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -611,7 +611,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       itemToMap: (item) => {'travel.destination': item.destination},
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Travel history copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }

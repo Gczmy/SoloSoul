@@ -300,7 +300,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       itemToMap: _educationToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Education copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -425,7 +425,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
       itemToMap: _employmentToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Employment copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -527,7 +527,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
       itemToMap: _skillToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Skill copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
@@ -629,7 +629,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
       itemToMap: _languageToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Language copied!');
+        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
       },
     );
   }
