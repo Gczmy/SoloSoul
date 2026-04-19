@@ -275,25 +275,8 @@ class SettingsPage extends ConsumerWidget {
             const SizedBox(height: 32),
 
             // Delete Account
-            GestureDetector(
+            _DeleteAccountButton(
               onTap: () => _confirmDeleteAccount(context, ref),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.errorColor),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Delete Account',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppTheme.errorColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05, end: 0),
 
             const SizedBox(height: 32),
@@ -647,6 +630,57 @@ class SettingsPage extends ConsumerWidget {
 
     passwordController.dispose();
     passwordFocusNode.dispose();
+  }
+}
+
+class _DeleteAccountButton extends StatefulWidget {
+  const _DeleteAccountButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_DeleteAccountButton> createState() => _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppTheme.errorColor),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: AppTheme.errorColor.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            'Delete Account',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppTheme.errorColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
