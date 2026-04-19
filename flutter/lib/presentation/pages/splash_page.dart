@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 class SplashPage extends StatefulWidget {
@@ -13,11 +18,20 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _navigateToLogin();
+    _initializeAndNavigate();
   }
 
-  Future<void> _navigateToLogin() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
+  Future<void> _initializeAndNavigate() async {
+    // Perform async initialization while splash is visible
+    if (!Platform.isAndroid) {
+      final appSupport = await getApplicationSupportDirectory();
+      RustVaultService.instance.initAccountManager(appSupport.path);
+    }
+    await DebugLogger.instance.init();
+
+    // Small delay for splash animation to be visible (min 800ms)
+    await Future.delayed(const Duration(milliseconds: 800));
+
     if (mounted) {
       Navigator.of(context).pushReplacementNamed('/login');
     }

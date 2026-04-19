@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
-import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/presentation/pages/splash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/login_page.dart';
@@ -22,7 +20,6 @@ import 'package:solosoul_flutter/presentation/pages/search_page.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
-import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/widgets/privacy_blur_overlay.dart';
 
 void main() async {
@@ -32,16 +29,6 @@ void main() async {
   if (Platform.isMacOS) {
     NativeChannelService.initialize();
   }
-
-  // Initialize Rust vault with app support directory
-  // This must happen BEFORE any vault operations
-  if (!Platform.isAndroid) {
-    final appSupport = await getApplicationSupportDirectory();
-    RustVaultService.instance.initAccountManager(appSupport.path);
-  }
-
-  // Initialize debug logger for troubleshooting account issues
-  await DebugLogger.instance.init();
 
   runApp(
     const ProviderScope(
