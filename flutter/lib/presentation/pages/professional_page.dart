@@ -9,6 +9,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/core/services/password_verification_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, EntryActionsContext;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
@@ -471,28 +472,6 @@ class _EducationItem extends ConsumerWidget {
     required this.onDelete,
   });
 
-  String _formatAllFields(EducationData e) {
-    final buffer = StringBuffer();
-    buffer.writeln('Education');
-    if (e.institution != null && e.institution!.isNotEmpty) {
-      buffer.writeln('Institution: ${e.institution}');
-    }
-    final degree = _displayDegree(e);
-    if (degree.isNotEmpty) {
-      buffer.writeln('Degree: $degree');
-    }
-    if (e.field != null && e.field!.isNotEmpty) {
-      buffer.writeln('Field: ${e.field}');
-    }
-    if (e.startDate != null && e.startDate!.isNotEmpty) {
-      buffer.writeln('Start Date: ${e.startDate}');
-    }
-    if (e.endDate != null && e.endDate!.isNotEmpty) {
-      buffer.writeln('End Date: ${e.endDate}');
-    }
-    return buffer.toString().trim();
-  }
-
   String _displayDegree(EducationData e) {
     if (e.degree != null && e.degree!.isNotEmpty) {
       return e.degree!;
@@ -559,7 +538,8 @@ class _EducationItem extends ConsumerWidget {
               context: context,
               ref: ref,
               onCopy: () {
-                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                final formatted = '${item.entryType}\n${item.toFormattedString()}';
+                Clipboard.setData(ClipboardData(text: formatted));
                 showOverlaySnackBar(
                   context,
                   content: 'Copied to clipboard',
@@ -799,27 +779,6 @@ class _EmploymentItem extends ConsumerWidget {
     required this.onDelete,
   });
 
-  String _formatAllFields(EmploymentData e) {
-    final buffer = StringBuffer();
-    buffer.writeln('Employment');
-    if (e.company != null && e.company!.isNotEmpty) {
-      buffer.writeln('Company: ${e.company}');
-    }
-    if (e.position != null && e.position!.isNotEmpty) {
-      buffer.writeln('Position: ${e.position}');
-    }
-    if (e.responsibilities != null && e.responsibilities!.isNotEmpty) {
-      buffer.writeln('Responsibilities: ${e.responsibilities}');
-    }
-    if (e.startDate != null && e.startDate!.isNotEmpty) {
-      buffer.writeln('Start Date: ${e.startDate}');
-    }
-    if (e.endDate != null && e.endDate!.isNotEmpty) {
-      buffer.writeln('End Date: ${e.endDate}');
-    }
-    return buffer.toString().trim();
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fields = <LabelValueField>[
@@ -873,7 +832,8 @@ class _EmploymentItem extends ConsumerWidget {
               context: context,
               ref: ref,
               onCopy: () {
-                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                final formatted = '${item.entryType}\n${item.toFormattedString()}';
+                Clipboard.setData(ClipboardData(text: formatted));
                 showOverlaySnackBar(
                   context,
                   content: 'Copied to clipboard',
@@ -1071,16 +1031,6 @@ class _SkillItem extends ConsumerWidget {
     required this.onDelete,
   });
 
-  String _formatAllFields(SkillData s) {
-    final buffer = StringBuffer();
-    buffer.writeln('Skill');
-    buffer.writeln('Name: ${s.name}');
-    if (s.level != null && s.level!.isNotEmpty) {
-      buffer.writeln('Level: ${s.level}');
-    }
-    return buffer.toString().trim();
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fields = <LabelValueField>[
@@ -1117,7 +1067,8 @@ class _SkillItem extends ConsumerWidget {
               context: context,
               ref: ref,
               onCopy: () {
-                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                final formatted = '${item.entryType}\n${item.toFormattedString()}';
+                Clipboard.setData(ClipboardData(text: formatted));
                 showOverlaySnackBar(
                   context,
                   content: 'Copied to clipboard',
@@ -1317,16 +1268,6 @@ class _LanguageItem extends ConsumerWidget {
     required this.onDelete,
   });
 
-  String _formatAllFields(LanguageData l) {
-    final buffer = StringBuffer();
-    buffer.writeln('Language');
-    buffer.writeln('Name: ${l.name}');
-    if (l.proficiency != null && l.proficiency!.isNotEmpty) {
-      buffer.writeln('Proficiency: ${l.proficiency}');
-    }
-    return buffer.toString().trim();
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fields = <LabelValueField>[
@@ -1363,7 +1304,8 @@ class _LanguageItem extends ConsumerWidget {
               context: context,
               ref: ref,
               onCopy: () {
-                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                final formatted = '${item.entryType}\n${item.toFormattedString()}';
+                Clipboard.setData(ClipboardData(text: formatted));
                 showOverlaySnackBar(
                   context,
                   content: 'Copied to clipboard',
@@ -1583,24 +1525,6 @@ class _AwardItem extends ConsumerWidget {
     required this.onDelete,
   });
 
-  String _formatAllFields(AwardData a) {
-    final buffer = StringBuffer();
-    buffer.writeln('Award');
-    if (a.title != null && a.title!.isNotEmpty) {
-      buffer.writeln('Title: ${a.title}');
-    }
-    if (a.issuer != null && a.issuer!.isNotEmpty) {
-      buffer.writeln('Issuer: ${a.issuer}');
-    }
-    if (a.date != null && a.date!.isNotEmpty) {
-      buffer.writeln('Date: ${a.date}');
-    }
-    if (a.description != null && a.description!.isNotEmpty) {
-      buffer.writeln('Description: ${a.description}');
-    }
-    return buffer.toString().trim();
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fields = <LabelValueField>[
@@ -1647,7 +1571,8 @@ class _AwardItem extends ConsumerWidget {
               context: context,
               ref: ref,
               onCopy: () {
-                Clipboard.setData(ClipboardData(text: _formatAllFields(item)));
+                final formatted = '${item.entryType}\n${item.toFormattedString()}';
+                Clipboard.setData(ClipboardData(text: formatted));
                 showOverlaySnackBar(
                   context,
                   content: 'Copied to clipboard',

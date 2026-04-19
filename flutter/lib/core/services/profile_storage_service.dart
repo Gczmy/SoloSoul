@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:solosoul_flutter/core/models/base_models.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 
 /// Maximum character limits for form fields
@@ -1065,7 +1066,7 @@ class TaxIdData {
   }
 }
 
-class SkillData {
+class SkillData with FormattableEntry {
   String id;
   String name;
   String? level;
@@ -1081,6 +1082,15 @@ class SkillData {
     this.isDeleted = false,
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
+
+  @override
+  String get entryType => 'Skill';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'level': level,
+  };
 
   factory SkillData.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
@@ -1128,7 +1138,7 @@ class SkillData {
       level != null && level!.isNotEmpty ? '$name ($level)' : name;
 }
 
-class LanguageData {
+class LanguageData with FormattableEntry {
   String id;
   String name;
   String? proficiency;
@@ -1144,6 +1154,15 @@ class LanguageData {
     this.isDeleted = false,
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
+
+  @override
+  String get entryType => 'Language';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'name': name,
+    'proficiency': proficiency,
+  };
 
   factory LanguageData.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
@@ -1190,7 +1209,7 @@ class LanguageData {
   String toString() => name;
 }
 
-class AwardData {
+class AwardData with FormattableEntry {
   String id;
   String? title;
   String? issuer;
@@ -1210,6 +1229,17 @@ class AwardData {
     this.isDeleted = false,
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
+
+  @override
+  String get entryType => 'Award';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'title': title,
+    'issuer': issuer,
+    'date': date,
+    'description': description,
+  };
 
   factory AwardData.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
@@ -1367,7 +1397,7 @@ class ProfessionalData {
   }
 }
 
-class EducationData {
+class EducationData with FormattableEntry {
   String id;
   String? institution;
   String? degree;
@@ -1391,6 +1421,19 @@ class EducationData {
     this.isDeleted = false,
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
+
+  @override
+  String get entryType => 'Education';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'institution': institution,
+    'degree': degree,
+    'degreeCustom': degreeCustom,
+    'field': field,
+    'startDate': startDate,
+    'endDate': endDate,
+  };
 
   factory EducationData.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
@@ -1454,7 +1497,7 @@ class EducationData {
   }
 }
 
-class EmploymentData {
+class EmploymentData with FormattableEntry {
   String id;
   String? company;
   String? position;
@@ -1476,6 +1519,18 @@ class EmploymentData {
     this.isDeleted = false,
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
+
+  @override
+  String get entryType => 'Employment';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'company': company,
+    'position': position,
+    'responsibilities': responsibilities,
+    'startDate': startDate,
+    'endDate': endDate,
+  };
 
   factory EmploymentData.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
