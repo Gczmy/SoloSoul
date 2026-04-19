@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
 
 /// Widget that displays a value with sensitivity-based masking.
 /// - Public fields: Always shown as plaintext
@@ -229,12 +230,11 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
             onTap: () {
               Clipboard.setData(ClipboardData(text: widget.value));
               ClipboardMonitorService.instance.notifySensitiveCopied();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Copied to clipboard'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: Duration(seconds: 1),
-                ),
+              showOverlaySnackBar(
+                context,
+                content: 'Copied to clipboard',
+                type: SnackBarType.success,
+                duration: const Duration(seconds: 1),
               );
             },
             borderRadius: BorderRadius.circular(4),
