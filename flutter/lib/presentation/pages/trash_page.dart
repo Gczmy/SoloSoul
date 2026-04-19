@@ -124,8 +124,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       _error = null;
     });
 
+    // Use verifyPasswordForSensitiveData instead of unlockVault
+    // to avoid changing auth state when vault is already unlocked
     final authNotifier = ref.read(authNotifierProvider.notifier);
-    final success = await authNotifier.unlockVault(_passwordController.text);
+    final success = await authNotifier.verifyPasswordForSensitiveData(_passwordController.text);
 
     if (success) {
       ref.read(sensitivePageAccessProvider.notifier).markVerified();

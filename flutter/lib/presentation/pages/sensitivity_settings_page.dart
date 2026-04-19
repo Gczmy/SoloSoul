@@ -118,7 +118,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     });
 
     final authNotifier = ref.read(authNotifierProvider.notifier);
-    final success = await authNotifier.unlockVault(_passwordController.text);
+    final success = await authNotifier.verifyPasswordForSensitiveData(_passwordController.text);
 
     if (success) {
       // Mark as verified in shared sensitive page access
