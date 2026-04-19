@@ -212,17 +212,34 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'professional',
-          itemType: 'education',
-          index: index,
-          deletedItem: item,
-        );
+
     setState(() {
       _items = List.from(_items)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'professional',
+            itemType: 'education',
+            index: index,
+            deletedItem: item,
+          );
+    } catch (e) {
+      setState(() {
+        _items = List.from(_items)..insert(index, item);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete education',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
     if (mounted) {
       OperationNotification.show(
         context,
@@ -247,17 +264,23 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
   }
 
   Future<void> _onSave(
+    EducationData? newItem,
     Map<String, String> values,
     EducationData? editingItem,
   ) async {
-    final newItem = _createFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
+    final EducationData itemToSave;
     if (wasAdding) {
-      _items = List.from(_items)..add(newItem);
+      itemToSave = newItem!;
+    } else {
+      itemToSave = _createFromValues(values, id: editingItem!.id);
+    }
+    if (wasAdding) {
+      _items = List.from(_items)..add(itemToSave);
     } else {
       final index = _items.indexOf(editingItem);
       if (index != -1) {
-        _items = List.from(_items)..[index] = newItem;
+        _items = List.from(_items)..[index] = itemToSave;
       }
     }
     final professional = ProfessionalData(
@@ -270,7 +293,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     );
     await ref
         .read(profileNotifierProvider.notifier)
-        .updateProfessional(professional);
+        .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
           ref.read(sensitivitySettingsProvider).displayMode ==
@@ -280,7 +303,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
         message: OperationLogger.createNotification(
           section: LogSection.professional,
           action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: newItem.institution ?? 'Education',
+          itemName: itemToSave.institution ?? 'Education',
           isPrivacyModeActive: isPrivacyMode,
         ),
       );
@@ -457,6 +480,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _educationToMap,
+      showInternalActions: false,
     );
   }
 }
@@ -549,10 +573,10 @@ class _EducationItem extends ConsumerWidget {
               onEdit: actionsContext.onEdit ?? onEdit,
               onDelete: actionsContext.onDelete ?? onDelete,
               config: EntryActionsConfig(
-                showCopy: false,
+                showCopy: true,
                 showEdit: true,
                 showDelete: true,
-                showHistory: false,
+                showHistory: true,
               ),
             )
           : [
@@ -584,12 +608,6 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _loadData();
   }
 
@@ -647,17 +665,34 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'professional',
-          itemType: 'employment',
-          index: index,
-          deletedItem: item,
-        );
+
     setState(() {
       _items = List.from(_items)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'professional',
+            itemType: 'employment',
+            index: index,
+            deletedItem: item,
+          );
+    } catch (e) {
+      setState(() {
+        _items = List.from(_items)..insert(index, item);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete employment',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
     if (mounted) {
       OperationNotification.show(
         context,
@@ -682,17 +717,23 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
   }
 
   Future<void> _onSave(
+    EmploymentData? newItem,
     Map<String, String> values,
     EmploymentData? editingItem,
   ) async {
-    final newItem = _createFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
+    final EmploymentData itemToSave;
     if (wasAdding) {
-      _items = List.from(_items)..add(newItem);
+      itemToSave = newItem!;
+    } else {
+      itemToSave = _createFromValues(values, id: editingItem!.id);
+    }
+    if (wasAdding) {
+      _items = List.from(_items)..add(itemToSave);
     } else {
       final index = _items.indexOf(editingItem);
       if (index != -1) {
-        _items = List.from(_items)..[index] = newItem;
+        _items = List.from(_items)..[index] = itemToSave;
       }
     }
     final professional = ProfessionalData(
@@ -706,7 +747,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     );
     await ref
         .read(profileNotifierProvider.notifier)
-        .updateProfessional(professional);
+        .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
           ref.read(sensitivitySettingsProvider).displayMode ==
@@ -716,7 +757,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
         message: OperationLogger.createNotification(
           section: LogSection.professional,
           action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: newItem.company ?? 'Employment',
+          itemName: itemToSave.company ?? 'Employment',
           isPrivacyModeActive: isPrivacyMode,
         ),
       );
@@ -843,10 +884,10 @@ class _EmploymentItem extends ConsumerWidget {
               onEdit: actionsContext.onEdit ?? onEdit,
               onDelete: actionsContext.onDelete ?? onDelete,
               config: EntryActionsConfig(
-                showCopy: false,
+                showCopy: true,
                 showEdit: true,
                 showDelete: true,
-                showHistory: false,
+                showHistory: true,
               ),
             )
           : [
@@ -881,12 +922,6 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeSkills)];
@@ -913,17 +948,34 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'professional',
-          itemType: 'skill',
-          index: index,
-          deletedItem: item,
-        );
+
     setState(() {
       _items = List.from(_items)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'professional',
+            itemType: 'skill',
+            index: index,
+            deletedItem: item,
+          );
+    } catch (e) {
+      setState(() {
+        _items = List.from(_items)..insert(index, item);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete skill',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
     if (mounted) {
       OperationNotification.show(
         context,
@@ -948,18 +1000,24 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
   }
 
   Future<void> _onSave(
+    SkillData? newItem,
     Map<String, String> values,
     SkillData? editingItem,
   ) async {
-    final newItem = _createFromValues(values, id: editingItem?.id);
-    if (newItem.name.isEmpty) return;
     final wasAdding = editingItem == null;
+    final SkillData itemToSave;
     if (wasAdding) {
-      _items = List.from(_items)..add(newItem);
+      itemToSave = newItem!;
+    } else {
+      itemToSave = _createFromValues(values, id: editingItem!.id);
+    }
+    if (itemToSave.name.isEmpty) return;
+    if (wasAdding) {
+      _items = List.from(_items)..add(itemToSave);
     } else {
       final index = _items.indexOf(editingItem);
       if (index != -1) {
-        _items = List.from(_items)..[index] = newItem;
+        _items = List.from(_items)..[index] = itemToSave;
       }
     }
     final professional = ProfessionalData(
@@ -973,7 +1031,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
     );
     await ref
         .read(profileNotifierProvider.notifier)
-        .updateProfessional(professional);
+        .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
           ref.read(sensitivitySettingsProvider).displayMode ==
@@ -983,7 +1041,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
         message: OperationLogger.createNotification(
           section: LogSection.professional,
           action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: newItem.toString(),
+          itemName: itemToSave.toString(),
           isPrivacyModeActive: isPrivacyMode,
         ),
       );
@@ -1078,10 +1136,10 @@ class _SkillItem extends ConsumerWidget {
               onEdit: actionsContext.onEdit ?? onEdit,
               onDelete: actionsContext.onDelete ?? onDelete,
               config: EntryActionsConfig(
-                showCopy: false,
+                showCopy: true,
                 showEdit: true,
                 showDelete: true,
-                showHistory: false,
+                showHistory: true,
               ),
             )
           : [
@@ -1116,12 +1174,6 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeLanguages)];
@@ -1151,17 +1203,34 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'professional',
-          itemType: 'language',
-          index: index,
-          deletedItem: item,
-        );
+
     setState(() {
       _items = List.from(_items)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'professional',
+            itemType: 'language',
+            index: index,
+            deletedItem: item,
+          );
+    } catch (e) {
+      setState(() {
+        _items = List.from(_items)..insert(index, item);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete language',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
     if (mounted) {
       OperationNotification.show(
         context,
@@ -1186,18 +1255,24 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
   }
 
   Future<void> _onSave(
+    LanguageData? newItem,
     Map<String, String> values,
     LanguageData? editingItem,
   ) async {
-    final newItem = _createFromValues(values, id: editingItem?.id);
-    if (newItem.name.isEmpty) return;
     final wasAdding = editingItem == null;
+    final LanguageData itemToSave;
     if (wasAdding) {
-      _items = List.from(_items)..add(newItem);
+      itemToSave = newItem!;
+    } else {
+      itemToSave = _createFromValues(values, id: editingItem!.id);
+    }
+    if (itemToSave.name.isEmpty) return;
+    if (wasAdding) {
+      _items = List.from(_items)..add(itemToSave);
     } else {
       final index = _items.indexOf(editingItem);
       if (index != -1) {
-        _items = List.from(_items)..[index] = newItem;
+        _items = List.from(_items)..[index] = itemToSave;
       }
     }
     final professional = ProfessionalData(
@@ -1210,7 +1285,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
     );
     await ref
         .read(profileNotifierProvider.notifier)
-        .updateProfessional(professional);
+        .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
           ref.read(sensitivitySettingsProvider).displayMode ==
@@ -1220,7 +1295,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
         message: OperationLogger.createNotification(
           section: LogSection.professional,
           action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: newItem.toString(),
+          itemName: itemToSave.toString(),
           isPrivacyModeActive: isPrivacyMode,
         ),
       );
@@ -1315,10 +1390,10 @@ class _LanguageItem extends ConsumerWidget {
               onEdit: actionsContext.onEdit ?? onEdit,
               onDelete: actionsContext.onDelete ?? onDelete,
               config: EntryActionsConfig(
-                showCopy: false,
+                showCopy: true,
                 showEdit: true,
                 showDelete: true,
-                showHistory: false,
+                showHistory: true,
               ),
             )
           : [
@@ -1350,12 +1425,6 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _loadData();
   }
 
@@ -1396,17 +1465,34 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'professional',
-          itemType: 'award',
-          index: index,
-          deletedItem: item,
-        );
+
     setState(() {
       _items = List.from(_items)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'professional',
+            itemType: 'award',
+            index: index,
+            deletedItem: item,
+          );
+    } catch (e) {
+      setState(() {
+        _items = List.from(_items)..insert(index, item);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete award',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
     if (mounted) {
       OperationNotification.show(
         context,
@@ -1431,18 +1517,24 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
   }
 
   Future<void> _onSave(
+    AwardData? newItem,
     Map<String, String> values,
     AwardData? editingItem,
   ) async {
-    final newItem = _createFromValues(values, id: editingItem?.id);
-    if (newItem.title == null || newItem.title!.isEmpty) return;
     final wasAdding = editingItem == null;
+    final AwardData itemToSave;
     if (wasAdding) {
-      _items = List.from(_items)..add(newItem);
+      itemToSave = newItem!;
+    } else {
+      itemToSave = _createFromValues(values, id: editingItem!.id);
+    }
+    if (itemToSave.title == null || itemToSave.title!.isEmpty) return;
+    if (wasAdding) {
+      _items = List.from(_items)..add(itemToSave);
     } else {
       final index = _items.indexOf(editingItem);
       if (index != -1) {
-        _items = List.from(_items)..[index] = newItem;
+        _items = List.from(_items)..[index] = itemToSave;
       }
     }
     final professional = ProfessionalData(
@@ -1457,7 +1549,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
     );
     await ref
         .read(profileNotifierProvider.notifier)
-        .updateProfessional(professional);
+        .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
           ref.read(sensitivitySettingsProvider).displayMode ==
@@ -1467,7 +1559,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
         message: OperationLogger.createNotification(
           section: LogSection.professional,
           action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: newItem.title ?? 'Award',
+          itemName: itemToSave.title ?? 'Award',
           isPrivacyModeActive: isPrivacyMode,
         ),
       );
@@ -1582,10 +1674,10 @@ class _AwardItem extends ConsumerWidget {
               onEdit: actionsContext.onEdit ?? onEdit,
               onDelete: actionsContext.onDelete ?? onDelete,
               config: EntryActionsConfig(
-                showCopy: false,
+                showCopy: true,
                 showEdit: true,
                 showDelete: true,
-                showHistory: false,
+                showHistory: true,
               ),
             )
           : [

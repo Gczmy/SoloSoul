@@ -120,12 +120,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
-  }
-
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _passports = [
@@ -147,7 +141,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     String? id,
   }) {
     return PassportData(
-      id: generateEntryId(),
+      id: id ?? generateEntryId(),
       country: values['passport.country']?.isEmpty == true
           ? null
           : values['passport.country'],
@@ -160,14 +154,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     );
   }
 
-  Map<String, String> _passportToMap(PassportData passport) {
-    return {
-      'passport.country': passport.country ?? '',
-      'passport.number': passport.number ?? '',
-      'passport.expiryDate': passport.expiryDate ?? '',
-    };
-  }
-
   Future<void> _onPassportDelete(PassportData passport) async {
     final index = _passports.indexOf(passport);
     if (index == -1) return;
@@ -177,18 +163,32 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = passport.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'travel',
-          itemType: 'passport',
-          index: index,
-          deletedItem: passport,
-        );
 
     setState(() {
       _passports = List.from(_passports)..removeAt(index);
     });
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'travel',
+            itemType: 'passport',
+            index: index,
+            deletedItem: passport,
+          );
+    } catch (e) {
+      setState(() {
+        _passports = List.from(_passports)..insert(index, passport);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete passport',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       OperationNotification.show(
@@ -210,19 +210,27 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
   }
 
   Future<void> _onPassportSave(
+    PassportData? newItem,
     Map<String, String> values,
     PassportData? editingItem,
   ) async {
-    final newPassport = _createPassportFromValues(values);
+    // For adds: newItem is already created by itemFactory with correct ID
+    // For edits: create updated item via factory
     final wasAdding = editingItem == null;
-    final itemName = newPassport.country ?? 'Passport';
+    final PassportData passportToSave;
+    if (wasAdding) {
+      passportToSave = newItem!;
+    } else {
+      passportToSave = _createPassportFromValues(values, id: editingItem!.id);
+    }
+    final itemName = passportToSave.country ?? 'Passport';
 
     if (wasAdding) {
-      _passports = List.from(_passports)..add(newPassport);
+      _passports = List.from(_passports)..add(passportToSave);
     } else {
       final index = _passports.indexOf(editingItem);
       if (index != -1) {
-        _passports = List.from(_passports)..[index] = newPassport;
+        _passports = List.from(_passports)..[index] = passportToSave;
       }
     }
 
@@ -232,7 +240,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       travelHistory:
           ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateTravel(travel);
+    await ref.read(profileNotifierProvider.notifier).updateTravelImmediate(travel);
 
     if (mounted) {
       final isPrivacyMode =
@@ -329,15 +337,14 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
               actions: EntryActionBuilder.buildActions(
                 context: ctx,
                 ref: ref,
-                onCopy: () =>
-                    onCopy(_passportToMap(passport).values.join(', ')),
+                onCopy: () => onCopy('${passport.entryType}\n${passport.toFormattedString()}'),
                 onEdit: onEdit,
                 onDelete: onDelete,
                 config: EntryActionsConfig(
                   showCopy: true,
                   showEdit: true,
                   showDelete: true,
-                  showHistory: false,
+                  showHistory: true,
                 ),
               ),
               children: fields.isNotEmpty
@@ -356,7 +363,11 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       },
       onDelete: _onPassportDelete,
       onSave: _onPassportSave,
-      itemToMap: _passportToMap,
+      itemToMap: (p) => {
+        'passport.country': p.country ?? '',
+        'passport.number': p.number ?? '',
+        'passport.expiryDate': p.expiryDate ?? '',
+      },
       onCopyAll: (passport, text) async {
         Clipboard.setData(ClipboardData(text: text));
         showOverlaySnackBar(
@@ -365,6 +376,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
           type: SnackBarType.success,
         );
       },
+      showInternalActions: false,
     );
   }
 }
@@ -382,12 +394,6 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _loadData();
   }
 
@@ -409,7 +415,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
 
   VisaData _createVisaFromValues(Map<String, String> values, {String? id}) {
     return VisaData(
-      id: generateEntryId(),
+      id: id ?? generateEntryId(),
       country: values['visa.country']?.isEmpty == true
           ? null
           : values['visa.country'],
@@ -425,15 +431,6 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
     );
   }
 
-  Map<String, String> _visaToMap(VisaData visa) {
-    return {
-      'visa.country': visa.country ?? '',
-      'visa.visaType': visa.visaType ?? '',
-      'visa.number': visa.number ?? '',
-      'visa.expiryDate': visa.expiryDate ?? '',
-    };
-  }
-
   Future<void> _onVisaDelete(VisaData visa) async {
     final index = _visas.indexOf(visa);
     if (index == -1) return;
@@ -443,18 +440,33 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = visa.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'travel',
-          itemType: 'visa',
-          index: index,
-          deletedItem: visa,
-        );
 
     setState(() {
       _visas = List.from(_visas)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'travel',
+            itemType: 'visa',
+            index: index,
+            deletedItem: visa,
+          );
+    } catch (e) {
+      setState(() {
+        _visas = List.from(_visas)..insert(index, visa);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete visa',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       OperationNotification.show(
@@ -476,20 +488,26 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
   }
 
   Future<void> _onVisaSave(
+    VisaData? newItem,
     Map<String, String> values,
     VisaData? editingItem,
   ) async {
-    final newVisa = _createVisaFromValues(values);
     final wasAdding = editingItem == null;
-    final itemName = newVisa.country ?? 'Visa';
+    final VisaData visaToSave;
+    if (wasAdding) {
+      visaToSave = newItem!;
+    } else {
+      visaToSave = _createVisaFromValues(values, id: editingItem!.id);
+    }
+    final itemName = visaToSave.country ?? 'Visa';
 
     // Update local state
     if (wasAdding) {
-      _visas = List.from(_visas)..add(newVisa);
+      _visas = List.from(_visas)..add(visaToSave);
     } else {
       final index = _visas.indexOf(editingItem);
       if (index != -1) {
-        _visas = List.from(_visas)..[index] = newVisa;
+        _visas = List.from(_visas)..[index] = visaToSave;
       }
     }
 
@@ -500,7 +518,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       travelHistory:
           ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateTravel(travel);
+    await ref.read(profileNotifierProvider.notifier).updateTravelImmediate(travel);
 
     if (mounted) {
       final isPrivacyMode =
@@ -600,14 +618,14 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
               actions: EntryActionBuilder.buildActions(
                 context: ctx,
                 ref: ref,
-                onCopy: () => onCopy(_visaToMap(visa).values.join(', ')),
+                onCopy: () => onCopy('${visa.entryType}\n${visa.toFormattedString()}'),
                 onEdit: onEdit,
                 onDelete: onDelete,
                 config: EntryActionsConfig(
                   showCopy: true,
                   showEdit: true,
                   showDelete: true,
-                  showHistory: false,
+                  showHistory: true,
                 ),
               ),
               children: fields.isNotEmpty
@@ -626,7 +644,12 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       },
       onDelete: _onVisaDelete,
       onSave: _onVisaSave,
-      itemToMap: _visaToMap,
+      itemToMap: (v) => {
+        'visa.country': v.country ?? '',
+        'visa.visaType': v.visaType ?? '',
+        'visa.number': v.number ?? '',
+        'visa.expiryDate': v.expiryDate ?? '',
+      },
       onCopyAll: (visa, text) async {
         Clipboard.setData(ClipboardData(text: text));
         showOverlaySnackBar(
@@ -635,6 +658,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
           type: SnackBarType.success,
         );
       },
+      showInternalActions: false,
     );
   }
 }
@@ -656,12 +680,6 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
-  }
-
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _history = [...(travel?.activeTravelHistory ?? [])];
@@ -676,18 +694,33 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = item.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'travel',
-          itemType: 'travel_history',
-          index: index,
-          deletedItem: item,
-        );
 
     setState(() {
       _history = List.from(_history)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'travel',
+            itemType: 'travel_history',
+            index: index,
+            deletedItem: item,
+          );
+    } catch (e) {
+      setState(() {
+        _history = List.from(_history)..insert(index, item);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete travel history',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       OperationNotification.show(
@@ -713,6 +746,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
   }
 
   Future<void> _onHistorySave(
+    TravelHistoryData? newItem,
     Map<String, String> values,
     TravelHistoryData? editingItem,
   ) async {
@@ -720,41 +754,48 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
     if (dest.isEmpty) return;
     final wasAdding = editingItem == null;
 
-    final newItem = TravelHistoryData(
-      id: editingItem?.id ?? generateEntryId(),
-      destination: dest,
-      date: values['travel.date']?.isEmpty == true
-          ? null
-          : values['travel.date'],
-      departureCity: values['travel.departureCity']?.isEmpty == true
-          ? null
-          : values['travel.departureCity'],
-      departureTime: values['travel.departureTime']?.isEmpty == true
-          ? null
-          : values['travel.departureTime'],
-      arrivalTime: values['travel.arrivalTime']?.isEmpty == true
-          ? null
-          : values['travel.arrivalTime'],
-      flightNumber: values['travel.flightNumber']?.isEmpty == true
-          ? null
-          : values['travel.flightNumber'],
-      ticketPrice: values['travel.ticketPrice']?.isEmpty == true
-          ? null
-          : values['travel.ticketPrice'],
-      airline: values['travel.airline']?.isEmpty == true
-          ? null
-          : values['travel.airline'],
-      travelType: values['travel.travelType']?.isEmpty == true
-          ? null
-          : values['travel.travelType'],
-    );
+    // For adds: use the item already created by itemFactory (with correct ID)
+    // For edits: create via inline factory
+    final TravelHistoryData itemToSave;
+    if (wasAdding) {
+      itemToSave = newItem!;
+    } else {
+      itemToSave = TravelHistoryData(
+        id: editingItem!.id,
+        destination: dest,
+        date: values['travel.date']?.isEmpty == true
+            ? null
+            : values['travel.date'],
+        departureCity: values['travel.departureCity']?.isEmpty == true
+            ? null
+            : values['travel.departureCity'],
+        departureTime: values['travel.departureTime']?.isEmpty == true
+            ? null
+            : values['travel.departureTime'],
+        arrivalTime: values['travel.arrivalTime']?.isEmpty == true
+            ? null
+            : values['travel.arrivalTime'],
+        flightNumber: values['travel.flightNumber']?.isEmpty == true
+            ? null
+            : values['travel.flightNumber'],
+        ticketPrice: values['travel.ticketPrice']?.isEmpty == true
+            ? null
+            : values['travel.ticketPrice'],
+        airline: values['travel.airline']?.isEmpty == true
+            ? null
+            : values['travel.airline'],
+        travelType: values['travel.travelType']?.isEmpty == true
+            ? null
+            : values['travel.travelType'],
+      );
+    }
 
     if (wasAdding) {
-      _history = List.from(_history)..add(newItem);
+      _history = List.from(_history)..add(itemToSave);
     } else {
       final index = _history.indexOf(editingItem);
       if (index != -1) {
-        _history = List.from(_history)..[index] = newItem;
+        _history = List.from(_history)..[index] = itemToSave;
       }
     }
 
@@ -763,7 +804,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
       travelHistory: _history,
     );
-    await ref.read(profileNotifierProvider.notifier).updateTravel(travel);
+    await ref.read(profileNotifierProvider.notifier).updateTravelImmediate(travel);
 
     if (mounted) {
       final isPrivacyMode =
@@ -1281,14 +1322,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
               actions: EntryActionBuilder.buildActions(
                 context: ctx,
                 ref: ref,
-                onCopy: () => onCopy(_historyToMap(item)),
+                onCopy: () => onCopy('${item.entryType}\n${item.toFormattedString()}'),
                 onEdit: onEdit,
                 onDelete: onDelete,
                 config: EntryActionsConfig(
                   showCopy: true,
                   showEdit: true,
                   showDelete: true,
-                  showHistory: false,
+                  showHistory: true,
                 ),
               ),
               children: fields.isNotEmpty
@@ -1325,19 +1366,8 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
           type: SnackBarType.success,
         );
       },
+      showInternalActions: false,
     );
   }
 
-  String _historyToMap(TravelHistoryData item) {
-    return {
-      'travel.destination': item.destination,
-      'travel.date': item.date ?? '',
-      'travel.departureCity': item.departureCity ?? '',
-      'travel.departureTime': item.departureTime ?? '',
-      'travel.arrivalTime': item.arrivalTime ?? '',
-      'travel.flightNumber': item.flightNumber ?? '',
-      'travel.ticketPrice': item.ticketPrice ?? '',
-      'travel.airline': item.airline ?? '',
-    }.values.join(', ');
-  }
 }

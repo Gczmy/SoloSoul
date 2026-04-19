@@ -991,14 +991,7 @@ class _ContactEntryItem extends ConsumerStatefulWidget {
 class _ContactEntryItemState extends ConsumerState<_ContactEntryItem> {
   bool _historyExpanded = false;
 
-  String _formatAllFields() {
-    final buffer = StringBuffer();
-    buffer.writeln('Contact Entry');
-    buffer.writeln('Label: ${widget.entry.label}');
-    buffer.writeln('Type: ${widget.entry.type}');
-    buffer.writeln('Value: ${widget.entry.value}');
-    return buffer.toString().trim();
-  }
+  String _formatAllFields() => '${widget.entry.entryType}\n${widget.entry.toFormattedString()}';
 
   Future<void> _handleCopy() async {
     Clipboard.setData(ClipboardData(text: _formatAllFields()));
@@ -1094,29 +1087,7 @@ class _IdCardTile extends ConsumerStatefulWidget {
 }
 
 class _IdCardTileState extends ConsumerState<_IdCardTile> {
-  String _formatAllFields() {
-    final buffer = StringBuffer();
-    buffer.writeln('ID Card');
-    if (widget.card.label != null && widget.card.label!.isNotEmpty) {
-      buffer.writeln('Label: ${widget.card.label}');
-    }
-    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
-      buffer.writeln('ID Number: ${widget.card.number}');
-    }
-    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
-      buffer.writeln('Holder Name: ${widget.card.holderName}');
-    }
-    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
-      buffer.writeln('Country: ${widget.card.country}');
-    }
-    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
-      buffer.writeln('Issue Date: ${widget.card.issueDate}');
-    }
-    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
-      buffer.writeln('Expiry Date: ${widget.card.expiryDate}');
-    }
-    return buffer.toString().trim();
-  }
+  String _formatAllFields() => '${widget.card.entryType}\n${widget.card.toFormattedString()}';
 
   @override
   Widget build(BuildContext context) {
@@ -1848,29 +1819,7 @@ class _IdCardItem extends ConsumerStatefulWidget {
 class _IdCardItemState extends ConsumerState<_IdCardItem> {
   bool _historyExpanded = false;
 
-  String _formatAllFields() {
-    final buffer = StringBuffer();
-    buffer.writeln('ID Card');
-    if (widget.card.label != null && widget.card.label!.isNotEmpty) {
-      buffer.writeln('Label: ${widget.card.label}');
-    }
-    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
-      buffer.writeln('ID Number: ${widget.card.number}');
-    }
-    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
-      buffer.writeln('Holder Name: ${widget.card.holderName}');
-    }
-    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
-      buffer.writeln('Country: ${widget.card.country}');
-    }
-    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
-      buffer.writeln('Issue Date: ${widget.card.issueDate}');
-    }
-    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
-      buffer.writeln('Expiry Date: ${widget.card.expiryDate}');
-    }
-    return buffer.toString().trim();
-  }
+  String _formatAllFields() => '${widget.card.entryType}\n${widget.card.toFormattedString()}';
 
   Future<void> _handleCopy() async {
     final verified = await verifyPasswordForRestrictedField(
@@ -2010,27 +1959,7 @@ class _AddressTile extends ConsumerStatefulWidget {
 }
 
 class _AddressTileState extends ConsumerState<_AddressTile> {
-  String _formatAllFields() {
-    final buffer = StringBuffer();
-    buffer.writeln('Address');
-    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
-      buffer.writeln('Label: ${widget.address.label}');
-    }
-    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
-      buffer.writeln('Street: ${widget.address.street}');
-    }
-    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
-      buffer.writeln('City: ${widget.address.city}');
-    }
-    if (widget.address.postalCode != null &&
-        widget.address.postalCode!.isNotEmpty) {
-      buffer.writeln('Postal Code: ${widget.address.postalCode}');
-    }
-    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
-      buffer.writeln('Country: ${widget.address.country}');
-    }
-    return buffer.toString().trim();
-  }
+  String _formatAllFields() => '${widget.address.entryType}\n${widget.address.toFormattedString()}';
 
   @override
   Widget build(BuildContext context) {
@@ -2731,27 +2660,7 @@ class _AddressItem extends ConsumerStatefulWidget {
 class _AddressItemState extends ConsumerState<_AddressItem> {
   bool _historyExpanded = false;
 
-  String _formatAllFields() {
-    final buffer = StringBuffer();
-    buffer.writeln('Address');
-    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
-      buffer.writeln('Label: ${widget.address.label}');
-    }
-    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
-      buffer.writeln('Street: ${widget.address.street}');
-    }
-    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
-      buffer.writeln('City: ${widget.address.city}');
-    }
-    if (widget.address.postalCode != null &&
-        widget.address.postalCode!.isNotEmpty) {
-      buffer.writeln('Postal Code: ${widget.address.postalCode}');
-    }
-    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
-      buffer.writeln('Country: ${widget.address.country}');
-    }
-    return buffer.toString().trim();
-  }
+  String _formatAllFields() => '${widget.address.entryType}\n${widget.address.toFormattedString()}';
 
   Future<void> _handleCopy() async {
     Clipboard.setData(ClipboardData(text: _formatAllFields()));

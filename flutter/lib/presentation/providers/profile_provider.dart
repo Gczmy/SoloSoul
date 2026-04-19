@@ -691,6 +691,28 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     return result;
   }
 
+  /// Update travel data with immediate save (bypasses debounce)
+  Future<bool> updateTravelImmediate(TravelData travel) async {
+    final current = state ?? ProfileData();
+    final oldTravel = current.travel;
+
+    _logTravelChanges(oldTravel, travel);
+    final isCreate = oldTravel == null;
+
+    final updated = current.copyWith(travel: travel);
+    final result = await saveProfileImmediate(updated);
+
+    if (!result) {
+      return false;
+    }
+
+    state = updated;
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeTravelChanges(oldTravel, travel, isCreate));
+    return result;
+  }
+
   /// Log changes between old and new travel data
   void _logTravelChanges(TravelData? old, TravelData? newData) {
     if (old == null && newData != null) {
@@ -771,6 +793,28 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     return result;
   }
 
+  /// Update financial data with immediate save (bypasses debounce)
+  Future<bool> updateFinancialImmediate(FinancialData financial) async {
+    final current = state ?? ProfileData();
+    final oldFinancial = current.financial;
+
+    _logFinancialChanges(oldFinancial, financial);
+    final isCreate = oldFinancial == null;
+
+    final updated = current.copyWith(financial: financial);
+    final result = await saveProfileImmediate(updated);
+
+    if (!result) {
+      return false;
+    }
+
+    state = updated;
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeFinancialChanges(oldFinancial, financial, isCreate));
+    return result;
+  }
+
   /// Log changes between old and new financial data
   void _logFinancialChanges(FinancialData? old, FinancialData? newData) {
     if (old == null && newData != null) {
@@ -836,6 +880,28 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     state = updated;
 
     // Update account operation metadata
+    await _ref
+        .read(authNotifierProvider.notifier)
+        .updateOperation(_summarizeProfessionalChanges(oldProfessional, professional, isCreate));
+    return result;
+  }
+
+  /// Update professional data with immediate save (bypasses debounce)
+  Future<bool> updateProfessionalImmediate(ProfessionalData professional) async {
+    final current = state ?? ProfileData();
+    final oldProfessional = current.professional;
+
+    _logProfessionalChanges(oldProfessional, professional);
+    final isCreate = oldProfessional == null;
+
+    final updated = current.copyWith(professional: professional);
+    final result = await saveProfileImmediate(updated);
+
+    if (!result) {
+      return false;
+    }
+
+    state = updated;
     await _ref
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeProfessionalChanges(oldProfessional, professional, isCreate));
@@ -911,12 +977,16 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required int index,
     required dynamic deletedItem,
   }) async {
-    if (state == null) return;
+    if (state == null) {
+      return;
+    }
 
     final accountId = _ref
         .read(authNotifierProvider.notifier)
         .selectedAccountId;
-    if (accountId == null) return;
+    if (accountId == null) {
+      return;
+    }
 
     final current = state!;
     final now = DateTime.now();

@@ -34,7 +34,10 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   final List<FormFieldDef> fieldDefs;
   final Widget Function(T item) displayItemBuilder;
   final Future<void> Function(T item) onDelete;
-  final Future<void> Function(Map<String, String> values, T? editingItem)
+  /// onSave receives (newItem, values, editingItem):
+  /// - For adds: newItem is the item created by itemFactory (with correct ID), editingItem is null
+  /// - For edits: newItem is null, editingItem is the original item, values has updated fields
+  final Future<void> Function(T? newItem, Map<String, String> values, T? editingItem)
   onSave;
   final void Function(T item, String fieldId, String value)? onCopy;
 
@@ -209,11 +212,14 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     final wasAdding = _mode == 'adding';
     final editingItem = wasAdding ? null : _items[_editingIndex];
 
+    // Capture the newly created item (with correct ID) for "adding" mode
+    T? createdItem;
     setState(() {
       if (wasAdding) {
         // Create new item via itemFactory
         if (widget.itemFactory != null) {
-          _items.add(widget.itemFactory!(values));
+          createdItem = widget.itemFactory!(values);
+          _items.add(createdItem!);
         }
       } else {
         // For editing, create updated item
@@ -227,7 +233,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       _mode = 'idle';
     });
 
-    widget.onSave(values, editingItem);
+    // Pass the created item for adds so the page handler uses the same object (same ID)
+    widget.onSave(createdItem, values, editingItem);
   }
 
   Widget _buildForm(ThemeData theme) {

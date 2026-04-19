@@ -164,7 +164,7 @@ class IdentityData {
       addresses?.where((a) => !a.isDeleted).toList() ?? [];
 }
 
-class ContactEntry {
+class ContactEntry with FormattableEntry {
   String id;
   String label; // e.g., "Personal", "Work", "Emergency"
   String type; // "email", "phone", "mobile"
@@ -172,6 +172,16 @@ class ContactEntry {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'Contact';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'label': label,
+    'type': type,
+    'value': value,
+  };
 
   ContactEntry({
     required this.id,
@@ -262,7 +272,7 @@ class ContactData {
       entries.where((e) => !e.isDeleted).toList();
 }
 
-class AddressData {
+class AddressData with FormattableEntry {
   String id;
   String? label;
   String? street;
@@ -273,6 +283,19 @@ class AddressData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'Address';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'label': label,
+    'street': street,
+    'city': city,
+    'state': state,
+    'postalCode': postalCode,
+    'country': country,
+  };
 
   AddressData({
     required this.id,
@@ -349,7 +372,7 @@ class AddressData {
   }
 }
 
-class IdCardData {
+class IdCardData with FormattableEntry {
   String id;
   String? label;
   String? number;
@@ -360,6 +383,19 @@ class IdCardData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'IdCard';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'label': label,
+    'number': number,
+    'issueDate': issueDate,
+    'expiryDate': expiryDate,
+    'holderName': holderName,
+    'country': country,
+  };
 
   IdCardData({
     required this.id,
@@ -436,7 +472,7 @@ class IdCardData {
   }
 }
 
-class TravelHistoryData {
+class TravelHistoryData with FormattableEntry {
   String id;
   String destination;
   String? date;
@@ -450,6 +486,22 @@ class TravelHistoryData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'TravelHistory';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'destination': destination,
+    'date': date,
+    'departureCity': departureCity,
+    'departureTime': departureTime,
+    'arrivalTime': arrivalTime,
+    'flightNumber': flightNumber,
+    'ticketPrice': ticketPrice,
+    'airline': airline,
+    'travelType': travelType,
+  };
 
   TravelHistoryData({
     required this.id,
@@ -612,7 +664,7 @@ class TravelData {
   }
 }
 
-class PassportData {
+class PassportData with FormattableEntry {
   String id;
   String? number;
   String? country;
@@ -622,6 +674,18 @@ class PassportData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'Passport';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'country': country,
+    'number': number,
+    'issueDate': issueDate,
+    'expiryDate': expiryDate,
+    'holderName': holderName,
+  };
 
   PassportData({
     required this.id,
@@ -693,7 +757,7 @@ class PassportData {
   }
 }
 
-class VisaData {
+class VisaData with FormattableEntry {
   String id;
   String? country;
   String? visaType;
@@ -703,6 +767,18 @@ class VisaData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'Visa';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'country': country,
+    'visaType': visaType,
+    'number': number,
+    'issueDate': issueDate,
+    'expiryDate': expiryDate,
+  };
 
   VisaData({
     required this.id,
@@ -841,7 +917,7 @@ class FinancialData {
   }
 }
 
-class BankAccountData {
+class BankAccountData with FormattableEntry {
   String id;
   String? bankName;
   String? accountNumber;
@@ -850,6 +926,17 @@ class BankAccountData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'BankAccount';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'bankName': bankName,
+    'accountNumber': accountNumber,
+    'currency': currency,
+    'swiftBic': swiftBic,
+  };
 
   BankAccountData({
     required this.id,
@@ -916,7 +1003,7 @@ class BankAccountData {
   }
 }
 
-class CardData {
+class CardData with FormattableEntry {
   String id;
   String? cardNumber;
   String? cardType;
@@ -925,6 +1012,17 @@ class CardData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'Card';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'cardType': cardType,
+    'cardNumber': cardNumber,
+    'expiryDate': expiryDate,
+    'holderName': holderName,
+  };
 
   CardData({
     required this.id,
@@ -991,7 +1089,7 @@ class CardData {
   }
 }
 
-class TaxIdData {
+class TaxIdData with FormattableEntry {
   String id;
   String? taxIdNumber;
   String? taxIdType;
@@ -1000,6 +1098,17 @@ class TaxIdData {
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
+
+  @override
+  String get entryType => 'TaxId';
+
+  @override
+  Map<String, dynamic> toMap() => {
+    'taxIdNumber': taxIdNumber,
+    'taxIdType': taxIdType,
+    'issuingAuthority': issuingAuthority,
+    'country': country,
+  };
 
   TaxIdData({
     required this.id,

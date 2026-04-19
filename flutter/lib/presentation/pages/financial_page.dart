@@ -14,7 +14,7 @@ import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef;
+    show UnifiedFormSection, FormFieldDef, EntryActionsContext;
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
@@ -130,12 +130,6 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
-  }
-
   void _loadData() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _accounts = [
@@ -191,18 +185,34 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
 
     final deletedId = account.id;
 
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'financial',
-          itemType: 'bank_account',
-          index: index,
-          deletedItem: account,
-        );
-
+    // Optimistic removal from UI
     setState(() {
       _accounts = List.from(_accounts)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'financial',
+            itemType: 'bank_account',
+            index: index,
+            deletedItem: account,
+          );
+    } catch (e) {
+      // Rollback on failure
+      setState(() {
+        _accounts = List.from(_accounts)..insert(index, account);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete bank account',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       OperationNotification.show(
@@ -228,19 +238,25 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
   }
 
   Future<void> _onAccountSave(
+    BankAccountData? newItem,
     Map<String, String> values,
     BankAccountData? editingItem,
   ) async {
-    final newAccount = _createAccountFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
-    final itemName = newAccount.bankName ?? 'Bank account';
+    final BankAccountData accountToSave;
+    if (wasAdding) {
+      accountToSave = newItem!;
+    } else {
+      accountToSave = _createAccountFromValues(values, id: editingItem!.id);
+    }
+    final itemName = accountToSave.bankName ?? 'Bank account';
 
     if (wasAdding) {
-      _accounts = List.from(_accounts)..add(newAccount);
+      _accounts = List.from(_accounts)..add(accountToSave);
     } else {
       final index = _accounts.indexOf(editingItem);
       if (index != -1) {
-        _accounts = List.from(_accounts)..[index] = newAccount;
+        _accounts = List.from(_accounts)..[index] = accountToSave;
       }
     }
 
@@ -250,7 +266,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
       cards: currentFinancial?.cards ?? [],
       taxIds: currentFinancial?.taxIds ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateFinancial(financial);
+    await ref.read(profileNotifierProvider.notifier).updateFinancialImmediate(financial);
 
     if (mounted) {
       final isPrivacyMode =
@@ -266,40 +282,6 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         ),
       );
     }
-  }
-
-  Future<void> _handleAccountCopy(BankAccountData account) async {
-    final text = _formatAccountAllFields(account);
-    await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) {
-      showOverlaySnackBar(
-        context,
-        content: 'Copied to clipboard',
-        type: SnackBarType.success,
-      );
-    }
-  }
-
-  Future<void> _handleAccountDelete(BankAccountData account) async {
-    await _onAccountDelete(account);
-  }
-
-  String _formatAccountAllFields(BankAccountData account) {
-    final buffer = StringBuffer();
-    buffer.writeln('Bank Account');
-    if (account.bankName != null && account.bankName!.isNotEmpty) {
-      buffer.writeln('Bank Name: ${account.bankName}');
-    }
-    if (account.accountNumber != null && account.accountNumber!.isNotEmpty) {
-      buffer.writeln('Account Number: ${account.accountNumber}');
-    }
-    if (account.currency != null && account.currency!.isNotEmpty) {
-      buffer.writeln('Currency: ${account.currency}');
-    }
-    if (account.swiftBic != null && account.swiftBic!.isNotEmpty) {
-      buffer.writeln('SWIFT/BIC: ${account.swiftBic}');
-    }
-    return buffer.toString().trim();
   }
 
   @override
@@ -332,49 +314,63 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (account) => UniversalEntryCard(
-        title: Text(account.bankName ?? 'Bank Account'),
-        subtitle: account.currency != null
-            ? Text(
-                account.currency!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              )
-            : null,
-        leading: Icon(
-          Icons.account_balance,
-          size: 20,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        actions: EntryActionBuilder.buildActions(
-          context: context,
-          ref: ref,
-          onCopy: () => _handleAccountCopy(account),
-          onEdit: () {}, // Edit is handled via UnifiedFormSection's long-press
-          onDelete: () => _handleAccountDelete(account),
-        ),
-        children: [
-          ResponsiveLabelField(
-            fields: [
-              if (account.accountNumber != null &&
-                  account.accountNumber!.isNotEmpty)
-                LabelValueField(
-                  label: 'Account Number',
-                  value: account.accountNumber!,
-                  fieldId: 'bankaccount.accountNumber',
-                  isSensitive: true,
-                ),
-              if (account.swiftBic != null && account.swiftBic!.isNotEmpty)
-                LabelValueField(
-                  label: 'SWIFT/BIC',
-                  value: account.swiftBic!,
-                  fieldId: 'bankaccount.swiftBic',
-                  isSensitive: true,
-                ),
+      displayItemBuilder: (account) => Builder(
+        builder: (ctx) {
+          final actionsContext = EntryActionsContext.of(ctx);
+          final onEdit = actionsContext?.onEdit ?? () {};
+          final onDelete = actionsContext?.onDelete ?? () {};
+          final onCopy = actionsContext?.onCopy ?? (text) async {};
+          return UniversalEntryCard(
+            title: Text(account.bankName ?? 'Bank Account'),
+            subtitle: account.currency != null
+                ? Text(
+                    account.currency!,
+                    style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : null,
+            leading: Icon(
+              Icons.account_balance,
+              size: 20,
+              color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+            ),
+            actions: EntryActionBuilder.buildActions(
+              context: ctx,
+              ref: ref,
+              onCopy: () => onCopy('${account.entryType}\n${account.toFormattedString()}'),
+              onEdit: onEdit,
+              onDelete: onDelete,
+              config: const EntryActionsConfig(
+                showCopy: true,
+                showEdit: true,
+                showDelete: true,
+                showHistory: true,
+              ),
+            ),
+            children: [
+              ResponsiveLabelField(
+                fields: [
+                  if (account.accountNumber != null &&
+                      account.accountNumber!.isNotEmpty)
+                    LabelValueField(
+                      label: 'Account Number',
+                      value: account.accountNumber!,
+                      fieldId: 'bankaccount.accountNumber',
+                      isSensitive: true,
+                    ),
+                  if (account.swiftBic != null && account.swiftBic!.isNotEmpty)
+                    LabelValueField(
+                      label: 'SWIFT/BIC',
+                      value: account.swiftBic!,
+                      fieldId: 'bankaccount.swiftBic',
+                      isSensitive: true,
+                    ),
+                ],
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       onDelete: _onAccountDelete,
       onSave: _onAccountSave,
@@ -387,6 +383,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
           type: SnackBarType.success,
         );
       },
+      showInternalActions: false,
     );
   }
 }
@@ -404,12 +401,6 @@ class _CardSectionState extends ConsumerState<_CardSection> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _loadData();
   }
 
@@ -464,18 +455,33 @@ class _CardSectionState extends ConsumerState<_CardSection> {
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = card.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'financial',
-          itemType: 'card',
-          index: index,
-          deletedItem: card,
-        );
 
     setState(() {
       _cards = List.from(_cards)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'financial',
+            itemType: 'card',
+            index: index,
+            deletedItem: card,
+          );
+    } catch (e) {
+      setState(() {
+        _cards = List.from(_cards)..insert(index, card);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete card',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       OperationNotification.show(
@@ -497,19 +503,25 @@ class _CardSectionState extends ConsumerState<_CardSection> {
   }
 
   Future<void> _onCardSave(
+    CardData? newItem,
     Map<String, String> values,
     CardData? editingItem,
   ) async {
-    final newCard = _createCardFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
-    final itemName = newCard.cardType ?? 'Card';
+    final CardData cardToSave;
+    if (wasAdding) {
+      cardToSave = newItem!;
+    } else {
+      cardToSave = _createCardFromValues(values, id: editingItem!.id);
+    }
+    final itemName = cardToSave.cardType ?? 'Card';
 
     if (wasAdding) {
-      _cards = List.from(_cards)..add(newCard);
+      _cards = List.from(_cards)..add(cardToSave);
     } else {
       final index = _cards.indexOf(editingItem);
       if (index != -1) {
-        _cards = List.from(_cards)..[index] = newCard;
+        _cards = List.from(_cards)..[index] = cardToSave;
       }
     }
 
@@ -519,7 +531,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
       cards: _cards,
       taxIds: currentFinancial?.taxIds ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateFinancial(financial);
+    await ref.read(profileNotifierProvider.notifier).updateFinancialImmediate(financial);
 
     if (mounted) {
       final isPrivacyMode =
@@ -535,40 +547,6 @@ class _CardSectionState extends ConsumerState<_CardSection> {
         ),
       );
     }
-  }
-
-  Future<void> _handleCardCopy(CardData card) async {
-    final text = _formatCardAllFields(card);
-    await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) {
-      showOverlaySnackBar(
-        context,
-        content: 'Copied to clipboard',
-        type: SnackBarType.success,
-      );
-    }
-  }
-
-  Future<void> _handleCardDelete(CardData card) async {
-    await _onCardDelete(card);
-  }
-
-  String _formatCardAllFields(CardData card) {
-    final buffer = StringBuffer();
-    buffer.writeln('Card');
-    if (card.cardType != null && card.cardType!.isNotEmpty) {
-      buffer.writeln('Card Type: ${card.cardType}');
-    }
-    if (card.cardNumber != null && card.cardNumber!.isNotEmpty) {
-      buffer.writeln('Card Number: ${card.cardNumber}');
-    }
-    if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
-      buffer.writeln('Expiry Date: ${card.expiryDate}');
-    }
-    if (card.holderName != null && card.holderName!.isNotEmpty) {
-      buffer.writeln('Holder Name: ${card.holderName}');
-    }
-    return buffer.toString().trim();
   }
 
   @override
@@ -601,48 +579,62 @@ class _CardSectionState extends ConsumerState<_CardSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (card) => UniversalEntryCard(
-        title: Text(card.cardType ?? 'Card'),
-        subtitle: card.expiryDate != null
-            ? Text(
-                card.expiryDate!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              )
-            : null,
-        leading: Icon(
-          Icons.credit_card,
-          size: 20,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        actions: EntryActionBuilder.buildActions(
-          context: context,
-          ref: ref,
-          onCopy: () => _handleCardCopy(card),
-          onEdit: () {},
-          onDelete: () => _handleCardDelete(card),
-        ),
-        children: [
-          ResponsiveLabelField(
-            fields: [
-              if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
-                LabelValueField(
-                  label: 'Card Number',
-                  value: card.cardNumber!,
-                  fieldId: 'card.cardNumber',
-                  isSensitive: true,
-                ),
-              if (card.holderName != null && card.holderName!.isNotEmpty)
-                LabelValueField(
-                  label: 'Holder Name',
-                  value: card.holderName!,
-                  fieldId: 'card.holderName',
-                  isSensitive: true,
-                ),
+      displayItemBuilder: (card) => Builder(
+        builder: (ctx) {
+          final actionsContext = EntryActionsContext.of(ctx);
+          final onEdit = actionsContext?.onEdit ?? () {};
+          final onDelete = actionsContext?.onDelete ?? () {};
+          final onCopy = actionsContext?.onCopy ?? (text) async {};
+          return UniversalEntryCard(
+            title: Text(card.cardType ?? 'Card'),
+            subtitle: card.expiryDate != null
+                ? Text(
+                    card.expiryDate!,
+                    style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : null,
+            leading: Icon(
+              Icons.credit_card,
+              size: 20,
+              color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+            ),
+            actions: EntryActionBuilder.buildActions(
+              context: ctx,
+              ref: ref,
+              onCopy: () => onCopy('${card.entryType}\n${card.toFormattedString()}'),
+              onEdit: onEdit,
+              onDelete: onDelete,
+              config: const EntryActionsConfig(
+                showCopy: true,
+                showEdit: true,
+                showDelete: true,
+                showHistory: true,
+              ),
+            ),
+            children: [
+              ResponsiveLabelField(
+                fields: [
+                  if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
+                    LabelValueField(
+                      label: 'Card Number',
+                      value: card.cardNumber!,
+                      fieldId: 'card.cardNumber',
+                      isSensitive: true,
+                    ),
+                  if (card.holderName != null && card.holderName!.isNotEmpty)
+                    LabelValueField(
+                      label: 'Holder Name',
+                      value: card.holderName!,
+                      fieldId: 'card.holderName',
+                      isSensitive: true,
+                    ),
+                ],
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       onDelete: _onCardDelete,
       onSave: _onCardSave,
@@ -655,6 +647,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
           type: SnackBarType.success,
         );
       },
+      showInternalActions: false,
     );
   }
 }
@@ -672,12 +665,6 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
     _loadData();
   }
 
@@ -732,18 +719,33 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = taxId.id;
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: 'financial',
-          itemType: 'tax_id',
-          index: index,
-          deletedItem: taxId,
-        );
 
     setState(() {
       _taxIds = List.from(_taxIds)..removeAt(index);
     });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'financial',
+            itemType: 'tax_id',
+            index: index,
+            deletedItem: taxId,
+          );
+    } catch (e) {
+      setState(() {
+        _taxIds = List.from(_taxIds)..insert(index, taxId);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete tax ID',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       OperationNotification.show(
@@ -765,19 +767,25 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
   }
 
   Future<void> _onTaxIdSave(
+    TaxIdData? newItem,
     Map<String, String> values,
     TaxIdData? editingItem,
   ) async {
-    final newTaxId = _createTaxIdFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
-    final itemName = newTaxId.taxIdType ?? 'Tax ID';
+    final TaxIdData taxIdToSave;
+    if (wasAdding) {
+      taxIdToSave = newItem!;
+    } else {
+      taxIdToSave = _createTaxIdFromValues(values, id: editingItem!.id);
+    }
+    final itemName = taxIdToSave.taxIdType ?? 'Tax ID';
 
     if (wasAdding) {
-      _taxIds = List.from(_taxIds)..add(newTaxId);
+      _taxIds = List.from(_taxIds)..add(taxIdToSave);
     } else {
       final index = _taxIds.indexOf(editingItem);
       if (index != -1) {
-        _taxIds = List.from(_taxIds)..[index] = newTaxId;
+        _taxIds = List.from(_taxIds)..[index] = taxIdToSave;
       }
     }
 
@@ -787,7 +795,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
       cards: currentFinancial?.activeCards ?? [],
       taxIds: _taxIds,
     );
-    await ref.read(profileNotifierProvider.notifier).updateFinancial(financial);
+    await ref.read(profileNotifierProvider.notifier).updateFinancialImmediate(financial);
 
     if (mounted) {
       final isPrivacyMode =
@@ -803,40 +811,6 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         ),
       );
     }
-  }
-
-  Future<void> _handleTaxIdCopy(TaxIdData taxId) async {
-    final text = _formatTaxIdAllFields(taxId);
-    await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) {
-      showOverlaySnackBar(
-        context,
-        content: 'Copied to clipboard',
-        type: SnackBarType.success,
-      );
-    }
-  }
-
-  Future<void> _handleTaxIdDelete(TaxIdData taxId) async {
-    await _onTaxIdDelete(taxId);
-  }
-
-  String _formatTaxIdAllFields(TaxIdData taxId) {
-    final buffer = StringBuffer();
-    buffer.writeln('Tax ID');
-    if (taxId.taxIdType != null && taxId.taxIdType!.isNotEmpty) {
-      buffer.writeln('Tax ID Type: ${taxId.taxIdType}');
-    }
-    if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty) {
-      buffer.writeln('Tax ID Number: ${taxId.taxIdNumber}');
-    }
-    if (taxId.issuingAuthority != null && taxId.issuingAuthority!.isNotEmpty) {
-      buffer.writeln('Issuing Authority: ${taxId.issuingAuthority}');
-    }
-    if (taxId.country != null && taxId.country!.isNotEmpty) {
-      buffer.writeln('Country: ${taxId.country}');
-    }
-    return buffer.toString().trim();
   }
 
   @override
@@ -869,49 +843,63 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (taxId) => UniversalEntryCard(
-        title: Text(taxId.taxIdType ?? 'Tax ID'),
-        subtitle: taxId.country != null
-            ? Text(
-                taxId.country!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              )
-            : null,
-        leading: Icon(
-          Icons.badge,
-          size: 20,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        actions: EntryActionBuilder.buildActions(
-          context: context,
-          ref: ref,
-          onCopy: () => _handleTaxIdCopy(taxId),
-          onEdit: () {},
-          onDelete: () => _handleTaxIdDelete(taxId),
-        ),
-        children: [
-          ResponsiveLabelField(
-            fields: [
-              if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
-                LabelValueField(
-                  label: 'Tax ID Number',
-                  value: taxId.taxIdNumber!,
-                  fieldId: 'taxId.taxIdNumber',
-                  isSensitive: true,
-                ),
-              if (taxId.issuingAuthority != null &&
-                  taxId.issuingAuthority!.isNotEmpty)
-                LabelValueField(
-                  label: 'Issuing Authority',
-                  value: taxId.issuingAuthority!,
-                  fieldId: 'taxId.issuingAuthority',
-                  isSensitive: false,
-                ),
+      displayItemBuilder: (taxId) => Builder(
+        builder: (ctx) {
+          final actionsContext = EntryActionsContext.of(ctx);
+          final onEdit = actionsContext?.onEdit ?? () {};
+          final onDelete = actionsContext?.onDelete ?? () {};
+          final onCopy = actionsContext?.onCopy ?? (text) async {};
+          return UniversalEntryCard(
+            title: Text(taxId.taxIdType ?? 'Tax ID'),
+            subtitle: taxId.country != null
+                ? Text(
+                    taxId.country!,
+                    style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : null,
+            leading: Icon(
+              Icons.badge,
+              size: 20,
+              color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+            ),
+            actions: EntryActionBuilder.buildActions(
+              context: ctx,
+              ref: ref,
+              onCopy: () => onCopy('${taxId.entryType}\n${taxId.toFormattedString()}'),
+              onEdit: onEdit,
+              onDelete: onDelete,
+              config: const EntryActionsConfig(
+                showCopy: true,
+                showEdit: true,
+                showDelete: true,
+                showHistory: true,
+              ),
+            ),
+            children: [
+              ResponsiveLabelField(
+                fields: [
+                  if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
+                    LabelValueField(
+                      label: 'Tax ID Number',
+                      value: taxId.taxIdNumber!,
+                      fieldId: 'taxId.taxIdNumber',
+                      isSensitive: true,
+                    ),
+                  if (taxId.issuingAuthority != null &&
+                      taxId.issuingAuthority!.isNotEmpty)
+                    LabelValueField(
+                      label: 'Issuing Authority',
+                      value: taxId.issuingAuthority!,
+                      fieldId: 'taxId.issuingAuthority',
+                      isSensitive: false,
+                    ),
+                ],
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       onDelete: _onTaxIdDelete,
       onSave: _onTaxIdSave,
@@ -924,6 +912,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
           type: SnackBarType.success,
         );
       },
+      showInternalActions: false,
     );
   }
 }
