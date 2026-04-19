@@ -1548,15 +1548,18 @@ class DeletedItemInfo {
 }
 
 /// Single historical value entry for a field
+/// Stores all field values at a point in time
 class FieldHistoryEntry {
-  final String value;
+  final Map<String, String> values; // fieldName -> value
   final DateTime timestamp;
 
-  const FieldHistoryEntry({required this.value, required this.timestamp});
+  const FieldHistoryEntry({required this.values, required this.timestamp});
 
   factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) {
+    final valuesJson = json['values'] as Map<String, dynamic>? ?? {};
+    final values = valuesJson.map((k, v) => MapEntry(k, v as String? ?? ''));
     return FieldHistoryEntry(
-      value: json['value'] as String? ?? '',
+      values: values,
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
@@ -1564,9 +1567,11 @@ class FieldHistoryEntry {
   }
 
   Map<String, dynamic> toJson() => {
-    'value': value,
+    'values': values,
     'timestamp': timestamp.toIso8601String(),
   };
+
+  String? getValue(String fieldName) => values[fieldName];
 }
 
 /// Complete history for a specific field on an item
@@ -1659,7 +1664,31 @@ class ProfileFieldHistories {
 
   /// Add a new history entry for a field
   ProfileFieldHistories addEntry(String itemId, String fieldId, String value) {
-    final entry = FieldHistoryEntry(value: value, timestamp: DateTime.now());
+    final entry = FieldHistoryEntry(values: {fieldId: value}, timestamp: DateTime.now());
+    final newHistories = Map<String, Map<String, FieldHistory>>.from(
+      histories.map((k, v) => MapEntry(k, Map<String, FieldHistory>.from(v))),
+    );
+
+    newHistories[itemId] ??= {};
+    final existing = newHistories[itemId]![fieldId];
+    if (existing != null) {
+      newHistories[itemId]![fieldId] = existing.copyWith(
+        entries: [...existing.entries, entry],
+      );
+    } else {
+      newHistories[itemId]![fieldId] = FieldHistory(
+        fieldId: fieldId,
+        itemId: itemId,
+        entries: [entry],
+      );
+    }
+
+    return ProfileFieldHistories(histories: newHistories);
+  }
+
+  /// Add a snapshot entry containing all field values at a point in time
+  ProfileFieldHistories addSnapshot(String itemId, String fieldId, Map<String, String> values) {
+    final entry = FieldHistoryEntry(values: values, timestamp: DateTime.now());
     final newHistories = Map<String, Map<String, FieldHistory>>.from(
       histories.map((k, v) => MapEntry(k, Map<String, FieldHistory>.from(v))),
     );
@@ -2381,38 +2410,72 @@ class ProfileStorageService {
     await saveProfile(accountId, profile);
   }
 
-  /// Load field histories for an account
+  /// Load field histories for an account (encrypted storage via Rust vault)
+  ///
+  /// Falls back to plaintext file migration if encrypted version doesn't exist.
   Future<ProfileFieldHistories> loadFieldHistories(String accountId) async {
     try {
-      final dir = await storageDir;
-      final file = File('${dir.path}/${accountId}_field_histories.json');
-      if (!await file.exists()) {
-        return ProfileFieldHistories();
+      // TODO: [SECURITY-CRITICAL] Field histories now use Rust vault encrypted storage.
+      // Migrated from: File('${dir.path}/${accountId}_field_histories.json').readAsString()
+      // Target: _rustVault.loadFieldHistoriesDecrypted(accountId)
+
+      // Try encrypted storage first
+      final decrypted = await _rustVault.loadFieldHistoriesDecrypted(accountId);
+      if (decrypted != null) {
+        final json = jsonDecode(decrypted) as Map<String, dynamic>;
+        return ProfileFieldHistories.fromJson(json);
       }
-      final contents = await file.readAsString();
-      final json = jsonDecode(contents) as Map<String, dynamic>;
-      return ProfileFieldHistories.fromJson(json);
+
+      // Migration: check for old plaintext file
+      final dir = await storageDir;
+      final plainFile = File('${dir.path}/${accountId}_field_histories.json');
+      if (await plainFile.exists()) {
+        final contents = await plainFile.readAsString();
+        final json = jsonDecode(contents) as Map<String, dynamic>;
+        final histories = ProfileFieldHistories.fromJson(json);
+
+        // Migrate to encrypted storage and delete plaintext
+        await saveFieldHistories(accountId, histories);
+        await _secureDeleteFile(plainFile);
+
+        return histories;
+      }
+
+      return ProfileFieldHistories();
     } catch (e) {
       return ProfileFieldHistories();
     }
   }
 
-  /// Save field histories for an account
+  /// Save field histories for an account (encrypted storage via Rust vault)
   Future<bool> saveFieldHistories(
     String accountId,
     ProfileFieldHistories histories,
   ) async {
     try {
-      final dir = await storageDir;
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
-      final file = File('${dir.path}/${accountId}_field_histories.json');
+      // TODO: [SECURITY-CRITICAL] Field histories now use Rust vault encrypted storage.
+      // Migrated from: File('${dir.path}/${accountId}_field_histories.json').writeAsString()
+      // Target: _rustVault.saveFieldHistoriesEncrypted(accountId, json)
+
       final json = jsonEncode(histories.toJson());
-      await file.writeAsString(json);
-      return true;
+      return await _rustVault.saveFieldHistoriesEncrypted(accountId, json);
     } catch (e) {
       return false;
+    }
+  }
+
+  /// Securely delete a file by overwriting with zeros before deletion
+  Future<void> _secureDeleteFile(File file) async {
+    try {
+      final length = await file.length();
+      final zeros = List.filled(length, 0);
+      await file.writeAsBytes(zeros);
+      await file.delete();
+    } catch (e) {
+      // If we can't securely wipe, just delete
+      try {
+        await file.delete();
+      } catch (_) {}
     }
   }
 
@@ -2421,11 +2484,19 @@ class ProfileStorageService {
     required String accountId,
     required String itemId,
     required String fieldId,
-    required String value,
+    String? value,
+    Map<String, String>? values,
     ProfileFieldHistories? existingHistories,
   }) async {
     final histories = existingHistories ?? await loadFieldHistories(accountId);
-    final updated = histories.addEntry(itemId, fieldId, value);
+    ProfileFieldHistories updated;
+    if (values != null) {
+      // Snapshot mode - store all field values
+      updated = histories.addSnapshot(itemId, fieldId, values);
+    } else {
+      // Single field mode
+      updated = histories.addEntry(itemId, fieldId, value ?? '');
+    }
     await saveFieldHistories(accountId, updated);
     return updated;
   }

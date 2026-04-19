@@ -122,6 +122,9 @@ pub fn handle_vault_request(
         "get_account_config" => handle_get_account_config(request.payload, account_manager),
         "delete_account" => handle_delete_account(request.payload, account_manager),
         "search_profiles" => handle_search_profiles(request.payload, account_manager),
+        "save_field_histories" => handle_save_field_histories(request.payload, account_manager),
+        "load_field_histories" => handle_load_field_histories(request.payload, account_manager),
+        "delete_field_histories" => handle_delete_field_histories(request.payload, account_manager),
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
 }
@@ -476,6 +479,101 @@ fn handle_search_profiles(payload: Option<serde_json::Value>, manager: &AccountM
             VaultResponse::success(serde_json::to_value(summaries).unwrap())
         }
         Err(e) => VaultResponse::error(format!("Search failed: {}", e)),
+    }
+}
+
+fn handle_save_field_histories(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let (account_id, data_b64) = match payload {
+        Some(p) => {
+            let account_id = match p.get("account_id").and_then(|v| v.as_str()) {
+                Some(id) => id.to_string(),
+                None => return VaultResponse::error("Missing account_id".to_string()),
+            };
+            let data_b64 = match p.get("data").and_then(|v| v.as_str()) {
+                Some(d) => d.to_string(),
+                None => return VaultResponse::error("Missing data".to_string()),
+            };
+            (account_id, data_b64)
+        }
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let vault_guard = match manager.get_vault_store() {
+        Some(g) => g,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let vault = match vault_guard.as_ref() {
+        Some(v) => v,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let data = match base64_decode(&data_b64) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    match vault.save_field_histories(&account_id, &data) {
+        Ok(()) => VaultResponse::success(serde_json::json!({"saved": true})),
+        Err(e) => VaultResponse::error(format!("Failed to save field histories: {}", e)),
+    }
+}
+
+fn handle_load_field_histories(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let account_id = match payload {
+        Some(p) => {
+            match p.get("account_id").and_then(|v| v.as_str()) {
+                Some(id) => id.to_string(),
+                None => return VaultResponse::error("Missing account_id".to_string()),
+            }
+        }
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let vault_guard = match manager.get_vault_store() {
+        Some(g) => g,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let vault = match vault_guard.as_ref() {
+        Some(v) => v,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    match vault.load_field_histories(&account_id) {
+        Ok(Some(data)) => {
+            let encoded = base64_encode(&data);
+            VaultResponse::success(serde_json::json!({"data": encoded}))
+        }
+        Ok(None) => VaultResponse::success(serde_json::json!({"data": serde_json::Value::Null})),
+        Err(e) => VaultResponse::error(format!("Failed to load field histories: {}", e)),
+    }
+}
+
+fn handle_delete_field_histories(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let account_id = match payload {
+        Some(p) => {
+            match p.get("account_id").and_then(|v| v.as_str()) {
+                Some(id) => id.to_string(),
+                None => return VaultResponse::error("Missing account_id".to_string()),
+            }
+        }
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let vault_guard = match manager.get_vault_store() {
+        Some(g) => g,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let vault = match vault_guard.as_ref() {
+        Some(v) => v,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    match vault.delete_field_histories(&account_id) {
+        Ok(()) => VaultResponse::success(serde_json::json!({"deleted": true})),
+        Err(e) => VaultResponse::error(format!("Failed to delete field histories: {}", e)),
     }
 }
 

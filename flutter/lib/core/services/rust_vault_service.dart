@@ -269,4 +269,83 @@ class RustVaultService {
     final result = utf8.decode(decrypted);
     return result;
   }
+
+  // ===========================================================================
+  // Field histories - encrypted storage
+  // ===========================================================================
+
+  /// Save field histories with encryption
+  ///
+  /// [accountId] - Account ID
+  /// [jsonData] - Field histories data as JSON string
+  ///
+  /// Returns true on success
+  Future<bool> saveFieldHistoriesEncrypted(
+    String accountId,
+    String jsonData,
+  ) async {
+    if (_encryptionKey == null) {
+      return false;
+    }
+
+    final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
+    final encryptedData = _encryptData(jsonBytes);
+    if (encryptedData == null) {
+      return false;
+    }
+
+    final result = NativeVaultService.instance.request(
+      'save_field_histories',
+      {
+        'account_id': accountId,
+        'data': base64Encode(encryptedData),
+      },
+    );
+
+    return result?['success'] == true;
+  }
+
+  /// Load and decrypt field histories by account ID
+  ///
+  /// [accountId] - Account ID
+  ///
+  /// Returns decrypted JSON string, or null if not found/error
+  Future<String?> loadFieldHistoriesDecrypted(String accountId) async {
+    final result = NativeVaultService.instance.request(
+      'load_field_histories',
+      {'account_id': accountId},
+    );
+
+    if (result?['success'] != true) {
+      return null;
+    }
+
+    final data = result!['data'];
+    if (data == null) {
+      return null;
+    }
+
+    // data is base64 encoded encrypted data
+    final encryptedBytes = base64Decode(data as String);
+    final decrypted = _decryptData(encryptedBytes);
+    if (decrypted == null) {
+      return null;
+    }
+
+    return utf8.decode(decrypted);
+  }
+
+  /// Delete field histories for an account
+  ///
+  /// [accountId] - Account ID
+  ///
+  /// Returns true on success
+  Future<bool> deleteFieldHistories(String accountId) async {
+    final result = NativeVaultService.instance.request(
+      'delete_field_histories',
+      {'account_id': accountId},
+    );
+
+    return result?['success'] == true;
+  }
 }

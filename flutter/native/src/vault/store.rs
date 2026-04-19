@@ -2,6 +2,7 @@
 //!
 //! Implements双重加密: AES-256-GCM at application layer + SQLCipher at storage layer
 
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use rusqlite::{Connection, params};
 use std::sync::Mutex;
 use zeroize::Zeroize;
@@ -313,11 +314,77 @@ impl VaultStore {
 
         Ok(profiles)
     }
+
+    /// Save field histories (encrypted blob)
+    pub fn save_field_histories(&self, account_id: &str, data: &[u8]) -> Result<(), String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        let key = format!("HIST_{}", account_id);
+
+        conn.execute(
+            "INSERT INTO metadata (key, value, updated_at)
+             VALUES (?1, ?2, ?3)
+             ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = excluded.updated_at",
+            rusqlite::params![key, base64_encode(data), now],
+        )
+        .map_err(|e| format!("Failed to save field histories: {}", e))?;
+
+        Ok(())
+    }
+
+    /// Load field histories (encrypted blob)
+    pub fn load_field_histories(&self, account_id: &str) -> Result<Option<Vec<u8>>, String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let key = format!("HIST_{}", account_id);
+
+        let result: Option<String> = conn
+            .query_row(
+                "SELECT value FROM metadata WHERE key = ?1",
+                rusqlite::params![key],
+                |row| row.get(0),
+            )
+            .ok();
+
+        match result {
+            Some(encoded) => {
+                let decoded = base64_decode(&encoded)
+                    .map_err(|e| format!("Failed to decode field histories: {}", e))?;
+                Ok(Some(decoded))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// Delete field histories
+    pub fn delete_field_histories(&self, account_id: &str) -> Result<(), String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let key = format!("HIST_{}", account_id);
+
+        conn.execute("DELETE FROM metadata WHERE key = ?1", rusqlite::params![key])
+            .map_err(|e| format!("Failed to delete field histories: {}", e))?;
+
+        Ok(())
+    }
 }
 
 /// Helper for hex encoding
 fn hex_encode(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{:02x}", b)).collect()
+}
+
+/// Helper for base64 decoding
+fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
+    BASE64.decode(input).map_err(|e| format!("Base64 decode error: {}", e))
+}
+
+/// Helper for base64 encoding
+fn base64_encode(data: &[u8]) -> String {
+    BASE64.encode(data)
 }
 
 #[cfg(test)]

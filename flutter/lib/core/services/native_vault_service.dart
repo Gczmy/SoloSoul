@@ -132,8 +132,8 @@ class NativeVaultService {
   static const String actionCreateAccount = 'create_account';
   static const String actionDeleteAccount = 'delete_account';
 
-  /// Make a vault request and return the response
-  Map<String, dynamic>? _request(String action, [Map<String, dynamic>? payload]) {
+  /// Make a vault request and return the response (public for cross-service use)
+  Map<String, dynamic>? request(String action, [Map<String, dynamic>? payload]) {
     if (_isAndroid) {
       return null;
     }
@@ -176,7 +176,7 @@ class NativeVaultService {
 
   /// List all profiles
   List<Map<String, dynamic>>? listProfiles() {
-    final response = _request(actionListProfiles);
+    final response = request(actionListProfiles);
     if (!_isSuccess(response)) {
       return null;
     }
@@ -191,7 +191,7 @@ class NativeVaultService {
       'name': name,
       'data': base64Encode(encryptedData),
     };
-    final response = _request(actionSaveProfile, payload);
+    final response = request(actionSaveProfile, payload);
     if (!_isSuccess(response)) {
       return null;
     }
@@ -205,7 +205,7 @@ class NativeVaultService {
       'name': name,
       'data': base64Encode(encryptedData),
     };
-    final response = _request(actionCreateProfile, payload);
+    final response = request(actionCreateProfile, payload);
     if (!_isSuccess(response)) {
       return null;
     }
@@ -215,7 +215,7 @@ class NativeVaultService {
   /// Load a profile by ID
   /// Returns profile data (still encrypted) on success
   ({Uint8List data, Map<String, dynamic> summary})? loadProfile(String id) {
-    final response = _request(actionLoadProfile, {'id': id});
+    final response = request(actionLoadProfile, {'id': id});
     if (!_isSuccess(response)) {
       return null;
     }
@@ -229,13 +229,13 @@ class NativeVaultService {
 
   /// Delete a profile by ID
   bool deleteProfile(String id) {
-    final response = _request(actionDeleteProfile, {'id': id});
+    final response = request(actionDeleteProfile, {'id': id});
     return _isSuccess(response);
   }
 
   /// Get vault statistics
   Map<String, dynamic>? getVaultStats() {
-    final response = _request(actionGetVaultStats);
+    final response = request(actionGetVaultStats);
     if (!_isSuccess(response)) {
       return null;
     }
@@ -244,7 +244,7 @@ class NativeVaultService {
 
   /// Check if vault is unlocked
   bool checkIsUnlocked() {
-    final response = _request(actionIsUnlocked);
+    final response = request(actionIsUnlocked);
     if (!_isSuccess(response)) {
       return false;
     }
@@ -262,7 +262,7 @@ class NativeVaultService {
       'name': name,
       'password': password,
     };
-    final response = _request(actionCreateAccount, payload);
+    final response = request(actionCreateAccount, payload);
     if (!_isSuccess(response)) {
       return (success: false, error: _getError(response), accountId: null, name: null, salt: null, verifyHash: null);
     }
@@ -287,7 +287,7 @@ class NativeVaultService {
       'account_id': accountId,
       'password': password,
     };
-    final response = _request(actionUnlockVault, payload);
+    final response = request(actionUnlockVault, payload);
     if (!_isSuccess(response)) {
       return (success: false, error: _getError(response), cryptoVersion: null);
     }
@@ -301,7 +301,7 @@ class NativeVaultService {
 
   /// Lock the vault - clears session key and closes database connection
   void lockVault() {
-    _request(actionLockVault);
+    request(actionLockVault);
   }
 
   /// Change account password
@@ -316,7 +316,7 @@ class NativeVaultService {
       'old_password': oldPassword,
       'new_password': newPassword,
     };
-    final response = _request('change_password', payload);
+    final response = request('change_password', payload);
     if (!_isSuccess(response)) {
       return (success: false, error: _getError(response), salt: null, verifyHash: null);
     }
@@ -334,7 +334,7 @@ class NativeVaultService {
     required String accountId,
   }) {
     final payload = {'account_id': accountId};
-    final response = _request('get_account_config', payload);
+    final response = request('get_account_config', payload);
     if (!_isSuccess(response)) {
       return null;
     }
@@ -350,7 +350,7 @@ class NativeVaultService {
 
   /// Delete an account and all its data from Rust vault
   bool deleteAccount({required String accountId}) {
-    final response = _request(actionDeleteAccount, {'account_id': accountId});
+    final response = request(actionDeleteAccount, {'account_id': accountId});
     return _isSuccess(response);
   }
 }
