@@ -496,14 +496,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         ),
         duration: const Duration(seconds: 3),
       );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.itemLabel} restored'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.blue,
-        ),
-      );
     }
   }
 
