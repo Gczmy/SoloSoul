@@ -358,51 +358,56 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('Degree', style: theme.textTheme.bodySmall),
-                const SizedBox(height: 4),
-                SizedBox(
-                  width: double.infinity,
-                  child: SegmentedButton<String>(
-                    segments: [
-                      ..._degreeOptions.map(
-                        (d) => ButtonSegment(
-                          value: d,
-                          label: Text(d, style: const TextStyle(fontSize: 12)),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: isCustomSelected
+                            ? null
+                            : (degreeController.text.isEmpty
+                                  ? null
+                                  : degreeController.text),
+                        decoration: const InputDecoration(
+                          labelText: 'Degree',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          ..._degreeOptions.map(
+                            (d) => DropdownMenuItem(value: d, child: Text(d)),
+                          ),
+                          const DropdownMenuItem(
+                            value: 'other',
+                            child: Text('Other'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == 'other') {
+                            degreeController.clear();
+                          } else if (value != null) {
+                            degreeController.text = value;
+                            degreeCustomController.clear();
+                          }
+                        },
+                      ),
+                    ),
+                    if (isCustomSelected ||
+                        degreeCustomController.text.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: degreeCustomController,
+                          decoration: const InputDecoration(
+                            labelText: 'Custom Degree',
+                            hintText: 'Please specify',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
-                      const ButtonSegment(
-                        value: 'other',
-                        label: Text('Other', style: TextStyle(fontSize: 12)),
-                      ),
                     ],
-                    selected: isCustomSelected
-                        ? {'other'}
-                        : (degreeController.text.isEmpty
-                              ? {}
-                              : {degreeController.text}),
-                    onSelectionChanged: (selected) {
-                      final value = selected.first;
-                      if (value == 'other') {
-                        degreeController.clear();
-                      } else {
-                        degreeController.text = value;
-                        degreeCustomController.clear();
-                      }
-                    },
-                    showSelectedIcon: false,
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                if (isCustomSelected || degreeCustomController.text.isNotEmpty)
-                  TextField(
-                    controller: degreeCustomController,
-                    decoration: const InputDecoration(
-                      labelText: 'Custom Degree',
-                      hintText: 'Please specify',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                if (isCustomSelected) const SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: controllers['education.fieldOfStudy'],
                   decoration: const InputDecoration(
