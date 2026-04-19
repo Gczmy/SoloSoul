@@ -1015,7 +1015,7 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
                 tooltip: 'Copy All',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(context, content: 'Contact copied!');
+                  showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
                 },
                 visualDensity: VisualDensity.compact,
               ),
@@ -1735,7 +1735,7 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
                   if (!verified) return;
                   if (!mounted) return;
                   Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(context, content: 'ID Card copied!');
+                  showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
                 },
                 visualDensity: VisualDensity.compact,
               ),
@@ -2425,7 +2425,7 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
                 tooltip: 'Copy All',
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(context, content: 'Address copied!');
+                  showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
                 },
                 visualDensity: VisualDensity.compact,
               ),
