@@ -71,6 +71,28 @@ SoloSoul/
 | LoginPage `_showPasswordHint` unmounted widget | High | 🔄 调查中 |
 | Profile 切换数据消失 | High | 🔄 调查中 |
 | macOS `open -a` 黑屏 (开发环境) | Low | Workaround 已记录 |
+| 密码验证失败后数据回滚到新创建状态 | High | 🔴 调查中 |
+
+### Bug修复 🔴
+1. [ ] ID card 和 Address 的 history 有问题，修改后没有历史记录新增
+2. [ ] 密码验证失败后所有数据回到新创建状态（锁定后重新登录数据恢复） - 需修复
+
+---
+
+## P1: 代码重构 (DRY)
+
+### 抽象条目模板 🔴
+- [ ] 抽象条目模板函数：
+  - 右侧操作按钮（edit/delete/copy）
+  - 条目的 history 按钮
+  - Private data 字段的眼睛按钮/复制按钮
+  - Restricted data 的密码验证弹窗
+  - Copied 提示条统一复用
+- [ ] 各条目只专注于独特内容：图标、字段前缀等客制化内容
+
+### UI优化 🟡
+- [ ] Operation log 每条记录增加 detail 按钮，查看条目细节信息
+- [ ] Trash 点击 detail 对话框中：restore 按钮放到 purge 左边，close 保持不变
 
 ---
 
