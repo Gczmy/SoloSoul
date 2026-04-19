@@ -289,6 +289,17 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           value: _biometricEnabled,
           onChanged: _toggleBiometric,
         ),
+        if (_biometricEnabled) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 52),
+            child: TextButton.icon(
+              onPressed: _testBiometric,
+              icon: const Icon(Icons.verified_outlined, size: 16),
+              label: const Text('Test Touch ID'),
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         _BiometricToggleTile(
           icon: Icons.face_outlined,
@@ -297,12 +308,15 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           value: _faceIdEnabled,
           onChanged: _toggleFaceId,
         ),
-        if (_biometricEnabled || _faceIdEnabled) ...[
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: _testBiometric,
-            icon: const Icon(Icons.verified_outlined, size: 18),
-            label: const Text('Test Biometric'),
+        if (_faceIdEnabled) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 52),
+            child: TextButton.icon(
+              onPressed: _testBiometric,
+              icon: const Icon(Icons.verified_outlined, size: 16),
+              label: const Text('Test Face ID'),
+            ),
           ),
         ],
       ],
