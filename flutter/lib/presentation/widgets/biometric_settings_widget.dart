@@ -283,7 +283,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           const SizedBox(height: 16),
         ],
         _BiometricToggleTile(
-          icon: Icons.fingerprint,
+          icon: Icons.fingerprint_outlined,
           title: 'Touch ID',
           subtitle: 'Use Touch ID to unlock',
           value: _biometricEnabled,
@@ -291,7 +291,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         ),
         const SizedBox(height: 8),
         _BiometricToggleTile(
-          icon: Icons.face,
+          icon: Icons.face_outlined,
           title: 'Face ID',
           subtitle: 'Use Face ID to unlock',
           value: _faceIdEnabled,
@@ -301,7 +301,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: _testBiometric,
-            icon: const Icon(Icons.check_circle_outline, size: 18),
+            icon: const Icon(Icons.verified_outlined, size: 18),
             label: const Text('Test Biometric'),
           ),
         ],
