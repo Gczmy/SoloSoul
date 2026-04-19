@@ -1551,16 +1551,12 @@ class ProfileStorageService {
   /// Load profile data for an account
   /// Returns ProfileData with all fields decrypted, or null if not found
   Future<ProfileData?> loadProfile(String accountId) async {
-    print('[ProfileStorageService] loadProfile BEGIN, accountId=$accountId');
 
     // Try to load from Rust vault
-    print('[ProfileStorageService] calling _rustVault.loadProfileDecrypted...');
     final decrypted = await _rustVault.loadProfileDecrypted(accountId);
     if (decrypted == null) {
-      print('[ProfileStorageService] loadProfile($accountId): no decrypted data (null returned)');
       return null;
     }
-    print('[ProfileStorageService] loadProfile($accountId): decrypted data length=${decrypted.length}');
 
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
@@ -1568,15 +1564,11 @@ class ProfileStorageService {
       // DEBUG: Log loaded bank accounts
       if (profile.financial?.bankAccounts != null) {
         final deleted = profile.financial!.bankAccounts.where((b) => b.isDeleted).toList();
-        print('[ProfileStorageService] loadProfile($accountId): loaded, deletedBankAccounts=${deleted.length}');
         for (var b in deleted) {
-          print('  Deleted bank: ${b.bankName}, ${b.accountNumber}, isDeleted=${b.isDeleted}');
         }
       }
-      print('[ProfileStorageService] loadProfile($accountId): SUCCESS');
       return profile;
     } catch (e) {
-      print('[ProfileStorageService] loadProfile($accountId): EXCEPTION $e');
       return null;
     }
   }
@@ -1584,34 +1576,25 @@ class ProfileStorageService {
   /// Save profile data for an account
   /// Encrypts and stores via RustVaultService
   Future<bool> saveProfile(String accountId, ProfileData profile) async {
-    print('[ProfileStorageService] saveProfile BEGIN, accountId=$accountId');
-    print('[ProfileStorageService] saveProfile: profile has financial=${profile.financial != null}');
 
     try {
       final json = jsonEncode(profile.toJson());
-      print('[ProfileStorageService] saveProfile: json encoded, length=${json.length}');
 
-      print('[ProfileStorageService] calling _rustVault.saveProfileEncrypted...');
       final result = await _rustVault.saveProfileEncrypted(accountId, json);
 
       if (result == null) {
-        print('[ProfileStorageService] saveProfile($accountId): FAILED - saveProfileEncrypted returned null');
         return false;
       }
 
-      print('[ProfileStorageService] saveProfile($accountId): SUCCESS, result=$result');
 
       // DEBUG: Log save success/failure and check bank accounts
       if (profile.financial?.bankAccounts != null) {
         final deleted = profile.financial!.bankAccounts.where((b) => b.isDeleted).toList();
-        print('[ProfileStorageService] saveProfile($accountId): deletedBankAccounts=${deleted.length}');
         for (var b in deleted) {
-          print('  Deleted bank: ${b.bankName}, ${b.accountNumber}, isDeleted=${b.isDeleted}');
         }
       }
       return true;
     } catch (e) {
-      print('[ProfileStorageService] saveProfile($accountId): EXCEPTION $e');
       return false;
     }
   }
@@ -2115,7 +2098,6 @@ class ProfileStorageService {
       final json = jsonDecode(contents) as Map<String, dynamic>;
       return ProfileFieldHistories.fromJson(json);
     } catch (e) {
-      print('[ProfileStorageService] loadFieldHistories($accountId): EXCEPTION $e');
       return ProfileFieldHistories();
     }
   }
@@ -2132,7 +2114,6 @@ class ProfileStorageService {
       await file.writeAsString(json);
       return true;
     } catch (e) {
-      print('[ProfileStorageService] saveFieldHistories($accountId): EXCEPTION $e');
       return false;
     }
   }

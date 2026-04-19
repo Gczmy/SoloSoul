@@ -40,11 +40,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
   /// Load profile for the currently unlocked account
   Future<void> loadProfile() async {
-    print('[ProfileNotifier] loadProfile() BEGIN');
 
     // Prevent concurrent loads
     if (_isLoading) {
-      print('[ProfileNotifier] loadProfile: already loading, returning');
       return;
     }
     _isLoading = true;
@@ -53,69 +51,53 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       // Check auth state is still unlocked (may have changed while awaiting)
       final authState = _ref.read(authNotifierProvider);
       if (authState != AuthState.unlocked) {
-        print('[ProfileNotifier] loadProfile: authState is $authState (not unlocked), returning');
         return;
       }
-      print('[ProfileNotifier] loadProfile: authState is unlocked');
 
       final authNotifier = _ref.read(authNotifierProvider.notifier);
       final accountId = authNotifier.selectedAccountId;
       if (accountId == null) {
-        print('[ProfileNotifier] loadProfile: accountId is null, returning');
         return;
       }
-      print('[ProfileNotifier] loadProfile: accountId=$accountId');
 
       // Sync encryption key to OperationLogService (logs use same encryption)
       final encryptionKey = _storage.encryptionKey;
       if (encryptionKey != null) {
-        print('[ProfileNotifier] loadProfile: encryptionKey is set, syncing to OperationLogService');
         OperationLogService.instance.setEncryptionKey(encryptionKey);
       } else {
         // Vault is locked, cannot load profile without encryption key
-        print('[ProfileNotifier] loadProfile: ERROR - encryptionKey is null, cannot load');
         return;
       }
 
       // Initialize operation log service for this account
-      print('[ProfileNotifier] loadProfile: initializing OperationLogService...');
       await OperationLogService.instance.initializeForAccount(accountId);
 
       // Re-check auth state before loading (may have changed during awaits)
       final authStateBeforeLoad = _ref.read(authNotifierProvider);
       if (authStateBeforeLoad != AuthState.unlocked) {
-        print('[ProfileNotifier] loadProfile: authState changed to $authStateBeforeLoad before load, returning');
         return;
       }
-      print('[ProfileNotifier] loadProfile: calling _storage.loadProfile...');
 
       final profile = await _storage.loadProfile(accountId);
 
       // Auto-purge items deleted more than 30 days ago (using already-loaded profile)
-      print('[ProfileNotifier] loadProfile: checking for old deleted items...');
       await _storage.purgeOldDeletedItemsIfNeeded(accountId, existingProfile: profile);
-      print('[ProfileNotifier] loadProfile: _storage.loadProfile returned ${profile != null}');
 
       // Final auth state check before updating state
       final authStateAfterLoad = _ref.read(authNotifierProvider);
       if (authStateAfterLoad != AuthState.unlocked) {
-        print('[ProfileNotifier] loadProfile: authState changed to $authStateAfterLoad after load, not updating state');
         return;
       }
 
       // Only update state if profile was successfully loaded
       if (profile != null) {
-        print('[ProfileNotifier] loadProfile: updating state with profile');
         state = profile;
         // Initialize lastSavedJson for change detection
         _lastSavedJson = jsonEncode(profile.toJson());
-        print('[ProfileNotifier] loadProfile: state updated successfully, _lastSavedJson initialized');
       } else {
-        print('[ProfileNotifier] loadProfile: profile is null, not updating state');
       }
     } finally {
       _isLoading = false;
-      print('[ProfileNotifier] loadProfile() COMPLETE');
     }
   }
 
@@ -127,39 +109,32 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
     // Check if data has actually changed
     if (newJson == _lastSavedJson) {
-      print('[saveProfile] SKIP - data unchanged (same as last save)');
       return true;
     }
 
     // Verify vault is unlocked before saving
     final authState = _ref.read(authNotifierProvider);
     if (authState != AuthState.unlocked) {
-      print('[saveProfile] ERROR: vault is not unlocked (state=$authState), cannot save');
       return false;
     }
 
     final encryptionKey = _storage.encryptionKey;
     if (encryptionKey == null) {
-      print('[saveProfile] ERROR: encryption key is null, cannot save');
       return false;
     }
 
     final authNotifier = _ref.read(authNotifierProvider.notifier);
     final accountId = authNotifier.selectedAccountId;
     if (accountId == null) {
-      print('[saveProfile] ERROR: no account selected, cannot save');
       return false;
     }
 
     // Helper to perform the actual save
     Future<bool> doSave() async {
-      print('[saveProfile] calling _storage.saveProfile...');
       final result = await _storage.saveProfile(accountId, profile);
       if (result) {
         _lastSavedJson = newJson;
-        print('[saveProfile] _storage.saveProfile returned=$result, _lastSavedJson updated');
       } else {
-        print('[saveProfile] _storage.saveProfile returned=$result');
       }
       return result;
     }
@@ -174,12 +149,10 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Debounce: cancel previous timer and schedule new save
     _saveDebounceTimer?.cancel();
     _saveDebounceTimer = Timer(_kSaveDebounceDuration, () async {
-      print('[saveProfile] debounce timer fired, performing save');
       _saveDebounceTimer = null;
       await doSave();
     });
 
-    print('[saveProfile] DEBOUNCED - save scheduled in ${_kSaveDebounceDuration.inMilliseconds}ms');
     return true;
   }
 
@@ -210,7 +183,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Save FIRST, then update state only on success
     final result = await saveProfile(newProfile);
     if (!result) {
-      print('[updateIdentity] ERROR: saveProfile failed');
       return false;
     }
 
@@ -699,22 +671,16 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final updated = current.copyWith(travel: travel);
 
     // DEBUG logging
-    print('[updateTravel] BEGIN');
-    print('[updateTravel] current.travel passports=${current.travel?.passports.length ?? 0}');
-    print('[updateTravel] updated.travel passports=${updated.travel?.passports.length ?? 0}');
 
     // Save FIRST, then update state only on success (FIX: was incorrectly mutating state before save)
     final result = await saveProfile(updated);
 
-    print('[updateTravel] saveProfile result=$result');
 
     if (!result) {
-      print('[updateTravel] ERROR: saveProfile failed, NOT updating state');
       return false;
     }
 
     state = updated;
-    print('[updateTravel] state updated successfully');
 
     // Update account operation metadata
     await _ref
@@ -785,22 +751,16 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final updated = current.copyWith(financial: financial);
 
     // DEBUG logging
-    print('[updateFinancial] BEGIN');
-    print('[updateFinancial] current.financial bankAccounts=${current.financial?.bankAccounts.length ?? 0}');
-    print('[updateFinancial] updated.financial bankAccounts=${updated.financial?.bankAccounts.length ?? 0}');
 
     // Save FIRST, then update state only on success (FIX: was incorrectly mutating state before save)
     final result = await saveProfile(updated);
 
-    print('[updateFinancial] saveProfile result=$result');
 
     if (!result) {
-      print('[updateFinancial] ERROR: saveProfile failed, NOT updating state');
       return false;
     }
 
     state = updated;
-    print('[updateFinancial] state updated successfully');
 
     // Update account operation metadata
     await _ref
@@ -862,22 +822,16 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final updated = current.copyWith(professional: professional);
 
     // DEBUG logging
-    print('[updateProfessional] BEGIN');
-    print('[updateProfessional] current.professional education=${current.professional?.education.length ?? 0}');
-    print('[updateProfessional] updated.professional education=${updated.professional?.education.length ?? 0}');
 
     // Save FIRST, then update state only on success (FIX: was incorrectly mutating state before save)
     final result = await saveProfile(updated);
 
-    print('[updateProfessional] saveProfile result=$result');
 
     if (!result) {
-      print('[updateProfessional] ERROR: saveProfile failed, NOT updating state');
       return false;
     }
 
     state = updated;
-    print('[updateProfessional] state updated successfully');
 
     // Update account operation metadata
     await _ref
@@ -968,7 +922,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Find index by ID (robust, no content comparison needed)
     final actualIndex = _findIndexById(current, section, itemType, deletedItem.id);
     if (actualIndex < 0) {
-      print('[softDelete] ERROR: could not find item with id=${deletedItem.id}');
       return;
     }
     final newProfile = _markItemDeleted(current, section, itemType, actualIndex, now);
@@ -979,7 +932,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Save FIRST, then update state only on success
     final saved = await saveProfile(newProfile);
     if (!saved) {
-      print('[softDelete] ERROR: saveProfile failed');
       _addLogEntry(
         section: LogSectionConfig.getLogSection(section, itemType),
         action: LogAction.update,
@@ -1299,7 +1251,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Find the actual index by ID - this is stable even if indices shift
     final actualIndex = _findIndexById(state!, section, itemType, id);
     if (actualIndex == -1) {
-      print('[restore] Item not found by id=$id, skipping restore');
       return;
     }
 
@@ -1307,7 +1258,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     final itemAtIndex = _getItemAtIndex(state!, section, itemType, actualIndex);
     if (itemAtIndex == null || !_isItemDeleted(itemAtIndex)) {
       // Item doesn't exist or was already restored - silently return
-      print('[restore] Item already restored or index stale, skipping restore');
       return;
     }
 
@@ -1320,7 +1270,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Save FIRST, then update state only on success
     final saved = await saveProfile(newProfile);
     if (!saved) {
-      print('[restore] ERROR: saveProfile failed');
       _addLogEntry(
         section: LogSectionConfig.getLogSection(section, itemType),
         action: LogAction.update,
