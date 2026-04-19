@@ -480,11 +480,23 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   bool _filterExpanded = false;
   String? _error;
 
+  // Password field focus state
+  final _passwordFocusNode = FocusNode();
+  bool _isPasswordFocused = false;
+
   @override
   void initState() {
     super.initState();
     // Refresh logs from disk when page is shown
     _refreshLogs();
+    _passwordFocusNode.addListener(_onPasswordFocusChange);
+  }
+
+  void _onPasswordFocusChange() {
+    final hasFocus = _passwordFocusNode.hasFocus;
+    if (hasFocus != _isPasswordFocused) {
+      setState(() => _isPasswordFocused = hasFocus);
+    }
   }
 
   Future<void> _refreshLogs() async {
@@ -495,6 +507,8 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   @override
   void dispose() {
     _passwordController.dispose();
+    _passwordFocusNode.removeListener(_onPasswordFocusChange);
+    _passwordFocusNode.dispose();
     // Note: We do NOT clear the in-memory cache here like "burn after reading"
     // because it causes data loss. Entries are kept in memory and properly
     // cleared when vault is locked via clearForCurrentAccount().
@@ -633,19 +647,38 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                     return TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
+                      focusNode: _passwordFocusNode,
                       autofocus: true,
                       onSubmitted: (_) => _verifyPassword(),
                       decoration: InputDecoration(
                         labelText: 'Master Password',
                         labelStyle: TextStyle(
-                          color: hasError ? errorColor : Theme.of(ctx).colorScheme.onSurface,
+                          color: hasError
+                              ? errorColor
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : Theme.of(ctx).colorScheme.onSurface,
+                        ),
+                        floatingLabelStyle: TextStyle(
+                          color: hasError
+                              ? errorColor
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : Theme.of(ctx).colorScheme.onSurface,
                         ),
                         errorText: _error,
                         errorStyle: TextStyle(
                           color: errorColor,
                           fontWeight: FontWeight.w500,
                         ),
-                        prefixIcon: Icon(Icons.key, color: hasError ? errorColor : normalColor),
+                        prefixIcon: Icon(
+                          Icons.key,
+                          color: hasError
+                              ? errorColor
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : normalColor,
+                        ),
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -654,7 +687,11 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                                 icon: Icon(
                                   Icons.help_outline,
                                   size: 20,
-                                  color: hasError ? errorColor : normalColor,
+                                  color: hasError
+                                      ? errorColor
+                                      : _isPasswordFocused
+                                      ? AppTheme.primaryColor
+                                      : normalColor,
                                 ),
                                 onPressed: () => _showPasswordHint(hint),
                                 tooltip: 'Show password hint',
@@ -665,7 +702,11 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
                                 size: 20,
-                                color: hasError ? errorColor : normalColor,
+                                color: hasError
+                                    ? errorColor
+                                    : _isPasswordFocused
+                                    ? AppTheme.primaryColor
+                                    : normalColor,
                               ),
                               onPressed: () {
                                 setState(() => _obscurePassword = !_obscurePassword);

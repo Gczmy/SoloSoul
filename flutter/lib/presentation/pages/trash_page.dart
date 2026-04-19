@@ -27,6 +27,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   String? _error;
   String _searchQuery = '';
 
+  // Password field focus state
+  final _passwordFocusNode = FocusNode();
+  bool _isPasswordFocused = false;
+
   @override
   void initState() {
     super.initState();
@@ -34,12 +38,22 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(profileNotifierProvider.notifier).loadProfile();
     });
+    _passwordFocusNode.addListener(_onPasswordFocusChange);
+  }
+
+  void _onPasswordFocusChange() {
+    final hasFocus = _passwordFocusNode.hasFocus;
+    if (hasFocus != _isPasswordFocused) {
+      setState(() => _isPasswordFocused = hasFocus);
+    }
   }
 
   @override
   void dispose() {
     _passwordController.dispose();
     _searchController.dispose();
+    _passwordFocusNode.removeListener(_onPasswordFocusChange);
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -184,19 +198,38 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     return TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
+                      focusNode: _passwordFocusNode,
                       autofocus: true,
                       onSubmitted: (_) => _verifyPassword(),
                       decoration: InputDecoration(
                         labelText: 'Master Password',
                         labelStyle: TextStyle(
-                          color: hasError ? errorColor : Theme.of(ctx).colorScheme.onSurface,
+                          color: hasError
+                              ? errorColor
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : Theme.of(ctx).colorScheme.onSurface,
+                        ),
+                        floatingLabelStyle: TextStyle(
+                          color: hasError
+                              ? errorColor
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : Theme.of(ctx).colorScheme.onSurface,
                         ),
                         errorText: _error,
                         errorStyle: TextStyle(
                           color: errorColor,
                           fontWeight: FontWeight.w500,
                         ),
-                        prefixIcon: Icon(Icons.key, color: hasError ? errorColor : normalColor),
+                        prefixIcon: Icon(
+                          Icons.key,
+                          color: hasError
+                              ? errorColor
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : normalColor,
+                        ),
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -205,7 +238,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                                 icon: Icon(
                                   Icons.help_outline,
                                   size: 20,
-                                  color: hasError ? errorColor : normalColor,
+                                  color: hasError
+                                      ? errorColor
+                                      : _isPasswordFocused
+                                      ? AppTheme.primaryColor
+                                      : normalColor,
                                 ),
                                 onPressed: () => _showPasswordHint(hint),
                                 tooltip: 'Show password hint',
@@ -216,7 +253,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
                                 size: 20,
-                                color: hasError ? errorColor : normalColor,
+                                color: hasError
+                                    ? errorColor
+                                    : _isPasswordFocused
+                                    ? AppTheme.primaryColor
+                                    : normalColor,
                               ),
                               onPressed: () {
                                 setState(() => _obscurePassword = !_obscurePassword);

@@ -468,8 +468,8 @@ class SettingsPage extends ConsumerWidget {
 
   Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
     final passwordController = TextEditingController();
+    final passwordFocusNode = FocusNode();
     final formKey = GlobalKey<FormState>();
-    String? errorMessage;
     bool isDeleting = false;
     bool obscurePassword = true;
 
@@ -478,6 +478,10 @@ class SettingsPage extends ConsumerWidget {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogInnerContext, setState) {
+          String? errorMessage;
+          final hasError = errorMessage != null;
+          final errorColor = Colors.red.shade700;
+
           return AlertDialog(
             title: const Center(
               child: Text('Delete Account'),
@@ -515,13 +519,24 @@ class SettingsPage extends ConsumerWidget {
                   child: TextFormField(
                     controller: passwordController,
                     obscureText: obscurePassword,
+                    focusNode: passwordFocusNode,
                     autofocus: true,
                     enabled: !isDeleting,
+                    onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Enter password to confirm',
                       labelStyle: TextStyle(
-                        color: errorMessage != null
-                            ? Colors.red.shade700
+                        color: hasError
+                            ? errorColor
+                            : passwordFocusNode.hasFocus
+                            ? AppTheme.primaryColor
+                            : Theme.of(dialogInnerContext).colorScheme.onSurface,
+                      ),
+                      floatingLabelStyle: TextStyle(
+                        color: hasError
+                            ? errorColor
+                            : passwordFocusNode.hasFocus
+                            ? AppTheme.primaryColor
                             : Theme.of(dialogInnerContext).colorScheme.onSurface,
                       ),
                       errorText: errorMessage,
@@ -531,8 +546,10 @@ class SettingsPage extends ConsumerWidget {
                       ),
                       prefixIcon: Icon(
                         Icons.lock_outline,
-                        color: errorMessage != null
-                            ? Colors.red.shade700
+                        color: hasError
+                            ? errorColor
+                            : passwordFocusNode.hasFocus
+                            ? AppTheme.primaryColor
                             : Theme.of(dialogInnerContext).colorScheme.onSurfaceVariant,
                       ),
                       suffixIcon: IconButton(
@@ -541,8 +558,10 @@ class SettingsPage extends ConsumerWidget {
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
                           size: 20,
-                          color: errorMessage != null
-                              ? Colors.red.shade700
+                          color: hasError
+                              ? errorColor
+                              : passwordFocusNode.hasFocus
+                              ? AppTheme.primaryColor
                               : Theme.of(dialogInnerContext).colorScheme.onSurfaceVariant,
                         ),
                         onPressed: () {
@@ -585,7 +604,6 @@ class SettingsPage extends ConsumerWidget {
 
                         setState(() {
                           isDeleting = true;
-                          errorMessage = null;
                         });
 
                         final authNotifier = ref.read(authNotifierProvider.notifier);
@@ -595,7 +613,6 @@ class SettingsPage extends ConsumerWidget {
                           if (dialogInnerContext.mounted) {
                             setState(() {
                               isDeleting = false;
-                              errorMessage = 'Incorrect password';
                             });
                           }
                           return;
@@ -614,7 +631,6 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 child: isDeleting
                     ? const SizedBox(
-                        width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
@@ -630,6 +646,7 @@ class SettingsPage extends ConsumerWidget {
     );
 
     passwordController.dispose();
+    passwordFocusNode.dispose();
   }
 }
 
