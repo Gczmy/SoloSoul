@@ -30,6 +30,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _hasPasswordError = false;
   String? _passwordErrorMessage;
 
+  // Password field focus state
+  final _passwordFocusNode = FocusNode();
+  bool _isPasswordFocused = false;
+
   // Biometric unlock state
   bool _biometricsEnabled = false;
   String _biometricType = 'Biometric';
@@ -43,6 +47,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscureConfirmPassword = true;
   String? _createError;
 
+  // Create account form focus states
+  final _newPasswordFocusNode = FocusNode();
+  bool _isNewPasswordFocused = false;
+  final _confirmPasswordFocusNode = FocusNode();
+  bool _isConfirmPasswordFocused = false;
+
   // Password hint overlay tracking
   OverlayEntry? _passwordHintOverlayEntry;
   Timer? _passwordHintTimer;
@@ -52,14 +62,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.initState();
     _checkBiometrics();
     _passwordController.addListener(_onPasswordTyping);
+    _passwordFocusNode.addListener(_onPasswordFocusChange);
+    _newPasswordFocusNode.addListener(_onNewPasswordFocusChange);
+    _confirmPasswordFocusNode.addListener(_onConfirmPasswordFocusChange);
+  }
+
+  void _onNewPasswordFocusChange() {
+    final hasFocus = _newPasswordFocusNode.hasFocus;
+    if (hasFocus != _isNewPasswordFocused) {
+      setState(() => _isNewPasswordFocused = hasFocus);
+    }
+  }
+
+  void _onConfirmPasswordFocusChange() {
+    final hasFocus = _confirmPasswordFocusNode.hasFocus;
+    if (hasFocus != _isConfirmPasswordFocused) {
+      setState(() => _isConfirmPasswordFocused = hasFocus);
+    }
+  }
+
+  void _onPasswordFocusChange() {
+    final hasFocus = _passwordFocusNode.hasFocus;
+    if (hasFocus != _isPasswordFocused) {
+      setState(() => _isPasswordFocused = hasFocus);
+    }
   }
 
   void _onPasswordTyping() {
-    if (!_hasPasswordError || _passwordController.text.isEmpty) return;
-    setState(() {
-      _hasPasswordError = false;
-      _passwordErrorMessage = null;
-    });
+    // Only clear error when field is completely empty
+    if (_passwordController.text.isEmpty) {
+      if (_hasPasswordError) {
+        setState(() {
+          _hasPasswordError = false;
+          _passwordErrorMessage = null;
+        });
+      }
+    }
   }
 
   Future<void> _checkBiometrics() async {
@@ -72,7 +110,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (availableBiometrics.isNotEmpty) {
       if (availableBiometrics.any((b) => b == BiometricType.face)) {
         biometricType = 'Face ID';
-      } else if (availableBiometrics.any((b) => b == BiometricType.fingerprint)) {
+      } else if (availableBiometrics.any(
+        (b) => b == BiometricType.fingerprint,
+      )) {
         biometricType = 'Touch ID';
       } else if (availableBiometrics.any((b) => b == BiometricType.iris)) {
         biometricType = 'Iris';
@@ -107,14 +147,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             deviceName: Platform.isMacOS
                 ? 'Mac'
                 : Platform.isIOS
-                    ? 'iPhone'
-                    : Platform.isAndroid
-                        ? 'Android'
-                        : Platform.isLinux
-                            ? 'Linux'
-                            : Platform.isWindows
-                                ? 'Windows'
-                                : 'Flutter Device',
+                ? 'iPhone'
+                : Platform.isAndroid
+                ? 'Android'
+                : Platform.isLinux
+                ? 'Linux'
+                : Platform.isWindows
+                ? 'Windows'
+                : 'Flutter Device',
             lastUsed: DateTime.now(),
           ).toJson(),
         );
@@ -122,9 +162,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomePage()),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
       }
     } else if (mounted) {
       setState(() => _isLoading = false);
@@ -143,10 +183,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _passwordHintOverlayEntry = null;
     _passwordController.removeListener(_onPasswordTyping);
     _passwordController.dispose();
+    _passwordFocusNode.removeListener(_onPasswordFocusChange);
+    _passwordFocusNode.dispose();
     _newAccountNameController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     _passwordHintController.dispose();
+    _newPasswordFocusNode.removeListener(_onNewPasswordFocusChange);
+    _newPasswordFocusNode.dispose();
+    _confirmPasswordFocusNode.removeListener(_onConfirmPasswordFocusChange);
+    _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
@@ -161,7 +207,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleUnlock() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      // Form validator showed the error - sync our flag so label/icon turn red too
+      setState(() {
+        _hasPasswordError = true;
+        _passwordErrorMessage = 'Password must be at least 8 characters';
+      });
+      return;
+    }
+
+    final password = _passwordController.text;
 
     final authNotifier = ref.read(authNotifierProvider.notifier);
     if (authNotifier.selectedAccountId == null) return;
@@ -493,16 +548,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         TextFormField(
               controller: _newPasswordController,
               obscureText: _obscureNewPassword,
+              focusNode: _newPasswordFocusNode,
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 labelText: 'Master Password',
                 hintText: 'Create a strong password',
-                prefixIcon: const Icon(Icons.key),
+                labelStyle: TextStyle(
+                  color: _isNewPasswordFocused ? AppTheme.primaryColor : null,
+                ),
+                prefixIcon: Icon(
+                  Icons.key,
+                  color: _isNewPasswordFocused ? AppTheme.primaryColor : null,
+                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureNewPassword
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
+                    color: _isNewPasswordFocused ? AppTheme.primaryColor : null,
                   ),
                   onPressed: () {
                     setState(() => _obscureNewPassword = !_obscureNewPassword);
@@ -520,17 +583,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         TextFormField(
               controller: _confirmPasswordController,
               obscureText: _obscureConfirmPassword,
+              focusNode: _confirmPasswordFocusNode,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _handleCreateAccount(),
               decoration: InputDecoration(
                 labelText: 'Confirm Password',
                 hintText: 'Re-enter your password',
-                prefixIcon: const Icon(Icons.key),
+                labelStyle: TextStyle(
+                  color: _isConfirmPasswordFocused
+                      ? AppTheme.primaryColor
+                      : null,
+                ),
+                prefixIcon: Icon(
+                  Icons.key,
+                  color: _isConfirmPasswordFocused
+                      ? AppTheme.primaryColor
+                      : null,
+                ),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureConfirmPassword
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
+                    color: _isConfirmPasswordFocused
+                        ? AppTheme.primaryColor
+                        : null,
                   ),
                   onPressed: () {
                     setState(
@@ -728,101 +805,150 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             children: [
               // Password field
               TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    autofocus: true,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _handleUnlock(),
-                    decoration: InputDecoration(
-                      labelText: 'Master Password',
-                      hintText: 'Enter your password',
-                      labelStyle: TextStyle(
-                        color: _hasPasswordError
-                            ? Colors.red.shade700
-                            : Theme.of(context).colorScheme.onSurface,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.key,
-                        color: _hasPasswordError
-                            ? Colors.red.shade700
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      errorText: _hasPasswordError ? _passwordErrorMessage : null,
-                      errorStyle: TextStyle(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      suffixIcon: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Visibility(
-                            visible: selectedAccount.passwordHint != null,
-                            child: IconButton(
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(8),
-                              icon: Icon(
-                                Icons.help_outline,
-                                size: 20,
-                                color: _hasPasswordError
-                                    ? Colors.red.shade700
-                                    : Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                              onPressed: () => _showPasswordHint(
-                                selectedAccount.passwordHint!,
-                              ),
-                              tooltip: 'Show password hint',
-                            ),
-                          ),
-                          IconButton(
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(8),
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              size: 20,
-                              color: _hasPasswordError
-                                  ? Colors.red.shade700
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                            onPressed: () {
-                              setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 8) {
-                        return 'Password must be at least 8 characters';
-                      }
-                      return null;
-                    },
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                focusNode: _passwordFocusNode,
+                autofocus: true,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _handleUnlock(),
+                decoration: InputDecoration(
+                  labelText: 'Master Password',
+                  hintText: 'Enter your password',
+                  labelStyle: TextStyle(
+                    color: _hasPasswordError
+                        ? Colors.red.shade700
+                        : _isPasswordFocused
+                        ? AppTheme.primaryColor
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
+                  floatingLabelStyle: TextStyle(
+                    color: _hasPasswordError
+                        ? Colors.red.shade700
+                        : _isPasswordFocused
+                        ? AppTheme.primaryColor
+                        : Theme.of(context).colorScheme.onSurface,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.key,
+                    color: _hasPasswordError
+                        ? Colors.red.shade700
+                        : _isPasswordFocused
+                        ? AppTheme.primaryColor
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  errorText: _hasPasswordError ? _passwordErrorMessage : null,
+                  errorStyle: TextStyle(
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  border: _hasPasswordError
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.red.shade700,
+                            width: 2,
+                          ),
+                        )
+                      : null,
+                  enabledBorder: _hasPasswordError
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.red.shade700,
+                            width: 2,
+                          ),
+                        )
+                      : null,
+                  focusedBorder: _hasPasswordError
+                      ? OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.red.shade700,
+                            width: 2,
+                          ),
+                        )
+                      : null,
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.red.shade700,
+                      width: 2,
+                    ),
+                  ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Visibility(
+                        visible: selectedAccount.passwordHint != null,
+                        child: IconButton(
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.all(8),
+                          icon: Icon(
+                            Icons.help_outline,
+                            size: 20,
+                            color: _hasPasswordError
+                                ? Colors.red.shade700
+                                : _isPasswordFocused
+                                ? AppTheme.primaryColor
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: () =>
+                              _showPasswordHint(selectedAccount.passwordHint!),
+                          tooltip: 'Show password hint',
+                        ),
+                      ),
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(8),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          size: 20,
+                          color: _hasPasswordError
+                              ? Colors.red.shade700
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        onPressed: () {
+                          setState(() => _obscurePassword = !_obscurePassword);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  if (value.length < 8) {
+                    return 'Password must be at least 8 characters';
+                  }
+                  return null;
+                },
+              ),
 
               const SizedBox(height: 24),
 
               // Unlock button
               ElevatedButton(
-                    onPressed: _isLoading ? null : _handleUnlock,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text('Unlock'),
-                  ),
+                onPressed: _isLoading ? null : _handleUnlock,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text('Unlock'),
+              ),
 
               // Face ID / Touch ID button
               if (_biometricsEnabled) ...[
