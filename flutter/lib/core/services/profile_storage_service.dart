@@ -439,6 +439,12 @@ class TravelHistoryData {
   String id;
   String destination;
   String? date;
+  String? departureCity;
+  String? departureTime;
+  String? arrivalTime;
+  String? flightNumber;
+  String? ticketPrice;
+  String? airline;
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
@@ -447,6 +453,12 @@ class TravelHistoryData {
     required this.id,
     required this.destination,
     this.date,
+    this.departureCity,
+    this.departureTime,
+    this.arrivalTime,
+    this.flightNumber,
+    this.ticketPrice,
+    this.airline,
     int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
@@ -458,6 +470,12 @@ class TravelHistoryData {
       id: id ?? generateEntryId(),
       destination: json['destination'] ?? '',
       date: json['date'],
+      departureCity: json['departure_city'],
+      departureTime: json['departure_time'],
+      arrivalTime: json['arrival_time'],
+      flightNumber: json['flight_number'],
+      ticketPrice: json['ticket_price'],
+      airline: json['airline'],
       updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
@@ -470,26 +488,48 @@ class TravelHistoryData {
     'id': id,
     'destination': destination,
     'date': date,
+    'departure_city': departureCity,
+    'departure_time': departureTime,
+    'arrival_time': arrivalTime,
+    'flight_number': flightNumber,
+    'ticket_price': ticketPrice,
+    'airline': airline,
     'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
   };
 
+  static const _sentinel = _DeletedAtSentinel();
+
   TravelHistoryData copyWith({
     String? id,
     String? destination,
     String? date,
+    String? departureCity,
+    String? departureTime,
+    String? arrivalTime,
+    String? flightNumber,
+    String? ticketPrice,
+    String? airline,
     int? updatedAt,
     bool? isDeleted,
-    DateTime? deletedAt,
+    Object? deletedAt = _sentinel,
   }) {
     return TravelHistoryData(
       id: id ?? this.id,
       destination: destination ?? this.destination,
       date: date ?? this.date,
+      departureCity: departureCity ?? this.departureCity,
+      departureTime: departureTime ?? this.departureTime,
+      arrivalTime: arrivalTime ?? this.arrivalTime,
+      flightNumber: flightNumber ?? this.flightNumber,
+      ticketPrice: ticketPrice ?? this.ticketPrice,
+      airline: airline ?? this.airline,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: deletedAt ?? this.deletedAt,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 

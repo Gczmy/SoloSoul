@@ -42,9 +42,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Travel'),
-        actions: const [
-          HeaderActionButtons(),
-        ],
+        actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -141,7 +139,10 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     ];
   }
 
-  PassportData _createPassportFromValues(Map<String, String> values, {String? id}) {
+  PassportData _createPassportFromValues(
+    Map<String, String> values, {
+    String? id,
+  }) {
     return PassportData(
       id: generateEntryId(),
       country: values['passport.country']?.isEmpty == true
@@ -277,7 +278,11 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       itemToMap: _passportToMap,
       onCopyAll: (passport, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -468,7 +473,11 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       itemToMap: _visaToMap,
       onCopyAll: (visa, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -537,7 +546,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
         onUndo: () async {
           await ref
               .read(profileNotifierProvider.notifier)
-              .restore(section: 'travel', itemType: 'travel_history', id: deletedId);
+              .restore(
+                section: 'travel',
+                itemType: 'travel_history',
+                id: deletedId,
+              );
         },
       );
     }
@@ -551,12 +564,38 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
     if (dest.isEmpty) return;
     final wasAdding = editingItem == null;
 
+    final newItem = TravelHistoryData(
+      id: editingItem?.id ?? generateEntryId(),
+      destination: dest,
+      date: values['travel.date']?.isEmpty == true
+          ? null
+          : values['travel.date'],
+      departureCity: values['travel.departureCity']?.isEmpty == true
+          ? null
+          : values['travel.departureCity'],
+      departureTime: values['travel.departureTime']?.isEmpty == true
+          ? null
+          : values['travel.departureTime'],
+      arrivalTime: values['travel.arrivalTime']?.isEmpty == true
+          ? null
+          : values['travel.arrivalTime'],
+      flightNumber: values['travel.flightNumber']?.isEmpty == true
+          ? null
+          : values['travel.flightNumber'],
+      ticketPrice: values['travel.ticketPrice']?.isEmpty == true
+          ? null
+          : values['travel.ticketPrice'],
+      airline: values['travel.airline']?.isEmpty == true
+          ? null
+          : values['travel.airline'],
+    );
+
     if (wasAdding) {
-      _history = List.from(_history)..add(TravelHistoryData(id: generateEntryId(), destination: dest));
+      _history = List.from(_history)..add(newItem);
     } else {
       final index = _history.indexOf(editingItem);
       if (index != -1) {
-        _history = List.from(_history)..[index] = TravelHistoryData(id: editingItem.id, destination: dest);
+        _history = List.from(_history)..[index] = newItem;
       }
     }
 
@@ -593,6 +632,27 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       itemFactory: (values, {String? id}) => TravelHistoryData(
         id: id ?? generateEntryId(),
         destination: values['travel.destination']?.trim() ?? '',
+        date: values['travel.date']?.isEmpty == true
+            ? null
+            : values['travel.date'],
+        departureCity: values['travel.departureCity']?.isEmpty == true
+            ? null
+            : values['travel.departureCity'],
+        departureTime: values['travel.departureTime']?.isEmpty == true
+            ? null
+            : values['travel.departureTime'],
+        arrivalTime: values['travel.arrivalTime']?.isEmpty == true
+            ? null
+            : values['travel.arrivalTime'],
+        flightNumber: values['travel.flightNumber']?.isEmpty == true
+            ? null
+            : values['travel.flightNumber'],
+        ticketPrice: values['travel.ticketPrice']?.isEmpty == true
+            ? null
+            : values['travel.ticketPrice'],
+        airline: values['travel.airline']?.isEmpty == true
+            ? null
+            : values['travel.airline'],
       ),
       fieldDefs: const [
         FormFieldDef(
@@ -600,18 +660,85 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
           label: 'Destination',
           sensitivity: SensitivityLevel.public,
         ),
+        FormFieldDef(
+          fieldId: 'travel.date',
+          label: 'Date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'travel.departureCity',
+          label: 'Departure City',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'travel.departureTime',
+          label: 'Departure Time',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'travel.arrivalTime',
+          label: 'Arrival Time',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'travel.flightNumber',
+          label: 'Flight Number',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'travel.ticketPrice',
+          label: 'Ticket Price',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'travel.airline',
+          label: 'Airline',
+          sensitivity: SensitivityLevel.public,
+        ),
       ],
       displayItemBuilder: (item) => _TravelItem(
         title: item.destination,
-        subtitle: '',
+        subtitle: item.flightNumber ?? item.date ?? '',
         icon: Icons.place,
+        additionalFields: [
+          if (item.date != null && item.date!.isNotEmpty)
+            LabelValueField(label: 'Date', value: item.date!),
+          if (item.departureCity != null && item.departureCity!.isNotEmpty)
+            LabelValueField(label: 'Departure', value: item.departureCity!),
+          if (item.departureTime != null && item.departureTime!.isNotEmpty)
+            LabelValueField(
+              label: 'Departure Time',
+              value: item.departureTime!,
+            ),
+          if (item.arrivalTime != null && item.arrivalTime!.isNotEmpty)
+            LabelValueField(label: 'Arrival Time', value: item.arrivalTime!),
+          if (item.flightNumber != null && item.flightNumber!.isNotEmpty)
+            LabelValueField(label: 'Flight', value: item.flightNumber!),
+          if (item.ticketPrice != null && item.ticketPrice!.isNotEmpty)
+            LabelValueField(label: 'Price', value: item.ticketPrice!),
+          if (item.airline != null && item.airline!.isNotEmpty)
+            LabelValueField(label: 'Airline', value: item.airline!),
+        ],
       ),
       onDelete: _onHistoryDelete,
       onSave: _onHistorySave,
-      itemToMap: (item) => {'travel.destination': item.destination},
+      itemToMap: (item) => {
+        'travel.destination': item.destination,
+        'travel.date': item.date ?? '',
+        'travel.departureCity': item.departureCity ?? '',
+        'travel.departureTime': item.departureTime ?? '',
+        'travel.arrivalTime': item.arrivalTime ?? '',
+        'travel.flightNumber': item.flightNumber ?? '',
+        'travel.ticketPrice': item.ticketPrice ?? '',
+        'travel.airline': item.airline ?? '',
+      },
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -634,26 +761,34 @@ class _PassportItem extends ConsumerWidget {
       fields.add(LabelValueField(label: 'Country', value: passport.country!));
     }
     if (passport.number != null && passport.number!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Passport Number',
-        value: passport.number!,
-        fieldId: 'passport.number',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Passport Number',
+          value: passport.number!,
+          fieldId: 'passport.number',
+          isSensitive: true,
+        ),
+      );
     }
     if (passport.holderName != null && passport.holderName!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Holder Name',
-        value: passport.holderName!,
-        fieldId: 'passport.holderName',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Holder Name',
+          value: passport.holderName!,
+          fieldId: 'passport.holderName',
+          isSensitive: true,
+        ),
+      );
     }
     if (passport.issueDate != null && passport.issueDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Issue Date', value: passport.issueDate!));
+      fields.add(
+        LabelValueField(label: 'Issue Date', value: passport.issueDate!),
+      );
     }
     if (passport.expiryDate != null && passport.expiryDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Expiry Date', value: passport.expiryDate!));
+      fields.add(
+        LabelValueField(label: 'Expiry Date', value: passport.expiryDate!),
+      );
     }
 
     return Padding(
@@ -685,10 +820,7 @@ class _PassportItem extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ResponsiveLabelField(
-                      fields: fields,
-                      labelValueSpacing: 4,
-                    ),
+                    ResponsiveLabelField(fields: fields, labelValueSpacing: 4),
                   ],
                 ),
               ),
@@ -715,26 +847,32 @@ class _VisaItem extends ConsumerWidget {
       fields.add(LabelValueField(label: 'Country', value: visa.country!));
     }
     if (visa.visaType != null && visa.visaType!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Type',
-        value: visa.visaType!,
-        fieldId: 'visa.visaType',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Type',
+          value: visa.visaType!,
+          fieldId: 'visa.visaType',
+          isSensitive: true,
+        ),
+      );
     }
     if (visa.number != null && visa.number!.isNotEmpty) {
-      fields.add(LabelValueField(
-        label: 'Visa Number',
-        value: visa.number!,
-        fieldId: 'visa.number',
-        isSensitive: true,
-      ));
+      fields.add(
+        LabelValueField(
+          label: 'Visa Number',
+          value: visa.number!,
+          fieldId: 'visa.number',
+          isSensitive: true,
+        ),
+      );
     }
     if (visa.issueDate != null && visa.issueDate!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Issue Date', value: visa.issueDate!));
     }
     if (visa.expiryDate != null && visa.expiryDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Expiry Date', value: visa.expiryDate!));
+      fields.add(
+        LabelValueField(label: 'Expiry Date', value: visa.expiryDate!),
+      );
     }
 
     return Padding(
@@ -770,10 +908,7 @@ class _VisaItem extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ResponsiveLabelField(
-                      fields: fields,
-                      labelValueSpacing: 4,
-                    ),
+                    ResponsiveLabelField(fields: fields, labelValueSpacing: 4),
                   ],
                 ),
               ),
@@ -825,10 +960,7 @@ class _TravelItem extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ResponsiveLabelField(
-                  fields: fields,
-                  labelValueSpacing: 4,
-                ),
+                ResponsiveLabelField(fields: fields, labelValueSpacing: 4),
               ],
             ),
           ),
