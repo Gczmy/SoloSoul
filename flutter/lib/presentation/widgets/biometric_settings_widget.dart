@@ -27,6 +27,13 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     _checkBiometricStatus();
   }
 
+  /// Whether the user has a currently valid sensitive access verification.
+  bool get _isAccessVerified {
+    // Use ref.watch so this widget rebuilds when sensitivePageAccessProvider changes
+    final accessState = ref.watch(sensitivePageAccessProvider);
+    return accessState.isVerified;
+  }
+
   Future<void> _checkBiometricStatus() async {
     final biometricService = BiometricService.instance;
     final securityService = SecurityService.instance;
@@ -244,9 +251,50 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       return const Center(child: CircularProgressIndicator());
     }
 
+    final isAccessVerified = _isAccessVerified;
+
+    // When access is cleared (Lock Sensitivity Access clicked), sync switch states
+    // to match the now-locked security settings.
+    if (!isAccessVerified) {
+      if (_biometricEnabled || _faceIdEnabled) {
+        // Access was revoked; reflect that in the UI
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _biometricEnabled = false;
+              _faceIdEnabled = false;
+            });
+          }
+        });
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (!isAccessVerified) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.lock_outline, color: Colors.orange.shade700, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Verify identity in the header to enable biometric unlock.',
+                    style: TextStyle(color: Colors.orange.shade900, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         if (_error != null) ...[
           Container(
             padding: const EdgeInsets.all(12),
@@ -281,7 +329,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           title: 'Touch ID',
           subtitle: 'Use Touch ID to unlock',
           value: _biometricEnabled,
-          onChanged: _toggleBiometric,
+          onChanged: isAccessVerified
+              ? _toggleBiometric
+              : (_) {}, // No-op when access is not verified
         ),
         const SizedBox(height: 8),
         _BiometricToggleTile(
@@ -289,7 +339,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           title: 'Face ID',
           subtitle: 'Use Face ID to unlock',
           value: _faceIdEnabled,
-          onChanged: _toggleFaceId,
+          onChanged: isAccessVerified
+              ? _toggleFaceId
+              : (_) {}, // No-op when access is not verified
         ),
         if (_biometricEnabled || _faceIdEnabled) ...[
           const SizedBox(height: 8),
