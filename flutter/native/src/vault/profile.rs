@@ -353,6 +353,7 @@ pub struct EducationData {
 pub struct EmploymentData {
     pub company: Option<String>,
     pub position: Option<String>,
+    pub responsibilities: Option<String>,
     #[serde(alias = "startDate", rename = "startDate")]
     pub start_date: Option<String>,
     #[serde(alias = "endDate", rename = "endDate")]

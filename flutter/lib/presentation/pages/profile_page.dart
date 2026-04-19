@@ -625,6 +625,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   Future<void> _saveContacts({
     LogAction operationType = LogAction.update,
     String? itemName,
+    ContactEntry? oldEntry,
   }) async {
     setState(() => _isSaving = true);
 
@@ -639,6 +640,30 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       contact: ContactData(entries: _entries.map((e) => e.entry).toList()),
       addresses: widget.identity?.addresses,
     );
+
+    // Record field history snapshot for all changed fields
+    if (oldEntry != null) {
+      final newEntry = _entries.firstWhere(
+        (e) => e.entry.id == oldEntry.id,
+        orElse: () => _entries.last,
+      ).entry;
+      final fieldId = oldEntry.type == 'email' ? 'contact.email' : 'contact.phone';
+
+      // Check if any field changed
+      if (oldEntry.label != newEntry.label ||
+          oldEntry.type != newEntry.type ||
+          oldEntry.value != newEntry.value) {
+        await ref.read(fieldHistoriesProvider.notifier).recordEntrySnapshot(
+          itemId: oldEntry.id,
+          fieldIdPrefix: fieldId,
+          allFieldValues: {
+            'label': oldEntry.label,
+            'type': oldEntry.type,
+            'value': oldEntry.value,
+          },
+        );
+      }
+    }
 
     final success = await ref
         .read(profileNotifierProvider.notifier)
@@ -707,6 +732,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         ? -1
         : _entries[_editingIndex].originalIndex;
 
+    // Capture old entry for history tracking (before state change)
+    final oldEntry = _mode == 'editing' ? _entries[_editingIndex].entry : null;
+
     setState(() {
       if (_mode == 'adding') {
         _entries.add(
@@ -742,6 +770,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     _saveContacts(
       operationType: wasAdding ? LogAction.create : LogAction.update,
       itemName: contactDisplayName,
+      oldEntry: oldEntry,
     );
   }
 
@@ -942,8 +971,6 @@ class _ContactEntryTile extends ConsumerStatefulWidget {
 }
 
 class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
-  bool _showHistory = false;
-
   String _formatAllFields() {
     final buffer = StringBuffer();
     buffer.writeln('Contact Entry');
@@ -995,16 +1022,6 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
                 ),
               ),
               IconButton(
-                  icon: Icon(
-                    Icons.history,
-                    size: 20,
-                    color: _showHistory ? AppTheme.primaryColor : theme.colorScheme.onSurfaceVariant,
-                  ),
-                  tooltip: 'View History',
-                  onPressed: () => setState(() => _showHistory = !_showHistory),
-                  visualDensity: VisualDensity.compact,
-                ),
-              IconButton(
                 icon: const Icon(Icons.copy_all, size: 20),
                 tooltip: 'Copy All',
                 onPressed: () {
@@ -1028,7 +1045,7 @@ class _ContactEntryTileState extends ConsumerState<_ContactEntryTile> {
             ],
           ),
         ),
-        if (_showHistory && history != null)
+        if (history != null)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
@@ -1260,6 +1277,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   Future<void> _saveIdCards({
     LogAction operationType = LogAction.update,
     String? itemName,
+    IdCardData? oldCard,
   }) async {
     setState(() => _isSaving = true);
 
@@ -1274,6 +1292,34 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
       contact: widget.identity?.contact,
       addresses: widget.identity?.addresses,
     );
+
+    // Record field history snapshot for all changed fields
+    if (oldCard != null) {
+      final newCard = _idCards.firstWhere(
+        (c) => c.entry.id == oldCard.id,
+        orElse: () => _idCards.last,
+      ).entry;
+
+      if (oldCard.label != newCard.label ||
+          oldCard.number != newCard.number ||
+          oldCard.holderName != newCard.holderName ||
+          oldCard.country != newCard.country ||
+          oldCard.issueDate != newCard.issueDate ||
+          oldCard.expiryDate != newCard.expiryDate) {
+        await ref.read(fieldHistoriesProvider.notifier).recordEntrySnapshot(
+          itemId: oldCard.id,
+          fieldIdPrefix: 'idCard.number',
+          allFieldValues: {
+            'label': oldCard.label ?? '',
+            'number': oldCard.number ?? '',
+            'holderName': oldCard.holderName ?? '',
+            'country': oldCard.country ?? '',
+            'issueDate': oldCard.issueDate ?? '',
+            'expiryDate': oldCard.expiryDate ?? '',
+          },
+        );
+      }
+    }
 
     final success = await ref
         .read(profileNotifierProvider.notifier)
@@ -1338,6 +1384,9 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
         ? -1
         : _idCards[_editingIndex].originalIndex;
 
+    // Capture old card for history tracking (before state change)
+    final oldCard = _mode == 'editing' ? _idCards[_editingIndex].entry : null;
+
     setState(() {
       if (_mode == 'adding') {
         _idCards.add(
@@ -1359,6 +1408,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
     _saveIdCards(
       operationType: wasAdding ? LogAction.create : LogAction.update,
       itemName: cardLabel,
+      oldCard: oldCard,
     );
   }
 
@@ -1597,8 +1647,6 @@ class _IdCardTile extends ConsumerStatefulWidget {
 }
 
 class _IdCardTileState extends ConsumerState<_IdCardTile> {
-  bool _showHistory = false;
-
   String _formatAllFields() {
     final buffer = StringBuffer();
     buffer.writeln('ID Card');
@@ -1708,16 +1756,6 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
                 ),
               ),
               IconButton(
-                  icon: Icon(
-                    Icons.history,
-                    size: 20,
-                    color: _showHistory ? AppTheme.primaryColor : theme.colorScheme.onSurfaceVariant,
-                  ),
-                  tooltip: 'View History',
-                  onPressed: () => setState(() => _showHistory = !_showHistory),
-                  visualDensity: VisualDensity.compact,
-                ),
-              IconButton(
                 icon: const Icon(Icons.copy_all, size: 20),
                 tooltip: 'Copy All',
                 onPressed: () async {
@@ -1748,7 +1786,7 @@ class _IdCardTileState extends ConsumerState<_IdCardTile> {
             ],
           ),
         ),
-        if (_showHistory && history != null)
+        if (history != null)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
@@ -1975,6 +2013,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
   Future<void> _saveAddresses({
     LogAction operationType = LogAction.update,
     String? itemName,
+    AddressData? oldAddr,
   }) async {
     setState(() => _isSaving = true);
 
@@ -1991,6 +2030,32 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
           ? null
           : _addresses.map((a) => a.entry).toList(),
     );
+
+    // Record field history snapshot for all changed fields
+    if (oldAddr != null) {
+      final newAddr = _addresses.firstWhere(
+        (a) => a.entry.id == oldAddr.id,
+        orElse: () => _addresses.last,
+      ).entry;
+
+      if (oldAddr.label != newAddr.label ||
+          oldAddr.street != newAddr.street ||
+          oldAddr.city != newAddr.city ||
+          oldAddr.postalCode != newAddr.postalCode ||
+          oldAddr.country != newAddr.country) {
+        await ref.read(fieldHistoriesProvider.notifier).recordEntrySnapshot(
+          itemId: oldAddr.id,
+          fieldIdPrefix: 'address.postalCode',
+          allFieldValues: {
+            'label': oldAddr.label ?? '',
+            'street': oldAddr.street ?? '',
+            'city': oldAddr.city ?? '',
+            'postalCode': oldAddr.postalCode ?? '',
+            'country': oldAddr.country ?? '',
+          },
+        );
+      }
+    }
 
     final success = await ref
         .read(profileNotifierProvider.notifier)
@@ -2050,6 +2115,9 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
         ? -1
         : _addresses[_editingIndex].originalIndex;
 
+    // Capture old address for history tracking (before state change)
+    final oldAddr = _mode == 'editing' ? _addresses[_editingIndex].entry : null;
+
     setState(() {
       if (_mode == 'adding') {
         _addresses.add(
@@ -2071,6 +2139,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
     _saveAddresses(
       operationType: wasAdding ? LogAction.create : LogAction.update,
       itemName: addrLabel,
+      oldAddr: oldAddr,
     );
   }
 
@@ -2301,8 +2370,6 @@ class _AddressTile extends ConsumerStatefulWidget {
 }
 
 class _AddressTileState extends ConsumerState<_AddressTile> {
-  bool _showHistory = false;
-
   String _formatAllFields() {
     final buffer = StringBuffer();
     buffer.writeln('Address');
@@ -2405,16 +2472,6 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
                       ),
               ),
               IconButton(
-                icon: Icon(
-                  Icons.history,
-                  size: 20,
-                  color: _showHistory ? AppTheme.primaryColor : theme.colorScheme.onSurfaceVariant,
-                ),
-                tooltip: 'View History',
-                onPressed: () => setState(() => _showHistory = !_showHistory),
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
                 icon: const Icon(Icons.copy_all, size: 20),
                 tooltip: 'Copy All',
                 onPressed: () {
@@ -2438,7 +2495,7 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
             ],
           ),
         ),
-        if (_showHistory && history != null)
+        if (history != null)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(

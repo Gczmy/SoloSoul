@@ -2434,9 +2434,11 @@ class ProfileStorageService {
         final json = jsonDecode(contents) as Map<String, dynamic>;
         final histories = ProfileFieldHistories.fromJson(json);
 
-        // Migrate to encrypted storage and delete plaintext
-        await saveFieldHistories(accountId, histories);
-        await _secureDeleteFile(plainFile);
+        // Only delete plaintext file after successful encrypted save
+        final saved = await saveFieldHistories(accountId, histories);
+        if (saved) {
+          await _secureDeleteFile(plainFile);
+        }
 
         return histories;
       }

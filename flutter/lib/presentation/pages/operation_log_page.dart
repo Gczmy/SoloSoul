@@ -1247,6 +1247,57 @@ class _OperationTile extends StatelessWidget {
 
   const _OperationTile({required this.entry});
 
+  void _showDetailDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(_actionIcon, color: _actionColor(context)),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Operation Details')),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _DetailRow(label: 'Timestamp', value: _formatFullTimestamp(entry.timestamp)),
+            const SizedBox(height: 12),
+            _DetailRow(label: 'Action', value: _actionLabel),
+            const SizedBox(height: 12),
+            _DetailRow(label: 'Section', value: entry.section.toUpperCase()),
+            if (entry.fieldPath != null) ...[
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Field Path', value: entry.fieldPath!),
+            ],
+            const SizedBox(height: 12),
+            _DetailRow(label: 'Description', value: entry.description),
+            const SizedBox(height: 12),
+            _DetailRow(label: 'Device', value: _getDeviceLabel(entry.device)),
+            const SizedBox(height: 12),
+            _DetailRow(
+              label: 'Sensitivity Level',
+              value: entry.sensitivityLevel[0].toUpperCase() + entry.sensitivityLevel.substring(1),
+              valueColor: _sensitivityColor(entry.sensitivityLevel),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatFullTimestamp(DateTime dt) {
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+  }
+
   IconData get _actionIcon {
     switch (entry.action) {
       case 'create':
@@ -1512,9 +1563,50 @@ class _OperationTile extends StatelessWidget {
                 ],
               ),
             ),
+            IconButton(
+              icon: const Icon(Icons.info_outline, size: 20),
+              onPressed: () => _showDetailDialog(context),
+              tooltip: 'View details',
+              visualDensity: VisualDensity.compact,
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: valueColor,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -924,11 +924,13 @@ class _TravelItem extends ConsumerWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final List<LabelValueField>? additionalFields;
 
   const _TravelItem({
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.additionalFields,
   });
 
   @override
@@ -939,6 +941,9 @@ class _TravelItem extends ConsumerWidget {
     }
     if (subtitle.isNotEmpty) {
       fields.add(LabelValueField(label: 'Notes', value: subtitle));
+    }
+    if (additionalFields != null) {
+      fields.addAll(additionalFields!);
     }
 
     return Padding(

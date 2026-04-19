@@ -461,6 +461,15 @@ class FieldRegistry {
     ),
   ];
 
+  static bool isFieldRestricted(String fieldId) {
+    try {
+      return defaultFields.firstWhere((f) => f.fieldId == fieldId).level ==
+          SensitivityLevel.restricted;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static List<FieldSensitivity> getFieldsBySection(String section) {
     return defaultFields.where((f) => f.fieldSection == section).toList();
   }

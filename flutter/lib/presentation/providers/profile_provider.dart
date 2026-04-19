@@ -2049,8 +2049,11 @@ final profileNotifierProvider =
       ref.listen<AuthState>(authNotifierProvider, (previous, next) {
         if (next == AuthState.unlocked) {
           notifier.loadProfile();
-        } else if (next == AuthState.locked || next == AuthState.initial) {
-          // Clear profile when locked or reset
+        } else if (previous == AuthState.unlocked &&
+                   (next == AuthState.locked || next == AuthState.initial)) {
+          // Only clear profile when transitioning FROM unlocked to locked/initial.
+          // This prevents clearing profile data on FAILED unlock attempts
+          // (which go: unlocked → loading → locked, not locked → unlocked).
           notifier.clearProfile();
         }
       });
@@ -2102,7 +2105,13 @@ class FieldHistoriesNotifier extends StateNotifier<ProfileFieldHistories> {
     if (accountId == null) return;
 
     final storage = ProfileStorageService.instance;
-    state = await storage.loadFieldHistories(accountId);
+    final loaded = await storage.loadFieldHistories(accountId);
+
+    // Only update state if we got actual data (not empty).
+    // This prevents vault lock/unlock cycles from wiping in-memory histories.
+    if (loaded.histories.isNotEmpty) {
+      state = loaded;
+    }
   }
 
   /// Record a field change (called when a field is updated)

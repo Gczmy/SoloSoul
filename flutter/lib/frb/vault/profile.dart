@@ -248,6 +248,7 @@ class EducationData {
 class EmploymentData {
   final String? company;
   final String? position;
+  final String? responsibilities;
   final String? startDate;
   final String? endDate;
   final bool isDeleted;
@@ -256,6 +257,7 @@ class EmploymentData {
   const EmploymentData({
     this.company,
     this.position,
+    this.responsibilities,
     this.startDate,
     this.endDate,
     required this.isDeleted,
@@ -266,6 +268,7 @@ class EmploymentData {
   int get hashCode =>
       company.hashCode ^
       position.hashCode ^
+      responsibilities.hashCode ^
       startDate.hashCode ^
       endDate.hashCode ^
       isDeleted.hashCode ^
@@ -278,6 +281,7 @@ class EmploymentData {
           runtimeType == other.runtimeType &&
           company == other.company &&
           position == other.position &&
+          responsibilities == other.responsibilities &&
           startDate == other.startDate &&
           endDate == other.endDate &&
           isDeleted == other.isDeleted &&

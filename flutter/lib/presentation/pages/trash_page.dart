@@ -869,9 +869,13 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _restoreItem(item);
+            },
+            icon: const Icon(Icons.restore, size: 18),
+            label: const Text('Restore'),
           ),
           OutlinedButton.icon(
             onPressed: () {
@@ -884,13 +888,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               foregroundColor: AppTheme.errorColor,
             ),
           ),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _restoreItem(item);
-            },
-            icon: const Icon(Icons.restore, size: 18),
-            label: const Text('Restore'),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),

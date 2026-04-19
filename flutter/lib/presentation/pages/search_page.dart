@@ -1142,7 +1142,7 @@ class _HistorySheet extends StatelessWidget {
                         _HistoryChangeItem(
                           itemId: itemId,
                           fieldId: fieldId,
-                          value: entry.value,
+                          values: entry.values,
                           timestamp: entry.timestamp,
                         ),
                       );
@@ -1196,13 +1196,13 @@ class _HistorySheet extends StatelessWidget {
 class _HistoryChangeItem {
   final String itemId;
   final String fieldId;
-  final String value;
+  final Map<String, String> values;
   final DateTime timestamp;
 
   const _HistoryChangeItem({
     required this.itemId,
     required this.fieldId,
-    required this.value,
+    required this.values,
     required this.timestamp,
   });
 }
@@ -1257,16 +1257,39 @@ class _HistoryChangeTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    change.value.isNotEmpty ? change.value : '(empty)',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontStyle: change.value.isEmpty ? FontStyle.italic : null,
-                      color: change.value.isEmpty
-                          ? theme.colorScheme.onSurfaceVariant.withValues(
-                              alpha: 0.6,
-                            )
-                          : null,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: change.values.entries.map((e) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              child: Text(
+                                e.key,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                e.value.isNotEmpty ? e.value : '(empty)',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontStyle: e.value.isEmpty ? FontStyle.italic : null,
+                                  color: e.value.isEmpty
+                                      ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ],
               ),

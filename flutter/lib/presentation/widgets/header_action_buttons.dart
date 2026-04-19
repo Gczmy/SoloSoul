@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme, SnackBarType, showOverlaySnackBar;
 
 /// Shared header action buttons for authenticated pages.
 ///
@@ -37,11 +37,10 @@ class HeaderActionButtons extends ConsumerWidget {
             onPressed: () {
               // Manual lock - clear sensitive page access
               ref.read(sensitivePageAccessProvider.notifier).clear();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Sensitive access locked'),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              showOverlaySnackBar(
+                context,
+                content: 'Sensitive access locked',
+                type: SnackBarType.info,
               );
             },
             tooltip: 'Lock Sensitivity Access',

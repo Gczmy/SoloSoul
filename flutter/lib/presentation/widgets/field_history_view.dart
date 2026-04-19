@@ -1,25 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 
 /// Widget to display and animate field history
-class FieldHistoryView extends StatefulWidget {
+class FieldHistoryView extends ConsumerStatefulWidget {
   final String fieldName;
   final FieldHistory history;
+  final bool initiallyExpanded;
 
   const FieldHistoryView({
     super.key,
     required this.fieldName,
     required this.history,
+    this.initiallyExpanded = false,
   });
 
   @override
-  State<FieldHistoryView> createState() => _FieldHistoryViewState();
+  ConsumerState<FieldHistoryView> createState() => _FieldHistoryViewState();
 }
 
-class _FieldHistoryViewState extends State<FieldHistoryView> {
-  bool _isExpanded = false;
+class _FieldHistoryViewState extends ConsumerState<FieldHistoryView> {
+  bool _userToggledExpanded = false;
+
+  bool get _isRestrictedField {
+    final settings = ref.read(sensitivitySettingsProvider);
+    final level = settings.getFieldLevel(widget.fieldName);
+    return level == SensitivityLevel.restricted;
+  }
+
+  /// Whether sensitivity access is currently unlocked (recently verified)
+  bool get _hasSensitiveAccess {
+    final sensitiveAccess = ref.watch(sensitivePageAccessProvider);
+    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+    return sensitiveAccess.lastVerified != null &&
+        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+  }
+
+  /// Derive expanded state from field level and access status
+  bool get _isExpanded {
+    if (_isRestrictedField && !_hasSensitiveAccess) {
+      // Always collapse restricted fields when access is locked
+      return false;
+    }
+    return _userToggledExpanded || widget.initiallyExpanded;
+  }
+
+  Future<void> _toggleExpanded() async {
+    if (_isRestrictedField && !_hasSensitiveAccess) {
+      // Show password dialog for restricted fields
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final selectedAccount = authNotifier.selectedAccount;
+      if (selectedAccount == null) return;
+
+      final password = await showPasswordVerificationDialog(
+        context: context,
+        ref: ref,
+        passwordHint: selectedAccount.passwordHint,
+        onVerify: authNotifier.verifyPasswordForSensitiveData,
+      );
+      if (password == null) return;
+
+      // Mark as verified
+      ref.read(sensitivePageAccessProvider.notifier).markVerified();
+    }
+
+    setState(() => _userToggledExpanded = !_userToggledExpanded);
+  }
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
@@ -56,14 +107,14 @@ class _FieldHistoryViewState extends State<FieldHistoryView> {
       children: [
         // Toggle button
         InkWell(
-          onTap: () => setState(() => _isExpanded = !_isExpanded),
+          onTap: _toggleExpanded,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.history,
                   size: 16,
                   color: AppTheme.primaryColor,
@@ -204,29 +255,61 @@ class _HistoryEntryTile extends StatelessWidget {
                         ),
                       ),
                     if (isLatest) const SizedBox(width: 8),
-                    Expanded(
+                    Text(
+                      formatTimestamp(entry.timestamp),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Spacer(),
+                    Tooltip(
+                      message: formatFullTimestamp(entry.timestamp),
                       child: Text(
-                        formatTimestamp(entry.timestamp),
+                        formatFullTimestamp(entry.timestamp),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          fontSize: 11,
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
-                Tooltip(
-                  message: formatFullTimestamp(entry.timestamp),
-                  child: Text(
-                    entry.value.isNotEmpty ? entry.value : '(empty)',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: isLatest ? FontWeight.w500 : FontWeight.normal,
-                      fontStyle: entry.value.isEmpty ? FontStyle.italic : null,
-                      color: entry.value.isEmpty
-                          ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
-                          : null,
-                    ),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: entry.values.entries.map<Widget>((e) {
+                    final value = e.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 80,
+                            child: Text(
+                              e.key,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              value.isNotEmpty ? value : '(empty)',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: isLatest ? FontWeight.w500 : FontWeight.normal,
+                                fontStyle: value.isEmpty ? FontStyle.italic : null,
+                                color: value.isEmpty
+                                    ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
