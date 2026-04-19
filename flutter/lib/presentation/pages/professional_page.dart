@@ -38,9 +38,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Professional'),
-        actions: const [
-          HeaderActionButtons(),
-        ],
+        actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -79,6 +77,11 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .animate()
                 .fadeIn(delay: 400.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
+            const SizedBox(height: 16),
+            _AwardSection()
+                .animate()
+                .fadeIn(delay: 500.ms, duration: 400.ms)
+                .slideX(begin: 0.05, end: 0),
           ],
         ),
       ),
@@ -116,14 +119,19 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
 
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeEducation.map((e) => EducationData(
+    _items = [
+      ...?(professional?.activeEducation.map(
+        (e) => EducationData(
           id: e.id,
           institution: e.institution,
           degree: e.degree,
+          degreeCustom: e.degreeCustom,
           field: e.field,
           startDate: e.startDate,
           endDate: e.endDate,
-        )))];
+        ),
+      )),
+    ];
   }
 
   @override
@@ -147,6 +155,9 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       degree: values['education.degree']?.isEmpty == true
           ? null
           : values['education.degree'],
+      degreeCustom: values['education.degreeCustom']?.isEmpty == true
+          ? null
+          : values['education.degreeCustom'],
       field: values['education.fieldOfStudy']?.isEmpty == true
           ? null
           : values['education.fieldOfStudy'],
@@ -163,6 +174,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     return {
       'education.institution': edu.institution ?? '',
       'education.degree': edu.degree ?? '',
+      'education.degreeCustom': edu.degreeCustom ?? '',
       'education.fieldOfStudy': edu.field ?? '',
       'education.startDate': edu.startDate ?? '',
       'education.endDate': edu.endDate ?? '',
@@ -170,19 +182,23 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
   }
 
   String _subtitle(EducationData e) {
-    final parts = [e.degree, e.field]
-        .where((p) => p != null && p.isNotEmpty)
-        .join(' - ');
+    final parts = [
+      e.degree,
+      e.field,
+    ].where((p) => p != null && p.isNotEmpty).join(' - ');
     return parts.isEmpty ? '' : parts;
   }
 
   Future<void> _onDelete(EducationData item) async {
     final index = _items.indexOf(item);
     if (index == -1) return;
-    final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode ==
+    final isPrivacyMode =
+        ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref.read(profileNotifierProvider.notifier).softDelete(
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
           section: 'professional',
           itemType: 'education',
           index: index,
@@ -202,17 +218,22 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
         ),
         duration: const Duration(seconds: 5),
         onUndo: () async {
-          await ref.read(profileNotifierProvider.notifier).restore(
-              section: 'professional',
-              itemType: 'education',
-              id: deletedId);
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(
+                section: 'professional',
+                itemType: 'education',
+                id: deletedId,
+              );
         },
       );
     }
   }
 
   Future<void> _onSave(
-      Map<String, String> values, EducationData? editingItem) async {
+    Map<String, String> values,
+    EducationData? editingItem,
+  ) async {
     final newItem = _createFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
     if (wasAdding) {
@@ -237,7 +258,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     if (mounted) {
       final isPrivacyMode =
           ref.read(sensitivitySettingsProvider).displayMode ==
-              SensitivityDisplayMode.hidePrivate;
+          SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -250,6 +271,25 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     }
   }
 
+  static const _degreeOptions = [
+    'Elementary',
+    'Junior High',
+    'Senior High',
+    'Bachelor',
+    'Master',
+    'PhD',
+  ];
+
+  String _displayDegree(EducationData item) {
+    if (item.degree != null && item.degree!.isNotEmpty) {
+      return item.degree!;
+    }
+    if (item.degreeCustom != null && item.degreeCustom!.isNotEmpty) {
+      return item.degreeCustom!;
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return UnifiedFormSection<EducationData>(
@@ -260,33 +300,163 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       itemFactory: _createFromValues,
       fieldDefs: const [
         FormFieldDef(
-            fieldId: 'education.institution',
-            label: 'Institution',
-            sensitivity: SensitivityLevel.public),
+          fieldId: 'education.institution',
+          label: 'Institution',
+          sensitivity: SensitivityLevel.public,
+        ),
         FormFieldDef(
-            fieldId: 'education.degree',
-            label: 'Degree',
-            sensitivity: SensitivityLevel.public),
+          fieldId: 'education.degree',
+          label: 'Degree',
+          sensitivity: SensitivityLevel.public,
+        ),
         FormFieldDef(
-            fieldId: 'education.fieldOfStudy',
-            label: 'Field of Study',
-            sensitivity: SensitivityLevel.public),
+          fieldId: 'education.degreeCustom',
+          label: 'Custom Degree',
+          sensitivity: SensitivityLevel.public,
+        ),
         FormFieldDef(
-            fieldId: 'education.startDate',
-            label: 'Start Date',
-            sensitivity: SensitivityLevel.public),
+          fieldId: 'education.fieldOfStudy',
+          label: 'Field of Study',
+          sensitivity: SensitivityLevel.public,
+        ),
         FormFieldDef(
-            fieldId: 'education.endDate',
-            label: 'End Date',
-            sensitivity: SensitivityLevel.public),
+          fieldId: 'education.startDate',
+          label: 'Start Date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'education.endDate',
+          label: 'End Date',
+          sensitivity: SensitivityLevel.public,
+        ),
       ],
+      customFormBuilder:
+          (ctx, theme, controllers, mode, onSubmit, onCancel, isSaving) {
+            final degreeController = controllers['education.degree']!;
+            final degreeCustomController =
+                controllers['education.degreeCustom']!;
+            final isCustomSelected = !_degreeOptions.contains(
+              degreeController.text,
+            );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  mode == 'adding' ? 'Add Education' : 'Edit Education',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controllers['education.institution'],
+                  decoration: const InputDecoration(
+                    labelText: 'Institution',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text('Degree', style: theme.textTheme.bodySmall),
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<String>(
+                    segments: [
+                      ..._degreeOptions.map(
+                        (d) => ButtonSegment(
+                          value: d,
+                          label: Text(d, style: const TextStyle(fontSize: 12)),
+                        ),
+                      ),
+                      const ButtonSegment(
+                        value: 'other',
+                        label: Text('Other', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                    selected: isCustomSelected
+                        ? {'other'}
+                        : (degreeController.text.isEmpty
+                              ? {}
+                              : {degreeController.text}),
+                    onSelectionChanged: (selected) {
+                      final value = selected.first;
+                      if (value == 'other') {
+                        degreeController.clear();
+                      } else {
+                        degreeController.text = value;
+                        degreeCustomController.clear();
+                      }
+                    },
+                    showSelectedIcon: false,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (isCustomSelected || degreeCustomController.text.isNotEmpty)
+                  TextField(
+                    controller: degreeCustomController,
+                    decoration: const InputDecoration(
+                      labelText: 'Custom Degree',
+                      hintText: 'Please specify',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                if (isCustomSelected) const SizedBox(height: 12),
+                TextField(
+                  controller: controllers['education.fieldOfStudy'],
+                  decoration: const InputDecoration(
+                    labelText: 'Field of Study',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controllers['education.startDate'],
+                  decoration: const InputDecoration(
+                    labelText: 'Start Date',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controllers['education.endDate'],
+                  decoration: const InputDecoration(
+                    labelText: 'End Date',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: isSaving ? null : onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: isSaving ? null : onSubmit,
+                      child: isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(mode == 'adding' ? 'Add' : 'Save'),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
       displayItemBuilder: (item) => _ProfessionalItem(
         title: item.institution ?? 'Institution',
         subtitle: _subtitle(item),
         icon: Icons.school,
         additionalFields: [
-          if (item.degree != null && item.degree!.isNotEmpty)
-            LabelValueField(label: 'Degree', value: item.degree!),
+          if (_displayDegree(item).isNotEmpty)
+            LabelValueField(label: 'Degree', value: _displayDegree(item)),
           if (item.field != null && item.field!.isNotEmpty)
             LabelValueField(label: 'Field', value: item.field!),
           if (item.startDate != null && item.startDate!.isNotEmpty)
@@ -300,7 +470,11 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       itemToMap: _educationToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -330,24 +504,38 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
 
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeEmployment.map(
-      (e) => EmploymentData(
-        id: e.id,
-        company: e.company,
-        position: e.position,
-        startDate: e.startDate,
-        endDate: e.endDate,
-      ),
-    ))];
+    _items = [
+      ...?(professional?.activeEmployment.map(
+        (e) => EmploymentData(
+          id: e.id,
+          company: e.company,
+          position: e.position,
+          responsibilities: e.responsibilities,
+          startDate: e.startDate,
+          endDate: e.endDate,
+        ),
+      )),
+    ];
   }
 
   EmploymentData _createFromValues(Map<String, String> values, {String? id}) {
     return EmploymentData(
       id: id ?? generateEntryId(),
-      company: values['employment.company']?.isEmpty == true ? null : values['employment.company'],
-      position: values['employment.position']?.isEmpty == true ? null : values['employment.position'],
-      startDate: values['employment.startDate']?.isEmpty == true ? null : values['employment.startDate'],
-      endDate: values['employment.endDate']?.isEmpty == true ? null : values['employment.endDate'],
+      company: values['employment.company']?.isEmpty == true
+          ? null
+          : values['employment.company'],
+      position: values['employment.position']?.isEmpty == true
+          ? null
+          : values['employment.position'],
+      responsibilities: values['employment.responsibilities']?.isEmpty == true
+          ? null
+          : values['employment.responsibilities'],
+      startDate: values['employment.startDate']?.isEmpty == true
+          ? null
+          : values['employment.startDate'],
+      endDate: values['employment.endDate']?.isEmpty == true
+          ? null
+          : values['employment.endDate'],
     );
   }
 
@@ -355,6 +543,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     return {
       'employment.company': emp.company ?? '',
       'employment.position': emp.position ?? '',
+      'employment.responsibilities': emp.responsibilities ?? '',
       'employment.startDate': emp.startDate ?? '',
       'employment.endDate': emp.endDate ?? '',
     };
@@ -367,29 +556,83 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
   Future<void> _onDelete(EmploymentData item) async {
     final index = _items.indexOf(item);
     if (index == -1) return;
-    final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
+    final isPrivacyMode =
+        ref.read(sensitivitySettingsProvider).displayMode ==
+        SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref.read(profileNotifierProvider.notifier).softDelete(section: 'professional', itemType: 'employment', index: index, deletedItem: item);
-    setState(() { _items = List.from(_items)..removeAt(index); });
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'professional',
+          itemType: 'employment',
+          index: index,
+          deletedItem: item,
+        );
+    setState(() {
+      _items = List.from(_items)..removeAt(index);
+    });
     if (mounted) {
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.company ?? 'Employment', isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'employment', id: deletedId); });
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: LogAction.delete,
+          itemName: item.company ?? 'Employment',
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(
+                section: 'professional',
+                itemType: 'employment',
+                id: deletedId,
+              );
+        },
+      );
     }
   }
 
-  Future<void> _onSave(Map<String, String> values, EmploymentData? editingItem) async {
+  Future<void> _onSave(
+    Map<String, String> values,
+    EmploymentData? editingItem,
+  ) async {
     final newItem = _createFromValues(values, id: editingItem?.id);
     final wasAdding = editingItem == null;
-    if (wasAdding) { _items = List.from(_items)..add(newItem); } else { final index = _items.indexOf(editingItem); if (index != -1) { _items = List.from(_items)..[index] = newItem; } }
+    if (wasAdding) {
+      _items = List.from(_items)..add(newItem);
+    } else {
+      final index = _items.indexOf(editingItem);
+      if (index != -1) {
+        _items = List.from(_items)..[index] = newItem;
+      }
+    }
     final professional = ProfessionalData(
-      education: ref.read(profileNotifierProvider)?.professional?.education ?? [],
+      education:
+          ref.read(profileNotifierProvider)?.professional?.education ?? [],
       employment: _items,
       skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-      languages: ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+      languages:
+          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+      awards: ref.read(profileNotifierProvider)?.professional?.awards ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateProfessional(professional);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfessional(professional);
     if (mounted) {
-      final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: wasAdding ? LogAction.create : LogAction.update, itemName: newItem.company ?? 'Employment', isPrivacyModeActive: isPrivacyMode));
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: newItem.company ?? 'Employment',
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
     }
   }
 
@@ -402,10 +645,31 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: const [
-        FormFieldDef(fieldId: 'employment.company', label: 'Company', sensitivity: SensitivityLevel.public),
-        FormFieldDef(fieldId: 'employment.position', label: 'Position', sensitivity: SensitivityLevel.public),
-        FormFieldDef(fieldId: 'employment.startDate', label: 'Start Date', sensitivity: SensitivityLevel.public),
-        FormFieldDef(fieldId: 'employment.endDate', label: 'End Date', sensitivity: SensitivityLevel.public),
+        FormFieldDef(
+          fieldId: 'employment.company',
+          label: 'Company',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'employment.position',
+          label: 'Position',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'employment.responsibilities',
+          label: 'Responsibilities',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'employment.startDate',
+          label: 'Start Date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'employment.endDate',
+          label: 'End Date',
+          sensitivity: SensitivityLevel.public,
+        ),
       ],
       displayItemBuilder: (item) => _ProfessionalItem(
         title: item.company ?? 'Company',
@@ -414,6 +678,12 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
         additionalFields: [
           if (item.position != null && item.position!.isNotEmpty)
             LabelValueField(label: 'Position', value: item.position!),
+          if (item.responsibilities != null &&
+              item.responsibilities!.isNotEmpty)
+            LabelValueField(
+              label: 'Responsibilities',
+              value: item.responsibilities!,
+            ),
           if (item.startDate != null && item.startDate!.isNotEmpty)
             LabelValueField(label: 'Start Date', value: item.startDate!),
           if (item.endDate != null && item.endDate!.isNotEmpty)
@@ -425,7 +695,11 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
       itemToMap: _employmentToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -461,43 +735,98 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
   SkillData _createFromValues(Map<String, String> values, {String? id}) {
     final name = values['skill.name']?.trim() ?? '';
     final level = values['skill.level']?.trim() ?? '';
-    return SkillData(id: id ?? generateEntryId(), name: name, level: level.isEmpty ? null : level);
+    return SkillData(
+      id: id ?? generateEntryId(),
+      name: name,
+      level: level.isEmpty ? null : level,
+    );
   }
 
   Map<String, String> _skillToMap(SkillData skill) {
-    return {
-      'skill.name': skill.name,
-      'skill.level': skill.level ?? '',
-    };
+    return {'skill.name': skill.name, 'skill.level': skill.level ?? ''};
   }
 
   Future<void> _onDelete(SkillData item) async {
     final index = _items.indexOf(item);
     if (index == -1) return;
-    final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
+    final isPrivacyMode =
+        ref.read(sensitivitySettingsProvider).displayMode ==
+        SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref.read(profileNotifierProvider.notifier).softDelete(section: 'professional', itemType: 'skill', index: index, deletedItem: item);
-    setState(() { _items = List.from(_items)..removeAt(index); });
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'professional',
+          itemType: 'skill',
+          index: index,
+          deletedItem: item,
+        );
+    setState(() {
+      _items = List.from(_items)..removeAt(index);
+    });
     if (mounted) {
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.toString(), isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'skill', id: deletedId); });
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: LogAction.delete,
+          itemName: item.toString(),
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(
+                section: 'professional',
+                itemType: 'skill',
+                id: deletedId,
+              );
+        },
+      );
     }
   }
 
-  Future<void> _onSave(Map<String, String> values, SkillData? editingItem) async {
+  Future<void> _onSave(
+    Map<String, String> values,
+    SkillData? editingItem,
+  ) async {
     final newItem = _createFromValues(values, id: editingItem?.id);
     if (newItem.name.isEmpty) return;
     final wasAdding = editingItem == null;
-    if (wasAdding) { _items = List.from(_items)..add(newItem); } else { final index = _items.indexOf(editingItem); if (index != -1) { _items = List.from(_items)..[index] = newItem; } }
+    if (wasAdding) {
+      _items = List.from(_items)..add(newItem);
+    } else {
+      final index = _items.indexOf(editingItem);
+      if (index != -1) {
+        _items = List.from(_items)..[index] = newItem;
+      }
+    }
     final professional = ProfessionalData(
-      education: ref.read(profileNotifierProvider)?.professional?.education ?? [],
-      employment: ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+      education:
+          ref.read(profileNotifierProvider)?.professional?.education ?? [],
+      employment:
+          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
       skills: _items,
-      languages: ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+      languages:
+          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateProfessional(professional);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfessional(professional);
     if (mounted) {
-      final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: wasAdding ? LogAction.create : LogAction.update, itemName: newItem.toString(), isPrivacyModeActive: isPrivacyMode));
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: newItem.toString(),
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
     }
   }
 
@@ -510,8 +839,16 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: const [
-        FormFieldDef(fieldId: 'skill.name', label: 'Skill Name', sensitivity: SensitivityLevel.public),
-        FormFieldDef(fieldId: 'skill.level', label: 'Level (e.g. Beginner, Intermediate, Expert)', sensitivity: SensitivityLevel.public),
+        FormFieldDef(
+          fieldId: 'skill.name',
+          label: 'Skill Name',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'skill.level',
+          label: 'Level (e.g. Beginner, Intermediate, Expert)',
+          sensitivity: SensitivityLevel.public,
+        ),
       ],
       displayItemBuilder: (item) => _ProfessionalItem(
         title: item.name,
@@ -527,7 +864,11 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
       itemToMap: _skillToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }
@@ -563,7 +904,11 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
   LanguageData _createFromValues(Map<String, String> values, {String? id}) {
     final name = values['language.name']?.trim() ?? '';
     final proficiency = values['language.proficiency']?.trim() ?? '';
-    return LanguageData(id: id ?? generateEntryId(), name: name, proficiency: proficiency.isEmpty ? null : proficiency);
+    return LanguageData(
+      id: id ?? generateEntryId(),
+      name: name,
+      proficiency: proficiency.isEmpty ? null : proficiency,
+    );
   }
 
   Map<String, String> _languageToMap(LanguageData language) {
@@ -576,30 +921,83 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
   Future<void> _onDelete(LanguageData item) async {
     final index = _items.indexOf(item);
     if (index == -1) return;
-    final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
+    final isPrivacyMode =
+        ref.read(sensitivitySettingsProvider).displayMode ==
+        SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-    await ref.read(profileNotifierProvider.notifier).softDelete(section: 'professional', itemType: 'language', index: index, deletedItem: item);
-    setState(() { _items = List.from(_items)..removeAt(index); });
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'professional',
+          itemType: 'language',
+          index: index,
+          deletedItem: item,
+        );
+    setState(() {
+      _items = List.from(_items)..removeAt(index);
+    });
     if (mounted) {
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: LogAction.delete, itemName: item.toString(), isPrivacyModeActive: isPrivacyMode), duration: const Duration(seconds: 5), onUndo: () async { await ref.read(profileNotifierProvider.notifier).restore(section: 'professional', itemType: 'language', id: deletedId); });
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: LogAction.delete,
+          itemName: item.toString(),
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(
+                section: 'professional',
+                itemType: 'language',
+                id: deletedId,
+              );
+        },
+      );
     }
   }
 
-  Future<void> _onSave(Map<String, String> values, LanguageData? editingItem) async {
+  Future<void> _onSave(
+    Map<String, String> values,
+    LanguageData? editingItem,
+  ) async {
     final newItem = _createFromValues(values, id: editingItem?.id);
     if (newItem.name.isEmpty) return;
     final wasAdding = editingItem == null;
-    if (wasAdding) { _items = List.from(_items)..add(newItem); } else { final index = _items.indexOf(editingItem); if (index != -1) { _items = List.from(_items)..[index] = newItem; } }
+    if (wasAdding) {
+      _items = List.from(_items)..add(newItem);
+    } else {
+      final index = _items.indexOf(editingItem);
+      if (index != -1) {
+        _items = List.from(_items)..[index] = newItem;
+      }
+    }
     final professional = ProfessionalData(
-      education: ref.read(profileNotifierProvider)?.professional?.education ?? [],
-      employment: ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+      education:
+          ref.read(profileNotifierProvider)?.professional?.education ?? [],
+      employment:
+          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
       skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
       languages: _items,
     );
-    await ref.read(profileNotifierProvider.notifier).updateProfessional(professional);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfessional(professional);
     if (mounted) {
-      final isPrivacyMode = ref.read(sensitivitySettingsProvider).displayMode == SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(context, message: OperationLogger.createNotification(section: LogSection.professional, action: wasAdding ? LogAction.create : LogAction.update, itemName: newItem.toString(), isPrivacyModeActive: isPrivacyMode));
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: newItem.toString(),
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
     }
   }
 
@@ -612,8 +1010,16 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: const [
-        FormFieldDef(fieldId: 'language.name', label: 'Language', sensitivity: SensitivityLevel.public),
-        FormFieldDef(fieldId: 'language.proficiency', label: 'Proficiency (e.g. Native, Fluent, Intermediate)', sensitivity: SensitivityLevel.public),
+        FormFieldDef(
+          fieldId: 'language.name',
+          label: 'Language',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'language.proficiency',
+          label: 'Proficiency (e.g. Native, Fluent, Intermediate)',
+          sensitivity: SensitivityLevel.public,
+        ),
       ],
       displayItemBuilder: (item) => _ProfessionalItem(
         title: item.name,
@@ -629,7 +1035,204 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
       itemToMap: _languageToMap,
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
-        showOverlaySnackBar(context, content: 'Copied to clipboard', type: SnackBarType.success);
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
+      },
+    );
+  }
+}
+
+// ============ Award Section ============
+
+class _AwardSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_AwardSection> createState() => _AwardSectionState();
+}
+
+class _AwardSectionState extends ConsumerState<_AwardSection> {
+  late List<AwardData> _items;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadData();
+  }
+
+  void _loadData() {
+    final professional = ref.read(profileNotifierProvider)?.professional;
+    _items = [...?(professional?.activeAwards)];
+  }
+
+  AwardData _createFromValues(Map<String, String> values, {String? id}) {
+    return AwardData(
+      id: id ?? generateEntryId(),
+      title: values['award.title']?.isEmpty == true
+          ? null
+          : values['award.title'],
+      issuer: values['award.issuer']?.isEmpty == true
+          ? null
+          : values['award.issuer'],
+      date: values['award.date']?.isEmpty == true ? null : values['award.date'],
+      description: values['award.description']?.isEmpty == true
+          ? null
+          : values['award.description'],
+    );
+  }
+
+  Map<String, String> _awardToMap(AwardData award) {
+    return {
+      'award.title': award.title ?? '',
+      'award.issuer': award.issuer ?? '',
+      'award.date': award.date ?? '',
+      'award.description': award.description ?? '',
+    };
+  }
+
+  Future<void> _onDelete(AwardData item) async {
+    final index = _items.indexOf(item);
+    if (index == -1) return;
+    final isPrivacyMode =
+        ref.read(sensitivitySettingsProvider).displayMode ==
+        SensitivityDisplayMode.hidePrivate;
+    final deletedId = item.id;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'professional',
+          itemType: 'award',
+          index: index,
+          deletedItem: item,
+        );
+    setState(() {
+      _items = List.from(_items)..removeAt(index);
+    });
+    if (mounted) {
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: LogAction.delete,
+          itemName: item.title ?? 'Award',
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(
+                section: 'professional',
+                itemType: 'award',
+                id: deletedId,
+              );
+        },
+      );
+    }
+  }
+
+  Future<void> _onSave(
+    Map<String, String> values,
+    AwardData? editingItem,
+  ) async {
+    final newItem = _createFromValues(values, id: editingItem?.id);
+    if (newItem.title == null || newItem.title!.isEmpty) return;
+    final wasAdding = editingItem == null;
+    if (wasAdding) {
+      _items = List.from(_items)..add(newItem);
+    } else {
+      final index = _items.indexOf(editingItem);
+      if (index != -1) {
+        _items = List.from(_items)..[index] = newItem;
+      }
+    }
+    final professional = ProfessionalData(
+      education:
+          ref.read(profileNotifierProvider)?.professional?.education ?? [],
+      employment:
+          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+      skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
+      languages:
+          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+      awards: _items,
+    );
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfessional(professional);
+    if (mounted) {
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.professional,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: newItem.title ?? 'Award',
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return UnifiedFormSection<AwardData>(
+      title: 'Awards',
+      icon: Icons.emoji_events_outlined,
+      items: _items,
+      maxVisibleItems: 3,
+      itemFactory: _createFromValues,
+      fieldDefs: const [
+        FormFieldDef(
+          fieldId: 'award.title',
+          label: 'Title',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'award.issuer',
+          label: 'Issuer',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'award.date',
+          label: 'Date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'award.description',
+          label: 'Description',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+      displayItemBuilder: (item) => _ProfessionalItem(
+        title: item.title ?? 'Award',
+        subtitle: item.issuer ?? '',
+        icon: Icons.emoji_events,
+        additionalFields: [
+          if (item.date != null && item.date!.isNotEmpty)
+            LabelValueField(label: 'Date', value: item.date!),
+          if (item.description != null && item.description!.isNotEmpty)
+            LabelValueField(label: 'Description', value: item.description!),
+        ],
+      ),
+      onDelete: _onDelete,
+      onSave: _onSave,
+      itemToMap: _awardToMap,
+      onCopyAll: (item, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
       },
     );
   }

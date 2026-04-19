@@ -103,8 +103,8 @@ class IdentityData {
       nationality: json['nationality'],
       idCards: json['id_cards'] != null
           ? (json['id_cards'] as List)
-              .map((e) => IdCardData.fromJson(e))
-              .toList()
+                .map((e) => IdCardData.fromJson(e))
+                .toList()
           : null,
       contact: json['contact'] != null
           ? ContactData.fromJson(json['contact'])
@@ -225,7 +225,9 @@ class ContactEntry {
       value: value ?? this.value,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -339,7 +341,9 @@ class AddressData {
       country: country ?? this.country,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -372,7 +376,7 @@ class IdCardData {
   factory IdCardData.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
     return IdCardData(
-      id: id ?? generateEntryId(),  // Generate ID if missing (for legacy data)
+      id: id ?? generateEntryId(), // Generate ID if missing (for legacy data)
       label: json['label'],
       number: json['number'],
       issueDate: json['issue_date'],
@@ -424,7 +428,9 @@ class IdCardData {
       country: country ?? this.country,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -506,8 +512,7 @@ class TravelData {
   List<PassportData> get activePassports =>
       passports.where((p) => !p.isDeleted).toList();
 
-  List<VisaData> get activeVisas =>
-      visas.where((v) => !v.isDeleted).toList();
+  List<VisaData> get activeVisas => visas.where((v) => !v.isDeleted).toList();
 
   List<TravelHistoryData> get activeTravelHistory =>
       travelHistory.where((t) => !t.isDeleted).toList();
@@ -516,8 +521,7 @@ class TravelData {
   List<PassportData> get deletedPassports =>
       passports.where((p) => p.isDeleted).toList();
 
-  List<VisaData> get deletedVisas =>
-      visas.where((v) => v.isDeleted).toList();
+  List<VisaData> get deletedVisas => visas.where((v) => v.isDeleted).toList();
 
   List<TravelHistoryData> get deletedTravelHistory =>
       travelHistory.where((t) => t.isDeleted).toList();
@@ -635,7 +639,9 @@ class PassportData {
       holderName: holderName ?? this.holderName,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -713,7 +719,9 @@ class VisaData {
       issueDate: issueDate ?? this.issueDate,
       expiryDate: expiryDate ?? this.expiryDate,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -723,14 +731,17 @@ class FinancialData {
   List<CardData> cards;
   List<TaxIdData> taxIds;
 
-  FinancialData({this.bankAccounts = const [], this.cards = const [], this.taxIds = const []});
+  FinancialData({
+    this.bankAccounts = const [],
+    this.cards = const [],
+    this.taxIds = const [],
+  });
 
   /// Filter out soft-deleted items
   List<BankAccountData> get activeBankAccounts =>
       bankAccounts.where((b) => !b.isDeleted).toList();
 
-  List<CardData> get activeCards =>
-      cards.where((c) => !c.isDeleted).toList();
+  List<CardData> get activeCards => cards.where((c) => !c.isDeleted).toList();
 
   List<TaxIdData> get activeTaxIds =>
       taxIds.where((t) => !t.isDeleted).toList();
@@ -739,8 +750,7 @@ class FinancialData {
   List<BankAccountData> get deletedBankAccounts =>
       bankAccounts.where((b) => b.isDeleted).toList();
 
-  List<CardData> get deletedCards =>
-      cards.where((c) => c.isDeleted).toList();
+  List<CardData> get deletedCards => cards.where((c) => c.isDeleted).toList();
 
   List<TaxIdData> get deletedTaxIds =>
       taxIds.where((t) => t.isDeleted).toList();
@@ -852,7 +862,9 @@ class BankAccountData {
       swiftBic: swiftBic ?? this.swiftBic,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -925,7 +937,9 @@ class CardData {
       holderName: holderName ?? this.holderName,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -998,7 +1012,9 @@ class TaxIdData {
       country: country ?? this.country,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -1062,7 +1078,8 @@ class SkillData {
   }
 
   @override
-  String toString() => level != null && level!.isNotEmpty ? '$name ($level)' : name;
+  String toString() =>
+      level != null && level!.isNotEmpty ? '$name ($level)' : name;
 }
 
 class LanguageData {
@@ -1127,17 +1144,94 @@ class LanguageData {
   String toString() => name;
 }
 
+class AwardData {
+  String id;
+  String? title;
+  String? issuer;
+  String? date;
+  String? description;
+  int updatedAt;
+  bool isDeleted;
+  DateTime? deletedAt;
+
+  AwardData({
+    required this.id,
+    this.title,
+    this.issuer,
+    this.date,
+    this.description,
+    int? updatedAt,
+    this.isDeleted = false,
+    this.deletedAt,
+  }) : updatedAt = updatedAt ?? currentTimestamp();
+
+  factory AwardData.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
+    return AwardData(
+      id: id ?? generateEntryId(),
+      title: json['title'],
+      issuer: json['issuer'],
+      date: json['date'],
+      description: json['description'],
+      updatedAt: json['updated_at'] ?? currentTimestamp(),
+      isDeleted: json['is_deleted'] ?? false,
+      deletedAt: json['deleted_at'] != null
+          ? DateTime.tryParse(json['deleted_at'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'issuer': issuer,
+    'date': date,
+    'description': description,
+    'updated_at': updatedAt,
+    'is_deleted': isDeleted,
+    'deleted_at': deletedAt?.toIso8601String(),
+  };
+
+  static const _sentinel = _DeletedAtSentinel();
+
+  AwardData copyWith({
+    String? id,
+    String? title,
+    String? issuer,
+    String? date,
+    String? description,
+    int? updatedAt,
+    bool? isDeleted,
+    Object? deletedAt = _sentinel,
+  }) {
+    return AwardData(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      issuer: issuer ?? this.issuer,
+      date: date ?? this.date,
+      description: description ?? this.description,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
+    );
+  }
+}
+
 class ProfessionalData {
   List<EducationData> education;
   List<EmploymentData> employment;
   List<SkillData> skills;
   List<LanguageData> languages;
+  List<AwardData> awards;
 
   ProfessionalData({
     this.education = const [],
     this.employment = const [],
     this.skills = const [],
     this.languages = const [],
+    this.awards = const [],
   });
 
   /// Filter out soft-deleted items
@@ -1153,6 +1247,9 @@ class ProfessionalData {
   List<LanguageData> get activeLanguages =>
       languages.where((l) => !l.isDeleted).toList();
 
+  List<AwardData> get activeAwards =>
+      awards.where((a) => !a.isDeleted).toList();
+
   /// Get soft-deleted items only
   List<EducationData> get deletedEducation =>
       education.where((e) => e.isDeleted).toList();
@@ -1165,6 +1262,9 @@ class ProfessionalData {
 
   List<LanguageData> get deletedLanguages =>
       languages.where((l) => l.isDeleted).toList();
+
+  List<AwardData> get deletedAwards =>
+      awards.where((a) => a.isDeleted).toList();
 
   factory ProfessionalData.fromJson(Map<String, dynamic> json) {
     return ProfessionalData(
@@ -1188,6 +1288,11 @@ class ProfessionalData {
               ?.map((e) => LanguageData.fromJson(e))
               .toList() ??
           [],
+      awards:
+          (json['awards'] as List<dynamic>?)
+              ?.map((a) => AwardData.fromJson(a))
+              .toList() ??
+          [],
     );
   }
 
@@ -1196,6 +1301,7 @@ class ProfessionalData {
     'employment': employment.map((e) => e.toJson()).toList(),
     'skills': skills.map((s) => s.toJson()).toList(),
     'languages': languages.map((l) => l.toJson()).toList(),
+    'awards': awards.map((a) => a.toJson()).toList(),
   };
 
   ProfessionalData copyWith({
@@ -1203,12 +1309,14 @@ class ProfessionalData {
     List<EmploymentData>? employment,
     List<SkillData>? skills,
     List<LanguageData>? languages,
+    List<AwardData>? awards,
   }) {
     return ProfessionalData(
       education: education ?? this.education,
       employment: employment ?? this.employment,
       skills: skills ?? this.skills,
       languages: languages ?? this.languages,
+      awards: awards ?? this.awards,
     );
   }
 }
@@ -1217,6 +1325,7 @@ class EducationData {
   String id;
   String? institution;
   String? degree;
+  String? degreeCustom;
   String? field;
   String? startDate;
   String? endDate;
@@ -1228,6 +1337,7 @@ class EducationData {
     required this.id,
     this.institution,
     this.degree,
+    this.degreeCustom,
     this.field,
     this.startDate,
     this.endDate,
@@ -1242,6 +1352,7 @@ class EducationData {
       id: id ?? generateEntryId(),
       institution: json['institution'],
       degree: json['degree'],
+      degreeCustom: json['degree_custom'],
       field: json['field'],
       startDate: json['start_date'],
       endDate: json['end_date'],
@@ -1257,6 +1368,7 @@ class EducationData {
     'id': id,
     'institution': institution,
     'degree': degree,
+    'degree_custom': degreeCustom,
     'field': field,
     'start_date': startDate,
     'end_date': endDate,
@@ -1271,6 +1383,7 @@ class EducationData {
     String? id,
     String? institution,
     String? degree,
+    String? degreeCustom,
     String? field,
     String? startDate,
     String? endDate,
@@ -1282,12 +1395,15 @@ class EducationData {
       id: id ?? this.id,
       institution: institution ?? this.institution,
       degree: degree ?? this.degree,
+      degreeCustom: degreeCustom ?? this.degreeCustom,
       field: field ?? this.field,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
@@ -1296,6 +1412,7 @@ class EmploymentData {
   String id;
   String? company;
   String? position;
+  String? responsibilities;
   String? startDate;
   String? endDate;
   int updatedAt;
@@ -1306,6 +1423,7 @@ class EmploymentData {
     required this.id,
     this.company,
     this.position,
+    this.responsibilities,
     this.startDate,
     this.endDate,
     int? updatedAt,
@@ -1319,6 +1437,7 @@ class EmploymentData {
       id: id ?? generateEntryId(),
       company: json['company'],
       position: json['position'],
+      responsibilities: json['responsibilities'],
       startDate: json['start_date'],
       endDate: json['end_date'],
       updatedAt: json['updated_at'] ?? currentTimestamp(),
@@ -1333,6 +1452,7 @@ class EmploymentData {
     'id': id,
     'company': company,
     'position': position,
+    'responsibilities': responsibilities,
     'start_date': startDate,
     'end_date': endDate,
     'updated_at': updatedAt,
@@ -1346,6 +1466,7 @@ class EmploymentData {
     String? id,
     String? company,
     String? position,
+    String? responsibilities,
     String? startDate,
     String? endDate,
     int? updatedAt,
@@ -1356,20 +1477,24 @@ class EmploymentData {
       id: id ?? this.id,
       company: company ?? this.company,
       position: position ?? this.position,
+      responsibilities: responsibilities ?? this.responsibilities,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: identical(deletedAt, _sentinel) ? this.deletedAt : deletedAt as DateTime?,
+      deletedAt: identical(deletedAt, _sentinel)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }
 
 /// Info about a soft-deleted item for trash view
 class DeletedItemInfo {
-  final String section;  // 'travel', 'financial', 'professional'
-  final String itemType;  // 'passport', 'visa', 'bank_account', 'card', 'education', 'employment'
-  final String id;        // unique ID of the item
+  final String section; // 'travel', 'financial', 'professional'
+  final String
+  itemType; // 'passport', 'visa', 'bank_account', 'card', 'education', 'employment'
+  final String id; // unique ID of the item
   final String itemLabel; // display name for UI
   final DateTime deletedAt;
 
@@ -1387,10 +1512,7 @@ class FieldHistoryEntry {
   final String value;
   final DateTime timestamp;
 
-  const FieldHistoryEntry({
-    required this.value,
-    required this.timestamp,
-  });
+  const FieldHistoryEntry({required this.value, required this.timestamp});
 
   factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) {
     return FieldHistoryEntry(
@@ -1423,8 +1545,11 @@ class FieldHistory {
     return FieldHistory(
       fieldId: json['field_id'] as String? ?? '',
       itemId: json['item_id'] as String? ?? '',
-      entries: (json['entries'] as List<dynamic>?)
-              ?.map((e) => FieldHistoryEntry.fromJson(e as Map<String, dynamic>))
+      entries:
+          (json['entries'] as List<dynamic>?)
+              ?.map(
+                (e) => FieldHistoryEntry.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -1451,10 +1576,11 @@ class FieldHistory {
 
 /// All field histories for a profile, keyed by item id and field id
 class ProfileFieldHistories {
-  final Map<String, Map<String, FieldHistory>> histories; // itemId -> fieldId -> FieldHistory
+  final Map<String, Map<String, FieldHistory>>
+  histories; // itemId -> fieldId -> FieldHistory
 
   ProfileFieldHistories({Map<String, Map<String, FieldHistory>>? histories})
-      : histories = histories ?? {};
+    : histories = histories ?? {};
 
   factory ProfileFieldHistories.fromJson(Map<String, dynamic> json) {
     final result = <String, Map<String, FieldHistory>>{};
@@ -1473,8 +1599,12 @@ class ProfileFieldHistories {
   }
 
   Map<String, dynamic> toJson() => {
-    'histories': histories.map((itemId, fields) =>
-        MapEntry(itemId, fields.map((fieldId, h) => MapEntry(fieldId, h.toJson())))),
+    'histories': histories.map(
+      (itemId, fields) => MapEntry(
+        itemId,
+        fields.map((fieldId, h) => MapEntry(fieldId, h.toJson())),
+      ),
+    ),
   };
 
   /// Get history for a specific field
@@ -1551,7 +1681,6 @@ class ProfileStorageService {
   /// Load profile data for an account
   /// Returns ProfileData with all fields decrypted, or null if not found
   Future<ProfileData?> loadProfile(String accountId) async {
-
     // Try to load from Rust vault
     final decrypted = await _rustVault.loadProfileDecrypted(accountId);
     if (decrypted == null) {
@@ -1563,9 +1692,10 @@ class ProfileStorageService {
       final profile = ProfileData.fromJson(json);
       // DEBUG: Log loaded bank accounts
       if (profile.financial?.bankAccounts != null) {
-        final deleted = profile.financial!.bankAccounts.where((b) => b.isDeleted).toList();
-        for (var b in deleted) {
-        }
+        final deleted = profile.financial!.bankAccounts
+            .where((b) => b.isDeleted)
+            .toList();
+        for (var b in deleted) {}
       }
       return profile;
     } catch (e) {
@@ -1576,7 +1706,6 @@ class ProfileStorageService {
   /// Save profile data for an account
   /// Encrypts and stores via RustVaultService
   Future<bool> saveProfile(String accountId, ProfileData profile) async {
-
     try {
       final json = jsonEncode(profile.toJson());
 
@@ -1586,12 +1715,12 @@ class ProfileStorageService {
         return false;
       }
 
-
       // DEBUG: Log save success/failure and check bank accounts
       if (profile.financial?.bankAccounts != null) {
-        final deleted = profile.financial!.bankAccounts.where((b) => b.isDeleted).toList();
-        for (var b in deleted) {
-        }
+        final deleted = profile.financial!.bankAccounts
+            .where((b) => b.isDeleted)
+            .toList();
+        for (var b in deleted) {}
       }
       return true;
     } catch (e) {
@@ -1607,13 +1736,15 @@ class ProfileStorageService {
       for (var i = 0; i < profile.travel!.passports.length; i++) {
         final p = profile.travel!.passports[i];
         if (p.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'travel',
-            itemType: 'passport',
-            id: p.id,
-            itemLabel: p.country ?? 'Passport',
-            deletedAt: p.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'travel',
+              itemType: 'passport',
+              id: p.id,
+              itemLabel: p.country ?? 'Passport',
+              deletedAt: p.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1623,25 +1754,29 @@ class ProfileStorageService {
       for (var i = 0; i < profile.travel!.visas.length; i++) {
         final v = profile.travel!.visas[i];
         if (v.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'travel',
-            itemType: 'visa',
-            id: v.id,
-            itemLabel: v.country ?? 'Visa',
-            deletedAt: v.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'travel',
+              itemType: 'visa',
+              id: v.id,
+              itemLabel: v.country ?? 'Visa',
+              deletedAt: v.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
       for (var i = 0; i < profile.travel!.travelHistory.length; i++) {
         final t = profile.travel!.travelHistory[i];
         if (t.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'travel',
-            itemType: 'travel_history',
-            id: t.id,
-            itemLabel: t.destination,
-            deletedAt: t.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'travel',
+              itemType: 'travel_history',
+              id: t.id,
+              itemLabel: t.destination,
+              deletedAt: t.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1651,37 +1786,43 @@ class ProfileStorageService {
       for (var i = 0; i < profile.financial!.bankAccounts.length; i++) {
         final b = profile.financial!.bankAccounts[i];
         if (b.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'financial',
-            itemType: 'bank_account',
-            id: b.id,
-            itemLabel: b.bankName ?? 'Bank Account',
-            deletedAt: b.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'financial',
+              itemType: 'bank_account',
+              id: b.id,
+              itemLabel: b.bankName ?? 'Bank Account',
+              deletedAt: b.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
       for (var i = 0; i < profile.financial!.cards.length; i++) {
         final c = profile.financial!.cards[i];
         if (c.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'financial',
-            itemType: 'card',
-            id: c.id,
-            itemLabel: c.cardType ?? 'Card',
-            deletedAt: c.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'financial',
+              itemType: 'card',
+              id: c.id,
+              itemLabel: c.cardType ?? 'Card',
+              deletedAt: c.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
       for (var i = 0; i < profile.financial!.taxIds.length; i++) {
         final t = profile.financial!.taxIds[i];
         if (t.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'financial',
-            itemType: 'tax_id',
-            id: t.id,
-            itemLabel: t.taxIdType ?? 'Tax ID',
-            deletedAt: t.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'financial',
+              itemType: 'tax_id',
+              id: t.id,
+              itemLabel: t.taxIdType ?? 'Tax ID',
+              deletedAt: t.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1691,49 +1832,57 @@ class ProfileStorageService {
       for (var i = 0; i < profile.professional!.education.length; i++) {
         final e = profile.professional!.education[i];
         if (e.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'professional',
-            itemType: 'education',
-            id: e.id,
-            itemLabel: e.institution ?? 'Education',
-            deletedAt: e.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'professional',
+              itemType: 'education',
+              id: e.id,
+              itemLabel: e.institution ?? 'Education',
+              deletedAt: e.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
       for (var i = 0; i < profile.professional!.employment.length; i++) {
         final emp = profile.professional!.employment[i];
         if (emp.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'professional',
-            itemType: 'employment',
-            id: emp.id,
-            itemLabel: emp.company ?? 'Employment',
-            deletedAt: emp.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'professional',
+              itemType: 'employment',
+              id: emp.id,
+              itemLabel: emp.company ?? 'Employment',
+              deletedAt: emp.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
       for (var i = 0; i < profile.professional!.skills.length; i++) {
         final s = profile.professional!.skills[i];
         if (s.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'professional',
-            itemType: 'skill',
-            id: s.id,
-            itemLabel: s.toString(),
-            deletedAt: s.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'professional',
+              itemType: 'skill',
+              id: s.id,
+              itemLabel: s.toString(),
+              deletedAt: s.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
       for (var i = 0; i < profile.professional!.languages.length; i++) {
         final l = profile.professional!.languages[i];
         if (l.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'professional',
-            itemType: 'language',
-            id: l.id,
-            itemLabel: l.toString(),
-            deletedAt: l.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'professional',
+              itemType: 'language',
+              id: l.id,
+              itemLabel: l.toString(),
+              deletedAt: l.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1743,13 +1892,17 @@ class ProfileStorageService {
       for (var i = 0; i < profile.identity!.contact!.entries.length; i++) {
         final e = profile.identity!.contact!.entries[i];
         if (e.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'profile',
-            itemType: 'contact',
-            id: e.id,
-            itemLabel: e.label.isNotEmpty ? '${e.label} - ${e.value}' : e.value,
-            deletedAt: e.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'profile',
+              itemType: 'contact',
+              id: e.id,
+              itemLabel: e.label.isNotEmpty
+                  ? '${e.label} - ${e.value}'
+                  : e.value,
+              deletedAt: e.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1759,13 +1912,15 @@ class ProfileStorageService {
       for (var i = 0; i < profile.identity!.idCards!.length; i++) {
         final c = profile.identity!.idCards![i];
         if (c.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'profile',
-            itemType: 'idCard',
-            id: c.id,
-            itemLabel: c.label ?? c.number ?? 'ID Card',
-            deletedAt: c.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'profile',
+              itemType: 'idCard',
+              id: c.id,
+              itemLabel: c.label ?? c.number ?? 'ID Card',
+              deletedAt: c.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1775,13 +1930,15 @@ class ProfileStorageService {
       for (var i = 0; i < profile.identity!.addresses!.length; i++) {
         final a = profile.identity!.addresses![i];
         if (a.isDeleted) {
-          items.add(DeletedItemInfo(
-            section: 'profile',
-            itemType: 'address',
-            id: a.id,
-            itemLabel: a.label ?? 'Address',
-            deletedAt: a.deletedAt ?? DateTime.now(),
-          ));
+          items.add(
+            DeletedItemInfo(
+              section: 'profile',
+              itemType: 'address',
+              id: a.id,
+              itemLabel: a.label ?? 'Address',
+              deletedAt: a.deletedAt ?? DateTime.now(),
+            ),
+          );
         }
       }
     }
@@ -1802,11 +1959,10 @@ class ProfileStorageService {
     switch (section) {
       case 'travel':
         if (profile.travel == null) return;
-        if (itemType == 'passport' && index < profile.travel!.passports.length) {
-          profile.travel!.passports[index] = profile.travel!.passports[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
+        if (itemType == 'passport' &&
+            index < profile.travel!.passports.length) {
+          profile.travel!.passports[index] = profile.travel!.passports[index]
+              .copyWith(isDeleted: false, deletedAt: null);
         } else if (itemType == 'visa' && index < profile.travel!.visas.length) {
           profile.travel!.visas[index] = profile.travel!.visas[index].copyWith(
             isDeleted: false,
@@ -1816,62 +1972,81 @@ class ProfileStorageService {
         break;
       case 'financial':
         if (profile.financial == null) return;
-        if (itemType == 'bank_account' && index < profile.financial!.bankAccounts.length) {
-          profile.financial!.bankAccounts[index] = profile.financial!.bankAccounts[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-        } else if (itemType == 'card' && index < profile.financial!.cards.length) {
-          profile.financial!.cards[index] = profile.financial!.cards[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-        } else if (itemType == 'tax_id' && index < profile.financial!.taxIds.length) {
-          profile.financial!.taxIds[index] = profile.financial!.taxIds[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
+        if (itemType == 'bank_account' &&
+            index < profile.financial!.bankAccounts.length) {
+          profile.financial!.bankAccounts[index] = profile
+              .financial!
+              .bankAccounts[index]
+              .copyWith(isDeleted: false, deletedAt: null);
+        } else if (itemType == 'card' &&
+            index < profile.financial!.cards.length) {
+          profile.financial!.cards[index] = profile.financial!.cards[index]
+              .copyWith(isDeleted: false, deletedAt: null);
+        } else if (itemType == 'tax_id' &&
+            index < profile.financial!.taxIds.length) {
+          profile.financial!.taxIds[index] = profile.financial!.taxIds[index]
+              .copyWith(isDeleted: false, deletedAt: null);
         }
         break;
       case 'professional':
         if (profile.professional == null) return;
-        if (itemType == 'education' && index < profile.professional!.education.length) {
-          profile.professional!.education[index] = profile.professional!.education[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-        } else if (itemType == 'employment' && index < profile.professional!.employment.length) {
-          profile.professional!.employment[index] = profile.professional!.employment[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-        } else if (itemType == 'skill' && index < profile.professional!.skills.length) {
-          profile.professional!.skills[index] = profile.professional!.skills[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-        } else if (itemType == 'language' && index < profile.professional!.languages.length) {
-          profile.professional!.languages[index] = profile.professional!.languages[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
+        if (itemType == 'education' &&
+            index < profile.professional!.education.length) {
+          profile.professional!.education[index] = profile
+              .professional!
+              .education[index]
+              .copyWith(isDeleted: false, deletedAt: null);
+        } else if (itemType == 'employment' &&
+            index < profile.professional!.employment.length) {
+          profile.professional!.employment[index] = profile
+              .professional!
+              .employment[index]
+              .copyWith(isDeleted: false, deletedAt: null);
+        } else if (itemType == 'skill' &&
+            index < profile.professional!.skills.length) {
+          profile.professional!.skills[index] = profile
+              .professional!
+              .skills[index]
+              .copyWith(isDeleted: false, deletedAt: null);
+        } else if (itemType == 'language' &&
+            index < profile.professional!.languages.length) {
+          profile.professional!.languages[index] = profile
+              .professional!
+              .languages[index]
+              .copyWith(isDeleted: false, deletedAt: null);
         }
         break;
       case 'profile':
         if (profile.identity == null) return;
-        if (itemType == 'contact' && index < (profile.identity!.contact?.entries.length ?? 0)) {
-          final entries = List<ContactEntry>.from(profile.identity!.contact!.entries);
-          entries[index] = entries[index].copyWith(isDeleted: false, deletedAt: null);
+        if (itemType == 'contact' &&
+            index < (profile.identity!.contact?.entries.length ?? 0)) {
+          final entries = List<ContactEntry>.from(
+            profile.identity!.contact!.entries,
+          );
+          entries[index] = entries[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
           profile.identity = profile.identity!.copyWith(
             contact: ContactData(entries: entries),
           );
-        } else if (itemType == 'idCard' && index < (profile.identity!.idCards?.length ?? 0)) {
+        } else if (itemType == 'idCard' &&
+            index < (profile.identity!.idCards?.length ?? 0)) {
           final idCards = List<IdCardData>.from(profile.identity!.idCards!);
-          idCards[index] = idCards[index].copyWith(isDeleted: false, deletedAt: null);
+          idCards[index] = idCards[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
           profile.identity = profile.identity!.copyWith(idCards: idCards);
-        } else if (itemType == 'address' && index < (profile.identity!.addresses?.length ?? 0)) {
-          final addresses = List<AddressData>.from(profile.identity!.addresses!);
-          addresses[index] = addresses[index].copyWith(isDeleted: false, deletedAt: null);
+        } else if (itemType == 'address' &&
+            index < (profile.identity!.addresses?.length ?? 0)) {
+          final addresses = List<AddressData>.from(
+            profile.identity!.addresses!,
+          );
+          addresses[index] = addresses[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
           profile.identity = profile.identity!.copyWith(addresses: addresses);
         }
         break;
@@ -1890,7 +2065,8 @@ class ProfileStorageService {
     switch (section) {
       case 'travel':
         if (profile.travel == null) return;
-        if (itemType == 'passport' && index < profile.travel!.passports.length) {
+        if (itemType == 'passport' &&
+            index < profile.travel!.passports.length) {
           final updated = List<PassportData>.from(profile.travel!.passports);
           updated.removeAt(index);
           profile.travel = profile.travel!.copyWith(passports: updated);
@@ -1902,15 +2078,22 @@ class ProfileStorageService {
         break;
       case 'financial':
         if (profile.financial == null) return;
-        if (itemType == 'bank_account' && index < profile.financial!.bankAccounts.length) {
-          final updated = List<BankAccountData>.from(profile.financial!.bankAccounts);
+        if (itemType == 'bank_account' &&
+            index < profile.financial!.bankAccounts.length) {
+          final updated = List<BankAccountData>.from(
+            profile.financial!.bankAccounts,
+          );
           updated.removeAt(index);
-          profile.financial = profile.financial!.copyWith(bankAccounts: updated);
-        } else if (itemType == 'card' && index < profile.financial!.cards.length) {
+          profile.financial = profile.financial!.copyWith(
+            bankAccounts: updated,
+          );
+        } else if (itemType == 'card' &&
+            index < profile.financial!.cards.length) {
           final updated = List<CardData>.from(profile.financial!.cards);
           updated.removeAt(index);
           profile.financial = profile.financial!.copyWith(cards: updated);
-        } else if (itemType == 'tax_id' && index < profile.financial!.taxIds.length) {
+        } else if (itemType == 'tax_id' &&
+            index < profile.financial!.taxIds.length) {
           final updated = List<TaxIdData>.from(profile.financial!.taxIds);
           updated.removeAt(index);
           profile.financial = profile.financial!.copyWith(taxIds: updated);
@@ -1918,38 +2101,63 @@ class ProfileStorageService {
         break;
       case 'professional':
         if (profile.professional == null) return;
-        if (itemType == 'education' && index < profile.professional!.education.length) {
-          final updated = List<EducationData>.from(profile.professional!.education);
+        if (itemType == 'education' &&
+            index < profile.professional!.education.length) {
+          final updated = List<EducationData>.from(
+            profile.professional!.education,
+          );
           updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(education: updated);
-        } else if (itemType == 'employment' && index < profile.professional!.employment.length) {
-          final updated = List<EmploymentData>.from(profile.professional!.employment);
+          profile.professional = profile.professional!.copyWith(
+            education: updated,
+          );
+        } else if (itemType == 'employment' &&
+            index < profile.professional!.employment.length) {
+          final updated = List<EmploymentData>.from(
+            profile.professional!.employment,
+          );
           updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(employment: updated);
-        } else if (itemType == 'skill' && index < profile.professional!.skills.length) {
+          profile.professional = profile.professional!.copyWith(
+            employment: updated,
+          );
+        } else if (itemType == 'skill' &&
+            index < profile.professional!.skills.length) {
           final updated = List<SkillData>.from(profile.professional!.skills);
           updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(skills: updated);
-        } else if (itemType == 'language' && index < profile.professional!.languages.length) {
-          final updated = List<LanguageData>.from(profile.professional!.languages);
+          profile.professional = profile.professional!.copyWith(
+            skills: updated,
+          );
+        } else if (itemType == 'language' &&
+            index < profile.professional!.languages.length) {
+          final updated = List<LanguageData>.from(
+            profile.professional!.languages,
+          );
           updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(languages: updated);
+          profile.professional = profile.professional!.copyWith(
+            languages: updated,
+          );
         }
         break;
       case 'profile':
         if (profile.identity == null) return;
-        if (itemType == 'contact' && index < (profile.identity!.contact?.entries.length ?? 0)) {
-          final entries = List<ContactEntry>.from(profile.identity!.contact!.entries);
+        if (itemType == 'contact' &&
+            index < (profile.identity!.contact?.entries.length ?? 0)) {
+          final entries = List<ContactEntry>.from(
+            profile.identity!.contact!.entries,
+          );
           entries.removeAt(index);
           profile.identity = profile.identity!.copyWith(
             contact: ContactData(entries: entries),
           );
-        } else if (itemType == 'idCard' && index < (profile.identity!.idCards?.length ?? 0)) {
+        } else if (itemType == 'idCard' &&
+            index < (profile.identity!.idCards?.length ?? 0)) {
           final idCards = List<IdCardData>.from(profile.identity!.idCards!);
           idCards.removeAt(index);
           profile.identity = profile.identity!.copyWith(idCards: idCards);
-        } else if (itemType == 'address' && index < (profile.identity!.addresses?.length ?? 0)) {
-          final addresses = List<AddressData>.from(profile.identity!.addresses!);
+        } else if (itemType == 'address' &&
+            index < (profile.identity!.addresses?.length ?? 0)) {
+          final addresses = List<AddressData>.from(
+            profile.identity!.addresses!,
+          );
           addresses.removeAt(index);
           profile.identity = profile.identity!.copyWith(addresses: addresses);
         }
@@ -1959,39 +2167,51 @@ class ProfileStorageService {
   }
 
   /// Permanently delete items older than 30 days
-  Future<void> purgeOldDeletedItems(ProfileData profile, String accountId) async {
+  Future<void> purgeOldDeletedItems(
+    ProfileData profile,
+    String accountId,
+  ) async {
     final cutoff = DateTime.now().subtract(const Duration(days: 30));
 
     // Travel section
     if (profile.travel != null) {
       profile.travel!.passports.removeWhere(
-        (p) => p.isDeleted && p.deletedAt != null && p.deletedAt!.isBefore(cutoff),
+        (p) =>
+            p.isDeleted && p.deletedAt != null && p.deletedAt!.isBefore(cutoff),
       );
       profile.travel!.visas.removeWhere(
-        (v) => v.isDeleted && v.deletedAt != null && v.deletedAt!.isBefore(cutoff),
+        (v) =>
+            v.isDeleted && v.deletedAt != null && v.deletedAt!.isBefore(cutoff),
       );
     }
 
     // Financial section
     if (profile.financial != null) {
       profile.financial!.bankAccounts.removeWhere(
-        (b) => b.isDeleted && b.deletedAt != null && b.deletedAt!.isBefore(cutoff),
+        (b) =>
+            b.isDeleted && b.deletedAt != null && b.deletedAt!.isBefore(cutoff),
       );
       profile.financial!.cards.removeWhere(
-        (c) => c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
+        (c) =>
+            c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
       );
       profile.financial!.taxIds.removeWhere(
-        (t) => t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
+        (t) =>
+            t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
       );
     }
 
     // Professional section
     if (profile.professional != null) {
       profile.professional!.education.removeWhere(
-        (e) => e.isDeleted && e.deletedAt != null && e.deletedAt!.isBefore(cutoff),
+        (e) =>
+            e.isDeleted && e.deletedAt != null && e.deletedAt!.isBefore(cutoff),
       );
       profile.professional!.employment.removeWhere(
-        (emp) => emp.isDeleted && emp.deletedAt != null && emp.deletedAt!.isBefore(cutoff),
+        (emp) =>
+            emp.isDeleted &&
+            emp.deletedAt != null &&
+            emp.deletedAt!.isBefore(cutoff),
       );
     }
 
@@ -2002,7 +2222,10 @@ class ProfileStorageService {
   ///
   /// If [existingProfile] is provided (already loaded), uses it instead of
   /// loading again to avoid redundant decryption.
-  Future<void> purgeOldDeletedItemsIfNeeded(String accountId, {ProfileData? existingProfile}) async {
+  Future<void> purgeOldDeletedItemsIfNeeded(
+    String accountId, {
+    ProfileData? existingProfile,
+  }) async {
     final profile = existingProfile ?? await loadProfile(accountId);
     if (profile == null) return;
 
@@ -2011,33 +2234,57 @@ class ProfileStorageService {
 
     // Check if any deleted items are older than 30 days
     if (profile.travel != null) {
-      hasOldItems = hasOldItems ||
+      hasOldItems =
+          hasOldItems ||
           profile.travel!.passports.any(
-            (p) => p.isDeleted && p.deletedAt != null && p.deletedAt!.isBefore(cutoff),
+            (p) =>
+                p.isDeleted &&
+                p.deletedAt != null &&
+                p.deletedAt!.isBefore(cutoff),
           ) ||
           profile.travel!.visas.any(
-            (v) => v.isDeleted && v.deletedAt != null && v.deletedAt!.isBefore(cutoff),
+            (v) =>
+                v.isDeleted &&
+                v.deletedAt != null &&
+                v.deletedAt!.isBefore(cutoff),
           );
     }
     if (profile.financial != null) {
-      hasOldItems = hasOldItems ||
+      hasOldItems =
+          hasOldItems ||
           profile.financial!.bankAccounts.any(
-            (b) => b.isDeleted && b.deletedAt != null && b.deletedAt!.isBefore(cutoff),
+            (b) =>
+                b.isDeleted &&
+                b.deletedAt != null &&
+                b.deletedAt!.isBefore(cutoff),
           ) ||
           profile.financial!.cards.any(
-            (c) => c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
+            (c) =>
+                c.isDeleted &&
+                c.deletedAt != null &&
+                c.deletedAt!.isBefore(cutoff),
           ) ||
           profile.financial!.taxIds.any(
-            (t) => t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
+            (t) =>
+                t.isDeleted &&
+                t.deletedAt != null &&
+                t.deletedAt!.isBefore(cutoff),
           );
     }
     if (profile.professional != null) {
-      hasOldItems = hasOldItems ||
+      hasOldItems =
+          hasOldItems ||
           profile.professional!.education.any(
-            (e) => e.isDeleted && e.deletedAt != null && e.deletedAt!.isBefore(cutoff),
+            (e) =>
+                e.isDeleted &&
+                e.deletedAt != null &&
+                e.deletedAt!.isBefore(cutoff),
           ) ||
           profile.professional!.employment.any(
-            (emp) => emp.isDeleted && emp.deletedAt != null && emp.deletedAt!.isBefore(cutoff),
+            (emp) =>
+                emp.isDeleted &&
+                emp.deletedAt != null &&
+                emp.deletedAt!.isBefore(cutoff),
           );
     }
 
@@ -2071,15 +2318,23 @@ class ProfileStorageService {
 
     // Profile/Identity section
     if (profile.identity?.contact != null) {
-      final entries = profile.identity!.contact!.entries.where((e) => !e.isDeleted).toList();
-      profile.identity = profile.identity!.copyWith(contact: ContactData(entries: entries));
+      final entries = profile.identity!.contact!.entries
+          .where((e) => !e.isDeleted)
+          .toList();
+      profile.identity = profile.identity!.copyWith(
+        contact: ContactData(entries: entries),
+      );
     }
     if (profile.identity?.idCards != null) {
-      final idCards = profile.identity!.idCards!.where((c) => !c.isDeleted).toList();
+      final idCards = profile.identity!.idCards!
+          .where((c) => !c.isDeleted)
+          .toList();
       profile.identity = profile.identity!.copyWith(idCards: idCards);
     }
     if (profile.identity?.addresses != null) {
-      final addresses = profile.identity!.addresses!.where((a) => !a.isDeleted).toList();
+      final addresses = profile.identity!.addresses!
+          .where((a) => !a.isDeleted)
+          .toList();
       profile.identity = profile.identity!.copyWith(addresses: addresses);
     }
 
@@ -2103,7 +2358,10 @@ class ProfileStorageService {
   }
 
   /// Save field histories for an account
-  Future<bool> saveFieldHistories(String accountId, ProfileFieldHistories histories) async {
+  Future<bool> saveFieldHistories(
+    String accountId,
+    ProfileFieldHistories histories,
+  ) async {
     try {
       final dir = await storageDir;
       if (!await dir.exists()) {
