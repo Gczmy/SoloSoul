@@ -371,6 +371,62 @@ impl VaultStore {
 
         Ok(())
     }
+
+    /// Save setting (encrypted blob) - SETTING_{accountId} pattern
+    pub fn save_setting(&self, account_id: &str, data: &[u8]) -> Result<(), String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        let key = format!("SETTING_{}", account_id);
+
+        conn.execute(
+            "INSERT INTO metadata (key, value, updated_at)
+             VALUES (?1, ?2, ?3)
+             ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = excluded.updated_at",
+            rusqlite::params![key, base64_encode(data), now],
+        )
+        .map_err(|e| format!("Failed to save setting: {}", e))?;
+
+        Ok(())
+    }
+
+    /// Load setting (encrypted blob) - SETTING_{accountId} pattern
+    pub fn load_setting(&self, account_id: &str) -> Result<Option<Vec<u8>>, String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let key = format!("SETTING_{}", account_id);
+
+        let result: Option<String> = conn
+            .query_row(
+                "SELECT value FROM metadata WHERE key = ?1",
+                rusqlite::params![key],
+                |row| row.get(0),
+            )
+            .ok();
+
+        match result {
+            Some(encoded) => {
+                let decoded = base64_decode(&encoded)
+                    .map_err(|e| format!("Failed to decode setting: {}", e))?;
+                Ok(Some(decoded))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// Delete setting - SETTING_{accountId} pattern
+    pub fn delete_setting(&self, account_id: &str) -> Result<(), String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let key = format!("SETTING_{}", account_id);
+
+        conn.execute("DELETE FROM metadata WHERE key = ?1", rusqlite::params![key])
+            .map_err(|e| format!("Failed to delete setting: {}", e))?;
+
+        Ok(())
+    }
 }
 
 /// Helper for hex encoding
@@ -543,6 +599,85 @@ mod tests {
         vault.lock();
 
         assert_eq!(vault.state(), VaultState::Locked);
+
+        cleanup_vault(temp_dir);
+    }
+
+    #[test]
+    fn test_vault_save_and_load_setting() {
+        let temp_dir = create_unique_temp_dir();
+        let config = VaultConfig::new("test_account", temp_dir.clone());
+        let vault = VaultStore::open(config).expect("Failed to open vault");
+
+        let account_id = "test_account_id";
+        let setting_data = vec![1, 2, 3, 4, 5];
+
+        // Save setting
+        let result = vault.save_setting(account_id, &setting_data);
+        assert!(result.is_ok(), "Failed to save setting: {:?}", result.err());
+
+        // Load setting
+        let loaded = vault.load_setting(account_id);
+        assert!(loaded.is_ok());
+        let loaded = loaded.unwrap().unwrap();
+        assert_eq!(loaded, setting_data);
+
+        cleanup_vault(temp_dir);
+    }
+
+    #[test]
+    fn test_vault_load_nonexistent_setting() {
+        let temp_dir = create_unique_temp_dir();
+        let config = VaultConfig::new("test_account", temp_dir.clone());
+        let vault = VaultStore::open(config).expect("Failed to open vault");
+
+        let loaded = vault.load_setting("nonexistent_account");
+        assert!(loaded.is_ok());
+        assert!(loaded.unwrap().is_none());
+
+        cleanup_vault(temp_dir);
+    }
+
+    #[test]
+    fn test_vault_delete_setting() {
+        let temp_dir = create_unique_temp_dir();
+        let config = VaultConfig::new("test_account", temp_dir.clone());
+        let vault = VaultStore::open(config).expect("Failed to open vault");
+
+        let account_id = "test_account_id";
+        let setting_data = vec![1, 2, 3, 4, 5];
+
+        // Save setting
+        vault.save_setting(account_id, &setting_data).unwrap();
+
+        // Delete setting
+        let result = vault.delete_setting(account_id);
+        assert!(result.is_ok());
+
+        // Verify it's gone
+        let loaded = vault.load_setting(account_id).unwrap();
+        assert!(loaded.is_none());
+
+        cleanup_vault(temp_dir);
+    }
+
+    #[test]
+    fn test_vault_setting_overwrite() {
+        let temp_dir = create_unique_temp_dir();
+        let config = VaultConfig::new("test_account", temp_dir.clone());
+        let vault = VaultStore::open(config).expect("Failed to open vault");
+
+        let account_id = "test_account_id";
+
+        // Save initial setting
+        vault.save_setting(account_id, &[1, 2, 3]).unwrap();
+
+        // Overwrite with new data
+        vault.save_setting(account_id, &[4, 5, 6]).unwrap();
+
+        // Verify new data
+        let loaded = vault.load_setting(account_id).unwrap().unwrap();
+        assert_eq!(loaded, vec![4, 5, 6]);
 
         cleanup_vault(temp_dir);
     }

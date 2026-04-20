@@ -6,7 +6,8 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar, SnackBarType;
 
 /// Widget that displays a value with sensitivity-based masking.
 /// - Public fields: Always shown as plaintext
@@ -72,7 +73,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     // Check if this field requires verification
     final settings = ref.read(sensitivitySettingsProvider);
     final level = settings.getFieldLevel(widget.fieldId);
-    final isRestricted = level == SensitivityLevel.restricted;
+    final isRestricted = level == SensitivityLevel.critical;
 
     if (isRestricted) {
       // Check if user was verified within the last 1 minute (password cache)
@@ -161,10 +162,11 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
       case SensitivityLevel.public:
         shouldMask = false;
         break;
-      case SensitivityLevel.private:
+      case SensitivityLevel.internal:
         shouldMask = isPrivacyShieldEnabled;
         break;
-      case SensitivityLevel.restricted:
+      case SensitivityLevel.sensitive:
+      case SensitivityLevel.critical:
         shouldMask = true;
         break;
       case null:
@@ -179,7 +181,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
 
     // For restricted fields, check if recently verified - if so, auto-reveal
     // But if user explicitly hid it, respect their choice
-    final bool revealed = (fieldLevel == SensitivityLevel.restricted && hasRecentVerification && !_userExplicitlyHid)
+    final bool revealed = (fieldLevel == SensitivityLevel.critical && hasRecentVerification && !_userExplicitlyHid)
         ? true
         : _isRevealed;
     final String displayText = revealed ? widget.value : _maskedValue(widget.value);

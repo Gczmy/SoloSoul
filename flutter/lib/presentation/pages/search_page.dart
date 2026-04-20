@@ -104,7 +104,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     final settings = _ref.read(sensitivitySettingsProvider);
     if (!settings.isFieldRevealed(fieldPath)) return false;
     // Only restricted fields require re-verification after 5-min lock
-    if (level == SensitivityLevel.restricted) {
+    if (level == SensitivityLevel.critical) {
       final sensitiveAccess = _ref.read(sensitivePageAccessProvider);
       if (!sensitiveAccess.isVerified) return false;
       return sensitiveAccess.lastVerified != null &&
@@ -120,7 +120,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     String fieldPath,
   ) async {
     // Only restricted fields require password verification
-    if (level == SensitivityLevel.restricted) {
+    if (level == SensitivityLevel.critical) {
       final sensitiveAccess = ref.read(sensitivePageAccessProvider);
       if (!sensitiveAccess.isVerified) {
         final password = await showPasswordVerificationDialog(
@@ -163,7 +163,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     // Reveal all restricted fields in results
     final sensitiveNotifier = ref.read(sensitivitySettingsProvider.notifier);
     for (final result in state.results) {
-      if (result.sensitivityLevel == SensitivityLevel.restricted) {
+      if (result.sensitivityLevel == SensitivityLevel.critical) {
         sensitiveNotifier.revealField(result.fieldPath);
       }
     }
@@ -205,10 +205,11 @@ class SearchNotifier extends StateNotifier<SearchState> {
         case SensitivityLevel.public:
           if (!state.searchPublic) return;
           break;
-        case SensitivityLevel.private:
+        case SensitivityLevel.internal:
+        case SensitivityLevel.sensitive:
           if (!state.searchPrivate) return;
           break;
-        case SensitivityLevel.restricted:
+        case SensitivityLevel.critical:
           if (!state.searchRestricted) return;
           break;
       }
@@ -262,7 +263,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
           'Date of Birth',
           'identity',
           identity.dateOfBirth!,
-          SensitivityLevel.private,
+          SensitivityLevel.internal,
         );
       }
       if (identity.gender != null) {
@@ -280,7 +281,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
           'Nationality',
           'identity',
           identity.nationality!,
-          SensitivityLevel.private,
+          SensitivityLevel.internal,
         );
       }
 
@@ -293,7 +294,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
               entry.label,
               'contact',
               entry.value,
-              SensitivityLevel.private,
+              SensitivityLevel.internal,
             );
           }
         }
@@ -309,7 +310,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'ID Card Label',
                 'idCard',
                 card.label!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
             if (card.number != null) {
@@ -318,7 +319,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'ID Card Number',
                 'idCard',
                 card.number!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
             if (card.holderName != null) {
@@ -327,7 +328,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Holder Name',
                 'idCard',
                 card.holderName!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
             if (card.country != null) {
@@ -353,7 +354,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Address Label',
                 'address',
                 addr.label!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
             if (addr.street != null) {
@@ -362,7 +363,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Street',
                 'address',
                 addr.street!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
             if (addr.city != null) {
@@ -389,7 +390,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Postal Code',
                 'address',
                 addr.postalCode!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
             if (addr.country != null) {
@@ -419,7 +420,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Passport Number',
                 'passport',
                 passport.number!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
             if (passport.country != null) {
@@ -437,7 +438,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Holder Name',
                 'passport',
                 passport.holderName!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
           }
@@ -454,7 +455,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Visa Number',
                 'visa',
                 visa.number!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
             if (visa.country != null) {
@@ -472,7 +473,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Visa Type',
                 'visa',
                 visa.visaType!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
           }
@@ -519,7 +520,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Account Number',
                 'bankAccount',
                 account.accountNumber!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
             if (account.swiftBic != null) {
@@ -528,7 +529,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'SWIFT/BIC',
                 'bankAccount',
                 account.swiftBic!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
             if (account.currency != null) {
@@ -563,7 +564,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Card Number',
                 'card',
                 card.cardNumber!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
             if (card.holderName != null) {
@@ -572,7 +573,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Holder Name',
                 'card',
                 card.holderName!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
           }
@@ -589,7 +590,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Tax ID Type',
                 'taxId',
                 taxId.taxIdType!,
-                SensitivityLevel.private,
+                SensitivityLevel.internal,
               );
             }
             if (taxId.taxIdNumber != null) {
@@ -598,7 +599,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
                 'Tax ID Number',
                 'taxId',
                 taxId.taxIdNumber!,
-                SensitivityLevel.restricted,
+                SensitivityLevel.critical,
               );
             }
           }
@@ -1058,7 +1059,7 @@ class _SearchResultTile extends ConsumerWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      result.sensitivityLevel == SensitivityLevel.restricted
+                      result.sensitivityLevel == SensitivityLevel.critical
                           ? 'Restricted - password required to view'
                           : 'Private - reveal to view',
                       style: theme.textTheme.bodySmall?.copyWith(

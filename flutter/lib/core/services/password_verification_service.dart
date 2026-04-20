@@ -23,7 +23,7 @@ class PasswordVerificationService {
     final settings = _ref.read(sensitivitySettingsProvider);
     final level = settings.getFieldLevel(fieldId);
 
-    if (level != SensitivityLevel.restricted) return true;
+    if (level != SensitivityLevel.critical) return true;
 
     // Check if user was verified within the last 1 minute
     final sensitiveAccess = _ref.read(sensitivePageAccessProvider);

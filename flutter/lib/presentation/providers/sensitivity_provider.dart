@@ -1,27 +1,16 @@
 import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+
+// Re-export so consumers can import from one place
+export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel, SensitivityLevelExtension;
 
 /// Sensitivity display mode
 enum SensitivityDisplayMode {
   showAll,
   hidePrivate,
   hideAll,
-}
-
-/// Sensitivity level for a field
-enum SensitivityLevel {
-  public,
-  private,
-  restricted,
-}
-
-/// Extension to get level index for comparison
-extension SensitivityLevelExtension on SensitivityLevel {
-  int get index => this.index;
-
-  bool get canDowngrade => this != SensitivityLevel.public;
-  bool get canUpgrade => this != SensitivityLevel.restricted;
 }
 
 /// Represents a single field's sensitivity configuration
@@ -105,7 +94,7 @@ class FieldRegistry {
       fieldId: 'identity.dateOfBirth',
       fieldName: 'Date of Birth',
       fieldSection: 'identity',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'identity.gender',
@@ -117,7 +106,7 @@ class FieldRegistry {
       fieldId: 'identity.nationality',
       fieldName: 'Nationality',
       fieldSection: 'identity',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
 
     // Contact Section
@@ -125,25 +114,25 @@ class FieldRegistry {
       fieldId: 'contact.email',
       fieldName: 'Email',
       fieldSection: 'contact',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'contact.phone',
       fieldName: 'Phone',
       fieldSection: 'contact',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'contact.mobile',
       fieldName: 'Mobile',
       fieldSection: 'contact',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'contact.address',
       fieldName: 'Address',
       fieldSection: 'contact',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
 
     // ID Card Section
@@ -151,25 +140,25 @@ class FieldRegistry {
       fieldId: 'idCard.number',
       fieldName: 'ID Card Number',
       fieldSection: 'idCard',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'idCard.holderName',
       fieldName: 'Holder Name',
       fieldSection: 'idCard',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'idCard.issueDate',
       fieldName: 'Issue Date',
       fieldSection: 'idCard',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'idCard.expiryDate',
       fieldName: 'Expiry Date',
       fieldSection: 'idCard',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'idCard.country',
@@ -183,7 +172,7 @@ class FieldRegistry {
       fieldId: 'address.street',
       fieldName: 'Street',
       fieldSection: 'address',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'address.city',
@@ -201,7 +190,7 @@ class FieldRegistry {
       fieldId: 'address.postalCode',
       fieldName: 'Postal Code',
       fieldSection: 'address',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'address.country',
@@ -215,7 +204,7 @@ class FieldRegistry {
       fieldId: 'passport.number',
       fieldName: 'Passport Number',
       fieldSection: 'passport',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'passport.country',
@@ -227,19 +216,19 @@ class FieldRegistry {
       fieldId: 'passport.issueDate',
       fieldName: 'Issue Date',
       fieldSection: 'passport',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'passport.expiryDate',
       fieldName: 'Expiry Date',
       fieldSection: 'passport',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'passport.holderName',
       fieldName: 'Holder Name',
       fieldSection: 'passport',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
 
     // Visa Section
@@ -247,7 +236,7 @@ class FieldRegistry {
       fieldId: 'visa.number',
       fieldName: 'Visa Number',
       fieldSection: 'visa',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'visa.country',
@@ -259,19 +248,19 @@ class FieldRegistry {
       fieldId: 'visa.visaType',
       fieldName: 'Visa Type',
       fieldSection: 'visa',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'visa.issueDate',
       fieldName: 'Issue Date',
       fieldSection: 'visa',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'visa.expiryDate',
       fieldName: 'Expiry Date',
       fieldSection: 'visa',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
 
     // Travel History
@@ -287,19 +276,19 @@ class FieldRegistry {
       fieldId: 'bankAccount.accountNumber',
       fieldName: 'Account Number',
       fieldSection: 'bankAccount',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'bankAccount.accountHolderName',
       fieldName: 'Account Holder Name',
       fieldSection: 'bankAccount',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'bankAccount.routingNumber',
       fieldName: 'Routing Number',
       fieldSection: 'bankAccount',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'bankAccount.bankName',
@@ -311,7 +300,7 @@ class FieldRegistry {
       fieldId: 'bankAccount.swiftBic',
       fieldName: 'SWIFT/BIC',
       fieldSection: 'bankAccount',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'bankAccount.currency',
@@ -325,7 +314,7 @@ class FieldRegistry {
       fieldId: 'card.cardNumber',
       fieldName: 'Card Number',
       fieldSection: 'card',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'card.cardType',
@@ -337,25 +326,25 @@ class FieldRegistry {
       fieldId: 'card.expiryDate',
       fieldName: 'Expiry Date',
       fieldSection: 'card',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'card.holderName',
       fieldName: 'Holder Name',
       fieldSection: 'card',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'card.cvv',
       fieldName: 'CVV',
       fieldSection: 'card',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'card.billingAddress',
       fieldName: 'Billing Address',
       fieldSection: 'card',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
 
     // Education Section
@@ -387,7 +376,7 @@ class FieldRegistry {
       fieldId: 'education.gpa',
       fieldName: 'GPA',
       fieldSection: 'education',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'education.startDate',
@@ -419,19 +408,19 @@ class FieldRegistry {
       fieldId: 'employment.workAddress',
       fieldName: 'Work Address',
       fieldSection: 'employment',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'employment.supervisorName',
       fieldName: 'Supervisor Name',
       fieldSection: 'employment',
-      level: SensitivityLevel.private,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'employment.monthlySalary',
       fieldName: 'Monthly Salary',
       fieldSection: 'employment',
-      level: SensitivityLevel.restricted,
+      level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
       fieldId: 'employment.startDate',
@@ -464,7 +453,7 @@ class FieldRegistry {
   static bool isFieldRestricted(String fieldId) {
     try {
       return defaultFields.firstWhere((f) => f.fieldId == fieldId).level ==
-          SensitivityLevel.restricted;
+          SensitivityLevel.critical;
     } catch (_) {
       return false;
     }
@@ -635,7 +624,7 @@ class SensitivitySettingsNotifier extends StateNotifier<SensitivitySettings> {
     final field = state.fieldSettings[fieldIndex];
     final newLevel = SensitivityLevel.values[field.level.index + direction];
 
-    if (newLevel.index < 0 || newLevel.index > 2) return;
+    if (newLevel.index < 0 || newLevel.index > 3) return;
 
     final updatedFields = List<FieldSensitivity>.from(state.fieldSettings);
     updatedFields[fieldIndex] = field.copyWith(level: newLevel);

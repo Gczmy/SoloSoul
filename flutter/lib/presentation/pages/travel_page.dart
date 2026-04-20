@@ -321,12 +321,12 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
         FormFieldDef(
           fieldId: 'passport.number',
           label: 'Passport Number',
-          sensitivity: SensitivityLevel.restricted,
+          sensitivity: SensitivityLevel.critical,
         ),
         FormFieldDef(
           fieldId: 'passport.expiryDate',
           label: 'Expiry Date',
-          sensitivity: SensitivityLevel.private,
+          sensitivity: SensitivityLevel.internal,
         ),
       ],
       historyConfig: HistoryRecordingConfig<PassportData>(
@@ -579,17 +579,17 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
         FormFieldDef(
           fieldId: 'visa.visaType',
           label: 'Visa Type',
-          sensitivity: SensitivityLevel.private,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'visa.number',
           label: 'Visa Number',
-          sensitivity: SensitivityLevel.restricted,
+          sensitivity: SensitivityLevel.critical,
         ),
         FormFieldDef(
           fieldId: 'visa.expiryDate',
           label: 'Expiry Date',
-          sensitivity: SensitivityLevel.private,
+          sensitivity: SensitivityLevel.internal,
         ),
       ],
       historyConfig: HistoryRecordingConfig<VisaData>(

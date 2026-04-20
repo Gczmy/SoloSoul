@@ -494,7 +494,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
 
   bool _hasRestrictedField(T item) {
     for (final field in widget.fieldDefs) {
-      if (field.sensitivity == SensitivityLevel.restricted) {
+      if (field.sensitivity == SensitivityLevel.critical) {
         final values = widget.itemToMap?.call(item);
         final value = values?[field.fieldId];
         if (value != null && value.isNotEmpty) {
@@ -510,7 +510,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     // Find a representative restricted field ID for verification
     String? restrictedFieldId;
     for (final field in widget.fieldDefs) {
-      if (field.sensitivity == SensitivityLevel.restricted) {
+      if (field.sensitivity == SensitivityLevel.critical) {
         restrictedFieldId = field.fieldId;
         break;
       }
@@ -518,7 +518,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     if (restrictedFieldId == null) return true;
 
     final level = settings.getFieldLevel(restrictedFieldId);
-    if (level != SensitivityLevel.restricted) return true;
+    if (level != SensitivityLevel.critical) return true;
 
     // Check if user was verified within the last 1 minute (password cache)
     final sensitiveAccess = ref.read(sensitivePageAccessProvider);

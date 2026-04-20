@@ -4,22 +4,26 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 /// Helper to get sensitivity level color
 Color getSensitivityColor(SensitivityLevel level) {
   switch (level) {
-    case SensitivityLevel.restricted:
-      return Colors.red;
-    case SensitivityLevel.private:
+    case SensitivityLevel.critical:
+      return Colors.red.shade900;
+    case SensitivityLevel.sensitive:
       return Colors.orange;
-    case SensitivityLevel.public:
+    case SensitivityLevel.internal:
       return Colors.blue;
+    case SensitivityLevel.public:
+      return Colors.green;
   }
 }
 
 /// Helper to get sensitivity level label
 String getSensitivityLabel(SensitivityLevel level) {
   switch (level) {
-    case SensitivityLevel.restricted:
-      return 'Restricted';
-    case SensitivityLevel.private:
-      return 'Private';
+    case SensitivityLevel.critical:
+      return 'Critical';
+    case SensitivityLevel.sensitive:
+      return 'Sensitive';
+    case SensitivityLevel.internal:
+      return 'Internal';
     case SensitivityLevel.public:
       return 'Public';
   }

@@ -122,7 +122,7 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
 
     final settings = ref.read(sensitivitySettingsProvider);
     final level = settings.getFieldLevel(restrictedFieldId);
-    if (level != SensitivityLevel.restricted) return true;
+    if (level != SensitivityLevel.critical) return true;
 
     // Check if user was verified within the last 1 minute (password cache)
     final sensitiveAccess = ref.read(sensitivePageAccessProvider);

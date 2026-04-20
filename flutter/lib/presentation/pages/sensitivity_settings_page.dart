@@ -313,8 +313,8 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     }
 
     final publicFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.public));
-    final privateFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.private));
-    final restrictedFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.restricted));
+    final privateFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.internal));
+    final restrictedFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.critical));
 
     final hasResults = publicFields.isNotEmpty || privateFields.isNotEmpty || restrictedFields.isNotEmpty;
     final totalFields = settings.fieldSettings.length;

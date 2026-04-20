@@ -355,4 +355,90 @@ class RustVaultService {
 
     return result?['success'] == true;
   }
+
+  // ===========================================================================
+  // Account settings - encrypted storage (SETTING_{accountId} pattern)
+  // ===========================================================================
+
+  /// Save account settings with encryption
+  ///
+  /// [accountId] - Account ID
+  /// [jsonData] - Settings data as JSON string
+  ///
+  /// Returns true on success
+  Future<bool> saveSettingEncrypted(
+    String accountId,
+    String jsonData,
+  ) async {
+    if (_encryptionKey == null) {
+      return false;
+    }
+
+    final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
+    final encryptedData = _encryptData(jsonBytes);
+    if (encryptedData == null) {
+      return false;
+    }
+
+    final result = NativeVaultService.instance.request(
+      'save_setting',
+      {
+        'account_id': accountId,
+        'data': base64Encode(encryptedData),
+      },
+    );
+
+    return result?['success'] == true;
+  }
+
+  /// Load and decrypt account settings by account ID
+  ///
+  /// [accountId] - Account ID
+  ///
+  /// Returns decrypted JSON string, or null if not found/error
+  Future<String?> loadSettingDecrypted(String accountId) async {
+    final result = NativeVaultService.instance.request(
+      'load_setting',
+      {'account_id': accountId},
+    );
+
+    if (result?['success'] != true) {
+      return null;
+    }
+
+    final data = result!['data'];
+    if (data == null) {
+      return null;
+    }
+
+    // Handle both encrypted (base64 string) and already-decrypted (Map) formats
+    if (data is String) {
+      // data is base64 encoded encrypted data
+      final encryptedBytes = base64Decode(data);
+      final decrypted = _decryptData(encryptedBytes);
+      if (decrypted == null) {
+        return null;
+      }
+      return utf8.decode(decrypted);
+    } else if (data is Map) {
+      // data is already decrypted JSON
+      return jsonEncode(data);
+    }
+
+    return null;
+  }
+
+  /// Delete account settings for an account
+  ///
+  /// [accountId] - Account ID
+  ///
+  /// Returns true on success
+  Future<bool> deleteSetting(String accountId) async {
+    final result = NativeVaultService.instance.request(
+      'delete_setting',
+      {'account_id': accountId},
+    );
+
+    return result?['success'] == true;
+  }
 }

@@ -333,7 +333,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         FormFieldDef(
           fieldId: 'bankAccount.accountNumber',
           label: 'Account Number',
-          sensitivity: SensitivityLevel.restricted,
+          sensitivity: SensitivityLevel.critical,
         ),
         FormFieldDef(
           fieldId: 'bankAccount.currency',
@@ -343,7 +343,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
         FormFieldDef(
           fieldId: 'bankAccount.swiftBic',
           label: 'SWIFT/BIC',
-          sensitivity: SensitivityLevel.private,
+          sensitivity: SensitivityLevel.internal,
         ),
       ],
       displayItemBuilder: _buildBankAccountItem,
@@ -587,17 +587,17 @@ class _CardSectionState extends ConsumerState<_CardSection> {
         FormFieldDef(
           fieldId: 'card.cardNumber',
           label: 'Card Number',
-          sensitivity: SensitivityLevel.restricted,
+          sensitivity: SensitivityLevel.critical,
         ),
         FormFieldDef(
           fieldId: 'card.expiryDate',
           label: 'Expiry Date',
-          sensitivity: SensitivityLevel.private,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'card.holderName',
           label: 'Holder Name',
-          sensitivity: SensitivityLevel.private,
+          sensitivity: SensitivityLevel.internal,
         ),
       ],
       displayItemBuilder: _buildCardItem,
@@ -836,7 +836,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         FormFieldDef(
           fieldId: 'taxId.taxIdNumber',
           label: 'Tax ID Number',
-          sensitivity: SensitivityLevel.restricted,
+          sensitivity: SensitivityLevel.critical,
         ),
         FormFieldDef(
           fieldId: 'taxId.taxIdType',

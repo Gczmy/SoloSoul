@@ -40,7 +40,7 @@ Future<bool> verifyPasswordForRestrictedField({
   final level = settings.getFieldLevel(fieldId);
 
   // If not restricted, allow without verification
-  if (level != SensitivityLevel.restricted) {
+  if (level != SensitivityLevel.critical) {
     return true;
   }
 
@@ -592,7 +592,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         FormFieldDef(
           fieldId: 'contact.value',
           label: 'Value',
-          sensitivity: SensitivityLevel.restricted,
+          sensitivity: SensitivityLevel.critical,
         ),
       ],
       customFormBuilder: (context, theme, controllers, mode, onSubmit, onCancel) {
@@ -659,7 +659,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
                 suffixIcon: Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: SensitivityTag(
-                    level: SensitivityLevel.restricted,
+                    level: SensitivityLevel.critical,
                   ),
                 ),
               ),
@@ -1032,12 +1032,12 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
             FormFieldDef(
               fieldId: 'idCard.number',
               label: 'ID Number',
-              sensitivity: SensitivityLevel.restricted,
+              sensitivity: SensitivityLevel.critical,
             ),
             FormFieldDef(
               fieldId: 'idCard.holderName',
               label: 'Holder Name',
-              sensitivity: SensitivityLevel.restricted,
+              sensitivity: SensitivityLevel.critical,
             ),
             FormFieldDef(
               fieldId: 'idCard.country',
@@ -1496,7 +1496,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
             FormFieldDef(
               fieldId: 'address.postalCode',
               label: 'Postal Code',
-              sensitivity: SensitivityLevel.restricted,
+              sensitivity: SensitivityLevel.critical,
             ),
             FormFieldDef(
               fieldId: 'address.country',
