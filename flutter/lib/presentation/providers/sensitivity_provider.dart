@@ -109,7 +109,7 @@ class FieldRegistry {
       level: SensitivityLevel.sensitive,
     ),
 
-    // Contact Section
+    // Contact Section - personal contact info
     FieldSensitivity(
       fieldId: 'contact.email',
       fieldName: 'Email',
@@ -146,7 +146,7 @@ class FieldRegistry {
       fieldId: 'idCard.holderName',
       fieldName: 'Holder Name',
       fieldSection: 'idCard',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'idCard.issueDate',
@@ -228,7 +228,7 @@ class FieldRegistry {
       fieldId: 'passport.holderName',
       fieldName: 'Holder Name',
       fieldSection: 'passport',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
 
     // Visa Section
@@ -248,7 +248,7 @@ class FieldRegistry {
       fieldId: 'visa.visaType',
       fieldName: 'Visa Type',
       fieldSection: 'visa',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'visa.issueDate',
@@ -282,7 +282,7 @@ class FieldRegistry {
       fieldId: 'bankAccount.accountHolderName',
       fieldName: 'Account Holder Name',
       fieldSection: 'bankAccount',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'bankAccount.routingNumber',
@@ -332,7 +332,7 @@ class FieldRegistry {
       fieldId: 'card.holderName',
       fieldName: 'Holder Name',
       fieldSection: 'card',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'card.cvv',
@@ -344,7 +344,7 @@ class FieldRegistry {
       fieldId: 'card.billingAddress',
       fieldName: 'Billing Address',
       fieldSection: 'card',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
 
     // Education Section
@@ -376,7 +376,7 @@ class FieldRegistry {
       fieldId: 'education.gpa',
       fieldName: 'GPA',
       fieldSection: 'education',
-      level: SensitivityLevel.sensitive,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'education.startDate',
@@ -408,19 +408,19 @@ class FieldRegistry {
       fieldId: 'employment.workAddress',
       fieldName: 'Work Address',
       fieldSection: 'employment',
-      level: SensitivityLevel.sensitive,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'employment.supervisorName',
       fieldName: 'Supervisor Name',
       fieldSection: 'employment',
-      level: SensitivityLevel.sensitive,
+      level: SensitivityLevel.internal,
     ),
     FieldSensitivity(
       fieldId: 'employment.monthlySalary',
       fieldName: 'Monthly Salary',
       fieldSection: 'employment',
-      level: SensitivityLevel.critical,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'employment.startDate',
@@ -495,6 +495,69 @@ class FieldRegistry {
     };
     return names[section] ?? section;
   }
+
+  /// Check if a field ID exists in the registry
+  static bool isValidFieldId(String fieldId) {
+    return defaultFields.any((f) => f.fieldId == fieldId);
+  }
+}
+
+/// Field ID constants to prevent typos
+class FieldIds {
+  FieldIds._();
+
+  // Identity
+  static const String dateOfBirth = 'identity.dateOfBirth';
+  static const String nationality = 'identity.nationality';
+
+  // Contact
+  static const String email = 'contact.email';
+  static const String phone = 'contact.phone';
+  static const String mobile = 'contact.mobile';
+  static const String address = 'contact.address';
+
+  // ID Card
+  static const String idCardNumber = 'idCard.number';
+  static const String idCardHolderName = 'idCard.holderName';
+  static const String idCardIssueDate = 'idCard.issueDate';
+  static const String idCardExpiryDate = 'idCard.expiryDate';
+  static const String idCardCountry = 'idCard.country';
+
+  // Address
+  static const String street = 'address.street';
+  static const String city = 'address.city';
+  static const String postalCode = 'address.postalCode';
+  static const String country = 'address.country';
+
+  // Passport
+  static const String passportNumber = 'passport.number';
+  static const String passportCountry = 'passport.country';
+  static const String passportExpiryDate = 'passport.expiryDate';
+  static const String passportHolderName = 'passport.holderName';
+
+  // Visa
+  static const String visaNumber = 'visa.number';
+  static const String visaCountry = 'visa.country';
+  static const String visaType = 'visa.visaType';
+  static const String visaExpiryDate = 'visa.expiryDate';
+
+  // Bank Account
+  static const String accountNumber = 'bankAccount.accountNumber';
+  static const String bankName = 'bankAccount.bankName';
+  static const String swiftBic = 'bankAccount.swiftBic';
+
+  // Card
+  static const String cardNumber = 'card.cardNumber';
+  static const String cardExpiryDate = 'card.expiryDate';
+  static const String cardHolderName = 'card.holderName';
+
+  // Education
+  static const String gpa = 'education.gpa';
+
+  // Employment
+  static const String workAddress = 'employment.workAddress';
+  static const String supervisorName = 'employment.supervisorName';
+  static const String monthlySalary = 'employment.monthlySalary';
 }
 
 /// Sensitivity settings state
@@ -691,4 +754,19 @@ class SensitivitySettingsNotifier extends StateNotifier<SensitivitySettings> {
 final sensitivitySettingsProvider =
     StateNotifierProvider<SensitivitySettingsNotifier, SensitivitySettings>((ref) {
   return SensitivitySettingsNotifier();
+});
+
+/// Provider family for getting effective sensitivity level of a field.
+/// Returns: user override > FieldRegistry default > public fallback
+final fieldLevelProvider = Provider.family<SensitivityLevel, String>((ref, fieldId) {
+  final settings = ref.watch(sensitivitySettingsProvider);
+
+  // Check user override first
+  final override = settings.fieldSettings.firstWhereOrNull((f) => f.fieldId == fieldId);
+  if (override != null) return override.level;
+
+  // Fall back to FieldRegistry default
+  return FieldRegistry.defaultFields
+      .firstWhereOrNull((f) => f.fieldId == fieldId)
+      ?.level ?? SensitivityLevel.public;
 });
