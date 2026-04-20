@@ -14,13 +14,12 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show sensitivitySettingsProvider, SensitivityDisplayMode;
+    show sensitivitySettingsProvider, SensitivityDisplayMode, SensitivitySettings;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
 
 /// Provider for per-item history expanded state, keyed by itemId or title.
-/// Persists across widget rebuilds — state lives in Riverpod, not in the widget tree.
 final historyExpandedProvider =
     StateProvider.family<bool, String>((ref, key) => false);
 
@@ -37,7 +36,6 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
   final bool isRestricted;
 
   /// Fallback callbacks when not used inside UnifiedFormSection.
-  /// When used inside UnifiedFormSection, EntryActionsContext provides the real callbacks.
   final void Function(T item)? onDelete;
   final void Function(T item)? onEdit;
   final String Function(T item)? formatAllFields;
@@ -84,20 +82,19 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   }
 
   Future<void> _handleHistoryPress(bool isSensitive) async {
-    final historyExpanded = ref.read(historyExpandedProvider(_historyKey));
-    final isPrivacyMode = ref.read(sensitivitySettingsProvider.select(
-      (s) => s.displayMode != SensitivityDisplayMode.showAll,
-    ));
+    final currentExpanded = ref.read(historyExpandedProvider(_historyKey));
+    final currentSettings = ref.read(sensitivitySettingsProvider);
+    final isPrivacyMode = currentSettings.displayMode != SensitivityDisplayMode.showAll;
 
     // Non-sensitive items: toggle freely
     if (!isSensitive) {
-      ref.read(historyExpandedProvider(_historyKey).notifier).state = !historyExpanded;
+      ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
       return;
     }
 
-    // Restricted items in privacy mode: force collapse if expanded, block toggle
+    // Restricted items in privacy mode: if expanded, collapse; if collapsed, block
     if (widget.isRestricted && isPrivacyMode) {
-      if (historyExpanded) {
+      if (currentExpanded) {
         ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
       }
       return;
@@ -109,7 +106,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final hasRecentVerification = sensitiveAccess.lastVerified != null &&
         sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
     if (hasRecentVerification) {
-      ref.read(historyExpandedProvider(_historyKey).notifier).state = !historyExpanded;
+      ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
       return;
     }
 
@@ -124,7 +121,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     if (password == null) return;
     ref.read(sensitivePageAccessProvider.notifier).markVerified();
     if (mounted) {
-      ref.read(historyExpandedProvider(_historyKey).notifier).state = !historyExpanded;
+      ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
     }
   }
 
@@ -133,14 +130,16 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final history = _history;
     final hasHistory = history != null;
     final isSensitive = widget.isSensitive || widget.fields.any((f) => f.isSensitive);
+    final isExpanded = ref.watch(historyExpandedProvider(_historyKey));
 
     // Auto-collapse restricted history when entering privacy mode
-    ref.listen<bool>(
-      sensitivitySettingsProvider.select((s) => s.displayMode != SensitivityDisplayMode.showAll),
-      (previous, isPrivacyMode) {
+    ref.listen<SensitivitySettings>(
+      sensitivitySettingsProvider,
+      (previous, next) {
         if (!widget.isRestricted) return;
-        final wasPrivacyOff = previous == false || previous == null;
-        if (wasPrivacyOff && isPrivacyMode) {
+        final wasShowAll = previous?.displayMode == SensitivityDisplayMode.showAll;
+        final isNowPrivacy = next.displayMode != SensitivityDisplayMode.showAll;
+        if (wasShowAll && isNowPrivacy) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
           });
@@ -178,7 +177,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
           bottomActions: [
             TextButton.icon(
               icon: Icon(
-                ref.watch(historyExpandedProvider(_historyKey)) ? Icons.expand_less : Icons.history,
+                isExpanded ? Icons.expand_less : Icons.history,
                 size: 16,
               ),
               label: Text('History(${history?.entries.length ?? 0})'),
@@ -196,7 +195,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                 ]
               : [],
         ),
-        if (hasHistory && ref.watch(historyExpandedProvider(_historyKey)))
+        if (hasHistory && isExpanded)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
@@ -209,7 +208,6 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   }
 
   List<Widget> _buildActions(BuildContext context, EntryActionsContext? ctx, bool isSensitive) {
-    // ctx != null means we're inside UnifiedFormSection — use its callbacks directly
     final editAction = ctx != null && ctx.onEdit != null
         ? ctx.onEdit!
         : widget.onEdit != null
