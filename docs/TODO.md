@@ -71,57 +71,250 @@ SoloSoul/
 
 ---
 
-## P1: 代码重构 (DRY)
+## P1: 账户配置系统 (Account Settings Sync)
 
-### 抽象条目模板 🔴
-- [ ] 抽象条目模板函数：
-  - 右侧操作按钮（edit/delete/copy）
-  - 条目的 history 按钮
-  - Private data 字段的眼睛按钮/复制按钮
-  - Restricted data 的密码验证弹窗
-  - Copied 提示条统一复用
-- [ ] 把条目模板应用到其他所有页面的所有条目
-- [ ] 各条目只专注于独特内容：图标、字段前缀等客制化内容
+### 核心问题：敏感度等级可配置与同步性矛盾
 
-### UI优化 🟡
-- [x] Operation log 每条记录增加 detail 按钮，查看条目细节信息
-- [x] Trash 点击 detail 对话框中：restore 按钮放到 purge 左边，close 保持不变
-- [x] 优化travel history条目，点击添加按钮后，先让用户从下拉列表中选择：[飞机，火车，巴士，taxi，drive,other]等选项，用户点击选项后，再跳出不一样的字段
-  - 飞机选项：起飞地点，到达地点，起飞时间，到达时间，航司，航班号，机票价格，行程备注等
-  - 火车选项：出发地点，到达地点，出发时间，到达时间，火车车次，火车票价格，行程备注等
-  - 巴士选项：出发地点，到达地点，出发时间，到达时间，车次名，车票价格，行程备注等
-  - taxi选项：出发地点，到达地点，出发时间，到达时间，打车价格，行程备注等
-  - drive选项：出发地点，到达地点，出发时间，到达时间，行程备注等
-  - other选项：出发地点，到达地点，出发时间，到达时间，行程备注等
-- [ ] 现在所有条目在点击添加按钮后，都是使用footer，输入框都在下方，这样很不方便，用户需要下拉界面，而且没有提示。
-建议做法：改成在当前位置直接用输入框直接覆盖，用户不必再去找输入框，而且明显，缺点是用户需要保存或者取消才能继续查看内容。
-交互重构方案：从 Footer 到 Inline
-1. 交互逻辑演变
-过去：点击按钮 → 列表滚动到最下方 → 在页脚输入。
-现在：点击按钮 → 在**列表最上方（或当前分类顶部）**立即插入一个待编辑的“临时卡片” → 覆盖原有内容或推开原有内容。
-关键 UI 细节建议
-视觉遮罩（Focus State）：
-当输入框出现时，可以给背景列表增加一个轻微的高斯模糊或半透明遮罩（如果是弹出层级），或者仅仅是通过高亮边框强调当前的输入框，让用户产生“必须处理完这一条”的心理暗示。
-自动聚焦（Auto-focus）：
-输入框一旦出现，必须立即 autofocus: true，直接弹出键盘/获取光标，实现“秒开秒输”。
-- [x] trash页面在点击条目后跳出细节对话框，对话框里的restore按钮和框外面(条目里的)restore按钮风格不一致，统一修改成框外面(条目里的)restore按钮风格，也就是文本是紫色，背景是白色的,然后对话框里的restore带框线，框线颜色使用和文本一样的紫色，对话框外面条目里的按钮风格保持不变。
-- [x] trash页面条目的细节对话框里的purge按钮，把框线改成红色的，和文本”purge”的颜色一致。
-- [x] trash 页面的条目加入history按钮，查看该条目的历史修改信息。
-- [x] 对条目进行软删除操作时，弹出来的二次确认对话框，文本"This action cannot be undone."修改成该条目将会被移动至trash，将在30天后被永久删除。
-- [ ] trash页面每个条目如果有历史记录的话，也直接在条目上加入history按钮。
-- [ ] trash页面历史记录页，直接显示历史记录，现在还需要再点一下按钮，删除里面的这个按钮。
+**现状**：
+- 敏感度等级（public/private/restricted）硬编码在代码中
+- 每账户单独维护的配置无法跨设备同步
+- 配置数据缺乏与主数据同级的安全地位
+
+**解决思路**：Metadata-in-Vault — 配置数据"随身化"
 
 ---
 
-## P1: Flutter macOS 稳定性
+### 架构设计
 
-### 代码质量优化
-- [x] 3个 section 类 (Contact/IdCard/Address) 代码复用 ~90% → 提取 base class
-- [x] `SensitivityLevel` 字符串 → enum 改造
-- [x] 密码框边框代码在多处重复 (8处) → 方案1: 创建静态工厂方法 `AppInputDecoration.errorBorder()` | 方案2: 在 `MaterialApp` 的 `theme` 中统一定义 `inputDecorationTheme`
-- [x] `getFieldLevel` 异常控制流 → `firstWhereOrNull`
-- [x] `getDeletedItems()` 列表重建 → 添加缓存
-- [x] 教育/就业页面 CollapsibleSectionCard 集成
+#### 1. 存储架构：从"应用配置"转向"账户配置"
+
+**现状问题**：
+- SharedPreferences 或本地 JSON 文件存储配置 → 无法随加密数据库同步
+
+**解决方案**：在 Rust Vault 层增加 `SETTING_{accountId}` key
+
+```
+vault/
+├── PROFILE_{accountId}    # 已有：账户主数据
+├── HIST_{accountId}      # 已有：字段历史
+└── SETTING_{accountId}   # 新增：账户加密配置
+```
+
+**原理**：配置数据写入磁盘前，使用该账户的 Master Key 加密。另一设备同步数据库后，解密主数据的同时自动解密账户配置。
+
+---
+
+#### 2. 敏感度枚举扩展
+
+```dart
+enum SensitivityLevel {
+  public,    // 明文显示，无验证
+  internal,  // 明文显示，编辑需验证
+  sensitive, // 遮罩显示，复制/查看需验证
+  critical;  // 深度遮罩，解锁特定时长内可见
+}
+```
+
+**与现有 `SensitivityLevel` 的映射**：
+- `public` → 现有 `public`
+- `private` → 现有 `private`
+- `restricted` → 拆分为 `sensitive` + `critical`
+
+---
+
+#### 3. 配置映射表（Map-based Mapping）
+
+在账户配置中存储：
+
+```dart
+// 全局默认值（内置代码）
+final defaultSensitivity = <String, SensitivityLevel>{
+  'password': SensitivityLevel.critical,
+  'bank_account': SensitivityLevel.sensitive,
+  'address': SensitivityLevel.internal,
+  'name': SensitivityLevel.public,
+};
+
+// 账户覆盖层（用户修改后）
+final accountOverrides = <String, SensitivityLevel>{
+  'work_email': SensitivityLevel.sensitive, // 覆盖默认 public
+};
+
+// 最终计算：accountOverrides 优先，无覆盖则用 defaultSensitivity
+```
+
+**同步优势**：同步时只需同步几行"规则字符串"，而非成百上千个条目状态。
+
+---
+
+#### 4. 标签继承（Tag-based Inheritance）
+
+允许用户为条目打标签（`#Finance`, `#Work`），配置一次，自动应用到所有带该标签的条目：
+
+```dart
+final tagRules = <String, SensitivityLevel>{
+  '#Finance': SensitivityLevel.critical,
+  '#Work': SensitivityLevel.sensitive,
+  '#Personal': SensitivityLevel.internal,
+};
+```
+
+---
+
+### 实现步骤
+
+#### Step 1: Rust 层 — Vault 存储接口
+
+**文件**：`native/src/vault/store.rs`
+
+**新增接口**：
+```rust
+// 保存账户配置（加密）
+pub fn save_account_settings(account_id: &str, settings_json: &str) -> Result<(), VaultError>
+
+// 加载账户配置（解密）
+pub fn load_account_settings(account_id: &str) -> Result<String, VaultError>
+
+// 列出所有账户配置key（用于同步扫描）
+pub fn list_setting_keys() -> Result<Vec<String>, VaultError>
+```
+
+**存储路径**：
+```
+~/.solosoul/acc_{accountId}/
+├── config.json       # 现有：盐和验证
+├── vault.db          # 现有：SQLCipher 数据库
+└── settings.json     # 新增：账户风格配置（可选，不存在时走默认值）
+```
+
+---
+
+#### Step 2: Flutter 层 — RustVaultService 封装
+
+**文件**：`lib/core/services/rust_vault_service.dart`
+
+**新增方法**：
+```dart
+Future<void> saveAccountSettings(String accountId, Map<String, dynamic> settings)
+Future<Map<String, dynamic>?> loadAccountSettings(String accountId)
+Future<List<String>> listSettingKeys()
+```
+
+---
+
+#### Step 3: Provider 层 — AccountStyleProvider
+
+**文件**：`lib/presentation/providers/account_style_provider.dart`（新建）
+
+**职责**：
+- 账户解锁后立即加载加密配置
+- 监听用户修改，延迟写入 Vault
+- 提供 `getLevel(fieldId, tags)` 方法，查找顺序：accountOverrides → tagRules → defaultSensitivity
+
+**状态**：
+```dart
+final accountStyleProvider = StateNotifierProvider<AccountStyleNotifier, AccountStyleState>
+
+class AccountStyleState {
+  final Map<String, SensitivityLevel> overrides;      // 字段级覆盖
+  final Map<String, SensitivityLevel> tagRules;        // 标签规则
+  final bool isLoaded;
+}
+```
+
+---
+
+#### Step 4: UI 层 — 动态响应
+
+**文件**：`lib/presentation/widgets/universal_entry_card.dart`
+
+**修改**：在渲染槽位时，根据配置决定显示方式
+
+```dart
+final level = ref.watch(accountStyleProvider).getLevel(fieldId, entryTags);
+
+switch (level) {
+  case SensitivityLevel.public:
+    return Text(item.value); // 明文
+  case SensitivityLevel.internal:
+    return _buildInternalDisplay(item); // 明文+编辑验证
+  case SensitivityLevel.sensitive:
+    return BlurredText(text: item.value, onTap: () => _requestUnlock()); // 模糊+点击解锁
+  case SensitivityLevel.critical:
+    return LockedText(icon: Icons.lock, onLongPress: () => _requestUnlock()); // 深度锁定
+}
+```
+
+---
+
+#### Step 5: 设置界面
+
+**文件**：`lib/presentation/pages/sensitivity_settings_page.dart`（扩建）
+
+**功能**：
+- 全局默认敏感度配置
+- 账户覆盖层编辑器
+- 标签规则编辑器
+- 实时预览不同配置下的显示效果
+
+---
+
+#### Step 6: 一键切换虚假账户（Durez/Panic Mode）
+
+**扩展目标**：基于账户配置，实现"假身份模式"
+
+```
+~/.solosoul/acc_{fakeId}/
+├── config.json
+├── vault.db
+└── settings.json  # 包含 fake_profile_data
+```
+
+用户触发 Panic Mode 时：
+1. 锁定当前真实账户
+2. 用虚假账户数据快速替换内存状态
+3. 展示预设的"干净"身份
+
+---
+
+### 同步流程
+
+```
+设备A:
+  账户解锁 → 加载 SETTING_{accountId} → 合并 tagRules + overrides + defaults → 渲染 UI
+  用户修改配置 → 延迟500ms写入 Vault → 标记 dirty
+
+同步时:
+  dirty SETTING_{accountId} → 加密上传云端
+  或 dirty SETTING_{accountId} → 写入 NAS/Local Backup
+
+设备B:
+  账户解锁 → 下载 SETTING_{accountId} → 解密 → 合并配置 → 渲染 UI
+```
+
+---
+
+### 依赖关系
+
+```
+Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI)  → Step 5 (Settings)
+     ↓                  ↓                      ↓                   ↓
+  P0-阻塞          可并行测试              核心逻辑              体验优化
+```
+
+---
+
+## P1
+
+### UI优化 🟡
+- [ ] 优化travel history条目， 有两个重复的到达时间
+- [ ] 现在所有条目在点击添加按钮后，都是使用footer，输入框都在最上方，很不方便，应该出现在对应条目的位置，比如条目在第三个，name输入框就出现在第三个的位置。
+- [ ] 历史记录按钮加上。
+- [ ] trash页面每个条目如果有历史记录的话，也直接在条目上加入history按钮。
+- [ ] trash页面历史记录页，直接显示历史记录，现在还需要再点一下按钮，删除里面的这个按钮。
+
+
+## PN: 安全
 
 ### 物理安全
 - [ ] 防截屏 (FLAG_SECURE on Android, iOS snapshot blur)
