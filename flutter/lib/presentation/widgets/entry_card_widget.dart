@@ -126,6 +126,17 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final hasHistory = history != null;
     final isSensitive = widget.isSensitive || widget.fields.any((f) => f.isSensitive);
 
+    // Listen for sensitivity mode changes — collapse restricted history when entering privacy mode
+    ref.listen<bool>(
+      sensitivitySettingsProvider.select((s) => s.displayMode != SensitivityDisplayMode.showAll),
+      (previous, isPrivacyMode) {
+        if (!widget.isRestricted) return;
+        if ((previous == false || previous == null) && isPrivacyMode && _historyExpanded) {
+          setState(() => _historyExpanded = false);
+        }
+      },
+    );
+
     // Get EntryActionsContext for use inside UnifiedFormSection
     final actionsContext = EntryActionsContext.of(context);
 
