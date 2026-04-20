@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
-import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
-import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Widget to display and animate field history
-class FieldHistoryView extends ConsumerStatefulWidget {
+class FieldHistoryView extends StatefulWidget {
   final String fieldName;
   final FieldHistory? history;
   final bool initiallyExpanded;
@@ -21,57 +17,10 @@ class FieldHistoryView extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<FieldHistoryView> createState() => _FieldHistoryViewState();
+  State<FieldHistoryView> createState() => _FieldHistoryViewState();
 }
 
-class _FieldHistoryViewState extends ConsumerState<FieldHistoryView> {
-  bool _userToggledExpanded = false;
-
-  bool get _isRestrictedField {
-    final settings = ref.read(sensitivitySettingsProvider);
-    final level = settings.getFieldLevel(widget.fieldName);
-    return level == SensitivityLevel.restricted;
-  }
-
-  /// Whether sensitivity access is currently unlocked (recently verified)
-  bool get _hasSensitiveAccess {
-    final sensitiveAccess = ref.watch(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    return sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-  }
-
-  /// Derive expanded state from field level and access status
-  bool get _isExpanded {
-    if (_isRestrictedField && !_hasSensitiveAccess) {
-      // Always collapse restricted fields when access is locked
-      return false;
-    }
-    return _userToggledExpanded || widget.initiallyExpanded;
-  }
-
-  Future<void> _toggleExpanded() async {
-    if (_isRestrictedField && !_hasSensitiveAccess) {
-      // Show password dialog for restricted fields
-      final authNotifier = ref.read(authNotifierProvider.notifier);
-      final selectedAccount = authNotifier.selectedAccount;
-      if (selectedAccount == null) return;
-
-      final password = await showPasswordVerificationDialog(
-        context: context,
-        ref: ref,
-        passwordHint: selectedAccount.passwordHint,
-        onVerify: authNotifier.verifyPasswordForSensitiveData,
-      );
-      if (password == null) return;
-
-      // Mark as verified
-      ref.read(sensitivePageAccessProvider.notifier).markVerified();
-    }
-
-    setState(() => _userToggledExpanded = !_userToggledExpanded);
-  }
-
+class _FieldHistoryViewState extends State<FieldHistoryView> {
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final diff = now.difference(timestamp);
@@ -106,59 +55,18 @@ class _FieldHistoryViewState extends ConsumerState<FieldHistoryView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Toggle button
-        InkWell(
-          onTap: _toggleExpanded,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.history,
-                  size: 16,
-                  color: AppTheme.primaryColor,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'History',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '(${entries.length})',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.7),
-                  ),
-                ),
-                Icon(
-                  _isExpanded ? Icons.expand_less : Icons.expand_more,
-                  size: 16,
-                  color: AppTheme.primaryColor,
-                ),
-              ],
+        // History list with animation
+        Container(
+          constraints: const BoxConstraints(maxHeight: 200),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.2),
             ),
           ),
-        ),
-
-        // Expanded history list with animation
-        if (_isExpanded) ...[
-          const SizedBox(height: 8),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
-              ),
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
+          child: ListView.builder(
+            shrinkWrap: true,
               padding: const EdgeInsets.symmetric(vertical: 4),
               itemCount: entries.length,
               itemBuilder: (context, index) {
@@ -176,7 +84,6 @@ class _FieldHistoryViewState extends ConsumerState<FieldHistoryView> {
               },
             ),
           ).animate().fadeIn(duration: 200.ms).slideY(begin: -0.1, end: 0),
-        ],
       ],
     );
   }
@@ -263,14 +170,11 @@ class _HistoryEntryTile extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    Tooltip(
-                      message: formatFullTimestamp(entry.timestamp),
-                      child: Text(
-                        formatFullTimestamp(entry.timestamp),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                          fontSize: 11,
-                        ),
+                    Text(
+                      formatFullTimestamp(entry.timestamp),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -280,21 +184,27 @@ class _HistoryEntryTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: entry.values.entries.map<Widget>((e) {
                     final value = e.value;
+                    // Strip prefix like "contact.", "idCard.", "contract." etc.
+                    final displayKey = e.key.contains('.')
+                        ? e.key.substring(e.key.indexOf('.') + 1)
+                        : e.key;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            width: 80,
+                            width: 64,
                             child: Text(
-                              e.key,
+                              displayKey,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               value.isNotEmpty ? value : '(empty)',

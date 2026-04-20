@@ -711,7 +711,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
           accountId: accountId,
           itemId: editingItem.id,
           fieldIdPrefix: 'contact',
-          allFieldValues: values,
+          allFieldValues: oldValues ?? {},
         );
       },
       displayItemBuilder: (contact) => _ContactItem(
@@ -1089,7 +1089,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
               accountId: accountId,
               itemId: editingItem.id,
               fieldIdPrefix: 'idCard',
-              allFieldValues: values,
+              allFieldValues: oldValues ?? {},
             );
           },
         ),
@@ -1139,7 +1139,7 @@ class _IdCardItemState extends ConsumerState<_IdCardItem> {
     final hasLabel = widget.card.label != null && widget.card.label!.isNotEmpty;
     final history = ref
         .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.card.id, 'idCard.number');
+        .getHistory(widget.card.id, 'idCard');
     final hasHistory = history != null;
 
     // Get actions from EntryActionsContext (set by UnifiedFormSection)
@@ -1283,7 +1283,7 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
     final theme = Theme.of(context);
     final history = ref
         .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.address.id, 'address.postalCode');
+        .getHistory(widget.address.id, 'address');
 
     // Build list of fields to display
     final fields = <LabelValueField>[];
@@ -1634,7 +1634,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
               accountId: accountId,
               itemId: editingItem.id,
               fieldIdPrefix: 'address',
-              allFieldValues: values,
+              allFieldValues: oldValues ?? {},
             );
           },
         ),
@@ -1676,7 +1676,7 @@ class _AddressItemState extends ConsumerState<_AddressItem> {
   Widget build(BuildContext context) {
     final history = ref
         .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.address.id, 'address.postalCode');
+        .getHistory(widget.address.id, 'address');
     final hasHistory = history != null;
 
     // Get actions from EntryActionsContext (set by UnifiedFormSection)
