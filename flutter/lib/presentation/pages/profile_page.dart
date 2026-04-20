@@ -691,7 +691,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
             label: 'Value',
             value: contact.value,
             fieldId: 'contact',
-            isSensitive: true,
+            isSensitive: false,
           ),
         ];
         final history = ref
