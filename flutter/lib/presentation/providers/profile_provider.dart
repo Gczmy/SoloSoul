@@ -202,12 +202,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeIdentityChanges(oldIdentity, identity, isCreate));
 
-    // Refresh field histories after save
-    final identityAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (identityAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(identityAccountId);
-    }
-
     return true;
   }
 
@@ -703,12 +697,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeTravelChanges(oldTravel, travel, isCreate));
 
-    // Refresh field histories after save
-    final travelAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (travelAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(travelAccountId);
-    }
-
     return result;
   }
 
@@ -731,12 +719,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     await _ref
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeTravelChanges(oldTravel, travel, isCreate));
-
-    // Refresh field histories after save
-    final travelImmAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (travelImmAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(travelImmAccountId);
-    }
 
     return result;
   }
@@ -819,12 +801,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeFinancialChanges(oldFinancial, financial, isCreate));
 
-    // Refresh field histories after save
-    final financialAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (financialAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(financialAccountId);
-    }
-
     return result;
   }
 
@@ -847,12 +823,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     await _ref
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeFinancialChanges(oldFinancial, financial, isCreate));
-
-    // Refresh field histories after save
-    final financialImmAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (financialImmAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(financialImmAccountId);
-    }
 
     return result;
   }
@@ -926,12 +896,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeProfessionalChanges(oldProfessional, professional, isCreate));
 
-    // Refresh field histories after save
-    final professionalAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (professionalAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(professionalAccountId);
-    }
-
     return result;
   }
 
@@ -954,12 +918,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     await _ref
         .read(authNotifierProvider.notifier)
         .updateOperation(_summarizeProfessionalChanges(oldProfessional, professional, isCreate));
-
-    // Refresh field histories after save
-    final professionalImmAccountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (professionalImmAccountId != null) {
-      await _ref.read(fieldHistoriesProvider.notifier).reloadHistories(professionalImmAccountId);
-    }
 
     return result;
   }
