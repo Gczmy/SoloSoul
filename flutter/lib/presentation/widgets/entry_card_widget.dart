@@ -85,14 +85,12 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       return;
     }
 
-    // Restricted items in privacy mode: force collapse, no password prompt
+    // Restricted items in privacy mode: force collapse if already expanded
     if (widget.isRestricted) {
       final sensitivityMode = ref.read(sensitivitySettingsProvider).displayMode;
       final isPrivacyMode = sensitivityMode != SensitivityDisplayMode.showAll;
-      if (isPrivacyMode) {
-        if (_historyExpanded) {
-          setState(() => _historyExpanded = false);
-        }
+      if (isPrivacyMode && _historyExpanded) {
+        setState(() => _historyExpanded = false);
         return;
       }
     }
