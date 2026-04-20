@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+
+export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
 
 /// SnackBar type for toast notifications
 enum SnackBarType {
@@ -6,16 +9,6 @@ enum SnackBarType {
   success,
   warning,
   error,
-}
-
-/// Sensitivity level for profile data fields
-enum SensitivityLevel {
-  /// Public - always visible
-  public,
-  /// Private - hidden by default, tap to reveal
-  private,
-  /// Restricted - requires additional confirmation
-  restricted,
 }
 
 /// Shows a SnackBar using Overlay so it appears above dialogs

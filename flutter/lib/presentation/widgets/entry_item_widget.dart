@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/entry_configs.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
@@ -120,8 +120,7 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
 
     if (restrictedFieldId == null) return true;
 
-    final settings = ref.read(sensitivitySettingsProvider);
-    final level = settings.getFieldLevel(restrictedFieldId);
+    final level = ref.read(fieldLevelProvider(restrictedFieldId));
     if (level != SensitivityLevel.critical) return true;
 
     // Check if user was verified within the last 1 minute (password cache)

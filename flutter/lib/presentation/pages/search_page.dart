@@ -101,8 +101,8 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   bool isFieldRevealed(String fieldPath, SensitivityLevel level) {
     // Check if field is revealed in sensitivity settings
-    final settings = _ref.read(sensitivitySettingsProvider);
-    if (!settings.isFieldRevealed(fieldPath)) return false;
+    final style = _ref.read(accountStyleProvider);
+    if (!style.revealedFields.contains(fieldPath)) return false;
     // Only restricted fields require re-verification after 5-min lock
     if (level == SensitivityLevel.critical) {
       final sensitiveAccess = _ref.read(sensitivePageAccessProvider);
@@ -138,7 +138,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     }
 
     // Reveal this specific field via shared settings
-    ref.read(sensitivitySettingsProvider.notifier).revealField(fieldPath);
+    ref.read(accountStyleProvider.notifier).revealField(fieldPath);
   }
 
   Future<void> unlockAllRestricted(
@@ -161,7 +161,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     }
 
     // Reveal all restricted fields in results
-    final sensitiveNotifier = ref.read(sensitivitySettingsProvider.notifier);
+    final sensitiveNotifier = ref.read(accountStyleProvider.notifier);
     for (final result in state.results) {
       if (result.sensitivityLevel == SensitivityLevel.critical) {
         sensitiveNotifier.revealField(result.fieldPath);
@@ -973,8 +973,8 @@ class _SearchResultTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    // Watch sensitivitySettingsProvider so rebuild happens when fields are revealed
-    ref.watch(sensitivitySettingsProvider);
+    // Watch accountStyleProvider so rebuild happens when fields are revealed
+    ref.watch(accountStyleProvider);
     final isRevealed = ref
         .read(searchProvider.notifier)
         .isFieldRevealed(result.fieldPath, result.sensitivityLevel);

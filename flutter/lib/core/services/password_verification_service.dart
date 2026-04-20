@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show sensitivitySettingsProvider, SensitivityLevel;
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show fieldLevelProvider;
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
+    show SensitivityLevel;
 
 final passwordVerificationServiceProvider = Provider((ref) => PasswordVerificationService(ref));
 
@@ -20,8 +22,7 @@ class PasswordVerificationService {
   }) async {
     if (fieldId == null) return true;
 
-    final settings = _ref.read(sensitivitySettingsProvider);
-    final level = settings.getFieldLevel(fieldId);
+    final level = _ref.read(fieldLevelProvider(fieldId));
 
     if (level != SensitivityLevel.critical) return true;
 

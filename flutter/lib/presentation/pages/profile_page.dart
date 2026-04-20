@@ -5,8 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, SnackBarType, showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show accountStyleProvider, fieldLevelProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show SensitivityLevel, sensitivitySettingsProvider, SensitivityDisplayMode;
+    show SensitivityLevel, SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
@@ -36,8 +38,7 @@ Future<bool> verifyPasswordForRestrictedField({
   required WidgetRef ref,
   required String fieldId,
 }) async {
-  final settings = ref.read(sensitivitySettingsProvider);
-  final level = settings.getFieldLevel(fieldId);
+  final level = ref.read(fieldLevelProvider(fieldId));
 
   // If not restricted, allow without verification
   if (level != SensitivityLevel.critical) {
@@ -168,7 +169,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         await _persistOperation('Updated Full Name');
         // Show top notification for operation feedback
         final isPrivacyMode =
-            ref.read(sensitivitySettingsProvider).displayMode ==
+            ref.read(accountStyleProvider).displayMode ==
             SensitivityDisplayMode.hidePrivate;
         OperationNotification.show(
           context,
@@ -461,7 +462,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = contact.id;
@@ -554,7 +555,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -905,7 +906,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = card.id;
@@ -997,7 +998,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1359,7 +1360,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = address.id;
@@ -1451,7 +1452,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

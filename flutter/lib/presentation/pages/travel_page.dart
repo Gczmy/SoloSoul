@@ -7,7 +7,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
@@ -205,7 +205,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = passport.id;
@@ -290,7 +290,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -312,21 +312,21 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       items: _passports,
       maxVisibleItems: 3,
       itemFactory: _createPassportFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'passport.country',
           label: 'Country',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(fieldLevelProvider('passport.country')),
         ),
         FormFieldDef(
           fieldId: 'passport.number',
           label: 'Passport Number',
-          sensitivity: SensitivityLevel.critical,
+          sensitivity: ref.watch(fieldLevelProvider('passport.number')),
         ),
         FormFieldDef(
           fieldId: 'passport.expiryDate',
           label: 'Expiry Date',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(fieldLevelProvider('passport.expiryDate')),
         ),
       ],
       historyConfig: HistoryRecordingConfig<PassportData>(
@@ -462,7 +462,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = visa.id;
@@ -548,7 +548,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -570,26 +570,26 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       items: _visas,
       maxVisibleItems: 3,
       itemFactory: _createVisaFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'visa.country',
           label: 'Country',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(fieldLevelProvider('visa.country')),
         ),
         FormFieldDef(
           fieldId: 'visa.visaType',
           label: 'Visa Type',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(fieldLevelProvider('visa.visaType')),
         ),
         FormFieldDef(
           fieldId: 'visa.number',
           label: 'Visa Number',
-          sensitivity: SensitivityLevel.critical,
+          sensitivity: ref.watch(fieldLevelProvider('visa.number')),
         ),
         FormFieldDef(
           fieldId: 'visa.expiryDate',
           label: 'Expiry Date',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(fieldLevelProvider('visa.expiryDate')),
         ),
       ],
       historyConfig: HistoryRecordingConfig<VisaData>(
@@ -693,7 +693,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = item.id;
@@ -811,7 +811,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

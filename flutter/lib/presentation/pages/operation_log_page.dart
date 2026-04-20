@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -97,7 +98,7 @@ class OperationEntry {
   final String description;
   final String? fieldPath; // Optional field path for more details
   final String device; // Platform: 'macos', 'ios', 'android', etc.
-  final String sensitivityLevel; // 'restricted', 'private', 'public'
+  final SensitivityLevel sensitivityLevel;
 
   const OperationEntry({
     required this.timestamp,
@@ -106,7 +107,7 @@ class OperationEntry {
     required this.description,
     this.fieldPath,
     this.device = 'unknown',
-    this.sensitivityLevel = 'public',
+    this.sensitivityLevel = SensitivityLevel.public,
   });
 
   factory OperationEntry.fromJson(Map<String, dynamic> json) {
@@ -117,7 +118,10 @@ class OperationEntry {
       description: json['description'] as String,
       fieldPath: json['fieldPath'] as String?,
       device: json['device'] as String? ?? 'unknown',
-      sensitivityLevel: json['sensitivityLevel'] as String? ?? 'public',
+      sensitivityLevel: SensitivityLevel.values.firstWhere(
+        (e) => e.name == json['sensitivityLevel'],
+        orElse: () => SensitivityLevel.public,
+      ),
     );
   }
 
@@ -128,7 +132,7 @@ class OperationEntry {
     'description': description,
     if (fieldPath != null) 'fieldPath': fieldPath,
     'device': device,
-    'sensitivityLevel': sensitivityLevel,
+    'sensitivityLevel': sensitivityLevel.name,
   };
 }
 
@@ -392,7 +396,7 @@ class OperationLogService extends ChangeNotifier {
   List<OperationEntry> getFilteredEntries({
     Set<String>? actionFilters,
     Set<String>? deviceFilters,
-    Set<String>? sensitivityFilters,
+    Set<SensitivityLevel>? sensitivityFilters,
   }) {
     return _entries.where((entry) {
       // Action filter
@@ -448,7 +452,7 @@ final operationLogEntriesProvider = Provider<List<OperationEntry>>((ref) {
 // Filter state providers
 final logActionFilterProvider = StateProvider<Set<String>>((ref) => {});
 final logDeviceFilterProvider = StateProvider<Set<String>>((ref) => {});
-final logSensitivityFilterProvider = StateProvider<Set<String>>((ref) => {});
+final logSensitivityFilterProvider = StateProvider<Set<SensitivityLevel>>((ref) => {});
 
 // Filtered entries provider
 final operationLogFilteredEntriesProvider = Provider<List<OperationEntry>>((
@@ -1088,28 +1092,42 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                   child: Row(
                     children: [
                       _FilterChip(
-                        label: 'Restricted',
+                        label: 'Critical',
                         icon: Icons.lock,
-                        isSelected: sensitivityFilters.contains('restricted'),
+                        isSelected: sensitivityFilters.contains(SensitivityLevel.critical),
                         color: Colors.red,
                         onSelected: (selected) {
                           _toggleFilter(
                             sensitivityFilters,
-                            'restricted',
+                            SensitivityLevel.critical,
                             logSensitivityFilterProvider,
                           );
                         },
                       ),
                       const SizedBox(width: 4),
                       _FilterChip(
-                        label: 'Private',
+                        label: 'Sensitive',
                         icon: Icons.visibility_off,
-                        isSelected: sensitivityFilters.contains('private'),
+                        isSelected: sensitivityFilters.contains(SensitivityLevel.sensitive),
                         color: Colors.orange,
                         onSelected: (selected) {
                           _toggleFilter(
                             sensitivityFilters,
-                            'private',
+                            SensitivityLevel.sensitive,
+                            logSensitivityFilterProvider,
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      _FilterChip(
+                        label: 'Internal',
+                        icon: Icons.folder,
+                        isSelected: sensitivityFilters.contains(SensitivityLevel.internal),
+                        color: Colors.green,
+                        onSelected: (selected) {
+                          _toggleFilter(
+                            sensitivityFilters,
+                            SensitivityLevel.internal,
                             logSensitivityFilterProvider,
                           );
                         },
@@ -1118,12 +1136,12 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                       _FilterChip(
                         label: 'Public',
                         icon: Icons.public,
-                        isSelected: sensitivityFilters.contains('public'),
+                        isSelected: sensitivityFilters.contains(SensitivityLevel.public),
                         color: Colors.blue,
                         onSelected: (selected) {
                           _toggleFilter(
                             sensitivityFilters,
-                            'public',
+                            SensitivityLevel.public,
                             logSensitivityFilterProvider,
                           );
                         },
@@ -1152,12 +1170,12 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     );
   }
 
-  void _toggleFilter(
-    Set<String> currentFilters,
-    String value,
-    StateProvider<Set<String>> provider,
+  void _toggleFilter<T>(
+    Set<T> currentFilters,
+    T value,
+    StateProvider<Set<T>> provider,
   ) {
-    final newFilters = Set<String>.from(currentFilters);
+    final newFilters = Set<T>.from(currentFilters);
     if (newFilters.contains(value)) {
       newFilters.remove(value);
     } else {
@@ -1278,7 +1296,7 @@ class _OperationTile extends StatelessWidget {
             const SizedBox(height: 12),
             _DetailRow(
               label: 'Sensitivity Level',
-              value: entry.sensitivityLevel[0].toUpperCase() + entry.sensitivityLevel.substring(1),
+              value: entry.sensitivityLevel.label,
               valueColor: _sensitivityColor(entry.sensitivityLevel),
             ),
           ],
@@ -1368,29 +1386,29 @@ class _OperationTile extends StatelessWidget {
     }
   }
 
-  Color _sensitivityColor(String level) {
-    switch (level.toLowerCase()) {
-      case 'restricted':
+  Color _sensitivityColor(SensitivityLevel level) {
+    switch (level) {
+      case SensitivityLevel.critical:
         return Colors.red;
-      case 'private':
+      case SensitivityLevel.sensitive:
         return Colors.orange;
-      case 'public':
+      case SensitivityLevel.internal:
+        return Colors.green;
+      case SensitivityLevel.public:
         return Colors.blue;
-      default:
-        return Colors.grey;
     }
   }
 
-  IconData _sensitivityIcon(String level) {
-    switch (level.toLowerCase()) {
-      case 'restricted':
+  IconData _sensitivityIcon(SensitivityLevel level) {
+    switch (level) {
+      case SensitivityLevel.critical:
         return Icons.lock;
-      case 'private':
+      case SensitivityLevel.sensitive:
         return Icons.visibility_off;
-      case 'public':
+      case SensitivityLevel.internal:
+        return Icons.folder;
+      case SensitivityLevel.public:
         return Icons.public;
-      default:
-        return Icons.help_outline;
     }
   }
 
@@ -1548,8 +1566,7 @@ class _OperationTile extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              entry.sensitivityLevel[0].toUpperCase() +
-                                  entry.sensitivityLevel.substring(1),
+                              entry.sensitivityLevel.label,
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: sensitivityColor,
                                 fontWeight: FontWeight.w500,

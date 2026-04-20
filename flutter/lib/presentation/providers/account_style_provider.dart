@@ -1,9 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/global_sensitivity_defaults.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityDisplayMode;
+
+// Re-export for single import point
+export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
+export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode;
 
 /// Tag-based sensitivity resolver.
 ///
@@ -77,12 +84,18 @@ class AccountStyle {
   final Map<String, SensitivityLevel> tagDefaults;
   final GlobalSensitivityDefaults globalDefaults;
   final DateTime? lastModified;
+  final SensitivityDisplayMode displayMode;
+  final Set<String> revealedFields;
+  final List<FieldSensitivity> fieldOverrides;
 
   const AccountStyle({
     this.fieldSettings = const {},
     this.tagDefaults = const {},
     this.globalDefaults = const GlobalSensitivityDefaults(),
     this.lastModified,
+    this.displayMode = SensitivityDisplayMode.hidePrivate,
+    this.revealedFields = const {},
+    this.fieldOverrides = const [],
   });
 
   AccountStyle copyWith({
@@ -90,12 +103,18 @@ class AccountStyle {
     Map<String, SensitivityLevel>? tagDefaults,
     GlobalSensitivityDefaults? globalDefaults,
     DateTime? lastModified,
+    SensitivityDisplayMode? displayMode,
+    Set<String>? revealedFields,
+    List<FieldSensitivity>? fieldOverrides,
   }) {
     return AccountStyle(
       fieldSettings: fieldSettings ?? this.fieldSettings,
       tagDefaults: tagDefaults ?? this.tagDefaults,
       globalDefaults: globalDefaults ?? this.globalDefaults,
       lastModified: lastModified ?? this.lastModified,
+      displayMode: displayMode ?? this.displayMode,
+      revealedFields: revealedFields ?? this.revealedFields,
+      fieldOverrides: fieldOverrides ?? this.fieldOverrides,
     );
   }
 
@@ -104,6 +123,9 @@ class AccountStyle {
         'tag_defaults': tagDefaults.map((k, v) => MapEntry(k, v.name)),
         'global_defaults': globalDefaults.toJson(),
         'last_modified': lastModified?.toIso8601String(),
+        'display_mode': displayMode.index,
+        'revealed_fields': revealedFields.toList(),
+        'field_overrides': fieldOverrides.map((f) => f.toJson()).toList(),
       };
 
   factory AccountStyle.fromJson(Map<String, dynamic> json) {
@@ -127,6 +149,12 @@ class AccountStyle {
       lastModified: json['last_modified'] != null
           ? DateTime.tryParse(json['last_modified'] as String)
           : null,
+      displayMode: SensitivityDisplayMode.values[json['display_mode'] as int? ?? 1],
+      revealedFields: Set<String>.from(json['revealed_fields'] as List? ?? []),
+      fieldOverrides: (json['field_overrides'] as List?)
+              ?.map((f) => FieldSensitivity.fromJson(f as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -179,6 +207,7 @@ class AccountStyleService {
 class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   final Ref _ref;
   String? _currentAccountId;
+  Timer? _autoSaveTimer;
 
   AccountStyleNotifier(this._ref) : super(const AccountStyle());
 
@@ -293,27 +322,105 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
     final newTagDefaults = Map<String, SensitivityLevel>.from(state.tagDefaults);
     newTagDefaults.remove(tag);
 
-    final updated = state.copyWith(
+    state = state.copyWith(
       tagDefaults: newTagDefaults,
       lastModified: DateTime.now(),
     );
+    _autoSave();
 
-    final saved = await AccountStyleService.instance.saveStyle(
-      _currentAccountId!,
-      updated,
+    return true;
+  }
+
+  /// Debounced auto-save with 300ms timer.
+  void _autoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(const Duration(milliseconds: 300), () {
+      if (_currentAccountId != null) {
+        AccountStyleService.instance.saveStyle(_currentAccountId!, state);
+      }
+    });
+  }
+
+  /// Set the sensitivity display mode.
+  void setDisplayMode(SensitivityDisplayMode mode) {
+    state = state.copyWith(displayMode: mode);
+    _autoSave();
+  }
+
+  /// Reveal a specific field temporarily.
+  void revealField(String fieldId) {
+    state = state.copyWith(
+      revealedFields: {...state.revealedFields, fieldId},
     );
+    _autoSave();
+  }
 
-    if (saved) {
-      state = updated;
+  /// Hide a specific field.
+  void hideField(String fieldId) {
+    state = state.copyWith(
+      revealedFields: state.revealedFields.where((id) => id != fieldId).toSet(),
+    );
+    _autoSave();
+  }
+
+  /// Toggle field visibility.
+  void toggleField(String fieldId) {
+    if (state.revealedFields.contains(fieldId)) {
+      hideField(fieldId);
+    } else {
+      revealField(fieldId);
     }
+  }
 
-    return saved;
+  /// Hide all revealed private fields.
+  void hideAllPrivate() {
+    state = state.copyWith(revealedFields: {});
+    _autoSave();
+  }
+
+  /// Upgrade field to a higher sensitivity level.
+  void upgradeField(String fieldId) {
+    _moveField(fieldId, 1);
+  }
+
+  /// Downgrade field to a lower sensitivity level.
+  void downgradeField(String fieldId) {
+    _moveField(fieldId, -1);
+  }
+
+  void _moveField(String fieldId, int direction) {
+    final fieldIndex = state.fieldOverrides.indexWhere((f) => f.fieldId == fieldId);
+    if (fieldIndex == -1) return;
+
+    final field = state.fieldOverrides[fieldIndex];
+    final newLevel = SensitivityLevel.values[field.level.index + direction];
+
+    if (newLevel.index < 0 || newLevel.index > 3) return;
+
+    final updatedFields = List<FieldSensitivity>.from(state.fieldOverrides);
+    updatedFields[fieldIndex] = field.copyWith(level: newLevel);
+
+    state = state.copyWith(fieldOverrides: updatedFields);
+    _autoSave();
   }
 
   /// Clear style state (on lock).
   void clear() {
+    _autoSaveTimer?.cancel();
+    if (_currentAccountId != null) {
+      AccountStyleService.instance.saveStyle(_currentAccountId!, state);
+    }
     state = const AccountStyle();
     _currentAccountId = null;
+  }
+
+  @override
+  void dispose() {
+    _autoSaveTimer?.cancel();
+    if (_currentAccountId != null) {
+      AccountStyleService.instance.saveStyle(_currentAccountId!, state);
+    }
+    super.dispose();
   }
 }
 
@@ -333,22 +440,18 @@ final sensitivityResolverProvider = Provider<TagBasedSensitivityResolver>((ref) 
   );
 });
 
-/// Convenience provider for getting field sensitivity level.
-final fieldLevelProvider =
-    Provider.family<SensitivityLevel, (String, List<String>)>((ref, params) {
-  final (fieldId, tags) = params;
-  final resolver = ref.watch(sensitivityResolverProvider);
-  return resolver.getLevel(fieldId, tags: tags);
-});
-
 /// Provider for display mode (reuses existing sensitivity settings).
 final displayModeProvider = StateProvider<SensitivityDisplayMode>((ref) {
   return SensitivityDisplayMode.hidePrivate;
 });
 
-/// Sensitivity display mode enum.
-enum SensitivityDisplayMode {
-  showAll,
-  hidePrivate,
-  hideAll,
-}
+/// Convenience provider for getting field sensitivity level.
+/// Returns: user override > FieldRegistry default > public fallback
+final fieldLevelProvider = Provider.family<SensitivityLevel, String>((ref, fieldId) {
+  final style = ref.watch(accountStyleProvider);
+  final override = style.fieldOverrides.firstWhereOrNull((f) => f.fieldId == fieldId);
+  if (override != null) return override.level;
+  return FieldRegistry.defaultFields
+      .firstWhereOrNull((f) => f.fieldId == fieldId)
+      ?.level ?? SensitivityLevel.public;
+});

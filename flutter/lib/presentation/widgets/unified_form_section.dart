@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
@@ -506,7 +506,6 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
   }
 
   Future<bool> _verifyPasswordForRestricted(BuildContext context) async {
-    final settings = ref.read(sensitivitySettingsProvider);
     // Find a representative restricted field ID for verification
     String? restrictedFieldId;
     for (final field in widget.fieldDefs) {
@@ -517,7 +516,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     }
     if (restrictedFieldId == null) return true;
 
-    final level = settings.getFieldLevel(restrictedFieldId);
+    final level = ref.read(fieldLevelProvider(restrictedFieldId));
     if (level != SensitivityLevel.critical) return true;
 
     // Check if user was verified within the last 1 minute (password cache)

@@ -13,8 +13,8 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show EntryActionsContext;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show sensitivitySettingsProvider, SensitivityDisplayMode, SensitivitySettings;
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show accountStyleProvider, SensitivityDisplayMode, AccountStyle;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
@@ -83,7 +83,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   Future<void> _handleHistoryPress(bool isSensitive) async {
     final currentExpanded = ref.read(historyExpandedProvider(_historyKey));
-    final currentSettings = ref.read(sensitivitySettingsProvider);
+    final currentSettings = ref.read(accountStyleProvider);
     final isPrivacyMode = currentSettings.displayMode != SensitivityDisplayMode.showAll;
 
     // Non-sensitive items: toggle freely
@@ -154,8 +154,8 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final isExpanded = ref.watch(historyExpandedProvider(_historyKey));
 
     // Auto-collapse restricted history when entering privacy mode
-    ref.listen<SensitivitySettings>(
-      sensitivitySettingsProvider,
+    ref.listen<AccountStyle>(
+      accountStyleProvider,
       (previous, next) {
         if (!widget.isRestricted) return;
         final wasShowAll = previous?.displayMode == SensitivityDisplayMode.showAll;

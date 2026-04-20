@@ -1,5 +1,6 @@
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 /// Utility class for auto-generating operation log entries
 /// This provides a clean API for creating descriptive log messages
@@ -9,7 +10,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -26,7 +27,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -43,7 +44,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -60,7 +61,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'restricted',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.critical,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -77,7 +78,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'restricted',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.critical,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -94,7 +95,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'restricted',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.critical,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -111,7 +112,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.internal,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -128,7 +129,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'restricted',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.critical,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -145,7 +146,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'restricted',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.critical,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -162,7 +163,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'private',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.sensitive,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -179,7 +180,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'private',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.sensitive,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -196,7 +197,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -213,7 +214,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -230,7 +231,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -247,7 +248,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.sensitive,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -264,7 +265,7 @@ class OperationLogger {
     required LogAction action,
     required String description,
     String? fieldPath,
-    String sensitivityLevel = 'public',
+    SensitivityLevel sensitivityLevel = SensitivityLevel.sensitive,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),

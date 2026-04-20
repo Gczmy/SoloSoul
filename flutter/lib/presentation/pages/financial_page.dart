@@ -7,7 +7,9 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
@@ -212,7 +214,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(displayModeProvider) ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = account.id;
@@ -302,7 +304,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(displayModeProvider) ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -324,26 +326,26 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
       items: _accounts,
       maxVisibleItems: 3,
       itemFactory: _createAccountFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'bankAccount.bankName',
           label: 'Bank Name',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(fieldLevelProvider('bankAccount.bankName')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.accountNumber',
           label: 'Account Number',
-          sensitivity: SensitivityLevel.critical,
+          sensitivity: ref.watch(fieldLevelProvider('bankAccount.accountNumber')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.currency',
           label: 'Currency',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(fieldLevelProvider('bankAccount.currency')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.swiftBic',
           label: 'SWIFT/BIC',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(fieldLevelProvider('bankAccount.swiftBic')),
         ),
       ],
       displayItemBuilder: _buildBankAccountItem,
@@ -472,7 +474,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(displayModeProvider) ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = card.id;
@@ -556,7 +558,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(displayModeProvider) ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -578,26 +580,26 @@ class _CardSectionState extends ConsumerState<_CardSection> {
       items: _cards,
       maxVisibleItems: 3,
       itemFactory: _createCardFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'card.cardType',
           label: 'Card Type (Visa, Mastercard, etc.)',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(fieldLevelProvider('card.cardType')),
         ),
         FormFieldDef(
           fieldId: 'card.cardNumber',
           label: 'Card Number',
-          sensitivity: SensitivityLevel.critical,
+          sensitivity: ref.watch(fieldLevelProvider('card.cardNumber')),
         ),
         FormFieldDef(
           fieldId: 'card.expiryDate',
           label: 'Expiry Date',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(fieldLevelProvider('card.expiryDate')),
         ),
         FormFieldDef(
           fieldId: 'card.holderName',
           label: 'Holder Name',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(fieldLevelProvider('card.holderName')),
         ),
       ],
       displayItemBuilder: _buildCardItem,
@@ -726,7 +728,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(displayModeProvider) ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = taxId.id;
@@ -810,7 +812,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(displayModeProvider) ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

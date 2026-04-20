@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class SensitivitySettingsPage extends ConsumerStatefulWidget {
@@ -299,8 +300,19 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
   }
 
   Widget _buildSettingsView() {
-    final settings = ref.watch(sensitivitySettingsProvider);
-    final notifier = ref.read(sensitivitySettingsProvider.notifier);
+    // Use select() to only rebuild when fieldSettings changes, not entire accountStyle
+    final accountStyle = ref.watch(accountStyleProvider.select((s) => s.fieldSettings));
+    final notifier = ref.read(accountStyleProvider.notifier);
+
+    // Build effective field list by combining FieldRegistry defaults with account style overrides
+    List<FieldSensitivity> buildEffectiveFields() {
+      return FieldRegistry.defaultFields.map((field) {
+        final overrideLevel = accountStyle[field.fieldId];
+        return overrideLevel != null
+            ? field.copyWith(level: overrideLevel)
+            : field;
+      }).toList();
+    }
 
     // Filter fields based on search query
     List<FieldSensitivity> filterFields(List<FieldSensitivity> fields) {
@@ -312,13 +324,14 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
       }).toList();
     }
 
-    final publicFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.public));
-    final internalFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.internal));
-    final sensitiveFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.sensitive));
-    final criticalFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.critical));
+    final effectiveFields = buildEffectiveFields();
+    final publicFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.public).toList());
+    final internalFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.internal).toList());
+    final sensitiveFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.sensitive).toList());
+    final criticalFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.critical).toList());
 
     final hasResults = publicFields.isNotEmpty || internalFields.isNotEmpty || sensitiveFields.isNotEmpty || criticalFields.isNotEmpty;
-    final totalFields = settings.fieldSettings.length;
+    final totalFields = effectiveFields.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -327,7 +340,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
           HeaderActionButtons(),
         ],
       ),
-      body: settings.fieldSettings.isEmpty
+      body: effectiveFields.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
@@ -541,8 +554,10 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     WidgetRef ref,
     String fieldId,
   ) {
-    final field = ref.read(sensitivitySettingsProvider).fieldSettings
-        .firstWhere((f) => f.fieldId == fieldId);
+    final accountStyle = ref.read(accountStyleProvider);
+    final effectiveLevel = accountStyle.fieldSettings[fieldId] ??
+        FieldRegistry.defaultFields.firstWhere((f) => f.fieldId == fieldId).level;
+    final field = FieldRegistry.defaultFields.firstWhere((f) => f.fieldId == fieldId);
 
     showDialog(
       context: context,
@@ -595,7 +610,8 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
           ),
           FilledButton(
             onPressed: () {
-              ref.read(sensitivitySettingsProvider.notifier).downgradeField(fieldId);
+              final newLevel = SensitivityLevel.values[effectiveLevel.index - 1];
+              ref.read(accountStyleProvider.notifier).setFieldLevel(fieldId, newLevel);
               Navigator.pop(context);
               _showSnackBar(
                 context,

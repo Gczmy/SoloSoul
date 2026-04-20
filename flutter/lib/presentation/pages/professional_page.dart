@@ -4,7 +4,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show SensitivityDisplayMode;
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
+    show SensitivityLevel;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
@@ -207,7 +211,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -294,7 +298,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
         .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -598,7 +602,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -686,7 +690,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
         .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -821,7 +825,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -910,7 +914,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
         .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1026,7 +1030,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -1114,7 +1118,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
         .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1238,7 +1242,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
     final index = _items.indexOf(item);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(sensitivitySettingsProvider).displayMode ==
+        ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -1328,7 +1332,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
         .updateProfessionalImmediate(professional);
     if (mounted) {
       final isPrivacyMode =
-          ref.read(sensitivitySettingsProvider).displayMode ==
+          ref.read(accountStyleProvider).displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

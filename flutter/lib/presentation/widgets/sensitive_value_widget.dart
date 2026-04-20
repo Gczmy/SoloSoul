@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
@@ -71,8 +71,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     }
 
     // Check if this field requires verification
-    final settings = ref.read(sensitivitySettingsProvider);
-    final level = settings.getFieldLevel(widget.fieldId);
+    final level = ref.read(fieldLevelProvider(widget.fieldId));
     final isRestricted = level == SensitivityLevel.critical;
 
     if (isRestricted) {
@@ -146,9 +145,9 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final theme = Theme.of(context);
 
     // Watch sensitivity settings to rebuild when they change
-    final settings = ref.watch(sensitivitySettingsProvider);
+    final settings = ref.watch(accountStyleProvider);
     final isPrivacyShieldEnabled = settings.displayMode == SensitivityDisplayMode.hidePrivate;
-    final fieldLevel = settings.getFieldLevel(widget.fieldId);
+    final fieldLevel = ref.read(fieldLevelProvider(widget.fieldId));
 
     // Watch sensitive page access to detect recent verification
     final sensitiveAccess = ref.watch(sensitivePageAccessProvider);

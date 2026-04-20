@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/pages/home_page.dart';
@@ -229,6 +230,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // Pre-load profile before navigating to home
       // Await directly to ensure load completes before navigation
       await ref.read(profileNotifierProvider.notifier).loadProfile();
+
+      // Load account style (sensitivity settings) after unlock
+      final styleAccountId = authNotifier.selectedAccountId;
+      if (styleAccountId != null) {
+        await ref.read(accountStyleProvider.notifier).loadStyle(styleAccountId);
+      }
 
       // Record login metadata (lastLoginAt + device)
       final accountId = authNotifier.selectedAccountId;
