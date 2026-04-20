@@ -92,10 +92,31 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       return;
     }
 
-    // Restricted items in privacy mode: if expanded, collapse; if collapsed, block
+    // Restricted items in privacy mode: if expanded, collapse silently; if collapsed, require auth then expand
     if (widget.isRestricted && isPrivacyMode) {
       if (currentExpanded) {
         ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+        return;
+      }
+      // Collapsed: require password to expand
+      final sensitiveAccess = ref.read(sensitivePageAccessProvider);
+      final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+      final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+          sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+      if (!hasRecentVerification) {
+        final authNotifier = ref.read(authNotifierProvider.notifier);
+        final selectedAccount = authNotifier.selectedAccount;
+        final password = await showPasswordVerificationDialog(
+          context: context,
+          ref: ref,
+          passwordHint: selectedAccount?.passwordHint,
+          onVerify: authNotifier.verifyPasswordForSensitiveData,
+        );
+        if (password == null) return;
+        ref.read(sensitivePageAccessProvider.notifier).markVerified();
+      }
+      if (mounted) {
+        ref.read(historyExpandedProvider(_historyKey).notifier).state = true;
       }
       return;
     }
@@ -141,7 +162,9 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         final isNowPrivacy = next.displayMode != SensitivityDisplayMode.showAll;
         if (wasShowAll && isNowPrivacy) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+            if (context.mounted) {
+              ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+            }
           });
         }
       },
