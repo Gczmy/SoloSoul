@@ -20,7 +20,6 @@ import 'package:solosoul_flutter/presentation/pages/search_page.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
-import 'package:solosoul_flutter/presentation/widgets/privacy_blur_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +46,6 @@ class SoloSoulApp extends ConsumerStatefulWidget {
 class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingObserver {
   DateTime? _pausedAt;
   Timer? _autoLockTimer;
-  bool _isInBackground = false;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
@@ -80,11 +78,9 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     switch (state) {
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
-        _isInBackground = true;
         _startAutoLockTimer();
         break;
       case AppLifecycleState.resumed:
-        _isInBackground = false;
         _cancelAutoLockTimer();
         _checkAutoLock();
         break;
@@ -173,21 +169,6 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
         themeMode: ThemeMode.system,
         navigatorKey: _navigatorKey,
         home: const SplashPage(),
-        builder: (context, child) {
-          return Stack(
-            children: [
-              child ?? const SizedBox(),
-              // PrivacyBlurOverlay - shown when app is inactive/paused AND vault is unlocked
-              Consumer(
-                builder: (context, ref, _) {
-                  final authState = ref.watch(authNotifierProvider);
-                  final showBlur = _isInBackground && authState == AuthState.unlocked;
-                  return PrivacyBlurOverlay(visible: showBlur);
-                },
-              ),
-            ],
-          );
-        },
         routes: {
           '/login': (context) => const LoginPage(),
           '/home': (context) => const HomePage(),
