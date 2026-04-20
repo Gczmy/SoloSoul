@@ -946,16 +946,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     String? fieldIdPrefix;
     switch (item.itemType) {
       case 'contact':
-        final profile = ref.read(profileNotifierProvider);
-        if (profile?.identity?.contact != null) {
-          final entries = profile!.identity!.contact!.entries;
-          final contactIdx = entries.indexWhere((e) => e.id == item.id);
-          if (contactIdx >= 0) {
-            final contactType = entries[contactIdx].type;
-            fieldIdPrefix = contactType == 'phone' ? 'contact.phone' : 'contact.email';
-          }
-        }
-        break;
+        fieldIdPrefix = 'contact';
       case 'idCard':
         fieldIdPrefix = 'idCard.number';
         break;
@@ -1081,16 +1072,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     String? fieldIdPrefix;
     switch (item.itemType) {
       case 'contact':
-        // Contact can be email or phone - look up the actual type
-        final profile = ref.read(profileNotifierProvider);
-        if (profile?.identity?.contact != null) {
-          final entries = profile!.identity!.contact!.entries;
-          final contactIdx = entries.indexWhere((e) => e.id == item.id);
-          if (contactIdx >= 0) {
-            final contactType = entries[contactIdx].type;
-            fieldIdPrefix = contactType == 'phone' ? 'contact.phone' : 'contact.email';
-          }
-        }
+        // Contact history is stored under 'contact' key
+        fieldIdPrefix = 'contact';
         break;
       case 'idCard':
         fieldIdPrefix = 'idCard.number';
