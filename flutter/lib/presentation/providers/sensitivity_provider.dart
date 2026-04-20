@@ -607,12 +607,12 @@ class SensitivitySettingsNotifier extends StateNotifier<SensitivitySettings> {
     state = state.copyWith(revealedFields: {});
   }
 
-  /// Upgrade field to higher sensitivity (public -> private -> restricted)
+  /// Upgrade field to higher sensitivity (public -> internal -> sensitive -> critical)
   void upgradeField(String fieldId) {
     _moveField(fieldId, 1);
   }
 
-  /// Downgrade field to lower sensitivity (restricted -> private -> public)
+  /// Downgrade field to lower sensitivity (critical -> sensitive -> internal -> public)
   void downgradeField(String fieldId) {
     _moveField(fieldId, -1);
   }

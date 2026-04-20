@@ -313,10 +313,11 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     }
 
     final publicFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.public));
-    final privateFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.internal));
-    final restrictedFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.critical));
+    final internalFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.internal));
+    final sensitiveFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.sensitive));
+    final criticalFields = filterFields(settings.getFieldsByLevel(SensitivityLevel.critical));
 
-    final hasResults = publicFields.isNotEmpty || privateFields.isNotEmpty || restrictedFields.isNotEmpty;
+    final hasResults = publicFields.isNotEmpty || internalFields.isNotEmpty || sensitiveFields.isNotEmpty || criticalFields.isNotEmpty;
     final totalFields = settings.fieldSettings.length;
 
     return Scaffold(
@@ -364,7 +365,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                       children: [
                         Text(
                           hasResults
-                              ? 'Found ${publicFields.length + privateFields.length + restrictedFields.length} result(s)'
+                              ? 'Found ${publicFields.length + internalFields.length + sensitiveFields.length + criticalFields.length} result(s)'
                               : 'No results found',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: hasResults
@@ -419,14 +420,14 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
 
                       const SizedBox(height: 24),
 
-                      // Restricted Section (Highest)
-                      if (restrictedFields.isNotEmpty)
+                      // Critical Section (Highest)
+                      if (criticalFields.isNotEmpty)
                         _SensitivitySection(
-                          title: 'Restricted',
-                          subtitle: 'Highest sensitivity - requires additional verification',
-                          icon: Icons.lock,
-                          color: Colors.red,
-                          fields: restrictedFields,
+                          title: 'Critical',
+                          subtitle: 'Maximum sensitivity - always masked, requires verification',
+                          icon: Icons.shield,
+                          color: Colors.red.shade900,
+                          fields: criticalFields,
                           onUpgrade: null, // Can't upgrade further
                           onDowngrade: (fieldId) => _showDowngradeConfirmation(
                             context,
@@ -436,23 +437,39 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                           isHighest: true,
                         ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
 
-                      if (restrictedFields.isNotEmpty) const SizedBox(height: 16),
+                      if (criticalFields.isNotEmpty) const SizedBox(height: 16),
 
-                      // Private Section (Medium)
-                      if (privateFields.isNotEmpty)
+                      // Sensitive Section
+                      if (sensitiveFields.isNotEmpty)
                         _SensitivitySection(
-                          title: 'Private',
-                          subtitle: 'Medium sensitivity - can be hidden by display settings',
+                          title: 'Sensitive',
+                          subtitle: 'Personal information requiring protection',
                           icon: Icons.visibility_off,
                           color: Colors.orange,
-                          fields: privateFields,
+                          fields: sensitiveFields,
+                          onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
+                          onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
+                          isHighest: false,
+                          isLowest: false,
+                        ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
+
+                      if (sensitiveFields.isNotEmpty) const SizedBox(height: 16),
+
+                      // Internal Section
+                      if (internalFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Internal',
+                          subtitle: 'Internal use only - can be hidden by display settings',
+                          icon: Icons.visibility,
+                          color: Colors.blue,
+                          fields: internalFields,
                           onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
                           onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
                           isHighest: false,
                           isLowest: false,
                         ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
 
-                      if (privateFields.isNotEmpty) const SizedBox(height: 16),
+                      if (internalFields.isNotEmpty) const SizedBox(height: 16),
 
                       // Public Section (Lowest)
                       if (publicFields.isNotEmpty)
@@ -460,7 +477,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                           title: 'Public',
                           subtitle: 'Lowest sensitivity - always visible',
                           icon: Icons.public,
-                          color: Colors.blue,
+                          color: Colors.green,
                           fields: publicFields,
                           onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
                           onDowngrade: null, // Can't downgrade further
