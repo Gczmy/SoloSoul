@@ -63,23 +63,6 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
 }
 
 class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
-  @override
-  void initState() {
-    super.initState();
-    // Listen for privacy mode transitions to auto-collapse restricted history
-    ref.listen<bool>(
-      sensitivitySettingsProvider.select((s) => s.displayMode != SensitivityDisplayMode.showAll),
-      (previous, isPrivacyMode) {
-        if (!widget.isRestricted) return;
-        // Transition from non-privacy to privacy: collapse if was expanded
-        if ((previous == false || previous == null) && isPrivacyMode) {
-          final key = widget.itemId ?? widget.title;
-          ref.read(historyExpandedProvider(key).notifier).state = false;
-        }
-      },
-    );
-  }
-
   String get _historyKey => widget.itemId ?? widget.title;
 
   bool get _historyExpanded => ref.watch(historyExpandedProvider(_historyKey));
@@ -153,6 +136,17 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final history = _history;
     final hasHistory = history != null;
     final isSensitive = widget.isSensitive || widget.fields.any((f) => f.isSensitive);
+
+    // Auto-collapse restricted history when entering privacy mode
+    ref.listen<bool>(
+      sensitivitySettingsProvider.select((s) => s.displayMode != SensitivityDisplayMode.showAll),
+      (previous, isPrivacyMode) {
+        if (!widget.isRestricted) return;
+        if ((previous == false || previous == null) && isPrivacyMode) {
+          ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+        }
+      },
+    );
 
     // Get EntryActionsContext for use inside UnifiedFormSection
     final actionsContext = EntryActionsContext.of(context);
