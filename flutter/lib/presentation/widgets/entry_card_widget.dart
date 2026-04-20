@@ -161,7 +161,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         final wasShowAll = previous?.displayMode == SensitivityDisplayMode.showAll;
         final isNowPrivacy = next.displayMode != SensitivityDisplayMode.showAll;
         if (wasShowAll && isNowPrivacy) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.microtask(() {
             if (context.mounted) {
               ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
             }
