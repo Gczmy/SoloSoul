@@ -84,8 +84,8 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   }
 
   Future<void> _handleHistoryPress(bool isSensitive) async {
-    final historyExpanded = ref.watch(historyExpandedProvider(_historyKey));
-    final isPrivacyMode = ref.watch(sensitivitySettingsProvider.select(
+    final historyExpanded = ref.read(historyExpandedProvider(_historyKey));
+    final isPrivacyMode = ref.read(sensitivitySettingsProvider.select(
       (s) => s.displayMode != SensitivityDisplayMode.showAll,
     ));
 
