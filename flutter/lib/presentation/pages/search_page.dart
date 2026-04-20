@@ -411,89 +411,87 @@ class SearchNotifier extends StateNotifier<SearchState> {
     final travel = profile.travel;
     if (travel != null) {
       // Passports
-      if (travel.passports != null) {
-        for (final passport in travel.passports!) {
-          if (!passport.isDeleted) {
-            if (passport.number != null) {
-              addResult(
-                'passport.number.${passport.id}',
-                'Passport Number',
-                'passport',
-                passport.number!,
-                SensitivityLevel.critical,
-              );
-            }
-            if (passport.country != null) {
-              addResult(
-                'passport.country.${passport.id}',
-                'Country',
-                'passport',
-                passport.country!,
-                SensitivityLevel.public,
-              );
-            }
-            if (passport.holderName != null) {
-              addResult(
-                'passport.holderName.${passport.id}',
-                'Holder Name',
-                'passport',
-                passport.holderName!,
-                SensitivityLevel.internal,
-              );
-            }
+      for (final passport in travel.passports) {
+        if (!passport.isDeleted) {
+          final number = passport.number;
+          if (number != null) {
+            addResult(
+              'passport.number.${passport.id}',
+              'Passport Number',
+              'passport',
+              number,
+              SensitivityLevel.critical,
+            );
+          }
+          final country = passport.country;
+          if (country != null) {
+            addResult(
+              'passport.country.${passport.id}',
+              'Country',
+              'passport',
+              country,
+              SensitivityLevel.public,
+            );
+          }
+          final holderName = passport.holderName;
+          if (holderName != null) {
+            addResult(
+              'passport.holderName.${passport.id}',
+              'Holder Name',
+              'passport',
+              holderName,
+              SensitivityLevel.internal,
+            );
           }
         }
       }
 
       // Visas
-      if (travel.visas != null) {
-        for (final visa in travel.visas!) {
-          if (!visa.isDeleted) {
-            if (visa.number != null) {
-              addResult(
-                'visa.number.${visa.id}',
-                'Visa Number',
-                'visa',
-                visa.number!,
-                SensitivityLevel.critical,
-              );
-            }
-            if (visa.country != null) {
-              addResult(
-                'visa.country.${visa.id}',
-                'Country',
-                'visa',
-                visa.country!,
-                SensitivityLevel.public,
-              );
-            }
-            if (visa.visaType != null) {
-              addResult(
-                'visa.visaType.${visa.id}',
-                'Visa Type',
-                'visa',
-                visa.visaType!,
-                SensitivityLevel.internal,
-              );
-            }
+      for (final visa in travel.visas) {
+        if (!visa.isDeleted) {
+          final number = visa.number;
+          if (number != null) {
+            addResult(
+              'visa.number.${visa.id}',
+              'Visa Number',
+              'visa',
+              number,
+              SensitivityLevel.critical,
+            );
+          }
+          final country = visa.country;
+          if (country != null) {
+            addResult(
+              'visa.country.${visa.id}',
+              'Country',
+              'visa',
+              country,
+              SensitivityLevel.public,
+            );
+          }
+          final visaType = visa.visaType;
+          if (visaType != null) {
+            addResult(
+              'visa.visaType.${visa.id}',
+              'Visa Type',
+              'visa',
+              visaType,
+              SensitivityLevel.internal,
+            );
           }
         }
       }
 
       // Travel History
-      if (travel.travelHistory != null) {
-        for (final history in travel.travelHistory!) {
-          if (!history.isDeleted) {
-            if (history.destination != null) {
-              addResult(
-                'travelHistory.destination.${history.id}',
-                'Destination',
-                'travelHistory',
-                history.destination!,
-                SensitivityLevel.public,
-              );
-            }
-          }
+      for (final history in travel.travelHistory) {
+        if (!history.isDeleted) {
+          addResult(
+            'travelHistory.destination.${history.id}',
+            'Destination',
+            'travelHistory',
+            history.destination,
+            SensitivityLevel.public,
+          );
         }
       }
     }
@@ -502,106 +500,109 @@ class SearchNotifier extends StateNotifier<SearchState> {
     final financial = profile.financial;
     if (financial != null) {
       // Bank Accounts
-      if (financial.bankAccounts != null) {
-        for (final account in financial.bankAccounts!) {
-          if (!account.isDeleted) {
-            if (account.bankName != null) {
-              addResult(
-                'bankAccount.bankName.${account.id}',
-                'Bank Name',
-                'bankAccount',
-                account.bankName!,
-                SensitivityLevel.public,
-              );
-            }
-            if (account.accountNumber != null) {
-              addResult(
-                'bankAccount.accountNumber.${account.id}',
-                'Account Number',
-                'bankAccount',
-                account.accountNumber!,
-                SensitivityLevel.critical,
-              );
-            }
-            if (account.swiftBic != null) {
-              addResult(
-                'bankAccount.swiftBic.${account.id}',
-                'SWIFT/BIC',
-                'bankAccount',
-                account.swiftBic!,
-                SensitivityLevel.critical,
-              );
-            }
-            if (account.currency != null) {
-              addResult(
-                'bankAccount.currency.${account.id}',
-                'Currency',
-                'bankAccount',
-                account.currency!,
-                SensitivityLevel.public,
-              );
-            }
+      for (final account in financial.bankAccounts) {
+        if (!account.isDeleted) {
+          final bankName = account.bankName;
+          if (bankName != null) {
+            addResult(
+              'bankAccount.bankName.${account.id}',
+              'Bank Name',
+              'bankAccount',
+              bankName,
+              SensitivityLevel.public,
+            );
+          }
+          final accountNumber = account.accountNumber;
+          if (accountNumber != null) {
+            addResult(
+              'bankAccount.accountNumber.${account.id}',
+              'Account Number',
+              'bankAccount',
+              accountNumber,
+              SensitivityLevel.critical,
+            );
+          }
+          final swiftBic = account.swiftBic;
+          if (swiftBic != null) {
+            addResult(
+              'bankAccount.swiftBic.${account.id}',
+              'SWIFT/BIC',
+              'bankAccount',
+              swiftBic,
+              SensitivityLevel.critical,
+            );
+          }
+          final currency = account.currency;
+          if (currency != null) {
+            addResult(
+              'bankAccount.currency.${account.id}',
+              'Currency',
+              'bankAccount',
+              currency,
+              SensitivityLevel.public,
+            );
           }
         }
       }
 
       // Cards
-      if (financial.cards != null) {
-        for (final card in financial.cards!) {
-          if (!card.isDeleted) {
-            if (card.cardType != null) {
-              addResult(
-                'card.cardType.${card.id}',
-                'Card Type',
-                'card',
-                card.cardType!,
-                SensitivityLevel.public,
-              );
-            }
-            if (card.cardNumber != null) {
-              addResult(
-                'card.cardNumber.${card.id}',
-                'Card Number',
-                'card',
-                card.cardNumber!,
-                SensitivityLevel.critical,
-              );
-            }
-            if (card.holderName != null) {
-              addResult(
-                'card.holderName.${card.id}',
-                'Holder Name',
-                'card',
-                card.holderName!,
-                SensitivityLevel.internal,
-              );
-            }
+      for (final card in financial.cards) {
+        if (!card.isDeleted) {
+          final cardType = card.cardType;
+          if (cardType != null) {
+            addResult(
+              'card.cardType.${card.id}',
+              'Card Type',
+              'card',
+              cardType,
+              SensitivityLevel.public,
+            );
+          }
+          final cardNumber = card.cardNumber;
+          if (cardNumber != null) {
+            addResult(
+              'card.cardNumber.${card.id}',
+              'Card Number',
+              'card',
+              cardNumber,
+              SensitivityLevel.critical,
+            );
+          }
+          final holderName = card.holderName;
+          if (holderName != null) {
+            addResult(
+              'card.holderName.${card.id}',
+              'Holder Name',
+              'card',
+              holderName,
+              SensitivityLevel.internal,
+            );
           }
         }
       }
 
       // Tax IDs
-      if (financial.taxIds != null) {
-        for (final taxId in financial.taxIds!) {
-          if (!taxId.isDeleted) {
-            if (taxId.taxIdType != null) {
-              addResult(
-                'taxId.taxIdType.${taxId.id}',
-                'Tax ID Type',
-                'taxId',
-                taxId.taxIdType!,
-                SensitivityLevel.internal,
-              );
-            }
-            if (taxId.taxIdNumber != null) {
-              addResult(
-                'taxId.taxIdNumber.${taxId.id}',
-                'Tax ID Number',
-                'taxId',
-                taxId.taxIdNumber!,
-                SensitivityLevel.critical,
-              );
-            }
+      for (final taxId in financial.taxIds) {
+        if (!taxId.isDeleted) {
+          final taxIdType = taxId.taxIdType;
+          if (taxIdType != null) {
+            addResult(
+              'taxId.taxIdType.${taxId.id}',
+              'Tax ID Type',
+              'taxId',
+              taxIdType,
+              SensitivityLevel.internal,
+            );
+          }
+          final taxIdNumber = taxId.taxIdNumber;
+          if (taxIdNumber != null) {
+            addResult(
+              'taxId.taxIdNumber.${taxId.id}',
+              'Tax ID Number',
+              'taxId',
+              taxIdNumber,
+              SensitivityLevel.critical,
+            );
           }
         }
       }
@@ -611,97 +612,90 @@ class SearchNotifier extends StateNotifier<SearchState> {
     final professional = profile.professional;
     if (professional != null) {
       // Education
-      if (professional.education != null) {
-        for (final edu in professional.education!) {
-          if (!edu.isDeleted) {
-            if (edu.institution != null) {
-              addResult(
-                'education.institution.${edu.id}',
-                'Institution',
-                'education',
-                edu.institution!,
-                SensitivityLevel.public,
-              );
-            }
-            if (edu.degree != null) {
-              addResult(
-                'education.degree.${edu.id}',
-                'Degree',
-                'education',
-                edu.degree!,
-                SensitivityLevel.public,
-              );
-            }
-            if (edu.field != null) {
-              addResult(
-                'education.field.${edu.id}',
-                'Field of Study',
-                'education',
-                edu.field!,
-                SensitivityLevel.public,
-              );
-            }
+      for (final edu in professional.education) {
+        if (!edu.isDeleted) {
+          final institution = edu.institution;
+          if (institution != null) {
+            addResult(
+              'education.institution.${edu.id}',
+              'Institution',
+              'education',
+              institution,
+              SensitivityLevel.public,
+            );
+          }
+          final degree = edu.degree;
+          if (degree != null) {
+            addResult(
+              'education.degree.${edu.id}',
+              'Degree',
+              'education',
+              degree,
+              SensitivityLevel.public,
+            );
+          }
+          final field = edu.field;
+          if (field != null) {
+            addResult(
+              'education.field.${edu.id}',
+              'Field of Study',
+              'education',
+              field,
+              SensitivityLevel.public,
+            );
           }
         }
       }
 
       // Employment
-      if (professional.employment != null) {
-        for (final emp in professional.employment!) {
-          if (!emp.isDeleted) {
-            if (emp.company != null) {
-              addResult(
-                'employment.company.${emp.id}',
-                'Company',
-                'employment',
-                emp.company!,
-                SensitivityLevel.public,
-              );
-            }
-            if (emp.position != null) {
-              addResult(
-                'employment.position.${emp.id}',
-                'Position',
-                'employment',
-                emp.position!,
-                SensitivityLevel.public,
-              );
-            }
+      for (final emp in professional.employment) {
+        if (!emp.isDeleted) {
+          final company = emp.company;
+          if (company != null) {
+            addResult(
+              'employment.company.${emp.id}',
+              'Company',
+              'employment',
+              company,
+              SensitivityLevel.public,
+            );
+          }
+          final position = emp.position;
+          if (position != null) {
+            addResult(
+              'employment.position.${emp.id}',
+              'Position',
+              'employment',
+              position,
+              SensitivityLevel.public,
+            );
           }
         }
       }
 
       // Skills
-      if (professional.skills != null) {
-        for (final skill in professional.skills!) {
-          if (!skill.isDeleted) {
-            if (skill.name != null) {
-              addResult(
-                'skills.name.${skill.id}',
-                'Skill Name',
-                'skills',
-                skill.name!,
-                SensitivityLevel.public,
-              );
-            }
-          }
+      for (final skill in professional.skills) {
+        if (!skill.isDeleted) {
+          addResult(
+            'skills.name.${skill.id}',
+            'Skill Name',
+            'skills',
+            skill.name,
+            SensitivityLevel.public,
+          );
         }
       }
 
       // Languages
-      if (professional.languages != null) {
-        for (final lang in professional.languages!) {
-          if (!lang.isDeleted) {
-            if (lang.name != null) {
-              addResult(
-                'languages.name.${lang.id}',
-                'Language',
-                'languages',
-                lang.name!,
-                SensitivityLevel.public,
-              );
-            }
-          }
+      for (final lang in professional.languages) {
+        if (!lang.isDeleted) {
+          addResult(
+            'languages.name.${lang.id}',
+            'Language',
+            'languages',
+            lang.name,
+            SensitivityLevel.public,
+          );
         }
       }
     }
@@ -1108,7 +1102,7 @@ class _HistorySheet extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(Icons.history, color: AppTheme.primaryColor),
+                const Icon(Icons.history, color: AppTheme.primaryColor),
                 const SizedBox(width: 8),
                 Text(
                   'Field History',
