@@ -59,28 +59,27 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
 
 class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   bool _historyExpanded = false;
-  bool _wasPrivacyMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for privacy mode changes — collapse restricted history when entering privacy mode
+    ref.listen<bool>(
+      sensitivitySettingsProvider.select((s) => s.displayMode != SensitivityDisplayMode.showAll),
+      (previous, isPrivacyMode) {
+        if (!widget.isRestricted) return;
+        if ((previous == false || previous == null) && isPrivacyMode && _historyExpanded) {
+          setState(() => _historyExpanded = false);
+        }
+      },
+    );
+  }
 
   FieldHistory? get _history {
     if (widget.itemId == null || widget.historyFieldId == null) return null;
     return ref
         .watch(fieldHistoriesProvider.notifier)
         .getHistory(widget.itemId!, widget.historyFieldId!);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!widget.isRestricted) return;
-    final isPrivacyMode = ref.read(sensitivitySettingsProvider.select(
-      (s) => s.displayMode != SensitivityDisplayMode.showAll,
-    ));
-    if (!_wasPrivacyMode && isPrivacyMode && _historyExpanded) {
-      _wasPrivacyMode = isPrivacyMode;
-      setState(() => _historyExpanded = false);
-    } else {
-      _wasPrivacyMode = isPrivacyMode;
-    }
   }
 
   Future<void> _handleCopy(String formattedText) async {
