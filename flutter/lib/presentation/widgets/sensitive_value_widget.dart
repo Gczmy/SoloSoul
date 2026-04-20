@@ -156,22 +156,11 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
         sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
 
     // Determine if we should mask this field
-    bool shouldMask = false;
-    switch (fieldLevel) {
-      case SensitivityLevel.public:
-        shouldMask = false;
-        break;
-      case SensitivityLevel.internal:
-        shouldMask = isPrivacyShieldEnabled;
-        break;
-      case SensitivityLevel.sensitive:
-      case SensitivityLevel.critical:
-        shouldMask = true;
-        break;
-      case null:
-        shouldMask = false;
-        break;
-    }
+    bool shouldMask = switch (fieldLevel) {
+      SensitivityLevel.public => false,
+      SensitivityLevel.internal => isPrivacyShieldEnabled,
+      SensitivityLevel.sensitive || SensitivityLevel.critical => true,
+    };
 
     // Public fields: show plaintext without button
     if (!shouldMask) {
