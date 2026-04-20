@@ -437,7 +437,7 @@ class SecureAccountStorage {
       id: existing.id,
       name: existing.name,
       passwordHint: existing.passwordHint,
-      lastAccessed: existing.lastAccessed,
+      lastAccessed: lastLoginAt ?? existing.lastAccessed,
       createdAt: existing.createdAt,
       lastLoginAt: lastLoginAt ?? existing.lastLoginAt,
       lastOperationAt: lastOperationAt ?? existing.lastOperationAt,
