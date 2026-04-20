@@ -13,6 +13,8 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show EntryActionsContext;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show sensitivitySettingsProvider, SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
@@ -27,6 +29,7 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
   final String? itemId;
   final String? historyFieldId;
   final bool isSensitive;
+  final bool isRestricted;
 
   /// Fallback callbacks when not used inside UnifiedFormSection.
   /// When used inside UnifiedFormSection, EntryActionsContext provides the real callbacks.
@@ -44,6 +47,7 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
     this.itemId,
     this.historyFieldId,
     this.isSensitive = false,
+    this.isRestricted = false,
     this.onDelete,
     this.onEdit,
     this.formatAllFields,
@@ -79,6 +83,18 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     if (!isSensitive) {
       setState(() => _historyExpanded = !_historyExpanded);
       return;
+    }
+
+    // Restricted items in privacy mode: force collapse, no password prompt
+    if (widget.isRestricted) {
+      final sensitivityMode = ref.read(sensitivitySettingsProvider).displayMode;
+      final isPrivacyMode = sensitivityMode != SensitivityDisplayMode.showAll;
+      if (isPrivacyMode) {
+        if (_historyExpanded) {
+          setState(() => _historyExpanded = false);
+        }
+        return;
+      }
     }
 
     // Sensitive items: require password verification

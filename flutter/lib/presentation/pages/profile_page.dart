@@ -1157,6 +1157,7 @@ Widget _buildIdCardItem(IdCardData card) {
     fields: fields,
     itemId: card.id,
     historyFieldId: 'idCard',
+    isRestricted: true,
     formatAllFields: (c) => '${c.entryType}\n${c.toFormattedString()}',
   );
 }

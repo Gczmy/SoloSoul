@@ -149,6 +149,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
       fields: fields,
       itemId: account.id,
       historyFieldId: 'bankAccount',
+      isRestricted: true,
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -411,6 +412,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
       fields: fields,
       itemId: card.id,
       historyFieldId: 'card',
+      isRestricted: true,
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -664,6 +666,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
       fields: fields,
       itemId: taxId.id,
       historyFieldId: 'taxId',
+      isRestricted: true,
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }

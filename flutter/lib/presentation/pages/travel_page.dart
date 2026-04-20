@@ -195,6 +195,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       fields: fields,
       itemId: passport.id,
       historyFieldId: 'passport',
+      isRestricted: true,
       formatAllFields: (p) => '${p.entryType}\n${p.toFormattedString()}',
     );
   }
@@ -451,6 +452,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       fields: fields,
       itemId: visa.id,
       historyFieldId: 'visa',
+      isRestricted: true,
       formatAllFields: (v) => '${v.entryType}\n${v.toFormattedString()}',
     );
   }
