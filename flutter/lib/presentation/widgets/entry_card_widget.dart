@@ -126,13 +126,12 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final hasHistory = history != null;
     final isSensitive = widget.isSensitive || widget.fields.any((f) => f.isSensitive);
 
-    // Collapse restricted history when in privacy mode — check on every build
+    // Collapse restricted history when in privacy mode
     if (widget.isRestricted) {
       final isPrivacyMode = ref.watch(sensitivitySettingsProvider.select(
         (s) => s.displayMode != SensitivityDisplayMode.showAll,
       ));
-      if (isPrivacyMode && _historyExpanded) {
-        // Use post-frame callback to avoid setState during build
+      if (isPrivacyMode) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _historyExpanded) {
             setState(() => _historyExpanded = false);
