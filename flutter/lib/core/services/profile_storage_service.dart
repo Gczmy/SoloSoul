@@ -4,7 +4,11 @@ import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
+import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+
+// Re-export for backward compatibility
+typedef ProfileFieldHistories = FormHistories;
 
 /// Maximum character limits for form fields
 const int kMaxFieldLength = 32;
@@ -1717,170 +1721,6 @@ class DeletedItemInfo {
   });
 }
 
-/// Single historical value entry for a field
-/// Stores all field values at a point in time
-class FieldHistoryEntry {
-  final Map<String, String> values; // fieldName -> value
-  final DateTime timestamp;
-
-  const FieldHistoryEntry({required this.values, required this.timestamp});
-
-  factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) {
-    final valuesJson = json['values'] as Map<String, dynamic>? ?? {};
-    final values = valuesJson.map((k, v) => MapEntry(k, v as String? ?? ''));
-    return FieldHistoryEntry(
-      values: values,
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'] as String)
-          : DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'values': values,
-    'timestamp': timestamp.toIso8601String(),
-  };
-
-  String? getValue(String fieldName) => values[fieldName];
-}
-
-/// Complete history for a specific field on an item
-class FieldHistory {
-  final String fieldId;
-  final String itemId;
-  final List<FieldHistoryEntry> entries;
-
-  const FieldHistory({
-    required this.fieldId,
-    required this.itemId,
-    required this.entries,
-  });
-
-  factory FieldHistory.fromJson(Map<String, dynamic> json) {
-    return FieldHistory(
-      fieldId: json['field_id'] as String? ?? '',
-      itemId: json['item_id'] as String? ?? '',
-      entries:
-          (json['entries'] as List<dynamic>?)
-              ?.map(
-                (e) => FieldHistoryEntry.fromJson(e as Map<String, dynamic>),
-              )
-              .toList() ??
-          [],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'field_id': fieldId,
-    'item_id': itemId,
-    'entries': entries.map((e) => e.toJson()).toList(),
-  };
-
-  FieldHistory copyWith({
-    String? fieldId,
-    String? itemId,
-    List<FieldHistoryEntry>? entries,
-  }) {
-    return FieldHistory(
-      fieldId: fieldId ?? this.fieldId,
-      itemId: itemId ?? this.itemId,
-      entries: entries ?? this.entries,
-    );
-  }
-}
-
-/// All field histories for a profile, keyed by item id and field id
-class ProfileFieldHistories {
-  final Map<String, Map<String, FieldHistory>>
-  histories; // itemId -> fieldId -> FieldHistory
-
-  ProfileFieldHistories({Map<String, Map<String, FieldHistory>>? histories})
-    : histories = histories ?? {};
-
-  factory ProfileFieldHistories.fromJson(Map<String, dynamic> json) {
-    final result = <String, Map<String, FieldHistory>>{};
-    final data = json['histories'] as Map<String, dynamic>? ?? {};
-    for (final itemEntry in data.entries) {
-      final itemId = itemEntry.key;
-      final fields = itemEntry.value as Map<String, dynamic>? ?? {};
-      result[itemId] = {};
-      for (final fieldEntry in fields.entries) {
-        final fieldId = fieldEntry.key;
-        final historyData = fieldEntry.value as Map<String, dynamic>? ?? {};
-        result[itemId]![fieldId] = FieldHistory.fromJson(historyData);
-      }
-    }
-    return ProfileFieldHistories(histories: result);
-  }
-
-  Map<String, dynamic> toJson() => {
-    'histories': histories.map(
-      (itemId, fields) => MapEntry(
-        itemId,
-        fields.map((fieldId, h) => MapEntry(fieldId, h.toJson())),
-      ),
-    ),
-  };
-
-  /// Get history for a specific field
-  FieldHistory? getHistory(String itemId, String fieldId) {
-    return histories[itemId]?[fieldId];
-  }
-
-  /// Get all histories for an item
-  Map<String, FieldHistory> getItemHistories(String itemId) {
-    return histories[itemId] ?? {};
-  }
-
-  /// Add a new history entry for a field
-  ProfileFieldHistories addEntry(String itemId, String fieldId, String value) {
-    final entry = FieldHistoryEntry(values: {fieldId: value}, timestamp: DateTime.now());
-    final newHistories = Map<String, Map<String, FieldHistory>>.from(
-      histories.map((k, v) => MapEntry(k, Map<String, FieldHistory>.from(v))),
-    );
-
-    newHistories[itemId] ??= {};
-    final existing = newHistories[itemId]![fieldId];
-    if (existing != null) {
-      newHistories[itemId]![fieldId] = existing.copyWith(
-        entries: [...existing.entries, entry],
-      );
-    } else {
-      newHistories[itemId]![fieldId] = FieldHistory(
-        fieldId: fieldId,
-        itemId: itemId,
-        entries: [entry],
-      );
-    }
-
-    return ProfileFieldHistories(histories: newHistories);
-  }
-
-  /// Add a snapshot entry containing all field values at a point in time
-  ProfileFieldHistories addSnapshot(String itemId, String fieldId, Map<String, String> values) {
-    final entry = FieldHistoryEntry(values: values, timestamp: DateTime.now());
-    final newHistories = Map<String, Map<String, FieldHistory>>.from(
-      histories.map((k, v) => MapEntry(k, Map<String, FieldHistory>.from(v))),
-    );
-
-    newHistories[itemId] ??= {};
-    final existing = newHistories[itemId]![fieldId];
-    if (existing != null) {
-      newHistories[itemId]![fieldId] = existing.copyWith(
-        entries: [...existing.entries, entry],
-      );
-    } else {
-      newHistories[itemId]![fieldId] = FieldHistory(
-        fieldId: fieldId,
-        itemId: itemId,
-        entries: [entry],
-      );
-    }
-
-    return ProfileFieldHistories(histories: newHistories);
-  }
-}
-
 /// Profile storage service - stores encrypted profile data locally
 /// Delegates to RustVaultService via FFI for SQLCipher-encrypted storage
 class ProfileStorageService {
@@ -2586,54 +2426,5 @@ class ProfileStorageService {
     }
 
     await saveProfile(accountId, profile);
-  }
-
-  /// Load field histories for an account (encrypted storage via Rust vault)
-  Future<ProfileFieldHistories> loadFieldHistories(String accountId) async {
-    try {
-      final decrypted = await _rustVault.loadFieldHistoriesDecrypted(accountId);
-      if (decrypted != null) {
-        final json = jsonDecode(decrypted) as Map<String, dynamic>;
-        return ProfileFieldHistories.fromJson(json);
-      }
-      return ProfileFieldHistories();
-    } catch (e) {
-      return ProfileFieldHistories();
-    }
-  }
-
-  /// Save field histories for an account (encrypted storage via Rust vault)
-  Future<bool> saveFieldHistories(
-    String accountId,
-    ProfileFieldHistories histories,
-  ) async {
-    try {
-      final json = jsonEncode(histories.toJson());
-      return await _rustVault.saveFieldHistoriesEncrypted(accountId, json);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Add a field history entry when a field is updated
-  Future<ProfileFieldHistories> addFieldHistory({
-    required String accountId,
-    required String itemId,
-    required String fieldId,
-    String? value,
-    Map<String, String>? values,
-    ProfileFieldHistories? existingHistories,
-  }) async {
-    final histories = existingHistories ?? await loadFieldHistories(accountId);
-    ProfileFieldHistories updated;
-    if (values != null) {
-      // Snapshot mode - store all field values
-      updated = histories.addSnapshot(itemId, fieldId, values);
-    } else {
-      // Single field mode
-      updated = histories.addEntry(itemId, fieldId, value ?? '');
-    }
-    await saveFieldHistories(accountId, updated);
-    return updated;
   }
 }

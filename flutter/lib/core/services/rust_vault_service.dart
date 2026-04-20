@@ -325,14 +325,21 @@ class RustVaultService {
       return null;
     }
 
-    // data is base64 encoded encrypted data
-    final encryptedBytes = base64Decode(data as String);
-    final decrypted = _decryptData(encryptedBytes);
-    if (decrypted == null) {
-      return null;
+    // Handle both encrypted (base64 string) and already-decrypted (Map) formats
+    if (data is String) {
+      // data is base64 encoded encrypted data
+      final encryptedBytes = base64Decode(data);
+      final decrypted = _decryptData(encryptedBytes);
+      if (decrypted == null) {
+        return null;
+      }
+      return utf8.decode(decrypted);
+    } else if (data is Map) {
+      // data is already decrypted JSON
+      return jsonEncode(data);
     }
 
-    return utf8.decode(decrypted);
+    return null;
   }
 
   /// Delete field histories for an account

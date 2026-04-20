@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/entry_configs.dart';
+import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
@@ -12,7 +13,6 @@ import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dar
     show ResponsiveLabelField, LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show EntryActionsContext;
-import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 
 /// A reusable template widget for displaying profile/professional entry items.
 /// Standardizes:
@@ -223,14 +223,40 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 20),
                   tooltip: 'Edit',
-                  onPressed: extOnEdit ?? widget.onEdit,
+                  onPressed: () async {
+                    // Check if any field is restricted - if so, verify password first
+                    final hasRestricted = widget.fields.any((f) => f.isSensitive);
+                    if (hasRestricted) {
+                      final verified = await _verifyPasswordForRestrictedFields();
+                      if (!verified) return;
+                    }
+                    if (!mounted) return;
+                    if (extOnEdit != null) {
+                      extOnEdit();
+                    } else {
+                      widget.onEdit();
+                    }
+                  },
                   visualDensity: VisualDensity.compact,
                 ),
               if (widget.actionsConfig.showDelete)
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   tooltip: 'Delete',
-                  onPressed: extOnDelete ?? widget.onDelete,
+                  onPressed: () async {
+                    // Check if any field is restricted - if so, verify password first
+                    final hasRestricted = widget.fields.any((f) => f.isSensitive);
+                    if (hasRestricted) {
+                      final verified = await _verifyPasswordForRestrictedFields();
+                      if (!verified) return;
+                    }
+                    if (!mounted) return;
+                    if (extOnDelete != null) {
+                      extOnDelete();
+                    } else {
+                      widget.onDelete();
+                    }
+                  },
                   visualDensity: VisualDensity.compact,
                 ),
               // History button

@@ -2,11 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/log_section_config.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+
+// Re-export field history types for backward compatibility
+export 'package:solosoul_flutter/core/services/field_history_service.dart'
+    show fieldHistoriesProvider, FieldHistoriesNotifier;
+export 'package:solosoul_flutter/core/models/field_history_models.dart'
+    show FieldHistory, FormHistories;
 
 /// Debounce duration for profile saves (500ms)
 const _kSaveDebounceDuration = Duration(milliseconds: 500);
@@ -95,7 +102,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         // Initialize lastSavedJson for change detection
         _lastSavedJson = jsonEncode(profile.toJson());
         // Load field histories after profile loads
-        _ref.read(fieldHistoriesProvider.notifier).loadHistories();
+        _ref.read(fieldHistoriesProvider.notifier).loadHistories(accountId);
       } else {
       }
     } finally {
@@ -2157,75 +2164,3 @@ final professionalProvider = Provider<ProfessionalData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   return profile?.professional;
 });
-
-/// Provider for field histories (loaded on demand)
-final fieldHistoriesProvider = StateNotifierProvider<FieldHistoriesNotifier, ProfileFieldHistories>((ref) {
-  return FieldHistoriesNotifier(ref);
-});
-
-/// Notifier for managing field histories
-class FieldHistoriesNotifier extends StateNotifier<ProfileFieldHistories> {
-  final Ref _ref;
-
-  FieldHistoriesNotifier(this._ref) : super(ProfileFieldHistories());
-
-  /// Load histories for current account
-  Future<void> loadHistories() async {
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (accountId == null) return;
-
-    final storage = ProfileStorageService.instance;
-    final loaded = await storage.loadFieldHistories(accountId);
-
-    // Only update state if we got actual data (not empty).
-    // This prevents vault lock/unlock cycles from wiping in-memory histories.
-    if (loaded.histories.isNotEmpty) {
-      state = loaded;
-    }
-  }
-
-  /// Record a field change (called when a field is updated)
-  Future<void> recordFieldChange({
-    required String itemId,
-    required String fieldId,
-    required String oldValue,
-  }) async {
-    if (oldValue.isEmpty) return; // Don't record empty to non-empty as a "change"
-
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (accountId == null) return;
-
-    final storage = ProfileStorageService.instance;
-    state = await storage.addFieldHistory(
-      accountId: accountId,
-      itemId: itemId,
-      fieldId: fieldId,
-      values: {fieldId: oldValue},
-      existingHistories: state,
-    );
-  }
-
-  /// Record a snapshot of all fields for an entry when any field changes
-  Future<void> recordEntrySnapshot({
-    required String itemId,
-    required String fieldIdPrefix,
-    required Map<String, String> allFieldValues,
-  }) async {
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (accountId == null) return;
-
-    final storage = ProfileStorageService.instance;
-    state = await storage.addFieldHistory(
-      accountId: accountId,
-      itemId: itemId,
-      fieldId: fieldIdPrefix,
-      values: allFieldValues,
-      existingHistories: state,
-    );
-  }
-
-  /// Get history for a specific field
-  FieldHistory? getHistory(String itemId, String fieldId) {
-    return state.getHistory(itemId, fieldId);
-  }
-}

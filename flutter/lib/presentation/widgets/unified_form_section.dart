@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
@@ -8,6 +10,25 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
+
+/// Configuration for recording field history on saves.
+class HistoryRecordingConfig<T> {
+  final String Function(T item) itemIdExtractor;
+  final String fieldIdPrefix;
+
+  const HistoryRecordingConfig({
+    required this.itemIdExtractor,
+    required this.fieldIdPrefix,
+  });
+}
+
+/// A save callback that includes old values for history recording.
+typedef HistoryAwareSave<T> = Future<void> Function(
+  T? newItem,
+  Map<String, String> values,
+  T? editingItem, [
+  Map<String, String>? oldValues,
+]);
 
 /// Field definition for a single form field
 class FormFieldDef {
@@ -63,9 +84,13 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   )?
   customFormBuilder;
 
-  /// If false, hides the internal copy/edit/delete action buttons on _FormSectionItem.
-  /// Set to false when displayItemBuilder (EntryItemWidget) provides its own actions.
-  final bool showInternalActions;
+  /// Optional configuration for recording field history on saves.
+  final HistoryRecordingConfig<T>? historyConfig;
+
+  /// Optional history-aware save callback. If provided, it replaces onSave for
+  /// history recording purposes. The callback receives oldValues as the 4th
+  /// parameter for edit mode.
+  final HistoryAwareSave<T>? historyAwareOnSave;
 
   const UnifiedFormSection({
     super.key,
@@ -82,7 +107,8 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     this.itemFactory,
     this.itemToMap,
     this.customFormBuilder,
-    this.showInternalActions = true,
+    this.historyConfig,
+    this.historyAwareOnSave,
   });
 
   @override
@@ -156,7 +182,13 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
   }
 
   void _cancelEdit() {
-    setState(() => _mode = 'idle');
+    setState(() {
+      _mode = 'idle';
+      // Remove draft item if canceling from add mode
+      if (_editingIndex == -1 && _items.isNotEmpty) {
+        _items.removeAt(0);
+      }
+    });
   }
 
   void _clearControllers() {
@@ -203,7 +235,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     return widget.title;
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     final values = <String, String>{};
     for (final field in widget.fieldDefs) {
       values[field.fieldId] = _controllers[field.fieldId]?.text ?? '';
@@ -212,6 +244,12 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     final wasAdding = _mode == 'adding';
     final editingItem = wasAdding ? null : _items[_editingIndex];
 
+    // Capture old values for history recording (only in edit mode)
+    Map<String, String>? oldValues;
+    if (!wasAdding && editingItem != null && widget.historyConfig != null && widget.itemToMap != null) {
+      oldValues = widget.itemToMap!(editingItem);
+    }
+
     // Capture the newly created item (with correct ID) for "adding" mode
     T? createdItem;
     setState(() {
@@ -219,7 +257,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
         // Create new item via itemFactory
         if (widget.itemFactory != null) {
           createdItem = widget.itemFactory!(values);
-          _items.add(createdItem!);
+          // Insert at position 0 instead of adding at end
+          _items.insert(0, createdItem!);
         }
       } else {
         // For editing, create updated item
@@ -233,11 +272,21 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       _mode = 'idle';
     });
 
-    // Pass the created item for adds so the page handler uses the same object (same ID)
-    widget.onSave(createdItem, values, editingItem);
+    // Always persist via onSave (handles notifications and storage)
+    await widget.onSave(createdItem, values, editingItem);
+
+    // Record history if configured (only for edits, adds have no oldValues)
+    if (widget.historyAwareOnSave != null && widget.historyConfig != null && !wasAdding) {
+      await widget.historyAwareOnSave!(
+        createdItem,
+        values,
+        editingItem,
+        oldValues,
+      );
+    }
   }
 
-  Widget _buildForm(ThemeData theme) {
+  Widget _buildForm(ThemeData theme, {bool autofocus = false}) {
     if (widget.customFormBuilder != null) {
       return widget.customFormBuilder!(
         context,
@@ -262,12 +311,15 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
           ),
         ),
         const SizedBox(height: 12),
-        ...widget.fieldDefs.map((field) {
+        ...widget.fieldDefs.asMap().entries.map((e) {
+          final fieldIndex = e.key;
+          final field = e.value;
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: TextField(
               controller: _controllers[field.fieldId],
               maxLength: kMaxFieldLength,
+              autofocus: fieldIndex == 0 && autofocus,
               decoration: InputDecoration(
                 labelText: field.label,
                 hintText: field.hintText,
@@ -331,6 +383,57 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
   @override
   Widget build(BuildContext context) {
     final isEditing = _mode == 'adding' || _mode == 'editing';
+    final theme = Theme.of(context);
+
+    // When adding mode, insert draft item at position 0 and show form inline
+    final displayItems = <Widget>[];
+
+    if (isEditing) {
+      // Semi-transparent overlay over existing items
+      displayItems.add(
+        IgnorePointer(
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.05),
+          ),
+        ),
+      );
+    }
+
+    // Add form at top when editing (inline, not in footer)
+    if (isEditing) {
+      displayItems.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildForm(theme, autofocus: true),
+        ),
+      );
+    }
+
+    // Add existing items
+    if (_items.isEmpty && !isEditing) {
+      displayItems.add(_buildEmpty(theme));
+    } else if (_items.isNotEmpty) {
+      for (var i = 0; i < _items.length; i++) {
+        final item = _items[i];
+        displayItems.add(
+          GestureDetector(
+            onLongPress: () => _showItemActions(context, item, i),
+            child: _FormSectionItem(
+              item: item,
+              displayItemBuilder: widget.displayItemBuilder,
+              onEdit: () => _startEditing(i),
+              onDelete: () => _deleteEntry(i),
+              onCopy: widget.onCopy != null
+                  ? (fieldId, value) => widget.onCopy!(item, fieldId, value)
+                  : null,
+              onCopyAllPressed: widget.onCopyAll != null
+                  ? () => _handleCopyAllWithVerification(context, item)
+                  : null,
+            ),
+          ),
+        );
+      }
+    }
 
     return CollapsibleSectionCard(
       title: widget.title,
@@ -338,29 +441,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       maxVisibleItems: widget.maxVisibleItems,
       actionIcon: Icons.add,
       onAction: _startAdding,
-      footer: isEditing ? _buildForm(Theme.of(context)) : null,
-      children: _items.isEmpty
-          ? [_buildEmpty(Theme.of(context))]
-          : _items.asMap().entries.map((e) {
-              final i = e.key;
-              final item = e.value;
-              return GestureDetector(
-                onLongPress: () => _showItemActions(context, item, i),
-                child: _FormSectionItem(
-                  item: item,
-                  displayItemBuilder: widget.displayItemBuilder,
-                  onEdit: () => _startEditing(i),
-                  onDelete: () => _deleteEntry(i),
-                  onCopy: widget.onCopy != null
-                      ? (fieldId, value) => widget.onCopy!(item, fieldId, value)
-                      : null,
-                  onCopyAllPressed: widget.onCopyAll != null
-                      ? () => _handleCopyAllWithVerification(context, item)
-                      : null,
-                  showInternalActions: widget.showInternalActions,
-                ),
-              );
-            }).toList(),
+      children: displayItems,
     );
   }
 
@@ -527,10 +608,6 @@ class _FormSectionItem<T> extends StatelessWidget {
   /// Called when copy-all button is pressed. Parent handles verification + formatting.
   final VoidCallback? onCopyAllPressed;
 
-  /// If true, shows internal copy/edit/delete buttons. Set to false when
-  /// displayItemBuilder (EntryItemWidget) already provides its own actions.
-  final bool showInternalActions;
-
   const _FormSectionItem({
     required this.item,
     required this.displayItemBuilder,
@@ -538,42 +615,20 @@ class _FormSectionItem<T> extends StatelessWidget {
     required this.onDelete,
     this.onCopy,
     this.onCopyAllPressed,
-    this.showInternalActions = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return EntryActionsContext(
-      onEdit: showInternalActions ? null : onEdit,
-      onDelete: showInternalActions ? null : onDelete,
-      onCopy: showInternalActions ? null : (onCopyAllPressed != null ? (text) async => onCopyAllPressed!() : null),
+      onEdit: onEdit,
+      onDelete: onDelete,
+      onCopy: onCopyAllPressed != null ? (text) async => onCopyAllPressed!() : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: displayItemBuilder(item)),
-            if (showInternalActions) ...[
-              if (onCopyAllPressed != null)
-                IconButton(
-                  icon: const Icon(Icons.copy_all, size: 20),
-                  tooltip: 'Copy All',
-                  onPressed: onCopyAllPressed,
-                  visualDensity: VisualDensity.compact,
-                ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: onEdit,
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: onDelete,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
           ],
         ),
       ),

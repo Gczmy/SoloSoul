@@ -8,6 +8,10 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
+    show authNotifierProvider;
+import 'package:solosoul_flutter/core/services/field_history_service.dart'
+    show fieldHistoriesProvider;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -15,9 +19,11 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, EntryActionsContext;
+    show UnifiedFormSection, FormFieldDef, EntryActionsContext,
+        HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
+import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
@@ -113,6 +119,7 @@ class _PassportSection extends ConsumerStatefulWidget {
 
 class _PassportSectionState extends ConsumerState<_PassportSection> {
   late List<PassportData> _passports;
+  bool _historyExpanded = false;
 
   @override
   void initState() {
@@ -283,6 +290,21 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
+      historyConfig: HistoryRecordingConfig<PassportData>(
+        itemIdExtractor: (p) => p.id,
+        fieldIdPrefix: 'passport',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'passport',
+              allFieldValues: values,
+            );
+      },
       displayItemBuilder: (passport) {
         final fields = <LabelValueField>[];
         if (passport.country != null && passport.country!.isNotEmpty) {
@@ -320,45 +342,67 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
             LabelValueField(label: 'Expiry Date', value: passport.expiryDate!),
           );
         }
-        return Builder(
-          builder: (ctx) {
-            final actionsContext = EntryActionsContext.of(ctx);
-            final onEdit = actionsContext?.onEdit ?? () {};
-            final onDelete = actionsContext?.onDelete ?? () {};
-            final onCopy = actionsContext?.onCopy ?? (text) async {};
-            return UniversalEntryCard(
-              title: Text(
-                passport.country ?? 'Passport',
-                style: Theme.of(
-                  ctx,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-              ),
-              leading: const Icon(Icons.book, size: 20),
-              actions: EntryActionBuilder.buildActions(
-                context: ctx,
-                ref: ref,
-                onCopy: () => onCopy('${passport.entryType}\n${passport.toFormattedString()}'),
-                onEdit: onEdit,
-                onDelete: onDelete,
-                config: EntryActionsConfig(
-                  showCopy: true,
-                  showEdit: true,
-                  showDelete: true,
-                  showHistory: true,
+        final history = ref
+            .watch(fieldHistoriesProvider.notifier)
+            .getHistory(passport.id, 'passport');
+        final hasHistory = history != null;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Builder(
+              builder: (ctx) {
+                final actionsContext = EntryActionsContext.of(ctx);
+                final onEdit = actionsContext?.onEdit ?? () {};
+                final onDelete = actionsContext?.onDelete ?? () {};
+                final onCopy = actionsContext?.onCopy ?? (text) async {};
+                return UniversalEntryCard(
+                  title: Text(
+                    passport.country ?? 'Passport',
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  leading: const Icon(Icons.book, size: 20),
+                  actions: EntryActionBuilder.buildActions(
+                    context: ctx,
+                    ref: ref,
+                    onCopy: () => onCopy('${passport.entryType}\n${passport.toFormattedString()}'),
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    config: const EntryActionsConfig(
+                      showCopy: true,
+                      showEdit: true,
+                      showDelete: true,
+                      showHistory: true,
+                    ),
+                    hasHistory: hasHistory,
+                    historyExpanded: _historyExpanded,
+                    onHistoryToggle: () =>
+                        setState(() => _historyExpanded = !_historyExpanded),
+                    isSensitive: fields.any((f) => f.isSensitive),
+                  ),
+                  children: fields.isNotEmpty
+                      ? [
+                          const SizedBox(height: 4),
+                          ResponsiveLabelField(
+                            fields: fields,
+                            labelValueSpacing: 4,
+                            layoutAxis: Axis.vertical,
+                          ),
+                        ]
+                      : [],
+                );
+              },
+            ),
+            if (hasHistory && _historyExpanded)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, bottom: 8),
+                child: FieldHistoryView(
+                  fieldName: 'passport',
+                  history: history,
                 ),
               ),
-              children: fields.isNotEmpty
-                  ? [
-                      const SizedBox(height: 4),
-                      ResponsiveLabelField(
-                        fields: fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-                    ]
-                  : [],
-            );
-          },
+          ],
         );
       },
       onDelete: _onPassportDelete,
@@ -376,7 +420,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
           type: SnackBarType.success,
         );
       },
-      showInternalActions: false,
     );
   }
 }
@@ -390,6 +433,7 @@ class _VisaSection extends ConsumerStatefulWidget {
 
 class _VisaSectionState extends ConsumerState<_VisaSection> {
   late List<VisaData> _visas;
+  bool _historyExpanded = false;
 
   @override
   void initState() {
@@ -566,6 +610,21 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
+      historyConfig: HistoryRecordingConfig<VisaData>(
+        itemIdExtractor: (v) => v.id,
+        fieldIdPrefix: 'visa',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'visa',
+              allFieldValues: values,
+            );
+      },
       displayItemBuilder: (visa) {
         final fields = <LabelValueField>[];
         if (visa.country != null && visa.country!.isNotEmpty) {
@@ -601,45 +660,67 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
             LabelValueField(label: 'Expiry Date', value: visa.expiryDate!),
           );
         }
-        return Builder(
-          builder: (ctx) {
-            final actionsContext = EntryActionsContext.of(ctx);
-            final onEdit = actionsContext?.onEdit ?? () {};
-            final onDelete = actionsContext?.onDelete ?? () {};
-            final onCopy = actionsContext?.onCopy ?? (text) async {};
-            return UniversalEntryCard(
-              title: Text(
-                visa.country ?? 'Visa',
-                style: Theme.of(
-                  ctx,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-              ),
-              leading: const Icon(Icons.article, size: 20),
-              actions: EntryActionBuilder.buildActions(
-                context: ctx,
-                ref: ref,
-                onCopy: () => onCopy('${visa.entryType}\n${visa.toFormattedString()}'),
-                onEdit: onEdit,
-                onDelete: onDelete,
-                config: EntryActionsConfig(
-                  showCopy: true,
-                  showEdit: true,
-                  showDelete: true,
-                  showHistory: true,
+        final history = ref
+            .watch(fieldHistoriesProvider.notifier)
+            .getHistory(visa.id, 'visa');
+        final hasHistory = history != null;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Builder(
+              builder: (ctx) {
+                final actionsContext = EntryActionsContext.of(ctx);
+                final onEdit = actionsContext?.onEdit ?? () {};
+                final onDelete = actionsContext?.onDelete ?? () {};
+                final onCopy = actionsContext?.onCopy ?? (text) async {};
+                return UniversalEntryCard(
+                  title: Text(
+                    visa.country ?? 'Visa',
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  leading: const Icon(Icons.article, size: 20),
+                  actions: EntryActionBuilder.buildActions(
+                    context: ctx,
+                    ref: ref,
+                    onCopy: () => onCopy('${visa.entryType}\n${visa.toFormattedString()}'),
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    config: const EntryActionsConfig(
+                      showCopy: true,
+                      showEdit: true,
+                      showDelete: true,
+                      showHistory: true,
+                    ),
+                    hasHistory: hasHistory,
+                    historyExpanded: _historyExpanded,
+                    onHistoryToggle: () =>
+                        setState(() => _historyExpanded = !_historyExpanded),
+                    isSensitive: fields.any((f) => f.isSensitive),
+                  ),
+                  children: fields.isNotEmpty
+                      ? [
+                          const SizedBox(height: 4),
+                          ResponsiveLabelField(
+                            fields: fields,
+                            labelValueSpacing: 4,
+                            layoutAxis: Axis.vertical,
+                          ),
+                        ]
+                      : [],
+                );
+              },
+            ),
+            if (hasHistory && _historyExpanded)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, bottom: 8),
+                child: FieldHistoryView(
+                  fieldName: 'visa',
+                  history: history,
                 ),
               ),
-              children: fields.isNotEmpty
-                  ? [
-                      const SizedBox(height: 4),
-                      ResponsiveLabelField(
-                        fields: fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-                    ]
-                  : [],
-            );
-          },
+          ],
         );
       },
       onDelete: _onVisaDelete,
@@ -658,7 +739,6 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
           type: SnackBarType.success,
         );
       },
-      showInternalActions: false,
     );
   }
 }
@@ -673,6 +753,7 @@ class _TravelHistorySection extends ConsumerStatefulWidget {
 
 class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
   late List<TravelHistoryData> _history;
+  bool _historyExpanded = false;
 
   @override
   void initState() {
@@ -857,6 +938,21 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
             ? null
             : values['travel.travelType'],
       ),
+      historyConfig: HistoryRecordingConfig<TravelHistoryData>(
+        itemIdExtractor: (t) => t.id,
+        fieldIdPrefix: 'travel',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'travel',
+              allFieldValues: values,
+            );
+      },
       fieldDefs: const [
         FormFieldDef(
           fieldId: 'travel.destination',
@@ -982,10 +1078,10 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
-                        controller: controllers['travel.arrivalTime'],
+                        controller: controllers['travel.arrivalCity'],
                         maxLength: kMaxFieldLength,
                         decoration: const InputDecoration(
-                          labelText: 'Arrival Time',
+                          labelText: 'Arrival City',
                           border: OutlineInputBorder(),
                           counterText: '',
                         ),
@@ -1297,53 +1393,75 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
         if (item.airline != null && item.airline!.isNotEmpty) {
           fields.add(LabelValueField(label: 'Airline', value: item.airline!));
         }
-        return Builder(
-          builder: (ctx) {
-            final actionsContext = EntryActionsContext.of(ctx);
-            final onEdit = actionsContext?.onEdit ?? () {};
-            final onDelete = actionsContext?.onDelete ?? () {};
-            final onCopy = actionsContext?.onCopy ?? (text) async {};
-            return UniversalEntryCard(
-              title: Text(
-                item.destination,
-                style: Theme.of(
-                  ctx,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-              ),
-              subtitle: (item.flightNumber ?? item.date ?? '').isNotEmpty
-                  ? Text(
-                      item.flightNumber ?? item.date ?? '',
-                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(ctx).colorScheme.onSurfaceVariant,
-                      ),
-                    )
-                  : null,
-              leading: const Icon(Icons.place, size: 20),
-              actions: EntryActionBuilder.buildActions(
-                context: ctx,
-                ref: ref,
-                onCopy: () => onCopy('${item.entryType}\n${item.toFormattedString()}'),
-                onEdit: onEdit,
-                onDelete: onDelete,
-                config: EntryActionsConfig(
-                  showCopy: true,
-                  showEdit: true,
-                  showDelete: true,
-                  showHistory: true,
+        final history = ref
+            .watch(fieldHistoriesProvider.notifier)
+            .getHistory(item.id, 'travel');
+        final hasHistory = history != null;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Builder(
+              builder: (ctx) {
+                final actionsContext = EntryActionsContext.of(ctx);
+                final onEdit = actionsContext?.onEdit ?? () {};
+                final onDelete = actionsContext?.onDelete ?? () {};
+                final onCopy = actionsContext?.onCopy ?? (text) async {};
+                return UniversalEntryCard(
+                  title: Text(
+                    item.destination,
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: (item.flightNumber ?? item.date ?? '').isNotEmpty
+                      ? Text(
+                          item.flightNumber ?? item.date ?? '',
+                          style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                          ),
+                        )
+                      : null,
+                  leading: const Icon(Icons.place, size: 20),
+                  actions: EntryActionBuilder.buildActions(
+                    context: ctx,
+                    ref: ref,
+                    onCopy: () => onCopy('${item.entryType}\n${item.toFormattedString()}'),
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    config: const EntryActionsConfig(
+                      showCopy: true,
+                      showEdit: true,
+                      showDelete: true,
+                      showHistory: true,
+                    ),
+                    hasHistory: hasHistory,
+                    historyExpanded: _historyExpanded,
+                    onHistoryToggle: () =>
+                        setState(() => _historyExpanded = !_historyExpanded),
+                    isSensitive: fields.any((f) => f.isSensitive),
+                  ),
+                  children: fields.isNotEmpty
+                      ? [
+                          const SizedBox(height: 4),
+                          ResponsiveLabelField(
+                            fields: fields,
+                            labelValueSpacing: 4,
+                            layoutAxis: Axis.vertical,
+                          ),
+                        ]
+                      : [],
+                );
+              },
+            ),
+            if (hasHistory && _historyExpanded)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, bottom: 8),
+                child: FieldHistoryView(
+                  fieldName: 'travel',
+                  history: history,
                 ),
               ),
-              children: fields.isNotEmpty
-                  ? [
-                      const SizedBox(height: 4),
-                      ResponsiveLabelField(
-                        fields: fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-                    ]
-                  : [],
-            );
-          },
+          ],
         );
       },
       onDelete: _onHistoryDelete,
@@ -1366,7 +1484,6 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
           type: SnackBarType.success,
         );
       },
-      showInternalActions: false,
     );
   }
 

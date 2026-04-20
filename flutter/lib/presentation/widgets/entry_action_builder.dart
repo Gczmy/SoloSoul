@@ -8,7 +8,7 @@ import 'package:solosoul_flutter/presentation/widgets/password_verification_dial
 
 /// Generates standard action buttons based on context and permissions.
 class EntryActionBuilder {
-  /// Build all standard action buttons.
+  /// Build all standard action buttons with password verification for sensitive fields.
   static List<Widget> buildActions({
     required BuildContext context,
     required WidgetRef ref,
@@ -20,7 +20,6 @@ class EntryActionBuilder {
     VoidCallback? onHistoryToggle,
     bool hasHistory = false,
     bool isSensitive = false,
-    Future<bool> Function()? onVerifyPassword,
   }) {
     final actions = <Widget>[];
 
@@ -29,11 +28,10 @@ class EntryActionBuilder {
         buildButton(
           icon: Icons.copy_all,
           tooltip: 'Copy All',
-          onPressed: isSensitive && onVerifyPassword != null
-              ? () => _handleCopyWithVerification(
+          onPressed: isSensitive
+              ? () => _handleWithVerification(
                   context: context,
                   ref: ref,
-                  onVerify: onVerifyPassword,
                   onSuccess: onCopy,
                 )
               : onCopy,
@@ -46,7 +44,13 @@ class EntryActionBuilder {
         buildButton(
           icon: Icons.edit_outlined,
           tooltip: 'Edit',
-          onPressed: onEdit,
+          onPressed: isSensitive
+              ? () => _handleWithVerification(
+                  context: context,
+                  ref: ref,
+                  onSuccess: onEdit,
+                )
+              : onEdit,
         ),
       );
     }
@@ -56,7 +60,13 @@ class EntryActionBuilder {
         buildButton(
           icon: Icons.delete_outline,
           tooltip: 'Delete',
-          onPressed: onDelete,
+          onPressed: isSensitive
+              ? () => _handleWithVerification(
+                  context: context,
+                  ref: ref,
+                  onSuccess: onDelete,
+                )
+              : onDelete,
         ),
       );
     }
@@ -88,11 +98,10 @@ class EntryActionBuilder {
     );
   }
 
-  /// Handle copy with password verification for sensitive fields.
-  static Future<void> _handleCopyWithVerification({
+  /// Handle action with password verification for sensitive fields.
+  static Future<void> _handleWithVerification({
     required BuildContext context,
     required WidgetRef ref,
-    required Future<bool> Function() onVerify,
     required VoidCallback onSuccess,
   }) async {
     // Check if user was verified within the last 1 minute (password cache)

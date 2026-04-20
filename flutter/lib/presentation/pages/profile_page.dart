@@ -11,22 +11,22 @@ import 'package:solosoul_flutter/presentation/widgets/password_verification_dial
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
-import 'package:solosoul_flutter/presentation/widgets/section_card.dart'
-    show CollapsibleSectionCard;
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show showDeleteConfirmationDialog;
+    show UnifiedFormSection, FormFieldDef, EntryActionsContext, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
-import 'package:solosoul_flutter/core/services/log_section_config.dart';
+import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
+    show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show fieldHistoriesProvider;
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -70,29 +70,6 @@ Future<bool> verifyPasswordForRestrictedField({
   // Mark as verified in shared sensitive page access
   ref.read(sensitivePageAccessProvider.notifier).markVerified();
   return true;
-}
-
-/// Helper class to track original indices for soft delete
-/// When items are filtered (e.g., only showing active items), we need to
-/// remember their original indices in the full list to call softDelete correctly
-class _EntryWithIndex<T> {
-  final T entry;
-  final int originalIndex;
-
-  _EntryWithIndex({required this.entry, required this.originalIndex});
-}
-
-/// Standalone helper to persist an operation to account metadata
-Future<void> _persistAccountOperation(
-  WidgetRef ref,
-  String operationDesc,
-) async {
-  final accountId = ref.read(authNotifierProvider.notifier).selectedAccount?.id;
-  if (accountId != null) {
-    await ref
-        .read(authNotifierProvider.notifier)
-        .updateOperation(operationDesc);
-  }
 }
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -432,6 +409,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 }
 
+// ============ Contact Section (using UnifiedFormSection) ============
+
 class _ContactSection extends ConsumerStatefulWidget {
   final IdentityData? identity;
   final ContactData? contact;
@@ -443,211 +422,123 @@ class _ContactSection extends ConsumerStatefulWidget {
 }
 
 class _ContactSectionState extends ConsumerState<_ContactSection> {
-  // 'idle' | 'adding' | 'editing'
-  String _mode = 'idle';
-  int _editingIndex = -1;
-  late List<_EntryWithIndex<ContactEntry>> _entries;
-
-  Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref
-        .read(authNotifierProvider.notifier)
-        .selectedAccount
-        ?.id;
-    if (accountId != null) {
-      await ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(operationDesc);
-    }
-  }
-
-  // Form controllers for inline editing
-  final _labelController = TextEditingController();
-  final _valueController = TextEditingController();
-  String _selectedType = 'email';
-  bool _isSaving = false;
-
-  static const _types = ['email', 'phone'];
+  late List<ContactEntry> _contacts;
+  bool _historyExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    _entries = [
-      ...?(widget.contact?.entries.asMap().entries.map(
-        (mapEntry) => _EntryWithIndex(
-          entry: mapEntry.value.copyWith(),
-          originalIndex: mapEntry.key,
+    _loadData();
+  }
+
+  void _loadData() {
+    _contacts = [
+      ...?(widget.contact?.activeEntries.map(
+        (e) => ContactEntry(
+          id: e.id,
+          label: e.label,
+          type: e.type,
+          value: e.value,
+          updatedAt: e.updatedAt,
+          isDeleted: e.isDeleted,
+          deletedAt: e.deletedAt,
         ),
       )),
     ];
   }
 
-  @override
-  void didUpdateWidget(_ContactSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Reload data when parent passes updated contact
-    // Filter to only active (non-deleted) entries while preserving originalIndex
-    if (widget.contact != oldWidget.contact) {
-      _entries = [
-        for (var i = 0; i < (widget.contact?.entries.length ?? 0); i++)
-          if (widget.contact != null && !widget.contact!.entries[i].isDeleted)
-            _EntryWithIndex(
-              entry: widget.contact!.entries[i].copyWith(),
-              originalIndex: i,
-            ),
-      ];
-    }
-  }
-
-  @override
-  void dispose() {
-    _labelController.dispose();
-    _valueController.dispose();
-    super.dispose();
-  }
-
-  void _startAdding() {
-    setState(() {
-      _mode = 'adding';
-      _labelController.clear();
-      _valueController.clear();
-      _selectedType = 'email';
-    });
-  }
-
-  void _startEditing(int index) async {
-    // Check if the contact being edited contains restricted fields
-    final entry = _entries[index].entry;
-    final fieldId = entry.type == 'email' ? 'contact.email' : 'contact.phone';
-
-    // Verify password for restricted fields
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: fieldId,
-    );
-    if (!verified) return;
-
-    if (!mounted) return;
-    setState(() {
-      _mode = 'editing';
-      _editingIndex = index;
-      _labelController.text = entry.label;
-      // Show empty if stored as "(no value)"
-      _valueController.text = entry.value == '(no value)' ? '' : entry.value;
-      _selectedType = entry.type;
-    });
-  }
-
-  void _cancelEdit() {
-    setState(() {
-      _mode = 'idle';
-      _editingIndex = -1;
-    });
-  }
-
-  void _deleteEntry(int index) async {
-    final deleted = _entries[index];
-    final fieldId = deleted.entry.type == 'email'
-        ? 'contact.email'
-        : 'contact.phone';
-
-    // Verify password for restricted fields BEFORE showing delete confirmation
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: fieldId,
-    );
-    if (!verified) return;
-
-    if (!mounted) return;
-
-    final confirm = await showDeleteConfirmationDialog(
-      context: context,
-      itemName: deleted.entry.label.isNotEmpty
-          ? '${deleted.entry.label} - ${deleted.entry.value}'
-          : deleted.entry.value,
-      itemType: 'Contact',
-    );
-    if (!confirm) return;
-
-    final itemName = deleted.entry.label.isNotEmpty
-        ? '${deleted.entry.label} - ${deleted.entry.value}'
-        : deleted.entry.value;
-
-    // Mark as soft deleted and show Undo snackbar
-    _softDeleteWithUndo(
-      section: 'profile',
-      itemType: 'contact',
-      index: deleted.originalIndex,
-      deletedItem: deleted.entry,
-      itemName: itemName,
+  ContactEntry _createContactFromValues(Map<String, String> values, {String? id}) {
+    return ContactEntry(
+      id: id ?? generateEntryId(),
+      label: values['contact.label']?.isEmpty == true ? '' : values['contact.label']!,
+      type: values['contact.type']?.isEmpty == true ? 'email' : values['contact.type']!,
+      value: values['contact.value']?.isEmpty == true ? '(no value)' : values['contact.value']!,
     );
   }
 
-  void _softDeleteWithUndo({
-    required String section,
-    required String itemType,
-    required int index,
-    required dynamic deletedItem,
-    required String itemName,
-  }) async {
-    _cancelEdit();
-
-    // Store values needed after await
-    final isMounted = mounted;
-    final originalIndex = index;
-    final deletedId = deletedItem.id as String;
-
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: section,
-          itemType: itemType,
-          index: index,
-          deletedItem: deletedItem,
-        );
-
-    if (!isMounted) return;
-
-    // Remove from local list (find by originalIndex) - create new list to ensure state change is detected
-    setState(() {
-      _entries = _entries
-          .where((e) => e.originalIndex != originalIndex)
-          .toList();
-    });
+  Future<void> _onContactDelete(ContactEntry contact) async {
+    final index = _contacts.indexOf(contact);
+    if (index == -1) return;
 
     final isPrivacyMode =
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    // Persist operation to account metadata
-    await _persistOperation('Deleted $itemName');
+    final deletedId = contact.id;
 
-    OperationNotification.show(
-      context,
-      message: OperationLogger.createNotification(
-        section: LogSectionConfig.getLogSection(section, itemType),
-        action: LogAction.delete,
-        itemName: itemName,
-        fieldName: itemName,
-        isPrivacyModeActive: isPrivacyMode,
-      ),
-      duration: const Duration(seconds: 5),
-      onUndo: () async {
-        await ref
-            .read(profileNotifierProvider.notifier)
-            .restore(section: section, itemType: itemType, id: deletedId);
-      },
-    );
+    setState(() {
+      _contacts = List.from(_contacts)..removeAt(index);
+    });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'profile',
+            itemType: 'contact',
+            index: index,
+            deletedItem: contact,
+          );
+    } catch (e) {
+      setState(() {
+        _contacts = List.from(_contacts)..insert(index, contact);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete contact',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.contactInformation,
+          action: LogAction.delete,
+          itemName: contact.label.isNotEmpty ? contact.label : contact.value,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(section: 'profile', itemType: 'contact', id: deletedId);
+        },
+      );
+    }
   }
 
-  Future<void> _saveContacts({
-    LogAction operationType = LogAction.update,
-    String? itemName,
-    ContactEntry? oldEntry,
-  }) async {
-    setState(() => _isSaving = true);
+  Future<void> _onContactSave(
+    ContactEntry? newItem,
+    Map<String, String> values,
+    ContactEntry? editingItem,
+  ) async {
+    final wasAdding = editingItem == null;
+    final ContactEntry contactToSave;
+    if (wasAdding) {
+      contactToSave = newItem!;
+    } else {
+      contactToSave = _createContactFromValues(values, id: editingItem!.id);
+    }
+    final itemName = contactToSave.label.isNotEmpty
+        ? contactToSave.label
+        : contactToSave.value;
 
+    // Update local state
+    if (wasAdding) {
+      _contacts = List.from(_contacts)..add(contactToSave);
+    } else {
+      final index = _contacts.indexOf(editingItem);
+      if (index != -1) {
+        _contacts = List.from(_contacts)..[index] = contactToSave;
+      }
+    }
+
+    // Persist via provider
     final newIdentity = IdentityData(
       fullName: widget.identity?.fullName,
       givenName: widget.identity?.givenName,
@@ -656,572 +547,257 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       gender: widget.identity?.gender,
       nationality: widget.identity?.nationality,
       idCards: widget.identity?.idCards,
-      contact: ContactData(entries: _entries.map((e) => e.entry).toList()),
+      contact: ContactData(entries: _contacts),
       addresses: widget.identity?.addresses,
     );
-
-    // Record field history snapshot for all changed fields
-    if (oldEntry != null) {
-      final newEntry = _entries
-          .firstWhere(
-            (e) => e.entry.id == oldEntry.id,
-            orElse: () => _entries.last,
-          )
-          .entry;
-      final fieldId = oldEntry.type == 'email'
-          ? 'contact.email'
-          : 'contact.phone';
-
-      // Check if any field changed
-      if (oldEntry.label != newEntry.label ||
-          oldEntry.type != newEntry.type ||
-          oldEntry.value != newEntry.value) {
-        await ref
-            .read(fieldHistoriesProvider.notifier)
-            .recordEntrySnapshot(
-              itemId: oldEntry.id,
-              fieldIdPrefix: fieldId,
-              allFieldValues: {
-                'label': oldEntry.label,
-                'type': oldEntry.type,
-                'value': oldEntry.value,
-              },
-            );
-      }
-    }
-
-    final success = await ref
-        .read(profileNotifierProvider.notifier)
-        .updateIdentity(newIdentity);
+    await ref.read(profileNotifierProvider.notifier).updateIdentity(newIdentity);
 
     if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        _cancelEdit();
-        // Show operation notification
-        final isPrivacyMode =
-            ref.read(sensitivitySettingsProvider).displayMode ==
-            SensitivityDisplayMode.hidePrivate;
-        final displayName =
-            itemName ??
-            (_entries.isNotEmpty ? _entries.last.entry.label : 'Contact');
-
-        // Persist operation to account metadata
-        await _persistOperation('Updated Contact');
-
-        OperationNotification.show(
-          context,
-          message: OperationLogger.createNotification(
-            section: LogSection.contactInformation,
-            action: operationType,
-            itemName: 'Contact',
-            fieldName: displayName,
-            isPrivacyModeActive: isPrivacyMode,
-          ),
-        );
-      } else {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to save',
-          type: SnackBarType.error,
-        );
-      }
-    }
-  }
-
-  void _submitForm() {
-    final label = _labelController.text.trim();
-    final value = _valueController.text.trim();
-
-    if (label.isEmpty && value.isEmpty) {
-      showOverlaySnackBar(
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
         context,
-        content: 'Please fill in at least label or value',
+        message: OperationLogger.createNotification(
+          section: LogSection.contactInformation,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: 'Contact',
+          fieldName: itemName,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
       );
-      return;
     }
-
-    final entryId = _mode == 'editing'
-        ? _entries[_editingIndex].entry.id
-        : generateEntryId();
-    final entry = ContactEntry(
-      id: entryId,
-      label: label,
-      type: _selectedType,
-      value: value.isEmpty ? '(no value)' : value,
-    );
-
-    // Capture operation type before state reset
-    final wasAdding = _mode == 'adding';
-    final originalIndex = wasAdding
-        ? -1
-        : _entries[_editingIndex].originalIndex;
-
-    // Capture old entry for history tracking (before state change)
-    final oldEntry = _mode == 'editing' ? _entries[_editingIndex].entry : null;
-
-    setState(() {
-      if (_mode == 'adding') {
-        _entries.add(
-          _EntryWithIndex(
-            entry: entry,
-            originalIndex: widget.contact?.entries.length ?? 0,
-          ),
-        );
-      } else if (_mode == 'editing') {
-        _entries[_editingIndex] = _EntryWithIndex(
-          entry: entry,
-          originalIndex: originalIndex,
-        );
-      }
-      // Sort: phone before email, then by label
-      _entries.sort((a, b) {
-        final typeOrder = {'phone': 0, 'email': 1}
-            .putIfAbsent(a.entry.type, () => 2)
-            .compareTo(
-              {'phone': 0, 'email': 1}.putIfAbsent(b.entry.type, () => 2),
-            );
-        if (typeOrder != 0) return typeOrder;
-        return a.entry.label.compareTo(b.entry.label);
-      });
-      _mode = 'idle';
-      _editingIndex = -1;
-    });
-
-    // Build a descriptive name that includes type and value for better notification
-    final contactDisplayName = entry.type.isNotEmpty && entry.value.isNotEmpty
-        ? '${entry.type} - ${entry.label.isNotEmpty ? entry.label : entry.value}'
-        : (entry.label.isNotEmpty ? entry.label : 'Contact');
-    _saveContacts(
-      operationType: wasAdding ? LogAction.create : LogAction.update,
-      itemName: contactDisplayName,
-      oldEntry: oldEntry,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Defensive filter: use only non-deleted entries for display
-    // This handles edge cases where didUpdateWidget might not have fired
-    final displayEntries = _entries.where((e) => !e.entry.isDeleted).toList();
-    final hasEntries = displayEntries.isNotEmpty;
-    final isEditing = _mode == 'adding' || _mode == 'editing';
-
-    return CollapsibleSectionCard(
+    return UnifiedFormSection<ContactEntry>(
       title: 'Contact Information',
       icon: Icons.contact_mail_outlined,
+      items: _contacts,
       maxVisibleItems: 3,
-      actionIcon: Icons.add,
-      onAction: _startAdding,
-      footer: isEditing ? _buildInlineForm(theme) : null,
-      children: hasEntries
-          ? _buildContactTiles(theme, displayEntries)
-          : [_buildEmptyState(theme)],
-    );
-  }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
+      itemFactory: _createContactFromValues,
+      fieldDefs: const [
+        FormFieldDef(
+          fieldId: 'contact.label',
+          label: 'Label',
+          hintText: 'e.g., Gmail, Work',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'contact.type',
+          label: 'Type',
+          sensitivity: SensitivityLevel.public,
+        ),
+        FormFieldDef(
+          fieldId: 'contact.value',
+          label: 'Value',
+          sensitivity: SensitivityLevel.restricted,
+        ),
+      ],
+      customFormBuilder: (context, theme, controllers, mode, onSubmit, onCancel) {
+        final selectedType = controllers['contact.type']?.text ?? 'email';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.contact_mail_outlined,
-              size: 40,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 8),
             Text(
-              'No contacts saved',
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+              mode == 'adding' ? 'Add Contact' : 'Edit Contact',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: _startAdding,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Contact'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Returns individual contact tiles for CollapsibleSectionCard
-  List<Widget> _buildContactTiles(
-    ThemeData theme,
-    List<_EntryWithIndex<ContactEntry>> displayEntries,
-  ) {
-    return [
-      for (var i = 0; i < displayEntries.length; i++)
-        Column(
-          children: [
-            _ContactEntryItem(
-              entry: displayEntries[i].entry,
-              onEdit: () => _startEditing(i),
-              onDelete: () => _deleteEntry(i),
-            ),
-            if (i < displayEntries.length - 1) const Divider(height: 1),
-          ],
-        ),
-    ];
-  }
-
-  Widget _buildInlineForm(ThemeData theme) {
-    final isAdding = _mode == 'adding';
-    final title = isAdding ? 'Add Contact' : 'Edit Contact';
-    final settings = ref.watch(sensitivitySettingsProvider);
-    final valueFieldId = _selectedType == 'email'
-        ? 'contact.email'
-        : 'contact.phone';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _labelController,
-                maxLength: kMaxFieldLength,
-                decoration: const InputDecoration(
-                  labelText: 'Label',
-                  hintText: 'e.g., Gmail, Work',
-                  counterText: '',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: controllers['contact.label'],
+                    maxLength: kMaxFieldLength,
+                    decoration: const InputDecoration(
+                      labelText: 'Label',
+                      hintText: 'e.g., Gmail, Work',
+                      counterText: '',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _selectedType,
-                decoration: const InputDecoration(
-                  labelText: 'Type',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: selectedType.isEmpty ? 'email' : selectedType,
+                    decoration: const InputDecoration(
+                      labelText: 'Type',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'email', child: Text('email')),
+                      DropdownMenuItem(value: 'phone', child: Text('phone')),
+                    ],
+                    onChanged: (v) {
+                      controllers['contact.type']?.text = v ?? 'email';
+                    },
                   ),
-                ),
-                items: _types
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedType = v!),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _valueController,
-          maxLength: kMaxFieldLength,
-          decoration: InputDecoration(
-            labelText: _selectedType == 'email' ? 'Email' : 'Phone',
-            counterText: '',
-            border: const OutlineInputBorder(),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SensitivityTag(
-                level:
-                    settings.getFieldLevel(valueFieldId) ??
-                    SensitivityLevel.public,
-              ),
-            ),
-          ),
-          keyboardType: _selectedType == 'email'
-              ? TextInputType.emailAddress
-              : TextInputType.phone,
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: _isSaving ? null : _cancelEdit,
-              child: const Text('Cancel'),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _isSaving ? null : _submitForm,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(isAdding ? 'Add' : 'Save'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// Wrapper widget for ContactEntry using UniversalEntryCard + EntryActionBuilder
-class _ContactEntryItem extends ConsumerStatefulWidget {
-  final ContactEntry entry;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _ContactEntryItem({
-    required this.entry,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_ContactEntryItem> createState() => _ContactEntryItemState();
-}
-
-class _ContactEntryItemState extends ConsumerState<_ContactEntryItem> {
-  bool _historyExpanded = false;
-
-  String _formatAllFields() => '${widget.entry.entryType}\n${widget.entry.toFormattedString()}';
-
-  Future<void> _handleCopy() async {
-    Clipboard.setData(ClipboardData(text: _formatAllFields()));
-    showOverlaySnackBar(
-      context,
-      content: 'Copied to clipboard',
-      type: SnackBarType.success,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final fieldId = widget.entry.type == 'email'
-        ? 'contact.email'
-        : 'contact.phone';
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.entry.id, fieldId);
-    final hasHistory = history != null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          leading: Icon(
-            widget.entry.type == 'email'
-                ? Icons.email_outlined
-                : Icons.phone_outlined,
-            size: 20,
-          ),
-          title: SelectableText(
-            widget.entry.label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          subtitle: SelectableText(
-            widget.entry.type,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          children: [
-            ResponsiveLabelField(
-              fields: [
-                LabelValueField(
-                  label: 'Value',
-                  value: widget.entry.value,
-                  fieldId: fieldId,
-                  isSensitive: true,
                 ),
               ],
-              labelValueSpacing: 4,
-              layoutAxis: Axis.vertical,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controllers['contact.value'],
+              maxLength: kMaxFieldLength,
+              decoration: InputDecoration(
+                labelText: selectedType == 'email' ? 'Email' : 'Phone',
+                counterText: '',
+                border: const OutlineInputBorder(),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: SensitivityTag(
+                    level: SensitivityLevel.restricted,
+                  ),
+                ),
+              ),
+              keyboardType: selectedType == 'email'
+                  ? TextInputType.emailAddress
+                  : TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: onCancel,
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: onSubmit,
+                  child: Text(mode == 'adding' ? 'Add' : 'Save'),
+                ),
+              ],
             ),
           ],
-          actions: EntryActionBuilder.buildActions(
-            context: context,
-            ref: ref,
-            config: EntryActionsConfig(showHistory: true),
-            hasHistory: hasHistory,
-            historyExpanded: _historyExpanded,
-            onHistoryToggle: () =>
-                setState(() => _historyExpanded = !_historyExpanded),
-            onCopy: _handleCopy,
-            onEdit: widget.onEdit,
-            onDelete: widget.onDelete,
+        );
+      },
+      displayItemBuilder: (contact) {
+        final fieldId = contact.type == 'email'
+            ? 'contact.email'
+            : 'contact.phone';
+        final fields = <LabelValueField>[
+          LabelValueField(
+            label: 'Value',
+            value: contact.value,
+            fieldId: fieldId,
+            isSensitive: true,
           ),
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(fieldName: fieldId, history: history),
-          ),
-      ],
-    );
-  }
-}
-
-class _IdCardTile extends ConsumerStatefulWidget {
-  final IdCardData card;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _IdCardTile({
-    required this.card,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_IdCardTile> createState() => _IdCardTileState();
-}
-
-class _IdCardTileState extends ConsumerState<_IdCardTile> {
-  String _formatAllFields() => '${widget.card.entryType}\n${widget.card.toFormattedString()}';
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasLabel = widget.card.label != null && widget.card.label!.isNotEmpty;
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.card.id, 'idCard.number');
-
-    // Build list of fields to display
-    final fields = <LabelValueField>[];
-
-    if (hasLabel) {
-      fields.add(LabelValueField(label: 'Label', value: widget.card.label!));
-    }
-    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'ID Number',
-          value: widget.card.number!,
-          fieldId: 'idCard.number',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Holder Name',
-          value: widget.card.holderName!,
-          fieldId: 'idCard.holderName',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Country',
-          value: widget.card.country!,
-          fieldId: 'idCard.country',
-        ),
-      );
-    }
-    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Issue Date',
-          value: widget.card.issueDate!,
-          fieldId: 'idCard.issueDate',
-        ),
-      );
-    }
-    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Expiry Date',
-          value: widget.card.expiryDate!,
-          fieldId: 'idCard.expiryDate',
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  Icons.credit_card_outlined,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ResponsiveLabelField(
-                  fields: fields,
-                  labelValueSpacing: 4,
-                  layoutAxis: Axis.vertical,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.copy_all, size: 20),
-                tooltip: 'Copy All',
-                onPressed: () async {
-                  final verified = await verifyPasswordForRestrictedField(
-                    context: context,
+        ];
+        final history = ref
+            .watch(fieldHistoriesProvider.notifier)
+            .getHistory(contact.id, fieldId);
+        final hasHistory = history != null;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Builder(
+              builder: (ctx) {
+                final actionsContext = EntryActionsContext.of(ctx);
+                final onEdit = actionsContext?.onEdit ?? () {};
+                final onDelete = actionsContext?.onDelete ?? () {};
+                final onCopy = actionsContext?.onCopy ?? (text) async {};
+                return UniversalEntryCard(
+                  leading: Icon(
+                    contact.type == 'email'
+                        ? Icons.email_outlined
+                        : Icons.phone_outlined,
+                    size: 20,
+                  ),
+                  title: SelectableText(
+                    contact.label,
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: SelectableText(
+                    contact.type,
+                    style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  children: [
+                    ResponsiveLabelField(
+                      fields: fields,
+                      labelValueSpacing: 4,
+                      layoutAxis: Axis.vertical,
+                    ),
+                  ],
+                  actions: EntryActionBuilder.buildActions(
+                    context: ctx,
                     ref: ref,
-                    fieldId: 'idCard.number',
-                  );
-                  if (!verified) return;
-                  if (!mounted) return;
-                  Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(
-                    context,
-                    content: 'Copied to clipboard',
-                    type: SnackBarType.success,
-                  );
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: widget.onEdit,
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: widget.onDelete,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-        ),
-        if (history != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'idCard.number',
-              history: history,
+                    config: const EntryActionsConfig(showHistory: true),
+                    onCopy: () => onCopy('${contact.entryType}\n${contact.toFormattedString()}'),
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    hasHistory: hasHistory,
+                    historyExpanded: _historyExpanded,
+                    onHistoryToggle: () =>
+                        setState(() => _historyExpanded = !_historyExpanded),
+                    isSensitive: fields.any((f) => f.isSensitive),
+                  ),
+                );
+              },
             ),
-          ),
-      ],
+            if (hasHistory && _historyExpanded)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, bottom: 8),
+                child: FieldHistoryView(
+                  fieldName: fieldId,
+                  history: history,
+                ),
+              ),
+          ],
+        );
+      },
+      onDelete: _onContactDelete,
+      onSave: _onContactSave,
+      itemToMap: (c) => {
+        'contact.label': c.label,
+        'contact.type': c.type,
+        'contact.value': c.value,
+      },
+      onCopyAll: (contact, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
+      },
+      historyConfig: HistoryRecordingConfig<ContactEntry>(
+        itemIdExtractor: (c) => c.id,
+        fieldIdPrefix: 'contact',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'contact',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
+
+// ============ ID Card Section (using UnifiedFormSection) ============
 
 class _IdCardSection extends ConsumerStatefulWidget {
   final IdentityData? identity;
@@ -1234,218 +810,125 @@ class _IdCardSection extends ConsumerStatefulWidget {
 }
 
 class _IdCardSectionState extends ConsumerState<_IdCardSection> {
-  // 'idle' | 'adding' | 'editing'
-  String _mode = 'idle';
-  int _editingIndex = -1;
-  late List<_EntryWithIndex<IdCardData>> _idCards;
-
-  Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref
-        .read(authNotifierProvider.notifier)
-        .selectedAccount
-        ?.id;
-    if (accountId != null) {
-      await ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(operationDesc);
-    }
-  }
-
-  final _labelController = TextEditingController();
-  final _numberController = TextEditingController();
-  final _holderNameController = TextEditingController();
-  final _countryController = TextEditingController();
-  final _issueDateController = TextEditingController();
-  final _expiryDateController = TextEditingController();
-  bool _isSaving = false;
+  late List<IdCardData> _idCards;
+  bool _historyExpanded = false;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
     _idCards = [
-      ...?(widget.idCards?.asMap().entries.map(
-        (mapEntry) => _EntryWithIndex(
-          entry: mapEntry.value.copyWith(),
-          originalIndex: mapEntry.key,
+      ...?(widget.idCards?.map(
+        (c) => IdCardData(
+          id: c.id,
+          label: c.label,
+          number: c.number,
+          issueDate: c.issueDate,
+          expiryDate: c.expiryDate,
+          holderName: c.holderName,
+          country: c.country,
         ),
       )),
     ];
   }
 
-  @override
-  void didUpdateWidget(_IdCardSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Reload data when parent passes updated idCards
-    // Filter to only active (non-deleted) entries while preserving originalIndex
-    if (widget.idCards != oldWidget.idCards) {
-      _idCards = [
-        for (var i = 0; i < (widget.idCards?.length ?? 0); i++)
-          if (widget.idCards != null && !widget.idCards![i].isDeleted)
-            _EntryWithIndex(
-              entry: widget.idCards![i].copyWith(),
-              originalIndex: i,
-            ),
-      ];
-    }
-  }
-
-  @override
-  void dispose() {
-    _labelController.dispose();
-    _numberController.dispose();
-    _holderNameController.dispose();
-    _countryController.dispose();
-    _issueDateController.dispose();
-    _expiryDateController.dispose();
-    super.dispose();
-  }
-
-  void _startAdding() {
-    _clearControllers();
-    setState(() {
-      _mode = 'adding';
-      _editingIndex = -1;
-    });
-  }
-
-  void _startEditing(int index) async {
-    final card = _idCards[index].entry;
-
-    // Verify password for restricted fields (idCard.number is restricted)
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: 'idCard.number',
-    );
-    if (!verified) return;
-
-    if (!mounted) return;
-    _labelController.text = card.label ?? '';
-    _numberController.text = card.number ?? '';
-    _holderNameController.text = card.holderName ?? '';
-    _countryController.text = card.country ?? '';
-    _issueDateController.text = card.issueDate ?? '';
-    _expiryDateController.text = card.expiryDate ?? '';
-    setState(() {
-      _mode = 'editing';
-      _editingIndex = index;
-    });
-  }
-
-  void _cancelEdit() {
-    setState(() {
-      _mode = 'idle';
-      _editingIndex = -1;
-    });
-  }
-
-  void _clearControllers() {
-    _labelController.clear();
-    _numberController.clear();
-    _holderNameController.clear();
-    _countryController.clear();
-    _issueDateController.clear();
-    _expiryDateController.clear();
-  }
-
-  void _deleteEntry(int index) async {
-    final deletedCard = _idCards[index];
-
-    // Verify password for restricted fields BEFORE showing delete confirmation
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: 'idCard.number',
-    );
-    if (!verified) return;
-
-    if (!mounted) return;
-
-    final confirm = await showDeleteConfirmationDialog(
-      context: context,
-      itemName:
-          deletedCard.entry.label ?? deletedCard.entry.number ?? 'ID Card',
-      itemType: 'ID Card',
-    );
-    if (!confirm) return;
-
-    final itemName =
-        deletedCard.entry.label ?? deletedCard.entry.number ?? 'ID Card';
-
-    // Mark as soft deleted and show Undo snackbar
-    _softDeleteWithUndo(
-      section: 'profile',
-      itemType: 'idCard',
-      index: deletedCard.originalIndex,
-      deletedItem: deletedCard.entry,
-      itemName: itemName,
+  IdCardData _createIdCardFromValues(Map<String, String> values, {String? id}) {
+    return IdCardData(
+      id: id ?? generateEntryId(),
+      label: values['idCard.label']?.isEmpty == true ? null : values['idCard.label'],
+      number: values['idCard.number']?.isEmpty == true ? null : values['idCard.number'],
+      holderName: values['idCard.holderName']?.isEmpty == true ? null : values['idCard.holderName'],
+      country: values['idCard.country']?.isEmpty == true ? null : values['idCard.country'],
+      issueDate: values['idCard.issueDate']?.isEmpty == true ? null : values['idCard.issueDate'],
+      expiryDate: values['idCard.expiryDate']?.isEmpty == true ? null : values['idCard.expiryDate'],
     );
   }
 
-  void _softDeleteWithUndo({
-    required String section,
-    required String itemType,
-    required int index,
-    required dynamic deletedItem,
-    required String itemName,
-  }) async {
-    _cancelEdit();
-
-    // Store values needed after await
-    final isMounted = mounted;
-    final originalIndex = index;
-    final deletedId = deletedItem.id as String;
-
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: section,
-          itemType: itemType,
-          index: index,
-          deletedItem: deletedItem,
-        );
-
-    if (!isMounted) return;
-
-    // Remove from local list (find by originalIndex)
-    setState(() {
-      _idCards = _idCards
-          .where((c) => c.originalIndex != originalIndex)
-          .toList();
-    });
+  Future<void> _onIdCardDelete(IdCardData card) async {
+    final index = _idCards.indexOf(card);
+    if (index == -1) return;
 
     final isPrivacyMode =
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    // Persist operation to account metadata
-    await _persistOperation('Deleted $itemName');
+    final deletedId = card.id;
 
-    OperationNotification.show(
-      context,
-      message: OperationLogger.createNotification(
-        section: LogSectionConfig.getLogSection(section, itemType),
-        action: LogAction.delete,
-        itemName: itemName,
-        fieldName: itemName,
-        isPrivacyModeActive: isPrivacyMode,
-      ),
-      duration: const Duration(seconds: 5),
-      onUndo: () async {
-        await ref
-            .read(profileNotifierProvider.notifier)
-            .restore(section: section, itemType: itemType, id: deletedId);
-      },
-    );
+    setState(() {
+      _idCards = List.from(_idCards)..removeAt(index);
+    });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'profile',
+            itemType: 'idCard',
+            index: index,
+            deletedItem: card,
+          );
+    } catch (e) {
+      setState(() {
+        _idCards = List.from(_idCards)..insert(index, card);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete ID card',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      final itemName = card.label ?? card.number ?? 'ID Card';
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.idCard,
+          action: LogAction.delete,
+          itemName: itemName,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(section: 'profile', itemType: 'idCard', id: deletedId);
+        },
+      );
+    }
   }
 
-  Future<void> _saveIdCards({
-    LogAction operationType = LogAction.update,
-    String? itemName,
-    IdCardData? oldCard,
-  }) async {
-    setState(() => _isSaving = true);
+  Future<void> _onIdCardSave(
+    IdCardData? newItem,
+    Map<String, String> values,
+    IdCardData? editingItem,
+  ) async {
+    final wasAdding = editingItem == null;
+    final IdCardData cardToSave;
+    if (wasAdding) {
+      cardToSave = newItem!;
+    } else {
+      cardToSave = _createIdCardFromValues(values, id: editingItem!.id);
+    }
+    final itemName = cardToSave.label ?? cardToSave.number ?? 'ID Card';
 
+    // Update local state
+    if (wasAdding) {
+      _idCards = List.from(_idCards)..add(cardToSave);
+    } else {
+      final index = _idCards.indexOf(editingItem);
+      if (index != -1) {
+        _idCards = List.from(_idCards)..[index] = cardToSave;
+      }
+    }
+
+    // Persist via provider
     final identity = IdentityData(
       fullName: widget.identity?.fullName,
       givenName: widget.identity?.givenName,
@@ -1453,354 +936,204 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
       dateOfBirth: widget.identity?.dateOfBirth,
       gender: widget.identity?.gender,
       nationality: widget.identity?.nationality,
-      idCards: _idCards.isEmpty ? null : _idCards.map((c) => c.entry).toList(),
+      idCards: _idCards,
       contact: widget.identity?.contact,
       addresses: widget.identity?.addresses,
     );
-
-    // Record field history snapshot for all changed fields
-    if (oldCard != null) {
-      final newCard = _idCards
-          .firstWhere(
-            (c) => c.entry.id == oldCard.id,
-            orElse: () => _idCards.last,
-          )
-          .entry;
-
-      if (oldCard.label != newCard.label ||
-          oldCard.number != newCard.number ||
-          oldCard.holderName != newCard.holderName ||
-          oldCard.country != newCard.country ||
-          oldCard.issueDate != newCard.issueDate ||
-          oldCard.expiryDate != newCard.expiryDate) {
-        await ref
-            .read(fieldHistoriesProvider.notifier)
-            .recordEntrySnapshot(
-              itemId: oldCard.id,
-              fieldIdPrefix: 'idCard.number',
-              allFieldValues: {
-                'label': oldCard.label ?? '',
-                'number': oldCard.number ?? '',
-                'holderName': oldCard.holderName ?? '',
-                'country': oldCard.country ?? '',
-                'issueDate': oldCard.issueDate ?? '',
-                'expiryDate': oldCard.expiryDate ?? '',
-              },
-            );
-      }
-    }
-
-    final success = await ref
-        .read(profileNotifierProvider.notifier)
-        .updateIdentity(identity);
+    await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
 
     if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        _cancelEdit();
-        // Show operation notification
-        final isPrivacyMode =
-            ref.read(sensitivitySettingsProvider).displayMode ==
-            SensitivityDisplayMode.hidePrivate;
-
-        // Persist operation to account metadata
-        await _persistOperation('Updated ID Card');
-
-        OperationNotification.show(
-          context,
-          message: OperationLogger.createNotification(
-            section: LogSection.idCard,
-            action: operationType,
-            itemName: 'ID Card',
-            fieldName: itemName ?? 'Document',
-            isPrivacyModeActive: isPrivacyMode,
-          ),
-        );
-      } else {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to save',
-          type: SnackBarType.error,
-        );
-      }
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.idCard,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: 'ID Card',
+          fieldName: itemName,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
     }
-  }
-
-  void _submitForm() {
-    final cardId = _mode == 'editing'
-        ? _idCards[_editingIndex].entry.id
-        : generateEntryId();
-    final card = IdCardData(
-      id: cardId,
-      label: _labelController.text.isEmpty ? null : _labelController.text,
-      number: _numberController.text.isEmpty ? null : _numberController.text,
-      holderName: _holderNameController.text.isEmpty
-          ? null
-          : _holderNameController.text,
-      country: _countryController.text.isEmpty ? null : _countryController.text,
-      issueDate: _issueDateController.text.isEmpty
-          ? null
-          : _issueDateController.text,
-      expiryDate: _expiryDateController.text.isEmpty
-          ? null
-          : _expiryDateController.text,
-    );
-
-    // Capture operation type before state reset
-    final wasAdding = _mode == 'adding';
-    final cardLabel = card.label ?? 'ID Card';
-    final originalIndex = wasAdding
-        ? -1
-        : _idCards[_editingIndex].originalIndex;
-
-    // Capture old card for history tracking (before state change)
-    final oldCard = _mode == 'editing' ? _idCards[_editingIndex].entry : null;
-
-    setState(() {
-      if (_mode == 'adding') {
-        _idCards.add(
-          _EntryWithIndex(
-            entry: card,
-            originalIndex: widget.idCards?.length ?? 0,
-          ),
-        );
-      } else if (_mode == 'editing') {
-        _idCards[_editingIndex] = _EntryWithIndex(
-          entry: card,
-          originalIndex: originalIndex,
-        );
-      }
-      _mode = 'idle';
-      _editingIndex = -1;
-    });
-
-    _saveIdCards(
-      operationType: wasAdding ? LogAction.create : LogAction.update,
-      itemName: cardLabel,
-      oldCard: oldCard,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Defensive filter: use only non-deleted entries for display
-    final displayIdCards = _idCards.where((c) => !c.entry.isDeleted).toList();
-    final hasEntries = displayIdCards.isNotEmpty;
-    final isEditing = _mode == 'adding' || _mode == 'editing';
-
-    return CollapsibleSectionCard(
+    return UnifiedFormSection<IdCardData>(
       title: 'Identity Documents',
       icon: Icons.badge_outlined,
+      items: _idCards,
       maxVisibleItems: 3,
-      actionIcon: Icons.add,
-      onAction: _startAdding,
-      footer: isEditing ? _buildInlineForm(theme) : null,
-      children: hasEntries
-          ? _buildIdCardTiles(theme, displayIdCards)
-          : [_buildEmptyState(theme)],
-    );
-  }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
-          children: [
-            Icon(
-              Icons.badge_outlined,
-              size: 40,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'No ID cards saved',
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: _startAdding,
-              icon: const Icon(Icons.add),
-              label: const Text('Add ID Card'),
-            ),
-          ],
+      itemFactory: _createIdCardFromValues,
+      fieldDefs: const [
+        FormFieldDef(
+          fieldId: 'idCard.label',
+          label: 'Label (e.g., National ID, Driver\'s License)',
+          sensitivity: SensitivityLevel.public,
         ),
-      ),
-    );
-  }
-
-  /// Returns individual ID card tiles for CollapsibleSectionCard
-  List<Widget> _buildIdCardTiles(
-    ThemeData theme,
-    List<_EntryWithIndex<IdCardData>> displayIdCards,
-  ) {
-    return [
-      for (var i = 0; i < displayIdCards.length; i++)
-        Column(
-          children: [
-            _IdCardItem(
-              card: displayIdCards[i].entry,
-              onEdit: () => _startEditing(i),
-              onDelete: () => _deleteEntry(i),
-            ),
-            if (i < displayIdCards.length - 1) const Divider(height: 1),
-          ],
+        FormFieldDef(
+          fieldId: 'idCard.number',
+          label: 'ID Number',
+          sensitivity: SensitivityLevel.restricted,
         ),
-    ];
-  }
-
-  Widget _buildInlineForm(ThemeData theme) {
-    final isAdding = _mode == 'adding';
-    final title = isAdding ? 'Add ID Card' : 'Edit ID Card';
-    final settings = ref.watch(sensitivitySettingsProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+        FormFieldDef(
+          fieldId: 'idCard.holderName',
+          label: 'Holder Name',
+          sensitivity: SensitivityLevel.restricted,
         ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _labelController,
-          maxLength: kMaxFieldLength,
-          decoration: const InputDecoration(
-            labelText: 'Label (e.g., National ID, Driver\'s License)',
-            counterText: '',
-            border: OutlineInputBorder(),
-          ),
+        FormFieldDef(
+          fieldId: 'idCard.country',
+          label: 'Country',
+          sensitivity: SensitivityLevel.public,
         ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _numberController,
-          maxLength: kMaxFieldLength,
-          decoration: InputDecoration(
-            labelText: 'ID Number',
-            counterText: '',
-            border: const OutlineInputBorder(),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SensitivityTag(
-                level:
-                    settings.getFieldLevel('idCard.number') ??
-                    SensitivityLevel.public,
-              ),
-            ),
-          ),
+        FormFieldDef(
+          fieldId: 'idCard.issueDate',
+          label: 'Issue Date',
+          sensitivity: SensitivityLevel.public,
         ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _holderNameController,
-          maxLength: kMaxFieldLength,
-          decoration: InputDecoration(
-            labelText: 'Holder Name',
-            counterText: '',
-            border: const OutlineInputBorder(),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SensitivityTag(
-                level:
-                    settings.getFieldLevel('idCard.holderName') ??
-                    SensitivityLevel.public,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _countryController,
-          maxLength: kMaxFieldLength,
-          decoration: InputDecoration(
-            labelText: 'Country',
-            counterText: '',
-            border: const OutlineInputBorder(),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SensitivityTag(
-                level:
-                    settings.getFieldLevel('idCard.country') ??
-                    SensitivityLevel.public,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _issueDateController,
-                maxLength: kMaxFieldLength,
-                decoration: InputDecoration(
-                  labelText: 'Issue Date',
-                  hintText: 'YYYY-MM-DD',
-                  counterText: '',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: SensitivityTag(
-                      level:
-                          settings.getFieldLevel('idCard.issueDate') ??
-                          SensitivityLevel.public,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _expiryDateController,
-                maxLength: kMaxFieldLength,
-                decoration: InputDecoration(
-                  labelText: 'Expiry Date',
-                  hintText: 'YYYY-MM-DD',
-                  counterText: '',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: SensitivityTag(
-                      level:
-                          settings.getFieldLevel('idCard.expiryDate') ??
-                          SensitivityLevel.public,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: _isSaving ? null : _cancelEdit,
-              child: const Text('Cancel'),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _isSaving ? null : _submitForm,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(isAdding ? 'Add' : 'Save'),
-            ),
-          ],
+        FormFieldDef(
+          fieldId: 'idCard.expiryDate',
+          label: 'Expiry Date',
+          sensitivity: SensitivityLevel.public,
         ),
       ],
+      displayItemBuilder: (card) {
+        final hasLabel = card.label != null && card.label!.isNotEmpty;
+        final fields = <LabelValueField>[];
+        if (hasLabel) {
+          fields.add(LabelValueField(label: 'Label', value: card.label!));
+        }
+        if (card.number != null && card.number!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'ID Number',
+              value: card.number!,
+              fieldId: 'idCard.number',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (card.holderName != null && card.holderName!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Holder Name',
+              value: card.holderName!,
+              fieldId: 'idCard.holderName',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (card.country != null && card.country!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Country', value: card.country!),
+          );
+        }
+        if (card.issueDate != null && card.issueDate!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Issue Date', value: card.issueDate!),
+          );
+        }
+        if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
+          fields.add(
+            LabelValueField(label: 'Expiry Date', value: card.expiryDate!),
+          );
+        }
+        return Builder(
+          builder: (ctx) {
+            final actionsContext = EntryActionsContext.of(ctx);
+            final onEdit = actionsContext?.onEdit ?? () {};
+            final onDelete = actionsContext?.onDelete ?? () {};
+            final onCopy = actionsContext?.onCopy ?? (text) async {};
+            final history = ref
+                .watch(fieldHistoriesProvider.notifier)
+                .getHistory(card.id, 'idCard');
+            final hasHistory = history != null;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                UniversalEntryCard(
+                  leading: const Icon(Icons.credit_card_outlined, size: 20),
+                  title: SelectableText(
+                    card.label ?? 'ID Card',
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  children: fields.isNotEmpty
+                      ? [
+                          ResponsiveLabelField(
+                            fields: fields,
+                            labelValueSpacing: 4,
+                            layoutAxis: Axis.vertical,
+                          ),
+                        ]
+                      : [],
+                  actions: EntryActionBuilder.buildActions(
+                    context: ctx,
+                    ref: ref,
+                    config: const EntryActionsConfig(showHistory: true),
+                    onCopy: () => onCopy('${card.entryType}\n${card.toFormattedString()}'),
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    hasHistory: hasHistory,
+                    historyExpanded: _historyExpanded,
+                    onHistoryToggle: () =>
+                        setState(() => _historyExpanded = !_historyExpanded),
+                    isSensitive: fields.any((f) => f.isSensitive),
+                  ),
+                ),
+                if (hasHistory && _historyExpanded)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32, bottom: 8),
+                    child: FieldHistoryView(
+                      fieldName: 'idCard.number',
+                      history: history,
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+      onDelete: _onIdCardDelete,
+      onSave: _onIdCardSave,
+      itemToMap: (c) => {
+        'idCard.label': c.label ?? '',
+        'idCard.number': c.number ?? '',
+        'idCard.holderName': c.holderName ?? '',
+        'idCard.country': c.country ?? '',
+        'idCard.issueDate': c.issueDate ?? '',
+        'idCard.expiryDate': c.expiryDate ?? '',
+      },
+      onCopyAll: (card, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
+      },
+      historyConfig: HistoryRecordingConfig<IdCardData>(
+        itemIdExtractor: (c) => c.id,
+        fieldIdPrefix: 'idCard',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'idCard',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
 
-/// Wrapper widget for IdCardData using UniversalEntryCard + EntryActionBuilder
 class _IdCardItem extends ConsumerStatefulWidget {
   final IdCardData card;
   final VoidCallback onEdit;
@@ -1926,6 +1259,7 @@ class _IdCardItemState extends ConsumerState<_IdCardItem> {
             onCopy: _handleCopy,
             onEdit: widget.onEdit,
             onDelete: widget.onDelete,
+            isSensitive: true,
           ),
         ),
         if (hasHistory && _historyExpanded)
@@ -2085,6 +1419,8 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
   }
 }
 
+// ============ Address Section (using UnifiedFormSection) ============
+
 class _AddressSection extends ConsumerStatefulWidget {
   final IdentityData? identity;
   final List<AddressData>? addresses;
@@ -2096,213 +1432,124 @@ class _AddressSection extends ConsumerStatefulWidget {
 }
 
 class _AddressSectionState extends ConsumerState<_AddressSection> {
-  // 'idle' | 'adding' | 'editing'
-  String _mode = 'idle';
-  int _editingIndex = -1;
-  late List<_EntryWithIndex<AddressData>> _addresses;
-
-  Future<void> _persistOperation(String operationDesc) async {
-    final accountId = ref
-        .read(authNotifierProvider.notifier)
-        .selectedAccount
-        ?.id;
-    if (accountId != null) {
-      await ref
-          .read(authNotifierProvider.notifier)
-          .updateOperation(operationDesc);
-    }
-  }
-
-  final _labelController = TextEditingController();
-  final _streetController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _postalController = TextEditingController();
-  final _countryController = TextEditingController();
-  bool _isSaving = false;
+  late List<AddressData> _addresses;
+  bool _historyExpanded = false;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
     _addresses = [
-      ...?(widget.addresses?.asMap().entries.map(
-        (mapEntry) => _EntryWithIndex(
-          entry: mapEntry.value.copyWith(),
-          originalIndex: mapEntry.key,
+      ...?(widget.addresses?.map(
+        (a) => AddressData(
+          id: a.id,
+          label: a.label,
+          street: a.street,
+          city: a.city,
+          state: a.state,
+          postalCode: a.postalCode,
+          country: a.country,
         ),
       )),
     ];
   }
 
-  @override
-  void didUpdateWidget(_AddressSection oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Reload data when parent passes updated addresses
-    // Filter to only active (non-deleted) entries while preserving originalIndex
-    if (widget.addresses != oldWidget.addresses) {
-      _addresses = [
-        for (var i = 0; i < (widget.addresses?.length ?? 0); i++)
-          if (widget.addresses != null && !widget.addresses![i].isDeleted)
-            _EntryWithIndex(
-              entry: widget.addresses![i].copyWith(),
-              originalIndex: i,
-            ),
-      ];
-    }
-  }
-
-  @override
-  void dispose() {
-    _labelController.dispose();
-    _streetController.dispose();
-    _cityController.dispose();
-    _postalController.dispose();
-    _countryController.dispose();
-    super.dispose();
-  }
-
-  void _startAdding() {
-    _clearControllers();
-    setState(() {
-      _mode = 'adding';
-      _editingIndex = -1;
-    });
-  }
-
-  void _startEditing(int index) async {
-    final addr = _addresses[index].entry;
-
-    // Verify password for restricted fields (address.postalCode is restricted)
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: 'address.postalCode',
-    );
-    if (!verified) return;
-
-    if (!mounted) return;
-    _labelController.text = addr.label ?? '';
-    _streetController.text = addr.street ?? '';
-    _cityController.text = addr.city ?? '';
-    _postalController.text = addr.postalCode ?? '';
-    _countryController.text = addr.country ?? '';
-    setState(() {
-      _mode = 'editing';
-      _editingIndex = index;
-    });
-  }
-
-  void _cancelEdit() {
-    setState(() {
-      _mode = 'idle';
-      _editingIndex = -1;
-    });
-  }
-
-  void _clearControllers() {
-    _labelController.clear();
-    _streetController.clear();
-    _cityController.clear();
-    _postalController.clear();
-    _countryController.clear();
-  }
-
-  void _deleteEntry(int index) async {
-    final deletedAddr = _addresses[index];
-
-    // Verify password for restricted fields BEFORE showing delete confirmation
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: 'address.postalCode',
-    );
-    if (!verified) return;
-
-    if (!mounted) return;
-
-    final confirm = await showDeleteConfirmationDialog(
-      context: context,
-      itemName:
-          deletedAddr.entry.label ?? deletedAddr.entry.street ?? 'Address',
-      itemType: 'Address',
-    );
-    if (!confirm) return;
-
-    final itemName = deletedAddr.entry.label ?? 'Address';
-
-    // Mark as soft deleted and show Undo snackbar
-    _softDeleteWithUndo(
-      section: 'profile',
-      itemType: 'address',
-      index: deletedAddr.originalIndex,
-      deletedItem: deletedAddr.entry,
-      itemName: itemName,
+  AddressData _createAddressFromValues(Map<String, String> values, {String? id}) {
+    return AddressData(
+      id: id ?? generateEntryId(),
+      label: values['address.label']?.isEmpty == true ? null : values['address.label'],
+      street: values['address.street']?.isEmpty == true ? null : values['address.street'],
+      city: values['address.city']?.isEmpty == true ? null : values['address.city'],
+      postalCode: values['address.postalCode']?.isEmpty == true ? null : values['address.postalCode'],
+      country: values['address.country']?.isEmpty == true ? null : values['address.country'],
     );
   }
 
-  void _softDeleteWithUndo({
-    required String section,
-    required String itemType,
-    required int index,
-    required dynamic deletedItem,
-    required String itemName,
-  }) async {
-    _cancelEdit();
-
-    // Store values needed after await
-    final isMounted = mounted;
-    final originalIndex = index;
-    final deletedId = deletedItem.id as String;
-
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .softDelete(
-          section: section,
-          itemType: itemType,
-          index: index,
-          deletedItem: deletedItem,
-        );
-
-    if (!isMounted) return;
-
-    // Remove from local list (find by originalIndex)
-    setState(() {
-      _addresses = _addresses
-          .where((a) => a.originalIndex != originalIndex)
-          .toList();
-    });
+  Future<void> _onAddressDelete(AddressData address) async {
+    final index = _addresses.indexOf(address);
+    if (index == -1) return;
 
     final isPrivacyMode =
         ref.read(sensitivitySettingsProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    // Persist operation to account metadata
-    await _persistOperation('Deleted $itemName');
+    final deletedId = address.id;
 
-    OperationNotification.show(
-      context,
-      message: OperationLogger.createNotification(
-        section: LogSectionConfig.getLogSection(section, itemType),
-        action: LogAction.delete,
-        itemName: itemName,
-        fieldName: itemName,
-        isPrivacyModeActive: isPrivacyMode,
-      ),
-      duration: const Duration(seconds: 5),
-      onUndo: () async {
-        await ref
-            .read(profileNotifierProvider.notifier)
-            .restore(section: section, itemType: itemType, id: deletedId);
-      },
-    );
+    setState(() {
+      _addresses = List.from(_addresses)..removeAt(index);
+    });
+
+    try {
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .softDelete(
+            section: 'profile',
+            itemType: 'address',
+            index: index,
+            deletedItem: address,
+          );
+    } catch (e) {
+      setState(() {
+        _addresses = List.from(_addresses)..insert(index, address);
+      });
+      if (mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'Failed to delete address',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      final itemName = address.label ?? 'Address';
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.address,
+          action: LogAction.delete,
+          itemName: itemName,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .restore(section: 'profile', itemType: 'address', id: deletedId);
+        },
+      );
+    }
   }
 
-  Future<void> _saveAddresses({
-    LogAction operationType = LogAction.update,
-    String? itemName,
-    AddressData? oldAddr,
-  }) async {
-    setState(() => _isSaving = true);
+  Future<void> _onAddressSave(
+    AddressData? newItem,
+    Map<String, String> values,
+    AddressData? editingItem,
+  ) async {
+    final wasAdding = editingItem == null;
+    final AddressData addressToSave;
+    if (wasAdding) {
+      addressToSave = newItem!;
+    } else {
+      addressToSave = _createAddressFromValues(values, id: editingItem!.id);
+    }
+    final itemName = addressToSave.label ?? 'Address';
 
+    // Update local state
+    if (wasAdding) {
+      _addresses = List.from(_addresses)..add(addressToSave);
+    } else {
+      final index = _addresses.indexOf(editingItem);
+      if (index != -1) {
+        _addresses = List.from(_addresses)..[index] = addressToSave;
+      }
+    }
+
+    // Persist via provider
     final identity = IdentityData(
       fullName: widget.identity?.fullName,
       givenName: widget.identity?.givenName,
@@ -2312,336 +1559,198 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
       nationality: widget.identity?.nationality,
       idCards: widget.identity?.idCards,
       contact: widget.identity?.contact,
-      addresses: _addresses.isEmpty
-          ? null
-          : _addresses.map((a) => a.entry).toList(),
+      addresses: _addresses,
     );
-
-    // Record field history snapshot for all changed fields
-    if (oldAddr != null) {
-      final newAddr = _addresses
-          .firstWhere(
-            (a) => a.entry.id == oldAddr.id,
-            orElse: () => _addresses.last,
-          )
-          .entry;
-
-      if (oldAddr.label != newAddr.label ||
-          oldAddr.street != newAddr.street ||
-          oldAddr.city != newAddr.city ||
-          oldAddr.postalCode != newAddr.postalCode ||
-          oldAddr.country != newAddr.country) {
-        await ref
-            .read(fieldHistoriesProvider.notifier)
-            .recordEntrySnapshot(
-              itemId: oldAddr.id,
-              fieldIdPrefix: 'address.postalCode',
-              allFieldValues: {
-                'label': oldAddr.label ?? '',
-                'street': oldAddr.street ?? '',
-                'city': oldAddr.city ?? '',
-                'postalCode': oldAddr.postalCode ?? '',
-                'country': oldAddr.country ?? '',
-              },
-            );
-      }
-    }
-
-    final success = await ref
-        .read(profileNotifierProvider.notifier)
-        .updateIdentity(identity);
+    await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
 
     if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        _cancelEdit();
-        // Show operation notification
-        final isPrivacyMode =
-            ref.read(sensitivitySettingsProvider).displayMode ==
-            SensitivityDisplayMode.hidePrivate;
-
-        // Persist operation to account metadata
-        await _persistOperation('Updated Address');
-
-        OperationNotification.show(
-          context,
-          message: OperationLogger.createNotification(
-            section: LogSection.address,
-            action: operationType,
-            itemName: 'Address',
-            fieldName: itemName ?? 'Location',
-            isPrivacyModeActive: isPrivacyMode,
-          ),
-        );
-      } else {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to save',
-          type: SnackBarType.error,
-        );
-      }
+      final isPrivacyMode =
+          ref.read(sensitivitySettingsProvider).displayMode ==
+          SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotification(
+          section: LogSection.address,
+          action: wasAdding ? LogAction.create : LogAction.update,
+          itemName: 'Address',
+          fieldName: itemName,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
     }
-  }
-
-  void _submitForm() {
-    final addrId = _mode == 'editing'
-        ? _addresses[_editingIndex].entry.id
-        : generateEntryId();
-    final addr = AddressData(
-      id: addrId,
-      label: _labelController.text.isEmpty ? null : _labelController.text,
-      street: _streetController.text.isEmpty ? null : _streetController.text,
-      city: _cityController.text.isEmpty ? null : _cityController.text,
-      postalCode: _postalController.text.isEmpty
-          ? null
-          : _postalController.text,
-      country: _countryController.text.isEmpty ? null : _countryController.text,
-    );
-
-    // Capture operation type before state reset
-    final wasAdding = _mode == 'adding';
-    final addrLabel = addr.label ?? 'Address';
-    final originalIndex = wasAdding
-        ? -1
-        : _addresses[_editingIndex].originalIndex;
-
-    // Capture old address for history tracking (before state change)
-    final oldAddr = _mode == 'editing' ? _addresses[_editingIndex].entry : null;
-
-    setState(() {
-      if (_mode == 'adding') {
-        _addresses.add(
-          _EntryWithIndex(
-            entry: addr,
-            originalIndex: widget.addresses?.length ?? 0,
-          ),
-        );
-      } else if (_mode == 'editing') {
-        _addresses[_editingIndex] = _EntryWithIndex(
-          entry: addr,
-          originalIndex: originalIndex,
-        );
-      }
-      _mode = 'idle';
-      _editingIndex = -1;
-    });
-
-    _saveAddresses(
-      operationType: wasAdding ? LogAction.create : LogAction.update,
-      itemName: addrLabel,
-      oldAddr: oldAddr,
-    );
-  }
-
-  String _displayAddress(AddressData addr) {
-    final parts = [
-      addr.street,
-      addr.city,
-      addr.country,
-    ].where((e) => e != null && e.isNotEmpty).join(', ');
-    return parts.isEmpty ? '' : parts;
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Defensive filter: use only non-deleted entries for display
-    final displayAddresses = _addresses
-        .where((a) => !a.entry.isDeleted)
-        .toList();
-    final hasAddresses = displayAddresses.isNotEmpty;
-    final isEditing = _mode == 'adding' || _mode == 'editing';
-
-    return CollapsibleSectionCard(
+    return UnifiedFormSection<AddressData>(
       title: 'Addresses',
       icon: Icons.location_on_outlined,
+      items: _addresses,
       maxVisibleItems: 3,
-      actionIcon: Icons.add,
-      onAction: _startAdding,
-      footer: isEditing ? _buildInlineForm(theme) : null,
-      children: hasAddresses
-          ? _buildAddressTiles(theme, displayAddresses)
-          : [_buildEmptyState(theme)],
-    );
-  }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Column(
-          children: [
-            Icon(
-              Icons.location_off_outlined,
-              size: 40,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'No addresses saved',
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: _startAdding,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Address'),
-            ),
-          ],
+      itemFactory: _createAddressFromValues,
+      fieldDefs: const [
+        FormFieldDef(
+          fieldId: 'address.label',
+          label: 'Label (e.g., Home, Work)',
+          sensitivity: SensitivityLevel.public,
         ),
-      ),
-    );
-  }
-
-  /// Returns individual address tiles for CollapsibleSectionCard
-  List<Widget> _buildAddressTiles(
-    ThemeData theme,
-    List<_EntryWithIndex<AddressData>> displayAddresses,
-  ) {
-    return [
-      for (var i = 0; i < displayAddresses.length; i++)
-        Column(
-          children: [
-            _AddressItem(
-              address: displayAddresses[i].entry,
-              onEdit: () => _startEditing(i),
-              onDelete: () => _deleteEntry(i),
-            ),
-            if (i < displayAddresses.length - 1) const Divider(height: 1),
-          ],
+        FormFieldDef(
+          fieldId: 'address.street',
+          label: 'Street',
+          sensitivity: SensitivityLevel.public,
         ),
-    ];
-  }
-
-  Widget _buildInlineForm(ThemeData theme) {
-    final isAdding = _mode == 'adding';
-    final settings = ref.watch(sensitivitySettingsProvider);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          isAdding ? 'Add Address' : 'Edit Address',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+        FormFieldDef(
+          fieldId: 'address.city',
+          label: 'City',
+          sensitivity: SensitivityLevel.public,
         ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _labelController,
-          maxLength: kMaxFieldLength,
-          decoration: const InputDecoration(
-            labelText: 'Label (e.g., Home, Work)',
-            counterText: '',
-            border: OutlineInputBorder(),
-          ),
+        FormFieldDef(
+          fieldId: 'address.postalCode',
+          label: 'Postal Code',
+          sensitivity: SensitivityLevel.restricted,
         ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _streetController,
-          maxLength: kMaxFieldLength,
-          decoration: InputDecoration(
-            labelText: 'Street',
-            counterText: '',
-            border: const OutlineInputBorder(),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SensitivityTag(
-                level:
-                    settings.getFieldLevel('address.street') ??
-                    SensitivityLevel.public,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _cityController,
-                maxLength: kMaxFieldLength,
-                decoration: InputDecoration(
-                  labelText: 'City',
-                  counterText: '',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: SensitivityTag(
-                      level:
-                          settings.getFieldLevel('address.city') ??
-                          SensitivityLevel.public,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _postalController,
-                maxLength: kMaxFieldLength,
-                decoration: InputDecoration(
-                  labelText: 'Postal Code',
-                  counterText: '',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: SensitivityTag(
-                      level:
-                          settings.getFieldLevel('address.postalCode') ??
-                          SensitivityLevel.public,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _countryController,
-          maxLength: kMaxFieldLength,
-          decoration: InputDecoration(
-            labelText: 'Country',
-            counterText: '',
-            border: const OutlineInputBorder(),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: SensitivityTag(
-                level:
-                    settings.getFieldLevel('address.country') ??
-                    SensitivityLevel.public,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: _isSaving ? null : _cancelEdit,
-              child: const Text('Cancel'),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: _isSaving ? null : _submitForm,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(isAdding ? 'Add' : 'Save'),
-            ),
-          ],
+        FormFieldDef(
+          fieldId: 'address.country',
+          label: 'Country',
+          sensitivity: SensitivityLevel.public,
         ),
       ],
+      displayItemBuilder: (address) {
+        final hasLabel = address.label != null && address.label!.isNotEmpty;
+        final fields = <LabelValueField>[];
+        if (hasLabel) {
+          fields.add(LabelValueField(label: 'Label', value: address.label!));
+        }
+        if (address.street != null && address.street!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Street',
+              value: address.street!,
+              fieldId: 'address.street',
+            ),
+          );
+        }
+        if (address.city != null && address.city!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'City',
+              value: address.city!,
+              fieldId: 'address.city',
+            ),
+          );
+        }
+        if (address.postalCode != null && address.postalCode!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Postal Code',
+              value: address.postalCode!,
+              fieldId: 'address.postalCode',
+              isSensitive: true,
+            ),
+          );
+        }
+        if (address.country != null && address.country!.isNotEmpty) {
+          fields.add(
+            LabelValueField(
+              label: 'Country',
+              value: address.country!,
+              fieldId: 'address.country',
+            ),
+          );
+        }
+        return Builder(
+          builder: (ctx) {
+            final actionsContext = EntryActionsContext.of(ctx);
+            final onEdit = actionsContext?.onEdit ?? () {};
+            final onDelete = actionsContext?.onDelete ?? () {};
+            final onCopy = actionsContext?.onCopy ?? (text) async {};
+            final history = ref
+                .watch(fieldHistoriesProvider.notifier)
+                .getHistory(address.id, 'address');
+            final hasHistory = history != null;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                UniversalEntryCard(
+                  leading: const Icon(Icons.home_outlined, size: 20),
+                  title: SelectableText(
+                    address.label ?? 'Address',
+                    style: Theme.of(
+                      ctx,
+                    ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  children: fields.isNotEmpty
+                      ? [
+                          ResponsiveLabelField(
+                            fields: fields,
+                            labelValueSpacing: 4,
+                            layoutAxis: Axis.vertical,
+                          ),
+                        ]
+                      : [],
+                  actions: EntryActionBuilder.buildActions(
+                    context: ctx,
+                    ref: ref,
+                    config: const EntryActionsConfig(showHistory: true),
+                    onCopy: () => onCopy('${address.entryType}\n${address.toFormattedString()}'),
+                    onEdit: onEdit,
+                    onDelete: onDelete,
+                    hasHistory: hasHistory,
+                    historyExpanded: _historyExpanded,
+                    onHistoryToggle: () =>
+                        setState(() => _historyExpanded = !_historyExpanded),
+                    isSensitive: fields.any((f) => f.isSensitive),
+                  ),
+                ),
+                if (hasHistory && _historyExpanded)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32, bottom: 8),
+                    child: FieldHistoryView(
+                      fieldName: 'address.postalCode',
+                      history: history,
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+      onDelete: _onAddressDelete,
+      onSave: _onAddressSave,
+      itemToMap: (a) => {
+        'address.label': a.label ?? '',
+        'address.street': a.street ?? '',
+        'address.city': a.city ?? '',
+        'address.postalCode': a.postalCode ?? '',
+        'address.country': a.country ?? '',
+      },
+      onCopyAll: (address, text) async {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
+      },
+      historyConfig: HistoryRecordingConfig<AddressData>(
+        itemIdExtractor: (a) => a.id,
+        fieldIdPrefix: 'address',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'address',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
 
-/// Wrapper widget for AddressData using UniversalEntryCard + EntryActionBuilder
 class _AddressItem extends ConsumerStatefulWidget {
   final AddressData address;
   final VoidCallback onEdit;
@@ -2752,6 +1861,7 @@ class _AddressItemState extends ConsumerState<_AddressItem> {
             onCopy: _handleCopy,
             onEdit: widget.onEdit,
             onDelete: widget.onDelete,
+            isSensitive: true,
           ),
         ),
         if (hasHistory && _historyExpanded)

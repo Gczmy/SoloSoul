@@ -9,9 +9,8 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
-import 'package:solosoul_flutter/core/services/password_verification_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, EntryActionsContext;
+    show UnifiedFormSection, FormFieldDef, EntryActionsContext, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
@@ -19,7 +18,10 @@ import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart'
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
+    show LogSection, LogAction;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
+    show authNotifierProvider;
 
 class ProfessionalPage extends ConsumerStatefulWidget {
   const ProfessionalPage({super.key});
@@ -480,7 +482,21 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _educationToMap,
-      showInternalActions: false,
+      historyConfig: HistoryRecordingConfig<EducationData>(
+        itemIdExtractor: (e) => e.id,
+        fieldIdPrefix: 'education',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'education',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
@@ -578,6 +594,7 @@ class _EducationItem extends ConsumerWidget {
                 showDelete: true,
                 showHistory: true,
               ),
+              isSensitive: fields.any((f) => f.isSensitive),
             )
           : [
               IconButton(
@@ -804,7 +821,21 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _employmentToMap,
-      showInternalActions: false,
+      historyConfig: HistoryRecordingConfig<EmploymentData>(
+        itemIdExtractor: (e) => e.id,
+        fieldIdPrefix: 'employment',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'employment',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
@@ -889,6 +920,7 @@ class _EmploymentItem extends ConsumerWidget {
                 showDelete: true,
                 showHistory: true,
               ),
+              isSensitive: fields.any((f) => f.isSensitive),
             )
           : [
               IconButton(
@@ -1073,7 +1105,21 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _skillToMap,
-      showInternalActions: false,
+      historyConfig: HistoryRecordingConfig<SkillData>(
+        itemIdExtractor: (s) => s.id,
+        fieldIdPrefix: 'skill',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'skill',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
@@ -1141,6 +1187,7 @@ class _SkillItem extends ConsumerWidget {
                 showDelete: true,
                 showHistory: true,
               ),
+              isSensitive: fields.any((f) => f.isSensitive),
             )
           : [
               IconButton(
@@ -1327,7 +1374,21 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _languageToMap,
-      showInternalActions: false,
+      historyConfig: HistoryRecordingConfig<LanguageData>(
+        itemIdExtractor: (l) => l.id,
+        fieldIdPrefix: 'language',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'language',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
@@ -1395,6 +1456,7 @@ class _LanguageItem extends ConsumerWidget {
                 showDelete: true,
                 showHistory: true,
               ),
+              isSensitive: fields.any((f) => f.isSensitive),
             )
           : [
               IconButton(
@@ -1601,7 +1663,6 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _awardToMap,
-      showInternalActions: false,
     );
   }
 }
@@ -1679,6 +1740,7 @@ class _AwardItem extends ConsumerWidget {
                 showDelete: true,
                 showHistory: true,
               ),
+              isSensitive: fields.any((f) => f.isSensitive),
             )
           : [
               IconButton(
