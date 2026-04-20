@@ -94,7 +94,7 @@ class FieldRegistry {
       fieldId: 'identity.dateOfBirth',
       fieldName: 'Date of Birth',
       fieldSection: 'identity',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'identity.gender',
@@ -106,7 +106,7 @@ class FieldRegistry {
       fieldId: 'identity.nationality',
       fieldName: 'Nationality',
       fieldSection: 'identity',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
 
     // Contact Section
@@ -114,25 +114,25 @@ class FieldRegistry {
       fieldId: 'contact.email',
       fieldName: 'Email',
       fieldSection: 'contact',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'contact.phone',
       fieldName: 'Phone',
       fieldSection: 'contact',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'contact.mobile',
       fieldName: 'Mobile',
       fieldSection: 'contact',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'contact.address',
       fieldName: 'Address',
       fieldSection: 'contact',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
 
     // ID Card Section
@@ -172,13 +172,13 @@ class FieldRegistry {
       fieldId: 'address.street',
       fieldName: 'Street',
       fieldSection: 'address',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'address.city',
       fieldName: 'City',
       fieldSection: 'address',
-      level: SensitivityLevel.public,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'address.state',
@@ -190,7 +190,7 @@ class FieldRegistry {
       fieldId: 'address.postalCode',
       fieldName: 'Postal Code',
       fieldSection: 'address',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'address.country',
@@ -376,7 +376,7 @@ class FieldRegistry {
       fieldId: 'education.gpa',
       fieldName: 'GPA',
       fieldSection: 'education',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'education.startDate',
@@ -408,13 +408,13 @@ class FieldRegistry {
       fieldId: 'employment.workAddress',
       fieldName: 'Work Address',
       fieldSection: 'employment',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'employment.supervisorName',
       fieldName: 'Supervisor Name',
       fieldSection: 'employment',
-      level: SensitivityLevel.internal,
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'employment.monthlySalary',
