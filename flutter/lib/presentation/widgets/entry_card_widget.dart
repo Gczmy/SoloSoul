@@ -59,7 +59,27 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
 
 class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   bool _historyExpanded = false;
-  bool _lastPrivacyMode = false;
+  bool _isAutoCollapsing = false;
+
+  @override
+  void didUpdateWidget(EntryCardWidget<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-collapse when switching to restricted + entering privacy mode
+    if (!oldWidget.isRestricted && widget.isRestricted && !_isAutoCollapsing) {
+      final isPrivacyMode = ref.read(sensitivitySettingsProvider.select(
+        (s) => s.displayMode != SensitivityDisplayMode.showAll,
+      ));
+      if (isPrivacyMode && _historyExpanded) {
+        _isAutoCollapsing = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() => _historyExpanded = false);
+            _isAutoCollapsing = false;
+          }
+        });
+      }
+    }
+  }
 
   FieldHistory? get _history {
     if (widget.itemId == null || widget.historyFieldId == null) return null;
@@ -126,21 +146,6 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final history = _history;
     final hasHistory = history != null;
     final isSensitive = widget.isSensitive || widget.fields.any((f) => f.isSensitive);
-
-    // Auto-collapse restricted history when entering privacy mode
-    if (widget.isRestricted) {
-      final isPrivacyMode = ref.watch(sensitivitySettingsProvider.select(
-        (s) => s.displayMode != SensitivityDisplayMode.showAll,
-      ));
-      // Transition from non-privacy to privacy: collapse if was expanded
-      if (!_lastPrivacyMode && isPrivacyMode && _historyExpanded) {
-        // Use post-frame to avoid setState during build
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() => _historyExpanded = false);
-        });
-      }
-      _lastPrivacyMode = isPrivacyMode;
-    }
 
     // Get EntryActionsContext for use inside UnifiedFormSection
     final actionsContext = EntryActionsContext.of(context);
