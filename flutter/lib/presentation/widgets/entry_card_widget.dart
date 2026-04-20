@@ -65,12 +65,6 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
 class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   String get _historyKey => widget.itemId ?? widget.title;
 
-  bool get _historyExpanded => ref.watch(historyExpandedProvider(_historyKey));
-
-  void _setHistoryExpanded(bool value) {
-    ref.read(historyExpandedProvider(_historyKey).notifier).state = value;
-  }
-
   FieldHistory? get _history {
     if (widget.itemId == null || widget.historyFieldId == null) return null;
     return ref
@@ -90,20 +84,23 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   }
 
   Future<void> _handleHistoryPress(bool isSensitive) async {
+    final historyExpanded = ref.watch(historyExpandedProvider(_historyKey));
+    final isPrivacyMode = ref.watch(sensitivitySettingsProvider.select(
+      (s) => s.displayMode != SensitivityDisplayMode.showAll,
+    ));
+
     // Non-sensitive items: toggle freely
     if (!isSensitive) {
-      _setHistoryExpanded(!_historyExpanded);
+      ref.read(historyExpandedProvider(_historyKey).notifier).state = !historyExpanded;
       return;
     }
 
-    // Restricted items in privacy mode: force collapse if already expanded
-    if (widget.isRestricted) {
-      final sensitivityMode = ref.read(sensitivitySettingsProvider).displayMode;
-      final isPrivacyMode = sensitivityMode != SensitivityDisplayMode.showAll;
-      if (isPrivacyMode && _historyExpanded) {
-        _setHistoryExpanded(false);
-        return;
+    // Restricted items in privacy mode: force collapse if expanded, block toggle
+    if (widget.isRestricted && isPrivacyMode) {
+      if (historyExpanded) {
+        ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
       }
+      return;
     }
 
     // Sensitive items: require password verification
@@ -112,7 +109,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final hasRecentVerification = sensitiveAccess.lastVerified != null &&
         sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
     if (hasRecentVerification) {
-      _setHistoryExpanded(!_historyExpanded);
+      ref.read(historyExpandedProvider(_historyKey).notifier).state = !historyExpanded;
       return;
     }
 
@@ -127,7 +124,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     if (password == null) return;
     ref.read(sensitivePageAccessProvider.notifier).markVerified();
     if (mounted) {
-      _setHistoryExpanded(!_historyExpanded);
+      ref.read(historyExpandedProvider(_historyKey).notifier).state = !historyExpanded;
     }
   }
 
@@ -142,7 +139,8 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       sensitivitySettingsProvider.select((s) => s.displayMode != SensitivityDisplayMode.showAll),
       (previous, isPrivacyMode) {
         if (!widget.isRestricted) return;
-        if ((previous == false || previous == null) && isPrivacyMode) {
+        final wasPrivacyOff = previous == false || previous == null;
+        if (wasPrivacyOff && isPrivacyMode) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
           });
@@ -180,7 +178,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
           bottomActions: [
             TextButton.icon(
               icon: Icon(
-                _historyExpanded ? Icons.expand_less : Icons.history,
+                ref.watch(historyExpandedProvider(_historyKey)) ? Icons.expand_less : Icons.history,
                 size: 16,
               ),
               label: Text('History(${history?.entries.length ?? 0})'),
@@ -198,7 +196,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                 ]
               : [],
         ),
-        if (hasHistory && _historyExpanded)
+        if (hasHistory && ref.watch(historyExpandedProvider(_historyKey)))
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
