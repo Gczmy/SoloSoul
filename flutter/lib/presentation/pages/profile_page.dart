@@ -686,20 +686,17 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         );
       },
       displayItemBuilder: (contact) {
-        final fieldId = contact.type == 'email'
-            ? 'contact.email'
-            : 'contact.phone';
         final fields = <LabelValueField>[
           LabelValueField(
             label: 'Value',
             value: contact.value,
-            fieldId: fieldId,
+            fieldId: 'contact',
             isSensitive: true,
           ),
         ];
         final history = ref
             .watch(fieldHistoriesProvider.notifier)
-            .getHistory(contact.id, fieldId);
+            .getHistory(contact.id, 'contact');
         final hasHistory = history != null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,7 +753,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
               Padding(
                 padding: const EdgeInsets.only(left: 32, bottom: 8),
                 child: FieldHistoryView(
-                  fieldName: fieldId,
+                  fieldName: 'contact',
                   history: history,
                 ),
               ),
