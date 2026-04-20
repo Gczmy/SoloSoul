@@ -143,7 +143,9 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       (previous, isPrivacyMode) {
         if (!widget.isRestricted) return;
         if ((previous == false || previous == null) && isPrivacyMode) {
-          ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+          });
         }
       },
     );
