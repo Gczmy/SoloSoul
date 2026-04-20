@@ -1,23 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    hide SensitivityLevel;
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show showOverlaySnackBar;
+    show showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, EntryActionsContext, HistoryRecordingConfig;
+    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
-    show ResponsiveLabelField, LabelValueField;
-import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
-import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
-import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
-import 'package:solosoul_flutter/core/services/field_history_service.dart';
+    show LabelValueField;
+import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
@@ -479,8 +473,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
               ],
             );
           },
-      displayItemBuilder: (item) =>
-          _EducationItem(item: item, onEdit: () {}, onDelete: () {}),
+      displayItemBuilder: _buildEducationItem,
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _educationToMap,
@@ -503,147 +496,40 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
   }
 }
 
-class _EducationItem extends ConsumerStatefulWidget {
-  final EducationData item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _EducationItem({
-    required this.item,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_EducationItem> createState() => _EducationItemState();
-}
-
-class _EducationItemState extends ConsumerState<_EducationItem> {
-  bool _historyExpanded = false;
-
-  String _displayDegree(EducationData e) {
-    if (e.degree != null && e.degree!.isNotEmpty) {
-      return e.degree!;
+Widget _buildEducationItem(EducationData item) {
+    String displayDegree(EducationData e) {
+      if (e.degree != null && e.degree!.isNotEmpty) return e.degree!;
+      if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty) return e.degreeCustom!;
+      return '';
     }
-    if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty) {
-      return e.degreeCustom!;
-    }
-    return '';
-  }
 
-  @override
-  Widget build(BuildContext context) {
     final subtitleParts = [
-      _displayDegree(widget.item),
-      widget.item.field,
+      displayDegree(item),
+      item.field,
     ].where((p) => p != null && p.isNotEmpty).join(' - ');
 
     final fields = <LabelValueField>[
-      if (_displayDegree(widget.item).isNotEmpty)
-        LabelValueField(label: 'Degree', value: _displayDegree(widget.item)),
-      if (widget.item.field != null && widget.item.field!.isNotEmpty)
-        LabelValueField(label: 'Field', value: widget.item.field!),
-      if (widget.item.startDate != null && widget.item.startDate!.isNotEmpty)
-        LabelValueField(label: 'Start Date', value: widget.item.startDate!),
-      if (widget.item.endDate != null && widget.item.endDate!.isNotEmpty)
-        LabelValueField(label: 'End Date', value: widget.item.endDate!),
+      if (displayDegree(item).isNotEmpty)
+        LabelValueField(label: 'Degree', value: displayDegree(item)),
+      if (item.field != null && item.field!.isNotEmpty)
+        LabelValueField(label: 'Field', value: item.field!),
+      if (item.startDate != null && item.startDate!.isNotEmpty)
+        LabelValueField(label: 'Start Date', value: item.startDate!),
+      if (item.endDate != null && item.endDate!.isNotEmpty)
+        LabelValueField(label: 'End Date', value: item.endDate!),
     ];
 
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.item.id, 'education');
-    final hasHistory = history != null;
-
-    // Get actions from EntryActionsContext (set by UnifiedFormSection)
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: SelectableText(
-            widget.item.institution ?? 'Institution',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          subtitle: subtitleParts.isEmpty
-              ? null
-              : SelectableText(
-                  subtitleParts,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-          leading: Icon(
-            Icons.school,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          children: fields.isNotEmpty
-              ? [
-                  const SizedBox(height: 4),
-                  ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-                ]
-              : [],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'education',
-              history: history,
-            ),
-          ),
-      ],
+    return EntryCardWidget<EducationData>(
+      item: item,
+      title: item.institution ?? 'Institution',
+      subtitle: subtitleParts.isEmpty ? null : subtitleParts,
+      icon: Icons.school,
+      fields: fields,
+      itemId: item.id,
+      historyFieldId: 'education',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
-}
 
 // ============ Employment Section ============
 
@@ -849,8 +735,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) =>
-          _EmploymentItem(item: item, onEdit: () {}, onDelete: () {}),
+      displayItemBuilder: _buildEmploymentItem,
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _employmentToMap,
@@ -873,134 +758,29 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
   }
 }
 
-class _EmploymentItem extends ConsumerStatefulWidget {
-  final EmploymentData item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _EmploymentItem({
-    required this.item,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_EmploymentItem> createState() => _EmploymentItemState();
-}
-
-class _EmploymentItemState extends ConsumerState<_EmploymentItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
+Widget _buildEmploymentItem(EmploymentData item) {
     final fields = <LabelValueField>[
-      if (widget.item.position != null && widget.item.position!.isNotEmpty)
-        LabelValueField(label: 'Position', value: widget.item.position!),
-      if (widget.item.responsibilities != null && widget.item.responsibilities!.isNotEmpty)
-        LabelValueField(
-          label: 'Responsibilities',
-          value: widget.item.responsibilities!,
-        ),
-      if (widget.item.startDate != null && widget.item.startDate!.isNotEmpty)
-        LabelValueField(label: 'Start Date', value: widget.item.startDate!),
-      if (widget.item.endDate != null && widget.item.endDate!.isNotEmpty)
-        LabelValueField(label: 'End Date', value: widget.item.endDate!),
+      if (item.position != null && item.position!.isNotEmpty)
+        LabelValueField(label: 'Position', value: item.position!),
+      if (item.responsibilities != null && item.responsibilities!.isNotEmpty)
+        LabelValueField(label: 'Responsibilities', value: item.responsibilities!),
+      if (item.startDate != null && item.startDate!.isNotEmpty)
+        LabelValueField(label: 'Start Date', value: item.startDate!),
+      if (item.endDate != null && item.endDate!.isNotEmpty)
+        LabelValueField(label: 'End Date', value: item.endDate!),
     ];
 
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.item.id, 'employment');
-    final hasHistory = history != null;
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: SelectableText(
-            widget.item.company ?? 'Company',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          subtitle: widget.item.position != null
-              ? SelectableText(
-                  widget.item.position!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                )
-              : null,
-          leading: Icon(
-            Icons.work,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          children: fields.isNotEmpty
-              ? [
-                  const SizedBox(height: 4),
-                  ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-                ]
-              : [],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'employment',
-              history: history,
-            ),
-          ),
-      ],
+    return EntryCardWidget<EmploymentData>(
+      item: item,
+      title: item.company ?? 'Company',
+      subtitle: item.position,
+      icon: Icons.work,
+      fields: fields,
+      itemId: item.id,
+      historyFieldId: 'employment',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
-}
 
 // ============ Skills Section ============
 
@@ -1164,8 +944,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) =>
-          _SkillItem(item: item, onEdit: () {}, onDelete: () {}),
+      displayItemBuilder: _buildSkillItem,
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _skillToMap,
@@ -1188,117 +967,22 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
   }
 }
 
-class _SkillItem extends ConsumerStatefulWidget {
-  final SkillData item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _SkillItem({
-    required this.item,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_SkillItem> createState() => _SkillItemState();
-}
-
-class _SkillItemState extends ConsumerState<_SkillItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
+Widget _buildSkillItem(SkillData item) {
     final fields = <LabelValueField>[
-      if (widget.item.level != null && widget.item.level!.isNotEmpty)
-        LabelValueField(label: 'Proficiency', value: widget.item.level!),
+      if (item.level != null && item.level!.isNotEmpty)
+        LabelValueField(label: 'Proficiency', value: item.level!),
     ];
 
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.item.id, 'skill');
-    final hasHistory = history != null;
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: SelectableText(
-            widget.item.name,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          leading: Icon(
-            Icons.star,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          children: fields.isNotEmpty
-              ? [
-                  const SizedBox(height: 4),
-                  ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-                ]
-              : [],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'skill',
-              history: history,
-            ),
-          ),
-      ],
+    return EntryCardWidget<SkillData>(
+      item: item,
+      title: item.name,
+      icon: Icons.star,
+      fields: fields,
+      itemId: item.id,
+      historyFieldId: 'skill',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
-}
 
 // ============ Language Section ============
 
@@ -1464,8 +1148,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) =>
-          _LanguageItem(item: item, onEdit: () {}, onDelete: () {}),
+      displayItemBuilder: _buildLanguageItem,
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _languageToMap,
@@ -1488,117 +1171,22 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
   }
 }
 
-class _LanguageItem extends ConsumerStatefulWidget {
-  final LanguageData item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _LanguageItem({
-    required this.item,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_LanguageItem> createState() => _LanguageItemState();
-}
-
-class _LanguageItemState extends ConsumerState<_LanguageItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
+Widget _buildLanguageItem(LanguageData item) {
     final fields = <LabelValueField>[
-      if (widget.item.proficiency != null && widget.item.proficiency!.isNotEmpty)
-        LabelValueField(label: 'Proficiency', value: widget.item.proficiency!),
+      if (item.proficiency != null && item.proficiency!.isNotEmpty)
+        LabelValueField(label: 'Proficiency', value: item.proficiency!),
     ];
 
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.item.id, 'language');
-    final hasHistory = history != null;
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: SelectableText(
-            widget.item.name,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          leading: Icon(
-            Icons.translate,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          children: fields.isNotEmpty
-              ? [
-                  const SizedBox(height: 4),
-                  ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-                ]
-              : [],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'language',
-              history: history,
-            ),
-          ),
-      ],
+    return EntryCardWidget<LanguageData>(
+      item: item,
+      title: item.name,
+      icon: Icons.translate,
+      fields: fields,
+      itemId: item.id,
+      historyFieldId: 'language',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
-}
 
 // ============ Award Section ============
 
@@ -1784,8 +1372,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (item) =>
-          _AwardItem(item: item, onEdit: () {}, onDelete: () {}),
+      displayItemBuilder: _buildAwardItem,
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _awardToMap,
@@ -1808,124 +1395,22 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
   }
 }
 
-class _AwardItem extends ConsumerStatefulWidget {
-  final AwardData item;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _AwardItem({
-    required this.item,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_AwardItem> createState() => _AwardItemState();
-}
-
-class _AwardItemState extends ConsumerState<_AwardItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
+Widget _buildAwardItem(AwardData item) {
     final fields = <LabelValueField>[
-      if (widget.item.date != null && widget.item.date!.isNotEmpty)
-        LabelValueField(label: 'Date', value: widget.item.date!),
-      if (widget.item.description != null && widget.item.description!.isNotEmpty)
-        LabelValueField(label: 'Description', value: widget.item.description!),
+      if (item.date != null && item.date!.isNotEmpty)
+        LabelValueField(label: 'Date', value: item.date!),
+      if (item.description != null && item.description!.isNotEmpty)
+        LabelValueField(label: 'Description', value: item.description!),
     ];
 
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.item.id, 'award');
-    final hasHistory = history != null;
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: SelectableText(
-            widget.item.title ?? 'Award',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          subtitle: widget.item.issuer != null
-              ? SelectableText(
-                  widget.item.issuer!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                )
-              : null,
-          leading: Icon(
-            Icons.emoji_events,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          children: fields.isNotEmpty
-              ? [
-                  const SizedBox(height: 4),
-                  ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-                ]
-              : [],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'award',
-              history: history,
-            ),
-          ),
-      ],
+    return EntryCardWidget<AwardData>(
+      item: item,
+      title: item.title ?? 'Award',
+      subtitle: item.issuer,
+      icon: Icons.emoji_events,
+      fields: fields,
+      itemId: item.id,
+      historyFieldId: 'award',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
-}

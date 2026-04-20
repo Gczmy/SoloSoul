@@ -23,6 +23,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
+import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
@@ -1054,11 +1055,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
               sensitivity: SensitivityLevel.public,
             ),
           ],
-          displayItemBuilder: (card) => _IdCardItem(
-            card: card,
-            onEdit: () {},
-            onDelete: () => _onIdCardDelete(card),
-          ),
+          displayItemBuilder: _buildIdCardItem,
           onDelete: _onIdCardDelete,
           onSave: _onIdCardSave,
           itemToMap: (c) => {
@@ -1098,164 +1095,70 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   }
 }
 
-class _IdCardItem extends ConsumerStatefulWidget {
-  final IdCardData card;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+Widget _buildIdCardItem(IdCardData card) {
+  final hasLabel = card.label != null && card.label!.isNotEmpty;
 
-  const _IdCardItem({
-    required this.card,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_IdCardItem> createState() => _IdCardItemState();
-}
-
-class _IdCardItemState extends ConsumerState<_IdCardItem> {
-  bool _historyExpanded = false;
-
-  String _formatAllFields() => '${widget.card.entryType}\n${widget.card.toFormattedString()}';
-
-  Future<void> _handleCopy() async {
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: 'idCard.number',
+  final fields = <LabelValueField>[];
+  if (hasLabel) {
+    fields.add(LabelValueField(label: 'Label', value: card.label!));
+  }
+  if (card.number != null && card.number!.isNotEmpty) {
+    fields.add(
+      LabelValueField(
+        label: 'ID Number',
+        value: card.number!,
+        fieldId: 'idCard.number',
+        isSensitive: true,
+      ),
     );
-    if (!verified) return;
-    if (!mounted) return;
-    Clipboard.setData(ClipboardData(text: _formatAllFields()));
-    showOverlaySnackBar(
-      context,
-      content: 'Copied to clipboard',
-      type: SnackBarType.success,
+  }
+  if (card.holderName != null && card.holderName!.isNotEmpty) {
+    fields.add(
+      LabelValueField(
+        label: 'Holder Name',
+        value: card.holderName!,
+        fieldId: 'idCard.holderName',
+        isSensitive: true,
+      ),
+    );
+  }
+  if (card.country != null && card.country!.isNotEmpty) {
+    fields.add(
+      LabelValueField(
+        label: 'Country',
+        value: card.country!,
+        fieldId: 'idCard.country',
+      ),
+    );
+  }
+  if (card.issueDate != null && card.issueDate!.isNotEmpty) {
+    fields.add(
+      LabelValueField(
+        label: 'Issue Date',
+        value: card.issueDate!,
+        fieldId: 'idCard.issueDate',
+      ),
+    );
+  }
+  if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
+    fields.add(
+      LabelValueField(
+        label: 'Expiry Date',
+        value: card.expiryDate!,
+        fieldId: 'idCard.expiryDate',
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final hasLabel = widget.card.label != null && widget.card.label!.isNotEmpty;
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.card.id, 'idCard');
-    final hasHistory = history != null;
-
-    // Get actions from EntryActionsContext (set by UnifiedFormSection)
-    final actionsContext = EntryActionsContext.of(context);
-
-    final fields = <LabelValueField>[];
-    if (hasLabel) {
-      fields.add(LabelValueField(label: 'Label', value: widget.card.label!));
-    }
-    if (widget.card.number != null && widget.card.number!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'ID Number',
-          value: widget.card.number!,
-          fieldId: 'idCard.number',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Holder Name',
-          value: widget.card.holderName!,
-          fieldId: 'idCard.holderName',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (widget.card.country != null && widget.card.country!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Country',
-          value: widget.card.country!,
-          fieldId: 'idCard.country',
-        ),
-      );
-    }
-    if (widget.card.issueDate != null && widget.card.issueDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Issue Date',
-          value: widget.card.issueDate!,
-          fieldId: 'idCard.issueDate',
-        ),
-      );
-    }
-    if (widget.card.expiryDate != null && widget.card.expiryDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Expiry Date',
-          value: widget.card.expiryDate!,
-          fieldId: 'idCard.expiryDate',
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          leading: const Icon(Icons.credit_card_outlined, size: 20),
-          title: SelectableText(
-            widget.card.label ?? 'ID Card',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          children: [
-            ResponsiveLabelField(
-              fields: fields,
-              labelValueSpacing: 4,
-              layoutAxis: Axis.vertical,
-            ),
-          ],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  config: const EntryActionsConfig(),
-                  onCopy: _handleCopy,
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  isSensitive: true,
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'idCard.number',
-              history: history,
-            ),
-          ),
-      ],
-    );
-  }
+  return EntryCardWidget<IdCardData>(
+    item: card,
+    title: card.label ?? 'ID Card',
+    icon: Icons.badge_outlined,
+    fields: fields,
+    itemId: card.id,
+    historyFieldId: 'idCard',
+    formatAllFields: (c) => '${c.entryType}\n${c.toFormattedString()}',
+  );
 }
 
 class _AddressTile extends ConsumerStatefulWidget {

@@ -16,10 +16,8 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, EntryActionsContext, HistoryRecordingConfig;
-import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
-import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
-import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
+    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
+import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
@@ -125,6 +123,36 @@ class _BankAccountSection extends ConsumerStatefulWidget {
 }
 
 class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
+  Widget _buildBankAccountItem(BankAccountData account) {
+    final fields = <LabelValueField>[
+      if (account.accountNumber != null && account.accountNumber!.isNotEmpty)
+        LabelValueField(
+          label: 'Account Number',
+          value: account.accountNumber!,
+          fieldId: 'bankaccount.accountNumber',
+          isSensitive: true,
+        ),
+      if (account.swiftBic != null && account.swiftBic!.isNotEmpty)
+        LabelValueField(
+          label: 'SWIFT/BIC',
+          value: account.swiftBic!,
+          fieldId: 'bankaccount.swiftBic',
+          isSensitive: true,
+        ),
+    ];
+
+    return EntryCardWidget<BankAccountData>(
+      item: account,
+      title: account.bankName ?? 'Bank Account',
+      subtitle: account.currency,
+      icon: Icons.account_balance,
+      fields: fields,
+      itemId: account.id,
+      historyFieldId: 'bankAccount',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+    );
+  }
+
   late List<BankAccountData> _accounts;
 
   @override
@@ -317,11 +345,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (account) => _BankAccountItem(
-        account: account,
-        onEdit: () {},
-        onDelete: () => _onAccountDelete(account),
-      ),
+      displayItemBuilder: _buildBankAccountItem,
       onDelete: _onAccountDelete,
       onSave: _onAccountSave,
       itemToMap: _accountToMap,
@@ -361,6 +385,36 @@ class _CardSection extends ConsumerStatefulWidget {
 }
 
 class _CardSectionState extends ConsumerState<_CardSection> {
+  Widget _buildCardItem(CardData card) {
+    final fields = <LabelValueField>[
+      if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
+        LabelValueField(
+          label: 'Card Number',
+          value: card.cardNumber!,
+          fieldId: 'card.cardNumber',
+          isSensitive: true,
+        ),
+      if (card.holderName != null && card.holderName!.isNotEmpty)
+        LabelValueField(
+          label: 'Holder Name',
+          value: card.holderName!,
+          fieldId: 'card.holderName',
+          isSensitive: true,
+        ),
+    ];
+
+    return EntryCardWidget<CardData>(
+      item: card,
+      title: card.cardType ?? 'Card',
+      subtitle: card.expiryDate,
+      icon: Icons.credit_card,
+      fields: fields,
+      itemId: card.id,
+      historyFieldId: 'card',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+    );
+  }
+
   late List<CardData> _cards;
 
   @override
@@ -544,11 +598,7 @@ class _CardSectionState extends ConsumerState<_CardSection> {
           sensitivity: SensitivityLevel.private,
         ),
       ],
-      displayItemBuilder: (card) => _CardItem(
-        card: card,
-        onEdit: () {},
-        onDelete: () => _onCardDelete(card),
-      ),
+      displayItemBuilder: _buildCardItem,
       onDelete: _onCardDelete,
       onSave: _onCardSave,
       itemToMap: _cardToMap,
@@ -588,6 +638,36 @@ class _TaxIdSection extends ConsumerStatefulWidget {
 }
 
 class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
+  Widget _buildTaxIdItem(TaxIdData taxId) {
+    final fields = <LabelValueField>[
+      if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
+        LabelValueField(
+          label: 'Tax ID Number',
+          value: taxId.taxIdNumber!,
+          fieldId: 'taxId.taxIdNumber',
+          isSensitive: true,
+        ),
+      if (taxId.issuingAuthority != null && taxId.issuingAuthority!.isNotEmpty)
+        LabelValueField(
+          label: 'Issuing Authority',
+          value: taxId.issuingAuthority!,
+          fieldId: 'taxId.issuingAuthority',
+          isSensitive: false,
+        ),
+    ];
+
+    return EntryCardWidget<TaxIdData>(
+      item: taxId,
+      title: taxId.taxIdType ?? 'Tax ID',
+      subtitle: taxId.country,
+      icon: Icons.badge,
+      fields: fields,
+      itemId: taxId.id,
+      historyFieldId: 'taxId',
+      formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+    );
+  }
+
   late List<TaxIdData> _taxIds;
 
   @override
@@ -771,11 +851,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
           sensitivity: SensitivityLevel.public,
         ),
       ],
-      displayItemBuilder: (taxId) => _TaxIdItem(
-        taxId: taxId,
-        onEdit: () {},
-        onDelete: () => _onTaxIdDelete(taxId),
-      ),
+      displayItemBuilder: _buildTaxIdItem,
       onDelete: _onTaxIdDelete,
       onSave: _onTaxIdSave,
       itemToMap: _taxIdToMap,
@@ -803,375 +879,6 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
         );
         await _onTaxIdSave(null, values, editingItem);
       },
-    );
-  }
-}
-
-// ============ Bank Account Item ============
-
-class _BankAccountItem extends ConsumerStatefulWidget {
-  final BankAccountData account;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _BankAccountItem({
-    required this.account,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_BankAccountItem> createState() => _BankAccountItemState();
-}
-
-class _BankAccountItemState extends ConsumerState<_BankAccountItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.account.id, 'bankAccount');
-    final hasHistory = history != null;
-    final fields = <LabelValueField>[
-      if (widget.account.accountNumber != null && widget.account.accountNumber!.isNotEmpty)
-        LabelValueField(
-          label: 'Account Number',
-          value: widget.account.accountNumber!,
-          fieldId: 'bankaccount.accountNumber',
-          isSensitive: true,
-        ),
-      if (widget.account.swiftBic != null && widget.account.swiftBic!.isNotEmpty)
-        LabelValueField(
-          label: 'SWIFT/BIC',
-          value: widget.account.swiftBic!,
-          fieldId: 'bankaccount.swiftBic',
-          isSensitive: true,
-        ),
-    ];
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: Text(widget.account.bankName ?? 'Bank Account'),
-          subtitle: widget.account.currency != null
-              ? Text(
-                  widget.account.currency!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                )
-              : null,
-          leading: Icon(
-            Icons.account_balance,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.account.entryType}\n${widget.account.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: const EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-          children: [
-            ResponsiveLabelField(
-              fields: fields,
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'bankAccount',
-              history: history,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ============ Card Item ============
-
-class _CardItem extends ConsumerStatefulWidget {
-  final CardData card;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _CardItem({
-    required this.card,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_CardItem> createState() => _CardItemState();
-}
-
-class _CardItemState extends ConsumerState<_CardItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.card.id, 'card');
-    final hasHistory = history != null;
-    final fields = <LabelValueField>[
-      if (widget.card.cardNumber != null && widget.card.cardNumber!.isNotEmpty)
-        LabelValueField(
-          label: 'Card Number',
-          value: widget.card.cardNumber!,
-          fieldId: 'card.cardNumber',
-          isSensitive: true,
-        ),
-      if (widget.card.holderName != null && widget.card.holderName!.isNotEmpty)
-        LabelValueField(
-          label: 'Holder Name',
-          value: widget.card.holderName!,
-          fieldId: 'card.holderName',
-          isSensitive: true,
-        ),
-    ];
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: Text(widget.card.cardType ?? 'Card'),
-          subtitle: widget.card.expiryDate != null
-              ? Text(
-                  widget.card.expiryDate!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                )
-              : null,
-          leading: Icon(
-            Icons.credit_card,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.card.entryType}\n${widget.card.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: const EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-          children: [
-            ResponsiveLabelField(
-              fields: fields,
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'card',
-              history: history,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ============ Tax ID Item ============
-
-class _TaxIdItem extends ConsumerStatefulWidget {
-  final TaxIdData taxId;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _TaxIdItem({
-    required this.taxId,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_TaxIdItem> createState() => _TaxIdItemState();
-}
-
-class _TaxIdItemState extends ConsumerState<_TaxIdItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.taxId.id, 'taxId');
-    final hasHistory = history != null;
-    final fields = <LabelValueField>[
-      if (widget.taxId.taxIdNumber != null && widget.taxId.taxIdNumber!.isNotEmpty)
-        LabelValueField(
-          label: 'Tax ID Number',
-          value: widget.taxId.taxIdNumber!,
-          fieldId: 'taxId.taxIdNumber',
-          isSensitive: true,
-        ),
-      if (widget.taxId.issuingAuthority != null && widget.taxId.issuingAuthority!.isNotEmpty)
-        LabelValueField(
-          label: 'Issuing Authority',
-          value: widget.taxId.issuingAuthority!,
-          fieldId: 'taxId.issuingAuthority',
-          isSensitive: false,
-        ),
-    ];
-
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          title: Text(widget.taxId.taxIdType ?? 'Tax ID'),
-          subtitle: widget.taxId.country != null
-              ? Text(
-                  widget.taxId.country!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                )
-              : null,
-          leading: Icon(
-            Icons.badge,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  onCopy: () {
-                    final formatted = '${widget.taxId.entryType}\n${widget.taxId.toFormattedString()}';
-                    Clipboard.setData(ClipboardData(text: formatted));
-                    showOverlaySnackBar(
-                      context,
-                      content: 'Copied to clipboard',
-                      type: SnackBarType.success,
-                    );
-                  },
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  config: const EntryActionsConfig(
-                    showCopy: true,
-                    showEdit: true,
-                    showDelete: true,
-                  ),
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
-          children: [
-            ResponsiveLabelField(
-              fields: fields,
-            ),
-          ],
-        ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'taxId',
-              history: history,
-            ),
-          ),
-      ],
     );
   }
 }
