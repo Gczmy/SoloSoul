@@ -373,14 +373,16 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
                       showCopy: true,
                       showEdit: true,
                       showDelete: true,
-                      showHistory: true,
                     ),
-                    hasHistory: hasHistory,
-                    historyExpanded: _historyExpanded,
-                    onHistoryToggle: () =>
-                        setState(() => _historyExpanded = !_historyExpanded),
                     isSensitive: fields.any((f) => f.isSensitive),
                   ),
+                  bottomActions: [
+                    TextButton.icon(
+                      icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+                      label: Text('History(${history?.entries.length ?? 0})'),
+                      onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+                    ),
+                  ],
                   children: fields.isNotEmpty
                       ? [
                           const SizedBox(height: 4),
@@ -691,14 +693,16 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
                       showCopy: true,
                       showEdit: true,
                       showDelete: true,
-                      showHistory: true,
                     ),
-                    hasHistory: hasHistory,
-                    historyExpanded: _historyExpanded,
-                    onHistoryToggle: () =>
-                        setState(() => _historyExpanded = !_historyExpanded),
                     isSensitive: fields.any((f) => f.isSensitive),
                   ),
+                  bottomActions: [
+                    TextButton.icon(
+                      icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+                      label: Text('History(${history?.entries.length ?? 0})'),
+                      onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+                    ),
+                  ],
                   children: fields.isNotEmpty
                       ? [
                           const SizedBox(height: 4),
@@ -1432,14 +1436,16 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
                       showCopy: true,
                       showEdit: true,
                       showDelete: true,
-                      showHistory: true,
                     ),
-                    hasHistory: hasHistory,
-                    historyExpanded: _historyExpanded,
-                    onHistoryToggle: () =>
-                        setState(() => _historyExpanded = !_historyExpanded),
                     isSensitive: fields.any((f) => f.isSensitive),
                   ),
+                  bottomActions: [
+                    TextButton.icon(
+                      icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+                      label: Text('History(${history?.entries.length ?? 0})'),
+                      onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+                    ),
+                  ],
                   children: fields.isNotEmpty
                       ? [
                           const SizedBox(height: 4),

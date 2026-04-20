@@ -16,9 +16,6 @@ class EntryActionBuilder {
     required VoidCallback onEdit,
     required VoidCallback onDelete,
     EntryActionsConfig config = const EntryActionsConfig(),
-    bool historyExpanded = false,
-    VoidCallback? onHistoryToggle,
-    bool hasHistory = false,
     bool isSensitive = false,
   }) {
     final actions = <Widget>[];
@@ -67,16 +64,6 @@ class EntryActionBuilder {
                   onSuccess: onDelete,
                 )
               : onDelete,
-        ),
-      );
-    }
-
-    if (config.showHistory && hasHistory) {
-      actions.add(
-        buildButton(
-          icon: historyExpanded ? Icons.expand_less : Icons.history,
-          tooltip: 'History',
-          onPressed: onHistoryToggle,
         ),
       );
     }

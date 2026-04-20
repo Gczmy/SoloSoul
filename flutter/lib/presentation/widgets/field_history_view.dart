@@ -10,13 +10,13 @@ import 'package:solosoul_flutter/presentation/widgets/password_verification_dial
 /// Widget to display and animate field history
 class FieldHistoryView extends ConsumerStatefulWidget {
   final String fieldName;
-  final FieldHistory history;
+  final FieldHistory? history;
   final bool initiallyExpanded;
 
   const FieldHistoryView({
     super.key,
     required this.fieldName,
-    required this.history,
+    this.history,
     this.initiallyExpanded = false,
   });
 
@@ -99,7 +99,8 @@ class _FieldHistoryViewState extends ConsumerState<FieldHistoryView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final entries = widget.history.entries;
+    final history = widget.history;
+    final entries = history?.entries ?? [];
     final latestEntry = entries.isNotEmpty ? entries.last : null;
 
     return Column(

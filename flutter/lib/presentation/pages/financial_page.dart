@@ -373,14 +373,16 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
                       showCopy: true,
                       showEdit: true,
                       showDelete: true,
-                      showHistory: true,
                     ),
-                    hasHistory: hasHistory,
-                    historyExpanded: _historyExpanded,
-                    onHistoryToggle: () =>
-                        setState(() => _historyExpanded = !_historyExpanded),
                     isSensitive: fields.any((f) => f.isSensitive),
                   ),
+                  bottomActions: [
+                    TextButton.icon(
+                      icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+                      label: Text('History(${history?.entries.length ?? 0})'),
+                      onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+                    ),
+                  ],
                   children: [
                     ResponsiveLabelField(
                       fields: fields,
@@ -678,14 +680,16 @@ class _CardSectionState extends ConsumerState<_CardSection> {
                       showCopy: true,
                       showEdit: true,
                       showDelete: true,
-                      showHistory: true,
                     ),
-                    hasHistory: hasHistory,
-                    historyExpanded: _historyExpanded,
-                    onHistoryToggle: () =>
-                        setState(() => _historyExpanded = !_historyExpanded),
                     isSensitive: fields.any((f) => f.isSensitive),
                   ),
+                  bottomActions: [
+                    TextButton.icon(
+                      icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+                      label: Text('History(${history?.entries.length ?? 0})'),
+                      onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+                    ),
+                  ],
                   children: [
                     ResponsiveLabelField(
                       fields: fields,
@@ -983,14 +987,16 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
                       showCopy: true,
                       showEdit: true,
                       showDelete: true,
-                      showHistory: true,
                     ),
-                    hasHistory: hasHistory,
-                    historyExpanded: _historyExpanded,
-                    onHistoryToggle: () =>
-                        setState(() => _historyExpanded = !_historyExpanded),
                     isSensitive: fields.any((f) => f.isSensitive),
                   ),
+                  bottomActions: [
+                    TextButton.icon(
+                      icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+                      label: Text('History(${history?.entries.length ?? 0})'),
+                      onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+                    ),
+                  ],
                   children: [
                     ResponsiveLabelField(
                       fields: fields,

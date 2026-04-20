@@ -609,12 +609,7 @@ class _EducationItemState extends ConsumerState<_EducationItem> {
                     showCopy: true,
                     showEdit: true,
                     showDelete: true,
-                    showHistory: true,
                   ),
-                  hasHistory: hasHistory,
-                  historyExpanded: _historyExpanded,
-                  onHistoryToggle: () =>
-                      setState(() => _historyExpanded = !_historyExpanded),
                   isSensitive: fields.any((f) => f.isSensitive),
                 )
               : [
@@ -629,6 +624,13 @@ class _EducationItemState extends ConsumerState<_EducationItem> {
                     onPressed: widget.onDelete,
                   ),
                 ],
+          bottomActions: [
+            TextButton.icon(
+              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+              label: Text('History(${history?.entries.length ?? 0})'),
+              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+            ),
+          ],
         ),
         if (hasHistory && _historyExpanded)
           Padding(
@@ -964,12 +966,7 @@ class _EmploymentItemState extends ConsumerState<_EmploymentItem> {
                     showCopy: true,
                     showEdit: true,
                     showDelete: true,
-                    showHistory: true,
                   ),
-                  hasHistory: hasHistory,
-                  historyExpanded: _historyExpanded,
-                  onHistoryToggle: () =>
-                      setState(() => _historyExpanded = !_historyExpanded),
                   isSensitive: fields.any((f) => f.isSensitive),
                 )
               : [
@@ -984,6 +981,13 @@ class _EmploymentItemState extends ConsumerState<_EmploymentItem> {
                     onPressed: widget.onDelete,
                   ),
                 ],
+          bottomActions: [
+            TextButton.icon(
+              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+              label: Text('History(${history?.entries.length ?? 0})'),
+              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+            ),
+          ],
         ),
         if (hasHistory && _historyExpanded)
           Padding(
@@ -1260,12 +1264,7 @@ class _SkillItemState extends ConsumerState<_SkillItem> {
                     showCopy: true,
                     showEdit: true,
                     showDelete: true,
-                    showHistory: true,
                   ),
-                  hasHistory: hasHistory,
-                  historyExpanded: _historyExpanded,
-                  onHistoryToggle: () =>
-                      setState(() => _historyExpanded = !_historyExpanded),
                   isSensitive: fields.any((f) => f.isSensitive),
                 )
               : [
@@ -1280,6 +1279,13 @@ class _SkillItemState extends ConsumerState<_SkillItem> {
                     onPressed: widget.onDelete,
                   ),
                 ],
+          bottomActions: [
+            TextButton.icon(
+              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+              label: Text('History(${history?.entries.length ?? 0})'),
+              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+            ),
+          ],
         ),
         if (hasHistory && _historyExpanded)
           Padding(
@@ -1558,12 +1564,7 @@ class _LanguageItemState extends ConsumerState<_LanguageItem> {
                     showCopy: true,
                     showEdit: true,
                     showDelete: true,
-                    showHistory: true,
                   ),
-                  hasHistory: hasHistory,
-                  historyExpanded: _historyExpanded,
-                  onHistoryToggle: () =>
-                      setState(() => _historyExpanded = !_historyExpanded),
                   isSensitive: fields.any((f) => f.isSensitive),
                 )
               : [
@@ -1578,6 +1579,13 @@ class _LanguageItemState extends ConsumerState<_LanguageItem> {
                     onPressed: widget.onDelete,
                   ),
                 ],
+          bottomActions: [
+            TextButton.icon(
+              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+              label: Text('History(${history?.entries.length ?? 0})'),
+              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+            ),
+          ],
         ),
         if (hasHistory && _historyExpanded)
           Padding(
@@ -1886,12 +1894,7 @@ class _AwardItemState extends ConsumerState<_AwardItem> {
                     showCopy: true,
                     showEdit: true,
                     showDelete: true,
-                    showHistory: true,
                   ),
-                  hasHistory: hasHistory,
-                  historyExpanded: _historyExpanded,
-                  onHistoryToggle: () =>
-                      setState(() => _historyExpanded = !_historyExpanded),
                   isSensitive: fields.any((f) => f.isSensitive),
                 )
               : [
@@ -1906,6 +1909,13 @@ class _AwardItemState extends ConsumerState<_AwardItem> {
                     onPressed: widget.onDelete,
                   ),
                 ],
+          bottomActions: [
+            TextButton.icon(
+              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
+              label: Text('History(${history?.entries.length ?? 0})'),
+              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
+            ),
+          ],
         ),
         if (hasHistory && _historyExpanded)
           Padding(

@@ -8,6 +8,7 @@ class UniversalEntryCard extends StatelessWidget {
   final Widget? leading;
   final List<Widget> actions;
   final List<Widget> children;
+  final List<Widget> bottomActions;
 
   const UniversalEntryCard({
     super.key,
@@ -16,39 +17,47 @@ class UniversalEntryCard extends StatelessWidget {
     this.leading,
     this.actions = const [],
     this.children = const [],
+    this.bottomActions = const [],
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left icon
-          if (leading != null) ...[
-            Padding(padding: const EdgeInsets.only(top: 2), child: leading),
-            const SizedBox(width: 12),
-          ],
-          // Content: title, subtitle, children
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                title,
-                if (subtitle != null) subtitle!,
-                if (children.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  ...children,
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left icon
+              if (leading != null) ...[
+                Padding(padding: const EdgeInsets.only(top: 2), child: leading),
+                const SizedBox(width: 12),
               ],
-            ),
+              // Content: title, subtitle, children
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    title,
+                    if (subtitle != null) subtitle!,
+                    if (children.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      ...children,
+                    ],
+                  ],
+                ),
+              ),
+              // Action buttons
+              if (actions.isNotEmpty)
+                Row(mainAxisSize: MainAxisSize.min, children: actions),
+            ],
           ),
-          // Action buttons
-          if (actions.isNotEmpty)
-            Row(mainAxisSize: MainAxisSize.min, children: actions),
-        ],
-      ),
+        ),
+        // Bottom actions (e.g., history button)
+        if (bottomActions.isNotEmpty) ...bottomActions,
+      ],
     );
   }
 }

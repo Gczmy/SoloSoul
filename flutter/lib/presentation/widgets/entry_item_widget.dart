@@ -151,7 +151,6 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final history = _fetchedHistory;
-    final hasHistory = history != null;
 
     // Check for external callbacks from EntryActionsContext (provided by UnifiedFormSection)
     final actionsContext = EntryActionsContext.of(context);
@@ -259,24 +258,25 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
                   },
                   visualDensity: VisualDensity.compact,
                 ),
-              // History button
-              if (widget.actionsConfig.showHistory && hasHistory)
-                IconButton(
-                  icon: Icon(
-                    _historyExpanded ? Icons.expand_less : Icons.history,
-                    size: 20,
-                  ),
-                  tooltip: 'History',
-                  onPressed: () {
-                    setState(() => _historyExpanded = !_historyExpanded);
-                  },
-                  visualDensity: VisualDensity.compact,
-                ),
             ],
           ),
         ),
+        // History button (always shown below entry when enabled)
+        if (widget.actionsConfig.showHistory)
+          TextButton.icon(
+            icon: Icon(
+              _historyExpanded ? Icons.expand_less : Icons.history,
+              size: 16,
+            ),
+            label: Text(
+              'History(${history?.entries.length ?? 0})',
+            ),
+            onPressed: () {
+              setState(() => _historyExpanded = !_historyExpanded);
+            },
+          ),
         // History view
-        if (hasHistory && _historyExpanded)
+        if (_historyExpanded)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
