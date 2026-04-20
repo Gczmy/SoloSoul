@@ -16,6 +16,8 @@ import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dar
     show ResponsiveLabelField, LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
+import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
+import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
@@ -501,7 +503,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
   }
 }
 
-class _EducationItem extends ConsumerWidget {
+class _EducationItem extends ConsumerStatefulWidget {
   final EducationData item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -511,6 +513,13 @@ class _EducationItem extends ConsumerWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
+  @override
+  ConsumerState<_EducationItem> createState() => _EducationItemState();
+}
+
+class _EducationItemState extends ConsumerState<_EducationItem> {
+  bool _historyExpanded = false;
 
   String _displayDegree(EducationData e) {
     if (e.degree != null && e.degree!.isNotEmpty) {
@@ -523,91 +532,113 @@ class _EducationItem extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final subtitleParts = [
-      _displayDegree(item),
-      item.field,
+      _displayDegree(widget.item),
+      widget.item.field,
     ].where((p) => p != null && p.isNotEmpty).join(' - ');
 
     final fields = <LabelValueField>[
-      if (_displayDegree(item).isNotEmpty)
-        LabelValueField(label: 'Degree', value: _displayDegree(item)),
-      if (item.field != null && item.field!.isNotEmpty)
-        LabelValueField(label: 'Field', value: item.field!),
-      if (item.startDate != null && item.startDate!.isNotEmpty)
-        LabelValueField(label: 'Start Date', value: item.startDate!),
-      if (item.endDate != null && item.endDate!.isNotEmpty)
-        LabelValueField(label: 'End Date', value: item.endDate!),
+      if (_displayDegree(widget.item).isNotEmpty)
+        LabelValueField(label: 'Degree', value: _displayDegree(widget.item)),
+      if (widget.item.field != null && widget.item.field!.isNotEmpty)
+        LabelValueField(label: 'Field', value: widget.item.field!),
+      if (widget.item.startDate != null && widget.item.startDate!.isNotEmpty)
+        LabelValueField(label: 'Start Date', value: widget.item.startDate!),
+      if (widget.item.endDate != null && widget.item.endDate!.isNotEmpty)
+        LabelValueField(label: 'End Date', value: widget.item.endDate!),
     ];
+
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.item.id, 'education');
+    final hasHistory = history != null;
 
     // Get actions from EntryActionsContext (set by UnifiedFormSection)
     final actionsContext = EntryActionsContext.of(context);
 
-    return UniversalEntryCard(
-      title: SelectableText(
-        item.institution ?? 'Institution',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: subtitleParts.isEmpty
-          ? null
-          : SelectableText(
-              subtitleParts,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          title: SelectableText(
+            widget.item.institution ?? 'Institution',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          subtitle: subtitleParts.isEmpty
+              ? null
+              : SelectableText(
+                  subtitleParts,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+          leading: Icon(
+            Icons.school,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          children: fields.isNotEmpty
+              ? [
+                  const SizedBox(height: 4),
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ]
+              : [],
+          actions: actionsContext != null
+              ? EntryActionBuilder.buildActions(
+                  context: context,
+                  ref: ref,
+                  onCopy: () {
+                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
+                    Clipboard.setData(ClipboardData(text: formatted));
+                    showOverlaySnackBar(
+                      context,
+                      content: 'Copied to clipboard',
+                      type: SnackBarType.success,
+                    );
+                  },
+                  onEdit: actionsContext.onEdit ?? widget.onEdit,
+                  onDelete: actionsContext.onDelete ?? widget.onDelete,
+                  config: EntryActionsConfig(
+                    showCopy: true,
+                    showEdit: true,
+                    showDelete: true,
+                    showHistory: true,
+                  ),
+                  hasHistory: hasHistory,
+                  historyExpanded: _historyExpanded,
+                  onHistoryToggle: () =>
+                      setState(() => _historyExpanded = !_historyExpanded),
+                  isSensitive: fields.any((f) => f.isSensitive),
+                )
+              : [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit',
+                    onPressed: widget.onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Delete',
+                    onPressed: widget.onDelete,
+                  ),
+                ],
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'education',
+              history: history,
             ),
-      leading: Icon(
-        Icons.school,
-        size: 20,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      children: fields.isNotEmpty
-          ? [
-              const SizedBox(height: 4),
-              ResponsiveLabelField(
-                fields: fields,
-                labelValueSpacing: 4,
-                layoutAxis: Axis.vertical,
-              ),
-            ]
-          : [],
-      actions: actionsContext != null
-          ? EntryActionBuilder.buildActions(
-              context: context,
-              ref: ref,
-              onCopy: () {
-                final formatted = '${item.entryType}\n${item.toFormattedString()}';
-                Clipboard.setData(ClipboardData(text: formatted));
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
-              onEdit: actionsContext.onEdit ?? onEdit,
-              onDelete: actionsContext.onDelete ?? onDelete,
-              config: EntryActionsConfig(
-                showCopy: true,
-                showEdit: true,
-                showDelete: true,
-                showHistory: true,
-              ),
-              isSensitive: fields.any((f) => f.isSensitive),
-            )
-          : [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: onDelete,
-              ),
-            ],
+          ),
+      ],
     );
   }
 }
@@ -840,7 +871,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
   }
 }
 
-class _EmploymentItem extends ConsumerWidget {
+class _EmploymentItem extends ConsumerStatefulWidget {
   final EmploymentData item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -852,88 +883,117 @@ class _EmploymentItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_EmploymentItem> createState() => _EmploymentItemState();
+}
+
+class _EmploymentItemState extends ConsumerState<_EmploymentItem> {
+  bool _historyExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final fields = <LabelValueField>[
-      if (item.position != null && item.position!.isNotEmpty)
-        LabelValueField(label: 'Position', value: item.position!),
-      if (item.responsibilities != null && item.responsibilities!.isNotEmpty)
+      if (widget.item.position != null && widget.item.position!.isNotEmpty)
+        LabelValueField(label: 'Position', value: widget.item.position!),
+      if (widget.item.responsibilities != null && widget.item.responsibilities!.isNotEmpty)
         LabelValueField(
           label: 'Responsibilities',
-          value: item.responsibilities!,
+          value: widget.item.responsibilities!,
         ),
-      if (item.startDate != null && item.startDate!.isNotEmpty)
-        LabelValueField(label: 'Start Date', value: item.startDate!),
-      if (item.endDate != null && item.endDate!.isNotEmpty)
-        LabelValueField(label: 'End Date', value: item.endDate!),
+      if (widget.item.startDate != null && widget.item.startDate!.isNotEmpty)
+        LabelValueField(label: 'Start Date', value: widget.item.startDate!),
+      if (widget.item.endDate != null && widget.item.endDate!.isNotEmpty)
+        LabelValueField(label: 'End Date', value: widget.item.endDate!),
     ];
+
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.item.id, 'employment');
+    final hasHistory = history != null;
 
     final actionsContext = EntryActionsContext.of(context);
 
-    return UniversalEntryCard(
-      title: SelectableText(
-        item.company ?? 'Company',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: item.position != null
-          ? SelectableText(
-              item.position!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            )
-          : null,
-      leading: Icon(
-        Icons.work,
-        size: 20,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      children: fields.isNotEmpty
-          ? [
-              const SizedBox(height: 4),
-              ResponsiveLabelField(
-                fields: fields,
-                labelValueSpacing: 4,
-                layoutAxis: Axis.vertical,
-              ),
-            ]
-          : [],
-      actions: actionsContext != null
-          ? EntryActionBuilder.buildActions(
-              context: context,
-              ref: ref,
-              onCopy: () {
-                final formatted = '${item.entryType}\n${item.toFormattedString()}';
-                Clipboard.setData(ClipboardData(text: formatted));
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
-              onEdit: actionsContext.onEdit ?? onEdit,
-              onDelete: actionsContext.onDelete ?? onDelete,
-              config: EntryActionsConfig(
-                showCopy: true,
-                showEdit: true,
-                showDelete: true,
-                showHistory: true,
-              ),
-              isSensitive: fields.any((f) => f.isSensitive),
-            )
-          : [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: onDelete,
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          title: SelectableText(
+            widget.item.company ?? 'Company',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          subtitle: widget.item.position != null
+              ? SelectableText(
+                  widget.item.position!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                )
+              : null,
+          leading: Icon(
+            Icons.work,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          children: fields.isNotEmpty
+              ? [
+                  const SizedBox(height: 4),
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ]
+              : [],
+          actions: actionsContext != null
+              ? EntryActionBuilder.buildActions(
+                  context: context,
+                  ref: ref,
+                  onCopy: () {
+                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
+                    Clipboard.setData(ClipboardData(text: formatted));
+                    showOverlaySnackBar(
+                      context,
+                      content: 'Copied to clipboard',
+                      type: SnackBarType.success,
+                    );
+                  },
+                  onEdit: actionsContext.onEdit ?? widget.onEdit,
+                  onDelete: actionsContext.onDelete ?? widget.onDelete,
+                  config: EntryActionsConfig(
+                    showCopy: true,
+                    showEdit: true,
+                    showDelete: true,
+                    showHistory: true,
+                  ),
+                  hasHistory: hasHistory,
+                  historyExpanded: _historyExpanded,
+                  onHistoryToggle: () =>
+                      setState(() => _historyExpanded = !_historyExpanded),
+                  isSensitive: fields.any((f) => f.isSensitive),
+                )
+              : [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit',
+                    onPressed: widget.onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Delete',
+                    onPressed: widget.onDelete,
+                  ),
+                ],
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'employment',
+              history: history,
+            ),
+          ),
+      ],
     );
   }
 }
@@ -1124,7 +1184,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
   }
 }
 
-class _SkillItem extends ConsumerWidget {
+class _SkillItem extends ConsumerStatefulWidget {
   final SkillData item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -1136,71 +1196,100 @@ class _SkillItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SkillItem> createState() => _SkillItemState();
+}
+
+class _SkillItemState extends ConsumerState<_SkillItem> {
+  bool _historyExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final fields = <LabelValueField>[
-      if (item.level != null && item.level!.isNotEmpty)
-        LabelValueField(label: 'Proficiency', value: item.level!),
+      if (widget.item.level != null && widget.item.level!.isNotEmpty)
+        LabelValueField(label: 'Proficiency', value: widget.item.level!),
     ];
+
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.item.id, 'skill');
+    final hasHistory = history != null;
 
     final actionsContext = EntryActionsContext.of(context);
 
-    return UniversalEntryCard(
-      title: SelectableText(
-        item.name,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      leading: Icon(
-        Icons.star,
-        size: 20,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      children: fields.isNotEmpty
-          ? [
-              const SizedBox(height: 4),
-              ResponsiveLabelField(
-                fields: fields,
-                labelValueSpacing: 4,
-                layoutAxis: Axis.vertical,
-              ),
-            ]
-          : [],
-      actions: actionsContext != null
-          ? EntryActionBuilder.buildActions(
-              context: context,
-              ref: ref,
-              onCopy: () {
-                final formatted = '${item.entryType}\n${item.toFormattedString()}';
-                Clipboard.setData(ClipboardData(text: formatted));
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
-              onEdit: actionsContext.onEdit ?? onEdit,
-              onDelete: actionsContext.onDelete ?? onDelete,
-              config: EntryActionsConfig(
-                showCopy: true,
-                showEdit: true,
-                showDelete: true,
-                showHistory: true,
-              ),
-              isSensitive: fields.any((f) => f.isSensitive),
-            )
-          : [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: onDelete,
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          title: SelectableText(
+            widget.item.name,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          leading: Icon(
+            Icons.star,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          children: fields.isNotEmpty
+              ? [
+                  const SizedBox(height: 4),
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ]
+              : [],
+          actions: actionsContext != null
+              ? EntryActionBuilder.buildActions(
+                  context: context,
+                  ref: ref,
+                  onCopy: () {
+                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
+                    Clipboard.setData(ClipboardData(text: formatted));
+                    showOverlaySnackBar(
+                      context,
+                      content: 'Copied to clipboard',
+                      type: SnackBarType.success,
+                    );
+                  },
+                  onEdit: actionsContext.onEdit ?? widget.onEdit,
+                  onDelete: actionsContext.onDelete ?? widget.onDelete,
+                  config: EntryActionsConfig(
+                    showCopy: true,
+                    showEdit: true,
+                    showDelete: true,
+                    showHistory: true,
+                  ),
+                  hasHistory: hasHistory,
+                  historyExpanded: _historyExpanded,
+                  onHistoryToggle: () =>
+                      setState(() => _historyExpanded = !_historyExpanded),
+                  isSensitive: fields.any((f) => f.isSensitive),
+                )
+              : [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit',
+                    onPressed: widget.onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Delete',
+                    onPressed: widget.onDelete,
+                  ),
+                ],
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'skill',
+              history: history,
+            ),
+          ),
+      ],
     );
   }
 }
@@ -1393,7 +1482,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
   }
 }
 
-class _LanguageItem extends ConsumerWidget {
+class _LanguageItem extends ConsumerStatefulWidget {
   final LanguageData item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -1405,71 +1494,100 @@ class _LanguageItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_LanguageItem> createState() => _LanguageItemState();
+}
+
+class _LanguageItemState extends ConsumerState<_LanguageItem> {
+  bool _historyExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final fields = <LabelValueField>[
-      if (item.proficiency != null && item.proficiency!.isNotEmpty)
-        LabelValueField(label: 'Proficiency', value: item.proficiency!),
+      if (widget.item.proficiency != null && widget.item.proficiency!.isNotEmpty)
+        LabelValueField(label: 'Proficiency', value: widget.item.proficiency!),
     ];
+
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.item.id, 'language');
+    final hasHistory = history != null;
 
     final actionsContext = EntryActionsContext.of(context);
 
-    return UniversalEntryCard(
-      title: SelectableText(
-        item.name,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      leading: Icon(
-        Icons.translate,
-        size: 20,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      children: fields.isNotEmpty
-          ? [
-              const SizedBox(height: 4),
-              ResponsiveLabelField(
-                fields: fields,
-                labelValueSpacing: 4,
-                layoutAxis: Axis.vertical,
-              ),
-            ]
-          : [],
-      actions: actionsContext != null
-          ? EntryActionBuilder.buildActions(
-              context: context,
-              ref: ref,
-              onCopy: () {
-                final formatted = '${item.entryType}\n${item.toFormattedString()}';
-                Clipboard.setData(ClipboardData(text: formatted));
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
-              onEdit: actionsContext.onEdit ?? onEdit,
-              onDelete: actionsContext.onDelete ?? onDelete,
-              config: EntryActionsConfig(
-                showCopy: true,
-                showEdit: true,
-                showDelete: true,
-                showHistory: true,
-              ),
-              isSensitive: fields.any((f) => f.isSensitive),
-            )
-          : [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: onDelete,
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          title: SelectableText(
+            widget.item.name,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          leading: Icon(
+            Icons.translate,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          children: fields.isNotEmpty
+              ? [
+                  const SizedBox(height: 4),
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ]
+              : [],
+          actions: actionsContext != null
+              ? EntryActionBuilder.buildActions(
+                  context: context,
+                  ref: ref,
+                  onCopy: () {
+                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
+                    Clipboard.setData(ClipboardData(text: formatted));
+                    showOverlaySnackBar(
+                      context,
+                      content: 'Copied to clipboard',
+                      type: SnackBarType.success,
+                    );
+                  },
+                  onEdit: actionsContext.onEdit ?? widget.onEdit,
+                  onDelete: actionsContext.onDelete ?? widget.onDelete,
+                  config: EntryActionsConfig(
+                    showCopy: true,
+                    showEdit: true,
+                    showDelete: true,
+                    showHistory: true,
+                  ),
+                  hasHistory: hasHistory,
+                  historyExpanded: _historyExpanded,
+                  onHistoryToggle: () =>
+                      setState(() => _historyExpanded = !_historyExpanded),
+                  isSensitive: fields.any((f) => f.isSensitive),
+                )
+              : [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit',
+                    onPressed: widget.onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Delete',
+                    onPressed: widget.onDelete,
+                  ),
+                ],
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'language',
+              history: history,
+            ),
+          ),
+      ],
     );
   }
 }
@@ -1663,11 +1781,26 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
       onDelete: _onDelete,
       onSave: _onSave,
       itemToMap: _awardToMap,
+      historyConfig: HistoryRecordingConfig<AwardData>(
+        itemIdExtractor: (a) => a.id,
+        fieldIdPrefix: 'award',
+      ),
+      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        if (editingItem == null) return;
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId == null) return;
+        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+          accountId: accountId,
+          itemId: editingItem.id,
+          fieldIdPrefix: 'award',
+          allFieldValues: values,
+        );
+      },
     );
   }
 }
 
-class _AwardItem extends ConsumerWidget {
+class _AwardItem extends ConsumerStatefulWidget {
   final AwardData item;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -1679,81 +1812,110 @@ class _AwardItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AwardItem> createState() => _AwardItemState();
+}
+
+class _AwardItemState extends ConsumerState<_AwardItem> {
+  bool _historyExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final fields = <LabelValueField>[
-      if (item.date != null && item.date!.isNotEmpty)
-        LabelValueField(label: 'Date', value: item.date!),
-      if (item.description != null && item.description!.isNotEmpty)
-        LabelValueField(label: 'Description', value: item.description!),
+      if (widget.item.date != null && widget.item.date!.isNotEmpty)
+        LabelValueField(label: 'Date', value: widget.item.date!),
+      if (widget.item.description != null && widget.item.description!.isNotEmpty)
+        LabelValueField(label: 'Description', value: widget.item.description!),
     ];
+
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.item.id, 'award');
+    final hasHistory = history != null;
 
     final actionsContext = EntryActionsContext.of(context);
 
-    return UniversalEntryCard(
-      title: SelectableText(
-        item.title ?? 'Award',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: item.issuer != null
-          ? SelectableText(
-              item.issuer!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            )
-          : null,
-      leading: Icon(
-        Icons.emoji_events,
-        size: 20,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
-      children: fields.isNotEmpty
-          ? [
-              const SizedBox(height: 4),
-              ResponsiveLabelField(
-                fields: fields,
-                labelValueSpacing: 4,
-                layoutAxis: Axis.vertical,
-              ),
-            ]
-          : [],
-      actions: actionsContext != null
-          ? EntryActionBuilder.buildActions(
-              context: context,
-              ref: ref,
-              onCopy: () {
-                final formatted = '${item.entryType}\n${item.toFormattedString()}';
-                Clipboard.setData(ClipboardData(text: formatted));
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
-              onEdit: actionsContext.onEdit ?? onEdit,
-              onDelete: actionsContext.onDelete ?? onDelete,
-              config: EntryActionsConfig(
-                showCopy: true,
-                showEdit: true,
-                showDelete: true,
-                showHistory: true,
-              ),
-              isSensitive: fields.any((f) => f.isSensitive),
-            )
-          : [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: onDelete,
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          title: SelectableText(
+            widget.item.title ?? 'Award',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          subtitle: widget.item.issuer != null
+              ? SelectableText(
+                  widget.item.issuer!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                )
+              : null,
+          leading: Icon(
+            Icons.emoji_events,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          children: fields.isNotEmpty
+              ? [
+                  const SizedBox(height: 4),
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ]
+              : [],
+          actions: actionsContext != null
+              ? EntryActionBuilder.buildActions(
+                  context: context,
+                  ref: ref,
+                  onCopy: () {
+                    final formatted = '${widget.item.entryType}\n${widget.item.toFormattedString()}';
+                    Clipboard.setData(ClipboardData(text: formatted));
+                    showOverlaySnackBar(
+                      context,
+                      content: 'Copied to clipboard',
+                      type: SnackBarType.success,
+                    );
+                  },
+                  onEdit: actionsContext.onEdit ?? widget.onEdit,
+                  onDelete: actionsContext.onDelete ?? widget.onDelete,
+                  config: EntryActionsConfig(
+                    showCopy: true,
+                    showEdit: true,
+                    showDelete: true,
+                    showHistory: true,
+                  ),
+                  hasHistory: hasHistory,
+                  historyExpanded: _historyExpanded,
+                  onHistoryToggle: () =>
+                      setState(() => _historyExpanded = !_historyExpanded),
+                  isSensitive: fields.any((f) => f.isSensitive),
+                )
+              : [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit',
+                    onPressed: widget.onEdit,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    tooltip: 'Delete',
+                    onPressed: widget.onDelete,
+                  ),
+                ],
+        ),
+        if (hasHistory && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'award',
+              history: history,
+            ),
+          ),
+      ],
     );
   }
 }
