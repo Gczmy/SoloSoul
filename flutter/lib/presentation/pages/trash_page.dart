@@ -955,7 +955,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(_getSectionIcon(item.section), color: AppTheme.primaryColor),
+            Icon(item.meta?.icon ?? Icons.help_outline, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
             Expanded(child: Text(item.itemLabel)),
           ],
@@ -976,7 +976,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${_getItemTypeLabel(item.itemType)} - ${_getSectionLabel(item.section)}',
+                    '${item.meta?.label ?? item.itemType} - ${item.meta?.sectionLabel ?? item.section}',
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: AppTheme.primaryColor,
                     ),
@@ -1048,44 +1048,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   bool _itemHasHistory(DeletedItemInfo item) {
-    String? fieldIdPrefix;
-    switch (item.itemType) {
-      case 'contact':
-        fieldIdPrefix = 'contact';
-      case 'idCard':
-        fieldIdPrefix = 'idCard.number';
-        break;
-      case 'address':
-        fieldIdPrefix = 'address.postalCode';
-        break;
-      case 'passport':
-        fieldIdPrefix = 'travel.passport';
-        break;
-      case 'visa':
-        fieldIdPrefix = 'travel.visa';
-        break;
-      case 'bank_account':
-        fieldIdPrefix = 'financial.bankAccount';
-        break;
-      case 'card':
-        fieldIdPrefix = 'financial.card';
-        break;
-      case 'education':
-        fieldIdPrefix = 'professional.education';
-        break;
-      case 'employment':
-        fieldIdPrefix = 'professional.employment';
-        break;
-      case 'skill':
-        fieldIdPrefix = 'professional.skill';
-        break;
-      case 'language':
-        fieldIdPrefix = 'professional.language';
-        break;
-      default:
-        fieldIdPrefix = null;
-    }
-
+    final fieldIdPrefix = item.meta?.fieldIdPrefix;
     if (fieldIdPrefix == null) return false;
 
     final history = ref
@@ -1109,141 +1072,17 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }
   }
 
-  IconData _getSectionIcon(String section) {
-    switch (section) {
-      case 'travel':
-        return Icons.flight;
-      case 'financial':
-        return Icons.account_balance;
-      case 'professional':
-        return Icons.work;
-      case 'profile':
-        return Icons.person;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  String _getSectionLabel(String section) {
-    switch (section) {
-      case 'travel':
-        return 'Travel';
-      case 'financial':
-        return 'Financial';
-      case 'professional':
-        return 'Professional';
-      case 'profile':
-        return 'Profile';
-      default:
-        return section;
-    }
-  }
-
-  String _getItemTypeLabel(String itemType) {
-    switch (itemType) {
-      case 'passport':
-        return 'Passport';
-      case 'visa':
-        return 'Visa';
-      case 'travel_history':
-        return 'Travel History';
-      case 'bank_account':
-        return 'Bank Account';
-      case 'card':
-        return 'Card';
-      case 'education':
-        return 'Education';
-      case 'employment':
-        return 'Employment';
-      case 'skill':
-        return 'Skill';
-      case 'language':
-        return 'Language';
-      case 'contact':
-        return 'Contact';
-      case 'idCard':
-        return 'ID Card';
-      case 'address':
-        return 'Address';
-      default:
-        return itemType;
-    }
-  }
-
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   String? _getFieldIdForItem(String itemType) {
-    switch (itemType) {
-      case 'contact':
-        return 'contact.email';
-      case 'idCard':
-        return 'idCard.number';
-      case 'address':
-        return 'address.postalCode';
-      case 'passport':
-        return 'passport.number';
-      case 'visa':
-        return 'visa.number';
-      case 'bank_account':
-        return 'bankAccount.accountNumber';
-      case 'card':
-        return 'card.cardNumber';
-      case 'education':
-        return 'education.gpa';
-      case 'employment':
-        return 'employment.monthlySalary';
-      case 'skill':
-        return 'professional.skill';
-      case 'language':
-        return 'professional.language';
-      default:
-        return null;
-    }
+    // Get sensitivity field ID from meta configuration
+    return DeletedItemInfo.metaFor(itemType)?.sensitivityFieldId;
   }
 
   void _showHistoryForItem(BuildContext context, DeletedItemInfo item) {
-    // Determine the fieldId prefix based on item type
-    String? fieldIdPrefix;
-    switch (item.itemType) {
-      case 'contact':
-        // Contact history is stored under 'contact' key
-        fieldIdPrefix = 'contact';
-        break;
-      case 'idCard':
-        fieldIdPrefix = 'idCard.number';
-        break;
-      case 'address':
-        fieldIdPrefix = 'address.postalCode';
-        break;
-      case 'passport':
-        fieldIdPrefix = 'travel.passport';
-        break;
-      case 'visa':
-        fieldIdPrefix = 'travel.visa';
-        break;
-      case 'bank_account':
-        fieldIdPrefix = 'financial.bankAccount';
-        break;
-      case 'card':
-        fieldIdPrefix = 'financial.card';
-        break;
-      case 'education':
-        fieldIdPrefix = 'professional.education';
-        break;
-      case 'employment':
-        fieldIdPrefix = 'professional.employment';
-        break;
-      case 'skill':
-        fieldIdPrefix = 'professional.skill';
-        break;
-      case 'language':
-        fieldIdPrefix = 'professional.language';
-        break;
-      default:
-        fieldIdPrefix = null;
-    }
+    final fieldIdPrefix = item.meta?.fieldIdPrefix;
 
     if (fieldIdPrefix == null) {
       showOverlaySnackBar(
@@ -1279,7 +1118,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         ),
         content: SizedBox(
           width: double.maxFinite,
-          child: FieldHistoryView(fieldName: fieldIdPrefix!, history: history),
+          child: FieldHistoryView(fieldName: fieldIdPrefix, history: history),
         ),
         actions: [
           TextButton(
@@ -1406,7 +1245,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      _getSectionIcon(widget.item.section),
+                      widget.item.meta?.icon ?? Icons.help_outline,
                       color: Colors.orange,
                       size: 20,
                     ),
@@ -1426,7 +1265,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${_getItemTypeLabel(widget.item.itemType)} - ${_getSectionLabel(widget.item.section)}',
+                          '${widget.item.meta?.label ?? widget.item.itemType} - ${widget.item.meta?.sectionLabel ?? widget.item.section}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -1524,67 +1363,6 @@ class _TrashItemCardState extends State<_TrashItemCard> {
         ),
       ),
     ).animate().fadeIn(duration: 300.ms);
-  }
-
-  IconData _getSectionIcon(String section) {
-    switch (section) {
-      case 'travel':
-        return Icons.flight;
-      case 'financial':
-        return Icons.account_balance;
-      case 'professional':
-        return Icons.work;
-      case 'profile':
-        return Icons.person;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  String _getSectionLabel(String section) {
-    switch (section) {
-      case 'travel':
-        return 'Travel';
-      case 'financial':
-        return 'Financial';
-      case 'professional':
-        return 'Professional';
-      case 'profile':
-        return 'Profile';
-      default:
-        return section;
-    }
-  }
-
-  String _getItemTypeLabel(String itemType) {
-    switch (itemType) {
-      case 'passport':
-        return 'Passport';
-      case 'visa':
-        return 'Visa';
-      case 'travel_history':
-        return 'Travel History';
-      case 'bank_account':
-        return 'Bank Account';
-      case 'card':
-        return 'Card';
-      case 'education':
-        return 'Education';
-      case 'employment':
-        return 'Employment';
-      case 'skill':
-        return 'Skill';
-      case 'language':
-        return 'Language';
-      case 'contact':
-        return 'Contact';
-      case 'idCard':
-        return 'ID Card';
-      case 'address':
-        return 'Address';
-      default:
-        return itemType;
-    }
   }
 
   String _formatTimeAgo(DateTime date) {

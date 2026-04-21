@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
@@ -1705,11 +1706,10 @@ class EmploymentData with FormattableEntry {
 
 /// Info about a soft-deleted item for trash view
 class DeletedItemInfo {
-  final String section; // 'travel', 'financial', 'professional'
-  final String
-  itemType; // 'passport', 'visa', 'bank_account', 'card', 'education', 'employment'
-  final String id; // unique ID of the item
-  final String itemLabel; // display name for UI
+  final String section;
+  final String itemType;
+  final String id;
+  final String itemLabel;
   final DateTime deletedAt;
 
   const DeletedItemInfo({
@@ -1718,6 +1718,130 @@ class DeletedItemInfo {
     required this.id,
     required this.itemLabel,
     required this.deletedAt,
+  });
+
+  /// Metadata configuration for each item type
+  static const Map<String, ItemTypeMeta> _metaByType = {
+    'passport': ItemTypeMeta(
+      label: 'Passport',
+      sectionLabel: 'Travel',
+      icon: Icons.flight,
+      fieldIdPrefix: 'travel.passport',
+      sensitivityFieldId: 'passport.number',
+      section: 'travel',
+    ),
+    'visa': ItemTypeMeta(
+      label: 'Visa',
+      sectionLabel: 'Travel',
+      icon: Icons.flight,
+      fieldIdPrefix: 'travel.visa',
+      sensitivityFieldId: 'visa.number',
+      section: 'travel',
+    ),
+    'travel_history': ItemTypeMeta(
+      label: 'Travel History',
+      sectionLabel: 'Travel',
+      icon: Icons.history,
+      fieldIdPrefix: 'travel.destination',
+      sensitivityFieldId: 'travel.date',
+      section: 'travel',
+    ),
+    'bank_account': ItemTypeMeta(
+      label: 'Bank Account',
+      sectionLabel: 'Financial',
+      icon: Icons.account_balance,
+      fieldIdPrefix: 'financial.bankAccount',
+      sensitivityFieldId: 'bankAccount.accountNumber',
+      section: 'financial',
+    ),
+    'card': ItemTypeMeta(
+      label: 'Card',
+      sectionLabel: 'Financial',
+      icon: Icons.credit_card,
+      fieldIdPrefix: 'financial.card',
+      sensitivityFieldId: 'card.cardNumber',
+      section: 'financial',
+    ),
+    'education': ItemTypeMeta(
+      label: 'Education',
+      sectionLabel: 'Professional',
+      icon: Icons.school,
+      fieldIdPrefix: 'professional.education',
+      sensitivityFieldId: 'education.gpa',
+      section: 'professional',
+    ),
+    'employment': ItemTypeMeta(
+      label: 'Employment',
+      sectionLabel: 'Professional',
+      icon: Icons.work,
+      fieldIdPrefix: 'professional.employment',
+      sensitivityFieldId: 'employment.monthlySalary',
+      section: 'professional',
+    ),
+    'skill': ItemTypeMeta(
+      label: 'Skill',
+      sectionLabel: 'Professional',
+      icon: Icons.star,
+      fieldIdPrefix: 'professional.skill',
+      sensitivityFieldId: 'professional.skill',
+      section: 'professional',
+    ),
+    'language': ItemTypeMeta(
+      label: 'Language',
+      sectionLabel: 'Professional',
+      icon: Icons.language,
+      fieldIdPrefix: 'professional.language',
+      sensitivityFieldId: 'professional.language',
+      section: 'professional',
+    ),
+    'contact': ItemTypeMeta(
+      label: 'Contact',
+      sectionLabel: 'Profile',
+      icon: Icons.person,
+      fieldIdPrefix: 'contact',
+      sensitivityFieldId: 'contact.email',
+      section: 'profile',
+    ),
+    'idCard': ItemTypeMeta(
+      label: 'ID Card',
+      sectionLabel: 'Profile',
+      icon: Icons.badge,
+      fieldIdPrefix: 'idCard.number',
+      sensitivityFieldId: 'idCard.number',
+      section: 'profile',
+    ),
+    'address': ItemTypeMeta(
+      label: 'Address',
+      sectionLabel: 'Profile',
+      icon: Icons.home,
+      fieldIdPrefix: 'address.postalCode',
+      sensitivityFieldId: 'address.postalCode',
+      section: 'profile',
+    ),
+  };
+
+  ItemTypeMeta? get meta => _metaByType[itemType];
+
+  /// Static accessor for meta by item type (used by trash_page)
+  static ItemTypeMeta? metaFor(String itemType) => _metaByType[itemType];
+}
+
+/// Metadata configuration for deleted item types
+class ItemTypeMeta {
+  final String label;
+  final String sectionLabel;
+  final IconData icon;
+  final String fieldIdPrefix;
+  final String sensitivityFieldId;
+  final String section;
+
+  const ItemTypeMeta({
+    required this.label,
+    required this.sectionLabel,
+    required this.icon,
+    required this.fieldIdPrefix,
+    required this.sensitivityFieldId,
+    required this.section,
   });
 }
 
