@@ -533,7 +533,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     if (wasAdding) {
       _contacts = List.from(_contacts)..add(contactToSave);
     } else {
-      final index = _contacts.indexOf(editingItem);
+      final index = _contacts.indexWhere((c) => c.id == editingItem!.id);
       if (index != -1) {
         _contacts = List.from(_contacts)..[index] = contactToSave;
       }
@@ -994,7 +994,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     if (wasAdding) {
       _idCards = List.from(_idCards)..add(cardToSave);
     } else {
-      final index = _idCards.indexOf(editingItem);
+      final index = _idCards.indexWhere((c) => c.id == editingItem!.id);
       if (index != -1) {
         _idCards = List.from(_idCards)..[index] = cardToSave;
       }
@@ -1466,7 +1466,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     if (wasAdding) {
       _addresses = List.from(_addresses)..add(addressToSave);
     } else {
-      final index = _addresses.indexOf(editingItem);
+      final index = _addresses.indexWhere((a) => a.id == editingItem!.id);
       if (index != -1) {
         _addresses = List.from(_addresses)..[index] = addressToSave;
       }

@@ -217,7 +217,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
   }
 
   Future<void> _onDelete(EducationData item) async {
-    final index = _items.indexOf(item);
+    final index = _items.indexWhere((x) => x.id == item.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
@@ -289,7 +289,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexOf(editingItem);
+      final index = _items.indexWhere((x) => x.id == editingItem!.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -623,7 +623,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
   }
 
   Future<void> _onDelete(EmploymentData item) async {
-    final index = _items.indexOf(item);
+    final index = _items.indexWhere((x) => x.id == item.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
@@ -695,7 +695,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexOf(editingItem);
+      final index = _items.indexWhere((x) => x.id == editingItem!.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -861,7 +861,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
   }
 
   Future<void> _onDelete(SkillData item) async {
-    final index = _items.indexOf(item);
+    final index = _items.indexWhere((x) => x.id == item.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
@@ -934,7 +934,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexOf(editingItem);
+      final index = _items.indexWhere((x) => x.id == editingItem!.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -1081,7 +1081,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
   }
 
   Future<void> _onDelete(LanguageData item) async {
-    final index = _items.indexOf(item);
+    final index = _items.indexWhere((x) => x.id == item.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
@@ -1154,7 +1154,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexOf(editingItem);
+      final index = _items.indexWhere((x) => x.id == editingItem!.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -1308,7 +1308,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
   }
 
   Future<void> _onDelete(AwardData item) async {
-    final index = _items.indexOf(item);
+    final index = _items.indexWhere((x) => x.id == item.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
@@ -1381,7 +1381,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexOf(editingItem);
+      final index = _items.indexWhere((x) => x.id == editingItem!.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }

@@ -303,7 +303,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     if (wasAdding) {
       _accounts = List.from(_accounts)..add(accountToSave);
     } else {
-      final index = _accounts.indexOf(editingItem);
+      final index = _accounts.indexWhere((a) => a.id == editingItem!.id);
       if (index != -1) {
         _accounts = List.from(_accounts)..[index] = accountToSave;
       }
@@ -572,7 +572,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
     if (wasAdding) {
       _cards = List.from(_cards)..add(cardToSave);
     } else {
-      final index = _cards.indexOf(editingItem);
+      final index = _cards.indexWhere((c) => c.id == editingItem!.id);
       if (index != -1) {
         _cards = List.from(_cards)..[index] = cardToSave;
       }
@@ -841,7 +841,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     if (wasAdding) {
       _taxIds = List.from(_taxIds)..add(taxIdToSave);
     } else {
-      final index = _taxIds.indexOf(editingItem);
+      final index = _taxIds.indexWhere((t) => t.id == editingItem!.id);
       if (index != -1) {
         _taxIds = List.from(_taxIds)..[index] = taxIdToSave;
       }

@@ -142,26 +142,33 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
 
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
+    debugPrint('=== PASSPORT LOAD DATA === travel.activePassports.length=${travel?.activePassports.length ?? 0}');
     _passports = [
       ...?(travel?.activePassports.map(
-        (p) => PassportData(
-          id: p.id,
-          country: p.country,
-          number: p.number,
-          issueDate: p.issueDate,
-          expiryDate: p.expiryDate,
-          holderName: p.holderName,
-        ),
+        (p) {
+          debugPrint('=== PASSPORT LOAD ITEM === id=${p.id}, country=${p.country}, isDeleted=${p.isDeleted}');
+          return PassportData(
+            id: p.id,
+            country: p.country,
+            number: p.number,
+            issueDate: p.issueDate,
+            expiryDate: p.expiryDate,
+            holderName: p.holderName,
+          );
+        },
       )),
     ];
+    debugPrint('=== PASSPORT LOAD COMPLETE === _passports.length=${_passports.length}');
   }
 
   PassportData _createPassportFromValues(
     Map<String, String> values, {
     String? id,
   }) {
+    final passportId = id ?? generateEntryId();
+    debugPrint('=== PASSPORT CREATE === id=$passportId, country=${values['passport.country']}');
     return PassportData(
-      id: id ?? generateEntryId(),
+      id: passportId,
       country: values['passport.country']?.isEmpty == true
           ? null
           : values['passport.country'],
@@ -222,7 +229,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
   }
 
   Future<void> _onPassportDelete(PassportData passport) async {
-    final index = _passports.indexOf(passport);
+    // Use ID-based lookup since PassportData has no == override (uses object identity)
+    final index = _passports.indexWhere((p) => p.id == passport.id);
+    debugPrint('=== PASSPORT DELETE CLICK === id=${passport.id}, index=$index, _passports.length=${_passports.length}');
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -230,11 +239,14 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = passport.id;
+    debugPrint('=== PASSPORT DELETE STATE === deletedId=$deletedId');
 
     setState(() {
       _passports = List.from(_passports)..removeAt(index);
+      debugPrint('=== PASSPORT DELETE UI REMOVED === _passports.length=${_passports.length}');
     });
     try {
+      debugPrint('=== PASSPORT DELETE SOFT DELETE CALLED ===');
       await ref
           .read(profileNotifierProvider.notifier)
           .softDelete(
@@ -243,7 +255,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
             index: index,
             deletedItem: passport,
           );
+      debugPrint('=== PASSPORT DELETE SOFT DELETE COMPLETED ===');
     } catch (e) {
+      debugPrint('=== PASSPORT DELETE SOFT DELETE FAILED === error=$e');
       setState(() {
         _passports = List.from(_passports)..insert(index, passport);
       });
@@ -295,7 +309,8 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     if (wasAdding) {
       _passports = List.from(_passports)..add(passportToSave);
     } else {
-      final index = _passports.indexOf(editingItem);
+      // Use ID-based lookup since PassportData has no == override (uses object identity)
+      final index = _passports.indexWhere((p) => p.id == editingItem!.id);
       if (index != -1) {
         _passports = List.from(_passports)..[index] = passportToSave;
       }
@@ -357,6 +372,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         fieldIdPrefix: 'passport',
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
+        debugPrint('=== PASSPORT HISTORY SAVE === editingItem.id=${editingItem?.id}, oldValues=$oldValues');
         if (editingItem == null) return;
         final accountId = ref
             .read(authNotifierProvider.notifier)
@@ -370,6 +386,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
               fieldIdPrefix: 'passport',
               allFieldValues: oldValues ?? {},
             );
+        debugPrint('=== PASSPORT HISTORY SAVED ===');
       },
       displayItemBuilder: _buildPassportItem,
       onDelete: _onPassportDelete,
@@ -504,7 +521,8 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
   }
 
   Future<void> _onVisaDelete(VisaData visa) async {
-    final index = _visas.indexOf(visa);
+    // Use ID-based lookup since VisaData has no == override (uses object identity)
+    final index = _visas.indexWhere((v) => v.id == visa.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -577,7 +595,8 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
     if (wasAdding) {
       _visas = List.from(_visas)..add(visaToSave);
     } else {
-      final index = _visas.indexOf(editingItem);
+      // Use ID-based lookup since VisaData has no == override (uses object identity)
+      final index = _visas.indexWhere((v) => v.id == editingItem!.id);
       if (index != -1) {
         _visas = List.from(_visas)..[index] = visaToSave;
       }
@@ -764,7 +783,8 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
   }
 
   Future<void> _onHistoryDelete(TravelHistoryData item) async {
-    final index = _history.indexOf(item);
+    // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
+    final index = _history.indexWhere((h) => h.id == item.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -871,7 +891,8 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
     if (wasAdding) {
       _history = List.from(_history)..add(itemToSave);
     } else {
-      final index = _history.indexOf(editingItem);
+      // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
+      final index = _history.indexWhere((h) => h.id == editingItem!.id);
       if (index != -1) {
         _history = List.from(_history)..[index] = itemToSave;
       }
