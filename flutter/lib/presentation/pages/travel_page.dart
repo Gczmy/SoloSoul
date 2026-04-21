@@ -234,6 +234,8 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final deletedId = passport.id;
+
     setState(() {
       _passports = List.from(_passports)..removeAt(index);
     });
