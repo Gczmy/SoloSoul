@@ -446,6 +446,11 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     if (_items.isEmpty && !isEditing) {
       displayItems.add(_buildEmpty(theme));
     } else if (_items.isNotEmpty) {
+      // Check if section has critical fields that require verification for history
+      final sectionHasCriticalField = widget.fieldDefs.any(
+        (f) => f.sensitivity == SensitivityLevel.critical,
+      );
+
       for (var i = 0; i < _items.length; i++) {
         final item = _items[i];
         final historyExpanded = widget.showHistoryExpansion && _expandedHistoryIndices.contains(i);
@@ -478,6 +483,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
             showHistoryExpansion: widget.showHistoryExpansion,
             historyFieldIdPrefix: widget.historyFieldIdPrefix,
             itemId: itemId,
+            requiresHistoryVerification: sectionHasCriticalField,
           ),
         );
       }
@@ -608,6 +614,7 @@ class _ItemWithHistory<T> extends ConsumerWidget {
   final bool showHistoryExpansion;
   final String? historyFieldIdPrefix;
   final String itemId;
+  final bool requiresHistoryVerification;
 
   const _ItemWithHistory({
     required super.key,
@@ -624,7 +631,29 @@ class _ItemWithHistory<T> extends ConsumerWidget {
     required this.showHistoryExpansion,
     this.historyFieldIdPrefix,
     required this.itemId,
+    this.requiresHistoryVerification = false,
   });
+
+  Future<void> _handleHistoryPress(BuildContext context, WidgetRef ref) async {
+    if (requiresHistoryVerification) {
+      // Check if user was already verified within the valid duration
+      final isGranted = ref.read(isSensitiveAccessGrantedProvider);
+      if (!isGranted) {
+        // Show password dialog
+        final authNotifier = ref.read(authNotifierProvider.notifier);
+        final selectedAccount = authNotifier.selectedAccount;
+        final password = await showPasswordVerificationDialog(
+          context: context,
+          ref: ref,
+          passwordHint: selectedAccount?.passwordHint,
+          onVerify: authNotifier.verifyPasswordForSensitiveData,
+        );
+        if (password == null) return;
+        ref.read(sensitivePageAccessProvider.notifier).markVerified();
+      }
+    }
+    onToggleHistory?.call();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -665,7 +694,7 @@ class _ItemWithHistory<T> extends ConsumerWidget {
                   size: 16,
                 ),
                 label: Text('History(${history?.entries.length ?? 0})'),
-                onPressed: onToggleHistory,
+                onPressed: () => _handleHistoryPress(context, ref),
               ),
             ),
           // Expanded history view
