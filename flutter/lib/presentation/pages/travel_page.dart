@@ -143,42 +143,20 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final travel = ref.read(profileNotifierProvider)?.travel;
-    _passports = [
-      ...?(travel?.activePassports.map(
-        (p) {
-          return PassportData(
-            id: p.id,
-            title: p.title,
-            country: p.country,
-            number: p.number,
-            issueDate: p.issueDate,
-            expiryDate: p.expiryDate,
-            holderName: p.holderName,
-          );
-        },
-      )),
-    ];
-  }
-
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _passports = [
-      ...?(travel?.activePassports.map(
-        (p) {
-          return PassportData(
-            id: p.id,
-            title: p.title,
-            country: p.country,
-            number: p.number,
-            issueDate: p.issueDate,
-            expiryDate: p.expiryDate,
-            holderName: p.holderName,
-          );
-        },
-      )),
+      ...?(travel?.activePassports.map((p) {
+        return PassportData(
+          id: p.id,
+          title: p.title,
+          country: p.country,
+          number: p.number,
+          issueDate: p.issueDate,
+          expiryDate: p.expiryDate,
+          holderName: p.holderName,
+        );
+      })),
     ];
   }
 
@@ -237,7 +215,10 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     );
   }
 
-  Widget _buildPassportItem(PassportData passport, Map<String, String> itemMap) {
+  Widget _buildPassportItem(
+    PassportData passport,
+    Map<String, String> itemMap,
+  ) {
     return EntryCardWidget<PassportData>(
       item: passport,
       title: passport.title ?? passport.country ?? 'Passport',
@@ -312,8 +293,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'passport', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -537,24 +517,6 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final travel = ref.read(profileNotifierProvider)?.travel;
-    _visas = [
-      ...?(travel?.activeVisas.map(
-        (v) => VisaData(
-          id: v.id,
-          title: v.title,
-          country: v.country,
-          visaType: v.visaType,
-          number: v.number,
-          issueDate: v.issueDate,
-          expiryDate: v.expiryDate,
-        ),
-      )),
-    ];
-  }
-
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _visas = [
@@ -664,8 +626,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'visa', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -837,18 +798,15 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final travel = ref.read(profileNotifierProvider)?.travel;
-    _history = [...(travel?.activeTravelHistory ?? [])];
-  }
-
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _history = [...(travel?.activeTravelHistory ?? [])];
   }
 
-  Widget _buildTravelHistoryItem(TravelHistoryData item, Map<String, String> itemMap) {
+  Widget _buildTravelHistoryItem(
+    TravelHistoryData item,
+    Map<String, String> itemMap,
+  ) {
     final fields = <LabelValueField>[];
     if (item.date != null && item.date!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Date', value: item.date!));
@@ -948,8 +906,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 itemType: 'travel_history',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -1221,7 +1178,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                           counterText: '',
                           suffixIcon: Padding(
                             padding: EdgeInsets.only(right: 8),
-                            child: SensitivityTag(level: SensitivityLevel.internal),
+                            child: SensitivityTag(
+                              level: SensitivityLevel.internal,
+                            ),
                           ),
                           suffixIconConstraints: BoxConstraints(),
                         ),
@@ -1238,7 +1197,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                           counterText: '',
                           suffixIcon: Padding(
                             padding: EdgeInsets.only(right: 8),
-                            child: SensitivityTag(level: SensitivityLevel.internal),
+                            child: SensitivityTag(
+                              level: SensitivityLevel.internal,
+                            ),
                           ),
                           suffixIconConstraints: BoxConstraints(),
                         ),
@@ -1261,7 +1222,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1278,7 +1241,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1326,7 +1291,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                        child: SensitivityTag(
+                          level: SensitivityLevel.sensitive,
+                        ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
                     ),
@@ -1344,7 +1311,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1361,7 +1330,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1394,7 +1365,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                        child: SensitivityTag(
+                          level: SensitivityLevel.sensitive,
+                        ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
                     ),
@@ -1412,7 +1385,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1429,7 +1404,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1462,7 +1439,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                        child: SensitivityTag(
+                          level: SensitivityLevel.sensitive,
+                        ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
                     ),
@@ -1480,7 +1459,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1497,7 +1478,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1515,7 +1498,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                        child: SensitivityTag(
+                          level: SensitivityLevel.sensitive,
+                        ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
                     ),
@@ -1533,7 +1518,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1550,7 +1537,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1572,7 +1561,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),
@@ -1589,7 +1580,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             counterText: '',
                             suffixIcon: Padding(
                               padding: EdgeInsets.only(right: 8),
-                              child: SensitivityTag(level: SensitivityLevel.internal),
+                              child: SensitivityTag(
+                                level: SensitivityLevel.internal,
+                              ),
                             ),
                             suffixIconConstraints: BoxConstraints(),
                           ),

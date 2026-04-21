@@ -9,8 +9,10 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode;
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
+    show SensitivityLevel;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
@@ -127,7 +129,10 @@ class _BankAccountSection extends ConsumerStatefulWidget {
 
 class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     with WidgetsBindingObserver {
-  Widget _buildBankAccountItem(BankAccountData account, Map<String, String> itemMap) {
+  Widget _buildBankAccountItem(
+    BankAccountData account,
+    Map<String, String> itemMap,
+  ) {
     return EntryCardWidget<BankAccountData>(
       item: account,
       title: account.title ?? account.bankName ?? 'Bank Account',
@@ -167,24 +172,6 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final financial = ref.read(profileNotifierProvider)?.financial;
-    _accounts = [
-      ...?(financial?.activeBankAccounts.map(
-        (b) => BankAccountData(
-          id: b.id,
-          title: b.title,
-          bankName: b.bankName,
-          accountNumber: b.accountNumber,
-          currency: b.currency,
-          swiftBic: b.swiftBic,
-          sortCode: b.sortCode,
-        ),
-      )),
-    ];
   }
 
   void _loadData() {
@@ -247,8 +234,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(displayModeProvider) ==
-        SensitivityDisplayMode.hidePrivate;
+        ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
 
     final deletedId = account.id;
 
@@ -299,8 +285,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
                 itemType: 'bank_account',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -336,12 +321,13 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       cards: currentFinancial?.cards ?? [],
       taxIds: currentFinancial?.taxIds ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateFinancialImmediate(financial);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateFinancialImmediate(financial);
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(displayModeProvider) ==
-          SensitivityDisplayMode.hidePrivate;
+          ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -376,7 +362,9 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
         FormFieldDef(
           fieldId: 'bankAccount.accountNumber',
           label: 'Account Number',
-          sensitivity: ref.watch(fieldLevelProvider('bankAccount.accountNumber')),
+          sensitivity: ref.watch(
+            fieldLevelProvider('bankAccount.accountNumber'),
+          ),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.currency',
@@ -412,14 +400,18 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-          accountId: accountId,
-          itemId: editingItem.id,
-          fieldIdPrefix: 'bankAccount',
-          allFieldValues: oldValues ?? {},
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'bankAccount',
+              allFieldValues: oldValues ?? {},
+            );
         await _onAccountSave(null, values, editingItem);
       },
       showHistoryExpansion: true,
@@ -480,24 +472,6 @@ class _CardSectionState extends ConsumerState<_CardSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final financial = ref.read(profileNotifierProvider)?.financial;
-    _cards = [
-      ...?(financial?.activeCards.map(
-        (c) => CardData(
-          id: c.id,
-          title: c.title,
-          cardType: c.cardType,
-          cardNumber: c.cardNumber,
-          expiryDate: c.expiryDate,
-          holderName: c.holderName,
-          cvv: c.cvv,
-        ),
-      )),
-    ];
-  }
-
   void _loadData() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _cards = [
@@ -533,9 +507,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
       holderName: values['card.holderName']?.isEmpty == true
           ? null
           : values['card.holderName'],
-      cvv: values['card.cvv']?.isEmpty == true
-          ? null
-          : values['card.cvv'],
+      cvv: values['card.cvv']?.isEmpty == true ? null : values['card.cvv'],
     );
   }
 
@@ -555,8 +527,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(displayModeProvider) ==
-        SensitivityDisplayMode.hidePrivate;
+        ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
 
     final deletedId = card.id;
 
@@ -601,8 +572,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'financial', itemType: 'card', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -638,12 +608,13 @@ class _CardSectionState extends ConsumerState<_CardSection>
       cards: _cards,
       taxIds: currentFinancial?.taxIds ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateFinancialImmediate(financial);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateFinancialImmediate(financial);
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(displayModeProvider) ==
-          SensitivityDisplayMode.hidePrivate;
+          ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -714,14 +685,18 @@ class _CardSectionState extends ConsumerState<_CardSection>
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-          accountId: accountId,
-          itemId: editingItem.id,
-          fieldIdPrefix: 'card',
-          allFieldValues: oldValues ?? {},
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'card',
+              allFieldValues: oldValues ?? {},
+            );
         await _onCardSave(null, values, editingItem);
       },
       showHistoryExpansion: true,
@@ -751,9 +726,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       fieldPrefix: 'taxId',
       itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
       excludeFields: const {'title'},
-      sensitivityOverrides: const {
-        'taxIdNumber': SensitivityLevel.critical,
-      },
+      sensitivityOverrides: const {'taxIdNumber': SensitivityLevel.critical},
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -778,23 +751,6 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final financial = ref.read(profileNotifierProvider)?.financial;
-    _taxIds = [
-      ...?(financial?.activeTaxIds.map(
-        (t) => TaxIdData(
-          id: t.id,
-          title: t.title,
-          taxIdNumber: t.taxIdNumber,
-          taxIdType: t.taxIdType,
-          issuingAuthority: t.issuingAuthority,
-          country: t.country,
-        ),
-      )),
-    ];
   }
 
   void _loadData() {
@@ -849,8 +805,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(displayModeProvider) ==
-        SensitivityDisplayMode.hidePrivate;
+        ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
 
     final deletedId = taxId.id;
 
@@ -895,8 +850,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -932,12 +886,13 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       cards: currentFinancial?.activeCards ?? [],
       taxIds: _taxIds,
     );
-    await ref.read(profileNotifierProvider.notifier).updateFinancialImmediate(financial);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateFinancialImmediate(financial);
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(displayModeProvider) ==
-          SensitivityDisplayMode.hidePrivate;
+          ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -1003,14 +958,18 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-          accountId: accountId,
-          itemId: editingItem.id,
-          fieldIdPrefix: 'taxId',
-          allFieldValues: oldValues ?? {},
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'taxId',
+              allFieldValues: oldValues ?? {},
+            );
         await _onTaxIdSave(null, values, editingItem);
       },
       showHistoryExpansion: true,

@@ -144,25 +144,6 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
     return _degreeOrder[degree] ?? 6;
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [
-      ...?(professional?.activeEducation.map(
-        (e) => EducationData(
-          id: e.id,
-          institution: e.institution,
-          degree: e.degree,
-          degreeCustom: e.degreeCustom,
-          field: e.field,
-          startDate: e.startDate,
-          endDate: e.endDate,
-        ),
-      )),
-    ];
-    _items.sort((a, b) => _degreeSortOrder(a).compareTo(_degreeSortOrder(b)));
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [
@@ -289,8 +270,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
                 itemType: 'education',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -595,23 +575,6 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [
-      ...?(professional?.activeEmployment.map(
-        (e) => EmploymentData(
-          id: e.id,
-          company: e.company,
-          position: e.position,
-          responsibilities: e.responsibilities,
-          startDate: e.startDate,
-          endDate: e.endDate,
-        ),
-      )),
-    ];
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [
@@ -712,8 +675,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
                 itemType: 'employment',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -883,12 +845,6 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeSkills)];
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeSkills)];
@@ -961,8 +917,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
                 itemType: 'skill',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -1112,12 +1067,6 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeLanguages)];
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeLanguages)];
@@ -1193,8 +1142,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
                 itemType: 'language',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -1343,12 +1291,6 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeAwards)];
-  }
-
   void _loadData() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeAwards)];
@@ -1432,8 +1374,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
                 itemType: 'award',
                 id: deletedId,
               );
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );

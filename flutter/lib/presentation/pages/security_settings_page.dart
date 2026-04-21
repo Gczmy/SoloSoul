@@ -273,7 +273,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           children: [
             Icon(Icons.info_outline, color: Colors.white, size: 20),
             SizedBox(width: 12),
-            Text('功能还未开发'),
+            Text('Feature not yet implemented'),
           ],
         ),
         behavior: SnackBarBehavior.floating,

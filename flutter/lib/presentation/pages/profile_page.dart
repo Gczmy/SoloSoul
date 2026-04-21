@@ -22,7 +22,10 @@ import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
+    show
+        authNotifierProvider,
+        sensitivePageAccessProvider,
+        isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
@@ -423,25 +426,6 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     _loadData();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final profile = ref.read(profileNotifierProvider);
-    final identity = profile?.identity;
-    _contacts = [
-      ...?(identity?.contact?.activeEntries.map(
-        (e) => ContactEntry(
-          id: e.id,
-          title: e.title,
-          type: e.type,
-          value: e.value,
-          updatedAt: e.updatedAt,
-          isDeleted: e.isDeleted,
-          deletedAt: e.deletedAt,
-        ),
-      )),
-    ];
-  }
-
   void _loadData() {
     // Use read instead of watch since this is called explicitly, not for reactivity
     final profile = ref.read(profileNotifierProvider);
@@ -461,12 +445,21 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     ];
   }
 
-  ContactEntry _createContactFromValues(Map<String, String> values, {String? id}) {
+  ContactEntry _createContactFromValues(
+    Map<String, String> values, {
+    String? id,
+  }) {
     return ContactEntry(
       id: id ?? generateEntryId(),
-      title: values['contact.title']?.isEmpty == true ? '' : values['contact.title']!,
-      type: values['contact.type']?.isEmpty == true ? 'email' : values['contact.type']!,
-      value: values['contact.value']?.isEmpty == true ? '(no value)' : values['contact.value']!,
+      title: values['contact.title']?.isEmpty == true
+          ? ''
+          : values['contact.title']!,
+      type: values['contact.type']?.isEmpty == true
+          ? 'email'
+          : values['contact.type']!,
+      value: values['contact.value']?.isEmpty == true
+          ? '(no value)'
+          : values['contact.value']!,
     );
   }
 
@@ -521,8 +514,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'contact', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -567,7 +559,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       contact: ContactData(entries: _contacts),
       addresses: widget.identity?.addresses,
     );
-    await ref.read(profileNotifierProvider.notifier).updateIdentity(newIdentity);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateIdentity(newIdentity);
 
     if (mounted) {
       final isPrivacyMode =
@@ -612,105 +606,106 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
           sensitivity: SensitivityLevel.critical,
         ),
       ],
-      customFormBuilder: (context, theme, controllers, mode, onSubmit, onCancel) {
-        final selectedType = controllers['contact.type']?.text ?? 'email';
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              mode == 'adding' ? 'Add Contact' : 'Edit Contact',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
+      customFormBuilder:
+          (context, theme, controllers, mode, onSubmit, onCancel) {
+            final selectedType = controllers['contact.type']?.text ?? 'email';
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: controllers['contact.title'],
-                    maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
-                      labelText: 'Title',
-                      hintText: 'e.g., Gmail, Work',
-                      counterText: '',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                Text(
+                  mode == 'adding' ? 'Add Contact' : 'Edit Contact',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: controllers['contact.title'],
+                        maxLength: kMaxFieldLength,
+                        decoration: const InputDecoration(
+                          labelText: 'Title',
+                          hintText: 'e.g., Gmail, Work',
+                          counterText: '',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: selectedType.isEmpty ? 'email' : selectedType,
-                    decoration: const InputDecoration(
-                      labelText: 'Type',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedType.isEmpty ? 'email' : selectedType,
+                        decoration: const InputDecoration(
+                          labelText: 'Type',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'email',
+                            child: Text('email'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'phone',
+                            child: Text('phone'),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          controllers['contact.type']?.text = v ?? 'email';
+                        },
                       ),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'email', child: Text('email')),
-                      DropdownMenuItem(value: 'phone', child: Text('phone')),
-                    ],
-                    onChanged: (v) {
-                      controllers['contact.type']?.text = v ?? 'email';
-                    },
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controllers['contact.value'],
+                  maxLength: kMaxFieldLength,
+                  decoration: InputDecoration(
+                    labelText: selectedType == 'email' ? 'Email' : 'Phone',
+                    counterText: '',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SensitivityTag(level: SensitivityLevel.critical),
+                    ),
                   ),
+                  keyboardType: selectedType == 'email'
+                      ? TextInputType.emailAddress
+                      : TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: onSubmit,
+                      child: Text(mode == 'adding' ? 'Add' : 'Save'),
+                    ),
+                  ],
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controllers['contact.value'],
-              maxLength: kMaxFieldLength,
-              decoration: InputDecoration(
-                labelText: selectedType == 'email' ? 'Email' : 'Phone',
-                counterText: '',
-                border: const OutlineInputBorder(),
-                suffixIcon: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: SensitivityTag(
-                    level: SensitivityLevel.critical,
-                  ),
-                ),
-              ),
-              keyboardType: selectedType == 'email'
-                  ? TextInputType.emailAddress
-                  : TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: onCancel,
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: onSubmit,
-                  child: Text(mode == 'adding' ? 'Add' : 'Save'),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+            );
+          },
       onDelete: _onContactDelete,
       onSave: _onContactSave,
       // Note: contact.title is included in itemToMap for history but excluded from display via excludeFields.
       // Keys WITHOUT prefix - _autoBuildFields adds prefix; _populateControllersFromItem strips prefix.
-      itemToMap: (c) => {
-        'title': c.title,
-        'type': c.type,
-        'value': c.value,
-      },
+      itemToMap: (c) => {'title': c.title, 'type': c.type, 'value': c.value},
       onCopyAll: (contact, text) async {
         Clipboard.setData(ClipboardData(text: text));
         showOverlaySnackBar(
@@ -725,14 +720,18 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-          accountId: accountId,
-          itemId: editingItem.id,
-          fieldIdPrefix: 'contact',
-          allFieldValues: oldValues ?? {},
-        );
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
+              accountId: accountId,
+              itemId: editingItem.id,
+              fieldIdPrefix: 'contact',
+              allFieldValues: oldValues ?? {},
+            );
       },
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'contact',
@@ -740,15 +739,15 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       displayItemBuilder: (contact, itemMap) => EntryCardWidget<ContactEntry>(
         item: contact,
         title: contact.title.isNotEmpty ? contact.title : contact.value,
-        icon: contact.type == 'email' ? Icons.email_outlined : Icons.phone_outlined,
+        icon: contact.type == 'email'
+            ? Icons.email_outlined
+            : Icons.phone_outlined,
         itemId: contact.id,
         historyFieldId: 'contact',
         itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
         fieldPrefix: 'contact',
         excludeFields: const {'title'}, // title already used as card title
-        sensitivityOverrides: const {
-          'value': SensitivityLevel.critical,
-        },
+        sensitivityOverrides: const {'value': SensitivityLevel.critical},
         formatAllFields: (c) => '${c.type}: ${c.value}',
         onDelete: (c) => _onContactDelete(c),
       ),
@@ -795,24 +794,6 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final identity = ref.read(profileNotifierProvider)?.identity;
-    _idCards = [
-      ...?(identity?.activeIdCards?.map(
-        (c) => IdCardData(
-          id: c.id,
-          title: c.title,
-          number: c.number,
-          issueDate: c.issueDate,
-          expiryDate: c.expiryDate,
-          holderName: c.holderName,
-          country: c.country,
-        ),
-      )),
-    ];
-  }
-
   void _loadData() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _idCards = [
@@ -833,12 +814,24 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
   IdCardData _createIdCardFromValues(Map<String, String> values, {String? id}) {
     return IdCardData(
       id: id ?? generateEntryId(),
-      title: values['idCard.title']?.isEmpty == true ? null : values['idCard.title'],
-      number: values['idCard.number']?.isEmpty == true ? null : values['idCard.number'],
-      holderName: values['idCard.holderName']?.isEmpty == true ? null : values['idCard.holderName'],
-      country: values['idCard.country']?.isEmpty == true ? null : values['idCard.country'],
-      issueDate: values['idCard.issueDate']?.isEmpty == true ? null : values['idCard.issueDate'],
-      expiryDate: values['idCard.expiryDate']?.isEmpty == true ? null : values['idCard.expiryDate'],
+      title: values['idCard.title']?.isEmpty == true
+          ? null
+          : values['idCard.title'],
+      number: values['idCard.number']?.isEmpty == true
+          ? null
+          : values['idCard.number'],
+      holderName: values['idCard.holderName']?.isEmpty == true
+          ? null
+          : values['idCard.holderName'],
+      country: values['idCard.country']?.isEmpty == true
+          ? null
+          : values['idCard.country'],
+      issueDate: values['idCard.issueDate']?.isEmpty == true
+          ? null
+          : values['idCard.issueDate'],
+      expiryDate: values['idCard.expiryDate']?.isEmpty == true
+          ? null
+          : values['idCard.expiryDate'],
     );
   }
 
@@ -894,8 +887,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'idCard', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -1039,17 +1031,22 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
             itemIdExtractor: (c) => c.id,
             fieldIdPrefix: 'idCard',
           ),
-          historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
-            if (editingItem == null) return;
-            final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
-            if (accountId == null) return;
-            await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-              accountId: accountId,
-              itemId: editingItem.id,
-              fieldIdPrefix: 'idCard',
-              allFieldValues: oldValues ?? {},
-            );
-          },
+          historyAwareOnSave:
+              (newItem, values, editingItem, [oldValues]) async {
+                if (editingItem == null) return;
+                final accountId = ref
+                    .read(authNotifierProvider.notifier)
+                    .selectedAccountId;
+                if (accountId == null) return;
+                await ref
+                    .read(fieldHistoriesProvider.notifier)
+                    .recordSnapshot(
+                      accountId: accountId,
+                      itemId: editingItem.id,
+                      fieldIdPrefix: 'idCard',
+                      allFieldValues: oldValues ?? {},
+                    );
+              },
           showHistoryExpansion: true,
           historyFieldIdPrefix: 'idCard',
         ),
@@ -1057,7 +1054,6 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     );
   }
 }
-
 
 // ============ Address Section (using UnifiedFormSection) ============
 
@@ -1097,24 +1093,6 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     super.dispose();
   }
 
-  /// Reload data from provider - called when provider state changes (e.g., after undo)
-  void _reloadFromProvider() {
-    final identity = ref.read(profileNotifierProvider)?.identity;
-    _addresses = [
-      ...?(identity?.activeAddresses?.map(
-        (a) => AddressData(
-          id: a.id,
-          title: a.title,
-          street: a.street,
-          city: a.city,
-          state: a.state,
-          postalCode: a.postalCode,
-          country: a.country,
-        ),
-      )),
-    ];
-  }
-
   void _loadData() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _addresses = [
@@ -1132,14 +1110,27 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     ];
   }
 
-  AddressData _createAddressFromValues(Map<String, String> values, {String? id}) {
+  AddressData _createAddressFromValues(
+    Map<String, String> values, {
+    String? id,
+  }) {
     return AddressData(
       id: id ?? generateEntryId(),
-      title: values['address.title']?.isEmpty == true ? null : values['address.title'],
-      street: values['address.street']?.isEmpty == true ? null : values['address.street'],
-      city: values['address.city']?.isEmpty == true ? null : values['address.city'],
-      postalCode: values['address.postalCode']?.isEmpty == true ? null : values['address.postalCode'],
-      country: values['address.country']?.isEmpty == true ? null : values['address.country'],
+      title: values['address.title']?.isEmpty == true
+          ? null
+          : values['address.title'],
+      street: values['address.street']?.isEmpty == true
+          ? null
+          : values['address.street'],
+      city: values['address.city']?.isEmpty == true
+          ? null
+          : values['address.city'],
+      postalCode: values['address.postalCode']?.isEmpty == true
+          ? null
+          : values['address.postalCode'],
+      country: values['address.country']?.isEmpty == true
+          ? null
+          : values['address.country'],
     );
   }
 
@@ -1195,8 +1186,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'address', id: deletedId);
-          // Reload from provider and rebuild UI immediately
-          _reloadFromProvider();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -1296,20 +1286,23 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
               sensitivity: SensitivityLevel.public,
             ),
           ],
-          displayItemBuilder: (address, itemMap) => EntryCardWidget<AddressData>(
-            item: address,
-            title: address.title ?? 'Address',
-            icon: Icons.home_outlined,
-            itemId: address.id,
-            historyFieldId: 'address',
-            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
-            fieldPrefix: 'address',
-            excludeFields: const {'title'}, // title already used as card title
-            sensitivityOverrides: const {
-              'postalCode': SensitivityLevel.critical,
-            },
-            onDelete: (a) => _onAddressDelete(a),
-          ),
+          displayItemBuilder: (address, itemMap) =>
+              EntryCardWidget<AddressData>(
+                item: address,
+                title: address.title ?? 'Address',
+                icon: Icons.home_outlined,
+                itemId: address.id,
+                historyFieldId: 'address',
+                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                fieldPrefix: 'address',
+                excludeFields: const {
+                  'title',
+                }, // title already used as card title
+                sensitivityOverrides: const {
+                  'postalCode': SensitivityLevel.critical,
+                },
+                onDelete: (a) => _onAddressDelete(a),
+              ),
           onDelete: _onAddressDelete,
           onSave: _onAddressSave,
           // Keys without prefix - _autoBuildFields will add 'address.' prefix via fieldPrefix.
@@ -1332,17 +1325,22 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
             itemIdExtractor: (a) => a.id,
             fieldIdPrefix: 'address',
           ),
-          historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
-            if (editingItem == null) return;
-            final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
-            if (accountId == null) return;
-            await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-              accountId: accountId,
-              itemId: editingItem.id,
-              fieldIdPrefix: 'address',
-              allFieldValues: oldValues ?? {},
-            );
-          },
+          historyAwareOnSave:
+              (newItem, values, editingItem, [oldValues]) async {
+                if (editingItem == null) return;
+                final accountId = ref
+                    .read(authNotifierProvider.notifier)
+                    .selectedAccountId;
+                if (accountId == null) return;
+                await ref
+                    .read(fieldHistoriesProvider.notifier)
+                    .recordSnapshot(
+                      accountId: accountId,
+                      itemId: editingItem.id,
+                      fieldIdPrefix: 'address',
+                      allFieldValues: oldValues ?? {},
+                    );
+              },
           showHistoryExpansion: true,
           historyFieldIdPrefix: 'address',
           itemIdExtractor: (a) => a.id,
@@ -1351,4 +1349,3 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     );
   }
 }
-
