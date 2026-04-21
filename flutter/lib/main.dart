@@ -156,6 +156,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
   void _wipeSensitiveState() {
     if (mounted) {
       ref.read(profileNotifierProvider.notifier).clearProfile();
+      ref.read(fieldHistoriesProvider.notifier).clearHistories();
     }
   }
 

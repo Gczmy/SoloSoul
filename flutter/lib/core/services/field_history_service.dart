@@ -126,6 +126,12 @@ class FieldHistoriesNotifier extends StateNotifier<FormHistories> {
     state = await FieldHistoryService.instance.loadHistories(accId);
   }
 
+  /// Clear histories state (when auth is locked)
+  void clearHistories() {
+    _currentAccountId = null;
+    state = FormHistories();
+  }
+
   /// Reload histories from disk.
   Future<void> reloadHistories(String accountId) async {
     state = await FieldHistoryService.instance.loadHistories(accountId);
