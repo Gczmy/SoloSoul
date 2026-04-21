@@ -224,27 +224,17 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   }
 
   /// Update field sensitivity level.
-  Future<bool> setFieldLevel(String fieldId, SensitivityLevel level) async {
-    if (_currentAccountId == null) return false;
+  void setFieldLevel(String fieldId, SensitivityLevel level) {
+    if (_currentAccountId == null) return;
 
     final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
     newFieldSettings[fieldId] = level;
 
-    final updated = state.copyWith(
+    state = state.copyWith(
       fieldSettings: newFieldSettings,
       lastModified: DateTime.now(),
     );
-
-    final saved = await AccountStyleService.instance.saveStyle(
-      _currentAccountId!,
-      updated,
-    );
-
-    if (saved) {
-      state = updated;
-    }
-
-    return saved;
+    _autoSave();
   }
 
   /// Remove field sensitivity override (revert to tag/global default).
@@ -360,9 +350,14 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
 
   /// Upgrade field to a higher sensitivity level.
   void upgradeField(String fieldId) {
-    final current = state.fieldSettings[fieldId] ?? SensitivityLevel.public;
-    if (current.index >= SensitivityLevel.critical.index) return;
-    final newLevel = SensitivityLevel.values[current.index + 1];
+    // Resolve effective level: user's override takes priority, else use registry default
+    final effectiveLevel = state.fieldSettings[fieldId] ??
+        FieldRegistry.defaultFields
+            .firstWhereOrNull((f) => f.fieldId == fieldId)
+            ?.level ??
+        SensitivityLevel.public;
+    if (effectiveLevel.index >= SensitivityLevel.critical.index) return;
+    final newLevel = SensitivityLevel.values[effectiveLevel.index + 1];
     final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
     newFieldSettings[fieldId] = newLevel;
     state = state.copyWith(
@@ -374,9 +369,14 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
 
   /// Downgrade field to a lower sensitivity level.
   void downgradeField(String fieldId) {
-    final current = state.fieldSettings[fieldId] ?? SensitivityLevel.public;
-    if (current.index <= SensitivityLevel.public.index) return;
-    final newLevel = SensitivityLevel.values[current.index - 1];
+    // Resolve effective level: user's override takes priority, else use registry default
+    final effectiveLevel = state.fieldSettings[fieldId] ??
+        FieldRegistry.defaultFields
+            .firstWhereOrNull((f) => f.fieldId == fieldId)
+            ?.level ??
+        SensitivityLevel.public;
+    if (effectiveLevel.index <= SensitivityLevel.public.index) return;
+    final newLevel = SensitivityLevel.values[effectiveLevel.index - 1];
     final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
     newFieldSettings[fieldId] = newLevel;
     state = state.copyWith(
