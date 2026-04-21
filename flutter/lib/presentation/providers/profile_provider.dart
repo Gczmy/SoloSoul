@@ -2013,6 +2013,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         } else if (itemType == 'visa' &&
             index < (state!.travel?.visas.length ?? 0)) {
           return state!.travel!.visas[index].country ?? 'Visa';
+        } else if (itemType == 'travel_history' &&
+            index < (state!.travel?.travelHistory.length ?? 0)) {
+          return state!.travel!.travelHistory[index].destination;
         }
         break;
       case 'financial':

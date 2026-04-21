@@ -2285,6 +2285,11 @@ class ProfileStorageService {
           final updated = List<VisaData>.from(profile.travel!.visas);
           updated.removeAt(index);
           profile.travel = profile.travel!.copyWith(visas: updated);
+        } else if (itemType == 'travel_history' &&
+            index < profile.travel!.travelHistory.length) {
+          final updated = List<TravelHistoryData>.from(profile.travel!.travelHistory);
+          updated.removeAt(index);
+          profile.travel = profile.travel!.copyWith(travelHistory: updated);
         }
         break;
       case 'financial':
@@ -2510,6 +2515,7 @@ class ProfileStorageService {
     if (profile.travel != null) {
       profile.travel!.passports.removeWhere((p) => p.isDeleted);
       profile.travel!.visas.removeWhere((v) => v.isDeleted);
+      profile.travel!.travelHistory.removeWhere((t) => t.isDeleted);
     }
 
     // Financial section
