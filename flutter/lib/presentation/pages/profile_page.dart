@@ -9,6 +9,7 @@ import 'package:solosoul_flutter/presentation/providers/account_style_provider.d
     show accountStyleProvider, fieldLevelProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show SensitivityLevel, SensitivityDisplayMode;
+import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
@@ -533,7 +534,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     if (wasAdding) {
       _contacts = List.from(_contacts)..add(contactToSave);
     } else {
-      final index = _contacts.indexWhere((c) => c.id == editingItem!.id);
+      final index = _contacts.indexById(editingItem!.id, (c) => c.id);
       if (index != -1) {
         _contacts = List.from(_contacts)..[index] = contactToSave;
       }
@@ -994,7 +995,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     if (wasAdding) {
       _idCards = List.from(_idCards)..add(cardToSave);
     } else {
-      final index = _idCards.indexWhere((c) => c.id == editingItem!.id);
+      final index = _idCards.indexById(editingItem!.id, (c) => c.id);
       if (index != -1) {
         _idCards = List.from(_idCards)..[index] = cardToSave;
       }
@@ -1466,7 +1467,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     if (wasAdding) {
       _addresses = List.from(_addresses)..add(addressToSave);
     } else {
-      final index = _addresses.indexWhere((a) => a.id == editingItem!.id);
+      final index = _addresses.indexById(editingItem!.id, (a) => a.id);
       if (index != -1) {
         _addresses = List.from(_addresses)..[index] = addressToSave;
       }

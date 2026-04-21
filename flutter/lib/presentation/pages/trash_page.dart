@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -794,7 +795,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       case 'travel':
         if (item.itemType == 'passport') {
           final idx =
-              profile.travel?.passports.indexWhere((p) => p.id == item.id) ??
+              profile.travel?.passports.indexById(item.id, (p) => p.id) ??
               -1;
           if (idx >= 0) {
             final p = profile.travel!.passports[idx];
@@ -806,7 +807,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'visa') {
           final idx =
-              profile.travel?.visas.indexWhere((v) => v.id == item.id) ?? -1;
+              profile.travel?.visas.indexById(item.id, (v) => v.id) ?? -1;
           if (idx >= 0) {
             final v = profile.travel!.visas[idx];
             detailText =
@@ -818,9 +819,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'travel_history') {
           final idx =
-              profile.travel?.travelHistory.indexWhere(
-                (t) => t.id == item.id,
-              ) ??
+              profile.travel?.travelHistory.indexById(item.id, (t) => t.id) ??
               -1;
           if (idx >= 0) {
             final t = profile.travel!.travelHistory[idx];
@@ -834,9 +833,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       case 'financial':
         if (item.itemType == 'bank_account') {
           final idx =
-              profile.financial?.bankAccounts.indexWhere(
-                (b) => b.id == item.id,
-              ) ??
+              profile.financial?.bankAccounts.indexById(item.id, (b) => b.id) ??
               -1;
           if (idx >= 0) {
             final b = profile.financial!.bankAccounts[idx];
@@ -848,7 +845,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'card') {
           final idx =
-              profile.financial?.cards.indexWhere((c) => c.id == item.id) ?? -1;
+              profile.financial?.cards.indexById(item.id, (c) => c.id) ?? -1;
           if (idx >= 0) {
             final c = profile.financial!.cards[idx];
             detailText =
@@ -862,9 +859,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       case 'professional':
         if (item.itemType == 'education') {
           final idx =
-              profile.professional?.education.indexWhere(
-                (e) => e.id == item.id,
-              ) ??
+              profile.professional?.education.indexById(item.id, (e) => e.id) ??
               -1;
           if (idx >= 0) {
             final e = profile.professional!.education[idx];
@@ -876,9 +871,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'employment') {
           final idx =
-              profile.professional?.employment.indexWhere(
-                (emp) => emp.id == item.id,
-              ) ??
+              profile.professional?.employment.indexById(item.id, (emp) => emp.id) ??
               -1;
           if (idx >= 0) {
             final emp = profile.professional!.employment[idx];
@@ -890,7 +883,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'skill') {
           final idx =
-              profile.professional?.skills.indexWhere((s) => s.id == item.id) ??
+              profile.professional?.skills.indexById(item.id, (s) => s.id) ??
               -1;
           if (idx >= 0) {
             final s = profile.professional!.skills[idx];
@@ -901,9 +894,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'language') {
           final idx =
-              profile.professional?.languages.indexWhere(
-                (l) => l.id == item.id,
-              ) ??
+              profile.professional?.languages.indexById(item.id, (l) => l.id) ??
               -1;
           if (idx >= 0) {
             final l = profile.professional!.languages[idx];
@@ -917,9 +908,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       case 'profile':
         if (item.itemType == 'contact') {
           final idx =
-              profile.identity?.contact?.entries.indexWhere(
-                (e) => e.id == item.id,
-              ) ??
+              profile.identity?.contact?.entries.indexById(item.id, (e) => e.id) ??
               -1;
           if (idx >= 0) {
             final e = profile.identity!.contact!.entries[idx];
@@ -931,7 +920,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'idCard') {
           final idx =
-              profile.identity?.idCards?.indexWhere((c) => c.id == item.id) ??
+              profile.identity?.idCards?.indexById(item.id, (c) => c.id) ??
               -1;
           if (idx >= 0) {
             final c = profile.identity!.idCards![idx];
@@ -943,7 +932,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           }
         } else if (item.itemType == 'address') {
           final idx =
-              profile.identity?.addresses?.indexWhere((a) => a.id == item.id) ??
+              profile.identity?.addresses?.indexById(item.id, (a) => a.id) ??
               -1;
           if (idx >= 0) {
             final a = profile.identity!.addresses![idx];

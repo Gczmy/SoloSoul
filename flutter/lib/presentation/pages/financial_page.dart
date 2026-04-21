@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
@@ -225,7 +226,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
   }
 
   Future<void> _onAccountDelete(BankAccountData account) async {
-    final index = _accounts.indexWhere((a) => a.id == account.id);
+    final index = _accounts.indexById(account.id, (a) => a.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -303,7 +304,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     if (wasAdding) {
       _accounts = List.from(_accounts)..add(accountToSave);
     } else {
-      final index = _accounts.indexWhere((a) => a.id == editingItem!.id);
+      final index = _accounts.indexById(editingItem!.id, (a) => a.id);
       if (index != -1) {
         _accounts = List.from(_accounts)..[index] = accountToSave;
       }
@@ -500,7 +501,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
   }
 
   Future<void> _onCardDelete(CardData card) async {
-    final index = _cards.indexWhere((c) => c.id == card.id);
+    final index = _cards.indexById(card.id, (c) => c.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -572,7 +573,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
     if (wasAdding) {
       _cards = List.from(_cards)..add(cardToSave);
     } else {
-      final index = _cards.indexWhere((c) => c.id == editingItem!.id);
+      final index = _cards.indexById(editingItem!.id, (c) => c.id);
       if (index != -1) {
         _cards = List.from(_cards)..[index] = cardToSave;
       }
@@ -769,7 +770,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
   }
 
   Future<void> _onTaxIdDelete(TaxIdData taxId) async {
-    final index = _taxIds.indexWhere((t) => t.id == taxId.id);
+    final index = _taxIds.indexById(taxId.id, (t) => t.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -841,7 +842,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     if (wasAdding) {
       _taxIds = List.from(_taxIds)..add(taxIdToSave);
     } else {
-      final index = _taxIds.indexWhere((t) => t.id == editingItem!.id);
+      final index = _taxIds.indexById(editingItem!.id, (t) => t.id);
       if (index != -1) {
         _taxIds = List.from(_taxIds)..[index] = taxIdToSave;
       }

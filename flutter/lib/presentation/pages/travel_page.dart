@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
+import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
@@ -226,7 +227,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
 
   Future<void> _onPassportDelete(PassportData passport) async {
     // Use ID-based lookup since PassportData has no == override (uses object identity)
-    final index = _passports.indexWhere((p) => p.id == passport.id);
+    final index = _passports.indexById(passport.id, (p) => p.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -298,7 +299,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       _passports = List.from(_passports)..add(passportToSave);
     } else {
       // Use ID-based lookup since PassportData has no == override (uses object identity)
-      final index = _passports.indexWhere((p) => p.id == editingItem!.id);
+      final index = _passports.indexById(editingItem!.id, (p) => p.id);
       if (index != -1) {
         _passports = List.from(_passports)..[index] = passportToSave;
       }
@@ -508,7 +509,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
 
   Future<void> _onVisaDelete(VisaData visa) async {
     // Use ID-based lookup since VisaData has no == override (uses object identity)
-    final index = _visas.indexWhere((v) => v.id == visa.id);
+    final index = _visas.indexById(visa.id, (v) => v.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -582,7 +583,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       _visas = List.from(_visas)..add(visaToSave);
     } else {
       // Use ID-based lookup since VisaData has no == override (uses object identity)
-      final index = _visas.indexWhere((v) => v.id == editingItem!.id);
+      final index = _visas.indexById(editingItem!.id, (v) => v.id);
       if (index != -1) {
         _visas = List.from(_visas)..[index] = visaToSave;
       }
@@ -770,7 +771,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
 
   Future<void> _onHistoryDelete(TravelHistoryData item) async {
     // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
-    final index = _history.indexWhere((h) => h.id == item.id);
+    final index = _history.indexById(item.id, (h) => h.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -878,7 +879,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       _history = List.from(_history)..add(itemToSave);
     } else {
       // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
-      final index = _history.indexWhere((h) => h.id == editingItem!.id);
+      final index = _history.indexById(editingItem!.id, (h) => h.id);
       if (index != -1) {
         _history = List.from(_history)..[index] = itemToSave;
       }
