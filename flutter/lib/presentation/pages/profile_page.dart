@@ -15,19 +15,16 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig, EntryActionsContext;
+    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
-import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
-    show ResponsiveLabelField, LabelValueField;
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
-import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
-import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/generic_auto_item_card.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 
@@ -719,141 +716,22 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'contact',
       itemIdExtractor: (c) => c.id,
-      displayItemBuilder: (contact) => _ContactItem(
-        contact: contact,
+      displayItemBuilder: (contact, itemMap) => GenericAutoItemCard(
+        itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+        fieldPrefix: 'contact',
+        itemId: contact.id,
+        title: contact.label.isNotEmpty ? contact.label : contact.value,
+        icon: contact.type == 'email' ? Icons.email_outlined : Icons.phone_outlined,
+        sensitivityOverrides: const {
+          'contact.value': SensitivityLevel.critical,
+        },
+        showHistoryExpansion: true,
+        historyFieldIdPrefix: 'contact',
         onEdit: () {},
         onDelete: () => _onContactDelete(contact),
       ),
     );
     return formSection;
-  }
-}
-
-class _ContactItem extends ConsumerStatefulWidget {
-  final ContactEntry contact;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _ContactItem({
-    required this.contact,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_ContactItem> createState() => _ContactItemState();
-}
-
-class _ContactItemState extends ConsumerState<_ContactItem> {
-  bool _historyExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.contact.id, 'contact');
-
-    final fields = <LabelValueField>[
-      if (widget.contact.label != null && widget.contact.label!.isNotEmpty)
-        LabelValueField(
-          label: 'Label',
-          value: widget.contact.label!,
-          fieldId: 'contact.label',
-        ),
-      LabelValueField(
-        label: 'Type',
-        value: widget.contact.type,
-        fieldId: 'contact.type',
-      ),
-      LabelValueField(
-        label: 'Value',
-        value: widget.contact.value,
-        fieldId: 'contact.value',
-        isSensitive: true,
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  widget.contact.type == 'email'
-                      ? Icons.email_outlined
-                      : Icons.phone_outlined,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: fields.isEmpty
-                    ? SelectableText(
-                        'Tap to add',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
-                    : ResponsiveLabelField(
-                        fields: fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: () {
-                  final ctx = EntryActionsContext.of(context);
-                  ctx?.onEdit?.call();
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: () {
-                  final ctx = EntryActionsContext.of(context);
-                  ctx?.onDelete?.call();
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-        ),
-        if (history != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 4),
-            child: TextButton.icon(
-              icon: Icon(
-                _historyExpanded ? Icons.expand_less : Icons.history,
-                size: 16,
-              ),
-              label: Text('History(${history.entries.length})'),
-              onPressed: () {
-                setState(() {
-                  _historyExpanded = !_historyExpanded;
-                });
-              },
-            ),
-          ),
-        if (history != null && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'contact',
-              history: history,
-            ),
-          ),
-      ],
-    );
   }
 }
 
@@ -1079,7 +957,22 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
               sensitivity: SensitivityLevel.public,
             ),
           ],
-          displayItemBuilder: _buildIdCardItem,
+          displayItemBuilder: (card, itemMap) => GenericAutoItemCard(
+            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+            fieldPrefix: 'idCard',
+            itemId: card.id,
+            title: card.label ?? 'ID Card',
+            icon: Icons.badge_outlined,
+            sensitivityOverrides: const {
+              'idCard.number': SensitivityLevel.critical,
+              'idCard.holderName': SensitivityLevel.critical,
+            },
+            showHistoryExpansion: true,
+            historyFieldIdPrefix: 'idCard',
+            onEdit: () {},
+            onDelete: () => _onIdCardDelete(card),
+            formatAllFields: (_) => '${card.entryType}\n${card.toFormattedString()}',
+          ),
           onDelete: _onIdCardDelete,
           onSave: _onIdCardSave,
           itemToMap: (c) => {
@@ -1119,222 +1012,6 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
   }
 }
 
-Widget _buildIdCardItem(IdCardData card) {
-  final hasLabel = card.label != null && card.label!.isNotEmpty;
-
-  final fields = <LabelValueField>[];
-  if (hasLabel) {
-    fields.add(LabelValueField(label: 'Label', value: card.label!));
-  }
-  if (card.number != null && card.number!.isNotEmpty) {
-    fields.add(
-      LabelValueField(
-        label: 'ID Number',
-        value: card.number!,
-        fieldId: 'idCard.number',
-        isSensitive: true,
-      ),
-    );
-  }
-  if (card.holderName != null && card.holderName!.isNotEmpty) {
-    fields.add(
-      LabelValueField(
-        label: 'Holder Name',
-        value: card.holderName!,
-        fieldId: 'idCard.holderName',
-        isSensitive: true,
-      ),
-    );
-  }
-  if (card.country != null && card.country!.isNotEmpty) {
-    fields.add(
-      LabelValueField(
-        label: 'Country',
-        value: card.country!,
-        fieldId: 'idCard.country',
-      ),
-    );
-  }
-  if (card.issueDate != null && card.issueDate!.isNotEmpty) {
-    fields.add(
-      LabelValueField(
-        label: 'Issue Date',
-        value: card.issueDate!,
-        fieldId: 'idCard.issueDate',
-      ),
-    );
-  }
-  if (card.expiryDate != null && card.expiryDate!.isNotEmpty) {
-    fields.add(
-      LabelValueField(
-        label: 'Expiry Date',
-        value: card.expiryDate!,
-        fieldId: 'idCard.expiryDate',
-      ),
-    );
-  }
-
-  return EntryCardWidget<IdCardData>(
-    item: card,
-    title: card.label ?? 'ID Card',
-    icon: Icons.badge_outlined,
-    fields: fields,
-    itemId: card.id,
-    historyFieldId: 'idCard',
-    isRestricted: true,
-    formatAllFields: (c) => '${c.entryType}\n${c.toFormattedString()}',
-  );
-}
-
-class _AddressTile extends ConsumerStatefulWidget {
-  final AddressData address;
-  final String displayText;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _AddressTile({
-    required this.address,
-    required this.displayText,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  ConsumerState<_AddressTile> createState() => _AddressTileState();
-}
-
-class _AddressTileState extends ConsumerState<_AddressTile> {
-  String _formatAllFields() => '${widget.address.entryType}\n${widget.address.toFormattedString()}';
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.address.id, 'address');
-
-    // Build list of fields to display
-    final fields = <LabelValueField>[];
-
-    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Label', value: widget.address.label!));
-    }
-    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Street',
-          value: widget.address.street!,
-          fieldId: 'address.street',
-        ),
-      );
-    }
-    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'City',
-          value: widget.address.city!,
-          fieldId: 'address.city',
-        ),
-      );
-    }
-    if (widget.address.postalCode != null &&
-        widget.address.postalCode!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Postal Code',
-          value: widget.address.postalCode!,
-          fieldId: 'address.postalCode',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Country',
-          value: widget.address.country!,
-          fieldId: 'address.country',
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  Icons.home_outlined,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: fields.isEmpty
-                    ? SelectableText(
-                        'Tap to add',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      )
-                    : ResponsiveLabelField(
-                        fields: fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.copy_all, size: 20),
-                tooltip: 'Copy All',
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: _formatAllFields()));
-                  showOverlaySnackBar(
-                    context,
-                    content: 'Copied to clipboard',
-                    type: SnackBarType.success,
-                  );
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined, size: 20),
-                tooltip: 'Edit',
-                onPressed: () {
-                  final ctx = EntryActionsContext.of(context);
-                  ctx?.onEdit?.call();
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
-                tooltip: 'Delete',
-                onPressed: () {
-                  final ctx = EntryActionsContext.of(context);
-                  ctx?.onDelete?.call();
-                },
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-        ),
-        if (history != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'address.postalCode',
-              history: history,
-            ),
-          ),
-      ],
-    );
-  }
-}
 
 // ============ Address Section (using UnifiedFormSection) ============
 
@@ -1552,8 +1229,17 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
               sensitivity: SensitivityLevel.public,
             ),
           ],
-          displayItemBuilder: (address) => _AddressItem(
-            address: address,
+          displayItemBuilder: (address, itemMap) => GenericAutoItemCard(
+            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+            fieldPrefix: 'address',
+            itemId: address.id,
+            title: address.label ?? 'Address',
+            icon: Icons.home_outlined,
+            sensitivityOverrides: const {
+              'address.postalCode': SensitivityLevel.critical,
+            },
+            showHistoryExpansion: true,
+            historyFieldIdPrefix: 'address',
             onEdit: () {},
             onDelete: () => _onAddressDelete(address),
           ),
@@ -1598,93 +1284,3 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
   }
 }
 
-class _AddressItem extends StatelessWidget {
-  final AddressData address;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _AddressItem({
-    required this.address,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final fields = <LabelValueField>[];
-    if (address.label != null && address.label!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Label', value: address.label!));
-    }
-    if (address.street != null && address.street!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Street',
-          value: address.street!,
-          fieldId: 'address.street',
-        ),
-      );
-    }
-    if (address.city != null && address.city!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'City',
-          value: address.city!,
-          fieldId: 'address.city',
-        ),
-      );
-    }
-    if (address.postalCode != null &&
-        address.postalCode!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Postal Code',
-          value: address.postalCode!,
-          fieldId: 'address.postalCode',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (address.country != null && address.country!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Country',
-          value: address.country!,
-          fieldId: 'address.country',
-        ),
-      );
-    }
-
-    return UniversalEntryCard(
-      leading: const Icon(Icons.home_outlined, size: 20),
-      title: SelectableText(
-        address.label ?? 'Address',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      children: fields.isEmpty
-          ? []
-          : [
-              ResponsiveLabelField(
-                fields: fields,
-                labelValueSpacing: 4,
-                layoutAxis: Axis.vertical,
-              ),
-            ],
-      // Actions delegated to _ItemWithHistory via EntryActionsContext
-      // Fallback for standalone use
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.edit_outlined, size: 20),
-          tooltip: 'Edit',
-          onPressed: onEdit,
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete_outline, size: 20),
-          tooltip: 'Delete',
-          onPressed: onDelete,
-        ),
-      ],
-    );
-  }
-}

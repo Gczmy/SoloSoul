@@ -1,0 +1,328 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/models/field_history_models.dart';
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show fieldHistoriesProvider;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
+    show authNotifierProvider, sensitivePageAccessProvider;
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show accountStyleProvider, SensitivityDisplayMode, AccountStyle, fieldLevelProvider;
+import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
+    show ResponsiveLabelField, LabelValueField;
+import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
+    show EntryActionsContext;
+import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show SensitivityLevel;
+
+/// Provider for per-item history expanded state, keyed by itemId or title.
+final genericHistoryExpandedProvider =
+    StateProvider.family<bool, String>((ref, key) => false);
+
+/// A generic card widget that auto-generates LabelValueField list from a Map.
+///
+/// Accepts a Map<String, dynamic> (e.g., result of itemToMap) and automatically
+/// creates field entries with proper fieldId patterns, sensitivity, and history support.
+class GenericAutoItemCard extends ConsumerStatefulWidget {
+  /// The item data map (e.g., result of itemToMap)
+  final Map<String, dynamic> itemData;
+
+  /// The field prefix for fieldId generation (e.g., 'contact', 'address')
+  final String fieldPrefix;
+
+  /// Unique identifier for this item (used for history lookup)
+  final String? itemId;
+
+  /// Display title for the card
+  final String title;
+
+  /// Optional subtitle
+  final String? subtitle;
+
+  /// Icon to display
+  final IconData icon;
+
+  /// Optional sensitivity overrides per field key.
+  /// If not provided, uses SensitivityResolver to look up from registry.
+  final Map<String, SensitivityLevel>? sensitivityOverrides;
+
+  /// Direct sensitivity level for all fields (overrides sensitivityOverrides)
+  final SensitivityLevel? sensitivityLevel;
+
+  /// Whether to show history expansion toggle
+  final bool showHistoryExpansion;
+
+  /// History field ID prefix (defaults to fieldPrefix)
+  final String? historyFieldIdPrefix;
+
+  /// Edit callback
+  final VoidCallback? onEdit;
+
+  /// Delete callback
+  final VoidCallback? onDelete;
+
+  /// Format all fields for copy
+  final String Function(Map<String, dynamic> itemData)? formatAllFields;
+
+  const GenericAutoItemCard({
+    super.key,
+    required this.itemData,
+    required this.fieldPrefix,
+    this.itemId,
+    required this.title,
+    this.subtitle,
+    required this.icon,
+    this.sensitivityOverrides,
+    this.sensitivityLevel,
+    this.showHistoryExpansion = false,
+    this.historyFieldIdPrefix,
+    this.onEdit,
+    this.onDelete,
+    this.formatAllFields,
+  });
+
+  @override
+  ConsumerState<GenericAutoItemCard> createState() => _GenericAutoItemCardState();
+}
+
+class _GenericAutoItemCardState extends ConsumerState<GenericAutoItemCard> {
+  String get _historyKey => widget.itemId ?? widget.title;
+
+  String get _historyFieldId => widget.historyFieldIdPrefix ?? widget.fieldPrefix;
+
+  FieldHistory? get _history {
+    if (widget.itemId == null) return null;
+    return ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.itemId!, _historyFieldId);
+  }
+
+  SensitivityLevel _getSensitivityForField(String fieldKey) {
+    if (widget.sensitivityLevel != null) {
+      return widget.sensitivityLevel!;
+    }
+    if (widget.sensitivityOverrides != null &&
+        widget.sensitivityOverrides!.containsKey(fieldKey)) {
+      return widget.sensitivityOverrides![fieldKey]!;
+    }
+    // Look up from registry using the full fieldId via fieldLevelProvider
+    final fieldId = '${widget.fieldPrefix}.$fieldKey';
+    return ref.read(fieldLevelProvider(fieldId));
+  }
+
+  List<LabelValueField> _buildFields() {
+    final fields = <LabelValueField>[];
+    widget.itemData.forEach((key, value) {
+      if (value == null || (value is String && value.isEmpty)) return;
+
+      final fieldId = '${widget.fieldPrefix}.$key';
+      final sensitivity = _getSensitivityForField(key);
+      final isSensitive = sensitivity == SensitivityLevel.sensitive ||
+          sensitivity == SensitivityLevel.critical;
+
+      fields.add(LabelValueField(
+        label: _formatLabel(key),
+        value: value.toString(),
+        fieldId: fieldId,
+        isSensitive: isSensitive,
+      ));
+    });
+    return fields;
+  }
+
+  String _formatLabel(String key) {
+    // Convert camelCase or snake_case to Title Case
+    // e.g., "postal_code" -> "Postal Code", "holderName" -> "Holder Name"
+    final spaced = key.replaceAllMapped(
+      RegExp(r'([a-z])([A-Z])'),
+      (m) => '${m[1]} ${m[2]}',
+    );
+    return spaced.replaceAll('_', ' ').split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  Future<void> _handleCopy(String formattedText) async {
+    await Clipboard.setData(ClipboardData(text: formattedText));
+    if (mounted) {
+      showOverlaySnackBar(
+        context,
+        content: 'Copied to clipboard',
+        type: SnackBarType.success,
+      );
+    }
+  }
+
+  Future<void> _handleHistoryPress(bool isSensitive) async {
+    final currentExpanded = ref.read(genericHistoryExpandedProvider(_historyKey));
+
+    // Non-sensitive items: toggle freely
+    if (!isSensitive) {
+      ref.read(genericHistoryExpandedProvider(_historyKey).notifier).state =
+          !currentExpanded;
+      return;
+    }
+
+    // Sensitive items: require password verification
+    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
+    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
+    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
+        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+    if (hasRecentVerification) {
+      ref.read(genericHistoryExpandedProvider(_historyKey).notifier).state =
+          !currentExpanded;
+      return;
+    }
+
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
+    final password = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
+    );
+    if (password == null) return;
+    ref.read(sensitivePageAccessProvider.notifier).markVerified();
+    if (mounted) {
+      ref.read(genericHistoryExpandedProvider(_historyKey).notifier).state =
+          !currentExpanded;
+    }
+  }
+
+  String _formatAllFieldsDefault() {
+    final buffer = StringBuffer();
+    buffer.writeln(widget.title);
+    widget.itemData.forEach((key, value) {
+      if (value != null && (value is! String || value.isNotEmpty)) {
+        buffer.writeln('${_formatLabel(key)}: $value');
+      }
+    });
+    return buffer.toString().trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final history = _history;
+    final hasHistory = history != null;
+    final fields = _buildFields();
+    final isSensitive = fields.any((f) => f.isSensitive);
+    final isExpanded = ref.watch(genericHistoryExpandedProvider(_historyKey));
+
+    // Auto-collapse restricted history when entering privacy mode
+    ref.listen<AccountStyle>(
+      accountStyleProvider,
+      (previous, next) {
+        if (!isSensitive) return;
+        final wasShowAll =
+            previous?.displayMode == SensitivityDisplayMode.showAll;
+        final isNowPrivacy = next.displayMode != SensitivityDisplayMode.showAll;
+        if (wasShowAll && isNowPrivacy) {
+          Future.microtask(() {
+            if (context.mounted) {
+              ref
+                  .read(genericHistoryExpandedProvider(_historyKey).notifier)
+                  .state = false;
+            }
+          });
+        }
+      },
+    );
+
+    // Get EntryActionsContext for use inside UnifiedFormSection
+    final actionsContext = EntryActionsContext.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UniversalEntryCard(
+          title: SelectableText(
+            widget.title,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          subtitle: widget.subtitle != null
+              ? SelectableText(
+                  widget.subtitle!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                )
+              : null,
+          leading: Icon(
+            widget.icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          actions: _buildActions(context, actionsContext, isSensitive),
+          bottomActions: [
+            if (widget.showHistoryExpansion && hasHistory)
+              TextButton.icon(
+                icon: Icon(
+                  isExpanded ? Icons.expand_less : Icons.history,
+                  size: 16,
+                ),
+                label: Text('History(${history.entries.length})'),
+                onPressed: () => _handleHistoryPress(isSensitive),
+              ),
+          ],
+          children: fields.isNotEmpty
+              ? [
+                  const SizedBox(height: 4),
+                  ResponsiveLabelField(
+                    fields: fields,
+                    labelValueSpacing: 4,
+                    layoutAxis: Axis.vertical,
+                  ),
+                ]
+              : [],
+        ),
+        if (hasHistory && isExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: _historyFieldId,
+              history: history,
+            ),
+          ),
+      ],
+    );
+  }
+
+  List<Widget> _buildActions(
+    BuildContext context,
+    EntryActionsContext? ctx,
+    bool isSensitive,
+  ) {
+    final editAction = ctx?.onEdit ?? widget.onEdit ?? () {};
+    final deleteAction = ctx?.onDelete ?? widget.onDelete ?? () {};
+
+    void handleCopyAction() {
+      final text = widget.formatAllFields?.call(widget.itemData) ??
+          _formatAllFieldsDefault();
+      _handleCopy(text);
+    }
+
+    return EntryActionBuilder.buildActions(
+      context: context,
+      ref: ref,
+      onCopy: handleCopyAction,
+      onEdit: editAction,
+      onDelete: deleteAction,
+      config: const EntryActionsConfig(
+        showCopy: true,
+        showEdit: true,
+        showDelete: true,
+      ),
+      isSensitive: isSensitive,
+    );
+  }
+}

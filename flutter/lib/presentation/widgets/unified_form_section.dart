@@ -54,7 +54,10 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   final IconData icon;
   final List<T> items;
   final List<FormFieldDef> fieldDefs;
-  final Widget Function(T item) displayItemBuilder;
+  /// Builder for displaying a single item. Receives both the item and its map
+  /// representation (via itemToMap) so the builder can access field values
+  /// without re-implementing the mapping.
+  final Widget Function(T item, Map<String, String> itemMap) displayItemBuilder;
   final Future<void> Function(T item) onDelete;
   /// onSave receives (newItem, values, editingItem):
   /// - For adds: newItem is the item created by itemFactory (with correct ID), editingItem is null
@@ -459,6 +462,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
                     })
                 : null,
             displayItemBuilder: widget.displayItemBuilder,
+            itemToMap: widget.itemToMap,
             onEdit: () => _startEditing(i),
             onDelete: () => _deleteEntry(i),
             onCopy: widget.onCopy != null
@@ -596,7 +600,8 @@ class _ItemWithHistory<T> extends ConsumerWidget {
   final int index;
   final bool historyExpanded;
   final VoidCallback? onToggleHistory;
-  final Widget Function(T item) displayItemBuilder;
+  final Widget Function(T item, Map<String, String> itemMap) displayItemBuilder;
+  final Map<String, String> Function(T item)? itemToMap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final void Function(String fieldId, String value)? onCopy;
@@ -612,6 +617,7 @@ class _ItemWithHistory<T> extends ConsumerWidget {
     required this.historyExpanded,
     this.onToggleHistory,
     required this.displayItemBuilder,
+    this.itemToMap,
     required this.onEdit,
     required this.onDelete,
     this.onCopy,
@@ -628,6 +634,9 @@ class _ItemWithHistory<T> extends ConsumerWidget {
         ? ref.watch(fieldHistoriesProvider.notifier).getHistory(itemId, historyFieldIdPrefix!)
         : null;
 
+    // Compute item map if itemToMap is provided
+    final itemMap = itemToMap != null ? itemToMap!(item) : <String, String>{};
+
     return EntryActionsContext(
       onEdit: onEdit,
       onDelete: onDelete,
@@ -642,7 +651,7 @@ class _ItemWithHistory<T> extends ConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: displayItemBuilder(item)),
+                  Expanded(child: displayItemBuilder(item, itemMap)),
                 ],
               ),
             ),
