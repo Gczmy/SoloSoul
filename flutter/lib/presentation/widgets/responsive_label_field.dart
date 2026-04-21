@@ -93,6 +93,13 @@ class _FieldRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final effectiveFieldId = field.fieldId ?? field.label.toLowerCase().replaceAll(' ', '.');
 
+    // Fall back to registry lookup if sensitivityLevel not provided
+    final SensitivityLevel sensitivityLevel = field.sensitivityLevel ??
+        ref.watch(effectiveSensitivityProvider(effectiveFieldId));
+    final isSensitive = field.isSensitive ||
+        sensitivityLevel == SensitivityLevel.sensitive ||
+        sensitivityLevel == SensitivityLevel.critical;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -106,7 +113,7 @@ class _FieldRow extends ConsumerWidget {
         ),
         SizedBox(width: labelValueSpacing),
         // Value (sensitive or plain)
-        if (field.isSensitive)
+        if (isSensitive)
           Flexible(
             child: SensitiveValueWidget(
               fieldId: effectiveFieldId,
@@ -120,10 +127,10 @@ class _FieldRow extends ConsumerWidget {
               style: theme.textTheme.bodyMedium,
             ),
           ),
-        // Sensitivity level tag
-        if (field.sensitivityLevel != null) ...[
+        // Sensitivity level tag (always show when not public)
+        if (sensitivityLevel != SensitivityLevel.public) ...[
           const SizedBox(width: 6),
-          SensitivityTag(level: field.sensitivityLevel!),
+          SensitivityTag(level: sensitivityLevel),
         ],
       ],
     );
