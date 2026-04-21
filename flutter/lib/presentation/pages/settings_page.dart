@@ -113,9 +113,13 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Lock Vault',
                       subtitle: 'Lock now and require password',
                       onTap: () {
-                        ref.read(sensitivePageAccessProvider.notifier).clear();
+                        // Lock vault first (synchronously sets AuthState.locked)
                         ref.read(authNotifierProvider.notifier).lockVault();
+                        // Navigate to login
                         Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                        // Clear sensitive access after navigation to prevent
+                        // watched pages from briefly showing verification screens
+                        ref.read(sensitivePageAccessProvider.notifier).clear();
                       },
                     ),
                     const Divider(height: 1),

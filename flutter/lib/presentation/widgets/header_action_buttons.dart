@@ -61,13 +61,17 @@ class HeaderActionButtons extends ConsumerWidget {
         IconButton(
           icon: const Icon(Icons.lock_outline),
           onPressed: () {
+            // Lock vault first (synchronously sets AuthState.locked)
             ref.read(authNotifierProvider.notifier).lockVault();
-            // Also clear sensitive access
-            ref.read(sensitivePageAccessProvider.notifier).clear();
             // Clear entire route stack to prevent back-navigation to destroyed pages
+            // NOTE: Clear sensitive access AFTER navigation to prevent
+            // watched pages (trash/sensitivity/operation_log) from briefly
+            // showing their password verification screens
             Navigator.of(
               context,
             ).pushNamedAndRemoveUntil('/login', (route) => false);
+            // Now clear sensitive access (after navigation completes)
+            ref.read(sensitivePageAccessProvider.notifier).clear();
           },
           tooltip: 'Lock Vault',
         ),

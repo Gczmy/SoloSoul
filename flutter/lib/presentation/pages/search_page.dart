@@ -33,7 +33,8 @@ class SearchResultItem {
 class SearchState {
   final String query;
   final bool searchPublic;
-  final bool searchPrivate;
+  final bool searchInternal;
+  final bool searchSensitive;
   final bool searchRestricted;
   final List<SearchResultItem> results;
   final bool isSearching;
@@ -41,7 +42,8 @@ class SearchState {
   const SearchState({
     this.query = '',
     this.searchPublic = true,
-    this.searchPrivate = false,
+    this.searchInternal = false,
+    this.searchSensitive = false,
     this.searchRestricted = false,
     this.results = const [],
     this.isSearching = false,
@@ -50,7 +52,8 @@ class SearchState {
   SearchState copyWith({
     String? query,
     bool? searchPublic,
-    bool? searchPrivate,
+    bool? searchInternal,
+    bool? searchSensitive,
     bool? searchRestricted,
     List<SearchResultItem>? results,
     bool? isSearching,
@@ -58,7 +61,8 @@ class SearchState {
     return SearchState(
       query: query ?? this.query,
       searchPublic: searchPublic ?? this.searchPublic,
-      searchPrivate: searchPrivate ?? this.searchPrivate,
+      searchInternal: searchInternal ?? this.searchInternal,
+      searchSensitive: searchSensitive ?? this.searchSensitive,
       searchRestricted: searchRestricted ?? this.searchRestricted,
       results: results ?? this.results,
       isSearching: isSearching ?? this.isSearching,
@@ -66,7 +70,7 @@ class SearchState {
   }
 
   bool get hasActiveFilters =>
-      searchPublic || searchPrivate || searchRestricted;
+      searchPublic || searchInternal || searchSensitive || searchRestricted;
 }
 
 /// Search notifier
@@ -89,8 +93,13 @@ class SearchNotifier extends StateNotifier<SearchState> {
     if (state.query.length >= 2) _performSearch();
   }
 
-  void togglePrivate() {
-    state = state.copyWith(searchPrivate: !state.searchPrivate);
+  void toggleInternal() {
+    state = state.copyWith(searchInternal: !state.searchInternal);
+    if (state.query.length >= 2) _performSearch();
+  }
+
+  void toggleSensitive() {
+    state = state.copyWith(searchSensitive: !state.searchSensitive);
     if (state.query.length >= 2) _performSearch();
   }
 
@@ -206,8 +215,10 @@ class SearchNotifier extends StateNotifier<SearchState> {
           if (!state.searchPublic) return;
           break;
         case SensitivityLevel.internal:
+          if (!state.searchInternal) return;
+          break;
         case SensitivityLevel.sensitive:
-          if (!state.searchPrivate) return;
+          if (!state.searchSensitive) return;
           break;
         case SensitivityLevel.critical:
           if (!state.searchRestricted) return;
@@ -818,12 +829,23 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
-                  label: const Text('Private'),
-                  selected: searchState.searchPrivate,
+                  label: const Text('Internal'),
+                  selected: searchState.searchInternal,
                   onSelected: (_) {
-                    ref.read(searchProvider.notifier).togglePrivate();
+                    ref.read(searchProvider.notifier).toggleInternal();
                   },
-                  avatar: searchState.searchPrivate
+                  avatar: searchState.searchInternal
+                      ? const Icon(Icons.check, size: 18)
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Sensitive'),
+                  selected: searchState.searchSensitive,
+                  onSelected: (_) {
+                    ref.read(searchProvider.notifier).toggleSensitive();
+                  },
+                  avatar: searchState.searchSensitive
                       ? const Icon(Icons.check, size: 18)
                       : null,
                 ),

@@ -188,15 +188,24 @@ class _HistoryEntryTile extends StatelessWidget {
                     final displayKey = e.key.contains('.')
                         ? e.key.substring(e.key.indexOf('.') + 1)
                         : e.key;
+                    // Convert camelCase to Title Case for display (e.g., "expiryDate" -> "Expiry Date")
+                    final titleCaseKey = displayKey.replaceAllMapped(
+                      RegExp(r'([A-Z]|[0-9]+)'),
+                      (match) => match.group(0)!.isEmpty
+                          ? ''
+                          : (match.start == 0
+                              ? match.group(0)!
+                              : ' ${match.group(0)}'),
+                    );
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            width: 64,
+                            width: 120,
                             child: Text(
-                              displayKey,
+                              titleCaseKey,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,

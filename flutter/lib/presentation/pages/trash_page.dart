@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show AppTheme, showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
@@ -694,12 +695,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     if (mounted) {
       // Trigger rebuild to remove item from list immediately
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.itemLabel} permanently deleted'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppTheme.errorColor,
-        ),
+      showOverlaySnackBar(
+        context,
+        content: '${item.itemLabel} permanently deleted',
+        type: SnackBarType.error,
       );
     }
   }
@@ -760,18 +759,15 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
           FilledButton(
             onPressed: () async {
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
               await ref.read(profileNotifierProvider.notifier).emptyAllTrash();
               if (mounted) {
                 // Trigger rebuild to remove all items immediately
                 setState(() {});
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text('All $itemCount items permanently deleted'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: AppTheme.errorColor,
-                  ),
+                showOverlaySnackBar(
+                  context,
+                  content: 'All $itemCount items permanently deleted',
+                  type: SnackBarType.error,
                 );
               }
             },
@@ -1171,13 +1167,11 @@ class _TrashItemCardState extends State<_TrashItemCard> {
       await widget.onRestore(widget.item);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to restore ${widget.item.itemLabel}'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.orange,
-          ),
-        );
+        showOverlaySnackBar(
+            context,
+            content: 'Failed to restore ${widget.item.itemLabel}',
+            type: SnackBarType.warning,
+          );
       }
     } finally {
       // Reset flag after operation completes (success or failure)
@@ -1201,13 +1195,11 @@ class _TrashItemCardState extends State<_TrashItemCard> {
       await widget.onPurge(widget.item);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to purge ${widget.item.itemLabel}'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.orange,
-          ),
-        );
+        showOverlaySnackBar(
+            context,
+            content: 'Failed to purge ${widget.item.itemLabel}',
+            type: SnackBarType.warning,
+          );
       }
     } finally {
       // Reset flag after operation completes (success or failure)

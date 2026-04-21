@@ -23,6 +23,8 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
+    show SensitivityTag;
 
 class TravelPage extends ConsumerStatefulWidget {
   const TravelPage({super.key});
@@ -980,32 +982,32 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
         FormFieldDef(
           fieldId: 'travel.date',
           label: 'Date',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'travel.departureCity',
           label: 'Departure City',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'travel.departureTime',
           label: 'Departure Time',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'travel.arrivalTime',
           label: 'Arrival Time',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'travel.flightNumber',
           label: 'Flight/Train/Bus Number',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: SensitivityLevel.internal,
         ),
         FormFieldDef(
           fieldId: 'travel.ticketPrice',
           label: 'Ticket Price',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: SensitivityLevel.sensitive,
         ),
         FormFieldDef(
           fieldId: 'travel.airline',
@@ -1060,6 +1062,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     labelText: 'Destination',
                     border: OutlineInputBorder(),
                     counterText: '',
+                    suffixIcon: Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: SensitivityTag(level: SensitivityLevel.public),
+                    ),
+                    suffixIconConstraints: BoxConstraints(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1071,6 +1078,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     labelText: 'Date',
                     border: OutlineInputBorder(),
                     counterText: '',
+                    suffixIcon: Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: SensitivityTag(level: SensitivityLevel.internal),
+                    ),
+                    suffixIconConstraints: BoxConstraints(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1085,6 +1097,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                           labelText: 'Departure City',
                           border: OutlineInputBorder(),
                           counterText: '',
+                          suffixIcon: Padding(
+                            padding: EdgeInsets.only(right: 8),
+                            child: SensitivityTag(level: SensitivityLevel.internal),
+                          ),
+                          suffixIconConstraints: BoxConstraints(),
                         ),
                       ),
                     ),
@@ -1097,6 +1114,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                           labelText: 'Arrival City',
                           border: OutlineInputBorder(),
                           counterText: '',
+                          suffixIcon: Padding(
+                            padding: EdgeInsets.only(right: 8),
+                            child: SensitivityTag(level: SensitivityLevel.internal),
+                          ),
+                          suffixIconConstraints: BoxConstraints(),
                         ),
                       ),
                     ),
@@ -1115,6 +1137,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Departure Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1127,6 +1154,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Arrival Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1140,6 +1172,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Airline',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.public),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1150,6 +1187,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Flight Number',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.internal),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1160,6 +1202,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Ticket Price',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Train') ...[
@@ -1173,6 +1220,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Departure Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1185,6 +1237,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Arrival Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1198,6 +1255,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Train Number',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.internal),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1208,6 +1270,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Ticket Price',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Bus') ...[
@@ -1221,6 +1288,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Departure Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1233,6 +1305,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Arrival Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1246,6 +1323,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Bus Number',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.internal),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1256,6 +1338,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Ticket Price',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Taxi') ...[
@@ -1269,6 +1356,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Departure Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1281,6 +1373,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Arrival Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1294,6 +1391,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       labelText: 'Price',
                       border: OutlineInputBorder(),
                       counterText: '',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: SensitivityLevel.sensitive),
+                      ),
+                      suffixIconConstraints: BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Drive') ...[
@@ -1307,6 +1409,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Departure Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1319,6 +1426,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Arrival Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1336,6 +1448,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Departure Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1348,6 +1465,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                             labelText: 'Arrival Time',
                             border: OutlineInputBorder(),
                             counterText: '',
+                            suffixIcon: Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: SensitivityTag(level: SensitivityLevel.internal),
+                            ),
+                            suffixIconConstraints: BoxConstraints(),
                           ),
                         ),
                       ),

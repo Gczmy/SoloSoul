@@ -1742,7 +1742,7 @@ class DeletedItemInfo {
       label: 'Travel History',
       sectionLabel: 'Travel',
       icon: Icons.history,
-      fieldIdPrefix: 'travel.destination',
+      fieldIdPrefix: 'travel',
       sensitivityFieldId: 'travel.date',
       section: 'travel',
     ),

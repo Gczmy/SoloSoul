@@ -17,7 +17,8 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/pages/sensitivity_settings_page.dart';
 import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/search_page.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show AppTheme, showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 
@@ -119,11 +120,10 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
       Future.microtask(() {
         final navContext = _navigatorKey.currentContext;
         if (navContext != null) {
-          ScaffoldMessenger.of(navContext).showSnackBar(
-            const SnackBar(
-              content: Text('Vault auto-locked after leaving the app'),
-              behavior: SnackBarBehavior.floating,
-            ),
+          showOverlaySnackBar(
+            navContext,
+            content: 'Vault auto-locked after leaving the app',
+            type: SnackBarType.info,
           );
           _navigatorKey.currentState?.pushNamedAndRemoveUntil(
             '/login',
