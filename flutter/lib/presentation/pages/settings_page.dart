@@ -453,159 +453,19 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
-    final passwordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool isDeleting = false;
-    bool obscurePassword = true;
-
-    await showDialog<bool>(
+  static Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogInnerContext, setState) {
-          String? errorMessage;
-
-          return AlertDialog(
-            title: const Center(
-              child: Text('Delete Account'),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.red.shade700, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '删除账户后，该账号的所有数据都会被清空，确定要删除吗？',
-                          style: TextStyle(
-                            color: Colors.red.shade900,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Form(
-                  key: formKey,
-                  child: TextFormField(
-                    controller: passwordController,
-                    obscureText: obscurePassword,
-                    autofocus: true,
-                    enabled: !isDeleting,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      labelText: 'Enter password to confirm',
-                      errorText: errorMessage,
-                      errorStyle: TextStyle(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() => obscurePassword = !obscurePassword);
-                        },
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade400),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.red.shade300),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.red.shade500, width: 2),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password is required';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: isDeleting ? null : () => Navigator.pop(dialogInnerContext, false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: isDeleting
-                    ? null
-                    : () async {
-                        if (!formKey.currentState!.validate()) return;
-
-                        setState(() {
-                          isDeleting = true;
-                        });
-
-                        final authNotifier = ref.read(authNotifierProvider.notifier);
-                        final success = await authNotifier.deleteAccount(passwordController.text);
-
-                        if (!success) {
-                          if (dialogInnerContext.mounted) {
-                            setState(() {
-                              isDeleting = false;
-                            });
-                          }
-                          return;
-                        }
-
-                        // Invalidate accounts cache so login page shows updated list
-                        ref.invalidate(accountsProvider);
-
-                        if (dialogInnerContext.mounted) {
-                          Navigator.pop(dialogInnerContext, true);
-                        }
-                        // Navigate to login after dialog is dismissed
-                        if (context.mounted) {
-                          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                        }
-                      },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.errorColor,
-                ),
-                child: isDeleting
-                    ? const SizedBox(
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Delete Account'),
-              ),
-            ],
-          );
-        },
+      builder: (dialogContext) => _DeleteAccountDialogContent(
+        dialogContext: dialogContext,
+        ref: ref,
       ),
     );
 
-    passwordController.dispose();
+    if (result == true && context.mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
   }
 }
 
@@ -658,6 +518,127 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DeleteAccountDialogContent extends StatefulWidget {
+  final BuildContext dialogContext;
+  final WidgetRef ref;
+
+  const _DeleteAccountDialogContent({
+    required this.dialogContext,
+    required this.ref,
+  });
+
+  @override
+  State<_DeleteAccountDialogContent> createState() => _DeleteAccountDialogContentState();
+}
+
+class _DeleteAccountDialogContentState extends State<_DeleteAccountDialogContent> {
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isDeleting = false;
+  bool _obscurePassword = true;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleDelete() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isDeleting = true);
+
+    final authNotifier = widget.ref.read(authNotifierProvider.notifier);
+    final success = await authNotifier.deleteAccount(_passwordController.text);
+
+    if (!success) {
+      setState(() {
+        _isDeleting = false;
+        _errorMessage = 'Invalid password';
+      });
+      return;
+    }
+
+    widget.ref.invalidate(accountsProvider);
+
+    if (mounted) {
+      Navigator.pop(widget.dialogContext, true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Center(child: Text('Delete Account')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.red.shade700, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    '删除账户后，该账号的所有数据都会被清空，确定要删除吗？',
+                    style: TextStyle(color: Colors.red, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Form(
+            key: _formKey,
+            child: TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              autofocus: true,
+              enabled: !_isDeleting,
+              onChanged: (_) => setState(() => _errorMessage = null),
+              decoration: InputDecoration(
+                labelText: 'Enter password to confirm',
+                errorText: _errorMessage,
+                errorStyle: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.w500),
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade400)),
+                errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.red.shade300)),
+                focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.red.shade500, width: 2)),
+              ),
+              validator: (v) => v == null || v.isEmpty ? 'Password is required' : null,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isDeleting ? null : () => Navigator.pop(widget.dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _isDeleting ? null : _handleDelete,
+          style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+          child: _isDeleting
+              ? const SizedBox(height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Delete Account'),
+        ),
+      ],
     );
   }
 }
