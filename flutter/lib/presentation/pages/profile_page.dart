@@ -15,7 +15,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
+    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig, EntryActionsContext;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
@@ -729,7 +729,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   }
 }
 
-class _ContactItem extends StatelessWidget {
+class _ContactItem extends ConsumerStatefulWidget {
   final ContactEntry contact;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -741,55 +741,117 @@ class _ContactItem extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_ContactItem> createState() => _ContactItemState();
+}
+
+class _ContactItemState extends ConsumerState<_ContactItem> {
+  bool _historyExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final history = ref
+        .watch(fieldHistoriesProvider.notifier)
+        .getHistory(widget.contact.id, 'contact');
+
     final fields = <LabelValueField>[
+      if (widget.contact.label != null && widget.contact.label!.isNotEmpty)
+        LabelValueField(
+          label: 'Label',
+          value: widget.contact.label!,
+          fieldId: 'contact.label',
+        ),
+      LabelValueField(
+        label: 'Type',
+        value: widget.contact.type,
+        fieldId: 'contact.type',
+      ),
       LabelValueField(
         label: 'Value',
-        value: contact.value,
-        fieldId: 'contact',
-        isSensitive: false,
+        value: widget.contact.value,
+        fieldId: 'contact.value',
+        isSensitive: true,
       ),
     ];
 
-    return UniversalEntryCard(
-      leading: Icon(
-        contact.type == 'email'
-            ? Icons.email_outlined
-            : Icons.phone_outlined,
-        size: 20,
-      ),
-      title: SelectableText(
-        contact.label,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-      ),
-      subtitle: SelectableText(
-        contact.type,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ResponsiveLabelField(
-          fields: fields,
-          labelValueSpacing: 4,
-          layoutAxis: Axis.vertical,
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  widget.contact.type == 'email'
+                      ? Icons.email_outlined
+                      : Icons.phone_outlined,
+                  size: 20,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: fields.isEmpty
+                    ? SelectableText(
+                        'Tap to add',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      )
+                    : ResponsiveLabelField(
+                        fields: fields,
+                        labelValueSpacing: 4,
+                        layoutAxis: Axis.vertical,
+                      ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                tooltip: 'Edit',
+                onPressed: () {
+                  final ctx = EntryActionsContext.of(context);
+                  ctx?.onEdit?.call();
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: 'Delete',
+                onPressed: () {
+                  final ctx = EntryActionsContext.of(context);
+                  ctx?.onDelete?.call();
+                },
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
         ),
-      ],
-      // Actions delegated to _ItemWithHistory via EntryActionsContext
-      // Fallback for standalone use
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.edit_outlined, size: 20),
-          tooltip: 'Edit',
-          onPressed: onEdit,
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete_outline, size: 20),
-          tooltip: 'Delete',
-          onPressed: onDelete,
-        ),
+        if (history != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 4),
+            child: TextButton.icon(
+              icon: Icon(
+                _historyExpanded ? Icons.expand_less : Icons.history,
+                size: 16,
+              ),
+              label: Text('History(${history.entries.length})'),
+              onPressed: () {
+                setState(() {
+                  _historyExpanded = !_historyExpanded;
+                });
+              },
+            ),
+          ),
+        if (history != null && _historyExpanded)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 8),
+            child: FieldHistoryView(
+              fieldName: 'contact',
+              history: history,
+            ),
+          ),
       ],
     );
   }
@@ -1243,13 +1305,19 @@ class _AddressTileState extends ConsumerState<_AddressTile> {
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
                 tooltip: 'Edit',
-                onPressed: widget.onEdit,
+                onPressed: () {
+                  final ctx = EntryActionsContext.of(context);
+                  ctx?.onEdit?.call();
+                },
                 visualDensity: VisualDensity.compact,
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 20),
                 tooltip: 'Delete',
-                onPressed: widget.onDelete,
+                onPressed: () {
+                  final ctx = EntryActionsContext.of(context);
+                  ctx?.onDelete?.call();
+                },
                 visualDensity: VisualDensity.compact,
               ),
             ],
