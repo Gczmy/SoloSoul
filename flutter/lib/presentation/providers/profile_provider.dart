@@ -8,6 +8,8 @@ import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/log_section_config.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show formFieldRegistryProvider;
 
 // Re-export field history types for backward compatibility
 export 'package:solosoul_flutter/core/services/field_history_service.dart'
@@ -2136,6 +2138,8 @@ final profileNotifierProvider =
       ref.listen<AuthState>(authNotifierProvider, (previous, next) {
         if (next == AuthState.unlocked) {
           notifier.loadProfile();
+          // Pre-register all form fields so sensitivity settings page has full list
+          ref.read(formFieldRegistryProvider.notifier).registerAllForms();
         } else if (previous == AuthState.unlocked &&
                    (next == AuthState.locked || next == AuthState.initial)) {
           // Only clear profile when transitioning FROM unlocked to locked/initial.
