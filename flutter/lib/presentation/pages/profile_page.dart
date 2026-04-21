@@ -619,52 +619,44 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: controllers['contact.title'],
-                        maxLength: kMaxFieldLength,
-                        decoration: const InputDecoration(
-                          labelText: 'Title',
-                          hintText: 'e.g., Gmail, Work',
-                          counterText: '',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                      ),
+                TextField(
+                  controller: controllers['contact.title'],
+                  maxLength: kMaxFieldLength,
+                  decoration: const InputDecoration(
+                    labelText: 'Title',
+                    hintText: 'e.g., Gmail, Work',
+                    counterText: '',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: selectedType.isEmpty ? 'email' : selectedType,
-                        decoration: const InputDecoration(
-                          labelText: 'Type',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'email',
-                            child: Text('email'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'phone',
-                            child: Text('phone'),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          controllers['contact.type']?.text = v ?? 'email';
-                        },
-                      ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedType.isEmpty ? 'email' : selectedType,
+                  decoration: const InputDecoration(
+                    labelText: 'Type',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'email',
+                      child: Text('email'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'phone',
+                      child: Text('phone'),
                     ),
                   ],
+                  onChanged: (v) {
+                    controllers['contact.type']?.text = v ?? 'email';
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
