@@ -142,11 +142,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
 
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
-    debugPrint('=== PASSPORT LOAD DATA === travel.activePassports.length=${travel?.activePassports.length ?? 0}');
     _passports = [
       ...?(travel?.activePassports.map(
         (p) {
-          debugPrint('=== PASSPORT LOAD ITEM === id=${p.id}, country=${p.country}, isDeleted=${p.isDeleted}');
           return PassportData(
             id: p.id,
             country: p.country,
@@ -158,7 +156,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         },
       )),
     ];
-    debugPrint('=== PASSPORT LOAD COMPLETE === _passports.length=${_passports.length}');
   }
 
   PassportData _createPassportFromValues(
@@ -166,7 +163,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     String? id,
   }) {
     final passportId = id ?? generateEntryId();
-    debugPrint('=== PASSPORT CREATE === id=$passportId, country=${values['passport.country']}');
     return PassportData(
       id: passportId,
       country: values['passport.country']?.isEmpty == true
@@ -231,22 +227,16 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
   Future<void> _onPassportDelete(PassportData passport) async {
     // Use ID-based lookup since PassportData has no == override (uses object identity)
     final index = _passports.indexWhere((p) => p.id == passport.id);
-    debugPrint('=== PASSPORT DELETE CLICK === id=${passport.id}, index=$index, _passports.length=${_passports.length}');
     if (index == -1) return;
 
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    final deletedId = passport.id;
-    debugPrint('=== PASSPORT DELETE STATE === deletedId=$deletedId');
-
     setState(() {
       _passports = List.from(_passports)..removeAt(index);
-      debugPrint('=== PASSPORT DELETE UI REMOVED === _passports.length=${_passports.length}');
     });
     try {
-      debugPrint('=== PASSPORT DELETE SOFT DELETE CALLED ===');
       await ref
           .read(profileNotifierProvider.notifier)
           .softDelete(
@@ -255,9 +245,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
             index: index,
             deletedItem: passport,
           );
-      debugPrint('=== PASSPORT DELETE SOFT DELETE COMPLETED ===');
     } catch (e) {
-      debugPrint('=== PASSPORT DELETE SOFT DELETE FAILED === error=$e');
       setState(() {
         _passports = List.from(_passports)..insert(index, passport);
       });
@@ -372,7 +360,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         fieldIdPrefix: 'passport',
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
-        debugPrint('=== PASSPORT HISTORY SAVE === editingItem.id=${editingItem?.id}, oldValues=$oldValues');
         if (editingItem == null) return;
         final accountId = ref
             .read(authNotifierProvider.notifier)
@@ -386,7 +373,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
               fieldIdPrefix: 'passport',
               allFieldValues: oldValues ?? {},
             );
-        debugPrint('=== PASSPORT HISTORY SAVED ===');
       },
       displayItemBuilder: _buildPassportItem,
       onDelete: _onPassportDelete,
