@@ -14,10 +14,12 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show accountStyleProvider, SensitivityDisplayMode, AccountStyle;
+    show accountStyleProvider, SensitivityDisplayMode, AccountStyle, fieldLevelProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show SensitivityLevel;
 
 /// Provider for per-item history expanded state, keyed by itemId or title.
 final historyExpandedProvider =
@@ -40,13 +42,27 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
   final void Function(T item)? onEdit;
   final String Function(T item)? formatAllFields;
 
+  // === Auto-mode parameters ===
+  /// Field prefix for auto-generating fieldIds (e.g., 'contact', 'idCard')
+  final String? fieldPrefix;
+
+  /// Item data map for auto-build mode. When provided alongside fieldPrefix,
+  /// fields will be auto-generated from this map.
+  final Map<String, dynamic>? itemData;
+
+  /// Global sensitivity level override for all auto-built fields.
+  final SensitivityLevel? sensitivityLevel;
+
+  /// Per-field sensitivity overrides for auto-build mode.
+  final Map<String, SensitivityLevel>? sensitivityOverrides;
+
   const EntryCardWidget({
     super.key,
     required this.item,
     required this.title,
     this.subtitle,
     required this.icon,
-    required this.fields,
+    this.fields = const [],
     this.itemId,
     this.historyFieldId,
     this.isSensitive = false,
@@ -54,6 +70,10 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
     this.onDelete,
     this.onEdit,
     this.formatAllFields,
+    this.fieldPrefix,
+    this.itemData,
+    this.sensitivityLevel,
+    this.sensitivityOverrides,
   });
 
   @override
@@ -146,11 +166,66 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     }
   }
 
+  bool _canAutoBuild() {
+    return widget.fields.isEmpty && widget.itemData != null && widget.fieldPrefix != null;
+  }
+
+  SensitivityLevel _getSensitivityForField(String fieldKey) {
+    if (widget.sensitivityLevel != null) {
+      return widget.sensitivityLevel!;
+    }
+    if (widget.sensitivityOverrides != null &&
+        widget.sensitivityOverrides!.containsKey(fieldKey)) {
+      return widget.sensitivityOverrides![fieldKey]!;
+    }
+    // Delegate to unified fieldLevelProvider
+    final fieldId = '${widget.fieldPrefix}.$fieldKey';
+    return ref.read(fieldLevelProvider(fieldId));
+  }
+
+  String _formatLabel(String key) {
+    // camelCase → Title Case (i18n-ready)
+    final spaced = key.replaceAllMapped(
+      RegExp(r'([a-z])([A-Z])'),
+      (m) => '${m[1]} ${m[2]}',
+    );
+    return spaced.replaceAll('_', ' ').split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  List<LabelValueField> _autoBuildFields() {
+    final fields = <LabelValueField>[];
+    widget.itemData!.forEach((key, value) {
+      if (value == null || (value is String && value.isEmpty)) return;
+      final fieldId = '${widget.fieldPrefix}.$key';
+      final sensitivity = _getSensitivityForField(key);
+      final isSensitive = sensitivity == SensitivityLevel.sensitive ||
+                          sensitivity == SensitivityLevel.critical;
+      fields.add(LabelValueField(
+        label: _formatLabel(key),
+        value: value.toString(),
+        fieldId: fieldId,
+        isSensitive: isSensitive,
+      ));
+    });
+    return fields;
+  }
+
+  List<LabelValueField> _buildFields() {
+    if (_canAutoBuild()) {
+      return _autoBuildFields();
+    }
+    return widget.fields;
+  }
+
   @override
   Widget build(BuildContext context) {
     final history = _history;
     final hasHistory = history != null;
-    final isSensitive = widget.isSensitive || widget.fields.any((f) => f.isSensitive);
+    final fields = _buildFields();
+    final isSensitive = widget.isSensitive || fields.any((f) => f.isSensitive);
     final isExpanded = ref.watch(historyExpandedProvider(_historyKey));
 
     // Auto-collapse restricted history when entering privacy mode
@@ -207,11 +282,11 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
               onPressed: () => _handleHistoryPress(isSensitive),
             ),
           ],
-          children: widget.fields.isNotEmpty
+          children: fields.isNotEmpty
               ? [
                   const SizedBox(height: 4),
                   ResponsiveLabelField(
-                    fields: widget.fields,
+                    fields: fields,
                     labelValueSpacing: 4,
                     layoutAxis: Axis.vertical,
                   ),

@@ -16,6 +16,7 @@ import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
+import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
@@ -24,7 +25,6 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
-import 'package:solosoul_flutter/presentation/widgets/generic_auto_item_card.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 
@@ -716,19 +716,19 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'contact',
       itemIdExtractor: (c) => c.id,
-      displayItemBuilder: (contact, itemMap) => GenericAutoItemCard(
-        itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
-        fieldPrefix: 'contact',
-        itemId: contact.id,
+      displayItemBuilder: (contact, itemMap) => EntryCardWidget<ContactEntry>(
+        item: contact,
         title: contact.label.isNotEmpty ? contact.label : contact.value,
         icon: contact.type == 'email' ? Icons.email_outlined : Icons.phone_outlined,
+        itemId: contact.id,
+        historyFieldId: 'contact',
+        itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+        fieldPrefix: 'contact',
         sensitivityOverrides: const {
           'contact.value': SensitivityLevel.critical,
         },
-        showHistoryExpansion: true,
-        historyFieldIdPrefix: 'contact',
-        onEdit: () {},
-        onDelete: () => _onContactDelete(contact),
+        formatAllFields: (c) => '${c.type}: ${c.value}',
+        onDelete: (c) => _onContactDelete(c),
       ),
     );
     return formSection;
@@ -957,21 +957,20 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
               sensitivity: SensitivityLevel.public,
             ),
           ],
-          displayItemBuilder: (card, itemMap) => GenericAutoItemCard(
-            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
-            fieldPrefix: 'idCard',
-            itemId: card.id,
+          displayItemBuilder: (card, itemMap) => EntryCardWidget<IdCardData>(
+            item: card,
             title: card.label ?? 'ID Card',
             icon: Icons.badge_outlined,
+            itemId: card.id,
+            historyFieldId: 'idCard',
+            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+            fieldPrefix: 'idCard',
             sensitivityOverrides: const {
               'idCard.number': SensitivityLevel.critical,
               'idCard.holderName': SensitivityLevel.critical,
             },
-            showHistoryExpansion: true,
-            historyFieldIdPrefix: 'idCard',
-            onEdit: () {},
-            onDelete: () => _onIdCardDelete(card),
-            formatAllFields: (_) => '${card.entryType}\n${card.toFormattedString()}',
+            formatAllFields: (c) => '${c.entryType}\n${c.toFormattedString()}',
+            onDelete: (c) => _onIdCardDelete(c),
           ),
           onDelete: _onIdCardDelete,
           onSave: _onIdCardSave,
@@ -1006,6 +1005,8 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
               allFieldValues: oldValues ?? {},
             );
           },
+          showHistoryExpansion: true,
+          historyFieldIdPrefix: 'idCard',
         ),
       ],
     );
@@ -1229,19 +1230,18 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
               sensitivity: SensitivityLevel.public,
             ),
           ],
-          displayItemBuilder: (address, itemMap) => GenericAutoItemCard(
-            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
-            fieldPrefix: 'address',
-            itemId: address.id,
+          displayItemBuilder: (address, itemMap) => EntryCardWidget<AddressData>(
+            item: address,
             title: address.label ?? 'Address',
             icon: Icons.home_outlined,
+            itemId: address.id,
+            historyFieldId: 'address',
+            itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+            fieldPrefix: 'address',
             sensitivityOverrides: const {
               'address.postalCode': SensitivityLevel.critical,
             },
-            showHistoryExpansion: true,
-            historyFieldIdPrefix: 'address',
-            onEdit: () {},
-            onDelete: () => _onAddressDelete(address),
+            onDelete: (a) => _onAddressDelete(a),
           ),
           onDelete: _onAddressDelete,
           onSave: _onAddressSave,
