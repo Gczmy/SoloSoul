@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Widget to display and animate field history
@@ -89,7 +91,7 @@ class _FieldHistoryViewState extends State<FieldHistoryView> {
   }
 }
 
-class _HistoryEntryTile extends StatelessWidget {
+class _HistoryEntryTile extends ConsumerWidget {
   final FieldHistoryEntry entry;
   final bool isLatest;
   final String fieldName;
@@ -107,7 +109,7 @@ class _HistoryEntryTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -215,16 +217,18 @@ class _HistoryEntryTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              value.isNotEmpty ? value : '(empty)',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: isLatest ? FontWeight.w500 : FontWeight.normal,
-                                fontStyle: value.isEmpty ? FontStyle.italic : null,
-                                color: value.isEmpty
-                                    ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
-                                    : null,
-                              ),
-                            ),
+                            child: value.isNotEmpty
+                                ? SensitiveValueWidget(
+                                    fieldId: e.key,
+                                    value: value,
+                                  )
+                                : Text(
+                                    '(empty)',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontStyle: FontStyle.italic,
+                                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
