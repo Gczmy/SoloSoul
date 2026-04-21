@@ -120,7 +120,8 @@ class _EducationSection extends ConsumerStatefulWidget {
   ConsumerState<_EducationSection> createState() => _EducationSectionState();
 }
 
-class _EducationSectionState extends ConsumerState<_EducationSection> {
+class _EducationSectionState extends ConsumerState<_EducationSection>
+    with WidgetsBindingObserver {
   late List<EducationData> _items;
 
   static const _degreeOrder = {
@@ -163,13 +164,21 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadData();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   EducationData _createFromValues(Map<String, String> values, {String? id}) {
@@ -542,13 +551,28 @@ class _EmploymentSection extends ConsumerStatefulWidget {
   ConsumerState<_EmploymentSection> createState() => _EmploymentSectionState();
 }
 
-class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
+class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
+    with WidgetsBindingObserver {
   late List<EmploymentData> _items;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -793,13 +817,28 @@ class _SkillsSection extends ConsumerStatefulWidget {
   ConsumerState<_SkillsSection> createState() => _SkillsSectionState();
 }
 
-class _SkillsSectionState extends ConsumerState<_SkillsSection> {
+class _SkillsSectionState extends ConsumerState<_SkillsSection>
+    with WidgetsBindingObserver {
   late List<SkillData> _items;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -995,13 +1034,28 @@ class _LanguageSection extends ConsumerStatefulWidget {
   ConsumerState<_LanguageSection> createState() => _LanguageSectionState();
 }
 
-class _LanguageSectionState extends ConsumerState<_LanguageSection> {
+class _LanguageSectionState extends ConsumerState<_LanguageSection>
+    with WidgetsBindingObserver {
   late List<LanguageData> _items;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -1199,13 +1253,28 @@ class _AwardSection extends ConsumerStatefulWidget {
   ConsumerState<_AwardSection> createState() => _AwardSectionState();
 }
 
-class _AwardSectionState extends ConsumerState<_AwardSection> {
+class _AwardSectionState extends ConsumerState<_AwardSection>
+    with WidgetsBindingObserver {
   late List<AwardData> _items;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {

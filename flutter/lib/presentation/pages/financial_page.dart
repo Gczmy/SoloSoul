@@ -124,7 +124,8 @@ class _BankAccountSection extends ConsumerStatefulWidget {
       _BankAccountSectionState();
 }
 
-class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
+class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
+    with WidgetsBindingObserver {
   Widget _buildBankAccountItem(BankAccountData account) {
     final fields = <LabelValueField>[
       if (account.accountNumber != null && account.accountNumber!.isNotEmpty)
@@ -161,7 +162,21 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -387,7 +402,8 @@ class _CardSection extends ConsumerStatefulWidget {
   ConsumerState<_CardSection> createState() => _CardSectionState();
 }
 
-class _CardSectionState extends ConsumerState<_CardSection> {
+class _CardSectionState extends ConsumerState<_CardSection>
+    with WidgetsBindingObserver {
   Widget _buildCardItem(CardData card) {
     final fields = <LabelValueField>[
       if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
@@ -424,7 +440,21 @@ class _CardSectionState extends ConsumerState<_CardSection> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -641,7 +671,8 @@ class _TaxIdSection extends ConsumerStatefulWidget {
   ConsumerState<_TaxIdSection> createState() => _TaxIdSectionState();
 }
 
-class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
+class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
+    with WidgetsBindingObserver {
   Widget _buildTaxIdItem(TaxIdData taxId) {
     final fields = <LabelValueField>[
       if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
@@ -678,7 +709,21 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
