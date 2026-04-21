@@ -225,7 +225,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
   }
 
   Future<void> _onAccountDelete(BankAccountData account) async {
-    final index = _accounts.indexOf(account);
+    final index = _accounts.indexWhere((a) => a.id == account.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -500,7 +500,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
   }
 
   Future<void> _onCardDelete(CardData card) async {
-    final index = _cards.indexOf(card);
+    final index = _cards.indexWhere((c) => c.id == card.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -769,7 +769,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
   }
 
   Future<void> _onTaxIdDelete(TaxIdData taxId) async {
-    final index = _taxIds.indexOf(taxId);
+    final index = _taxIds.indexWhere((t) => t.id == taxId.id);
     if (index == -1) return;
 
     final isPrivacyMode =
