@@ -359,17 +359,31 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   }
 
   /// Upgrade field to a higher sensitivity level.
-  Future<bool> upgradeField(String fieldId) async {
+  void upgradeField(String fieldId) {
     final current = state.fieldSettings[fieldId] ?? SensitivityLevel.public;
-    if (current.index >= SensitivityLevel.critical.index) return false;
-    return setFieldLevel(fieldId, SensitivityLevel.values[current.index + 1]);
+    if (current.index >= SensitivityLevel.critical.index) return;
+    final newLevel = SensitivityLevel.values[current.index + 1];
+    final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
+    newFieldSettings[fieldId] = newLevel;
+    state = state.copyWith(
+      fieldSettings: newFieldSettings,
+      lastModified: DateTime.now(),
+    );
+    _autoSave();
   }
 
   /// Downgrade field to a lower sensitivity level.
-  Future<bool> downgradeField(String fieldId) async {
+  void downgradeField(String fieldId) {
     final current = state.fieldSettings[fieldId] ?? SensitivityLevel.public;
-    if (current.index <= SensitivityLevel.public.index) return false;
-    return setFieldLevel(fieldId, SensitivityLevel.values[current.index - 1]);
+    if (current.index <= SensitivityLevel.public.index) return;
+    final newLevel = SensitivityLevel.values[current.index - 1];
+    final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
+    newFieldSettings[fieldId] = newLevel;
+    state = state.copyWith(
+      fieldSettings: newFieldSettings,
+      lastModified: DateTime.now(),
+    );
+    _autoSave();
   }
 
   /// Clear style state (on lock).
