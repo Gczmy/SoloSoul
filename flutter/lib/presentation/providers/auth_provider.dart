@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -867,16 +868,19 @@ final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
   return notifier.getAccountsSortedByRecent();
 });
 
+/// 敏感数据访问验证的有效期（唯一常量）
+const kSensitiveAccessTimeout = Duration(minutes: 1);
+
 /// Sensitive page access state - tracks password verification for sensitive pages
+/// 唯一真理来源：内部决定验证是否仍然有效
 class SensitivePageAccessState {
   final DateTime? lastVerified;
 
   const SensitivePageAccessState({this.lastVerified});
 
-  bool get isVerified {
+  bool get isValid {
     if (lastVerified == null) return false;
-    // Verification is valid for 5 minutes
-    return DateTime.now().difference(lastVerified!).inMinutes < 5;
+    return DateTime.now().difference(lastVerified!) < kSensitiveAccessTimeout;
   }
 
   SensitivePageAccessState copyWith({DateTime? lastVerified}) {
@@ -886,14 +890,33 @@ class SensitivePageAccessState {
 
 /// Notifier for sensitive page access
 class SensitivePageAccessNotifier extends StateNotifier<SensitivePageAccessState> {
+  Timer? _timer;
+
   SensitivePageAccessNotifier() : super(const SensitivePageAccessState());
 
+  /// 标记为已验证，并启动定时器在超时后主动失效
   void markVerified() {
-    state = state.copyWith(lastVerified: DateTime.now());
+    // 取消之前的定时器
+    _timer?.cancel();
+    state = SensitivePageAccessState(lastVerified: DateTime.now());
+    // 启动新的定时器，在超时后主动触发状态更新
+    _timer = Timer(kSensitiveAccessTimeout, () {
+      // 时间到，通过 copyWith 重新创建状态（触发 notifyListeners）
+      // 这确保所有订阅者在超时那一秒立即重新渲染
+      state = state.copyWith(lastVerified: state.lastVerified);
+    });
   }
 
   void clear() {
+    _timer?.cancel();
+    _timer = null;
     state = const SensitivePageAccessState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }
 
@@ -901,4 +924,11 @@ class SensitivePageAccessNotifier extends StateNotifier<SensitivePageAccessState
 final sensitivePageAccessProvider =
     StateNotifierProvider<SensitivePageAccessNotifier, SensitivePageAccessState>((ref) {
   return SensitivePageAccessNotifier();
+});
+
+/// 单一真理来源：UI 只需关注"我现在能不能看"敏感数据
+/// 当 1 分钟超时发生时，这个 Provider 会自动通知所有订阅者
+final isSensitiveAccessGrantedProvider = Provider<bool>((ref) {
+  final access = ref.watch(sensitivePageAccessProvider);
+  return access.isValid;
 });

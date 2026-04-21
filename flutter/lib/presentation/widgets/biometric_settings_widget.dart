@@ -63,11 +63,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Check if sensitive access is already verified (within 5 minutes)
-      final accessState = ref.read(sensitivePageAccessProvider);
       String? password;
 
-      if (accessState.isVerified) {
+      if (ref.read(isSensitiveAccessGrantedProvider)) {
         // Skip password verification if already verified
         password = ''; // Non-null placeholder to indicate verified
       } else {
@@ -138,11 +136,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Check if sensitive access is already verified (within 5 minutes)
-      final accessState = ref.read(sensitivePageAccessProvider);
       String? password;
 
-      if (accessState.isVerified) {
+      if (ref.read(isSensitiveAccessGrantedProvider)) {
         // Skip password verification if already verified
         password = '';
       } else {

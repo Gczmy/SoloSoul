@@ -75,13 +75,8 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final isRestricted = level == SensitivityLevel.critical;
 
     if (isRestricted) {
-      // Check if user was verified within the last 1 minute (password cache)
-      final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-      final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-      final hasRecentVerification = sensitiveAccess.lastVerified != null &&
-          sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-
-      if (hasRecentVerification) {
+      // Check if user was verified within the valid duration (1 minute)
+      if (ref.read(isSensitiveAccessGrantedProvider)) {
         // Skip password dialog, just reveal
         setState(() => _isRevealed = true);
         _startAutoHideTimer();
@@ -150,10 +145,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final fieldLevel = ref.read(fieldLevelProvider(widget.fieldId));
 
     // Watch sensitive page access to detect recent verification
-    final sensitiveAccess = ref.watch(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+    final hasRecentVerification = ref.watch(isSensitiveAccessGrantedProvider);
 
     // Determine if we should mask this field
     bool shouldMask = switch (fieldLevel) {

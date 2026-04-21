@@ -7,7 +7,7 @@ import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider, sensitivePageAccessProvider;
+    show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
@@ -520,13 +520,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     final level = ref.read(fieldLevelProvider(restrictedFieldId));
     if (level != SensitivityLevel.critical) return true;
 
-    // Check if user was verified within the last 1 minute (password cache)
-    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification =
-        sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-    if (hasRecentVerification) return true;
+    // Check if user was verified within the valid duration (password cache)
+    if (ref.read(isSensitiveAccessGrantedProvider)) return true;
 
     // Show password dialog
     final authNotifier = ref.read(authNotifierProvider.notifier);

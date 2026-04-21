@@ -602,11 +602,8 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Check shared verification state
-    final accessState = ref.watch(sensitivePageAccessProvider);
-
     // If not verified, show password verification
-    if (!accessState.isVerified) {
+    if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       return _buildPasswordVerification();
     }
     return _buildLogView();

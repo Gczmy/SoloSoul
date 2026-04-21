@@ -163,9 +163,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   @override
   Widget build(BuildContext context) {
-    final accessState = ref.watch(sensitivePageAccessProvider);
-
-    if (!accessState.isVerified) {
+    if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       return _buildPasswordVerification();
     }
     return _buildTrashView();

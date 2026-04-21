@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider, sensitivePageAccessProvider;
+    show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show fieldLevelProvider;
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
@@ -26,12 +26,8 @@ class PasswordVerificationService {
 
     if (level != SensitivityLevel.critical) return true;
 
-    // Check if user was verified within the last 1 minute
-    final sensitiveAccess = _ref.read(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-    if (hasRecentVerification) return true;
+    // Check if user was verified within the valid duration
+    if (_ref.read(isSensitiveAccessGrantedProvider)) return true;
 
     // Show password dialog
     final authNotifier = _ref.read(authNotifierProvider.notifier);

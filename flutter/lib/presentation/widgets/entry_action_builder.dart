@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/entry_configs.dart';
 export 'package:solosoul_flutter/core/models/entry_configs.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider, sensitivePageAccessProvider;
+    show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 
 /// Generates standard action buttons based on context and permissions.
@@ -91,13 +91,8 @@ class EntryActionBuilder {
     required WidgetRef ref,
     required VoidCallback onSuccess,
   }) async {
-    // Check if user was verified within the last 1 minute (password cache)
-    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification =
-        sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-    if (hasRecentVerification) {
+    // Check if user was verified within the valid duration (password cache)
+    if (ref.read(isSensitiveAccessGrantedProvider)) {
       onSuccess();
       return;
     }

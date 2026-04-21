@@ -137,10 +137,7 @@ class _SensitivityBasedVisibilityWidgetState
     final style = theme.textTheme.bodyMedium;
 
     // Check recent verification for auto-reveal
-    final sensitiveAccess = ref.watch(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
+    final hasRecentVerification = ref.watch(isSensitiveAccessGrantedProvider);
 
     switch (widget.sensitivityLevel) {
       case SensitivityLevel.public:

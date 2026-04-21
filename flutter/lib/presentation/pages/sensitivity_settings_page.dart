@@ -144,11 +144,8 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
 
   @override
   Widget build(BuildContext context) {
-    // Check shared verification state
-    final accessState = ref.watch(sensitivePageAccessProvider);
-
     // If already verified recently, show settings directly
-    if (accessState.isVerified) {
+    if (ref.watch(isSensitiveAccessGrantedProvider)) {
       return _buildSettingsView();
     }
 

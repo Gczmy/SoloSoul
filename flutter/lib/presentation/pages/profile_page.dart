@@ -22,7 +22,7 @@ import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider, sensitivePageAccessProvider;
+    show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
@@ -42,14 +42,8 @@ Future<bool> verifyPasswordForRestrictedField({
     return true;
   }
 
-  // Check if user was verified within the last 1 minute (password cache)
-  final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-  final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-  final hasRecentVerification =
-      sensitiveAccess.lastVerified != null &&
-      sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-
-  if (hasRecentVerification) {
+  // Check if user was verified within the valid duration (password cache)
+  if (ref.read(isSensitiveAccessGrantedProvider)) {
     return true;
   }
 

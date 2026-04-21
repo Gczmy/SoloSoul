@@ -27,8 +27,8 @@ class HeaderActionButtons extends ConsumerWidget {
           },
           tooltip: 'Search',
         ),
-        // Lock Sensitivity Access - only shown when verified
-        if (sensitiveAccess.isVerified)
+        // Lock Sensitivity Access - only shown when access is granted
+        if (ref.watch(isSensitiveAccessGrantedProvider))
           IconButton(
             icon: const Icon(
               Icons.lock_open_outlined,

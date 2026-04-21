@@ -12,7 +12,7 @@ import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dar
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show EntryActionsContext;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider, sensitivePageAccessProvider;
+    show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider, SensitivityDisplayMode, AccountStyle, fieldLevelProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -123,11 +123,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         return;
       }
       // Collapsed: require password to expand
-      final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-      final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-      final hasRecentVerification = sensitiveAccess.lastVerified != null &&
-          sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-      if (!hasRecentVerification) {
+      if (!ref.read(isSensitiveAccessGrantedProvider)) {
         final authNotifier = ref.read(authNotifierProvider.notifier);
         final selectedAccount = authNotifier.selectedAccount;
         final password = await showPasswordVerificationDialog(
@@ -146,11 +142,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     }
 
     // Sensitive items: require password verification
-    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-    final oneMinuteAgo = DateTime.now().subtract(const Duration(minutes: 1));
-    final hasRecentVerification = sensitiveAccess.lastVerified != null &&
-        sensitiveAccess.lastVerified!.isAfter(oneMinuteAgo);
-    if (hasRecentVerification) {
+    if (ref.read(isSensitiveAccessGrantedProvider)) {
       ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
       return;
     }

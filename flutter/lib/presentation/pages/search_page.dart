@@ -112,12 +112,9 @@ class SearchNotifier extends StateNotifier<SearchState> {
     // Check if field is revealed in sensitivity settings
     final style = _ref.read(accountStyleProvider);
     if (!style.revealedFields.contains(fieldPath)) return false;
-    // Only restricted fields require re-verification after 5-min lock
+    // Only restricted fields require re-verification
     if (level == SensitivityLevel.critical) {
-      final sensitiveAccess = _ref.read(sensitivePageAccessProvider);
-      if (!sensitiveAccess.isVerified) return false;
-      return sensitiveAccess.lastVerified != null &&
-          DateTime.now().difference(sensitiveAccess.lastVerified!).inMinutes < 5;
+      return _ref.read(isSensitiveAccessGrantedProvider);
     }
     return true;
   }
@@ -130,8 +127,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
   ) async {
     // Only restricted fields require password verification
     if (level == SensitivityLevel.critical) {
-      final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-      if (!sensitiveAccess.isVerified) {
+      if (!ref.read(isSensitiveAccessGrantedProvider)) {
         final password = await showPasswordVerificationDialog(
           context: context,
           ref: ref,
@@ -154,8 +150,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     BuildContext context,
     WidgetRef ref,
   ) async {
-    final sensitiveAccess = ref.read(sensitivePageAccessProvider);
-    if (!sensitiveAccess.isVerified) {
+    if (!ref.read(isSensitiveAccessGrantedProvider)) {
       final password = await showPasswordVerificationDialog(
         context: context,
         ref: ref,
