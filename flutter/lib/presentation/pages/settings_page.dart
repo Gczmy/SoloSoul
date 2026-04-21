@@ -575,6 +575,9 @@ class SettingsPage extends ConsumerWidget {
                           return;
                         }
 
+                        // Invalidate accounts cache so login page shows updated list
+                        ref.invalidate(accountsProvider);
+
                         if (dialogInnerContext.mounted) {
                           Navigator.pop(dialogInnerContext, true);
                         }
