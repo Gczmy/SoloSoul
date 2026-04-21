@@ -1,0 +1,280 @@
+import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/core/models/field_history_models.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
+import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+
+/// A generic dialog that displays field history with sensitivity-aware masking.
+///
+/// Accepts a list of [FormFieldDef] field definitions to determine sensitivity
+/// levels for each field, and [FieldHistory] containing the history entries.
+class FieldHistoryDialog extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<FormFieldDef> fieldDefs;
+  final FieldHistory? history;
+
+  const FieldHistoryDialog({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.fieldDefs,
+    this.history,
+  });
+
+  /// Shows the history dialog.
+  static Future<void> show({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required List<FormFieldDef> fieldDefs,
+    required FieldHistory? history,
+  }) {
+    return showDialog(
+      context: context,
+      builder: (context) => FieldHistoryDialog(
+        title: title,
+        icon: icon,
+        fieldDefs: fieldDefs,
+        history: history,
+      ),
+    );
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final diff = now.difference(timestamp);
+
+    if (diff.inDays > 365) {
+      return '${(diff.inDays / 365).floor()} year(s) ago';
+    } else if (diff.inDays > 30) {
+      return '${(diff.inDays / 30).floor()} month(s) ago';
+    } else if (diff.inDays > 0) {
+      return '${diff.inDays} day(s) ago';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours} hour(s) ago';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes} minute(s) ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  String _formatFullTimestamp(DateTime timestamp) {
+    return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} '
+        '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Finds the field definition for a given key by stripping the prefix.
+  ///
+  /// Keys in history entries are in the format "prefix.fieldName" (e.g.,
+  /// "contact.email", "idCard.number"). This method strips the prefix and
+  /// matches against the fieldId in fieldDefs.
+  FormFieldDef? _findFieldDef(String key) {
+    final strippedKey = key.contains('.')
+        ? key.substring(key.indexOf('.') + 1)
+        : key;
+
+    // First try exact match (some fieldDefs may include prefix)
+    for (final def in fieldDefs) {
+      if (def.fieldId == strippedKey || def.fieldId == key) {
+        return def;
+      }
+    }
+    return null;
+  }
+
+  /// Converts a stripped field key to a human-readable label.
+  String _toDisplayLabel(String strippedKey) {
+    // Convert camelCase to Title Case for display (e.g., "expiryDate" -> "Expiry Date")
+    return strippedKey.replaceAllMapped(
+      RegExp(r'([A-Z]|[0-9]+)'),
+      (match) => match.group(0)!.isEmpty
+          ? ''
+          : (match.start == 0
+              ? match.group(0)!
+              : ' ${match.group(0)}'),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final entries = history?.entries ?? [];
+    final reversedEntries = entries.reversed.toList(); // Most recent first
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 8),
+          Text(title),
+        ],
+      ),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.85,
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: entries.isEmpty
+            ? Center(
+                child: Text(
+                  'No history available',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: reversedEntries.length,
+                itemBuilder: (context, index) {
+                  final entry = reversedEntries[index];
+                  final isLatest = index == 0;
+
+                  return _HistoryEntryTile(
+                    entry: entry,
+                    isLatest: isLatest,
+                    fieldDefs: fieldDefs,
+                    findFieldDef: _findFieldDef,
+                    toDisplayLabel: _toDisplayLabel,
+                    formatTimestamp: _formatTimestamp,
+                    formatFullTimestamp: _formatFullTimestamp,
+                  );
+                },
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    );
+  }
+}
+
+class _HistoryEntryTile extends StatelessWidget {
+  final FieldHistoryEntry entry;
+  final bool isLatest;
+  final List<FormFieldDef> fieldDefs;
+  final FormFieldDef? Function(String) findFieldDef;
+  final String Function(String) toDisplayLabel;
+  final String Function(DateTime) formatTimestamp;
+  final String Function(DateTime) formatFullTimestamp;
+
+  const _HistoryEntryTile({
+    required this.entry,
+    required this.isLatest,
+    required this.fieldDefs,
+    required this.findFieldDef,
+    required this.toDisplayLabel,
+    required this.formatTimestamp,
+    required this.formatFullTimestamp,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isLatest
+              ? AppTheme.primaryColor.withValues(alpha: 0.5)
+              : theme.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with timestamp
+          Row(
+            children: [
+              if (isLatest)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Latest',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (isLatest) const SizedBox(width: 8),
+              Text(
+                formatTimestamp(entry.timestamp),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                formatFullTimestamp(entry.timestamp),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Field values
+          ...entry.values.entries.map((e) {
+            final value = e.value;
+            final strippedKey = e.key.contains('.')
+                ? e.key.substring(e.key.indexOf('.') + 1)
+                : e.key;
+            final fieldDef = findFieldDef(e.key);
+            final displayLabel = fieldDef?.label ?? toDisplayLabel(strippedKey);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      displayLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: value.isNotEmpty
+                        ? SensitiveValueWidget(
+                            fieldId: e.key,
+                            value: value,
+                          )
+                        : Text(
+                            '(empty)',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}

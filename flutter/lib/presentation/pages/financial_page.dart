@@ -392,6 +392,9 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
         );
         await _onAccountSave(null, values, editingItem);
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'bankAccount',
+      itemIdExtractor: (item) => item.id,
     );
   }
 }
@@ -661,6 +664,9 @@ class _CardSectionState extends ConsumerState<_CardSection>
         );
         await _onCardSave(null, values, editingItem);
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'card',
+      itemIdExtractor: (item) => item.id,
     );
   }
 }
@@ -930,6 +936,9 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
         );
         await _onTaxIdSave(null, values, editingItem);
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'taxId',
+      itemIdExtractor: (item) => item.id,
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
@@ -10,6 +8,9 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider;
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show fieldHistoriesProvider;
+import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 
 /// Configuration for recording field history on saves.
 class HistoryRecordingConfig<T> {
@@ -92,6 +93,17 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   /// parameter for edit mode.
   final HistoryAwareSave<T>? historyAwareOnSave;
 
+  /// If true, each item shows a History(N) button that expands FieldHistoryView inline.
+  final bool showHistoryExpansion;
+
+  /// The fieldId prefix used to look up history for items (e.g. 'contact', 'address').
+  /// Required when showHistoryExpansion is true.
+  final String? historyFieldIdPrefix;
+
+  /// An extractor function to get the item ID for history lookups.
+  /// If not provided, uses (item as dynamic).id as a fallback.
+  final String Function(T item)? itemIdExtractor;
+
   const UnifiedFormSection({
     super.key,
     required this.title,
@@ -109,6 +121,9 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     this.customFormBuilder,
     this.historyConfig,
     this.historyAwareOnSave,
+    this.showHistoryExpansion = false,
+    this.historyFieldIdPrefix,
+    this.itemIdExtractor,
   });
 
   @override
@@ -120,6 +135,9 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
   String _mode = 'idle';
   int _editingIndex = -1;
   late List<T> _items;
+
+  /// Set of item indices whose history is currently expanded.
+  final Set<int> _expandedHistoryIndices = {};
 
   /// Map of TextEditingControllers keyed by fieldId
   final Map<String, TextEditingController> _controllers = {};
@@ -235,6 +253,14 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     return widget.title;
   }
 
+  String _getItemId(T item) {
+    if (widget.itemIdExtractor != null) {
+      return widget.itemIdExtractor!(item);
+    }
+    // Fallback: try to get .id from the item
+    return (item as dynamic).id as String? ?? '';
+  }
+
   Future<void> _submitForm() async {
     final values = <String, String>{};
     for (final field in widget.fieldDefs) {
@@ -258,7 +284,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
         if (widget.itemFactory != null) {
           createdItem = widget.itemFactory!(values);
           // Insert at position 0 instead of adding at end
-          _items.insert(0, createdItem!);
+          _items.insert(0, createdItem as T);
         }
       } else {
         // For editing, create updated item
@@ -415,21 +441,35 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     } else if (_items.isNotEmpty) {
       for (var i = 0; i < _items.length; i++) {
         final item = _items[i];
+        final historyExpanded = widget.showHistoryExpansion && _expandedHistoryIndices.contains(i);
+        final itemId = _getItemId(item);
         displayItems.add(
-          GestureDetector(
-            onLongPress: () => _showItemActions(context, item, i),
-            child: _FormSectionItem(
-              item: item,
-              displayItemBuilder: widget.displayItemBuilder,
-              onEdit: () => _startEditing(i),
-              onDelete: () => _deleteEntry(i),
-              onCopy: widget.onCopy != null
-                  ? (fieldId, value) => widget.onCopy!(item, fieldId, value)
-                  : null,
-              onCopyAllPressed: widget.onCopyAll != null
-                  ? () => _handleCopyAllWithVerification(context, item)
-                  : null,
-            ),
+          _ItemWithHistory(
+            key: ValueKey('item_$i'),
+            item: item,
+            index: i,
+            historyExpanded: historyExpanded,
+            onToggleHistory: widget.showHistoryExpansion
+                ? () => setState(() {
+                      if (_expandedHistoryIndices.contains(i)) {
+                        _expandedHistoryIndices.remove(i);
+                      } else {
+                        _expandedHistoryIndices.add(i);
+                      }
+                    })
+                : null,
+            displayItemBuilder: widget.displayItemBuilder,
+            onEdit: () => _startEditing(i),
+            onDelete: () => _deleteEntry(i),
+            onCopy: widget.onCopy != null
+                ? (fieldId, value) => widget.onCopy!(item, fieldId, value)
+                : null,
+            onCopyAllPressed: widget.onCopyAll != null
+                ? () => _handleCopyAllWithVerification(context, item)
+                : null,
+            showHistoryExpansion: widget.showHistoryExpansion,
+            historyFieldIdPrefix: widget.historyFieldIdPrefix,
+            itemId: itemId,
           ),
         );
       }
@@ -442,59 +482,6 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       actionIcon: Icons.add,
       onAction: _startAdding,
       children: displayItems,
-    );
-  }
-
-  Future<void> _showItemActions(BuildContext context, T item, int index) async {
-    if (widget.onCopyAll != null) {
-      final hasRestricted = _hasRestrictedField(item);
-      if (hasRestricted) {
-        final verified = await _verifyPasswordForRestricted(context);
-        if (!verified) return;
-      }
-    }
-
-    if (!mounted) return;
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.onCopyAll != null)
-              ListTile(
-                leading: const Icon(Icons.copy_all),
-                title: const Text('Copy All'),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await widget.onCopyAll!(item, _formatAllFields(item));
-                },
-              ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: const Text('Edit'),
-              onTap: () async {
-                Navigator.pop(ctx);
-                final hasRestricted = _hasRestrictedField(item);
-                if (hasRestricted) {
-                  final verified = await _verifyPasswordForRestricted(context);
-                  if (!verified) return;
-                }
-                if (!mounted) return;
-                _startEditing(index);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: const Text('Delete'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _deleteEntry(index);
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -584,6 +571,7 @@ class EntryActionsContext extends InheritedWidget {
   final Future<void> Function(String)? onCopy;
 
   const EntryActionsContext({
+    super.key,
     required super.child,
     this.onEdit,
     this.onDelete,
@@ -602,38 +590,122 @@ class EntryActionsContext extends InheritedWidget {
   }
 }
 
-/// Wrapper widget that wraps an item with edit/delete actions
-class _FormSectionItem<T> extends StatelessWidget {
+/// Wrapper widget that wraps an item with edit/delete actions and optional history expansion.
+class _ItemWithHistory<T> extends ConsumerWidget {
   final T item;
+  final int index;
+  final bool historyExpanded;
+  final VoidCallback? onToggleHistory;
   final Widget Function(T item) displayItemBuilder;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final void Function(String fieldId, String value)? onCopy;
-
-  /// Called when copy-all button is pressed. Parent handles verification + formatting.
   final VoidCallback? onCopyAllPressed;
+  final bool showHistoryExpansion;
+  final String? historyFieldIdPrefix;
+  final String itemId;
 
-  const _FormSectionItem({
+  const _ItemWithHistory({
+    required super.key,
     required this.item,
+    required this.index,
+    required this.historyExpanded,
+    this.onToggleHistory,
     required this.displayItemBuilder,
     required this.onEdit,
     required this.onDelete,
     this.onCopy,
     this.onCopyAllPressed,
+    required this.showHistoryExpansion,
+    this.historyFieldIdPrefix,
+    required this.itemId,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Look up history if history expansion is enabled
+    final history = showHistoryExpansion && historyFieldIdPrefix != null
+        ? ref.watch(fieldHistoriesProvider.notifier).getHistory(itemId, historyFieldIdPrefix!)
+        : null;
+
     return EntryActionsContext(
       onEdit: onEdit,
       onDelete: onDelete,
       onCopy: onCopyAllPressed != null ? (text) async => onCopyAllPressed!() : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onLongPress: () => _showActions(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: displayItemBuilder(item)),
+                ],
+              ),
+            ),
+          ),
+          // History button row
+          if (showHistoryExpansion)
+            Padding(
+              padding: const EdgeInsets.only(left: 32, bottom: 4),
+              child: TextButton.icon(
+                icon: Icon(
+                  historyExpanded ? Icons.expand_less : Icons.history,
+                  size: 16,
+                ),
+                label: Text('History(${history?.entries.length ?? 0})'),
+                onPressed: onToggleHistory,
+              ),
+            ),
+          // Expanded history view
+          if (showHistoryExpansion && historyExpanded && history != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 32, bottom: 8),
+              child: FieldHistoryView(
+                fieldName: historyFieldIdPrefix ?? 'field',
+                history: history,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showActions(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(child: displayItemBuilder(item)),
+            if (onCopyAllPressed != null)
+              ListTile(
+                leading: const Icon(Icons.copy_all),
+                title: const Text('Copy All'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  onCopyAllPressed!();
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Edit'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onEdit();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Delete'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onDelete();
+              },
+            ),
           ],
         ),
       ),

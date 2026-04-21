@@ -506,6 +506,9 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
           allFieldValues: oldValues ?? {},
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'education',
+      itemIdExtractor: (e) => e.id,
     );
   }
 }
@@ -783,6 +786,9 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
           allFieldValues: oldValues ?? {},
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'employment',
+      itemIdExtractor: (e) => e.id,
     );
   }
 }
@@ -1007,6 +1013,9 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
           allFieldValues: oldValues ?? {},
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'skill',
+      itemIdExtractor: (s) => s.id,
     );
   }
 }
@@ -1226,6 +1235,9 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
           allFieldValues: oldValues ?? {},
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'language',
+      itemIdExtractor: (l) => l.id,
     );
   }
 }
@@ -1465,6 +1477,9 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
           allFieldValues: oldValues ?? {},
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'award',
+      itemIdExtractor: (a) => a.id,
     );
   }
 }

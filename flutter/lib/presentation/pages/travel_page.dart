@@ -395,6 +395,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
           type: SnackBarType.success,
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'passport',
+      itemIdExtractor: (p) => p.id,
     );
   }
 }
@@ -686,6 +689,9 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
           type: SnackBarType.success,
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'visa',
+      itemIdExtractor: (v) => v.id,
     );
   }
 }
@@ -1515,6 +1521,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
           type: SnackBarType.success,
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'travel',
+      itemIdExtractor: (t) => t.id,
     );
   }
 }

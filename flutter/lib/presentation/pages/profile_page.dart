@@ -15,7 +15,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, EntryActionsContext, HistoryRecordingConfig;
+    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
@@ -28,7 +28,6 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
-import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 
@@ -717,6 +716,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
           allFieldValues: oldValues ?? {},
         );
       },
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: 'contact',
+      itemIdExtractor: (c) => c.id,
       displayItemBuilder: (contact) => _ContactItem(
         contact: contact,
         onEdit: () {},
@@ -727,7 +729,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   }
 }
 
-class _ContactItem extends ConsumerStatefulWidget {
+class _ContactItem extends StatelessWidget {
   final ContactEntry contact;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -739,115 +741,55 @@ class _ContactItem extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_ContactItem> createState() => _ContactItemState();
-}
-
-class _ContactItemState extends ConsumerState<_ContactItem> {
-  bool _historyExpanded = false;
-
-  String _formatAllFields() => '${widget.contact.entryType}\n${widget.contact.toFormattedString()}';
-
-  Future<void> _handleCopy() async {
-    final verified = await verifyPasswordForRestrictedField(
-      context: context,
-      ref: ref,
-      fieldId: 'contact',
-    );
-    if (!verified) return;
-    if (!mounted) return;
-    Clipboard.setData(ClipboardData(text: _formatAllFields()));
-    showOverlaySnackBar(
-      context,
-      content: 'Copied to clipboard',
-      type: SnackBarType.success,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     final fields = <LabelValueField>[
       LabelValueField(
         label: 'Value',
-        value: widget.contact.value,
+        value: contact.value,
         fieldId: 'contact',
         isSensitive: false,
       ),
     ];
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.contact.id, 'contact');
-    final hasHistory = history != null;
 
-    // Get actions from EntryActionsContext (set by UnifiedFormSection)
-    final actionsContext = EntryActionsContext.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          leading: Icon(
-            widget.contact.type == 'email'
-                ? Icons.email_outlined
-                : Icons.phone_outlined,
-            size: 20,
-          ),
-          title: SelectableText(
-            widget.contact.label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          subtitle: SelectableText(
-            widget.contact.type,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          children: [
-            ResponsiveLabelField(
-              fields: fields,
-              labelValueSpacing: 4,
-              layoutAxis: Axis.vertical,
-            ),
-          ],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  config: const EntryActionsConfig(),
-                  onCopy: _handleCopy,
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  isSensitive: fields.any((f) => f.isSensitive),
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
+    return UniversalEntryCard(
+      leading: Icon(
+        contact.type == 'email'
+            ? Icons.email_outlined
+            : Icons.phone_outlined,
+        size: 20,
+      ),
+      title: SelectableText(
+        contact.label,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      subtitle: SelectableText(
+        contact.type,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'contact',
-              history: history,
-            ),
-          ),
+      ),
+      children: [
+        ResponsiveLabelField(
+          fields: fields,
+          labelValueSpacing: 4,
+          layoutAxis: Axis.vertical,
+        ),
+      ],
+      // Actions delegated to _ItemWithHistory via EntryActionsContext
+      // Fallback for standalone use
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.edit_outlined, size: 20),
+          tooltip: 'Edit',
+          onPressed: onEdit,
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete_outline, size: 20),
+          tooltip: 'Delete',
+          onPressed: onDelete,
+        ),
       ],
     );
   }
@@ -1579,13 +1521,16 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
               allFieldValues: oldValues ?? {},
             );
           },
+          showHistoryExpansion: true,
+          historyFieldIdPrefix: 'address',
+          itemIdExtractor: (a) => a.id,
         ),
       ],
     );
   }
 }
 
-class _AddressItem extends ConsumerStatefulWidget {
+class _AddressItem extends StatelessWidget {
   final AddressData address;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -1597,134 +1542,80 @@ class _AddressItem extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_AddressItem> createState() => _AddressItemState();
-}
-
-class _AddressItemState extends ConsumerState<_AddressItem> {
-  bool _historyExpanded = false;
-
-  String _formatAllFields() => '${widget.address.entryType}\n${widget.address.toFormattedString()}';
-
-  Future<void> _handleCopy() async {
-    Clipboard.setData(ClipboardData(text: _formatAllFields()));
-    showOverlaySnackBar(
-      context,
-      content: 'Copied to clipboard',
-      type: SnackBarType.success,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final history = ref
-        .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.address.id, 'address');
-    final hasHistory = history != null;
-
-    // Get actions from EntryActionsContext (set by UnifiedFormSection)
-    final actionsContext = EntryActionsContext.of(context);
-
     final fields = <LabelValueField>[];
-    if (widget.address.label != null && widget.address.label!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Label', value: widget.address.label!));
+    if (address.label != null && address.label!.isNotEmpty) {
+      fields.add(LabelValueField(label: 'Label', value: address.label!));
     }
-    if (widget.address.street != null && widget.address.street!.isNotEmpty) {
+    if (address.street != null && address.street!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Street',
-          value: widget.address.street!,
+          value: address.street!,
           fieldId: 'address.street',
         ),
       );
     }
-    if (widget.address.city != null && widget.address.city!.isNotEmpty) {
+    if (address.city != null && address.city!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'City',
-          value: widget.address.city!,
+          value: address.city!,
           fieldId: 'address.city',
         ),
       );
     }
-    if (widget.address.postalCode != null &&
-        widget.address.postalCode!.isNotEmpty) {
+    if (address.postalCode != null &&
+        address.postalCode!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Postal Code',
-          value: widget.address.postalCode!,
+          value: address.postalCode!,
           fieldId: 'address.postalCode',
           isSensitive: true,
         ),
       );
     }
-    if (widget.address.country != null && widget.address.country!.isNotEmpty) {
+    if (address.country != null && address.country!.isNotEmpty) {
       fields.add(
         LabelValueField(
           label: 'Country',
-          value: widget.address.country!,
+          value: address.country!,
           fieldId: 'address.country',
         ),
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UniversalEntryCard(
-          leading: const Icon(Icons.home_outlined, size: 20),
-          title: SelectableText(
-            widget.address.label ?? 'Address',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          children: fields.isEmpty
-              ? []
-              : [
-                  ResponsiveLabelField(
-                    fields: fields,
-                    labelValueSpacing: 4,
-                    layoutAxis: Axis.vertical,
-                  ),
-                ],
-          actions: actionsContext != null
-              ? EntryActionBuilder.buildActions(
-                  context: context,
-                  ref: ref,
-                  config: const EntryActionsConfig(),
-                  onCopy: _handleCopy,
-                  onEdit: actionsContext.onEdit ?? widget.onEdit,
-                  onDelete: actionsContext.onDelete ?? widget.onDelete,
-                  isSensitive: true,
-                )
-              : [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: widget.onEdit,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
-                    onPressed: widget.onDelete,
-                  ),
-                ],
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(_historyExpanded ? Icons.expand_less : Icons.history, size: 16),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => setState(() => _historyExpanded = !_historyExpanded),
-            ),
-          ],
+    return UniversalEntryCard(
+      leading: const Icon(Icons.home_outlined, size: 20),
+      title: SelectableText(
+        address.label ?? 'Address',
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
+      children: fields.isEmpty
+          ? []
+          : [
+              ResponsiveLabelField(
+                fields: fields,
+                labelValueSpacing: 4,
+                layoutAxis: Axis.vertical,
+              ),
+            ],
+      // Actions delegated to _ItemWithHistory via EntryActionsContext
+      // Fallback for standalone use
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.edit_outlined, size: 20),
+          tooltip: 'Edit',
+          onPressed: onEdit,
         ),
-        if (hasHistory && _historyExpanded)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 8),
-            child: FieldHistoryView(
-              fieldName: 'address.postalCode',
-              history: history,
-            ),
-          ),
+        IconButton(
+          icon: const Icon(Icons.delete_outline, size: 20),
+          tooltip: 'Delete',
+          onPressed: onDelete,
+        ),
       ],
     );
   }

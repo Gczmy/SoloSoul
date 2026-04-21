@@ -455,7 +455,6 @@ class SettingsPage extends ConsumerWidget {
 
   Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
     final passwordController = TextEditingController();
-    final passwordFocusNode = FocusNode();
     final formKey = GlobalKey<FormState>();
     bool isDeleting = false;
     bool obscurePassword = true;
@@ -466,8 +465,6 @@ class SettingsPage extends ConsumerWidget {
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogInnerContext, setState) {
           String? errorMessage;
-          final hasError = errorMessage != null;
-          final errorColor = Colors.red.shade700;
 
           return AlertDialog(
             title: const Center(
@@ -506,50 +503,23 @@ class SettingsPage extends ConsumerWidget {
                   child: TextFormField(
                     controller: passwordController,
                     obscureText: obscurePassword,
-                    focusNode: passwordFocusNode,
                     autofocus: true,
                     enabled: !isDeleting,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       labelText: 'Enter password to confirm',
-                      labelStyle: TextStyle(
-                        color: hasError
-                            ? errorColor
-                            : passwordFocusNode.hasFocus
-                            ? AppTheme.primaryColor
-                            : Theme.of(dialogInnerContext).colorScheme.onSurface,
-                      ),
-                      floatingLabelStyle: TextStyle(
-                        color: hasError
-                            ? errorColor
-                            : passwordFocusNode.hasFocus
-                            ? AppTheme.primaryColor
-                            : Theme.of(dialogInnerContext).colorScheme.onSurface,
-                      ),
                       errorText: errorMessage,
                       errorStyle: TextStyle(
                         color: Colors.red.shade700,
                         fontWeight: FontWeight.w500,
                       ),
-                      prefixIcon: Icon(
-                        Icons.lock_outline,
-                        color: hasError
-                            ? errorColor
-                            : passwordFocusNode.hasFocus
-                            ? AppTheme.primaryColor
-                            : Theme.of(dialogInnerContext).colorScheme.onSurfaceVariant,
-                      ),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
                           size: 20,
-                          color: hasError
-                              ? errorColor
-                              : passwordFocusNode.hasFocus
-                              ? AppTheme.primaryColor
-                              : Theme.of(dialogInnerContext).colorScheme.onSurfaceVariant,
                         ),
                         onPressed: () {
                           setState(() => obscurePassword = !obscurePassword);
@@ -633,7 +603,6 @@ class SettingsPage extends ConsumerWidget {
     );
 
     passwordController.dispose();
-    passwordFocusNode.dispose();
   }
 }
 
