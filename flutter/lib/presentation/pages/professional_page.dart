@@ -208,12 +208,12 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
 
   Map<String, String> _educationToMap(EducationData edu) {
     return {
-      'education.institution': edu.institution ?? '',
-      'education.degree': edu.degree ?? '',
-      'education.degreeCustom': edu.degreeCustom ?? '',
-      'education.fieldOfStudy': edu.field ?? '',
-      'education.startDate': edu.startDate ?? '',
-      'education.endDate': edu.endDate ?? '',
+      'institution': edu.institution ?? '',
+      'degree': edu.degree ?? '',
+      'degreeCustom': edu.degreeCustom ?? '',
+      'field': edu.field ?? '',
+      'startDate': edu.startDate ?? '',
+      'endDate': edu.endDate ?? '',
     };
   }
 
@@ -614,11 +614,11 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
 
   Map<String, String> _employmentToMap(EmploymentData emp) {
     return {
-      'employment.company': emp.company ?? '',
-      'employment.position': emp.position ?? '',
-      'employment.responsibilities': emp.responsibilities ?? '',
-      'employment.startDate': emp.startDate ?? '',
-      'employment.endDate': emp.endDate ?? '',
+      'company': emp.company ?? '',
+      'position': emp.position ?? '',
+      'responsibilities': emp.responsibilities ?? '',
+      'startDate': emp.startDate ?? '',
+      'endDate': emp.endDate ?? '',
     };
   }
 
@@ -861,7 +861,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
   }
 
   Map<String, String> _skillToMap(SkillData skill) {
-    return {'skill.name': skill.name, 'skill.level': skill.level ?? ''};
+    return {'name': skill.name, 'level': skill.level ?? ''};
   }
 
   Future<void> _onDelete(SkillData item) async {
@@ -1084,8 +1084,8 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
 
   Map<String, String> _languageToMap(LanguageData language) {
     return {
-      'language.name': language.name,
-      'language.proficiency': language.proficiency ?? '',
+      'name': language.name,
+      'proficiency': language.proficiency ?? '',
     };
   }
 
@@ -1314,10 +1314,10 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
 
   Map<String, String> _awardToMap(AwardData award) {
     return {
-      'award.title': award.title ?? '',
-      'award.issuer': award.issuer ?? '',
-      'award.date': award.date ?? '',
-      'award.description': award.description ?? '',
+      'title': award.title ?? '',
+      'issuer': award.issuer ?? '',
+      'date': award.date ?? '',
+      'description': award.description ?? '',
     };
   }
 
