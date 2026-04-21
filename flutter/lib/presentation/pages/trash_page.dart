@@ -921,7 +921,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           if (idx >= 0) {
             final c = profile.identity!.idCards![idx];
             detailText =
-                'Label: ${c.label ?? "N/A"}\n'
+                'Label: ${c.title ?? "N/A"}\n'
                 'Number: ${c.number ?? "N/A"}\n'
                 'Country: ${c.country ?? "N/A"}';
             deletedAt = c.deletedAt;
@@ -933,7 +933,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           if (idx >= 0) {
             final a = profile.identity!.addresses![idx];
             detailText =
-                'Label: ${a.label ?? "N/A"}\n'
+                'Label: ${a.title ?? "N/A"}\n'
                 'Street: ${a.street ?? "N/A"}\n'
                 'City: ${a.city ?? "N/A"}\n'
                 'Country: ${a.country ?? "N/A"}';

@@ -520,11 +520,6 @@ Widget _buildEducationItem(EducationData item, Map<String, String> itemMap) {
       return '';
     }
 
-    final subtitleParts = [
-      displayDegree(item),
-      item.field,
-    ].where((p) => p != null && p.isNotEmpty).join(' - ');
-
     final fields = <LabelValueField>[
       if (displayDegree(item).isNotEmpty)
         LabelValueField(label: 'Degree', value: displayDegree(item)),
@@ -539,7 +534,6 @@ Widget _buildEducationItem(EducationData item, Map<String, String> itemMap) {
     return EntryCardWidget<EducationData>(
       item: item,
       title: item.institution ?? 'Institution',
-      subtitle: subtitleParts.isEmpty ? null : subtitleParts,
       icon: Icons.school,
       fields: fields,
       itemId: item.id,
@@ -808,7 +802,6 @@ Widget _buildEmploymentItem(EmploymentData item, Map<String, String> itemMap) {
     return EntryCardWidget<EmploymentData>(
       item: item,
       title: item.company ?? 'Company',
-      subtitle: item.position,
       icon: Icons.work,
       fields: fields,
       itemId: item.id,
@@ -1495,7 +1488,6 @@ Widget _buildAwardItem(AwardData item, Map<String, String> itemMap) {
     return EntryCardWidget<AwardData>(
       item: item,
       title: item.title ?? 'Award',
-      subtitle: item.issuer,
       icon: Icons.emoji_events,
       fields: fields,
       itemId: item.id,

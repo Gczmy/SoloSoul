@@ -279,7 +279,7 @@ class ContactData {
 
 class AddressData with FormattableEntry {
   String id;
-  String? label;
+  String? title;
   String? street;
   String? city;
   String? state;
@@ -294,7 +294,7 @@ class AddressData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
-    'label': label,
+    'title': title,
     'street': street,
     'city': city,
     'state': state,
@@ -304,7 +304,7 @@ class AddressData with FormattableEntry {
 
   AddressData({
     required this.id,
-    this.label,
+    this.title,
     this.street,
     this.city,
     this.state,
@@ -319,7 +319,7 @@ class AddressData with FormattableEntry {
     final id = json['id'] as String?;
     return AddressData(
       id: id ?? generateEntryId(),
-      label: json['label'],
+      title: json['label'],
       street: json['street'],
       city: json['city'],
       state: json['state'],
@@ -335,7 +335,7 @@ class AddressData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'label': label,
+    'title': title,
     'street': street,
     'city': city,
     'state': state,
@@ -350,7 +350,7 @@ class AddressData with FormattableEntry {
 
   AddressData copyWith({
     String? id,
-    String? label,
+    String? title,
     String? street,
     String? city,
     String? state,
@@ -362,7 +362,7 @@ class AddressData with FormattableEntry {
   }) {
     return AddressData(
       id: id ?? this.id,
-      label: label ?? this.label,
+      title: title ?? this.title,
       street: street ?? this.street,
       city: city ?? this.city,
       state: state ?? this.state,
@@ -379,7 +379,7 @@ class AddressData with FormattableEntry {
 
 class IdCardData with FormattableEntry {
   String id;
-  String? label;
+  String? title;
   String? number;
   String? issueDate;
   String? expiryDate;
@@ -394,7 +394,7 @@ class IdCardData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
-    'label': label,
+    'title': title,
     'number': number,
     'issueDate': issueDate,
     'expiryDate': expiryDate,
@@ -404,7 +404,7 @@ class IdCardData with FormattableEntry {
 
   IdCardData({
     required this.id,
-    this.label,
+    this.title,
     this.number,
     this.issueDate,
     this.expiryDate,
@@ -419,7 +419,7 @@ class IdCardData with FormattableEntry {
     final id = json['id'] as String?;
     return IdCardData(
       id: id ?? generateEntryId(), // Generate ID if missing (for legacy data)
-      label: json['label'],
+      title: json['title'],
       number: json['number'],
       issueDate: json['issue_date'],
       expiryDate: json['expiry_date'],
@@ -435,7 +435,7 @@ class IdCardData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'label': label,
+    'title': title,
     'number': number,
     'issue_date': issueDate,
     'expiry_date': expiryDate,
@@ -450,7 +450,7 @@ class IdCardData with FormattableEntry {
 
   IdCardData copyWith({
     String? id,
-    String? label,
+    String? title,
     String? number,
     String? issueDate,
     String? expiryDate,
@@ -462,7 +462,7 @@ class IdCardData with FormattableEntry {
   }) {
     return IdCardData(
       id: id ?? this.id,
-      label: label ?? this.label,
+      title: title ?? this.title,
       number: number ?? this.number,
       issueDate: issueDate ?? this.issueDate,
       expiryDate: expiryDate ?? this.expiryDate,
@@ -671,10 +671,18 @@ class TravelData {
 
 class PassportData with FormattableEntry {
   String id;
+  String? title;
   String? number;
   String? country;
+  String? countryCode;
   String? issueDate;
+  String? placeOfIssue;
   String? expiryDate;
+  String? dateOfBirth;
+  String? placeOfBirth;
+  String? sex;
+  String? nationality;
+  String? authority;
   String? holderName;
   int updatedAt;
   bool isDeleted;
@@ -685,19 +693,35 @@ class PassportData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
+    'title': title,
     'country': country,
+    'countryCode': countryCode,
     'number': number,
     'issueDate': issueDate,
+    'placeOfIssue': placeOfIssue,
     'expiryDate': expiryDate,
+    'dateOfBirth': dateOfBirth,
+    'placeOfBirth': placeOfBirth,
+    'sex': sex,
+    'nationality': nationality,
+    'authority': authority,
     'holderName': holderName,
   };
 
   PassportData({
     required this.id,
+    this.title,
     this.number,
     this.country,
+    this.countryCode,
     this.issueDate,
+    this.placeOfIssue,
     this.expiryDate,
+    this.dateOfBirth,
+    this.placeOfBirth,
+    this.sex,
+    this.nationality,
+    this.authority,
     this.holderName,
     int? updatedAt,
     this.isDeleted = false,
@@ -708,10 +732,18 @@ class PassportData with FormattableEntry {
     final id = json['id'] as String?;
     return PassportData(
       id: id ?? generateEntryId(),
+      title: json['title'],
       number: json['number'],
       country: json['country'],
+      countryCode: json['country_code'],
       issueDate: json['issue_date'],
+      placeOfIssue: json['place_of_issue'],
       expiryDate: json['expiry_date'],
+      dateOfBirth: json['date_of_birth'],
+      placeOfBirth: json['place_of_birth'],
+      sex: json['sex'],
+      nationality: json['nationality'],
+      authority: json['authority'],
       holderName: json['holder_name'],
       updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
@@ -723,10 +755,18 @@ class PassportData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'title': title,
     'number': number,
     'country': country,
+    'country_code': countryCode,
     'issue_date': issueDate,
+    'place_of_issue': placeOfIssue,
     'expiry_date': expiryDate,
+    'date_of_birth': dateOfBirth,
+    'place_of_birth': placeOfBirth,
+    'sex': sex,
+    'nationality': nationality,
+    'authority': authority,
     'holder_name': holderName,
     'updated_at': updatedAt,
     'is_deleted': isDeleted,
@@ -737,10 +777,18 @@ class PassportData with FormattableEntry {
 
   PassportData copyWith({
     String? id,
+    String? title,
     String? number,
     String? country,
+    String? countryCode,
     String? issueDate,
+    String? placeOfIssue,
     String? expiryDate,
+    String? dateOfBirth,
+    String? placeOfBirth,
+    String? sex,
+    String? nationality,
+    String? authority,
     String? holderName,
     int? updatedAt,
     bool? isDeleted,
@@ -748,10 +796,18 @@ class PassportData with FormattableEntry {
   }) {
     return PassportData(
       id: id ?? this.id,
+      title: title ?? this.title,
       number: number ?? this.number,
       country: country ?? this.country,
+      countryCode: countryCode ?? this.countryCode,
       issueDate: issueDate ?? this.issueDate,
+      placeOfIssue: placeOfIssue ?? this.placeOfIssue,
       expiryDate: expiryDate ?? this.expiryDate,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      placeOfBirth: placeOfBirth ?? this.placeOfBirth,
+      sex: sex ?? this.sex,
+      nationality: nationality ?? this.nationality,
+      authority: authority ?? this.authority,
       holderName: holderName ?? this.holderName,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -764,6 +820,7 @@ class PassportData with FormattableEntry {
 
 class VisaData with FormattableEntry {
   String id;
+  String? title;
   String? country;
   String? visaType;
   String? number;
@@ -778,6 +835,7 @@ class VisaData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
+    'title': title,
     'country': country,
     'visaType': visaType,
     'number': number,
@@ -787,6 +845,7 @@ class VisaData with FormattableEntry {
 
   VisaData({
     required this.id,
+    this.title,
     this.country,
     this.visaType,
     this.number,
@@ -801,6 +860,7 @@ class VisaData with FormattableEntry {
     final id = json['id'] as String?;
     return VisaData(
       id: id ?? generateEntryId(),
+      title: json['title'],
       country: json['country'],
       visaType: json['visa_type'],
       number: json['number'],
@@ -816,6 +876,7 @@ class VisaData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'title': title,
     'country': country,
     'visa_type': visaType,
     'number': number,
@@ -830,6 +891,7 @@ class VisaData with FormattableEntry {
 
   VisaData copyWith({
     String? id,
+    String? title,
     String? country,
     String? visaType,
     String? number,
@@ -841,6 +903,7 @@ class VisaData with FormattableEntry {
   }) {
     return VisaData(
       id: id ?? this.id,
+      title: title ?? this.title,
       country: country ?? this.country,
       visaType: visaType ?? this.visaType,
       number: number ?? this.number,
@@ -924,6 +987,7 @@ class FinancialData {
 
 class BankAccountData with FormattableEntry {
   String id;
+  String? title;
   String? bankName;
   String? accountNumber;
   String? currency;
@@ -937,6 +1001,7 @@ class BankAccountData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
+    'title': title,
     'bankName': bankName,
     'accountNumber': accountNumber,
     'currency': currency,
@@ -945,6 +1010,7 @@ class BankAccountData with FormattableEntry {
 
   BankAccountData({
     required this.id,
+    this.title,
     this.bankName,
     this.accountNumber,
     this.currency,
@@ -958,6 +1024,7 @@ class BankAccountData with FormattableEntry {
     final id = json['id'] as String?;
     return BankAccountData(
       id: id ?? generateEntryId(),
+      title: json['title'],
       bankName: json['bank_name'],
       accountNumber: json['account_number'],
       currency: json['currency'],
@@ -972,6 +1039,7 @@ class BankAccountData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'title': title,
     'bank_name': bankName,
     'account_number': accountNumber,
     'currency': currency,
@@ -985,6 +1053,7 @@ class BankAccountData with FormattableEntry {
 
   BankAccountData copyWith({
     String? id,
+    String? title,
     String? bankName,
     String? accountNumber,
     String? currency,
@@ -995,6 +1064,7 @@ class BankAccountData with FormattableEntry {
   }) {
     return BankAccountData(
       id: id ?? this.id,
+      title: title ?? this.title,
       bankName: bankName ?? this.bankName,
       accountNumber: accountNumber ?? this.accountNumber,
       currency: currency ?? this.currency,
@@ -1010,6 +1080,7 @@ class BankAccountData with FormattableEntry {
 
 class CardData with FormattableEntry {
   String id;
+  String? title;
   String? cardNumber;
   String? cardType;
   String? expiryDate;
@@ -1023,6 +1094,7 @@ class CardData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
+    'title': title,
     'cardType': cardType,
     'cardNumber': cardNumber,
     'expiryDate': expiryDate,
@@ -1031,6 +1103,7 @@ class CardData with FormattableEntry {
 
   CardData({
     required this.id,
+    this.title,
     this.cardNumber,
     this.cardType,
     this.expiryDate,
@@ -1044,6 +1117,7 @@ class CardData with FormattableEntry {
     final id = json['id'] as String?;
     return CardData(
       id: id ?? generateEntryId(),
+      title: json['title'],
       cardNumber: json['card_number'],
       cardType: json['card_type'],
       expiryDate: json['expiry_date'],
@@ -1058,6 +1132,7 @@ class CardData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'title': title,
     'card_number': cardNumber,
     'card_type': cardType,
     'expiry_date': expiryDate,
@@ -1071,6 +1146,7 @@ class CardData with FormattableEntry {
 
   CardData copyWith({
     String? id,
+    String? title,
     String? cardNumber,
     String? cardType,
     String? expiryDate,
@@ -1081,6 +1157,7 @@ class CardData with FormattableEntry {
   }) {
     return CardData(
       id: id ?? this.id,
+      title: title ?? this.title,
       cardNumber: cardNumber ?? this.cardNumber,
       cardType: cardType ?? this.cardType,
       expiryDate: expiryDate ?? this.expiryDate,
@@ -1096,6 +1173,7 @@ class CardData with FormattableEntry {
 
 class TaxIdData with FormattableEntry {
   String id;
+  String? title;
   String? taxIdNumber;
   String? taxIdType;
   String? issuingAuthority;
@@ -1109,6 +1187,7 @@ class TaxIdData with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
+    'title': title,
     'taxIdNumber': taxIdNumber,
     'taxIdType': taxIdType,
     'issuingAuthority': issuingAuthority,
@@ -1117,6 +1196,7 @@ class TaxIdData with FormattableEntry {
 
   TaxIdData({
     required this.id,
+    this.title,
     this.taxIdNumber,
     this.taxIdType,
     this.issuingAuthority,
@@ -1130,6 +1210,7 @@ class TaxIdData with FormattableEntry {
     final id = json['id'] as String?;
     return TaxIdData(
       id: id ?? generateEntryId(),
+      title: json['title'],
       taxIdNumber: json['tax_id_number'],
       taxIdType: json['tax_id_type'],
       issuingAuthority: json['issuing_authority'],
@@ -1144,6 +1225,7 @@ class TaxIdData with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'title': title,
     'tax_id_number': taxIdNumber,
     'tax_id_type': taxIdType,
     'issuing_authority': issuingAuthority,
@@ -1157,6 +1239,7 @@ class TaxIdData with FormattableEntry {
 
   TaxIdData copyWith({
     String? id,
+    String? title,
     String? taxIdNumber,
     String? taxIdType,
     String? issuingAuthority,
@@ -1167,6 +1250,7 @@ class TaxIdData with FormattableEntry {
   }) {
     return TaxIdData(
       id: id ?? this.id,
+      title: title ?? this.title,
       taxIdNumber: taxIdNumber ?? this.taxIdNumber,
       taxIdType: taxIdType ?? this.taxIdType,
       issuingAuthority: issuingAuthority ?? this.issuingAuthority,
@@ -2123,7 +2207,7 @@ class ProfileStorageService {
               section: 'profile',
               itemType: 'idCard',
               id: c.id,
-              itemLabel: c.label ?? c.number ?? 'ID Card',
+              itemLabel: c.title ?? c.number ?? 'ID Card',
               deletedAt: c.deletedAt ?? DateTime.now(),
             ),
           );
@@ -2141,7 +2225,7 @@ class ProfileStorageService {
               section: 'profile',
               itemType: 'address',
               id: a.id,
-              itemLabel: a.label ?? 'Address',
+              itemLabel: a.title ?? 'Address',
               deletedAt: a.deletedAt ?? DateTime.now(),
             ),
           );

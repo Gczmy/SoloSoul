@@ -74,9 +74,9 @@ class LogSectionConfig {
             : entry?.value ?? 'Contact';
       case 'idCard':
         final idCard = item as IdCardData?;
-        return idCard?.label ?? idCard?.number ?? 'ID Card';
+        return idCard?.title ?? idCard?.number ?? 'ID Card';
       case 'address':
-        return (item as AddressData?)?.label ?? 'Address';
+        return (item as AddressData?)?.title ?? 'Address';
 
       // Simple string items
       case 'travel_history':

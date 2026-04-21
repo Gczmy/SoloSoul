@@ -243,7 +243,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     } else if (newIdCards.length < oldIdCards.length) {
       changes.add('ID Card (${oldIdCards.length - newIdCards.length} removed)');
     } else if (newIdCards.isNotEmpty && oldIdCards.isNotEmpty &&
-        (oldIdCards.first.label != newIdCards.first.label ||
+        (oldIdCards.first.title != newIdCards.first.title ||
          oldIdCards.first.number != newIdCards.first.number)) {
       changes.add('ID Card');
     }
@@ -255,7 +255,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     } else if (newAddresses.length < oldAddresses.length) {
       changes.add('Address (${oldAddresses.length - newAddresses.length} removed)');
     } else if (newAddresses.isNotEmpty && oldAddresses.isNotEmpty &&
-        (oldAddresses.first.label != newAddresses.first.label ||
+        (oldAddresses.first.title != newAddresses.first.title ||
          oldAddresses.first.city != newAddresses.first.city)) {
       changes.add('Address');
     }
@@ -437,9 +437,9 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       section: LogSection.idCard,
       itemType: 'ID card',
       compareEntry: (oldEntry, newEntry) =>
-          oldEntry.label != newEntry.label ||
+          oldEntry.title != newEntry.title ||
           oldEntry.number != newEntry.number,
-      getLabel: (entry) => entry.label ?? entry.number ?? 'ID card',
+      getLabel: (entry) => entry.title ?? entry.number ?? 'ID card',
       showDiff: true,
     );
 
@@ -452,12 +452,12 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       section: LogSection.address,
       itemType: 'address',
       compareEntry: (oldEntry, newEntry) =>
-          oldEntry.label != newEntry.label ||
+          oldEntry.title != newEntry.title ||
           oldEntry.country != newEntry.country ||
           oldEntry.city != newEntry.city ||
           oldEntry.street != newEntry.street ||
           oldEntry.postalCode != newEntry.postalCode,
-      getLabel: (entry) => entry.label ?? 'Address',
+      getLabel: (entry) => entry.title ?? 'Address',
       showDiff: true,
     );
   }
@@ -1964,7 +1964,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
           _logPermanentDelete(
             'profile',
             'idCard',
-            profile.identity!.idCards![i].label ??
+            profile.identity!.idCards![i].title ??
                 profile.identity!.idCards![i].number ??
                 'ID Card',
           );
@@ -1977,7 +1977,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
           _logPermanentDelete(
             'profile',
             'address',
-            profile.identity!.addresses![i].label ?? 'Address',
+            profile.identity!.addresses![i].title ?? 'Address',
           );
         }
       }
@@ -2053,12 +2053,12 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
               : entry.value;
         } else if (itemType == 'idCard' &&
             index < (state!.identity?.idCards?.length ?? 0)) {
-          return state!.identity!.idCards![index].label ??
+          return state!.identity!.idCards![index].title ??
               state!.identity!.idCards![index].number ??
               'ID Card';
         } else if (itemType == 'address' &&
             index < (state!.identity?.addresses?.length ?? 0)) {
-          return state!.identity!.addresses![index].label ?? 'Address';
+          return state!.identity!.addresses![index].title ?? 'Address';
         }
         break;
     }

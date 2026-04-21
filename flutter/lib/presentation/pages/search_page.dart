@@ -315,12 +315,12 @@ class SearchNotifier extends StateNotifier<SearchState> {
       if (identity.idCards != null) {
         for (final card in identity.idCards!) {
           if (!card.isDeleted) {
-            if (card.label != null) {
+            if (card.title != null) {
               addResult(
-                'idCard.label.${card.id}',
+                'idCard.title.${card.id}',
                 'ID Card Label',
                 'idCard',
-                card.label!,
+                card.title!,
                 SensitivityLevel.internal,
               );
             }
@@ -359,12 +359,12 @@ class SearchNotifier extends StateNotifier<SearchState> {
       if (identity.addresses != null) {
         for (final addr in identity.addresses!) {
           if (!addr.isDeleted) {
-            if (addr.label != null) {
+            if (addr.title != null) {
               addResult(
-                'address.label.${addr.id}',
+                'address.title.${addr.id}',
                 'Address Label',
                 'address',
-                addr.label!,
+                addr.title!,
                 SensitivityLevel.internal,
               );
             }

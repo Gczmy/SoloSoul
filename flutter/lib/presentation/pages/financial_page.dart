@@ -128,32 +128,20 @@ class _BankAccountSection extends ConsumerStatefulWidget {
 class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     with WidgetsBindingObserver {
   Widget _buildBankAccountItem(BankAccountData account, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (account.accountNumber != null && account.accountNumber!.isNotEmpty)
-        LabelValueField(
-          label: 'Account Number',
-          value: account.accountNumber!,
-          fieldId: 'bankaccount.accountNumber',
-          isSensitive: true,
-        ),
-      if (account.swiftBic != null && account.swiftBic!.isNotEmpty)
-        LabelValueField(
-          label: 'SWIFT/BIC',
-          value: account.swiftBic!,
-          fieldId: 'bankaccount.swiftBic',
-          isSensitive: true,
-        ),
-    ];
-
     return EntryCardWidget<BankAccountData>(
       item: account,
-      title: account.bankName ?? 'Bank Account',
-      subtitle: account.currency,
+      title: account.title ?? account.bankName ?? 'Bank Account',
       icon: Icons.account_balance,
-      fields: fields,
       itemId: account.id,
       historyFieldId: 'bankAccount',
       isRestricted: true,
+      fieldPrefix: 'bankAccount',
+      itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+      excludeFields: const {'title'},
+      sensitivityOverrides: const {
+        'accountNumber': SensitivityLevel.critical,
+        'swiftBic': SensitivityLevel.critical,
+      },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -186,6 +174,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       ...?(financial?.activeBankAccounts.map(
         (b) => BankAccountData(
           id: b.id,
+          title: b.title,
           bankName: b.bankName,
           accountNumber: b.accountNumber,
           currency: b.currency,
@@ -201,6 +190,9 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
   }) {
     return BankAccountData(
       id: id ?? generateEntryId(),
+      title: values['bankAccount.title']?.isEmpty == true
+          ? null
+          : values['bankAccount.title'],
       bankName: values['bankAccount.bankName']?.isEmpty == true
           ? null
           : values['bankAccount.bankName'],
@@ -218,10 +210,11 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
 
   Map<String, String> _accountToMap(BankAccountData account) {
     return {
-      'bankAccount.bankName': account.bankName ?? '',
-      'bankAccount.accountNumber': account.accountNumber ?? '',
-      'bankAccount.currency': account.currency ?? '',
-      'bankAccount.swiftBic': account.swiftBic ?? '',
+      'title': account.title ?? '',
+      'bankName': account.bankName ?? '',
+      'accountNumber': account.accountNumber ?? '',
+      'currency': account.currency ?? '',
+      'swiftBic': account.swiftBic ?? '',
     };
   }
 
@@ -344,6 +337,11 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       itemFactory: _createAccountFromValues,
       fieldDefs: [
         FormFieldDef(
+          fieldId: 'bankAccount.title',
+          label: 'Title',
+          sensitivity: ref.watch(fieldLevelProvider('bankAccount.title')),
+        ),
+        FormFieldDef(
           fieldId: 'bankAccount.bankName',
           label: 'Bank Name',
           sensitivity: ref.watch(fieldLevelProvider('bankAccount.bankName')),
@@ -409,32 +407,20 @@ class _CardSection extends ConsumerStatefulWidget {
 class _CardSectionState extends ConsumerState<_CardSection>
     with WidgetsBindingObserver {
   Widget _buildCardItem(CardData card, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
-        LabelValueField(
-          label: 'Card Number',
-          value: card.cardNumber!,
-          fieldId: 'card.cardNumber',
-          isSensitive: true,
-        ),
-      if (card.holderName != null && card.holderName!.isNotEmpty)
-        LabelValueField(
-          label: 'Holder Name',
-          value: card.holderName!,
-          fieldId: 'card.holderName',
-          isSensitive: true,
-        ),
-    ];
-
     return EntryCardWidget<CardData>(
       item: card,
-      title: card.cardType ?? 'Card',
-      subtitle: card.expiryDate,
+      title: card.title ?? card.cardType ?? 'Card',
       icon: Icons.credit_card,
-      fields: fields,
       itemId: card.id,
       historyFieldId: 'card',
       isRestricted: true,
+      fieldPrefix: 'card',
+      itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+      excludeFields: const {'title'},
+      sensitivityOverrides: const {
+        'cardNumber': SensitivityLevel.critical,
+        'holderName': SensitivityLevel.critical,
+      },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -467,6 +453,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
       ...?(financial?.activeCards.map(
         (c) => CardData(
           id: c.id,
+          title: c.title,
           cardType: c.cardType,
           cardNumber: c.cardNumber,
           expiryDate: c.expiryDate,
@@ -479,6 +466,9 @@ class _CardSectionState extends ConsumerState<_CardSection>
   CardData _createCardFromValues(Map<String, String> values, {String? id}) {
     return CardData(
       id: id ?? generateEntryId(),
+      title: values['card.title']?.isEmpty == true
+          ? null
+          : values['card.title'],
       cardType: values['card.cardType']?.isEmpty == true
           ? null
           : values['card.cardType'],
@@ -496,10 +486,11 @@ class _CardSectionState extends ConsumerState<_CardSection>
 
   Map<String, String> _cardToMap(CardData card) {
     return {
-      'card.cardType': card.cardType ?? '',
-      'card.cardNumber': card.cardNumber ?? '',
-      'card.expiryDate': card.expiryDate ?? '',
-      'card.holderName': card.holderName ?? '',
+      'title': card.title ?? '',
+      'cardType': card.cardType ?? '',
+      'cardNumber': card.cardNumber ?? '',
+      'expiryDate': card.expiryDate ?? '',
+      'holderName': card.holderName ?? '',
     };
   }
 
@@ -616,6 +607,11 @@ class _CardSectionState extends ConsumerState<_CardSection>
       itemFactory: _createCardFromValues,
       fieldDefs: [
         FormFieldDef(
+          fieldId: 'card.title',
+          label: 'Title',
+          sensitivity: ref.watch(fieldLevelProvider('card.title')),
+        ),
+        FormFieldDef(
           fieldId: 'card.cardType',
           label: 'Card Type (Visa, Mastercard, etc.)',
           sensitivity: ref.watch(fieldLevelProvider('card.cardType')),
@@ -681,32 +677,19 @@ class _TaxIdSection extends ConsumerStatefulWidget {
 class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     with WidgetsBindingObserver {
   Widget _buildTaxIdItem(TaxIdData taxId, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
-        LabelValueField(
-          label: 'Tax ID Number',
-          value: taxId.taxIdNumber!,
-          fieldId: 'taxId.taxIdNumber',
-          isSensitive: true,
-        ),
-      if (taxId.issuingAuthority != null && taxId.issuingAuthority!.isNotEmpty)
-        LabelValueField(
-          label: 'Issuing Authority',
-          value: taxId.issuingAuthority!,
-          fieldId: 'taxId.issuingAuthority',
-          isSensitive: false,
-        ),
-    ];
-
     return EntryCardWidget<TaxIdData>(
       item: taxId,
-      title: taxId.taxIdType ?? 'Tax ID',
-      subtitle: taxId.country,
+      title: taxId.title ?? taxId.taxIdType ?? 'Tax ID',
       icon: Icons.badge,
-      fields: fields,
       itemId: taxId.id,
       historyFieldId: 'taxId',
       isRestricted: true,
+      fieldPrefix: 'taxId',
+      itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+      excludeFields: const {'title'},
+      sensitivityOverrides: const {
+        'taxIdNumber': SensitivityLevel.critical,
+      },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -739,6 +722,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       ...?(financial?.activeTaxIds.map(
         (t) => TaxIdData(
           id: t.id,
+          title: t.title,
           taxIdNumber: t.taxIdNumber,
           taxIdType: t.taxIdType,
           issuingAuthority: t.issuingAuthority,
@@ -751,6 +735,9 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
   TaxIdData _createTaxIdFromValues(Map<String, String> values, {String? id}) {
     return TaxIdData(
       id: id ?? generateEntryId(),
+      title: values['taxId.title']?.isEmpty == true
+          ? null
+          : values['taxId.title'],
       taxIdNumber: values['taxId.taxIdNumber']?.isEmpty == true
           ? null
           : values['taxId.taxIdNumber'],
@@ -768,10 +755,11 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
 
   Map<String, String> _taxIdToMap(TaxIdData taxId) {
     return {
-      'taxId.taxIdNumber': taxId.taxIdNumber ?? '',
-      'taxId.taxIdType': taxId.taxIdType ?? '',
-      'taxId.issuingAuthority': taxId.issuingAuthority ?? '',
-      'taxId.country': taxId.country ?? '',
+      'title': taxId.title ?? '',
+      'taxIdNumber': taxId.taxIdNumber ?? '',
+      'taxIdType': taxId.taxIdType ?? '',
+      'issuingAuthority': taxId.issuingAuthority ?? '',
+      'country': taxId.country ?? '',
     };
   }
 
@@ -887,6 +875,11 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       maxVisibleItems: 3,
       itemFactory: _createTaxIdFromValues,
       fieldDefs: const [
+        FormFieldDef(
+          fieldId: 'taxId.title',
+          label: 'Title',
+          sensitivity: SensitivityLevel.public,
+        ),
         FormFieldDef(
           fieldId: 'taxId.taxIdNumber',
           label: 'Tax ID Number',

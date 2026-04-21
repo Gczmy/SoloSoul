@@ -5,7 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show showOverlaySnackBar;
+    show showOverlaySnackBar, SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
@@ -150,6 +150,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         (p) {
           return PassportData(
             id: p.id,
+            title: p.title,
             country: p.country,
             number: p.number,
             issueDate: p.issueDate,
@@ -168,62 +169,75 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     final passportId = id ?? generateEntryId();
     return PassportData(
       id: passportId,
+      // Document Type
+      title: values['passport.title']?.isEmpty == true
+          ? null
+          : values['passport.title'],
+      // Issuing Country
       country: values['passport.country']?.isEmpty == true
           ? null
           : values['passport.country'],
+      countryCode: values['passport.countryCode']?.isEmpty == true
+          ? null
+          : values['passport.countryCode'],
+      // Document Number
       number: values['passport.number']?.isEmpty == true
           ? null
           : values['passport.number'],
+      // Validity Period
+      issueDate: values['passport.issueDate']?.isEmpty == true
+          ? null
+          : values['passport.issueDate'],
+      placeOfIssue: values['passport.placeOfIssue']?.isEmpty == true
+          ? null
+          : values['passport.placeOfIssue'],
       expiryDate: values['passport.expiryDate']?.isEmpty == true
           ? null
           : values['passport.expiryDate'],
+      // Holder Information
+      holderName: values['passport.holderName']?.isEmpty == true
+          ? null
+          : values['passport.holderName'],
+      dateOfBirth: values['passport.dateOfBirth']?.isEmpty == true
+          ? null
+          : values['passport.dateOfBirth'],
+      placeOfBirth: values['passport.placeOfBirth']?.isEmpty == true
+          ? null
+          : values['passport.placeOfBirth'],
+      sex: values['passport.sex']?.isEmpty == true
+          ? null
+          : values['passport.sex'],
+      nationality: values['passport.nationality']?.isEmpty == true
+          ? null
+          : values['passport.nationality'],
+      // Issuing Authority
+      authority: values['passport.authority']?.isEmpty == true
+          ? null
+          : values['passport.authority'],
     );
   }
 
   Widget _buildPassportItem(PassportData passport, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[];
-    if (passport.country != null && passport.country!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Country', value: passport.country!));
-    }
-    if (passport.number != null && passport.number!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Passport Number',
-          value: passport.number!,
-          fieldId: 'passport.number',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (passport.holderName != null && passport.holderName!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Holder Name',
-          value: passport.holderName!,
-          fieldId: 'passport.holderName',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (passport.issueDate != null && passport.issueDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Issue Date', value: passport.issueDate!),
-      );
-    }
-    if (passport.expiryDate != null && passport.expiryDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Expiry Date', value: passport.expiryDate!),
-      );
-    }
     return EntryCardWidget<PassportData>(
       item: passport,
-      title: passport.country ?? 'Passport',
+      title: passport.title ?? passport.country ?? 'Passport',
       icon: Icons.book,
-      fields: fields,
       itemId: passport.id,
       historyFieldId: 'passport',
       isRestricted: true,
       formatAllFields: (p) => '${p.entryType}\n${p.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'passport',
+      excludeFields: const {'title'},
+      sensitivityOverrides: const {
+        'number': SensitivityLevel.sensitive,
+        'issueDate': SensitivityLevel.sensitive,
+        'dateOfBirth': SensitivityLevel.sensitive,
+        'placeOfBirth': SensitivityLevel.sensitive,
+        'authority': SensitivityLevel.sensitive,
+        'holderName': SensitivityLevel.sensitive,
+      },
     );
   }
 
@@ -344,20 +358,76 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       maxVisibleItems: 3,
       itemFactory: _createPassportFromValues,
       fieldDefs: [
+        // Document Type
+        FormFieldDef(
+          fieldId: 'passport.title',
+          label: 'Type',
+          sensitivity: ref.watch(fieldLevelProvider('passport.title')),
+        ),
+        // Issuing Country
         FormFieldDef(
           fieldId: 'passport.country',
           label: 'Country',
           sensitivity: ref.watch(fieldLevelProvider('passport.country')),
         ),
         FormFieldDef(
+          fieldId: 'passport.countryCode',
+          label: 'Country Code',
+          sensitivity: ref.watch(fieldLevelProvider('passport.countryCode')),
+        ),
+        // Document Number
+        FormFieldDef(
           fieldId: 'passport.number',
           label: 'Passport Number',
           sensitivity: ref.watch(fieldLevelProvider('passport.number')),
         ),
+        // Validity Period
+        FormFieldDef(
+          fieldId: 'passport.issueDate',
+          label: 'Date of Issue',
+          sensitivity: ref.watch(fieldLevelProvider('passport.issueDate')),
+        ),
+        FormFieldDef(
+          fieldId: 'passport.placeOfIssue',
+          label: 'Place of Issue',
+          sensitivity: ref.watch(fieldLevelProvider('passport.placeOfIssue')),
+        ),
         FormFieldDef(
           fieldId: 'passport.expiryDate',
-          label: 'Expiry Date',
+          label: 'Date of Expiry',
           sensitivity: ref.watch(fieldLevelProvider('passport.expiryDate')),
+        ),
+        // Holder Information
+        FormFieldDef(
+          fieldId: 'passport.holderName',
+          label: 'Holder Name',
+          sensitivity: ref.watch(fieldLevelProvider('passport.holderName')),
+        ),
+        FormFieldDef(
+          fieldId: 'passport.dateOfBirth',
+          label: 'Date of Birth',
+          sensitivity: ref.watch(fieldLevelProvider('passport.dateOfBirth')),
+        ),
+        FormFieldDef(
+          fieldId: 'passport.placeOfBirth',
+          label: 'Place of Birth',
+          sensitivity: ref.watch(fieldLevelProvider('passport.placeOfBirth')),
+        ),
+        FormFieldDef(
+          fieldId: 'passport.sex',
+          label: 'Sex',
+          sensitivity: ref.watch(fieldLevelProvider('passport.sex')),
+        ),
+        FormFieldDef(
+          fieldId: 'passport.nationality',
+          label: 'Nationality',
+          sensitivity: ref.watch(fieldLevelProvider('passport.nationality')),
+        ),
+        // Issuing Authority
+        FormFieldDef(
+          fieldId: 'passport.authority',
+          label: 'Authority',
+          sensitivity: ref.watch(fieldLevelProvider('passport.authority')),
         ),
       ],
       historyConfig: HistoryRecordingConfig<PassportData>(
@@ -383,9 +453,18 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       onDelete: _onPassportDelete,
       onSave: _onPassportSave,
       itemToMap: (p) => {
-        'passport.country': p.country ?? '',
-        'passport.number': p.number ?? '',
-        'passport.expiryDate': p.expiryDate ?? '',
+        'title': p.title ?? '',
+        'country': p.country ?? '',
+        'countryCode': p.countryCode ?? '',
+        'number': p.number ?? '',
+        'issueDate': p.issueDate ?? '',
+        'placeOfIssue': p.placeOfIssue ?? '',
+        'expiryDate': p.expiryDate ?? '',
+        'dateOfBirth': p.dateOfBirth ?? '',
+        'placeOfBirth': p.placeOfBirth ?? '',
+        'sex': p.sex ?? '',
+        'nationality': p.nationality ?? '',
+        'authority': p.authority ?? '',
       },
       onCopyAll: (passport, text) async {
         Clipboard.setData(ClipboardData(text: text));
@@ -441,6 +520,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       ...?(travel?.activeVisas.map(
         (v) => VisaData(
           id: v.id,
+          title: v.title,
           country: v.country,
           visaType: v.visaType,
           number: v.number,
@@ -454,6 +534,9 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
   VisaData _createVisaFromValues(Map<String, String> values, {String? id}) {
     return VisaData(
       id: id ?? generateEntryId(),
+      title: values['visa.title']?.isEmpty == true
+          ? null
+          : values['visa.title'],
       country: values['visa.country']?.isEmpty == true
           ? null
           : values['visa.country'],
@@ -470,46 +553,20 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
   }
 
   Widget _buildVisaItem(VisaData visa, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[];
-    if (visa.country != null && visa.country!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Country', value: visa.country!));
-    }
-    if (visa.visaType != null && visa.visaType!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Type',
-          value: visa.visaType!,
-          fieldId: 'visa.visaType',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (visa.number != null && visa.number!.isNotEmpty) {
-      fields.add(
-        LabelValueField(
-          label: 'Visa Number',
-          value: visa.number!,
-          fieldId: 'visa.number',
-          isSensitive: true,
-        ),
-      );
-    }
-    if (visa.issueDate != null && visa.issueDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Issue Date', value: visa.issueDate!));
-    }
-    if (visa.expiryDate != null && visa.expiryDate!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Expiry Date', value: visa.expiryDate!),
-      );
-    }
     return EntryCardWidget<VisaData>(
       item: visa,
-      title: visa.country ?? 'Visa',
+      title: visa.title ?? visa.country ?? 'Visa',
       icon: Icons.article,
-      fields: fields,
       itemId: visa.id,
       historyFieldId: 'visa',
       isRestricted: true,
+      fieldPrefix: 'visa',
+      itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+      excludeFields: const {'title'},
+      sensitivityOverrides: const {
+        'number': SensitivityLevel.sensitive,
+        'visaType': SensitivityLevel.sensitive,
+      },
       formatAllFields: (v) => '${v.entryType}\n${v.toFormattedString()}',
     );
   }
@@ -633,6 +690,11 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       itemFactory: _createVisaFromValues,
       fieldDefs: [
         FormFieldDef(
+          fieldId: 'visa.title',
+          label: 'Title',
+          sensitivity: ref.watch(fieldLevelProvider('visa.title')),
+        ),
+        FormFieldDef(
           fieldId: 'visa.country',
           label: 'Country',
           sensitivity: ref.watch(fieldLevelProvider('visa.country')),
@@ -676,10 +738,11 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       onDelete: _onVisaDelete,
       onSave: _onVisaSave,
       itemToMap: (v) => {
-        'visa.country': v.country ?? '',
-        'visa.visaType': v.visaType ?? '',
-        'visa.number': v.number ?? '',
-        'visa.expiryDate': v.expiryDate ?? '',
+        'title': v.title ?? '',
+        'country': v.country ?? '',
+        'visaType': v.visaType ?? '',
+        'number': v.number ?? '',
+        'expiryDate': v.expiryDate ?? '',
       },
       onCopyAll: (visa, text) async {
         Clipboard.setData(ClipboardData(text: text));
@@ -1504,14 +1567,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       onDelete: _onHistoryDelete,
       onSave: _onHistorySave,
       itemToMap: (item) => {
-        'travel.destination': item.destination,
-        'travel.date': item.date ?? '',
-        'travel.departureCity': item.departureCity ?? '',
-        'travel.departureTime': item.departureTime ?? '',
-        'travel.arrivalTime': item.arrivalTime ?? '',
-        'travel.flightNumber': item.flightNumber ?? '',
-        'travel.ticketPrice': item.ticketPrice ?? '',
-        'travel.airline': item.airline ?? '',
+        'destination': item.destination,
+        'date': item.date ?? '',
+        'departureCity': item.departureCity ?? '',
+        'departureTime': item.departureTime ?? '',
+        'arrivalTime': item.arrivalTime ?? '',
+        'flightNumber': item.flightNumber ?? '',
+        'ticketPrice': item.ticketPrice ?? '',
+        'airline': item.airline ?? '',
       },
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));

@@ -782,7 +782,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
       ...?(identity?.activeIdCards?.map(
         (c) => IdCardData(
           id: c.id,
-          label: c.label,
+          title: c.title,
           number: c.number,
           issueDate: c.issueDate,
           expiryDate: c.expiryDate,
@@ -796,7 +796,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
   IdCardData _createIdCardFromValues(Map<String, String> values, {String? id}) {
     return IdCardData(
       id: id ?? generateEntryId(),
-      label: values['idCard.label']?.isEmpty == true ? null : values['idCard.label'],
+      title: values['idCard.title']?.isEmpty == true ? null : values['idCard.title'],
       number: values['idCard.number']?.isEmpty == true ? null : values['idCard.number'],
       holderName: values['idCard.holderName']?.isEmpty == true ? null : values['idCard.holderName'],
       country: values['idCard.country']?.isEmpty == true ? null : values['idCard.country'],
@@ -843,7 +843,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     }
 
     if (mounted) {
-      final itemName = card.label ?? card.number ?? 'ID Card';
+      final itemName = card.title ?? card.number ?? 'ID Card';
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -874,7 +874,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     } else {
       cardToSave = _createIdCardFromValues(values, id: editingItem!.id);
     }
-    final itemName = cardToSave.label ?? cardToSave.number ?? 'ID Card';
+    final itemName = cardToSave.title ?? cardToSave.number ?? 'ID Card';
 
     // Update local state
     if (wasAdding) {
@@ -930,8 +930,8 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           itemFactory: _createIdCardFromValues,
           fieldDefs: const [
             FormFieldDef(
-              fieldId: 'idCard.label',
-              label: 'Label (e.g., National ID, Driver\'s License)',
+              fieldId: 'idCard.title',
+              label: 'Title',
               sensitivity: SensitivityLevel.public,
             ),
             FormFieldDef(
@@ -962,12 +962,13 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           ],
           displayItemBuilder: (card, itemMap) => EntryCardWidget<IdCardData>(
             item: card,
-            title: card.label ?? 'ID Card',
+            title: card.title ?? 'ID Card',
             icon: Icons.badge_outlined,
             itemId: card.id,
             historyFieldId: 'idCard',
             itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
             fieldPrefix: 'idCard',
+            excludeFields: const {'title'},
             sensitivityOverrides: const {
               'number': SensitivityLevel.critical,
               'holderName': SensitivityLevel.critical,
@@ -979,7 +980,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           onSave: _onIdCardSave,
           // Keys without prefix - _autoBuildFields will add 'idCard.' prefix via fieldPrefix.
           itemToMap: (c) => {
-            'label': c.label ?? '',
+            'title': c.title ?? '',
             'number': c.number ?? '',
             'holderName': c.holderName ?? '',
             'country': c.country ?? '',
@@ -1062,7 +1063,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
       ...?(identity?.activeAddresses?.map(
         (a) => AddressData(
           id: a.id,
-          label: a.label,
+          title: a.title,
           street: a.street,
           city: a.city,
           state: a.state,
@@ -1076,7 +1077,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
   AddressData _createAddressFromValues(Map<String, String> values, {String? id}) {
     return AddressData(
       id: id ?? generateEntryId(),
-      label: values['address.label']?.isEmpty == true ? null : values['address.label'],
+      title: values['address.title']?.isEmpty == true ? null : values['address.title'],
       street: values['address.street']?.isEmpty == true ? null : values['address.street'],
       city: values['address.city']?.isEmpty == true ? null : values['address.city'],
       postalCode: values['address.postalCode']?.isEmpty == true ? null : values['address.postalCode'],
@@ -1122,7 +1123,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     }
 
     if (mounted) {
-      final itemName = address.label ?? 'Address';
+      final itemName = address.title ?? 'Address';
       OperationNotification.show(
         context,
         message: OperationLogger.createNotification(
@@ -1153,7 +1154,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     } else {
       addressToSave = _createAddressFromValues(values, id: editingItem!.id);
     }
-    final itemName = addressToSave.label ?? 'Address';
+    final itemName = addressToSave.title ?? 'Address';
 
     // Update local state
     if (wasAdding) {
@@ -1209,8 +1210,8 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           itemFactory: _createAddressFromValues,
           fieldDefs: const [
             FormFieldDef(
-              fieldId: 'address.label',
-              label: 'Label (e.g., Home, Work)',
+              fieldId: 'address.title',
+              label: 'Title',
               sensitivity: SensitivityLevel.public,
             ),
             FormFieldDef(
@@ -1236,12 +1237,13 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           ],
           displayItemBuilder: (address, itemMap) => EntryCardWidget<AddressData>(
             item: address,
-            title: address.label ?? 'Address',
+            title: address.title ?? 'Address',
             icon: Icons.home_outlined,
             itemId: address.id,
             historyFieldId: 'address',
             itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
             fieldPrefix: 'address',
+            excludeFields: const {'title'}, // title already used as card title
             sensitivityOverrides: const {
               'postalCode': SensitivityLevel.critical,
             },
@@ -1251,7 +1253,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           onSave: _onAddressSave,
           // Keys without prefix - _autoBuildFields will add 'address.' prefix via fieldPrefix.
           itemToMap: (a) => {
-            'label': a.label ?? '',
+            'title': a.title ?? '',
             'street': a.street ?? '',
             'city': a.city ?? '',
             'postalCode': a.postalCode ?? '',
