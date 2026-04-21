@@ -7,6 +7,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/pages/home_page.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
@@ -138,6 +140,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (success && mounted) {
       await ref.read(profileNotifierProvider.notifier).loadProfile();
+      // Pre-register all form fields for sensitivity settings
+      ref.read(formFieldRegistryProvider.notifier).registerAllForms();
 
       final accountId = authNotifier.selectedAccountId;
       if (accountId != null) {
@@ -230,6 +234,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // Pre-load profile before navigating to home
       // Await directly to ensure load completes before navigation
       await ref.read(profileNotifierProvider.notifier).loadProfile();
+      // Pre-register all form fields for sensitivity settings
+      ref.read(formFieldRegistryProvider.notifier).registerAllForms();
 
       // Load account style (sensitivity settings) after unlock
       final styleAccountId = authNotifier.selectedAccountId;
@@ -314,6 +320,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (success && mounted) {
         // Pre-load profile before navigating to home
         await ref.read(profileNotifierProvider.notifier).loadProfile();
+        // Pre-register all form fields for sensitivity settings
+        ref.read(formFieldRegistryProvider.notifier).registerAllForms();
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/home');
         }
