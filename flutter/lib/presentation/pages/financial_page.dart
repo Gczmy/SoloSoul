@@ -141,6 +141,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       sensitivityOverrides: const {
         'accountNumber': SensitivityLevel.critical,
         'swiftBic': SensitivityLevel.critical,
+        'sortCode': SensitivityLevel.critical,
       },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
@@ -168,6 +169,24 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final financial = ref.read(profileNotifierProvider)?.financial;
+    _accounts = [
+      ...?(financial?.activeBankAccounts.map(
+        (b) => BankAccountData(
+          id: b.id,
+          title: b.title,
+          bankName: b.bankName,
+          accountNumber: b.accountNumber,
+          currency: b.currency,
+          swiftBic: b.swiftBic,
+          sortCode: b.sortCode,
+        ),
+      )),
+    ];
+  }
+
   void _loadData() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _accounts = [
@@ -179,6 +198,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
           accountNumber: b.accountNumber,
           currency: b.currency,
           swiftBic: b.swiftBic,
+          sortCode: b.sortCode,
         ),
       )),
     ];
@@ -205,6 +225,9 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       swiftBic: values['bankAccount.swiftBic']?.isEmpty == true
           ? null
           : values['bankAccount.swiftBic'],
+      sortCode: values['bankAccount.sortCode']?.isEmpty == true
+          ? null
+          : values['bankAccount.sortCode'],
     );
   }
 
@@ -215,6 +238,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       'accountNumber': account.accountNumber ?? '',
       'currency': account.currency ?? '',
       'swiftBic': account.swiftBic ?? '',
+      'sortCode': account.sortCode ?? '',
     };
   }
 
@@ -275,6 +299,9 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
                 itemType: 'bank_account',
                 id: deletedId,
               );
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }
@@ -361,6 +388,11 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
           label: 'SWIFT/BIC',
           sensitivity: ref.watch(fieldLevelProvider('bankAccount.swiftBic')),
         ),
+        FormFieldDef(
+          fieldId: 'bankAccount.sortCode',
+          label: 'Sort Code',
+          sensitivity: ref.watch(fieldLevelProvider('bankAccount.sortCode')),
+        ),
       ],
       displayItemBuilder: _buildBankAccountItem,
       onDelete: _onAccountDelete,
@@ -420,6 +452,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
       sensitivityOverrides: const {
         'cardNumber': SensitivityLevel.critical,
         'holderName': SensitivityLevel.critical,
+        'cvv': SensitivityLevel.critical,
       },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
@@ -447,6 +480,24 @@ class _CardSectionState extends ConsumerState<_CardSection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final financial = ref.read(profileNotifierProvider)?.financial;
+    _cards = [
+      ...?(financial?.activeCards.map(
+        (c) => CardData(
+          id: c.id,
+          title: c.title,
+          cardType: c.cardType,
+          cardNumber: c.cardNumber,
+          expiryDate: c.expiryDate,
+          holderName: c.holderName,
+          cvv: c.cvv,
+        ),
+      )),
+    ];
+  }
+
   void _loadData() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _cards = [
@@ -458,6 +509,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
           cardNumber: c.cardNumber,
           expiryDate: c.expiryDate,
           holderName: c.holderName,
+          cvv: c.cvv,
         ),
       )),
     ];
@@ -481,6 +533,9 @@ class _CardSectionState extends ConsumerState<_CardSection>
       holderName: values['card.holderName']?.isEmpty == true
           ? null
           : values['card.holderName'],
+      cvv: values['card.cvv']?.isEmpty == true
+          ? null
+          : values['card.cvv'],
     );
   }
 
@@ -491,6 +546,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
       'cardNumber': card.cardNumber ?? '',
       'expiryDate': card.expiryDate ?? '',
       'holderName': card.holderName ?? '',
+      'cvv': card.cvv ?? '',
     };
   }
 
@@ -545,6 +601,9 @@ class _CardSectionState extends ConsumerState<_CardSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'financial', itemType: 'card', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }
@@ -631,6 +690,11 @@ class _CardSectionState extends ConsumerState<_CardSection>
           label: 'Holder Name',
           sensitivity: ref.watch(fieldLevelProvider('card.holderName')),
         ),
+        FormFieldDef(
+          fieldId: 'card.cvv',
+          label: 'CVV',
+          sensitivity: ref.watch(fieldLevelProvider('card.cvv')),
+        ),
       ],
       displayItemBuilder: _buildCardItem,
       onDelete: _onCardDelete,
@@ -714,6 +778,23 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final financial = ref.read(profileNotifierProvider)?.financial;
+    _taxIds = [
+      ...?(financial?.activeTaxIds.map(
+        (t) => TaxIdData(
+          id: t.id,
+          title: t.title,
+          taxIdNumber: t.taxIdNumber,
+          taxIdType: t.taxIdType,
+          issuingAuthority: t.issuingAuthority,
+          country: t.country,
+        ),
+      )),
+    ];
   }
 
   void _loadData() {
@@ -814,6 +895,9 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }

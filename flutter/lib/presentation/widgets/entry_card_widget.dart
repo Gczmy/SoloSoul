@@ -207,6 +207,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         value: value.toString(),
         fieldId: fieldId,
         isSensitive: isSensitive,
+        sensitivityLevel: sensitivity,
       ));
     });
     return fields;

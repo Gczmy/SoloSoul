@@ -143,6 +143,26 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final travel = ref.read(profileNotifierProvider)?.travel;
+    _passports = [
+      ...?(travel?.activePassports.map(
+        (p) {
+          return PassportData(
+            id: p.id,
+            title: p.title,
+            country: p.country,
+            number: p.number,
+            issueDate: p.issueDate,
+            expiryDate: p.expiryDate,
+            holderName: p.holderName,
+          );
+        },
+      )),
+    ];
+  }
+
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _passports = [
@@ -292,6 +312,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'passport', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }
@@ -514,6 +537,24 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final travel = ref.read(profileNotifierProvider)?.travel;
+    _visas = [
+      ...?(travel?.activeVisas.map(
+        (v) => VisaData(
+          id: v.id,
+          title: v.title,
+          country: v.country,
+          visaType: v.visaType,
+          number: v.number,
+          issueDate: v.issueDate,
+          expiryDate: v.expiryDate,
+        ),
+      )),
+    ];
+  }
+
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _visas = [
@@ -623,6 +664,9 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'visa', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }
@@ -793,6 +837,12 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final travel = ref.read(profileNotifierProvider)?.travel;
+    _history = [...(travel?.activeTravelHistory ?? [])];
+  }
+
   void _loadData() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _history = [...(travel?.activeTravelHistory ?? [])];
@@ -898,6 +948,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 itemType: 'travel_history',
                 id: deletedId,
               );
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }

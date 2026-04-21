@@ -992,6 +992,7 @@ class BankAccountData with FormattableEntry {
   String? accountNumber;
   String? currency;
   String? swiftBic;
+  String? sortCode;
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
@@ -1006,6 +1007,7 @@ class BankAccountData with FormattableEntry {
     'accountNumber': accountNumber,
     'currency': currency,
     'swiftBic': swiftBic,
+    'sortCode': sortCode,
   };
 
   BankAccountData({
@@ -1015,6 +1017,7 @@ class BankAccountData with FormattableEntry {
     this.accountNumber,
     this.currency,
     this.swiftBic,
+    this.sortCode,
     int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
@@ -1029,6 +1032,7 @@ class BankAccountData with FormattableEntry {
       accountNumber: json['account_number'],
       currency: json['currency'],
       swiftBic: json['swift_bic'],
+      sortCode: json['sort_code'],
       updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
@@ -1044,6 +1048,7 @@ class BankAccountData with FormattableEntry {
     'account_number': accountNumber,
     'currency': currency,
     'swift_bic': swiftBic,
+    'sort_code': sortCode,
     'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
@@ -1058,6 +1063,7 @@ class BankAccountData with FormattableEntry {
     String? accountNumber,
     String? currency,
     String? swiftBic,
+    String? sortCode,
     int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
@@ -1069,6 +1075,7 @@ class BankAccountData with FormattableEntry {
       accountNumber: accountNumber ?? this.accountNumber,
       currency: currency ?? this.currency,
       swiftBic: swiftBic ?? this.swiftBic,
+      sortCode: sortCode ?? this.sortCode,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel)
@@ -1085,6 +1092,7 @@ class CardData with FormattableEntry {
   String? cardType;
   String? expiryDate;
   String? holderName;
+  String? cvv;
   int updatedAt;
   bool isDeleted;
   DateTime? deletedAt;
@@ -1099,6 +1107,7 @@ class CardData with FormattableEntry {
     'cardNumber': cardNumber,
     'expiryDate': expiryDate,
     'holderName': holderName,
+    'cvv': cvv,
   };
 
   CardData({
@@ -1108,6 +1117,7 @@ class CardData with FormattableEntry {
     this.cardType,
     this.expiryDate,
     this.holderName,
+    this.cvv,
     int? updatedAt,
     this.isDeleted = false,
     this.deletedAt,
@@ -1122,6 +1132,7 @@ class CardData with FormattableEntry {
       cardType: json['card_type'],
       expiryDate: json['expiry_date'],
       holderName: json['holder_name'],
+      cvv: json['cvv'],
       updatedAt: json['updated_at'] ?? currentTimestamp(),
       isDeleted: json['is_deleted'] ?? false,
       deletedAt: json['deleted_at'] != null
@@ -1137,6 +1148,7 @@ class CardData with FormattableEntry {
     'card_type': cardType,
     'expiry_date': expiryDate,
     'holder_name': holderName,
+    'cvv': cvv,
     'updated_at': updatedAt,
     'is_deleted': isDeleted,
     'deleted_at': deletedAt?.toIso8601String(),
@@ -1151,6 +1163,7 @@ class CardData with FormattableEntry {
     String? cardType,
     String? expiryDate,
     String? holderName,
+    String? cvv,
     int? updatedAt,
     bool? isDeleted,
     Object? deletedAt = _sentinel,
@@ -1162,6 +1175,7 @@ class CardData with FormattableEntry {
       cardType: cardType ?? this.cardType,
       expiryDate: expiryDate ?? this.expiryDate,
       holderName: holderName ?? this.holderName,
+      cvv: cvv ?? this.cvv,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: identical(deletedAt, _sentinel)

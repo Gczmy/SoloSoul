@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 /// Data class for a single label-value field.
 class LabelValueField {
@@ -8,12 +10,14 @@ class LabelValueField {
   final String value;
   final String? fieldId;
   final bool isSensitive;
+  final SensitivityLevel? sensitivityLevel;
 
   const LabelValueField({
     required this.label,
     required this.value,
     this.fieldId,
     this.isSensitive = false,
+    this.sensitivityLevel,
   });
 }
 
@@ -116,6 +120,11 @@ class _FieldRow extends ConsumerWidget {
               style: theme.textTheme.bodyMedium,
             ),
           ),
+        // Sensitivity level tag
+        if (field.sensitivityLevel != null) ...[
+          const SizedBox(width: 6),
+          SensitivityTag(level: field.sensitivityLevel!),
+        ],
       ],
     );
   }

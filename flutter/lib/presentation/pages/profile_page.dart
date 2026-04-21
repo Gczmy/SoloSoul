@@ -423,9 +423,31 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     _loadData();
   }
 
-  void _loadData() {
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final profile = ref.read(profileNotifierProvider);
+    final identity = profile?.identity;
     _contacts = [
-      ...?(widget.contact?.activeEntries.map(
+      ...?(identity?.contact?.activeEntries.map(
+        (e) => ContactEntry(
+          id: e.id,
+          title: e.title,
+          type: e.type,
+          value: e.value,
+          updatedAt: e.updatedAt,
+          isDeleted: e.isDeleted,
+          deletedAt: e.deletedAt,
+        ),
+      )),
+    ];
+  }
+
+  void _loadData() {
+    // Use read instead of watch since this is called explicitly, not for reactivity
+    final profile = ref.read(profileNotifierProvider);
+    final identity = profile?.identity;
+    _contacts = [
+      ...?(identity?.contact?.activeEntries.map(
         (e) => ContactEntry(
           id: e.id,
           title: e.title,
@@ -499,6 +521,9 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'contact', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }
@@ -770,6 +795,24 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final identity = ref.read(profileNotifierProvider)?.identity;
+    _idCards = [
+      ...?(identity?.activeIdCards?.map(
+        (c) => IdCardData(
+          id: c.id,
+          title: c.title,
+          number: c.number,
+          issueDate: c.issueDate,
+          expiryDate: c.expiryDate,
+          holderName: c.holderName,
+          country: c.country,
+        ),
+      )),
+    ];
+  }
+
   void _loadData() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _idCards = [
@@ -851,6 +894,9 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'idCard', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }
@@ -1051,6 +1097,24 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     super.dispose();
   }
 
+  /// Reload data from provider - called when provider state changes (e.g., after undo)
+  void _reloadFromProvider() {
+    final identity = ref.read(profileNotifierProvider)?.identity;
+    _addresses = [
+      ...?(identity?.activeAddresses?.map(
+        (a) => AddressData(
+          id: a.id,
+          title: a.title,
+          street: a.street,
+          city: a.city,
+          state: a.state,
+          postalCode: a.postalCode,
+          country: a.country,
+        ),
+      )),
+    ];
+  }
+
   void _loadData() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _addresses = [
@@ -1131,6 +1195,9 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'address', id: deletedId);
+          // Reload from provider and rebuild UI immediately
+          _reloadFromProvider();
+          if (mounted) setState(() {});
         },
       );
     }

@@ -351,7 +351,6 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                           'Undo',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),

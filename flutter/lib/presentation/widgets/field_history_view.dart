@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show fieldLevelProvider;
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 /// Widget to display and animate field history
 class FieldHistoryView extends StatefulWidget {
@@ -111,6 +114,10 @@ class _HistoryEntryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    // Get the prefix from fieldName (e.g., "contact" from "contact.title")
+    final prefix = fieldName.contains('.')
+        ? fieldName.substring(0, fieldName.indexOf('.'))
+        : fieldName;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -203,6 +210,9 @@ class _HistoryEntryTile extends ConsumerWidget {
                       // No uppercase found (e.g., "title"), capitalize first letter
                       titleCaseKey = titleCaseKey[0].toUpperCase() + titleCaseKey.substring(1);
                     }
+                    // Build full fieldId for sensitivity lookup
+                    final fieldId = '$prefix.$displayKey';
+                    final sensitivity = ref.watch(fieldLevelProvider(fieldId));
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Row(
@@ -234,6 +244,8 @@ class _HistoryEntryTile extends ConsumerWidget {
                                     ),
                                   ),
                           ),
+                          const SizedBox(width: 6),
+                          SensitivityTag(level: sensitivity),
                         ],
                       ),
                     );

@@ -140,6 +140,9 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                         title: 'App Privacy Screen',
                         subtitle: 'Hide content in app switcher',
                         value: _settings.privacyScreenEnabled,
+                        onTap: () {
+                          _showNotImplementedSnackBar(context);
+                        },
                         onChanged: (value) {
                           _updateSettings(_settings.copyWith(privacyScreenEnabled: value));
                         },
@@ -150,6 +153,9 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                         title: 'Lock on Window Blur',
                         subtitle: 'Lock when switching apps',
                         value: _settings.lockOnWindowBlur,
+                        onTap: () {
+                          _showNotImplementedSnackBar(context);
+                        },
                         onChanged: (value) {
                           _updateSettings(_settings.copyWith(lockOnWindowBlur: value));
                         },
@@ -259,6 +265,23 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
       });
     }
   }
+
+  void _showNotImplementedSnackBar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.white, size: 20),
+            SizedBox(width: 12),
+            Text('功能还未开发'),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppTheme.primaryColor,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -313,6 +336,7 @@ class _SwitchSetting extends StatelessWidget {
   final String subtitle;
   final bool value;
   final bool enabled;
+  final VoidCallback? onTap;
   final ValueChanged<bool> onChanged;
 
   const _SwitchSetting({
@@ -321,6 +345,7 @@ class _SwitchSetting extends StatelessWidget {
     required this.subtitle,
     required this.value,
     this.enabled = true,
+    this.onTap,
     required this.onChanged,
   });
 
@@ -328,44 +353,47 @@ class _SwitchSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: AppTheme.primaryColor),
             ),
-            child: Icon(icon, size: 20, color: AppTheme.primaryColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Switch(
-            value: value,
-            onChanged: enabled ? onChanged : null,
-          ),
-        ],
+            Switch(
+              value: value,
+              onChanged: enabled ? onChanged : null,
+            ),
+          ],
+        ),
       ),
     );
   }

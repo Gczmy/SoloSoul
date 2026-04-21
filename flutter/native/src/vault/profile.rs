@@ -289,6 +289,8 @@ pub struct BankAccountData {
     pub currency: Option<String>,
     #[serde(alias = "swiftBic", rename = "swiftBic")]
     pub swift_bic: Option<String>,
+    #[serde(alias = "sortCode", rename = "sortCode")]
+    pub sort_code: Option<String>,
     #[serde(alias = "isDeleted", rename = "isDeleted")]
     pub is_deleted: bool,
     #[serde(alias = "deletedAt", rename = "deletedAt")]
@@ -305,6 +307,8 @@ pub struct CardData {
     pub expiry_date: Option<String>,
     #[serde(alias = "holderName", rename = "holderName")]
     pub holder_name: Option<String>,
+    #[serde(alias = "cvv", rename = "cvv")]
+    pub cvv: Option<String>,
     #[serde(alias = "isDeleted", rename = "isDeleted")]
     pub is_deleted: bool,
     #[serde(alias = "deletedAt", rename = "deletedAt")]

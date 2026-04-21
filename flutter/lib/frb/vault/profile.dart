@@ -78,6 +78,7 @@ class BankAccountData {
   final String? accountNumber;
   final String? currency;
   final String? swiftBic;
+  final String? sortCode;
   final bool isDeleted;
   final DateTime? deletedAt;
 
@@ -86,6 +87,7 @@ class BankAccountData {
     this.accountNumber,
     this.currency,
     this.swiftBic,
+    this.sortCode,
     required this.isDeleted,
     this.deletedAt,
   });
@@ -96,6 +98,7 @@ class BankAccountData {
       accountNumber.hashCode ^
       currency.hashCode ^
       swiftBic.hashCode ^
+      sortCode.hashCode ^
       isDeleted.hashCode ^
       deletedAt.hashCode;
 
@@ -108,6 +111,7 @@ class BankAccountData {
           accountNumber == other.accountNumber &&
           currency == other.currency &&
           swiftBic == other.swiftBic &&
+          sortCode == other.sortCode &&
           isDeleted == other.isDeleted &&
           deletedAt == other.deletedAt;
 }
@@ -117,6 +121,7 @@ class CardData {
   final String? cardType;
   final String? expiryDate;
   final String? holderName;
+  final String? cvv;
   final bool isDeleted;
   final DateTime? deletedAt;
 
@@ -125,6 +130,7 @@ class CardData {
     this.cardType,
     this.expiryDate,
     this.holderName,
+    this.cvv,
     required this.isDeleted,
     this.deletedAt,
   });
@@ -135,6 +141,7 @@ class CardData {
       cardType.hashCode ^
       expiryDate.hashCode ^
       holderName.hashCode ^
+      cvv.hashCode ^
       isDeleted.hashCode ^
       deletedAt.hashCode;
 
@@ -147,6 +154,7 @@ class CardData {
           cardType == other.cardType &&
           expiryDate == other.expiryDate &&
           holderName == other.holderName &&
+          cvv == other.cvv &&
           isDeleted == other.isDeleted &&
           deletedAt == other.deletedAt;
 }

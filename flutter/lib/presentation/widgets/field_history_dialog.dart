@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show fieldLevelProvider;
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 /// A generic dialog that displays field history with sensitivity-aware masking.
 ///
@@ -138,6 +142,7 @@ class FieldHistoryDialog extends StatelessWidget {
                     toDisplayLabel: _toDisplayLabel,
                     formatTimestamp: _formatTimestamp,
                     formatFullTimestamp: _formatFullTimestamp,
+                    title: title,
                   );
                 },
               ),
@@ -152,7 +157,7 @@ class FieldHistoryDialog extends StatelessWidget {
   }
 }
 
-class _HistoryEntryTile extends StatelessWidget {
+class _HistoryEntryTile extends ConsumerWidget {
   final FieldHistoryEntry entry;
   final bool isLatest;
   final List<FormFieldDef> fieldDefs;
@@ -160,6 +165,7 @@ class _HistoryEntryTile extends StatelessWidget {
   final String Function(String) toDisplayLabel;
   final String Function(DateTime) formatTimestamp;
   final String Function(DateTime) formatFullTimestamp;
+  final String title;
 
   const _HistoryEntryTile({
     required this.entry,
@@ -169,11 +175,14 @@ class _HistoryEntryTile extends StatelessWidget {
     required this.toDisplayLabel,
     required this.formatTimestamp,
     required this.formatFullTimestamp,
+    required this.title,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    // Get the prefix from title (e.g., "contact" from "Contact Information")
+    final prefix = title.toLowerCase().replaceAll(' ', '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -237,6 +246,9 @@ class _HistoryEntryTile extends StatelessWidget {
                 : e.key;
             final fieldDef = findFieldDef(e.key);
             final displayLabel = fieldDef?.label ?? toDisplayLabel(strippedKey);
+            // Build full fieldId for sensitivity lookup
+            final fieldId = '$prefix.$strippedKey';
+            final sensitivity = ref.watch(fieldLevelProvider(fieldId));
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
@@ -269,6 +281,8 @@ class _HistoryEntryTile extends StatelessWidget {
                             ),
                           ),
                   ),
+                  const SizedBox(width: 6),
+                  SensitivityTag(level: sensitivity),
                 ],
               ),
             );
