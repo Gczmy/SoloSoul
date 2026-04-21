@@ -3,16 +3,10 @@ import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 // Re-export SensitivityLevel from sensitivity_enums for backward compatibility
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel, SensitivityLevelExtension;
 
-// Re-export AccountStyle and accountStyleProvider from account_style_provider
+// Re-export AccountStyle, accountStyleProvider, SensitivityResolver, and SensitivityDisplayMode
 export 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show AccountStyle, accountStyleProvider, AccountStyleNotifier;
-
-/// Sensitivity display mode
-enum SensitivityDisplayMode {
-  showAll,
-  hidePrivate,
-  hideAll,
-}
+    show AccountStyle, accountStyleProvider, AccountStyleNotifier,
+        SensitivityResolver, sensitivityResolver, SensitivityDisplayMode;
 
 /// Represents a single field's sensitivity configuration
 class FieldSensitivity {

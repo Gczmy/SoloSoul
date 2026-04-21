@@ -4,47 +4,55 @@ import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
-import 'package:solosoul_flutter/core/models/global_sensitivity_defaults.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityDisplayMode;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry;
 
 // Re-export for single import point
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
 export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode;
 
-/// Tag-based sensitivity resolver.
+/// Sensitivity display mode
+enum SensitivityDisplayMode {
+  showAll,
+  hidePrivate,
+  hideAll,
+}
+
+/// Tag-based sensitivity defaults.
+/// Embedded directly in the resolver to eliminate GlobalSensitivityDefaults.
+const _tagDefaults = {
+  'work': SensitivityLevel.internal,
+  'personal': SensitivityLevel.sensitive,
+  'financial': SensitivityLevel.critical,
+  'health': SensitivityLevel.critical,
+};
+
+/// Unified sensitivity resolver.
 ///
-/// Resolution order (highest to lowest priority):
-/// 1. Field-level explicit setting
-/// 2. Tag-level default
-/// 3. Global defaults
-class TagBasedSensitivityResolver {
-  final GlobalSensitivityDefaults _globalDefaults;
-  final Map<String, SensitivityLevel> _fieldSettings;
-  final Map<String, SensitivityLevel> _tagDefaults;
+/// Resolution priority (highest to lowest):
+/// 1. Temporary reveal (revealedFields set)  → public
+/// 2. User override (fieldSettings map)      → user's chosen level
+/// 3. Tag-based default (tagDefaults map)   → level by tag
+/// 4. Registry default (FieldRegistry)     → hardcoded default
+/// 5. Fallback                             → public
+class SensitivityResolver {
+  const SensitivityResolver();
 
-  const TagBasedSensitivityResolver({
-    required GlobalSensitivityDefaults globalDefaults,
+  SensitivityLevel resolve({
+    required String fieldId,
     required Map<String, SensitivityLevel> fieldSettings,
-    required Map<String, SensitivityLevel> tagDefaults,
-  })  : _globalDefaults = globalDefaults,
-        _fieldSettings = fieldSettings,
-        _tagDefaults = tagDefaults;
-
-  /// Get effective sensitivity level for a field.
-  ///
-  /// Resolution order:
-  /// 1. Check field-level explicit setting
-  /// 2. Check tag-based defaults (for each tag)
-  /// 3. Fall back to global defaults
-  SensitivityLevel getLevel(String fieldId, {List<String> tags = const []}) {
-    // Priority 1: Field-level explicit setting
-    final fieldLevel = _fieldSettings[fieldId];
-    if (fieldLevel != null) {
-      return fieldLevel;
+    required Set<String> revealedFields,
+    List<String> tags = const [],
+  }) {
+    if (revealedFields.contains(fieldId)) {
+      return SensitivityLevel.public;
     }
 
-    // Priority 2: Tag-based defaults (first tag with a setting wins)
+    final userLevel = fieldSettings[fieldId];
+    if (userLevel != null) {
+      return userLevel;
+    }
+
     for (final tag in tags) {
       final tagLevel = _tagDefaults[tag];
       if (tagLevel != null) {
@@ -52,29 +60,19 @@ class TagBasedSensitivityResolver {
       }
     }
 
-    // Priority 3: Global defaults (untaggedFieldDefault for untagged fields)
-    if (tags.isEmpty) {
-      return _globalDefaults.untaggedFieldDefault;
+    final registryLevel = FieldRegistry.defaultFields
+        .firstWhereOrNull((f) => f.fieldId == fieldId)
+        ?.level;
+    if (registryLevel != null) {
+      return registryLevel;
     }
 
-    return _globalDefaults.defaultFieldLevel;
-  }
-
-  /// Get sensitivity level for a specific tag.
-  SensitivityLevel? getTagLevel(String tag) {
-    return _tagDefaults[tag];
-  }
-
-  /// Check if field has an explicit setting.
-  bool hasFieldSetting(String fieldId) {
-    return _fieldSettings.containsKey(fieldId);
-  }
-
-  /// Check if tag has a default setting.
-  bool hasTagSetting(String tag) {
-    return _tagDefaults.containsKey(tag);
+    return SensitivityLevel.public;
   }
 }
+
+/// Singleton resolver instance.
+const sensitivityResolver = SensitivityResolver();
 
 /// Account style data stored in Rust vault.
 ///
@@ -82,50 +80,40 @@ class TagBasedSensitivityResolver {
 class AccountStyle {
   final Map<String, SensitivityLevel> fieldSettings;
   final Map<String, SensitivityLevel> tagDefaults;
-  final GlobalSensitivityDefaults globalDefaults;
   final DateTime? lastModified;
   final SensitivityDisplayMode displayMode;
   final Set<String> revealedFields;
-  final List<FieldSensitivity> fieldOverrides;
 
   const AccountStyle({
     this.fieldSettings = const {},
     this.tagDefaults = const {},
-    this.globalDefaults = const GlobalSensitivityDefaults(),
     this.lastModified,
     this.displayMode = SensitivityDisplayMode.hidePrivate,
     this.revealedFields = const {},
-    this.fieldOverrides = const [],
   });
 
   AccountStyle copyWith({
     Map<String, SensitivityLevel>? fieldSettings,
     Map<String, SensitivityLevel>? tagDefaults,
-    GlobalSensitivityDefaults? globalDefaults,
     DateTime? lastModified,
     SensitivityDisplayMode? displayMode,
     Set<String>? revealedFields,
-    List<FieldSensitivity>? fieldOverrides,
   }) {
     return AccountStyle(
       fieldSettings: fieldSettings ?? this.fieldSettings,
       tagDefaults: tagDefaults ?? this.tagDefaults,
-      globalDefaults: globalDefaults ?? this.globalDefaults,
       lastModified: lastModified ?? this.lastModified,
       displayMode: displayMode ?? this.displayMode,
       revealedFields: revealedFields ?? this.revealedFields,
-      fieldOverrides: fieldOverrides ?? this.fieldOverrides,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'field_settings': fieldSettings.map((k, v) => MapEntry(k, v.name)),
         'tag_defaults': tagDefaults.map((k, v) => MapEntry(k, v.name)),
-        'global_defaults': globalDefaults.toJson(),
         'last_modified': lastModified?.toIso8601String(),
         'display_mode': displayMode.index,
         'revealed_fields': revealedFields.toList(),
-        'field_overrides': fieldOverrides.map((f) => f.toJson()).toList(),
       };
 
   factory AccountStyle.fromJson(Map<String, dynamic> json) {
@@ -142,19 +130,11 @@ class AccountStyle {
     return AccountStyle(
       fieldSettings: fieldSettings,
       tagDefaults: tagDefaults,
-      globalDefaults: json['global_defaults'] != null
-          ? GlobalSensitivityDefaults.fromJson(
-              json['global_defaults'] as Map<String, dynamic>)
-          : const GlobalSensitivityDefaults(),
       lastModified: json['last_modified'] != null
           ? DateTime.tryParse(json['last_modified'] as String)
           : null,
       displayMode: SensitivityDisplayMode.values[json['display_mode'] as int? ?? 1],
       revealedFields: Set<String>.from(json['revealed_fields'] as List? ?? []),
-      fieldOverrides: (json['field_overrides'] as List?)
-              ?.map((f) => FieldSensitivity.fromJson(f as Map<String, dynamic>))
-              .toList() ??
-          [],
     );
   }
 
@@ -379,29 +359,17 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   }
 
   /// Upgrade field to a higher sensitivity level.
-  void upgradeField(String fieldId) {
-    _moveField(fieldId, 1);
+  Future<bool> upgradeField(String fieldId) async {
+    final current = state.fieldSettings[fieldId] ?? SensitivityLevel.public;
+    if (current.index >= SensitivityLevel.critical.index) return false;
+    return setFieldLevel(fieldId, SensitivityLevel.values[current.index + 1]);
   }
 
   /// Downgrade field to a lower sensitivity level.
-  void downgradeField(String fieldId) {
-    _moveField(fieldId, -1);
-  }
-
-  void _moveField(String fieldId, int direction) {
-    final fieldIndex = state.fieldOverrides.indexWhere((f) => f.fieldId == fieldId);
-    if (fieldIndex == -1) return;
-
-    final field = state.fieldOverrides[fieldIndex];
-    final newLevel = SensitivityLevel.values[field.level.index + direction];
-
-    if (newLevel.index < 0 || newLevel.index > 3) return;
-
-    final updatedFields = List<FieldSensitivity>.from(state.fieldOverrides);
-    updatedFields[fieldIndex] = field.copyWith(level: newLevel);
-
-    state = state.copyWith(fieldOverrides: updatedFields);
-    _autoSave();
+  Future<bool> downgradeField(String fieldId) async {
+    final current = state.fieldSettings[fieldId] ?? SensitivityLevel.public;
+    if (current.index <= SensitivityLevel.public.index) return false;
+    return setFieldLevel(fieldId, SensitivityLevel.values[current.index - 1]);
   }
 
   /// Clear style state (on lock).
@@ -430,32 +398,19 @@ final accountStyleProvider =
   return AccountStyleNotifier(ref);
 });
 
-/// Provider for tag-based sensitivity resolver.
-final sensitivityResolverProvider = Provider<TagBasedSensitivityResolver>((ref) {
-  final style = ref.watch(accountStyleProvider);
-  return TagBasedSensitivityResolver(
-    globalDefaults: style.globalDefaults,
-    fieldSettings: style.fieldSettings,
-    tagDefaults: style.tagDefaults,
-  );
-});
-
 /// Provider for display mode (reuses existing sensitivity settings).
 final displayModeProvider = StateProvider<SensitivityDisplayMode>((ref) {
   return SensitivityDisplayMode.hidePrivate;
 });
 
 /// Convenience provider for getting field sensitivity level.
-/// Returns: user override (fieldSettings) > FieldRegistry default > public fallback
+///
+/// Uses the unified SensitivityResolver. All page/widget consumers should use this.
 final fieldLevelProvider = Provider.family<SensitivityLevel, String>((ref, fieldId) {
   final style = ref.watch(accountStyleProvider);
-
-  // Priority 1: User override in fieldSettings (set by SensitivitySettingsPage)
-  final settingsLevel = style.fieldSettings[fieldId];
-  if (settingsLevel != null) return settingsLevel;
-
-  // Priority 2: FieldRegistry default
-  return FieldRegistry.defaultFields
-      .firstWhereOrNull((f) => f.fieldId == fieldId)
-      ?.level ?? SensitivityLevel.public;
+  return sensitivityResolver.resolve(
+    fieldId: fieldId,
+    fieldSettings: style.fieldSettings,
+    revealedFields: style.revealedFields,
+  );
 });

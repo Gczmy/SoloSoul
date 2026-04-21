@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_blurred_widget.dart';
@@ -413,8 +412,13 @@ class _SensitivityBasedVisibilityWidgetState
 final effectiveFieldLevelProvider =
     Provider.family<SensitivityLevel, ({String fieldId, List<String> tags})>(
         (ref, params) {
-  final resolver = ref.watch(sensitivityResolverProvider);
-  return resolver.getLevel(params.fieldId, tags: params.tags);
+  final style = ref.watch(accountStyleProvider);
+  return sensitivityResolver.resolve(
+    fieldId: params.fieldId,
+    fieldSettings: style.fieldSettings,
+    revealedFields: style.revealedFields,
+    tags: params.tags,
+  );
 });
 
 /// Convenience widget that automatically resolves sensitivity level
