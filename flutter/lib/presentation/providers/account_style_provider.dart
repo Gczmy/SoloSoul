@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show FieldRegistry, FormFieldRegistry, firstWhereOrNull;
 
 // Re-export for single import point
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
-export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode;
+export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode, firstWhereOrNull;
 
 /// Sensitivity display mode
 enum SensitivityDisplayMode {
@@ -44,15 +45,18 @@ class SensitivityResolver {
     required Set<String> revealedFields,
     List<String> tags = const [],
   }) {
+    // 1. Temporary reveal
     if (revealedFields.contains(fieldId)) {
       return SensitivityLevel.public;
     }
 
+    // 2. User override
     final userLevel = fieldSettings[fieldId];
     if (userLevel != null) {
       return userLevel;
     }
 
+    // 3. Tag-based default
     for (final tag in tags) {
       final tagLevel = _tagDefaults[tag];
       if (tagLevel != null) {
@@ -60,13 +64,28 @@ class SensitivityResolver {
       }
     }
 
-    final registryLevel = FieldRegistry.defaultFields
-        .firstWhereOrNull((f) => f.fieldId == fieldId)
+    // 4. FormFieldRegistry (Single Source of Truth)
+    final formFieldLevel =
+        FormFieldRegistry.getField(fieldId)?.level;
+    if (formFieldLevel != null) {
+      return formFieldLevel;
+    }
+
+    // 5. Legacy FieldRegistry fallback with warning
+    final registryLevel = firstWhereOrNull(
+        FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
         ?.level;
     if (registryLevel != null) {
+      // Only warn in debug mode
+      assert(() {
+        debugPrint('[DEPRECATED] Field "$fieldId" not in FormFieldRegistry. '
+            'Add it via FormFieldRegistry.registerAll() in the form.');
+        return true;
+      }());
       return registryLevel;
     }
 
+    // 6. Fallback to public
     return SensitivityLevel.public;
   }
 }
@@ -352,8 +371,8 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   void upgradeField(String fieldId) {
     // Resolve effective level: user's override takes priority, else use registry default
     final effectiveLevel = state.fieldSettings[fieldId] ??
-        FieldRegistry.defaultFields
-            .firstWhereOrNull((f) => f.fieldId == fieldId)
+        firstWhereOrNull(
+            FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
             ?.level ??
         SensitivityLevel.public;
     if (effectiveLevel.index >= SensitivityLevel.critical.index) return;
@@ -371,8 +390,8 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   void downgradeField(String fieldId) {
     // Resolve effective level: user's override takes priority, else use registry default
     final effectiveLevel = state.fieldSettings[fieldId] ??
-        FieldRegistry.defaultFields
-            .firstWhereOrNull((f) => f.fieldId == fieldId)
+        firstWhereOrNull(
+            FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
             ?.level ??
         SensitivityLevel.public;
     if (effectiveLevel.index <= SensitivityLevel.public.index) return;

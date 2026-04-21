@@ -11,6 +11,8 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show FieldSensitivity, formFieldRegistryProvider;
 
 /// Configuration for recording field history on saves.
 class HistoryRecordingConfig<T> {
@@ -150,6 +152,27 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     super.initState();
     _items = List.from(widget.items);
     _initControllers();
+    _registerFields();
+  }
+
+  void _registerFields() {
+    final section = widget.title.toLowerCase().replaceAll(' ', '');
+    final fields = widget.fieldDefs.map((def) {
+      return FieldSensitivity(
+        fieldId: def.fieldId,
+        fieldName: def.label,
+        fieldSection: section,
+        level: def.sensitivity,
+      );
+    }).toList();
+
+    // Use addPostFrameCallback to avoid "Provider update during build" exception
+    // and use reactive provider instead of static registry
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(formFieldRegistryProvider.notifier).registerAll(fields);
+      }
+    });
   }
 
   void _initControllers() {

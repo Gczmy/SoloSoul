@@ -9,7 +9,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel, formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class SensitivitySettingsPage extends ConsumerStatefulWidget {
@@ -300,13 +300,22 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
   }
 
   Widget _buildSettingsView() {
+    // Watch reactive formFieldRegistryProvider for field list changes
+    final registry = ref.watch(formFieldRegistryProvider);
     // Use select() to only rebuild when fieldSettings changes, not entire accountStyle
     final accountStyle = ref.watch(accountStyleProvider.select((s) => s.fieldSettings));
     final notifier = ref.read(accountStyleProvider.notifier);
 
-    // Build effective field list by combining FieldRegistry defaults with account style overrides
+    // Build effective field list by combining formFieldRegistryProvider with account style overrides
     List<FieldSensitivity> buildEffectiveFields() {
-      return FieldRegistry.defaultFields.map((field) {
+      // Get all registered fields from the reactive provider
+      final allFields = registry.values.toSet().toList();
+      allFields.sort((a, b) {
+        final sec = a.fieldSection.compareTo(b.fieldSection);
+        return sec != 0 ? sec : a.fieldName.compareTo(b.fieldName);
+      });
+
+      return allFields.map((field) {
         final overrideLevel = accountStyle[field.fieldId];
         return overrideLevel != null
             ? field.copyWith(level: overrideLevel)
@@ -413,7 +422,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.security,
                               color: AppTheme.primaryColor,
                               size: 24,
@@ -555,9 +564,10 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     String fieldId,
   ) {
     final accountStyle = ref.read(accountStyleProvider);
-    final effectiveLevel = accountStyle.fieldSettings[fieldId] ??
-        FieldRegistry.defaultFields.firstWhere((f) => f.fieldId == fieldId).level;
-    final field = FieldRegistry.defaultFields.firstWhere((f) => f.fieldId == fieldId);
+    final registry = ref.read(formFieldRegistryProvider);
+    final field = registry[fieldId];
+    if (field == null) return; // Field not found, shouldn't happen
+    final effectiveLevel = accountStyle.fieldSettings[fieldId] ?? field.level;
 
     showDialog(
       context: context,

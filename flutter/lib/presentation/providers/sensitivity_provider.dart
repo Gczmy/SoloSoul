@@ -1,12 +1,27 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 // Re-export SensitivityLevel from sensitivity_enums for backward compatibility
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel, SensitivityLevelExtension;
 
-// Re-export AccountStyle, accountStyleProvider, SensitivityResolver, and SensitivityDisplayMode
+// Re-export AccountStyle, SensitivityResolver, SensitivityDisplayMode, and helper
 export 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show AccountStyle, accountStyleProvider, AccountStyleNotifier,
-        SensitivityResolver, sensitivityResolver, SensitivityDisplayMode;
+    show AccountStyle, AccountStyleNotifier, accountStyleProvider,
+        SensitivityResolver, sensitivityResolver, SensitivityDisplayMode,
+        firstWhereOrNull;
+
+// Import accountStyleProvider for internal use within this file
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
+    show accountStyleProvider;
+
+/// Helper to find first matching element or null
+FieldSensitivity? firstWhereOrNull(List<FieldSensitivity> list, bool Function(FieldSensitivity) test) {
+  for (final item in list) {
+    if (test(item)) return item;
+  }
+  return null;
+}
 
 /// Represents a single field's sensitivity configuration
 class FieldSensitivity {
@@ -104,33 +119,18 @@ class FieldRegistry {
       level: SensitivityLevel.sensitive,
     ),
 
-    // Contact Section - personal contact info
-    FieldSensitivity(
-      fieldId: 'contact.email',
-      fieldName: 'Email',
-      fieldSection: 'contact',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'contact.phone',
-      fieldName: 'Phone',
-      fieldSection: 'contact',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'contact.mobile',
-      fieldName: 'Mobile',
-      fieldSection: 'contact',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'contact.address',
-      fieldName: 'Address',
-      fieldSection: 'contact',
-      level: SensitivityLevel.sensitive,
-    ),
+    // Contact Section
+    // Note: contact.title, contact.type, contact.value are registered by ContactForm
+    // Legacy fields (contact.email, contact.phone, contact.mobile, contact.address)
+    // were removed - they don't exist in the actual form definitions
 
     // ID Card Section
+    FieldSensitivity(
+      fieldId: 'idCard.title',
+      fieldName: 'Title',
+      fieldSection: 'idCard',
+      level: SensitivityLevel.public,
+    ),
     FieldSensitivity(
       fieldId: 'idCard.number',
       fieldName: 'ID Card Number',
@@ -176,12 +176,6 @@ class FieldRegistry {
       level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
-      fieldId: 'address.state',
-      fieldName: 'State/Province',
-      fieldSection: 'address',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
       fieldId: 'address.postalCode',
       fieldName: 'Postal Code',
       fieldSection: 'address',
@@ -196,6 +190,12 @@ class FieldRegistry {
 
     // Passport Section
     FieldSensitivity(
+      fieldId: 'passport.title',
+      fieldName: 'Title',
+      fieldSection: 'passport',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
       fieldId: 'passport.number',
       fieldName: 'Passport Number',
       fieldSection: 'passport',
@@ -208,10 +208,22 @@ class FieldRegistry {
       level: SensitivityLevel.public,
     ),
     FieldSensitivity(
+      fieldId: 'passport.countryCode',
+      fieldName: 'Country Code',
+      fieldSection: 'passport',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
       fieldId: 'passport.issueDate',
       fieldName: 'Issue Date',
       fieldSection: 'passport',
       level: SensitivityLevel.internal,
+    ),
+    FieldSensitivity(
+      fieldId: 'passport.placeOfIssue',
+      fieldName: 'Place of Issue',
+      fieldSection: 'passport',
+      level: SensitivityLevel.sensitive,
     ),
     FieldSensitivity(
       fieldId: 'passport.expiryDate',
@@ -225,8 +237,44 @@ class FieldRegistry {
       fieldSection: 'passport',
       level: SensitivityLevel.sensitive,
     ),
+    FieldSensitivity(
+      fieldId: 'passport.dateOfBirth',
+      fieldName: 'Date of Birth',
+      fieldSection: 'passport',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
+      fieldId: 'passport.placeOfBirth',
+      fieldName: 'Place of Birth',
+      fieldSection: 'passport',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
+      fieldId: 'passport.sex',
+      fieldName: 'Sex',
+      fieldSection: 'passport',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'passport.nationality',
+      fieldName: 'Nationality',
+      fieldSection: 'passport',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
+      fieldId: 'passport.authority',
+      fieldName: 'Authority',
+      fieldSection: 'passport',
+      level: SensitivityLevel.sensitive,
+    ),
 
     // Visa Section
+    FieldSensitivity(
+      fieldId: 'visa.title',
+      fieldName: 'Title',
+      fieldSection: 'visa',
+      level: SensitivityLevel.public,
+    ),
     FieldSensitivity(
       fieldId: 'visa.number',
       fieldName: 'Visa Number',
@@ -258,11 +306,59 @@ class FieldRegistry {
       level: SensitivityLevel.internal,
     ),
 
-    // Travel History
+    // Travel Section
     FieldSensitivity(
-      fieldId: 'travelHistory.destination',
+      fieldId: 'travel.destination',
       fieldName: 'Destination',
-      fieldSection: 'travelHistory',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.travelType',
+      fieldName: 'Travel Type',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.date',
+      fieldName: 'Date',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.departureCity',
+      fieldName: 'Departure City',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.departureTime',
+      fieldName: 'Departure Time',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.arrivalTime',
+      fieldName: 'Arrival Time',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.flightNumber',
+      fieldName: 'Flight Number',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.ticketPrice',
+      fieldName: 'Ticket Price',
+      fieldSection: 'travel',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
+      fieldId: 'travel.airline',
+      fieldName: 'Airline',
+      fieldSection: 'travel',
       level: SensitivityLevel.public,
     ),
 
@@ -298,6 +394,12 @@ class FieldRegistry {
       level: SensitivityLevel.critical,
     ),
     FieldSensitivity(
+      fieldId: 'bankAccount.sortCode',
+      fieldName: 'Sort Code',
+      fieldSection: 'bankAccount',
+      level: SensitivityLevel.critical,
+    ),
+    FieldSensitivity(
       fieldId: 'bankAccount.currency',
       fieldName: 'Currency',
       fieldSection: 'bankAccount',
@@ -314,6 +416,12 @@ class FieldRegistry {
     FieldSensitivity(
       fieldId: 'card.cardType',
       fieldName: 'Card Type',
+      fieldSection: 'card',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'card.title',
+      fieldName: 'Title',
       fieldSection: 'card',
       level: SensitivityLevel.public,
     ),
@@ -342,6 +450,38 @@ class FieldRegistry {
       level: SensitivityLevel.sensitive,
     ),
 
+    // Tax ID Section
+    FieldSensitivity(
+      fieldId: 'taxId.title',
+      fieldName: 'Title',
+      fieldSection: 'taxId',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'taxId.taxIdNumber',
+      fieldName: 'Tax ID Number',
+      fieldSection: 'taxId',
+      level: SensitivityLevel.critical,
+    ),
+    FieldSensitivity(
+      fieldId: 'taxId.taxIdType',
+      fieldName: 'Tax ID Type',
+      fieldSection: 'taxId',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
+      fieldId: 'taxId.issuingAuthority',
+      fieldName: 'Issuing Authority',
+      fieldSection: 'taxId',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
+      fieldId: 'taxId.country',
+      fieldName: 'Country',
+      fieldSection: 'taxId',
+      level: SensitivityLevel.public,
+    ),
+
     // Education Section
     FieldSensitivity(
       fieldId: 'education.institution',
@@ -356,7 +496,19 @@ class FieldRegistry {
       level: SensitivityLevel.public,
     ),
     FieldSensitivity(
+      fieldId: 'education.degreeCustom',
+      fieldName: 'Custom Degree',
+      fieldSection: 'education',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
       fieldId: 'education.field',
+      fieldName: 'Field of Study',
+      fieldSection: 'education',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'education.fieldOfStudy',
       fieldName: 'Field of Study',
       fieldSection: 'education',
       level: SensitivityLevel.public,
@@ -400,6 +552,12 @@ class FieldRegistry {
       level: SensitivityLevel.public,
     ),
     FieldSensitivity(
+      fieldId: 'employment.responsibilities',
+      fieldName: 'Responsibilities',
+      fieldSection: 'employment',
+      level: SensitivityLevel.sensitive,
+    ),
+    FieldSensitivity(
       fieldId: 'employment.workAddress',
       fieldName: 'Work Address',
       fieldSection: 'employment',
@@ -432,16 +590,56 @@ class FieldRegistry {
 
     // Skills Section
     FieldSensitivity(
-      fieldId: 'skills.name',
+      fieldId: 'skill.name',
       fieldName: 'Skill Name',
-      fieldSection: 'skills',
+      fieldSection: 'skill',
       level: SensitivityLevel.public,
     ),
     FieldSensitivity(
-      fieldId: 'skills.proficiency',
+      fieldId: 'skill.level',
       fieldName: 'Proficiency Level',
-      fieldSection: 'skills',
+      fieldSection: 'skill',
       level: SensitivityLevel.public,
+    ),
+
+    // Language Section
+    FieldSensitivity(
+      fieldId: 'language.name',
+      fieldName: 'Language',
+      fieldSection: 'language',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'language.proficiency',
+      fieldName: 'Proficiency Level',
+      fieldSection: 'language',
+      level: SensitivityLevel.public,
+    ),
+
+    // Award Section
+    FieldSensitivity(
+      fieldId: 'award.title',
+      fieldName: 'Title',
+      fieldSection: 'award',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'award.issuer',
+      fieldName: 'Issuer',
+      fieldSection: 'award',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'award.date',
+      fieldName: 'Date',
+      fieldSection: 'award',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
+      fieldId: 'award.description',
+      fieldName: 'Description',
+      fieldSection: 'award',
+      level: SensitivityLevel.sensitive,
     ),
   ];
 
@@ -465,12 +663,15 @@ class FieldRegistry {
         'address',
         'passport',
         'visa',
-        'travelHistory',
+        'travel',
         'bankAccount',
         'card',
+        'taxId',
         'education',
         'employment',
-        'skills',
+        'skill',
+        'language',
+        'award',
       ];
 
   static String getSectionDisplayName(String section) {
@@ -481,12 +682,15 @@ class FieldRegistry {
       'address': 'Address',
       'passport': 'Passport',
       'visa': 'Visa',
-      'travelHistory': 'Travel History',
+      'travel': 'Travel',
       'bankAccount': 'Bank Account',
       'card': 'Card',
+      'taxId': 'Tax ID',
       'education': 'Education',
       'employment': 'Employment',
-      'skills': 'Skills',
+      'skill': 'Skills',
+      'language': 'Language',
+      'award': 'Award',
     };
     return names[section] ?? section;
   }
@@ -496,6 +700,160 @@ class FieldRegistry {
     return defaultFields.any((f) => f.fieldId == fieldId);
   }
 }
+
+/// Dynamic field registry populated by forms at runtime.
+/// This is the Single Source of Truth for field sensitivity definitions.
+class FormFieldRegistry {
+  static final Map<String, FieldSensitivity> _fields = {};
+
+  /// Register a single field. Idempotent - calling twice replaces.
+  static void register(FieldSensitivity field) {
+    _fields[field.fieldId] = field;
+  }
+
+  /// Register multiple fields at once
+  static void registerAll(List<FieldSensitivity> fields) {
+    for (final field in fields) {
+      register(field);
+    }
+  }
+
+  /// Get all fields - merges FormFieldRegistry with FieldRegistry defaults.
+  /// FormFieldRegistry fields override FieldRegistry defaults.
+  static List<FieldSensitivity> getAllFields() {
+    // Start with FieldRegistry defaults
+    final Map<String, FieldSensitivity> merged = {
+      for (final f in FieldRegistry.defaultFields) f.fieldId: f,
+    };
+    // Override with registered fields
+    merged.addAll(_fields);
+    // Sort by section then name
+    final list = merged.values.toList()
+      ..sort((a, b) {
+        final sectionCompare = a.fieldSection.compareTo(b.fieldSection);
+        if (sectionCompare != 0) return sectionCompare;
+        return a.fieldName.compareTo(b.fieldName);
+      });
+    return list;
+  }
+
+  /// Get a single field by fieldId, or null if not found
+  static FieldSensitivity? getField(String fieldId) {
+    return _fields[fieldId] ??
+        firstWhereOrNull(
+            FieldRegistry.defaultFields, (f) => f.fieldId == fieldId);
+  }
+
+  /// Clear all registered fields (for testing)
+  static void reset() {
+    _fields.clear();
+  }
+
+  /// Check if a field is registered in FormFieldRegistry (not legacy)
+  static bool isRegistered(String fieldId) => _fields.containsKey(fieldId);
+}
+
+// =============================================================================
+// NEW: Reactive Field Registry (ADR-013)
+// =============================================================================
+
+/// Reactive field registry notifier using StateNotifier.
+/// Replaces static FormFieldRegistry for declarative, data-flow based updates.
+class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivity>> {
+  FormFieldRegistryNotifier() : super({});
+
+  /// Register a single field. Idempotent - calling twice replaces.
+  void register(FieldSensitivity field) {
+    debugPrint('[FormFieldRegistry] Registering field: ${field.fieldId}');
+    state = {...state, field.fieldId: field};
+  }
+
+  /// Register multiple fields at once
+  void registerAll(List<FieldSensitivity> fields) {
+    debugPrint('[FormFieldRegistry] Registering ${fields.length} fields: '
+        '${fields.map((f) => f.fieldId).join(', ')}');
+    state = {...state, for (var f in fields) f.fieldId: f};
+  }
+
+  /// Get a single field by fieldId, or null if not found
+  FieldSensitivity? getField(String fieldId) => state[fieldId];
+
+  /// Get all fields as a sorted list (deduplicated)
+  List<FieldSensitivity> getAllFields() {
+    final deduped = state.values.toSet().toList();
+    deduped.sort((a, b) {
+      final sec = a.fieldSection.compareTo(b.fieldSection);
+      return sec != 0 ? sec : a.fieldName.compareTo(b.fieldName);
+    });
+    return deduped;
+  }
+
+  /// Clear all registered fields (for testing or app lock)
+  void reset() {
+    debugPrint('[FormFieldRegistry] Reset called');
+    state = {};
+  }
+}
+
+/// Provider for reactive field registry.
+/// Forms register fields via this provider, settings page watches it.
+final formFieldRegistryProvider =
+    StateNotifierProvider<FormFieldRegistryNotifier, Map<String, FieldSensitivity>>((ref) {
+  return FormFieldRegistryNotifier();
+});
+
+/// OPTIMIZED: Effective sensitivity level for a specific field.
+/// Uses select() to narrow watch scope - only rebuilds when THIS fieldId changes.
+final effectiveSensitivityProvider =
+    Provider.family<SensitivityLevel, String>((ref, fieldId) {
+  // Only watch this specific fieldId's registry entry
+  final fieldDef = ref.watch(
+    formFieldRegistryProvider.select((s) => s[fieldId]),
+  );
+  // Only watch this specific fieldId's user override
+  final userOverride = ref.watch(
+    accountStyleProvider.select((s) => s.fieldSettings[fieldId]),
+  );
+  // Watch revealed fields set
+  final revealedFields = ref.watch(
+    accountStyleProvider.select((s) => s.revealedFields),
+  );
+
+  // 1. Temporary reveal
+  if (revealedFields.contains(fieldId)) {
+    return SensitivityLevel.public;
+  }
+
+  // 2. User override
+  if (userOverride != null) {
+    return userOverride;
+  }
+
+  // 3. Registry default
+  if (fieldDef != null) {
+    return fieldDef.level;
+  }
+
+  // 4. Legacy FieldRegistry fallback
+  final legacyField = firstWhereOrNull(
+    FieldRegistry.defaultFields,
+    (f) => f.fieldId == fieldId,
+  );
+  if (legacyField != null) {
+    return legacyField.level;
+  }
+
+  // 5. Fallback to public
+  return SensitivityLevel.public;
+});
+
+/// Provider for field metadata (name, section, etc.) for settings page display.
+final fieldMetadataProvider =
+    Provider.family<FieldSensitivity?, String>((ref, fieldId) {
+  return ref.watch(
+    formFieldRegistryProvider.select((s) => s[fieldId]),
+  );
+});
 
 /// Field ID constants to prevent typos
 class FieldIds {
