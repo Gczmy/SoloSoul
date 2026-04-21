@@ -326,20 +326,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     );
 
     // Pre-compute sensitivity levels by item type (once, not per-item)
+    // DRY: derive item types from DeletedItemInfo's single source of truth
     final sensitivityByItemType = <String, SensitivityLevel>{};
-    for (final type in {
-      'contact',
-      'idCard',
-      'address',
-      'passport',
-      'visa',
-      'bank_account',
-      'card',
-      'education',
-      'employment',
-      'skill',
-      'language',
-    }) {
+    for (final type in DeletedItemInfo.itemTypes) {
       final fieldId = _getFieldIdForItem(type);
       if (fieldId != null) {
         sensitivityByItemType[type] = ref.watch(effectiveSensitivityProvider(fieldId));

@@ -341,7 +341,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'education.institution',
           label: 'Institution',
@@ -374,7 +374,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
         ),
       ],
       customFormBuilder:
-          (ctx, theme, controllers, mode, onSubmit, onCancel) {
+          (ctx, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
             final degreeController = controllers['education.degree']!;
             final degreeCustomController =
                 controllers['education.degreeCustom']!;
@@ -738,7 +738,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'employment.company',
           label: 'Company',
@@ -752,7 +752,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
         FormFieldDef(
           fieldId: 'employment.responsibilities',
           label: 'Responsibilities',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('employment.responsibilities')),
         ),
         FormFieldDef(
           fieldId: 'employment.startDate',
@@ -981,7 +981,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'skill.name',
           label: 'Skill Name',
@@ -1205,7 +1205,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'language.name',
           label: 'Language',
@@ -1439,7 +1439,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'award.title',
           label: 'Title',
@@ -1458,7 +1458,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
         FormFieldDef(
           fieldId: 'award.description',
           label: 'Description',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('award.description')),
         ),
       ],
       displayItemBuilder: _buildAwardItem,

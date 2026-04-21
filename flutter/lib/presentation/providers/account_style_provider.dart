@@ -10,7 +10,7 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 
 // Re-export for single import point
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
-export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode, firstWhereOrNull;
+export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode, firstWhereOrNull, effectiveSensitivityProvider;
 
 /// Sensitivity display mode
 enum SensitivityDisplayMode {
@@ -369,8 +369,9 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
 
   /// Upgrade field to a higher sensitivity level.
   void upgradeField(String fieldId) {
-    // Resolve effective level: user's override takes priority, else use registry default
+    // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
     final effectiveLevel = state.fieldSettings[fieldId] ??
+        FormFieldRegistry.getField(fieldId)?.level ??
         firstWhereOrNull(
             FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
             ?.level ??
@@ -388,8 +389,9 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
 
   /// Downgrade field to a lower sensitivity level.
   void downgradeField(String fieldId) {
-    // Resolve effective level: user's override takes priority, else use registry default
+    // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
     final effectiveLevel = state.fieldSettings[fieldId] ??
+        FormFieldRegistry.getField(fieldId)?.level ??
         firstWhereOrNull(
             FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
             ?.level ??
@@ -436,14 +438,3 @@ final displayModeProvider = StateProvider<SensitivityDisplayMode>((ref) {
   return SensitivityDisplayMode.hidePrivate;
 });
 
-/// Convenience provider for getting field sensitivity level.
-///
-/// Uses the unified SensitivityResolver. All page/widget consumers should use this.
-final fieldLevelProvider = Provider.family<SensitivityLevel, String>((ref, fieldId) {
-  final style = ref.watch(accountStyleProvider);
-  return sensitivityResolver.resolve(
-    fieldId: fieldId,
-    fieldSettings: style.fieldSettings,
-    revealedFields: style.revealedFields,
-  );
-});

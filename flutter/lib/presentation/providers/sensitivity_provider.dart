@@ -9,7 +9,7 @@ export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show Sen
 export 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show AccountStyle, AccountStyleNotifier, accountStyleProvider,
         SensitivityResolver, sensitivityResolver, SensitivityDisplayMode,
-        firstWhereOrNull;
+        firstWhereOrNull, effectiveSensitivityProvider;
 
 // Import accountStyleProvider for internal use within this file
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
@@ -830,7 +830,21 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
 
     final allFields = allFieldLists.expand((list) => list).toList();
     debugPrint('[FormFieldRegistry] Registering all forms: ${allFields.length} fields');
+    // Register to both static FormFieldRegistry (for SensitivityResolver legacy compatibility)
+    // and reactive FormFieldRegistryNotifier (for effectiveSensitivityProvider)
+    FormFieldRegistry.registerAll(allFields);
     registerAll(allFields);
+
+    // Development guard: detect duplicate fieldId registrations
+    assert(() {
+      final seen = <String>{};
+      for (final f in allFields) {
+        if (!seen.add(f.fieldId)) {
+          debugPrint('[FormFieldRegistry] DUPLICATE fieldId detected: ${f.fieldId}');
+        }
+      }
+      return true;
+    }());
   }
 
   // ============ Field Definitions by Section ============
@@ -838,7 +852,7 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
   static final _contactFields = [
     FieldSensitivity(fieldId: 'contact.title', fieldName: 'Title', fieldSection: 'contact', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'contact.type', fieldName: 'Type', fieldSection: 'contact', level: SensitivityLevel.public),
-    FieldSensitivity(fieldId: 'contact.value', fieldName: 'Value', fieldSection: 'contact', level: SensitivityLevel.critical),
+    FieldSensitivity(fieldId: 'contact.value', fieldName: 'Value', fieldSection: 'contact', level: SensitivityLevel.internal),
   ];
 
   static final _idCardFields = [
@@ -847,7 +861,7 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
     FieldSensitivity(fieldId: 'idCard.holderName', fieldName: 'Holder Name', fieldSection: 'idCard', level: SensitivityLevel.sensitive),
     FieldSensitivity(fieldId: 'idCard.country', fieldName: 'Country', fieldSection: 'idCard', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'idCard.issueDate', fieldName: 'Issue Date', fieldSection: 'idCard', level: SensitivityLevel.internal),
-    FieldSensitivity(fieldId: 'idCard.expiryDate', fieldName: 'Expiry Date', fieldSection: 'idCard', level: SensitivityLevel.sensitive),
+    FieldSensitivity(fieldId: 'idCard.expiryDate', fieldName: 'Expiry Date', fieldSection: 'idCard', level: SensitivityLevel.internal),
   ];
 
   static final _addressFields = [
@@ -891,7 +905,7 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
     FieldSensitivity(fieldId: 'passport.number', fieldName: 'Passport Number', fieldSection: 'passport', level: SensitivityLevel.critical),
     FieldSensitivity(fieldId: 'passport.issueDate', fieldName: 'Issue Date', fieldSection: 'passport', level: SensitivityLevel.internal),
     FieldSensitivity(fieldId: 'passport.placeOfIssue', fieldName: 'Place of Issue', fieldSection: 'passport', level: SensitivityLevel.sensitive),
-    FieldSensitivity(fieldId: 'passport.expiryDate', fieldName: 'Expiry Date', fieldSection: 'passport', level: SensitivityLevel.sensitive),
+    FieldSensitivity(fieldId: 'passport.expiryDate', fieldName: 'Expiry Date', fieldSection: 'passport', level: SensitivityLevel.internal),
     FieldSensitivity(fieldId: 'passport.holderName', fieldName: 'Holder Name', fieldSection: 'passport', level: SensitivityLevel.sensitive),
     FieldSensitivity(fieldId: 'passport.dateOfBirth', fieldName: 'Date of Birth', fieldSection: 'passport', level: SensitivityLevel.sensitive),
     FieldSensitivity(fieldId: 'passport.placeOfBirth', fieldName: 'Place of Birth', fieldSection: 'passport', level: SensitivityLevel.sensitive),

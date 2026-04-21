@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show fieldLevelProvider;
+    show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 /// Widget to display and animate field history
@@ -212,7 +212,7 @@ class _HistoryEntryTile extends ConsumerWidget {
                     }
                     // Build full fieldId for sensitivity lookup
                     final fieldId = '$prefix.$displayKey';
-                    final sensitivity = ref.watch(fieldLevelProvider(fieldId));
+                    final sensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Row(

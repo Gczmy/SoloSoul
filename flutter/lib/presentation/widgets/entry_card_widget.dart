@@ -55,9 +55,6 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
   /// Global sensitivity level override for all auto-built fields.
   final SensitivityLevel? sensitivityLevel;
 
-  /// Per-field sensitivity overrides for auto-build mode.
-  final Map<String, SensitivityLevel>? sensitivityOverrides;
-
   /// Field keys to exclude from auto-built fields (e.g., 'label' when already used as title).
   final Set<String>? excludeFields;
 
@@ -78,7 +75,6 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
     this.fieldPrefix,
     this.itemData,
     this.sensitivityLevel,
-    this.sensitivityOverrides,
     this.excludeFields,
   });
 
@@ -171,10 +167,6 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   SensitivityLevel _getSensitivityForField(String fieldKey) {
     if (widget.sensitivityLevel != null) {
       return widget.sensitivityLevel!;
-    }
-    if (widget.sensitivityOverrides != null &&
-        widget.sensitivityOverrides!.containsKey(fieldKey)) {
-      return widget.sensitivityOverrides![fieldKey]!;
     }
     // Always add prefix since itemToMap returns unprefixed keys.
     final fieldId = '${widget.fieldPrefix}.$fieldKey';

@@ -79,7 +79,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
 
   /// Optional custom form builder. If provided, overrides the default
   /// TextField-based form. Parameters: context, theme, controllers, mode,
-  /// onSubmit, onCancel.
+  /// onSubmit, onCancel, fieldSensitivities.
   final Widget Function(
     BuildContext,
     ThemeData,
@@ -87,6 +87,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     String /*mode*/,
     VoidCallback /*onSubmit*/,
     VoidCallback /*onCancel*/,
+    Map<String, SensitivityLevel> /*fieldSensitivities*/,
   )?
   customFormBuilder;
 
@@ -344,6 +345,11 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
 
   Widget _buildForm(ThemeData theme, {bool autofocus = false}) {
     if (widget.customFormBuilder != null) {
+      // Build sensitivity map from fieldDefs
+      final sensitivities = <String, SensitivityLevel>{};
+      for (final def in widget.fieldDefs) {
+        sensitivities[def.fieldId] = def.sensitivity;
+      }
       return widget.customFormBuilder!(
         context,
         theme,
@@ -351,6 +357,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
         _mode,
         _submitForm,
         _cancelEdit,
+        sensitivities,
       );
     }
 
@@ -681,8 +688,9 @@ class _ItemWithHistory<T> extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Look up history if history expansion is enabled
+    final histories = ref.watch(fieldHistoriesProvider);
     final history = showHistoryExpansion && historyFieldIdPrefix != null
-        ? ref.watch(fieldHistoriesProvider.notifier).getHistory(itemId, historyFieldIdPrefix!)
+        ? histories.getHistory(itemId, historyFieldIdPrefix!)
         : null;
 
     // Compute item map if itemToMap is provided

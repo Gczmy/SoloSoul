@@ -4,7 +4,7 @@ import 'package:solosoul_flutter/presentation/widgets/password_verification_dial
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show fieldLevelProvider;
+    show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
     show SensitivityLevel;
 
@@ -22,7 +22,7 @@ class PasswordVerificationService {
   }) async {
     if (fieldId == null) return true;
 
-    final level = _ref.read(fieldLevelProvider(fieldId));
+    final level = _ref.read(effectiveSensitivityProvider(fieldId));
 
     if (level != SensitivityLevel.critical) return true;
 

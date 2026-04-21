@@ -151,9 +151,16 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
           id: p.id,
           title: p.title,
           country: p.country,
+          countryCode: p.countryCode,
           number: p.number,
           issueDate: p.issueDate,
+          placeOfIssue: p.placeOfIssue,
           expiryDate: p.expiryDate,
+          dateOfBirth: p.dateOfBirth,
+          placeOfBirth: p.placeOfBirth,
+          sex: p.sex,
+          nationality: p.nationality,
+          authority: p.authority,
           holderName: p.holderName,
         );
       })),
@@ -231,14 +238,6 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       itemData: itemMap,
       fieldPrefix: 'passport',
       excludeFields: const {'title'},
-      sensitivityOverrides: const {
-        'number': SensitivityLevel.sensitive,
-        'issueDate': SensitivityLevel.sensitive,
-        'dateOfBirth': SensitivityLevel.sensitive,
-        'placeOfBirth': SensitivityLevel.sensitive,
-        'authority': SensitivityLevel.sensitive,
-        'holderName': SensitivityLevel.sensitive,
-      },
     );
   }
 
@@ -365,72 +364,72 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         FormFieldDef(
           fieldId: 'passport.title',
           label: 'Type',
-          sensitivity: ref.watch(fieldLevelProvider('passport.title')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.title')),
         ),
         // Issuing Country
         FormFieldDef(
           fieldId: 'passport.country',
           label: 'Country',
-          sensitivity: ref.watch(fieldLevelProvider('passport.country')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.country')),
         ),
         FormFieldDef(
           fieldId: 'passport.countryCode',
           label: 'Country Code',
-          sensitivity: ref.watch(fieldLevelProvider('passport.countryCode')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.countryCode')),
         ),
         // Document Number
         FormFieldDef(
           fieldId: 'passport.number',
           label: 'Passport Number',
-          sensitivity: ref.watch(fieldLevelProvider('passport.number')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.number')),
         ),
         // Validity Period
         FormFieldDef(
           fieldId: 'passport.issueDate',
           label: 'Date of Issue',
-          sensitivity: ref.watch(fieldLevelProvider('passport.issueDate')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.issueDate')),
         ),
         FormFieldDef(
           fieldId: 'passport.placeOfIssue',
           label: 'Place of Issue',
-          sensitivity: ref.watch(fieldLevelProvider('passport.placeOfIssue')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.placeOfIssue')),
         ),
         FormFieldDef(
           fieldId: 'passport.expiryDate',
           label: 'Date of Expiry',
-          sensitivity: ref.watch(fieldLevelProvider('passport.expiryDate')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.expiryDate')),
         ),
         // Holder Information
         FormFieldDef(
           fieldId: 'passport.holderName',
           label: 'Holder Name',
-          sensitivity: ref.watch(fieldLevelProvider('passport.holderName')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.holderName')),
         ),
         FormFieldDef(
           fieldId: 'passport.dateOfBirth',
           label: 'Date of Birth',
-          sensitivity: ref.watch(fieldLevelProvider('passport.dateOfBirth')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.dateOfBirth')),
         ),
         FormFieldDef(
           fieldId: 'passport.placeOfBirth',
           label: 'Place of Birth',
-          sensitivity: ref.watch(fieldLevelProvider('passport.placeOfBirth')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.placeOfBirth')),
         ),
         FormFieldDef(
           fieldId: 'passport.sex',
           label: 'Sex',
-          sensitivity: ref.watch(fieldLevelProvider('passport.sex')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.sex')),
         ),
         FormFieldDef(
           fieldId: 'passport.nationality',
           label: 'Nationality',
-          sensitivity: ref.watch(fieldLevelProvider('passport.nationality')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.nationality')),
         ),
         // Issuing Authority
         FormFieldDef(
           fieldId: 'passport.authority',
           label: 'Authority',
-          sensitivity: ref.watch(fieldLevelProvider('passport.authority')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('passport.authority')),
         ),
       ],
       historyConfig: HistoryRecordingConfig<PassportData>(
@@ -566,10 +565,6 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       fieldPrefix: 'visa',
       itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
       excludeFields: const {'title'},
-      sensitivityOverrides: const {
-        'number': SensitivityLevel.sensitive,
-        'visaType': SensitivityLevel.sensitive,
-      },
       formatAllFields: (v) => '${v.entryType}\n${v.toFormattedString()}',
     );
   }
@@ -697,27 +692,27 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
         FormFieldDef(
           fieldId: 'visa.title',
           label: 'Title',
-          sensitivity: ref.watch(fieldLevelProvider('visa.title')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('visa.title')),
         ),
         FormFieldDef(
           fieldId: 'visa.country',
           label: 'Country',
-          sensitivity: ref.watch(fieldLevelProvider('visa.country')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('visa.country')),
         ),
         FormFieldDef(
           fieldId: 'visa.visaType',
           label: 'Visa Type',
-          sensitivity: ref.watch(fieldLevelProvider('visa.visaType')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('visa.visaType')),
         ),
         FormFieldDef(
           fieldId: 'visa.number',
           label: 'Visa Number',
-          sensitivity: ref.watch(fieldLevelProvider('visa.number')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('visa.number')),
         ),
         FormFieldDef(
           fieldId: 'visa.expiryDate',
           label: 'Expiry Date',
-          sensitivity: ref.watch(fieldLevelProvider('visa.expiryDate')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('visa.expiryDate')),
         ),
       ],
       historyConfig: HistoryRecordingConfig<VisaData>(
@@ -1047,55 +1042,55 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
               allFieldValues: oldValues ?? {},
             );
       },
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'travel.destination',
           label: 'Destination',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.destination')),
         ),
         FormFieldDef(
           fieldId: 'travel.travelType',
           label: 'Travel Type',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.travelType')),
         ),
         FormFieldDef(
           fieldId: 'travel.date',
           label: 'Date',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.date')),
         ),
         FormFieldDef(
           fieldId: 'travel.departureCity',
           label: 'Departure City',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.departureCity')),
         ),
         FormFieldDef(
           fieldId: 'travel.departureTime',
           label: 'Departure Time',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
         ),
         FormFieldDef(
           fieldId: 'travel.arrivalTime',
           label: 'Arrival Time',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
         ),
         FormFieldDef(
           fieldId: 'travel.flightNumber',
           label: 'Flight/Train/Bus Number',
-          sensitivity: SensitivityLevel.internal,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.flightNumber')),
         ),
         FormFieldDef(
           fieldId: 'travel.ticketPrice',
           label: 'Ticket Price',
-          sensitivity: SensitivityLevel.sensitive,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
         ),
         FormFieldDef(
           fieldId: 'travel.airline',
           label: 'Airline/Operator',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('travel.airline')),
         ),
       ],
       customFormBuilder:
-          (context, theme, controllers, mode, onSubmit, onCancel) {
+          (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
             final travelType = controllers['travel.travelType']?.text ?? '';
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

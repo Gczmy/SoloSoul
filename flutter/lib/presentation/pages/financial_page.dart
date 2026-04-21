@@ -143,11 +143,6 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       fieldPrefix: 'bankAccount',
       itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
       excludeFields: const {'title'},
-      sensitivityOverrides: const {
-        'accountNumber': SensitivityLevel.critical,
-        'swiftBic': SensitivityLevel.critical,
-        'sortCode': SensitivityLevel.critical,
-      },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -352,34 +347,34 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
         FormFieldDef(
           fieldId: 'bankAccount.title',
           label: 'Title',
-          sensitivity: ref.watch(fieldLevelProvider('bankAccount.title')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('bankAccount.title')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.bankName',
           label: 'Bank Name',
-          sensitivity: ref.watch(fieldLevelProvider('bankAccount.bankName')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('bankAccount.bankName')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.accountNumber',
           label: 'Account Number',
           sensitivity: ref.watch(
-            fieldLevelProvider('bankAccount.accountNumber'),
+            effectiveSensitivityProvider('bankAccount.accountNumber'),
           ),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.currency',
           label: 'Currency',
-          sensitivity: ref.watch(fieldLevelProvider('bankAccount.currency')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('bankAccount.currency')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.swiftBic',
           label: 'SWIFT/BIC',
-          sensitivity: ref.watch(fieldLevelProvider('bankAccount.swiftBic')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('bankAccount.swiftBic')),
         ),
         FormFieldDef(
           fieldId: 'bankAccount.sortCode',
           label: 'Sort Code',
-          sensitivity: ref.watch(fieldLevelProvider('bankAccount.sortCode')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('bankAccount.sortCode')),
         ),
       ],
       displayItemBuilder: _buildBankAccountItem,
@@ -441,11 +436,6 @@ class _CardSectionState extends ConsumerState<_CardSection>
       fieldPrefix: 'card',
       itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
       excludeFields: const {'title'},
-      sensitivityOverrides: const {
-        'cardNumber': SensitivityLevel.critical,
-        'holderName': SensitivityLevel.critical,
-        'cvv': SensitivityLevel.critical,
-      },
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -639,32 +629,32 @@ class _CardSectionState extends ConsumerState<_CardSection>
         FormFieldDef(
           fieldId: 'card.title',
           label: 'Title',
-          sensitivity: ref.watch(fieldLevelProvider('card.title')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('card.title')),
         ),
         FormFieldDef(
           fieldId: 'card.cardType',
           label: 'Card Type (Visa, Mastercard, etc.)',
-          sensitivity: ref.watch(fieldLevelProvider('card.cardType')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('card.cardType')),
         ),
         FormFieldDef(
           fieldId: 'card.cardNumber',
           label: 'Card Number',
-          sensitivity: ref.watch(fieldLevelProvider('card.cardNumber')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('card.cardNumber')),
         ),
         FormFieldDef(
           fieldId: 'card.expiryDate',
           label: 'Expiry Date',
-          sensitivity: ref.watch(fieldLevelProvider('card.expiryDate')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('card.expiryDate')),
         ),
         FormFieldDef(
           fieldId: 'card.holderName',
           label: 'Holder Name',
-          sensitivity: ref.watch(fieldLevelProvider('card.holderName')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('card.holderName')),
         ),
         FormFieldDef(
           fieldId: 'card.cvv',
           label: 'CVV',
-          sensitivity: ref.watch(fieldLevelProvider('card.cvv')),
+          sensitivity: ref.watch(effectiveSensitivityProvider('card.cvv')),
         ),
       ],
       displayItemBuilder: _buildCardItem,
@@ -726,7 +716,6 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       fieldPrefix: 'taxId',
       itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
       excludeFields: const {'title'},
-      sensitivityOverrides: const {'taxIdNumber': SensitivityLevel.critical},
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
   }
@@ -913,31 +902,31 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       items: _taxIds,
       maxVisibleItems: 3,
       itemFactory: _createTaxIdFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'taxId.title',
           label: 'Title',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('taxId.title')),
         ),
         FormFieldDef(
           fieldId: 'taxId.taxIdNumber',
           label: 'Tax ID Number',
-          sensitivity: SensitivityLevel.critical,
+          sensitivity: ref.watch(effectiveSensitivityProvider('taxId.taxIdNumber')),
         ),
         FormFieldDef(
           fieldId: 'taxId.taxIdType',
           label: 'Tax ID Type (SSN, TIN, VAT, etc.)',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('taxId.taxIdType')),
         ),
         FormFieldDef(
           fieldId: 'taxId.issuingAuthority',
           label: 'Issuing Authority',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('taxId.issuingAuthority')),
         ),
         FormFieldDef(
           fieldId: 'taxId.country',
           label: 'Country',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('taxId.country')),
         ),
       ],
       displayItemBuilder: _buildTaxIdItem,

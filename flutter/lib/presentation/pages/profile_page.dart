@@ -588,27 +588,28 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       items: _contacts,
       maxVisibleItems: 3,
       itemFactory: _createContactFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'contact.title',
           label: 'Title',
           hintText: 'e.g., Gmail, Work',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('contact.title')),
         ),
         FormFieldDef(
           fieldId: 'contact.type',
           label: 'Type',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('contact.type')),
         ),
         FormFieldDef(
           fieldId: 'contact.value',
           label: 'Value',
-          sensitivity: SensitivityLevel.critical,
+          sensitivity: ref.watch(effectiveSensitivityProvider('contact.value')),
         ),
       ],
       customFormBuilder:
-          (context, theme, controllers, mode, onSubmit, onCancel) {
+          (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
             final selectedType = controllers['contact.type']?.text ?? 'email';
+            final valueSensitivity = sensitivities['contact.value'] ?? SensitivityLevel.public;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -662,13 +663,13 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
                 TextField(
                   controller: controllers['contact.value'],
                   maxLength: kMaxFieldLength,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Value',
                     counterText: '',
                     border: const OutlineInputBorder(),
                     suffixIcon: Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: SensitivityTag(level: SensitivityLevel.critical),
+                      child: SensitivityTag(level: valueSensitivity),
                     ),
                   ),
                   keyboardType: selectedType == 'email'
@@ -951,36 +952,36 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           items: _idCards,
           maxVisibleItems: 3,
           itemFactory: _createIdCardFromValues,
-          fieldDefs: const [
+          fieldDefs: [
             FormFieldDef(
               fieldId: 'idCard.title',
               label: 'Title',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('idCard.title')),
             ),
             FormFieldDef(
               fieldId: 'idCard.number',
               label: 'ID Number',
-              sensitivity: SensitivityLevel.critical,
+              sensitivity: ref.watch(effectiveSensitivityProvider('idCard.number')),
             ),
             FormFieldDef(
               fieldId: 'idCard.holderName',
               label: 'Holder Name',
-              sensitivity: SensitivityLevel.critical,
+              sensitivity: ref.watch(effectiveSensitivityProvider('idCard.holderName')),
             ),
             FormFieldDef(
               fieldId: 'idCard.country',
               label: 'Country',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('idCard.country')),
             ),
             FormFieldDef(
               fieldId: 'idCard.issueDate',
               label: 'Issue Date',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('idCard.issueDate')),
             ),
             FormFieldDef(
               fieldId: 'idCard.expiryDate',
               label: 'Expiry Date',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('idCard.expiryDate')),
             ),
           ],
           displayItemBuilder: (card, itemMap) => EntryCardWidget<IdCardData>(
@@ -992,10 +993,6 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
             itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
             fieldPrefix: 'idCard',
             excludeFields: const {'title'},
-            sensitivityOverrides: const {
-              'number': SensitivityLevel.critical,
-              'holderName': SensitivityLevel.critical,
-            },
             formatAllFields: (c) => '${c.entryType}\n${c.toFormattedString()}',
             onDelete: (c) => _onIdCardDelete(c),
           ),
@@ -1250,31 +1247,31 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           items: _addresses,
           maxVisibleItems: 3,
           itemFactory: _createAddressFromValues,
-          fieldDefs: const [
+          fieldDefs: [
             FormFieldDef(
               fieldId: 'address.title',
               label: 'Title',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('address.title')),
             ),
             FormFieldDef(
               fieldId: 'address.street',
               label: 'Street',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('address.street')),
             ),
             FormFieldDef(
               fieldId: 'address.city',
               label: 'City',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('address.city')),
             ),
             FormFieldDef(
               fieldId: 'address.postalCode',
               label: 'Postal Code',
-              sensitivity: SensitivityLevel.critical,
+              sensitivity: ref.watch(effectiveSensitivityProvider('address.postalCode')),
             ),
             FormFieldDef(
               fieldId: 'address.country',
               label: 'Country',
-              sensitivity: SensitivityLevel.public,
+              sensitivity: ref.watch(effectiveSensitivityProvider('address.country')),
             ),
           ],
           displayItemBuilder: (address, itemMap) =>
@@ -1289,9 +1286,6 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
                 excludeFields: const {
                   'title',
                 }, // title already used as card title
-                sensitivityOverrides: const {
-                  'postalCode': SensitivityLevel.critical,
-                },
                 onDelete: (a) => _onAddressDelete(a),
               ),
           onDelete: _onAddressDelete,

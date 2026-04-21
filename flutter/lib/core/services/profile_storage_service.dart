@@ -1922,6 +1922,10 @@ class DeletedItemInfo {
 
   /// Static accessor for meta by item type (used by trash_page)
   static ItemTypeMeta? metaFor(String itemType) => _metaByType[itemType];
+
+  /// All defined item types — single source of truth for item type enumeration.
+  /// Use this instead of hardcoding type sets to stay DRY.
+  static Iterable<String> get itemTypes => _metaByType.keys;
 }
 
 /// Metadata configuration for deleted item types

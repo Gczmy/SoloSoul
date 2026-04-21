@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dar
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show fieldLevelProvider;
+    show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 /// A generic dialog that displays field history with sensitivity-aware masking.
@@ -248,7 +248,7 @@ class _HistoryEntryTile extends ConsumerWidget {
             final displayLabel = fieldDef?.label ?? toDisplayLabel(strippedKey);
             // Build full fieldId for sensitivity lookup
             final fieldId = '$prefix.$strippedKey';
-            final sensitivity = ref.watch(fieldLevelProvider(fieldId));
+            final sensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
