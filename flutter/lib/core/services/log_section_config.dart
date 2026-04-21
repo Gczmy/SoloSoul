@@ -69,8 +69,8 @@ class LogSectionConfig {
       // Profile items
       case 'contact':
         final entry = item as ContactEntry?;
-        return entry?.label.isNotEmpty == true
-            ? '${entry!.label} - ${entry.value}'
+        return entry?.title.isNotEmpty == true
+            ? '${entry!.title} - ${entry.value}'
             : entry?.value ?? 'Contact';
       case 'idCard':
         final idCard = item as IdCardData?;

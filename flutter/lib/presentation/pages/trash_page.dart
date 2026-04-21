@@ -909,7 +909,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           if (idx >= 0) {
             final e = profile.identity!.contact!.entries[idx];
             detailText =
-                'Label: ${e.label}\n'
+                'Title: ${e.title}\n'
                 'Type: ${e.type}\n'
                 'Value: ${e.value}';
             deletedAt = e.deletedAt;

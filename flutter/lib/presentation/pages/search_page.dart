@@ -302,7 +302,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
           if (!entry.isDeleted) {
             addResult(
               'contact.${entry.id}',
-              entry.label,
+              entry.title,
               'contact',
               entry.value,
               SensitivityLevel.internal,

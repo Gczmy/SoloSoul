@@ -116,8 +116,8 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     if (authNotifier.isUnlocked) {
       _wipeSensitiveState();
       authNotifier.lockVault();
-      // Defer navigation using microtask to avoid frame conflict during widget rebuild/dispose
-      Future.microtask(() {
+      // Use addPostFrameCallback so the overlay exists (runs after first frame builds MaterialApp)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         final navContext = _navigatorKey.currentContext;
         if (navContext != null) {
           showOverlaySnackBar(
@@ -125,11 +125,11 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
             content: 'Vault auto-locked after leaving the app',
             type: SnackBarType.info,
           );
-          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            '/login',
-            (route) => false,
-          );
         }
+        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
       });
     }
     _pausedAt = null;

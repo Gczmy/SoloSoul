@@ -231,7 +231,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       changes.add('Contact Information (${oldContacts.length - newContacts.length} removed)');
     } else if (oldContacts.length != newContacts.length ||
         (oldContacts.isNotEmpty && newContacts.isNotEmpty &&
-         (oldContacts.first.label != newContacts.first.label ||
+         (oldContacts.first.title != newContacts.first.title ||
           oldContacts.first.value != newContacts.first.value))) {
       changes.add('Contact Information');
     }
@@ -421,10 +421,10 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       section: LogSection.contactInformation,
       itemType: 'contact',
       compareEntry: (oldEntry, newEntry) =>
-          oldEntry.label != newEntry.label ||
+          oldEntry.title != newEntry.title ||
           oldEntry.type != newEntry.type ||
           oldEntry.value != newEntry.value,
-      getLabel: (entry) => entry.label.isNotEmpty ? entry.label : entry.value,
+      getLabel: (entry) => entry.title.isNotEmpty ? entry.title : entry.value,
       showDiff: true,
     );
 
@@ -1951,8 +1951,8 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
       for (var i = 0; i < profile.identity!.contact!.entries.length; i++) {
         if (profile.identity!.contact!.entries[i].isDeleted) {
           final entry = profile.identity!.contact!.entries[i];
-          final label = entry.label.isNotEmpty
-              ? '${entry.label} - ${entry.value}'
+          final label = entry.title.isNotEmpty
+              ? '${entry.title} - ${entry.value}'
               : entry.value;
           _logPermanentDelete('profile', 'contact', label);
         }
@@ -2048,8 +2048,8 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         if (itemType == 'contact' &&
             index < (state!.identity?.contact?.entries.length ?? 0)) {
           final entry = state!.identity!.contact!.entries[index];
-          return entry.label.isNotEmpty
-              ? '${entry.label} - ${entry.value}'
+          return entry.title.isNotEmpty
+              ? '${entry.title} - ${entry.value}'
               : entry.value;
         } else if (itemType == 'idCard' &&
             index < (state!.identity?.idCards?.length ?? 0)) {

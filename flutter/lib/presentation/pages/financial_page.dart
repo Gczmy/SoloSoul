@@ -127,7 +127,7 @@ class _BankAccountSection extends ConsumerStatefulWidget {
 
 class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     with WidgetsBindingObserver {
-  Widget _buildBankAccountItem(BankAccountData account) {
+  Widget _buildBankAccountItem(BankAccountData account, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (account.accountNumber != null && account.accountNumber!.isNotEmpty)
         LabelValueField(
@@ -408,7 +408,7 @@ class _CardSection extends ConsumerStatefulWidget {
 
 class _CardSectionState extends ConsumerState<_CardSection>
     with WidgetsBindingObserver {
-  Widget _buildCardItem(CardData card) {
+  Widget _buildCardItem(CardData card, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (card.cardNumber != null && card.cardNumber!.isNotEmpty)
         LabelValueField(
@@ -680,7 +680,7 @@ class _TaxIdSection extends ConsumerStatefulWidget {
 
 class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     with WidgetsBindingObserver {
-  Widget _buildTaxIdItem(TaxIdData taxId) {
+  Widget _buildTaxIdItem(TaxIdData taxId, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (taxId.taxIdNumber != null && taxId.taxIdNumber!.isNotEmpty)
         LabelValueField(

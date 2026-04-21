@@ -180,7 +180,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     );
   }
 
-  Widget _buildPassportItem(PassportData passport) {
+  Widget _buildPassportItem(PassportData passport, Map<String, String> itemMap) {
     final fields = <LabelValueField>[];
     if (passport.country != null && passport.country!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Country', value: passport.country!));
@@ -469,7 +469,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
     );
   }
 
-  Widget _buildVisaItem(VisaData visa) {
+  Widget _buildVisaItem(VisaData visa, Map<String, String> itemMap) {
     final fields = <LabelValueField>[];
     if (visa.country != null && visa.country!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Country', value: visa.country!));
@@ -735,7 +735,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
     _history = [...(travel?.activeTravelHistory ?? [])];
   }
 
-  Widget _buildTravelHistoryItem(TravelHistoryData item) {
+  Widget _buildTravelHistoryItem(TravelHistoryData item, Map<String, String> itemMap) {
     final fields = <LabelValueField>[];
     if (item.date != null && item.date!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Date', value: item.date!));

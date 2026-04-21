@@ -223,7 +223,11 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     if (widget.itemToMap != null) {
       final values = widget.itemToMap!(item);
       for (final field in widget.fieldDefs) {
-        _controllers[field.fieldId]?.text = values[field.fieldId] ?? '';
+        // Strip prefix from fieldId to look up in itemToMap (which returns unprefixed keys).
+        final lookupKey = field.fieldId.contains('.')
+            ? field.fieldId.substring(field.fieldId.lastIndexOf('.') + 1)
+            : field.fieldId;
+        _controllers[field.fieldId]?.text = values[lookupKey] ?? '';
       }
     }
   }

@@ -171,7 +171,7 @@ class IdentityData {
 
 class ContactEntry with FormattableEntry {
   String id;
-  String label; // e.g., "Personal", "Work", "Emergency"
+  String title; // e.g., "Personal", "Work", "Emergency"
   String type; // "email", "phone", "mobile"
   String value;
   int updatedAt;
@@ -183,14 +183,14 @@ class ContactEntry with FormattableEntry {
 
   @override
   Map<String, dynamic> toMap() => {
-    'label': label,
+    'title': title,
     'type': type,
     'value': value,
   };
 
   ContactEntry({
     required this.id,
-    required this.label,
+    required this.title,
     required this.type,
     required this.value,
     int? updatedAt,
@@ -202,7 +202,7 @@ class ContactEntry with FormattableEntry {
     final id = json['id'] as String?;
     return ContactEntry(
       id: id ?? generateEntryId(),
-      label: json['label'] ?? '',
+      title: json['title'] ?? '',
       type: json['type'] ?? 'email',
       value: json['value'] ?? '',
       updatedAt: json['updated_at'] ?? currentTimestamp(),
@@ -215,7 +215,7 @@ class ContactEntry with FormattableEntry {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'label': label,
+    'title': title,
     'type': type,
     'value': value,
     'updated_at': updatedAt,
@@ -227,7 +227,7 @@ class ContactEntry with FormattableEntry {
 
   ContactEntry copyWith({
     String? id,
-    String? label,
+    String? title,
     String? type,
     String? value,
     int? updatedAt,
@@ -236,7 +236,7 @@ class ContactEntry with FormattableEntry {
   }) {
     return ContactEntry(
       id: id ?? this.id,
-      label: label ?? this.label,
+      title: title ?? this.title,
       type: type ?? this.type,
       value: value ?? this.value,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -2103,8 +2103,8 @@ class ProfileStorageService {
               section: 'profile',
               itemType: 'contact',
               id: e.id,
-              itemLabel: e.label.isNotEmpty
-                  ? '${e.label} - ${e.value}'
+              itemLabel: e.title.isNotEmpty
+                  ? '${e.title} - ${e.value}'
                   : e.value,
               deletedAt: e.deletedAt ?? DateTime.now(),
             ),

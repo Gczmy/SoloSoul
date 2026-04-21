@@ -513,7 +513,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
   }
 }
 
-Widget _buildEducationItem(EducationData item) {
+Widget _buildEducationItem(EducationData item, Map<String, String> itemMap) {
     String displayDegree(EducationData e) {
       if (e.degree != null && e.degree!.isNotEmpty) return e.degree!;
       if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty) return e.degreeCustom!;
@@ -793,7 +793,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
   }
 }
 
-Widget _buildEmploymentItem(EmploymentData item) {
+Widget _buildEmploymentItem(EmploymentData item, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (item.position != null && item.position!.isNotEmpty)
         LabelValueField(label: 'Position', value: item.position!),
@@ -1020,7 +1020,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
   }
 }
 
-Widget _buildSkillItem(SkillData item) {
+Widget _buildSkillItem(SkillData item, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (item.level != null && item.level!.isNotEmpty)
         LabelValueField(label: 'Proficiency', value: item.level!),
@@ -1242,7 +1242,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
   }
 }
 
-Widget _buildLanguageItem(LanguageData item) {
+Widget _buildLanguageItem(LanguageData item, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (item.proficiency != null && item.proficiency!.isNotEmpty)
         LabelValueField(label: 'Proficiency', value: item.proficiency!),
@@ -1484,7 +1484,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
   }
 }
 
-Widget _buildAwardItem(AwardData item) {
+Widget _buildAwardItem(AwardData item, Map<String, String> itemMap) {
     final fields = <LabelValueField>[
       if (item.date != null && item.date!.isNotEmpty)
         LabelValueField(label: 'Date', value: item.date!),

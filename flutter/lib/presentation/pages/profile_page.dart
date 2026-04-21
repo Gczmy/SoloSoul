@@ -434,7 +434,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       ...?(widget.contact?.activeEntries.map(
         (e) => ContactEntry(
           id: e.id,
-          label: e.label,
+          title: e.title,
           type: e.type,
           value: e.value,
           updatedAt: e.updatedAt,
@@ -448,7 +448,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   ContactEntry _createContactFromValues(Map<String, String> values, {String? id}) {
     return ContactEntry(
       id: id ?? generateEntryId(),
-      label: values['contact.label']?.isEmpty == true ? '' : values['contact.label']!,
+      title: values['contact.title']?.isEmpty == true ? '' : values['contact.title']!,
       type: values['contact.type']?.isEmpty == true ? 'email' : values['contact.type']!,
       value: values['contact.value']?.isEmpty == true ? '(no value)' : values['contact.value']!,
     );
@@ -497,7 +497,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         message: OperationLogger.createNotification(
           section: LogSection.contactInformation,
           action: LogAction.delete,
-          itemName: contact.label.isNotEmpty ? contact.label : contact.value,
+          itemName: contact.title.isNotEmpty ? contact.title : contact.value,
           isPrivacyModeActive: isPrivacyMode,
         ),
         duration: const Duration(seconds: 5),
@@ -522,8 +522,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     } else {
       contactToSave = _createContactFromValues(values, id: editingItem!.id);
     }
-    final itemName = contactToSave.label.isNotEmpty
-        ? contactToSave.label
+    final itemName = contactToSave.title.isNotEmpty
+        ? contactToSave.title
         : contactToSave.value;
 
     // Update local state
@@ -577,8 +577,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       itemFactory: _createContactFromValues,
       fieldDefs: const [
         FormFieldDef(
-          fieldId: 'contact.label',
-          label: 'Label',
+          fieldId: 'contact.title',
+          label: 'Title',
           hintText: 'e.g., Gmail, Work',
           sensitivity: SensitivityLevel.public,
         ),
@@ -609,10 +609,10 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: controllers['contact.label'],
+                    controller: controllers['contact.title'],
                     maxLength: kMaxFieldLength,
                     decoration: const InputDecoration(
-                      labelText: 'Label',
+                      labelText: 'Title',
                       hintText: 'e.g., Gmail, Work',
                       counterText: '',
                       border: OutlineInputBorder(),
@@ -685,10 +685,12 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       },
       onDelete: _onContactDelete,
       onSave: _onContactSave,
+      // Note: contact.title is included in itemToMap for history but excluded from display via excludeFields.
+      // Keys WITHOUT prefix - _autoBuildFields adds prefix; _populateControllersFromItem strips prefix.
       itemToMap: (c) => {
-        'contact.label': c.label,
-        'contact.type': c.type,
-        'contact.value': c.value,
+        'title': c.title,
+        'type': c.type,
+        'value': c.value,
       },
       onCopyAll: (contact, text) async {
         Clipboard.setData(ClipboardData(text: text));
@@ -718,14 +720,15 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       itemIdExtractor: (c) => c.id,
       displayItemBuilder: (contact, itemMap) => EntryCardWidget<ContactEntry>(
         item: contact,
-        title: contact.label.isNotEmpty ? contact.label : contact.value,
+        title: contact.title.isNotEmpty ? contact.title : contact.value,
         icon: contact.type == 'email' ? Icons.email_outlined : Icons.phone_outlined,
         itemId: contact.id,
         historyFieldId: 'contact',
         itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
         fieldPrefix: 'contact',
+        excludeFields: const {'title'}, // title already used as card title
         sensitivityOverrides: const {
-          'contact.value': SensitivityLevel.critical,
+          'value': SensitivityLevel.critical,
         },
         formatAllFields: (c) => '${c.type}: ${c.value}',
         onDelete: (c) => _onContactDelete(c),
@@ -966,21 +969,22 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
             itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
             fieldPrefix: 'idCard',
             sensitivityOverrides: const {
-              'idCard.number': SensitivityLevel.critical,
-              'idCard.holderName': SensitivityLevel.critical,
+              'number': SensitivityLevel.critical,
+              'holderName': SensitivityLevel.critical,
             },
             formatAllFields: (c) => '${c.entryType}\n${c.toFormattedString()}',
             onDelete: (c) => _onIdCardDelete(c),
           ),
           onDelete: _onIdCardDelete,
           onSave: _onIdCardSave,
+          // Keys without prefix - _autoBuildFields will add 'idCard.' prefix via fieldPrefix.
           itemToMap: (c) => {
-            'idCard.label': c.label ?? '',
-            'idCard.number': c.number ?? '',
-            'idCard.holderName': c.holderName ?? '',
-            'idCard.country': c.country ?? '',
-            'idCard.issueDate': c.issueDate ?? '',
-            'idCard.expiryDate': c.expiryDate ?? '',
+            'label': c.label ?? '',
+            'number': c.number ?? '',
+            'holderName': c.holderName ?? '',
+            'country': c.country ?? '',
+            'issueDate': c.issueDate ?? '',
+            'expiryDate': c.expiryDate ?? '',
           },
           onCopyAll: (card, text) async {
             Clipboard.setData(ClipboardData(text: text));
@@ -1239,18 +1243,19 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
             itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
             fieldPrefix: 'address',
             sensitivityOverrides: const {
-              'address.postalCode': SensitivityLevel.critical,
+              'postalCode': SensitivityLevel.critical,
             },
             onDelete: (a) => _onAddressDelete(a),
           ),
           onDelete: _onAddressDelete,
           onSave: _onAddressSave,
+          // Keys without prefix - _autoBuildFields will add 'address.' prefix via fieldPrefix.
           itemToMap: (a) => {
-            'address.label': a.label ?? '',
-            'address.street': a.street ?? '',
-            'address.city': a.city ?? '',
-            'address.postalCode': a.postalCode ?? '',
-            'address.country': a.country ?? '',
+            'label': a.label ?? '',
+            'street': a.street ?? '',
+            'city': a.city ?? '',
+            'postalCode': a.postalCode ?? '',
+            'country': a.country ?? '',
           },
           onCopyAll: (address, text) async {
             Clipboard.setData(ClipboardData(text: text));

@@ -56,6 +56,9 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
   /// Per-field sensitivity overrides for auto-build mode.
   final Map<String, SensitivityLevel>? sensitivityOverrides;
 
+  /// Field keys to exclude from auto-built fields (e.g., 'label' when already used as title).
+  final Set<String>? excludeFields;
+
   const EntryCardWidget({
     super.key,
     required this.item,
@@ -74,6 +77,7 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
     this.itemData,
     this.sensitivityLevel,
     this.sensitivityOverrides,
+    this.excludeFields,
   });
 
   @override
@@ -178,7 +182,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         widget.sensitivityOverrides!.containsKey(fieldKey)) {
       return widget.sensitivityOverrides![fieldKey]!;
     }
-    // Delegate to unified fieldLevelProvider
+    // Always add prefix since itemToMap returns unprefixed keys.
     final fieldId = '${widget.fieldPrefix}.$fieldKey';
     return ref.read(fieldLevelProvider(fieldId));
   }
@@ -197,8 +201,11 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   List<LabelValueField> _autoBuildFields() {
     final fields = <LabelValueField>[];
+    final exclude = widget.excludeFields ?? {};
     widget.itemData!.forEach((key, value) {
       if (value == null || (value is String && value.isEmpty)) return;
+      if (exclude.contains(key)) return;
+      // Always add prefix since itemToMap returns unprefixed keys.
       final fieldId = '${widget.fieldPrefix}.$key';
       final sensitivity = _getSensitivityForField(key);
       final isSensitive = sensitivity == SensitivityLevel.sensitive ||
@@ -227,6 +234,10 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final fields = _buildFields();
     final isSensitive = widget.isSensitive || fields.any((f) => f.isSensitive);
     final isExpanded = ref.watch(historyExpandedProvider(_historyKey));
+
+    // Suppress our own history button when rendered inside UnifiedFormSection's
+    // _ItemWithHistory, which already provides one when showHistoryExpansion is true.
+    final inFormSection = EntryActionsContext.of(context) != null;
 
     // Auto-collapse restricted history when entering privacy mode
     ref.listen<AccountStyle>(
@@ -272,16 +283,18 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           actions: _buildActions(context, actionsContext, isSensitive),
-          bottomActions: [
-            TextButton.icon(
-              icon: Icon(
-                isExpanded ? Icons.expand_less : Icons.history,
-                size: 16,
-              ),
-              label: Text('History(${history?.entries.length ?? 0})'),
-              onPressed: () => _handleHistoryPress(isSensitive),
-            ),
-          ],
+          bottomActions: inFormSection
+              ? []
+              : [
+                  TextButton.icon(
+                    icon: Icon(
+                      isExpanded ? Icons.expand_less : Icons.history,
+                      size: 16,
+                    ),
+                    label: Text('History(${history?.entries.length ?? 0})'),
+                    onPressed: () => _handleHistoryPress(isSensitive),
+                  ),
+                ],
           children: fields.isNotEmpty
               ? [
                   const SizedBox(height: 4),
@@ -293,7 +306,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                 ]
               : [],
         ),
-        if (hasHistory && isExpanded)
+        if (hasHistory && isExpanded && !inFormSection)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
