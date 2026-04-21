@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    hide SensitivityLevel, showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel;
@@ -613,10 +616,10 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
               final newLevel = SensitivityLevel.values[effectiveLevel.index - 1];
               ref.read(accountStyleProvider.notifier).setFieldLevel(fieldId, newLevel);
               Navigator.pop(context);
-              _showSnackBar(
+              showOverlaySnackBar(
                 context,
-                '"${field.fieldName}" moved to Private',
-                SnackBarType.info,
+                content: '"${field.fieldName}" moved to Private',
+                type: SnackBarType.info,
               );
             },
             style: FilledButton.styleFrom(
@@ -629,15 +632,6 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     );
   }
 
-  void _showSnackBar(BuildContext context, String content, SnackBarType type) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(content),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
 }
 
 class _SensitivitySection extends StatelessWidget {
@@ -815,12 +809,10 @@ class _FieldListTile extends StatelessWidget {
             onSelected: (value) {
               if (value == 'upgrade' && onUpgrade != null) {
                 onUpgrade!(field.fieldId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('"${field.fieldName}" moved to higher sensitivity'),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 2),
-                  ),
+                showOverlaySnackBar(
+                  context,
+                  content: '"${field.fieldName}" moved to higher sensitivity',
+                  type: SnackBarType.info,
                 );
               } else if (value == 'downgrade' && onDowngrade != null) {
                 onDowngrade!(field.fieldId);
