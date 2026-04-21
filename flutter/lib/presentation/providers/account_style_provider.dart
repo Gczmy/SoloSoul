@@ -446,11 +446,15 @@ final displayModeProvider = StateProvider<SensitivityDisplayMode>((ref) {
 });
 
 /// Convenience provider for getting field sensitivity level.
-/// Returns: user override > FieldRegistry default > public fallback
+/// Returns: user override (fieldSettings) > FieldRegistry default > public fallback
 final fieldLevelProvider = Provider.family<SensitivityLevel, String>((ref, fieldId) {
   final style = ref.watch(accountStyleProvider);
-  final override = style.fieldOverrides.firstWhereOrNull((f) => f.fieldId == fieldId);
-  if (override != null) return override.level;
+
+  // Priority 1: User override in fieldSettings (set by SensitivitySettingsPage)
+  final settingsLevel = style.fieldSettings[fieldId];
+  if (settingsLevel != null) return settingsLevel;
+
+  // Priority 2: FieldRegistry default
   return FieldRegistry.defaultFields
       .firstWhereOrNull((f) => f.fieldId == fieldId)
       ?.level ?? SensitivityLevel.public;
