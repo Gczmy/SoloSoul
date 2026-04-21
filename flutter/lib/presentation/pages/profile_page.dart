@@ -662,8 +662,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
                 TextField(
                   controller: controllers['contact.value'],
                   maxLength: kMaxFieldLength,
-                  decoration: InputDecoration(
-                    labelText: selectedType == 'email' ? 'Email' : 'Phone',
+                  decoration: const InputDecoration(
+                    labelText: 'Value',
                     counterText: '',
                     border: const OutlineInputBorder(),
                     suffixIcon: Padding(
