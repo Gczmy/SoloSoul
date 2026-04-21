@@ -1025,15 +1025,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ],
         ),
         actions: [
-          OutlinedButton.icon(
-            onPressed: () => _showHistoryForItem(context, item),
-            icon: const Icon(Icons.history, size: 18),
-            label: const Text('History'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.primaryColor,
-              side: const BorderSide(color: AppTheme.primaryColor),
-            ),
-          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
