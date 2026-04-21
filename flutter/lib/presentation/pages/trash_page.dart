@@ -16,6 +16,8 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show effectiveSensitivityProvider;
 
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
@@ -340,7 +342,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }) {
       final fieldId = _getFieldIdForItem(type);
       if (fieldId != null) {
-        sensitivityByItemType[type] = ref.read(fieldLevelProvider(fieldId));
+        sensitivityByItemType[type] = ref.watch(effectiveSensitivityProvider(fieldId));
       }
     }
     _sensitivityByItemType = sensitivityByItemType;

@@ -14,7 +14,9 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show accountStyleProvider, SensitivityDisplayMode, AccountStyle, fieldLevelProvider;
+    show accountStyleProvider, SensitivityDisplayMode, AccountStyle;
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
@@ -176,7 +178,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     }
     // Always add prefix since itemToMap returns unprefixed keys.
     final fieldId = '${widget.fieldPrefix}.$fieldKey';
-    return ref.read(fieldLevelProvider(fieldId));
+    return ref.watch(effectiveSensitivityProvider(fieldId));
   }
 
   String _formatLabel(String key) {

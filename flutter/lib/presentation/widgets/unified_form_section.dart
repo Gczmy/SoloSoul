@@ -12,7 +12,7 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show FieldSensitivity, formFieldRegistryProvider;
+    show FieldSensitivity, formFieldRegistryProvider, effectiveSensitivityProvider;
 
 /// Configuration for recording field history on saves.
 class HistoryRecordingConfig<T> {
@@ -546,7 +546,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     }
     if (restrictedFieldId == null) return true;
 
-    final level = ref.read(fieldLevelProvider(restrictedFieldId));
+    final level = ref.watch(effectiveSensitivityProvider(restrictedFieldId));
     if (level != SensitivityLevel.critical) return true;
 
     // Check if user was verified within the valid duration (password cache)

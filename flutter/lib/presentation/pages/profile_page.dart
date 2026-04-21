@@ -6,9 +6,9 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, SnackBarType, showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show accountStyleProvider, fieldLevelProvider;
+    show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show SensitivityLevel, SensitivityDisplayMode;
+    show SensitivityLevel, SensitivityDisplayMode, effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
@@ -38,7 +38,7 @@ Future<bool> verifyPasswordForRestrictedField({
   required WidgetRef ref,
   required String fieldId,
 }) async {
-  final level = ref.read(fieldLevelProvider(fieldId));
+  final level = ref.watch(effectiveSensitivityProvider(fieldId));
 
   // If not restricted, allow without verification
   if (level != SensitivityLevel.critical) {
