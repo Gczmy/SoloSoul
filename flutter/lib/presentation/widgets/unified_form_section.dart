@@ -473,8 +473,14 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
             ListTile(
               leading: const Icon(Icons.edit_outlined),
               title: const Text('Edit'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(ctx);
+                final hasRestricted = _hasRestrictedField(item);
+                if (hasRestricted) {
+                  final verified = await _verifyPasswordForRestricted(context);
+                  if (!verified) return;
+                }
+                if (!mounted) return;
                 _startEditing(index);
               },
             ),

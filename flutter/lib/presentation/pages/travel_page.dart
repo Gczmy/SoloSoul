@@ -114,13 +114,30 @@ class _PassportSection extends ConsumerStatefulWidget {
   ConsumerState<_PassportSection> createState() => _PassportSectionState();
 }
 
-class _PassportSectionState extends ConsumerState<_PassportSection> {
+class _PassportSectionState extends ConsumerState<_PassportSection>
+    with WidgetsBindingObserver {
   late List<PassportData> _passports;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _loadData();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -183,10 +200,14 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       );
     }
     if (passport.issueDate != null && passport.issueDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Issue Date', value: passport.issueDate!));
+      fields.add(
+        LabelValueField(label: 'Issue Date', value: passport.issueDate!),
+      );
     }
     if (passport.expiryDate != null && passport.expiryDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Expiry Date', value: passport.expiryDate!));
+      fields.add(
+        LabelValueField(label: 'Expiry Date', value: passport.expiryDate!),
+      );
     }
     return EntryCardWidget<PassportData>(
       item: passport,
@@ -286,7 +307,9 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       travelHistory:
           ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateTravelImmediate(travel);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateTravelImmediate(travel);
 
     if (mounted) {
       final isPrivacyMode =
@@ -335,9 +358,13 @@ class _PassportSectionState extends ConsumerState<_PassportSection> {
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
               accountId: accountId,
               itemId: editingItem.id,
               fieldIdPrefix: 'passport',
@@ -371,13 +398,30 @@ class _VisaSection extends ConsumerStatefulWidget {
   ConsumerState<_VisaSection> createState() => _VisaSectionState();
 }
 
-class _VisaSectionState extends ConsumerState<_VisaSection> {
+class _VisaSectionState extends ConsumerState<_VisaSection>
+    with WidgetsBindingObserver {
   late List<VisaData> _visas;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _loadData();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -443,7 +487,9 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       fields.add(LabelValueField(label: 'Issue Date', value: visa.issueDate!));
     }
     if (visa.expiryDate != null && visa.expiryDate!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Expiry Date', value: visa.expiryDate!));
+      fields.add(
+        LabelValueField(label: 'Expiry Date', value: visa.expiryDate!),
+      );
     }
     return EntryCardWidget<VisaData>(
       item: visa,
@@ -544,7 +590,9 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       travelHistory:
           ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
     );
-    await ref.read(profileNotifierProvider.notifier).updateTravelImmediate(travel);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateTravelImmediate(travel);
 
     if (mounted) {
       final isPrivacyMode =
@@ -598,9 +646,13 @@ class _VisaSectionState extends ConsumerState<_VisaSection> {
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
               accountId: accountId,
               itemId: editingItem.id,
               fieldIdPrefix: 'visa',
@@ -636,13 +688,30 @@ class _TravelHistorySection extends ConsumerStatefulWidget {
       _TravelHistorySectionState();
 }
 
-class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
+class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
+    with WidgetsBindingObserver {
   late List<TravelHistoryData> _history;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _loadData();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   void _loadData() {
@@ -656,13 +725,19 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       fields.add(LabelValueField(label: 'Date', value: item.date!));
     }
     if (item.departureCity != null && item.departureCity!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Departure', value: item.departureCity!));
+      fields.add(
+        LabelValueField(label: 'Departure', value: item.departureCity!),
+      );
     }
     if (item.departureTime != null && item.departureTime!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Departure Time', value: item.departureTime!));
+      fields.add(
+        LabelValueField(label: 'Departure Time', value: item.departureTime!),
+      );
     }
     if (item.arrivalTime != null && item.arrivalTime!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Arrival Time', value: item.arrivalTime!));
+      fields.add(
+        LabelValueField(label: 'Arrival Time', value: item.arrivalTime!),
+      );
     }
     if (item.flightNumber != null && item.flightNumber!.isNotEmpty) {
       fields.add(LabelValueField(label: 'Flight', value: item.flightNumber!));
@@ -807,7 +882,9 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
       travelHistory: _history,
     );
-    await ref.read(profileNotifierProvider.notifier).updateTravelImmediate(travel);
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateTravelImmediate(travel);
 
     if (mounted) {
       final isPrivacyMode =
@@ -866,9 +943,13 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection> {
       ),
       historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
         if (editingItem == null) return;
-        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        final accountId = ref
+            .read(authNotifierProvider.notifier)
+            .selectedAccountId;
         if (accountId == null) return;
-        await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+        await ref
+            .read(fieldHistoriesProvider.notifier)
+            .recordSnapshot(
               accountId: accountId,
               itemId: editingItem.id,
               fieldIdPrefix: 'travel',

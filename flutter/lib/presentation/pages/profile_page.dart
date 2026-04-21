@@ -864,18 +864,36 @@ class _IdCardSection extends ConsumerStatefulWidget {
   ConsumerState<_IdCardSection> createState() => _IdCardSectionState();
 }
 
-class _IdCardSectionState extends ConsumerState<_IdCardSection> {
+class _IdCardSectionState extends ConsumerState<_IdCardSection>
+    with WidgetsBindingObserver {
   late List<IdCardData> _idCards;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _loadData();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   void _loadData() {
+    final identity = ref.read(profileNotifierProvider)?.identity;
     _idCards = [
-      ...?(widget.idCards?.map(
+      ...?(identity?.activeIdCards?.map(
         (c) => IdCardData(
           id: c.id,
           label: c.label,
@@ -1319,18 +1337,36 @@ class _AddressSection extends ConsumerStatefulWidget {
   ConsumerState<_AddressSection> createState() => _AddressSectionState();
 }
 
-class _AddressSectionState extends ConsumerState<_AddressSection> {
+class _AddressSectionState extends ConsumerState<_AddressSection>
+    with WidgetsBindingObserver {
   late List<AddressData> _addresses;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _loadData();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   void _loadData() {
+    final identity = ref.read(profileNotifierProvider)?.identity;
     _addresses = [
-      ...?(widget.addresses?.map(
+      ...?(identity?.activeAddresses?.map(
         (a) => AddressData(
           id: a.id,
           label: a.label,
