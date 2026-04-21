@@ -739,7 +739,6 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
         fieldPrefix: 'contact',
         excludeFields: const {'title'}, // title already used as card title
-        sensitivityOverrides: const {'value': SensitivityLevel.critical},
         formatAllFields: (c) => '${c.type}: ${c.value}',
         onDelete: (c) => _onContactDelete(c),
       ),
