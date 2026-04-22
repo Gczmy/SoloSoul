@@ -805,7 +805,6 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
     return EntryCardWidget<TravelHistoryData>(
       item: item,
       title: item.destination,
-      subtitle: item.flightNumber ?? item.date,
       icon: Icons.place,
       itemId: item.id,
       historyFieldId: 'travel',
@@ -813,7 +812,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       // Auto-build mode
       itemData: itemMap,
       fieldPrefix: 'travel',
-      excludeFields: const {'destination', 'flightNumber', 'date'},
+      excludeFields: const {'destination'},
     );
   }
 
