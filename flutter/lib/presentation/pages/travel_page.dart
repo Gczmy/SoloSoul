@@ -1586,7 +1586,6 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
         'travelType': item.travelType ?? '',
         'date': item.date ?? '',
         'departureCity': item.departureCity ?? '',
-        'arrivalCity': item.arrivalCity ?? '',
         'departureTime': item.departureTime ?? '',
         'arrivalTime': item.arrivalTime ?? '',
         'flightNumber': item.flightNumber ?? '',
