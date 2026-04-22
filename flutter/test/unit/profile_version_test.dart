@@ -69,7 +69,8 @@ void main() {
           nationality: 'Testland',
           idCards: [
             IdCardData(
-              label: 'Primary',
+              id: 'id-card-1',
+              title: 'Primary',
               number: 'ABC123',
               issueDate: '2020-01-01',
               expiryDate: '2030-01-01',
@@ -88,6 +89,7 @@ void main() {
           ),
           addresses: [
             AddressData(
+              id: 'addr-1',
               label: 'Home',
               street: '123 Test St',
               city: 'Test City',
@@ -100,6 +102,7 @@ void main() {
         travel: TravelData(
           passports: [
             PassportData(
+              id: 'passport-1',
               number: 'P123456',
               country: 'Testland',
               issueDate: '2020-01-01',
@@ -109,6 +112,7 @@ void main() {
           ],
           visas: [
             VisaData(
+              id: 'visa-1',
               country: 'Test Country',
               visaType: 'Tourist',
               number: 'V789',
@@ -117,12 +121,13 @@ void main() {
             ),
           ],
           travelHistory: [
-            TravelHistoryData(destination: 'Test Destination', date: '2023-01-01'),
+            TravelHistoryData(id: 'travel-1', destination: 'Test Destination', date: '2023-01-01'),
           ],
         ),
         financial: FinancialData(
           bankAccounts: [
             BankAccountData(
+              id: 'bank-1',
               bankName: 'Test Bank',
               accountNumber: '1234567890',
               currency: 'TST',
@@ -131,6 +136,7 @@ void main() {
           ],
           cards: [
             CardData(
+              id: 'card-1',
               cardNumber: '4111111111111111',
               cardType: 'Visa',
               expiryDate: '2025-12',
@@ -139,6 +145,7 @@ void main() {
           ],
           taxIds: [
             TaxIdData(
+              id: 'tax-1',
               taxIdNumber: 'TAX123',
               taxIdType: 'National ID',
               issuingAuthority: 'Test Authority',
@@ -149,6 +156,7 @@ void main() {
         professional: ProfessionalData(
           education: [
             EducationData(
+              id: 'edu-1',
               institution: 'Test University',
               degree: 'BS',
               field: 'Testing',
@@ -158,6 +166,7 @@ void main() {
           ],
           employment: [
             EmploymentData(
+              id: 'emp-1',
               company: 'Test Corp',
               position: 'Test Engineer',
               startDate: '2014-07',
@@ -165,10 +174,10 @@ void main() {
             ),
           ],
           skills: [
-            SkillData(name: 'Testing', level: 'Expert'),
+            SkillData(id: 'skill-1', name: 'Testing', level: 'Expert'),
           ],
           languages: [
-            LanguageData(name: 'Test Language', proficiency: 'Native'),
+            LanguageData(id: 'lang-1', name: 'Test Language', proficiency: 'Native'),
           ],
         ),
       );
@@ -189,7 +198,7 @@ void main() {
 
       // Verify id cards
       expect(restored.identity!.idCards!.length, original.identity!.idCards!.length);
-      expect(restored.identity!.idCards!.first.label, original.identity!.idCards!.first.label);
+      expect(restored.identity!.idCards!.first.title, original.identity!.idCards!.first.title);
       expect(restored.identity!.idCards!.first.number, original.identity!.idCards!.first.number);
 
       // Verify contact
