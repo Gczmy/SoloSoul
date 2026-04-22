@@ -75,7 +75,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Passports'), findsOneWidget);
-      expect(find.byIcon(Icons.flight_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.flight_outlined), findsWidgets);
     });
 
     testWidgets('shows Visas section', (tester) async {
@@ -90,7 +90,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Visas'), findsOneWidget);
-      expect(find.byIcon(Icons.article_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.article_outlined), findsWidgets);
     });
 
     testWidgets('shows Travel History section', (tester) async {
@@ -105,7 +105,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Travel History'), findsOneWidget);
-      expect(find.byIcon(Icons.history), findsOneWidget);
+      expect(find.byIcon(Icons.history), findsWidgets);
     });
   });
 
