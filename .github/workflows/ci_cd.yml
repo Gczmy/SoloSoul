@@ -115,6 +115,10 @@ jobs:
   integration-test:
     name: Integration Tests
     runs-on: macos-latest
+    env:
+      # Disable code signing for CI - no certificates available
+      CODE_SIGN_IDENTITY: '-'
+      CODE_SIGNING_REQUIRED: '0'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
