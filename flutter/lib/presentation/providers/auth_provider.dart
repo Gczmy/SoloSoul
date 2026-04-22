@@ -500,21 +500,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
   bool get isUnlocked => state == AuthState.unlocked;
 
   /// Get all accounts sorted by most recent access
-  /// Uses Rust vault as single source of truth to ensure consistency
+  /// Uses Rust vault as primary source, falls back to SecureAccountStorage when FFI fails
   Future<List<AccountInfo>> getAccountsSortedByRecent() async {
     final rustAccounts = RustVaultService.instance.listAccountsFromRust();
-    if (rustAccounts == null) {
-      return [];
-    }
-    final accounts = <AccountInfo>[];
-    for (final r in rustAccounts) {
-      accounts.add(AccountInfo(
+    List<AccountInfo> accounts;
+
+    if (rustAccounts != null && rustAccounts.isNotEmpty) {
+      accounts = rustAccounts.map((r) => AccountInfo(
         id: r['id'] as String? ?? '',
         name: r['name'] as String? ?? '',
         lastAccessed: r['last_accessed'] != null ? DateTime.tryParse(r['last_accessed'] as String) : null,
         createdAt: DateTime.now(),
-      ));
+      )).toList();
+    } else {
+      // Fall back to SecureAccountStorage when Rust vault returns nothing
+      // This handles FFI failure cases in release builds
+      accounts = await _storage.listAccounts();
     }
+
     accounts.sort((a, b) {
       if (a.lastAccessed == null && b.lastAccessed == null) return 0;
       if (a.lastAccessed == null) return 1;

@@ -179,9 +179,17 @@ class OperationLogService extends ChangeNotifier {
   /// Clear logs and encryption key when account is locked
   /// Waits for any pending save to complete first to prevent data loss
   Future<void> clearForCurrentAccount() async {
-    // Wait for any pending save to complete before clearing
-    if (_pendingSave != null) {
-      await _pendingSave;
+    // Capture nullable Future to local variable for proper null analysis
+    final pending = _pendingSave;
+    if (pending != null) {
+      try {
+        await pending.timeout(
+          const Duration(seconds: 2),
+          onTimeout: () => null,
+        );
+      } catch (_) {
+        // Ignore save errors - we're clearing anyway
+      }
     }
     _entries.clear();
     _initialized = false;

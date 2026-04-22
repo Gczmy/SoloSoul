@@ -35,9 +35,10 @@ echo -e "${YELLOW}Cleaning and building Flutter app (always rebuild)...${NC}"
 flutter build macos --release --obfuscate --split-debug-info=./debug_info/macos
 
 # Step 2: Ad-hoc code sign (self-signed, no Apple account needed)
-echo -e "${YELLOW}Signing app with ad-hoc certificate...${NC}"
-codesign --force --deep --sign - "$APP_PATH"
-echo -e "${GREEN}Code signing complete.${NC}"
+# TEMPORARILY SKIPPED to test if codesign breaks the app
+echo -e "${YELLOW}Skipping ad-hoc sign - using Flutter's built-in signature...${NC}"
+# codesign --force --deep --sign - "$APP_PATH"
+# echo -e "${GREEN}Code signing complete.${NC}"
 
 # Step 3: Create clean staging directory (only .app, no intermediate files)
 echo -e "${YELLOW}Preparing clean staging directory...${NC}"
