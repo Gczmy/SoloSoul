@@ -25,54 +25,50 @@ echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  SoloSoul DMG Builder (Self-Signed)${NC}"
 echo -e "${GREEN}========================================${NC}"
 
-# Step 1: Build Flutter app if not already built
-if [ ! -d "build/macos/Build/Products/Release/SoloSoul.app" ]; then
-    echo -e "${YELLOW}Building Flutter app...${NC}"
-    flutter build macos --release --obfuscate --split-debug-info=./debug_info/macos
-else
-    echo -e "${GREEN}App already built, skipping build.${NC}"
-fi
-
-APP_PATH="build/macos/Build/Products/Release/SoloSoul.app"
-DMG_TEMP="/tmp/${DMG_NAME}-temp.dmg"
+# Step 1: Clean and build Flutter app (always rebuild to ensure latest code)
+RELEASE_DIR="build/macos/Build/Products/Release"
+APP_PATH="$RELEASE_DIR/$APP_NAME.app"
+DMG_STAGING_DIR="build/macos/dmg_staging"
 DMG_OUTPUT="build/macos/${DMG_NAME}.dmg"
+
+echo -e "${YELLOW}Cleaning and building Flutter app (always rebuild)...${NC}"
+flutter build macos --release --obfuscate --split-debug-info=./debug_info/macos
 
 # Step 2: Ad-hoc code sign (self-signed, no Apple account needed)
 echo -e "${YELLOW}Signing app with ad-hoc certificate...${NC}"
 codesign --force --deep --sign - "$APP_PATH"
 echo -e "${GREEN}Code signing complete.${NC}"
 
-# Step 3: Create DMG with create-dmg
+# Step 3: Create clean staging directory (only .app, no intermediate files)
+echo -e "${YELLOW}Preparing clean staging directory...${NC}"
+rm -rf "$DMG_STAGING_DIR"
+mkdir -p "$DMG_STAGING_DIR"
+
+# Only copy the signed .app - nothing else
+cp -R "$APP_PATH" "$DMG_STAGING_DIR/"
+
+# Step 4: Create DMG with create-dmg
 echo -e "${YELLOW}Creating DMG...${NC}"
+rm -f "$DMG_OUTPUT"
 
-# Remove old DMG if exists
-rm -f "$DMG_OUTPUT" "$DMG_TEMP"
-
-# Use create-dmg for a professional installer
 create-dmg \
-    --volname "${APP_NAME} Installer" \
+    --volname "${APP_NAME} v${VERSION}" \
     --window-pos 200 120 \
-    --window-size 800 400 \
+    --window-size 600 400 \
     --icon-size 100 \
-    --icon "$APP_NAME.app" 200 190 \
-    --hide-extension "$APP_NAME.app" \
-    --app-drop-link 600 185 \
-    --eula ~/.claude/LICENSE \
-    "$DMG_TEMP" \
-    "$APP_PATH/.." \
-    2>/dev/null || {
-    # Fallback: simple DMG if create-dmg fails
-    echo -e "${YELLOW}create-dmg failed, using hdiutil fallback${NC}"
-    hdiutil create -volname "${APP_NAME} v${VERSION}" -srcfolder "$APP_PATH/.." -ov -format UDZO "$DMG_TEMP"
-}
+    --icon "${APP_NAME}.app" 150 180 \
+    --hide-extension "${APP_NAME}.app" \
+    --app-drop-link 450 180 \
+    "$DMG_OUTPUT" \
+    "$DMG_STAGING_DIR/"  # Key: only package the staging dir content
 
-# Move to final location
-mv "$DMG_TEMP" "$DMG_OUTPUT"
-
-# Step 4: Sign the DMG itself
+# Step 5: Sign the DMG itself
 echo -e "${YELLOW}Signing DMG...${NC}"
 codesign --force --sign - "$DMG_OUTPUT"
 echo -e "${GREEN}DMG signing complete.${NC}"
+
+# Cleanup staging dir
+rm -rf "$DMG_STAGING_DIR"
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  Build Complete!${NC}"

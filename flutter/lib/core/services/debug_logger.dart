@@ -18,7 +18,6 @@ class DebugLogger {
   }
 
   void log(String message) {
-    print('[DEBUG_LOGGER] $message');
     if (_logFile == null) return;
     final entry = '[${DateTime.now()}] $message\n';
     _logFile!.writeAsString(entry, mode: FileMode.append);

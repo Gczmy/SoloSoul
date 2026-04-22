@@ -12,9 +12,20 @@ class NativeVaultService {
   late DynamicLibrary _lib;
   bool _isAndroid = false;
 
+  /// Write debug log to file
+  void _log(String msg) {
+    // Use home directory for macOS sandbox compatibility
+    final homeDir = Platform.environment['HOME'] ?? '/tmp';
+    final logFile = File('$homeDir/Library/Logs/flutter_native_vault.log');
+    logFile.writeAsStringSync(
+      '${DateTime.now().toIso8601String()} $msg\n',
+      mode: FileMode.append,
+    );
+  }
+
   // FFI function types
   late Pointer<Utf8> Function(Pointer<Utf8> requestPtr, int requestLen)
-      _vaultRequest;
+  _vaultRequest;
   late int Function(Pointer<Utf8> basePathPtr) _initAccountManager;
   late int Function() _isVaultUnlocked;
   late void Function(Pointer<Utf8> ptr) _freeRustString;
@@ -28,6 +39,8 @@ class NativeVaultService {
 
   void _initialize() {
     _isAndroid = Platform.isAndroid;
+
+    _log('NativeVaultService initializing...');
 
     if (_isAndroid) {
       // Android: Vault operations not yet supported via FFI
@@ -52,9 +65,10 @@ class NativeVaultService {
         try {
           _lib = DynamicLibrary.open(path);
           loadedLib = _lib;
+          _log('Successfully loaded dylib from: $path');
           break;
-        } catch (_) {
-          // Try next path
+        } catch (e) {
+          _log('Failed to load from $path: $e');
         }
       }
 
@@ -64,22 +78,25 @@ class NativeVaultService {
     } else if (Platform.isIOS) {
       _lib = DynamicLibrary.process();
     } else {
-      throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
+      throw UnsupportedError(
+        'Unsupported platform: ${Platform.operatingSystem}',
+      );
     }
 
     // Bind vault_request_ffi
     _vaultRequest = _lib
         .lookup<
-            NativeFunction<
-                Pointer<Utf8> Function(
-                    Pointer<Utf8> requestPtr, IntPtr requestLen)>>(
-            'vault_request_ffi')
+          NativeFunction<
+            Pointer<Utf8> Function(Pointer<Utf8> requestPtr, IntPtr requestLen)
+          >
+        >('vault_request_ffi')
         .asFunction();
 
     // Bind init_account_manager_ffi
     _initAccountManager = _lib
         .lookup<NativeFunction<Int32 Function(Pointer<Utf8> basePathPtr)>>(
-            'init_account_manager_ffi')
+          'init_account_manager_ffi',
+        )
         .asFunction();
 
     // Bind is_vault_unlocked_ffi
@@ -90,7 +107,8 @@ class NativeVaultService {
     // Bind free_rust_string_ffi
     _freeRustString = _lib
         .lookup<NativeFunction<Void Function(Pointer<Utf8> ptr)>>(
-            'free_rust_string_ffi')
+          'free_rust_string_ffi',
+        )
         .asFunction();
   }
 
@@ -133,15 +151,15 @@ class NativeVaultService {
   static const String actionDeleteAccount = 'delete_account';
 
   /// Make a vault request and return the response (public for cross-service use)
-  Map<String, dynamic>? request(String action, [Map<String, dynamic>? payload]) {
+  Map<String, dynamic>? request(
+    String action, [
+    Map<String, dynamic>? payload,
+  ]) {
     if (_isAndroid) {
       return null;
     }
 
-    final request = {
-      'action': action,
-      if (payload != null) 'payload': payload,
-    };
+    final request = {'action': action, if (payload != null) 'payload': payload};
 
     final requestJson = jsonEncode(request);
     final requestPtr = requestJson.toNativeUtf8();
@@ -149,15 +167,16 @@ class NativeVaultService {
 
     try {
       final responsePtr = _vaultRequest(requestPtr, requestLen);
+
       if (responsePtr == nullptr) {
+        _log('responsePtr is nullptr for action: $action');
         return null;
       }
 
       final responseStr = responsePtr.toDartString();
-      // IMPORTANT: Must call free_rust_string_ffi to release Rust-allocated memory
       _freeRustString(responsePtr.cast());
-
       final response = jsonDecode(responseStr) as Map<String, dynamic>;
+      _log('request completed: action=$action, success=${response['success']}');
       return response;
     } finally {
       calloc.free(requestPtr);
@@ -174,6 +193,12 @@ class NativeVaultService {
     return response?['error'] as String?;
   }
 
+  /// Test FFI connection with a simple ping
+  bool ping() {
+    final response = request('ping');
+    return _isSuccess(response);
+  }
+
   /// List all profiles
   List<Map<String, dynamic>>? listProfiles() {
     final response = request(actionListProfiles);
@@ -187,10 +212,7 @@ class NativeVaultService {
   /// Save a profile (create or update)
   /// Returns profile summary on success
   Map<String, dynamic>? saveProfile(String name, Uint8List encryptedData) {
-    final payload = {
-      'name': name,
-      'data': base64Encode(encryptedData),
-    };
+    final payload = {'name': name, 'data': base64Encode(encryptedData)};
     final response = request(actionSaveProfile, payload);
     if (!_isSuccess(response)) {
       return null;
@@ -201,10 +223,7 @@ class NativeVaultService {
   /// Create a new profile
   /// Returns profile summary on success
   Map<String, dynamic>? createProfile(String name, Uint8List encryptedData) {
-    final payload = {
-      'name': name,
-      'data': base64Encode(encryptedData),
-    };
+    final payload = {'name': name, 'data': base64Encode(encryptedData)};
     final response = request(actionCreateProfile, payload);
     if (!_isSuccess(response)) {
       return null;
@@ -253,10 +272,16 @@ class NativeVaultService {
 
   /// Create a new account in the Rust vault
   /// Returns account info on success (including the generated account_id, salt, and verify_hash)
-  ({bool success, String? error, String? accountId, String? name, String? salt, String? verifyHash})? createAccount({
-    required String name,
-    required String password,
-  }) {
+  ({
+    bool success,
+    String? error,
+    String? accountId,
+    String? name,
+    String? salt,
+    String? verifyHash,
+  })?
+  createAccount({required String name, required String password}) {
+    // NOTE: _log() calls removed - they may cause hangs with synchronous file I/O
     final payload = {
       'account_id': '', // Rust generates its own
       'name': name,
@@ -264,7 +289,14 @@ class NativeVaultService {
     };
     final response = request(actionCreateAccount, payload);
     if (!_isSuccess(response)) {
-      return (success: false, error: _getError(response), accountId: null, name: null, salt: null, verifyHash: null);
+      return (
+        success: false,
+        error: _getError(response),
+        accountId: null,
+        name: null,
+        salt: null,
+        verifyHash: null,
+      );
     }
     final data = response!['data'] as Map<String, dynamic>;
     return (
@@ -283,10 +315,7 @@ class NativeVaultService {
     required String accountId,
     required String password,
   }) {
-    final payload = {
-      'account_id': accountId,
-      'password': password,
-    };
+    final payload = {'account_id': accountId, 'password': password};
     final response = request(actionUnlockVault, payload);
     if (!_isSuccess(response)) {
       return (success: false, error: _getError(response), cryptoVersion: null);
@@ -306,7 +335,8 @@ class NativeVaultService {
 
   /// Change account password
   /// Returns new salt and verify_hash on success
-  ({bool success, String? error, String? salt, String? verifyHash})? changePassword({
+  ({bool success, String? error, String? salt, String? verifyHash})?
+  changePassword({
     required String accountId,
     required String oldPassword,
     required String newPassword,
@@ -318,7 +348,12 @@ class NativeVaultService {
     };
     final response = request('change_password', payload);
     if (!_isSuccess(response)) {
-      return (success: false, error: _getError(response), salt: null, verifyHash: null);
+      return (
+        success: false,
+        error: _getError(response),
+        salt: null,
+        verifyHash: null,
+      );
     }
     final data = response!['data'] as Map<String, dynamic>;
     return (
@@ -330,9 +365,14 @@ class NativeVaultService {
   }
 
   /// Get account config (salt and verify_hash) for Keychain migration
-  ({String? id, String? name, String? salt, String? verifyHash, int? cryptoVersion})? getAccountConfig({
-    required String accountId,
-  }) {
+  ({
+    String? id,
+    String? name,
+    String? salt,
+    String? verifyHash,
+    int? cryptoVersion,
+  })?
+  getAccountConfig({required String accountId}) {
     final payload = {'account_id': accountId};
     final response = request('get_account_config', payload);
     if (!_isSuccess(response)) {
@@ -352,5 +392,23 @@ class NativeVaultService {
   bool deleteAccount({required String accountId}) {
     final response = request(actionDeleteAccount, {'account_id': accountId});
     return _isSuccess(response);
+  }
+
+  /// List all accounts from Rust vault via JSON relay
+  /// Returns list of account info maps with id, name, last_accessed
+  List<Map<String, dynamic>>? listAccounts() {
+    final response = request('list_accounts', <String, dynamic>{});
+    if (!_isSuccess(response)) {
+      return null;
+    }
+    final data = response!['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      return null;
+    }
+    final accounts = data['accounts'] as List<dynamic>?;
+    if (accounts == null) {
+      return null;
+    }
+    return accounts.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 }

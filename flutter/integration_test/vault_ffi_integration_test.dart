@@ -19,8 +19,7 @@ void main() {
       testVaultPath = tempDir.path;
 
       // Initialize account manager
-      final result = RustVaultService.instance.initAccountManager(testVaultPath);
-      print('Init account manager result: $result');
+      RustVaultService.instance.initAccountManager(testVaultPath);
     });
 
     tearDownAll(() async {
@@ -37,14 +36,12 @@ void main() {
       final dir = Directory(testVaultPath);
       final exists = await dir.exists();
       expect(exists, isTrue, reason: 'Vault directory should exist after init');
-      print('Vault directory: $testVaultPath');
     });
 
     test('2. Unlock with wrong password returns error (not crash)', () async {
       // This tests the error handling path - wrong password should return error JSON
       // Since we haven't created an account yet, this tests the "no account" path
       final result = RustVaultService.instance.isVaultUnlocked();
-      print('Vault is unlocked before any account: $result');
       expect(result, isFalse, reason: 'Vault should be locked initially');
     });
 
@@ -64,14 +61,12 @@ void main() {
       );
 
       expect(derivedKey, isNotNull, reason: 'Key derivation should succeed');
-      print('Derived key length: ${derivedKey!.length}');
 
       // Set encryption key for profile storage
       RustVaultService.instance.setEncryptionKey(derivedKey);
 
       // Now we could save/load profiles
-      final isUnlocked = RustVaultService.instance.isVaultUnlocked();
-      print('Vault unlocked state: $isUnlocked');
+      RustVaultService.instance.isVaultUnlocked();
     });
 
     test('4. Profile save and load roundtrip with complex data', () async {
@@ -159,14 +154,12 @@ void main() {
 
       // Save the profile
       final saved = await RustVaultService.instance.saveProfileEncrypted('test_profile', profileJson);
-      print('Save result: ${saved?.id ?? "null"}');
       expect(saved, isNotNull, reason: 'Profile save should succeed');
       expect(saved!.name, equals('test_profile'));
       expect(saved.version, equals(1));
 
       // Load the profile back
       final loaded = await RustVaultService.instance.loadProfileDecrypted(saved.id);
-      print('Load result length: ${loaded?.length ?? 0}');
       expect(loaded, isNotNull, reason: 'Profile load should succeed');
       expect(loaded, isNotEmpty, reason: 'Loaded profile should have data');
 
@@ -214,10 +207,6 @@ void main() {
 
     test('6. List profiles returns all profiles', () async {
       final profiles = await RustVaultService.instance.listProfiles();
-      print('Total profiles: ${profiles.length}');
-      for (final p in profiles) {
-        print('  - ${p.name} (v${p.version}): ${p.id}');
-      }
       expect(profiles, isNotEmpty, reason: 'Should have at least the profiles we created');
     });
 

@@ -4,8 +4,25 @@
 //! that works around flutter_rust_bridge's complex type handling limitations.
 
 use serde::{Deserialize, Serialize};
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::path::PathBuf;
 use crate::vault::{Profile, ProfileSummary};
 use crate::account::AccountManager;
+
+/// Write debug log to file (works in sandboxed environment)
+fn log_to_file(msg: &str) {
+    // Use home directory for macOS sandbox compatibility
+    let log_path = if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home).join("Library/Logs/solosoul_debug.log")
+    } else {
+        PathBuf::from("/tmp/solosoul_debug.log")
+    };
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&log_path) {
+        let timestamp = chrono::Utc::now().to_rfc3339();
+        let _ = writeln!(file, "[{}] {}", timestamp, msg);
+    }
+}
 
 /// Request envelope for vault operations
 #[derive(Debug, Deserialize)]
@@ -107,7 +124,12 @@ pub fn handle_vault_request(
     request: VaultRequest,
     account_manager: &AccountManager,
 ) -> VaultResponse {
+    log_to_file(&format!("[PROCESSOR] Received action: {}", request.action));
     match request.action.as_str() {
+        "ping" => {
+            log_to_file("[PROCESSOR] Ping received - FFI is working!");
+            VaultResponse::success(serde_json::json!({"pong": true}))
+        }
         "list_profiles" => handle_list_profiles(account_manager),
         "save_profile" => handle_save_profile(request.payload, account_manager),
         "create_profile" => handle_create_profile(request.payload, account_manager),
@@ -128,8 +150,25 @@ pub fn handle_vault_request(
         "save_setting" => handle_save_setting(request.payload, account_manager),
         "load_setting" => handle_load_setting(request.payload, account_manager),
         "delete_setting" => handle_delete_setting(request.payload, account_manager),
+        "list_accounts" => handle_list_accounts(account_manager),
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
+}
+
+/// Handle list_accounts action - returns all accounts from accounts.json
+fn handle_list_accounts(manager: &AccountManager) -> VaultResponse {
+    let accounts = manager.list_accounts();
+    let account_summaries: Vec<serde_json::Value> = accounts
+        .into_iter()
+        .map(|a| serde_json::json!({
+            "id": a.id,
+            "name": a.name,
+            "last_accessed": a.last_accessed.map(|dt: chrono::DateTime<chrono::Utc>| dt.to_rfc3339()),
+        }))
+        .collect();
+    VaultResponse::success(serde_json::json!({
+        "accounts": account_summaries,
+    }))
 }
 
 fn handle_list_profiles(manager: &AccountManager) -> VaultResponse {
@@ -342,15 +381,25 @@ fn handle_is_unlocked(manager: &AccountManager) -> VaultResponse {
 }
 
 fn handle_unlock_vault(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    log_to_file("[PROCESSOR] handle_unlock_vault called");
     let payload: UnlockVaultPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
             Ok(p) => p,
-            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+            Err(e) => {
+                log_to_file(&format!("[PROCESSOR] Payload parse error: {}", e));
+                return VaultResponse::error(format!("Invalid payload: {}", e));
+            }
         },
-        None => return VaultResponse::error("Missing payload".to_string()),
+        None => {
+            log_to_file("[PROCESSOR] Missing payload");
+            return VaultResponse::error("Missing payload".to_string());
+        }
     };
 
+    log_to_file(&format!("[PROCESSOR] Calling manager.unlock for account_id: {}", payload.account_id));
     let result = manager.unlock(&payload.account_id, &payload.password);
+    log_to_file(&format!("[PROCESSOR] manager.unlock returned, success={}", result.success));
+
     VaultResponse::success(serde_json::json!({
         "success": result.success,
         "error": result.error,
@@ -366,6 +415,7 @@ fn handle_lock_vault(manager: &AccountManager) -> VaultResponse {
 }
 
 fn handle_create_account(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    log_to_file("[PROCESSOR] handle_create_account called");
     let payload: CreateAccountPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
             Ok(p) => p,
@@ -373,15 +423,20 @@ fn handle_create_account(payload: Option<serde_json::Value>, manager: &AccountMa
         },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
+    log_to_file(&format!("[PROCESSOR] create_account payload: name={}", payload.name));
 
+    log_to_file("[PROCESSOR] Calling manager.create_account...");
     match manager.create_account(&payload.name, &payload.password) {
-        Ok(info) => VaultResponse::success(serde_json::json!({
-            "id": info.id,
-            "name": info.name,
-            "salt": info.salt,
-            "verify_hash": info.verify_hash,
-            "created": true
-        })),
+        Ok(info) => {
+            log_to_file(&format!("[PROCESSOR] manager.create_account success: id={}", info.id));
+            VaultResponse::success(serde_json::json!({
+                "id": info.id,
+                "name": info.name,
+                "salt": info.salt,
+                "verify_hash": info.verify_hash,
+                "created": true
+            }))
+        },
         Err(e) => VaultResponse::error(format!("Failed to create account: {}", e)),
     }
 }
@@ -730,5 +785,163 @@ mod tests {
         let request: VaultRequest = serde_json::from_str(json).unwrap();
         assert_eq!(request.action, "save_profile");
         assert!(request.payload.is_some());
+    }
+
+    #[test]
+    fn test_vault_request_with_complex_payload() {
+        let json = r#"{
+            "action": "create_account",
+            "payload": {
+                "account_id": "acc_123",
+                "name": "Test Account",
+                "password": "securepassword123"
+            }
+        }"#;
+        let request: VaultRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(request.action, "create_account");
+        assert!(request.payload.is_some());
+
+        let payload = request.payload.unwrap();
+        assert_eq!(payload.get("name").unwrap().as_str().unwrap(), "Test Account");
+    }
+
+    #[test]
+    fn test_vault_response_serialization() {
+        let response = VaultResponse::success(serde_json::json!({
+            "id": "acc_123",
+            "name": "Test"
+        }));
+        let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("\"success\":true"));
+        assert!(json.contains("acc_123"));
+    }
+
+    #[test]
+    fn test_vault_response_error_serialization() {
+        let response = VaultResponse::error("Something went wrong".to_string());
+        let json = serde_json::to_string(&response).unwrap();
+        assert!(json.contains("\"success\":false"));
+        assert!(json.contains("Something went wrong"));
+    }
+
+    #[test]
+    fn test_vault_request_unknown_action() {
+        use tempfile::TempDir;
+        use crate::account::AccountManager;
+
+        let temp_dir = TempDir::new().unwrap();
+        let manager = AccountManager::new(temp_dir.path().to_path_buf());
+
+        let request = handle_vault_request(
+            VaultRequest {
+                action: "unknown_action".to_string(),
+                payload: None,
+            },
+            &manager,
+        );
+        // Unknown action returns error
+        assert!(!request.success);
+        assert!(request.error.is_some());
+    }
+
+    #[test]
+    fn test_save_profile_payload_deserialize() {
+        let json = r#"{"name": "profile1", "data": "SGVsbG8sIFdvcmxkIQ=="}"#;
+        let payload: SaveProfilePayload = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.name, "profile1");
+        assert_eq!(payload.data, "SGVsbG8sIFdvcmxkIQ==");
+    }
+
+    #[test]
+    fn test_create_profile_payload_deserialize() {
+        let json = r#"{"name": "new_profile", "data": "dGVzdCBkYXRh"}"#;
+        let payload: CreateProfilePayload = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.name, "new_profile");
+        assert_eq!(payload.data, "dGVzdCBkYXRh");
+    }
+
+    #[test]
+    fn test_unlock_vault_payload_deserialize() {
+        let json = r#"{"account_id": "acc_abc123", "password": "mypassword"}"#;
+        let payload: UnlockVaultPayload = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.account_id, "acc_abc123");
+        assert_eq!(payload.password, "mypassword");
+    }
+
+    #[test]
+    fn test_change_password_payload_deserialize() {
+        let json = r#"{
+            "account_id": "acc_123",
+            "old_password": "oldpass",
+            "new_password": "newpass123"
+        }"#;
+        let payload: ChangePasswordPayload = serde_json::from_str(json).unwrap();
+        assert_eq!(payload.account_id, "acc_123");
+        assert_eq!(payload.old_password, "oldpass");
+        assert_eq!(payload.new_password, "newpass123");
+    }
+
+    #[test]
+    fn test_json_profile_summary_from_profile_summary() {
+        use crate::vault::ProfileSummary;
+        use chrono::Utc;
+
+        let summary = ProfileSummary {
+            id: "test_id".to_string(),
+            name: "Test Profile".to_string(),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            version: 1,
+        };
+
+        let json_summary: JsonProfileSummary = summary.into();
+        assert_eq!(json_summary.id, "test_id");
+        assert_eq!(json_summary.name, "Test Profile");
+        assert_eq!(json_summary.version, 1);
+    }
+
+    #[test]
+    fn test_json_profile_summary_serialization() {
+        let summary = JsonProfileSummary {
+            id: "acc_123".to_string(),
+            name: "Profile Name".to_string(),
+            created_at: "2024-01-01T00:00:00+00:00".to_string(),
+            updated_at: "2024-01-02T00:00:00+00:00".to_string(),
+            version: 2,
+        };
+
+        let json = serde_json::to_string(&summary).unwrap();
+        assert!(json.contains("acc_123"));
+        assert!(json.contains("Profile Name"));
+        assert!(json.contains("\"version\":2"));
+    }
+
+    #[test]
+    fn test_base64_decode_invalid_input() {
+        let result = base64_decode("not-valid-base64!!!");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_base64_encode_decodes_to_original() {
+        let original = vec![0x00, 0xFF, 0x42, 0x13, 0x37];
+        let encoded = base64_encode(&original);
+        let decoded = base64_decode(&encoded).unwrap();
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn test_handle_vault_request_invalid_json() {
+        let json = r#"{"action": "save_profile", "payload": {"name":}}"#;
+        let request: Result<VaultRequest, _> = serde_json::from_str(json);
+        assert!(request.is_err());
+    }
+
+    #[test]
+    fn test_vault_request_empty_action() {
+        let json = r#"{"action": "", "payload": null}"#;
+        let request: VaultRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(request.action, "");
+        assert!(request.payload.is_none());
     }
 }

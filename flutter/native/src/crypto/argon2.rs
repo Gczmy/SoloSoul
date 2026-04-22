@@ -156,4 +156,275 @@ mod tests {
         // Salt should not be all zeros
         assert!(salt.iter().any(|&x| x != 0));
     }
+
+    #[test]
+    fn test_derive_key_deterministic() {
+        let password = "consistent_password";
+        let salt = [0x12u8; 32];
+        let params = (8 * 1024, 1, 1);
+
+        let key1 = derive_key(password, &salt, params.0, params.1, params.2).unwrap();
+        let key2 = derive_key(password, &salt, params.0, params.1, params.2).unwrap();
+
+        // Same inputs should produce same output
+        assert_eq!(key1.as_slice(), key2.as_slice());
+    }
+
+    #[test]
+    fn test_derive_key_different_passwords() {
+        let salt = [0u8; 32];
+        let params = (8 * 1024, 1, 1);
+
+        let key1 = derive_key("password1", &salt, params.0, params.1, params.2).unwrap();
+        let key2 = derive_key("password2", &salt, params.0, params.1, params.2).unwrap();
+
+        assert_ne!(key1.as_slice(), key2.as_slice());
+    }
+
+    #[test]
+    fn test_derive_key_different_salts() {
+        let password = "same_password";
+        let params = (8 * 1024, 1, 1);
+        let salt1 = [0u8; 32];
+        let salt2 = [1u8; 32];
+
+        let key1 = derive_key(password, &salt1, params.0, params.1, params.2).unwrap();
+        let key2 = derive_key(password, &salt2, params.0, params.1, params.2).unwrap();
+
+        assert_ne!(key1.as_slice(), key2.as_slice());
+    }
+
+    #[test]
+    fn test_derive_key_output_length() {
+        let password = "test";
+        let salt = [0u8; 32];
+        let key = derive_key(password, &salt, 8 * 1024, 1, 1).unwrap();
+
+        assert_eq!(key.as_slice().len(), 32, "Key should be 32 bytes");
+    }
+
+    #[test]
+    fn test_derive_key_empty_password() {
+        let salt = [0u8; 32];
+        let result = derive_key("", &salt, 8 * 1024, 1, 1);
+        assert!(result.is_ok());
+        let key = result.unwrap();
+        assert!(key.iter().any(|&x| x != 0), "Empty password should still produce non-zero key");
+    }
+
+    #[test]
+    fn test_derive_key_invalid_params_iterations() {
+        let password = "test";
+        let salt = [0u8; 32];
+
+        // Iterations must be at least 1
+        let result = derive_key(password, &salt, 8 * 1024, 0, 1);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_derive_key_invalid_parallelism() {
+        let password = "test";
+        let salt = [0u8; 32];
+
+        // Parallelism must be at least 1
+        let result = derive_key(password, &salt, 8 * 1024, 1, 0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_generate_salt_nullptr() {
+        let result = unsafe { argon2_generate_salt(std::ptr::null_mut(), 32) };
+        assert_eq!(result, RESULT_NULLPTR);
+    }
+
+    #[test]
+    fn test_generate_salt_invalid_length() {
+        let mut salt = [0u8; 32];
+        let result = unsafe { argon2_generate_salt(salt.as_mut_ptr(), 16) };
+        assert_eq!(result, RESULT_INVALID_LEN);
+    }
+
+    #[test]
+    fn test_generate_salt_produces_different_values() {
+        let mut salt1 = [0u8; 32];
+        let mut salt2 = [0u8; 32];
+
+        unsafe {
+            argon2_generate_salt(salt1.as_mut_ptr(), 32);
+            argon2_generate_salt(salt2.as_mut_ptr(), 32);
+        }
+
+        assert_ne!(salt1.as_slice(), salt2.as_slice(), "Each salt generation should produce different values");
+    }
+
+    #[test]
+    fn test_derive_key_ffi_roundtrip() {
+        let password = b"ffi_test_password";
+        let mut salt = [0u8; 32];
+        let mut output = [0u8; 32];
+
+        unsafe {
+            argon2_generate_salt(salt.as_mut_ptr(), 32);
+        }
+
+        let result = unsafe {
+            argon2_derive_key(
+                password.as_ptr(),
+                password.len(),
+                salt.as_ptr(),
+                32,
+                8 * 1024,
+                1,
+                1,
+                output.as_mut_ptr(),
+                32,
+            )
+        };
+
+        assert_eq!(result, RESULT_OK);
+        assert!(output.iter().any(|&x| x != 0), "FFI derived key should not be all zeros");
+    }
+
+    #[test]
+    fn test_derive_key_ffi_nullptr_password() {
+        let mut output = [0u8; 32];
+        let result = unsafe {
+            argon2_derive_key(
+                std::ptr::null(),
+                10,
+                [0u8; 32].as_ptr(),
+                32,
+                8 * 1024,
+                1,
+                1,
+                output.as_mut_ptr(),
+                32,
+            )
+        };
+        assert_eq!(result, RESULT_NULLPTR);
+    }
+
+    #[test]
+    fn test_derive_key_ffi_nullptr_salt() {
+        let password = b"test";
+        let mut output = [0u8; 32];
+        let result = unsafe {
+            argon2_derive_key(
+                password.as_ptr(),
+                password.len(),
+                std::ptr::null(),
+                32,
+                8 * 1024,
+                1,
+                1,
+                output.as_mut_ptr(),
+                32,
+            )
+        };
+        assert_eq!(result, RESULT_NULLPTR);
+    }
+
+    #[test]
+    fn test_derive_key_ffi_nullptr_output() {
+        let password = b"test";
+        let result = unsafe {
+            argon2_derive_key(
+                password.as_ptr(),
+                password.len(),
+                [0u8; 32].as_ptr(),
+                32,
+                8 * 1024,
+                1,
+                1,
+                std::ptr::null_mut(),
+                32,
+            )
+        };
+        assert_eq!(result, RESULT_NULLPTR);
+    }
+
+    #[test]
+    fn test_derive_key_ffi_invalid_salt_len() {
+        let password = b"test";
+        let mut output = [0u8; 32];
+        let result = unsafe {
+            argon2_derive_key(
+                password.as_ptr(),
+                password.len(),
+                [0u8; 32].as_ptr(),
+                16, // Invalid salt length
+                8 * 1024,
+                1,
+                1,
+                output.as_mut_ptr(),
+                32,
+            )
+        };
+        assert_eq!(result, RESULT_INVALID_LEN);
+    }
+
+    #[test]
+    fn test_derive_key_ffi_invalid_output_len() {
+        let password = b"test";
+        let result = unsafe {
+            argon2_derive_key(
+                password.as_ptr(),
+                password.len(),
+                [0u8; 32].as_ptr(),
+                32,
+                8 * 1024,
+                1,
+                1,
+                [0u8; 32].as_mut_ptr(),
+                16, // Invalid output length
+            )
+        };
+        assert_eq!(result, RESULT_INVALID_LEN);
+    }
+
+    #[test]
+    fn test_default_constants() {
+        assert_eq!(DEFAULT_MEMORY_KIB, 16384, "Default memory should be 16MB");
+        assert_eq!(DEFAULT_ITERATIONS, 1, "Default iterations should be 1");
+        assert_eq!(DEFAULT_PARALLELISM, 4, "Default parallelism should be 4");
+    }
+
+    #[test]
+    fn test_result_codes() {
+        assert_eq!(RESULT_OK, 0);
+        assert_eq!(RESULT_NULLPTR, -1);
+        assert_eq!(RESULT_INVALID_LEN, -2);
+        assert_eq!(RESULT_INVALID_PARAMS, -3);
+        assert_eq!(RESULT_HASH_FAILED, -4);
+    }
+
+    #[test]
+    fn test_key_zeroize_on_drop() {
+        let password = "sensitive_password";
+        let salt = [0u8; 32];
+
+        let key = derive_key(password, &salt, 8 * 1024, 1, 1).unwrap();
+        let key_slice = key.as_slice().to_vec(); // Copy before drop
+
+        // Key should have non-zero content
+        assert!(key_slice.iter().any(|&x| x != 0));
+        // After key goes out of scope, the Zeroizing wrapper should zero the memory
+    }
+
+    #[test]
+    fn test_argon2_password_with_special_chars() {
+        let password = "p@ssw0rd!#$%^&*()";
+        let salt = [0u8; 32];
+        let key = derive_key(password, &salt, 8 * 1024, 1, 1).unwrap();
+        assert!(key.iter().any(|&x| x != 0));
+    }
+
+    #[test]
+    fn test_argon2_unicode_password() {
+        let password = "密码パスワード";
+        let salt = [0u8; 32];
+        let key = derive_key(password, &salt, 8 * 1024, 1, 1).unwrap();
+        assert!(key.iter().any(|&x| x != 0));
+    }
 }

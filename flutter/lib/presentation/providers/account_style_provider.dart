@@ -78,12 +78,6 @@ class SensitivityResolver {
         FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
         ?.level;
     if (registryLevel != null) {
-      // Only warn in debug mode
-      assert(() {
-        debugPrint('[DEPRECATED] Field "$fieldId" not in FormFieldRegistry. '
-            'Add it via FormFieldRegistry.registerAll() in the form.');
-        return true;
-      }());
       return registryLevel;
     }
 

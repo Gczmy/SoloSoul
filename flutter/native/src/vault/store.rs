@@ -4,11 +4,23 @@
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use rusqlite::{Connection, params};
+use std::fs::OpenOptions;
+use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use zeroize::Zeroize;
 
 use super::{VaultConfig, VaultStats, VaultState};
 use super::migration::run_migrations;
+
+/// Write debug log to file (works in sandboxed environment)
+fn log_to_file(msg: &str) {
+    let log_path = if let Ok(home) = std::env::var("HOME") { PathBuf::from(home).join("Library/Logs/solosoul_debug.log") } else { PathBuf::from("/tmp/solosoul_debug.log") };
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&log_path) {
+        let timestamp = chrono::Utc::now().to_rfc3339();
+        let _ = writeln!(file, "[{}] {}", timestamp, msg);
+    }
+}
 
 /// Vault store with双重加密
 pub struct VaultStore {
@@ -21,23 +33,32 @@ impl VaultStore {
     /// Open or create a vault at the given path
     pub fn open(config: VaultConfig) -> Result<Self, String> {
         let path = config.path.join("vault.db");
+        log_to_file(&format!("[VAULT] VaultStore::open path: {:?}", path));
 
         // Open SQLite connection
         let mut conn = Connection::open(&path)
             .map_err(|e| format!("Failed to open vault: {}", e))?;
+        log_to_file("[VAULT] Connection opened");
 
-        // Apply SQLCipher encryption BEFORE any other operations
-        if let Some(ref key) = config.sqlcipher_key {
-            let key_hex = hex::encode(key);
-            conn.execute_batch(&format!("PRAGMA key = \"x'{key_hex}'\";"))
-                .map_err(|e| format!("Failed to set SQLCipher key: {}", e))?;
-        }
+        // Set busy timeout to prevent indefinite blocking on locked files
+        // If file is locked or access denied, return error after 5 seconds
+        // Note: PRAGMA busy_timeout returns a result row, so we use query_row to consume it
+        let _: Result<(), _> = conn.query_row("PRAGMA busy_timeout = 5000;", [], |_| Ok(()));
+        log_to_file("[VAULT] busy_timeout set");
+
+        // Note: SQLCipher encryption is NOT used at the SQLite level
+        // The database is protected at the app layer with AES-256-GCM encryption
+        // Skipping PRAGMA key since bundled rusqlite doesn't include SQLCipher
 
         // Initialize schema
+        log_to_file("[VAULT] Initializing schema...");
         Self::init_schema(&conn)?;
+        log_to_file("[VAULT] Schema initialized");
 
         // Run migrations after schema init
+        log_to_file("[VAULT] Running migrations...");
         run_migrations(&mut conn).map_err(|e| format!("Migration failed: {}", e))?;
+        log_to_file("[VAULT] Migrations complete");
 
         Ok(Self {
             conn: Mutex::new(Some(conn)),

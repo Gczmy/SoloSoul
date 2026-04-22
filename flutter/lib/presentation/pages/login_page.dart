@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/pages/home_page.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -228,19 +229,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     setState(() => _isLoading = true);
 
+    DebugLogger.instance.logInfo('LOGIN', 'Starting unlockVault for account: ${authNotifier.selectedAccountId}');
     final success = await authNotifier.unlockVault(_passwordController.text);
+    DebugLogger.instance.logInfo('LOGIN', 'unlockVault completed, success: $success');
 
     if (success && mounted) {
       // Pre-load profile before navigating to home
-      // Await directly to ensure load completes before navigation
-      await ref.read(profileNotifierProvider.notifier).loadProfile();
+      // Use timeout to prevent hanging if OperationLogService initialization is slow
+      await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          DebugLogger.instance.logError('LOGIN', 'loadProfile timed out');
+        },
+      );
+
       // Pre-register all form fields for sensitivity settings
       ref.read(formFieldRegistryProvider.notifier).registerAllForms();
 
       // Load account style (sensitivity settings) after unlock
       final styleAccountId = authNotifier.selectedAccountId;
       if (styleAccountId != null) {
-        await ref.read(accountStyleProvider.notifier).loadStyle(styleAccountId);
+        await ref.read(accountStyleProvider.notifier).loadStyle(styleAccountId).timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {},
+        );
       }
 
       // Record login metadata (lastLoginAt + device)
@@ -263,7 +275,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 : 'Flutter Device',
             lastUsed: DateTime.now(),
           ).toJson(),
-        );
+        ).timeout(const Duration(seconds: 5), onTimeout: () {});
         // Reload selected account info so Settings page shows updated data
         await authNotifier.selectAccount(accountId);
       }
@@ -283,6 +295,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleCreateAccount() async {
+    final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] _handleCreateAccount start\n', mode: FileMode.append);
+
     final name = _newAccountNameController.text.trim();
     final password = _newPasswordController.text;
     final confirm = _confirmPasswordController.text;
@@ -306,6 +321,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _isLoading = true;
     });
 
+    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.createAccount\n', mode: FileMode.append);
+
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final passwordHint = _passwordHintController.text.trim();
     final result = await authNotifier.createAccount(
@@ -314,9 +331,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       passwordHint: passwordHint.isEmpty ? null : passwordHint,
     );
 
+    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] createAccount returned, success=${result.success}\n', mode: FileMode.append);
+
     if (result.success && mounted) {
       // Account created, now unlock
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.unlockVault\n', mode: FileMode.append);
       final success = await authNotifier.unlockVault(password);
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] unlockVault returned, success=$success\n', mode: FileMode.append);
       if (success && mounted) {
         // Pre-load profile before navigating to home
         await ref.read(profileNotifierProvider.notifier).loadProfile();
@@ -325,6 +346,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/home');
         }
+      } else if (mounted) {
+        setState(() {
+          _createError = 'Failed to unlock vault. Please try again.';
+          _isLoading = false;
+        });
       }
     } else if (mounted) {
       setState(() {

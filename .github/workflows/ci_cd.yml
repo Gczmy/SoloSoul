@@ -8,7 +8,7 @@ on:
 
 env:
   # Flutter version - update as needed
-  FLUTTER_VERSION: '3.29.0'
+  FLUTTER_VERSION: '3.41.6'
   RUST_VERSION: 'stable'
 
 jobs:

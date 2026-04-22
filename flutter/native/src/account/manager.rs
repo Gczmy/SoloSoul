@@ -11,7 +11,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Digest};
 use std::collections::HashMap;
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::RwLock;
 use zeroize::{Zeroize, Zeroizing};
@@ -20,6 +21,15 @@ use crate::crypto::argon2::{
     derive_key, DEFAULT_ITERATIONS, DEFAULT_MEMORY_KIB, DEFAULT_PARALLELISM,
 };
 use crate::vault::{VaultConfig, VaultStore};
+
+/// Write debug log to file (works in sandboxed environment)
+fn log_to_file(msg: &str) {
+    let log_path = if let Ok(home) = std::env::var("HOME") { PathBuf::from(home).join("Library/Logs/solosoul_debug.log") } else { PathBuf::from("/tmp/solosoul_debug.log") };
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&log_path) {
+        let timestamp = chrono::Utc::now().to_rfc3339();
+        let _ = writeln!(file, "[{}] {}", timestamp, msg);
+    }
+}
 
 /// Account metadata (stored in accounts.json)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -251,6 +261,36 @@ impl AccountManager {
             *unlocked = Some(account_id.clone());
         }
 
+        // Open vault store for the new account
+        let sqlcipher_key = self.derive_sqlcipher_key(&key_copy);
+        let vault_config = VaultConfig {
+            path: self.account_dir(&account_id),
+            account_id: account_id.clone(),
+            sqlcipher_key: Some(sqlcipher_key),
+        };
+        match VaultStore::open(vault_config) {
+            Ok(vault) => {
+                let mut vault_store = self.vault_store.write().unwrap();
+                *vault_store = Some(vault);
+            }
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Failed to open vault store during create_account: {}", e));
+                // Clear partial unlock state
+                {
+                    let mut session = self.session_key.write().unwrap();
+                    if let Some(ref mut key) = *session {
+                        key.zeroize();
+                    }
+                    session.take();
+                }
+                {
+                    let mut unlocked = self.unlocked_account.write().unwrap();
+                    unlocked.take();
+                }
+                return Err(format!("Failed to open vault: {}", e));
+            }
+        }
+
         Ok(AccountInfo {
             id: account_id,
             name: name.to_string(),
@@ -263,25 +303,109 @@ impl AccountManager {
 
     /// Unlock account with password
     pub fn unlock(&self, account_id: &str, password: &str) -> VerifyResult {
+        log_to_file(&format!("[MANAGER] unlock called for account_id: {}", account_id));
+
+        // Fast path: if vault is already unlocked for this account, verify password only
+        if self.is_unlocked() {
+            if let Some(current) = self.get_unlocked_account() {
+                if current == account_id {
+                    log_to_file("[MANAGER] Vault already unlocked for this account, checking password...");
+                    // Re-verify password without re-opening the vault
+                    let account_dir = self.account_dir(account_id);
+                    let config_path = account_dir.join("config.json");
+                    let config_content = match fs::read_to_string(&config_path) {
+                        Ok(c) => c,
+                        Err(e) => return VerifyResult { success: false, error: Some(format!("Failed to read config: {}", e)), crypto_version: 0 },
+                    };
+                    let config: AccountConfig = match serde_json::from_str(&config_content) {
+                        Ok(c) => c,
+                        Err(_) => return VerifyResult { success: false, error: Some("Config parse error".to_string()), crypto_version: 0 },
+                    };
+                    let salt_bytes: [u8; 32] = match base64_decode(&config.salt) {
+                        Ok(s) => match s.as_slice().try_into() {
+                            Ok(a) => a,
+                            Err(_) => return VerifyResult { success: false, error: Some("Invalid salt".to_string()), crypto_version: 0 },
+                        },
+                        Err(_) => return VerifyResult { success: false, error: Some("Invalid salt encoding".to_string()), crypto_version: 0 },
+                    };
+                    let master_key = match derive_key(password, &salt_bytes, DEFAULT_MEMORY_KIB, DEFAULT_ITERATIONS, DEFAULT_PARALLELISM) {
+                        Ok(k) => k,
+                        Err(_) => return VerifyResult { success: false, error: Some("Key derivation failed".to_string()), crypto_version: 0 },
+                    };
+                    let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
+                    let verify_key = match derive_key(&hex::encode(master_key.as_slice()), verify_data, 8192, 1, 1) {
+                        Ok(k) => k,
+                        Err(_) => return VerifyResult { success: false, error: Some("Verify failed".to_string()), crypto_version: 0 },
+                    };
+                    let computed_hash = hex::encode(verify_key.as_slice());
+                    if computed_hash != config.verify_hash {
+                        return VerifyResult { success: false, error: Some("Invalid password".to_string()), crypto_version: config.crypto_version };
+                    }
+                    // Ensure vault store is open (create_account sets unlocked state but may not open vault)
+                    let vault_guard = self.vault_store.read().unwrap();
+                    if vault_guard.is_none() {
+                        drop(vault_guard);
+                        let session_guard = self.session_key.read().unwrap();
+                        if let Some(ref key) = *session_guard {
+                            let sqlcipher_key = self.derive_sqlcipher_key(&**key);
+                            let vault_config = VaultConfig {
+                                path: self.account_dir(account_id),
+                                account_id: account_id.to_string(),
+                                sqlcipher_key: Some(sqlcipher_key),
+                            };
+                            match VaultStore::open(vault_config) {
+                                Ok(vault) => {
+                                    let mut vault_store = self.vault_store.write().unwrap();
+                                    *vault_store = Some(vault);
+                                }
+                                Err(e) => {
+                                    log_to_file(&format!("[MANAGER] Failed to open vault store in fast path: {}", e));
+                                    return VerifyResult { success: false, error: Some(format!("Failed to open vault: {}", e)), crypto_version: config.crypto_version };
+                                }
+                            }
+                        }
+                    }
+                    log_to_file("[MANAGER] Password re-verified successfully (vault ready)");
+                    return VerifyResult { success: true, error: None, crypto_version: config.crypto_version };
+                }
+            }
+        }
+
+        // Check if account directory exists
+        let account_dir = self.account_dir(account_id);
+        log_to_file(&format!("[MANAGER] account_dir: {:?}", account_dir));
+        log_to_file(&format!("[MANAGER] account_dir exists: {}", account_dir.exists()));
+
         // Load config
-        let config_path = self.account_dir(account_id).join("config.json");
+        let config_path = account_dir.join("config.json");
+        log_to_file(&format!("[MANAGER] config_path: {:?}", config_path));
+        log_to_file(&format!("[MANAGER] config_path exists: {}", config_path.exists()));
+
         let config_content = match fs::read_to_string(&config_path) {
             Ok(c) => c,
-            Err(e) => return VerifyResult {
-                success: false,
-                error: Some(format!("Failed to read config: {}", e)),
-                crypto_version: 0,
-            },
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Failed to read config: {}", e));
+                return VerifyResult {
+                    success: false,
+                    error: Some(format!("Failed to read config: {}", e)),
+                    crypto_version: 0,
+                };
+            }
         };
+        log_to_file("[MANAGER] Config file read successfully");
 
         let config: AccountConfig = match serde_json::from_str(&config_content) {
             Ok(c) => c,
-            Err(e) => return VerifyResult {
-                success: false,
-                error: Some(format!("Failed to parse config: {}", e)),
-                crypto_version: 0,
-            },
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Config parse error: {}", e));
+                return VerifyResult {
+                    success: false,
+                    error: Some(format!("Failed to parse config: {}", e)),
+                    crypto_version: 0,
+                };
+            }
         };
+        log_to_file(&format!("[MANAGER] Config parsed, account_id: {}, name: {}", config.account_id, config.name));
 
         // Decode salt
         let salt_bytes = match base64_decode(&config.salt) {
@@ -304,6 +428,7 @@ impl AccountManager {
         };
 
         // Derive key from password
+        log_to_file("[MANAGER] Starting key derivation...");
         let master_key = match derive_key(
             password,
             &salt_bytes,
@@ -318,6 +443,7 @@ impl AccountManager {
                 crypto_version: 0,
             },
         };
+        log_to_file("[MANAGER] Key derivation complete, starting verification hash...");
 
         // Verify by computing the same verify hash
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
@@ -366,14 +492,17 @@ impl AccountManager {
         }
 
         // Derive SQLCipher key and open vault
+        log_to_file("[MANAGER] Deriving SQLCipher key...");
         let sqlcipher_key = self.derive_sqlcipher_key(&key_copy);
         let vault_config = VaultConfig {
             path: self.account_dir(account_id),
             account_id: account_id.to_string(),
             sqlcipher_key: Some(sqlcipher_key),
         };
+        log_to_file(&format!("[MANAGER] Opening vault at: {:?}", vault_config.path));
         match VaultStore::open(vault_config) {
             Ok(vault) => {
+                log_to_file("[MANAGER] Vault opened successfully");
                 let mut vault_store = self.vault_store.write().unwrap();
                 *vault_store = Some(vault);
                 VerifyResult {
@@ -383,6 +512,7 @@ impl AccountManager {
                 }
             }
             Err(e) => {
+                log_to_file(&format!("[MANAGER] Vault open failed: {}", e));
                 // Vault failed to open - clear partial unlock state
                 {
                     let mut session = self.session_key.write().unwrap();
@@ -628,4 +758,322 @@ fn base64_encode(data: &[u8]) -> String {
 
 fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
     BASE64.decode(input).map_err(|e| format!("Base64 decode error: {}", e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn create_test_account_manager() -> (AccountManager, TempDir) {
+        let temp_dir = TempDir::new().unwrap();
+        let base_path = temp_dir.path().to_path_buf();
+        let manager = AccountManager::new(base_path);
+        (manager, temp_dir)
+    }
+
+    #[test]
+    fn test_account_manager_new() {
+        let (manager, _temp_dir) = create_test_account_manager();
+        assert!(manager.list_accounts().is_empty());
+    }
+
+    #[test]
+    fn test_create_account() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let result = manager.create_account("test_account", "password123");
+        assert!(result.is_ok(), "Failed to create account: {:?}", result.err());
+
+        let info = result.unwrap();
+        assert_eq!(info.name, "test_account");
+        assert!(!info.salt.is_empty(), "Salt should be generated");
+        assert!(!info.verify_hash.is_empty(), "Verify hash should be generated");
+        assert_eq!(info.crypto_version, 2);
+    }
+
+    #[test]
+    fn test_create_account_password_too_short() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let result = manager.create_account("test", "short");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Password must be at least 8 characters"));
+    }
+
+    #[test]
+    fn test_create_account_empty_name() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let result = manager.create_account("", "password123");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Account name is required"));
+    }
+
+    #[test]
+    fn test_create_account_duplicate_name() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("duplicate", "password123").unwrap();
+        let result = manager.create_account("duplicate", "password456");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("already taken"));
+    }
+
+    #[test]
+    fn test_create_account_name_case_insensitive() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("TestAccount", "password123").unwrap();
+        let result = manager.create_account("testaccount", "password456");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("already taken"));
+    }
+
+    #[test]
+    fn test_is_name_available() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        assert!(manager.is_name_available("new_account"));
+
+        manager.create_account("existing", "password123").unwrap();
+        assert!(!manager.is_name_available("existing"));
+        assert!(!manager.is_name_available("EXISTING"));
+    }
+
+    #[test]
+    fn test_unlock_account() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("unlock_test", "password123").unwrap();
+
+        manager.lock();
+
+        let result = manager.unlock(&created.id, "password123");
+        assert!(result.success, "Failed to unlock: {:?}", result.error);
+        assert_eq!(result.crypto_version, 2);
+    }
+
+    #[test]
+    fn test_unlock_account_wrong_password() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("wrong_pw_test", "password123").unwrap();
+        manager.lock();
+
+        let result = manager.unlock(&created.id, "wrongpassword");
+        assert!(!result.success);
+        assert!(result.error.is_some());
+    }
+
+    #[test]
+    fn test_unlock_nonexistent_account() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let result = manager.unlock("nonexistent_id", "password123");
+        assert!(!result.success);
+        assert!(result.error.is_some());
+    }
+
+    #[test]
+    fn test_lock_account() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("lock_test", "password123").unwrap();
+        assert!(manager.is_unlocked());
+
+        manager.lock();
+        assert!(!manager.is_unlocked());
+    }
+
+    #[test]
+    fn test_is_unlocked_after_create() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("unlocked_test", "password123").unwrap();
+        assert!(manager.is_unlocked());
+    }
+
+    #[test]
+    fn test_get_unlocked_account() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("session_test", "password123").unwrap();
+        assert_eq!(manager.get_unlocked_account(), Some(created.id.clone()));
+
+        manager.lock();
+        assert_eq!(manager.get_unlocked_account(), None);
+    }
+
+    #[test]
+    fn test_get_session_key() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("key_test", "password123").unwrap();
+        let key = manager.get_session_key();
+        assert!(key.is_some());
+
+        manager.lock();
+        assert!(manager.get_session_key().is_none());
+    }
+
+    #[test]
+    fn test_list_accounts() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("account1", "password123").unwrap();
+        manager.create_account("account2", "password456").unwrap();
+
+        let accounts = manager.list_accounts();
+        assert_eq!(accounts.len(), 2);
+    }
+
+    #[test]
+    fn test_list_accounts_sorted() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        manager.create_account("first", "password123").unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(10));
+        manager.create_account("second", "password456").unwrap();
+
+        let accounts = manager.list_accounts_sorted();
+        assert_eq!(accounts[0].name, "second");
+    }
+
+    #[test]
+    fn test_get_account_config() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("config_test", "password123").unwrap();
+        manager.lock();
+
+        let config = manager.get_account_config(&created.id);
+        assert!(config.is_some());
+
+        let config = config.unwrap();
+        assert_eq!(config.name, "config_test");
+        assert!(!config.salt.is_empty());
+        assert!(!config.verify_hash.is_empty());
+    }
+
+    #[test]
+    fn test_get_account_config_nonexistent() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let config = manager.get_account_config("nonexistent");
+        assert!(config.is_none());
+    }
+
+    #[test]
+    fn test_delete_account() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("delete_test", "password123").unwrap();
+        assert!(manager.list_accounts().len() == 1);
+
+        manager.lock();
+        let result = manager.delete_account(&created.id);
+        assert!(result.is_ok());
+
+        assert!(manager.list_accounts().is_empty());
+        assert!(manager.get_account_config(&created.id).is_none());
+    }
+
+    #[test]
+    fn test_change_password() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("change_pw_test", "oldpassword").unwrap();
+
+        let result = manager.change_password(&created.id, "oldpassword", "newpassword123");
+        assert!(result.is_ok(), "Failed to change password: {:?}", result.err());
+
+        let info = result.unwrap();
+        assert_eq!(info.name, "change_pw_test");
+        assert!(!info.salt.is_empty());
+        assert!(!info.verify_hash.is_empty());
+
+        manager.lock();
+        let unlock_result = manager.unlock(&created.id, "newpassword123");
+        assert!(unlock_result.success, "New password should work");
+    }
+
+    #[test]
+    fn test_change_password_wrong_old_password() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("pw_wrong_test", "correctpassword").unwrap();
+
+        let result = manager.change_password(&created.id, "wrongpassword", "newpassword123");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid current password"));
+    }
+
+    #[test]
+    fn test_derive_sqlcipher_key() {
+        let (manager, _temp_dir) = create_test_account_manager();
+        manager.create_account("sqlcipher_test", "password123").unwrap();
+
+        let session_key = manager.get_session_key().unwrap();
+        let session_key_arr: [u8; 32] = session_key.as_slice().try_into().unwrap();
+        let sqlcipher_key = manager.derive_sqlcipher_key(&session_key_arr);
+
+        assert_eq!(sqlcipher_key.len(), 32);
+
+        let sqlcipher_key2 = manager.derive_sqlcipher_key(&session_key_arr);
+        assert_eq!(sqlcipher_key, sqlcipher_key2);
+    }
+
+    #[test]
+    fn test_derive_sqlcipher_key_different_inputs() {
+        let (manager, _temp_dir) = create_test_account_manager();
+        manager.create_account("key_diff_test", "password123").unwrap();
+
+        let session_key1 = manager.get_session_key().unwrap();
+        let mut session_key2 = [0u8; 32];
+        session_key2.copy_from_slice(session_key1.as_slice());
+        session_key2[0] ^= 0xFF;
+
+        let sqlcipher_key1 = manager.derive_sqlcipher_key(&session_key2);
+        let mut session_key3 = session_key2;
+        session_key3[0] ^= 0xFF;
+        let sqlcipher_key2 = manager.derive_sqlcipher_key(&session_key3);
+
+        assert_ne!(sqlcipher_key1, sqlcipher_key2);
+    }
+
+    #[test]
+    fn test_base64_encode_decode() {
+        let original = b"Hello, World!";
+        let encoded = base64_encode(original);
+        assert_eq!(encoded, "SGVsbG8sIFdvcmxkIQ==");
+        let decoded = base64_decode(&encoded).unwrap();
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn test_base64_decode_invalid() {
+        let result = base64_decode("not-valid-base64!!!");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_create_account_whitespace_name() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let result = manager.create_account("   ", "password123");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_unlock_account_updates_last_accessed() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("access_test", "password123").unwrap();
+        manager.lock();
+
+        let result = manager.unlock(&created.id, "password123");
+        assert!(result.success);
+        assert!(manager.is_unlocked());
+    }
 }

@@ -770,14 +770,11 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
 
   /// Register a single field. Idempotent - calling twice replaces.
   void register(FieldSensitivity field) {
-    debugPrint('[FormFieldRegistry] Registering field: ${field.fieldId}');
     state = {...state, field.fieldId: field};
   }
 
   /// Register multiple fields at once
   void registerAll(List<FieldSensitivity> fields) {
-    debugPrint('[FormFieldRegistry] Registering ${fields.length} fields: '
-        '${fields.map((f) => f.fieldId).join(', ')}');
     state = {...state, for (var f in fields) f.fieldId: f};
   }
 
@@ -796,7 +793,6 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
 
   /// Clear all registered fields (for testing or app lock)
   void reset() {
-    debugPrint('[FormFieldRegistry] Reset called');
     state = {};
   }
 
@@ -835,7 +831,6 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
     ];
 
     final allFields = allFieldLists.expand((list) => list).toList();
-    debugPrint('[FormFieldRegistry] Registering all forms: ${allFields.length} fields');
     // Register to both static FormFieldRegistry (for SensitivityResolver legacy compatibility)
     // and reactive FormFieldRegistryNotifier (for effectiveSensitivityProvider)
     FormFieldRegistry.registerAll(allFields);
@@ -846,7 +841,7 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
       final seen = <String>{};
       for (final f in allFields) {
         if (!seen.add(f.fieldId)) {
-          debugPrint('[FormFieldRegistry] DUPLICATE fieldId detected: ${f.fieldId}');
+          // Duplicate fieldId detected: ${f.fieldId}
         }
       }
       return true;

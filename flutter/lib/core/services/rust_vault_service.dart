@@ -189,8 +189,19 @@ class RustVaultService {
     required String name,
     required String password,
   }) {
+    // NOTE: DebugLogger removed - synchronous file I/O may cause hangs
     final result = NativeVaultService.instance.createAccount(name: name, password: password);
-    return result ?? (success: false, error: 'Failed to create account', accountId: null, name: null, salt: null, verifyHash: null);
+    if (result == null) {
+      return (success: false, error: 'Failed to create account', accountId: null, name: null, salt: null, verifyHash: null);
+    }
+    return (
+      success: result.success,
+      error: result.error,
+      accountId: result.accountId,
+      name: result.name,
+      salt: result.salt,
+      verifyHash: result.verifyHash,
+    );
   }
 
   /// Unlock the vault with account credentials
@@ -217,6 +228,12 @@ class RustVaultService {
   /// Get vault statistics
   Map<String, dynamic>? getVaultStats() {
     return NativeVaultService.instance.getVaultStats();
+  }
+
+  /// List all accounts from Rust vault (single source of truth)
+  /// Uses JSON relay through NativeVaultService
+  List<Map<String, dynamic>>? listAccountsFromRust() {
+    return NativeVaultService.instance.listAccounts();
   }
 
   // ===========================================================================
