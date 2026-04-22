@@ -127,8 +127,8 @@ class _FieldRow extends ConsumerWidget {
               style: theme.textTheme.bodyMedium,
             ),
           ),
-        // Sensitivity level tag (always show when not public)
-        if (sensitivityLevel != SensitivityLevel.public) ...[
+        // Sensitivity level tag (always show)
+        ...[
           const SizedBox(width: 6),
           SensitivityTag(level: sensitivityLevel),
         ],
