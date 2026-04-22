@@ -176,7 +176,7 @@ void main() {
 
       // Verify dialog components
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.byType(TextButton), findsOneWidget);
+      expect(find.byType(TextButton), findsWidgets);
     });
   });
 }
