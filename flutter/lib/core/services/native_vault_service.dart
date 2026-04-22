@@ -14,13 +14,21 @@ class NativeVaultService {
 
   /// Write debug log to file
   void _log(String msg) {
-    // Use home directory for macOS sandbox compatibility
-    final homeDir = Platform.environment['HOME'] ?? '/tmp';
-    final logFile = File('$homeDir/Library/Logs/flutter_native_vault.log');
-    logFile.writeAsStringSync(
-      '${DateTime.now().toIso8601String()} $msg\n',
-      mode: FileMode.append,
-    );
+    try {
+      // Use home directory for macOS sandbox compatibility
+      final homeDir = Platform.environment['HOME'] ?? '/tmp';
+      final logDir = Directory('$homeDir/Library/Logs');
+      if (!logDir.existsSync()) {
+        logDir.createSync(recursive: true);
+      }
+      final logFile = File('$homeDir/Library/Logs/flutter_native_vault.log');
+      logFile.writeAsStringSync(
+        '${DateTime.now().toIso8601String()} $msg\n',
+        mode: FileMode.append,
+      );
+    } catch (_) {
+      // Silently ignore logging errors to not disrupt test flow
+    }
   }
 
   // FFI function types
