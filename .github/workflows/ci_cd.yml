@@ -163,6 +163,8 @@ jobs:
         id: build
         env:
           FLUTTER_BUILD_ARGS: "--obfuscate --split-debug-info=./debug_info/macos"
+          CODE_SIGN_IDENTITY: "-"
+          CODE_SIGNING_REQUIRED: "0"
         run: |
           cd flutter
           flutter build macos --release $FLUTTER_BUILD_ARGS
