@@ -4,6 +4,8 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS-green.svg)](https://flutter.dev)
+![Tests](https://img.shields.io/github/actions/workflow/status/Gczmy/SoloSoul_code/ci_cd.yml?label=Security%20Tests&logo=rust)
+![Version](https://img.shields.io/github/v/release/Gczmy/SoloSoul?label=Build&color=blue)
 
 ---
 
