@@ -332,6 +332,12 @@ class FieldRegistry {
       level: SensitivityLevel.public,
     ),
     FieldSensitivity(
+      fieldId: 'travel.arrivalCity',
+      fieldName: 'Arrival City',
+      fieldSection: 'travel',
+      level: SensitivityLevel.public,
+    ),
+    FieldSensitivity(
       fieldId: 'travel.departureTime',
       fieldName: 'Departure Time',
       fieldSection: 'travel',
@@ -927,6 +933,7 @@ class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivi
     FieldSensitivity(fieldId: 'travel.travelType', fieldName: 'Travel Type', fieldSection: 'travel', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'travel.date', fieldName: 'Date', fieldSection: 'travel', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'travel.departureCity', fieldName: 'Departure City', fieldSection: 'travel', level: SensitivityLevel.public),
+    FieldSensitivity(fieldId: 'travel.arrivalCity', fieldName: 'Arrival City', fieldSection: 'travel', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'travel.departureTime', fieldName: 'Departure Time', fieldSection: 'travel', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'travel.arrivalTime', fieldName: 'Arrival Time', fieldSection: 'travel', level: SensitivityLevel.public),
     FieldSensitivity(fieldId: 'travel.flightNumber', fieldName: 'Flight Number', fieldSection: 'travel', level: SensitivityLevel.public),

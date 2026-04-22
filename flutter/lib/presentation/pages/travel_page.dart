@@ -1080,7 +1080,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 // Travel Type Dropdown
                 DropdownButtonFormField<String>(
                   value: travelType.isEmpty ? null : travelType,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Travel Type',
                     border: OutlineInputBorder(),
                   ),
@@ -1104,15 +1104,15 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 TextField(
                   controller: controllers['travel.destination'],
                   maxLength: kMaxFieldLength,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Destination',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                     counterText: '',
                     suffixIcon: Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: SensitivityTag(level: SensitivityLevel.public),
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.destination'))),
                     ),
-                    suffixIconConstraints: BoxConstraints(),
+                    suffixIconConstraints: const BoxConstraints(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1120,15 +1120,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 TextField(
                   controller: controllers['travel.date'],
                   maxLength: kMaxFieldLength,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Date',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                     counterText: '',
                     suffixIcon: Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: SensitivityTag(level: SensitivityLevel.internal),
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SensitivityTag(
+                        level: ref.watch(effectiveSensitivityProvider('travel.date')),
+                      ),
                     ),
-                    suffixIconConstraints: BoxConstraints(),
+                    suffixIconConstraints: const BoxConstraints(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1139,14 +1141,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       child: TextField(
                         controller: controllers['travel.departureCity'],
                         maxLength: kMaxFieldLength,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Departure City',
                           border: OutlineInputBorder(),
                           counterText: '',
                           suffixIcon: Padding(
                             padding: EdgeInsets.only(right: 8),
                             child: SensitivityTag(
-                              level: SensitivityLevel.internal,
+                              level: ref.watch(effectiveSensitivityProvider('travel.departureCity')),
                             ),
                           ),
                           suffixIconConstraints: BoxConstraints(),
@@ -1158,14 +1160,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                       child: TextField(
                         controller: controllers['travel.arrivalCity'],
                         maxLength: kMaxFieldLength,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Arrival City',
                           border: OutlineInputBorder(),
                           counterText: '',
                           suffixIcon: Padding(
                             padding: EdgeInsets.only(right: 8),
                             child: SensitivityTag(
-                              level: SensitivityLevel.internal,
+                              level: ref.watch(effectiveSensitivityProvider('travel.arrivalCity')),
                             ),
                           ),
                           suffixIconConstraints: BoxConstraints(),
@@ -1183,17 +1185,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.departureTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Departure Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1202,17 +1204,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.arrivalTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Arrival Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1222,28 +1224,28 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                   TextField(
                     controller: controllers['travel.airline'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Airline',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.public),
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.airline'))),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: controllers['travel.flightNumber'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Flight Number',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.internal),
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
                       ),
                       suffixIconConstraints: BoxConstraints(),
                     ),
@@ -1252,14 +1254,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                   TextField(
                     controller: controllers['travel.ticketPrice'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Ticket Price',
                       border: OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
                         child: SensitivityTag(
-                          level: SensitivityLevel.sensitive,
+                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
@@ -1272,17 +1274,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.departureTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Departure Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1291,17 +1293,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.arrivalTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Arrival Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1311,29 +1313,29 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                   TextField(
                     controller: controllers['travel.flightNumber'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Train Number',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.internal),
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: controllers['travel.ticketPrice'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Ticket Price',
                       border: OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
                         child: SensitivityTag(
-                          level: SensitivityLevel.sensitive,
+                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
@@ -1346,17 +1348,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.departureTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Departure Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1365,17 +1367,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.arrivalTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Arrival Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1385,29 +1387,29 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                   TextField(
                     controller: controllers['travel.flightNumber'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Bus Number',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: SensitivityLevel.internal),
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: controllers['travel.ticketPrice'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Ticket Price',
                       border: OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
                         child: SensitivityTag(
-                          level: SensitivityLevel.sensitive,
+                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
@@ -1420,17 +1422,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.departureTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Departure Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1439,17 +1441,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.arrivalTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Arrival Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1459,14 +1461,14 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                   TextField(
                     controller: controllers['travel.ticketPrice'],
                     maxLength: kMaxFieldLength,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Price',
                       border: OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
                         padding: EdgeInsets.only(right: 8),
                         child: SensitivityTag(
-                          level: SensitivityLevel.sensitive,
+                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
                       suffixIconConstraints: BoxConstraints(),
@@ -1479,17 +1481,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.departureTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Departure Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1498,17 +1500,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.arrivalTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Arrival Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1522,17 +1524,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.departureTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Departure Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
@@ -1541,17 +1543,17 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         child: TextField(
                           controller: controllers['travel.arrivalTime'],
                           maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Arrival Time',
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                             counterText: '',
                             suffixIcon: Padding(
-                              padding: EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: 8),
                               child: SensitivityTag(
-                                level: SensitivityLevel.internal,
+                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                               ),
                             ),
-                            suffixIconConstraints: BoxConstraints(),
+                            suffixIconConstraints: const BoxConstraints(),
                           ),
                         ),
                       ),
