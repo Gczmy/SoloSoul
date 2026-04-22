@@ -516,31 +516,17 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
 }
 
 Widget _buildEducationItem(EducationData item, Map<String, String> itemMap) {
-    String displayDegree(EducationData e) {
-      if (e.degree != null && e.degree!.isNotEmpty) return e.degree!;
-      if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty) return e.degreeCustom!;
-      return '';
-    }
-
-    final fields = <LabelValueField>[
-      if (displayDegree(item).isNotEmpty)
-        LabelValueField(label: 'Degree', value: displayDegree(item)),
-      if (item.field != null && item.field!.isNotEmpty)
-        LabelValueField(label: 'Field', value: item.field!),
-      if (item.startDate != null && item.startDate!.isNotEmpty)
-        LabelValueField(label: 'Start Date', value: item.startDate!),
-      if (item.endDate != null && item.endDate!.isNotEmpty)
-        LabelValueField(label: 'End Date', value: item.endDate!),
-    ];
-
     return EntryCardWidget<EducationData>(
       item: item,
       title: item.institution ?? 'Institution',
       icon: Icons.school,
-      fields: fields,
       itemId: item.id,
       historyFieldId: 'education',
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'education',
+      excludeFields: const {'institution'},
     );
   }
 
@@ -792,25 +778,17 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
 }
 
 Widget _buildEmploymentItem(EmploymentData item, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (item.position != null && item.position!.isNotEmpty)
-        LabelValueField(label: 'Position', value: item.position!),
-      if (item.responsibilities != null && item.responsibilities!.isNotEmpty)
-        LabelValueField(label: 'Responsibilities', value: item.responsibilities!),
-      if (item.startDate != null && item.startDate!.isNotEmpty)
-        LabelValueField(label: 'Start Date', value: item.startDate!),
-      if (item.endDate != null && item.endDate!.isNotEmpty)
-        LabelValueField(label: 'End Date', value: item.endDate!),
-    ];
-
     return EntryCardWidget<EmploymentData>(
       item: item,
       title: item.company ?? 'Company',
       icon: Icons.work,
-      fields: fields,
       itemId: item.id,
       historyFieldId: 'employment',
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'employment',
+      excludeFields: const {'company'},
     );
   }
 
@@ -1020,19 +998,17 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
 }
 
 Widget _buildSkillItem(SkillData item, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (item.level != null && item.level!.isNotEmpty)
-        LabelValueField(label: 'Proficiency', value: item.level!),
-    ];
-
     return EntryCardWidget<SkillData>(
       item: item,
       title: item.name,
       icon: Icons.star,
-      fields: fields,
       itemId: item.id,
       historyFieldId: 'skill',
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'skill',
+      excludeFields: const {'name'},
     );
   }
 
@@ -1244,19 +1220,17 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
 }
 
 Widget _buildLanguageItem(LanguageData item, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (item.proficiency != null && item.proficiency!.isNotEmpty)
-        LabelValueField(label: 'Proficiency', value: item.proficiency!),
-    ];
-
     return EntryCardWidget<LanguageData>(
       item: item,
       title: item.name,
       icon: Icons.translate,
-      fields: fields,
       itemId: item.id,
       historyFieldId: 'language',
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'language',
+      excludeFields: const {'name'},
     );
   }
 
@@ -1488,20 +1462,16 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
 }
 
 Widget _buildAwardItem(AwardData item, Map<String, String> itemMap) {
-    final fields = <LabelValueField>[
-      if (item.date != null && item.date!.isNotEmpty)
-        LabelValueField(label: 'Date', value: item.date!),
-      if (item.description != null && item.description!.isNotEmpty)
-        LabelValueField(label: 'Description', value: item.description!),
-    ];
-
     return EntryCardWidget<AwardData>(
       item: item,
       title: item.title ?? 'Award',
       icon: Icons.emoji_events,
-      fields: fields,
       itemId: item.id,
       historyFieldId: 'award',
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'award',
+      excludeFields: const {'title'},
     );
   }
