@@ -74,3 +74,4 @@ native/test_data/
 
 # Build scripts (keep in repo)
 # build_rust.sh
+debug_info/
