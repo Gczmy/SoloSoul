@@ -237,6 +237,11 @@ jobs:
         env:
           RELEASE_PAT: ${{ secrets.SOLOSOUL_RELEASE_PAT }}
         run: |
+          # Only push if RELEASE_PAT is configured
+          if [ -z "$RELEASE_PAT" ]; then
+            echo "SOLOSOUL_RELEASE_PAT not configured, skipping push to public repo"
+            exit 0
+          fi
           # Clone the public repo
           git clone https://x-access-token:$RELEASE_PAT@github.com/Gczmy/SoloSoul.git ../SoloSoul-push
 
