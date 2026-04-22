@@ -246,7 +246,7 @@ class SettingsPage extends ConsumerWidget {
                     _SettingsTile(
                       icon: Icons.code,
                       title: 'Version',
-                      subtitle: '1.0.0 (dev)',
+                      subtitle: '1.0.0',
                       onTap: () => _showVersionSheet(context),
                     ),
                     const Divider(height: 1),
@@ -344,28 +344,28 @@ class SettingsPage extends ConsumerWidget {
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _SloganChip(
-                        icon: Icons.location_on_outlined,
-                        label: 'Local',
-                        theme: theme,
-                      ),
-                      const SizedBox(width: 8),
-                      _SloganChip(
-                        icon: Icons.lock_outline,
-                        label: 'Private',
-                        theme: theme,
-                      ),
-                      const SizedBox(width: 8),
-                      _SloganChip(
-                        icon: Icons.person_outline,
-                        label: 'Universal',
-                        theme: theme,
+                      const SizedBox(width: 12),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _SloganChip(
+                            icon: Icons.location_on_outlined,
+                            label: 'Local',
+                            theme: theme,
+                          ),
+                          const SizedBox(width: 8),
+                          _SloganChip(
+                            icon: Icons.lock_outline,
+                            label: 'Private',
+                            theme: theme,
+                          ),
+                          const SizedBox(width: 8),
+                          _SloganChip(
+                            icon: Icons.person_outline,
+                            label: 'Universal',
+                            theme: theme,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1083,7 +1083,7 @@ class _VersionSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const currentVersion = '1.0.0 (dev)';
+    const currentVersion = '1.0.0';
     const latestVersion = '1.0.0';
     const hasUpdate = false;
 
@@ -1119,7 +1119,7 @@ class _VersionSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(
-                      Icons.account_circle,
+                      Icons.shield_outlined,
                       size: 40,
                       color: AppTheme.primaryColor,
                     ),
@@ -1159,32 +1159,8 @@ class _VersionSheet extends StatelessWidget {
                     value:
                         Platform.isMacOS ? 'macOS' : Platform.operatingSystem[0].toUpperCase() + Platform.operatingSystem.substring(1),
                   ),
-                  const Divider(height: 1),
-                  _VersionInfoTile(
-                    icon: Icons.code,
-                    title: 'Build Type',
-                    value: 'Development',
-                  ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: SizedBox(
-              width: double.infinity,
-              child: hasUpdate
-                  ? ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.download),
-                      label: const Text('Download Update'),
-                    )
-                  : OutlinedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.check),
-                      label: const Text('You\'re all set!'),
-                    ),
             ),
           ),
           const SizedBox(height: 32),
