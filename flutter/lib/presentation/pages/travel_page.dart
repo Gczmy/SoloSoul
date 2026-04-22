@@ -812,7 +812,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       formatAllFields: (t) => '${t.entryType}\n${t.toFormattedString()}',
       // Auto-build mode
       itemData: itemMap,
-      fieldPrefix: 'travelHistory',
+      fieldPrefix: 'travel',
       excludeFields: const {'destination'},
     );
   }
