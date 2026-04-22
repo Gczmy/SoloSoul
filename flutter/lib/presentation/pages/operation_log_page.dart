@@ -29,7 +29,8 @@ enum LogSection {
   language('language'),
   travel('travel'),
   financial('financial'),
-  professional('professional');
+  professional('professional'),
+  sensitivitySettings('sensitivity settings');
 
   final String value;
   const LogSection(this.value);

@@ -666,6 +666,14 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
           ),
         );
         break;
+      case LogSection.sensitivitySettings:
+        OperationLogService.instance.addEntry(
+          OperationLogger.logSensitivitySettings(
+            action: action,
+            description: description,
+          ),
+        );
+        break;
     }
   }
 

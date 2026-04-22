@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart' show OperationLogService, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show FieldRegistry, FormFieldRegistry, firstWhereOrNull;
@@ -246,6 +248,7 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   void setFieldLevel(String fieldId, SensitivityLevel level) {
     if (_currentAccountId == null) return;
 
+    final oldLevel = state.fieldSettings[fieldId];
     final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
     newFieldSettings[fieldId] = level;
 
@@ -254,12 +257,26 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     );
     _autoSave();
+
+    // Log the sensitivity change
+    final description = oldLevel != null
+        ? 'Changed "$fieldId" sensitivity from ${oldLevel.label} to ${level.label}'
+        : 'Set "$fieldId" sensitivity to ${level.label}';
+    OperationLogService.instance.addEntry(
+      OperationLogger.logSensitivitySettings(
+        action: oldLevel != null ? LogAction.update : LogAction.create,
+        description: description,
+        fieldPath: fieldId,
+        sensitivityLevel: level,
+      ),
+    );
   }
 
   /// Remove field sensitivity override (revert to tag/global default).
   Future<bool> clearFieldLevel(String fieldId) async {
     if (_currentAccountId == null) return false;
 
+    final oldLevel = state.fieldSettings[fieldId];
     final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
     newFieldSettings.remove(fieldId);
 
@@ -275,6 +292,17 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
 
     if (saved) {
       state = updated;
+      // Log the sensitivity revert
+      if (oldLevel != null) {
+        OperationLogService.instance.addEntry(
+          OperationLogger.logSensitivitySettings(
+            action: LogAction.delete,
+            description: 'Reverted "$fieldId" sensitivity to default (was ${oldLevel.label})',
+            fieldPath: fieldId,
+            sensitivityLevel: oldLevel,
+          ),
+        );
+      }
     }
 
     return saved;
@@ -385,6 +413,16 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     );
     _autoSave();
+
+    // Log the sensitivity upgrade
+    OperationLogService.instance.addEntry(
+      OperationLogger.logSensitivitySettings(
+        action: LogAction.update,
+        description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+        fieldPath: fieldId,
+        sensitivityLevel: newLevel,
+      ),
+    );
   }
 
   /// Downgrade field to a lower sensitivity level.
@@ -405,6 +443,16 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     );
     _autoSave();
+
+    // Log the sensitivity downgrade
+    OperationLogService.instance.addEntry(
+      OperationLogger.logSensitivitySettings(
+        action: LogAction.update,
+        description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+        fieldPath: fieldId,
+        sensitivityLevel: newLevel,
+      ),
+    );
   }
 
   /// Clear style state (on lock).

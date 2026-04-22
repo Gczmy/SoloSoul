@@ -277,6 +277,23 @@ class OperationLogger {
     );
   }
 
+  /// Log a sensitivity settings operation
+  static OperationEntry logSensitivitySettings({
+    required LogAction action,
+    required String description,
+    String? fieldPath,
+    SensitivityLevel sensitivityLevel = SensitivityLevel.sensitive,
+  }) {
+    return OperationEntry(
+      timestamp: DateTime.now(),
+      action: action.value,
+      section: LogSection.sensitivitySettings.value,
+      description: description,
+      fieldPath: fieldPath,
+      sensitivityLevel: sensitivityLevel,
+    );
+  }
+
   /// Auto-detect action by comparing old and new values
   /// Returns create if old was null, delete if new is null, otherwise update
   static LogAction detectAction<T>(T? oldValue, T? newValue) {
