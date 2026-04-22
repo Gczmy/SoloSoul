@@ -1134,91 +1134,58 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Departure/Arrival City (always shown)
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: controllers['travel.departureCity'],
-                        maxLength: kMaxFieldLength,
-                        decoration: InputDecoration(
-                          labelText: 'Departure City',
-                          border: OutlineInputBorder(),
-                          counterText: '',
-                          suffixIcon: Padding(
-                            padding: EdgeInsets.only(right: 8),
-                            child: SensitivityTag(
-                              level: ref.watch(effectiveSensitivityProvider('travel.departureCity')),
-                            ),
-                          ),
-                          suffixIconConstraints: BoxConstraints(),
-                        ),
+                // Departure City
+                TextField(
+                  controller: controllers['travel.departureCity'],
+                  maxLength: kMaxFieldLength,
+                  decoration: InputDecoration(
+                    labelText: 'Departure City',
+                    border: const OutlineInputBorder(),
+                    counterText: '',
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SensitivityTag(
+                        level: ref.watch(effectiveSensitivityProvider('travel.departureCity')),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: controllers['travel.arrivalCity'],
-                        maxLength: kMaxFieldLength,
-                        decoration: InputDecoration(
-                          labelText: 'Arrival City',
-                          border: OutlineInputBorder(),
-                          counterText: '',
-                          suffixIcon: Padding(
-                            padding: EdgeInsets.only(right: 8),
-                            child: SensitivityTag(
-                              level: ref.watch(effectiveSensitivityProvider('travel.arrivalCity')),
-                            ),
-                          ),
-                          suffixIconConstraints: BoxConstraints(),
-                        ),
-                      ),
-                    ),
-                  ],
+                    suffixIconConstraints: const BoxConstraints(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 // Conditional fields based on travel type
                 if (travelType == 'Airplane') ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.departureTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Departure Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                  TextField(
+                    controller: controllers['travel.departureTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Departure Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.arrivalTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Arrival Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.arrivalTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Arrival Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                         ),
                       ),
-                    ],
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -1268,46 +1235,38 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     ),
                   ),
                 ] else if (travelType == 'Train') ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.departureTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Departure Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                  TextField(
+                    controller: controllers['travel.departureTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Departure Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.arrivalTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Arrival Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.arrivalTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Arrival Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                         ),
                       ),
-                    ],
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -1342,46 +1301,38 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     ),
                   ),
                 ] else if (travelType == 'Bus') ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.departureTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Departure Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                  TextField(
+                    controller: controllers['travel.departureTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Departure Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.arrivalTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Arrival Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.arrivalTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Arrival Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                         ),
                       ),
-                    ],
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -1416,46 +1367,38 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     ),
                   ),
                 ] else if (travelType == 'Taxi') ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.departureTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Departure Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                  TextField(
+                    controller: controllers['travel.departureTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Departure Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.arrivalTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Arrival Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.arrivalTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Arrival Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                         ),
                       ),
-                    ],
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -1475,89 +1418,73 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     ),
                   ),
                 ] else if (travelType == 'Drive') ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.departureTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Departure Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                  TextField(
+                    controller: controllers['travel.departureTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Departure Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.arrivalTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Arrival Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.arrivalTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Arrival Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                         ),
                       ),
-                    ],
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
                   ),
                 ] else ...[
                   // Other or no type selected
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.departureTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Departure Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                  TextField(
+                    controller: controllers['travel.departureTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Departure Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: controllers['travel.arrivalTime'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Arrival Time',
-                            border: const OutlineInputBorder(),
-                            counterText: '',
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: SensitivityTag(
-                                level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                              ),
-                            ),
-                            suffixIconConstraints: const BoxConstraints(),
-                          ),
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controllers['travel.arrivalTime'],
+                    maxLength: kMaxFieldLength,
+                    decoration: InputDecoration(
+                      labelText: 'Arrival Time',
+                      border: const OutlineInputBorder(),
+                      counterText: '',
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: SensitivityTag(
+                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
                         ),
                       ),
-                    ],
+                      suffixIconConstraints: const BoxConstraints(),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 16),
