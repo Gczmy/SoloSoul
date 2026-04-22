@@ -462,6 +462,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
         'issueDate': p.issueDate ?? '',
         'placeOfIssue': p.placeOfIssue ?? '',
         'expiryDate': p.expiryDate ?? '',
+        'holderName': p.holderName ?? '',
         'dateOfBirth': p.dateOfBirth ?? '',
         'placeOfBirth': p.placeOfBirth ?? '',
         'sex': p.sex ?? '',
