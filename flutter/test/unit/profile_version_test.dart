@@ -81,7 +81,8 @@ void main() {
           contact: ContactData(
             entries: [
               ContactEntry(
-                label: 'Personal',
+                id: 'contact-1',
+                title: 'Personal',
                 type: 'email',
                 value: 'test@example.com',
               ),
@@ -90,7 +91,7 @@ void main() {
           addresses: [
             AddressData(
               id: 'addr-1',
-              label: 'Home',
+              title: 'Home',
               street: '123 Test St',
               city: 'Test City',
               state: 'TS',
