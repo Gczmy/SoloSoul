@@ -1,0 +1,280 @@
+name: SoloSoul CI/CD
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+env:
+  # Flutter version - update as needed
+  FLUTTER_VERSION: '3.29.0'
+  RUST_VERSION: 'stable'
+
+jobs:
+  # ============================================================
+  # Job 1: Rust Tests (fast, runs on Linux)
+  # ============================================================
+  rust-test:
+    name: Rust Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: flutter/native
+
+      - name: Run Rust Tests
+        run: |
+          cd flutter/native
+          cargo test --verbose
+
+  # ============================================================
+  # Job 2: Dart Unit Tests
+  # ============================================================
+  dart-unit-test:
+    name: Dart Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Run Dart Unit Tests
+        run: |
+          cd flutter
+          flutter test test/unit/
+
+  # ============================================================
+  # Job 3: Widget Tests
+  # ============================================================
+  widget-test:
+    name: Widget Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Run Widget Tests
+        run: |
+          cd flutter
+          flutter test test/widget/
+
+  # ============================================================
+  # Job 4: Integration Tests (macOS only - requires FFI)
+  # ============================================================
+  integration-test:
+    name: Integration Tests
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Build Rust native libs
+        run: |
+          cd flutter/native
+          cargo build --release
+
+      - name: Run Integration Tests
+        run: |
+          cd flutter
+          flutter test integration_test/
+
+  # ============================================================
+  # Job 5: macOS Release Build & Cross-Repo Release
+  # Only runs on master/main push, not PRs
+  # ============================================================
+  release:
+    name: Build & Release
+    runs-on: macos-latest
+    needs: [rust-test, dart-unit-test, widget-test, integration-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Build macOS Release
+        id: build
+        run: |
+          cd flutter
+          flutter build macos --release
+
+      - name: Build DMG
+        run: |
+          cd flutter
+          # Run the existing build_dmg.sh script
+          if [ -f "./build_dmg.sh" ]; then
+            chmod +x ./build_dmg.sh
+            ./build_dmg.sh
+          else
+            # Fallback: create DMG manually using create-dmg if available
+            echo "build_dmg.sh not found, skipping DMG creation"
+          fi
+
+      - name: Find built artifacts
+        id: artifacts
+        run: |
+          # Find the built .app and .dmg files
+          APP_PATH=$(find flutter/build/macos -name "*.app" -type d 2>/dev/null | head -1)
+          DMG_PATH=$(find flutter/build/macos -name "*.dmg" -type f 2>/dev/null | head -1)
+          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "dmg_path=$DMG_PATH" >> $GITHUB_OUTPUT
+          echo "app_path: $APP_PATH"
+          echo "dmg_path: $DMG_PATH"
+
+      - name: Create Release Draft
+        if: steps.artifacts.outputs.dmg_path != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          prerelease: true
+          files: |
+            ${{ steps.artifacts.outputs.dmg_path }}
+          body: |
+            ## SoloSoul v${{ github.run_number }}
+
+            **Automated Release** - CI Passed all tests.
+
+            ### Test Results
+            - ✅ Rust Unit Tests (cargo test)
+            - ✅ Dart Unit Tests (flutter test test/unit/)
+            - ✅ Widget Tests (flutter test test/widget/)
+            - ✅ Integration Tests (flutter test integration_test/)
+
+            ### What's New
+            See [CHANGELOG](../blob/master/CHANGELOG.md) for details.
+
+            Built from: `${{ github.sha }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to Public Repo
+        if: steps.artifacts.outputs.dmg_path != ''
+        env:
+          RELEASE_PAT: ${{ secrets.SOLOSOUL_RELEASE_PAT }}
+        run: |
+          # Clone the public repo
+          git clone https://x-access-token:$RELEASE_PAT@github.com/Gczmy/SoloSoul.git ../SoloSoul-push
+
+          # Copy release artifacts
+          if [ -f "${{ steps.artifacts.outputs.dmg_path }}" ]; then
+            cp "${{ steps.artifacts.outputs.dmg_path }}" ../SoloSoul-push/
+          fi
+
+          # Copy updated changelog if exists
+          if [ -f "CHANGELOG.md" ]; then
+            cp CHANGELOG.md ../SoloSoul-push/
+          fi
+
+          # Commit and push
+          cd ../SoloSoul-push
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Release v${{ github.run_number }} from CI build ${{ github.run_id }}"
+          git push

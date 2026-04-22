@@ -1,0 +1,91 @@
+name: SoloSoul PR Checks
+
+# Fast feedback for pull requests - no builds, just tests
+on:
+  pull_request:
+    branches: [ master, main ]
+
+env:
+  FLUTTER_VERSION: '3.29.0'
+  RUST_VERSION: 'stable'
+
+jobs:
+  rust-check:
+    name: Rust Format & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Check formatting
+        run: |
+          cd flutter/native
+          cargo fmt --check
+
+      - name: Run Clippy
+        run: |
+          cd flutter/native
+          cargo clippy -- -D warnings
+
+  dart-check:
+    name: Dart Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Dart Analyze
+        run: |
+          cd flutter
+          dart analyze --fatal-infos --fatal-warnings
+
+  test:
+    name: All Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Rust Tests
+        run: |
+          cd flutter/native
+          cargo test --verbose
+
+      - name: Dart Unit Tests
+        run: |
+          cd flutter
+          flutter test test/unit/
+
+      - name: Widget Tests
+        run: |
+          cd flutter
+          flutter test test/widget/
