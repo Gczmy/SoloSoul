@@ -198,11 +198,11 @@ jobs:
           cd flutter
           flutter pub get
 
-      - name: Build macOS Release
+      - name: Build macOS Release (Obfuscated)
         id: build
         run: |
           cd flutter
-          flutter build macos --release
+          flutter build macos --release --obfuscate --split-debug-info=./debug_info/macos
 
       - name: Build DMG
         run: |
