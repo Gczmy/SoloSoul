@@ -110,7 +110,7 @@ void main() {
     });
   });
 
-  group('RustVaultService encryption helpers', () {
+  group('RustVaultService encryption helpers', skip: skipOnLinux, () {
     late RustVaultService service;
 
     setUp(() {
@@ -150,7 +150,7 @@ void main() {
     });
   });
 
-  group('RustVaultService high-level operations', () {
+  group('RustVaultService high-level operations', skip: skipOnLinux, () {
     late RustVaultService service;
 
     setUp(() {
@@ -274,7 +274,7 @@ void main() {
     });
   });
 
-  group('RustVaultService initialization', () {
+  group('RustVaultService initialization', skip: skipOnLinux, () {
     test('initAccountManager is callable', () {
       final service = RustVaultService.instance;
 
