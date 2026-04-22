@@ -1583,8 +1583,10 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       onSave: _onHistorySave,
       itemToMap: (item) => {
         'destination': item.destination,
+        'travelType': item.travelType ?? '',
         'date': item.date ?? '',
         'departureCity': item.departureCity ?? '',
+        'arrivalCity': item.arrivalCity ?? '',
         'departureTime': item.departureTime ?? '',
         'arrivalTime': item.arrivalTime ?? '',
         'flightNumber': item.flightNumber ?? '',
