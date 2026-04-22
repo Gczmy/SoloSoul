@@ -48,12 +48,39 @@ SoloSoul is a **Local Digital Twin & Universal Identity Engine** — a decentral
 - **macOS** 10.15 (Catalina) or later
 - **Apple Silicon** or Intel processor
 
-### Install via DMG
+### Download and Install Manually
 
-1. Download the latest release from [GitHub Releases](https://github.com/Gczmy/SoloSoul/releases)
-2. Double-click to open the DMG
-3. Drag **SoloSoul.app** into your Applications folder
-4. On first run, right-click SoloSoul in Finder → **Open** → Allow apps from unidentified developers
+<a href="https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul.dmg" target="_self"><img width="200" src="https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge" alt="Download for macOS" /></a>
+
+Once downloaded, open the `.dmg` and move **SoloSoul** to your `/Applications` folder.
+
+> [!IMPORTANT]
+> We don't have an Apple Developer account (yet), so macOS will warn you that SoloSoul is from an unidentified developer on first launch. This is expected behavior.
+>
+> You'll need to bypass this before the app will open. You only need to do this once.
+
+#### Recommended: Terminal (Always Works)
+
+This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
+
+After moving SoloSoul to your Applications folder, run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/SoloSoul.app
+```
+
+Then open the app normally.
+
+#### Alternative: System Settings
+
+> [!NOTE]
+> This method doesn't work for all users. If this doesn't work, use the Terminal method above.
+
+1. Try to open the app — you'll see a security warning.
+2. Click **OK** to dismiss it.
+3. Open **System Settings** > **Privacy & Security**.
+4. Scroll to the bottom and click **Open Anyway** next to the SoloSoul warning.
+5. Confirm if prompted.
 
 ---
 
@@ -63,16 +90,16 @@ SoloSoul is a **Local Digital Twin & Universal Identity Engine** — a decentral
 
 ```
 ┌─────────────────────────────────────┐
-│           SoloSoul                   │
-│                                      │
+│           SoloSoul                  │
+│                                     │
 │  ┌─────────────────────────────┐    │
 │  │     Create New Vault        │    │
 │  └─────────────────────────────┘    │
-│                                      │
-│  Master Password: ●●●●●●●●●●         │
+│                                     │
+│  Master Password: ●●●●●●●●●●        │
 │  Confirm:        ●●●●●●●●●●         │
-│                                      │
-│        [ Create Vault ]              │
+│                                     │
+│        [ Create Vault ]             │
 └─────────────────────────────────────┘
 ```
 
@@ -99,18 +126,18 @@ Navigate through tabs to manage different aspects of your identity:
 ┌─────────────────────────────────────────────────────────────┐
 │                      SoloSoul App                           │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐  │
-│  │  UI      │───►│ Flutter  │───►│  Rust FFI        │  │
-│  │  Layer   │    │  Layer   │    │  (Crypto Core)   │  │
-│  └──────────┘    └──────────┘    └──────────────────┘  │
+│                                                             │
+│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐       │
+│  │  UI      │───►│ Flutter  │───►│  Rust FFI        │       │
+│  │  Layer   │    │  Layer   │    │  (Crypto Core)   │       │
+│  └──────────┘    └──────────┘    └──────────────────┘       │
 │                                              │              │
 │                                              ▼              │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐  │
-│  │  Plugin  │◄───│ Consent  │◄───│  ~/.solosoul/    │  │
-│  │  API     │    │ Manager  │    │  (Encrypted)     │  │
-│  └──────────┘    └──────────┘    └──────────────────┘  │
-│                                                              │
+│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐       │
+│  │  Plugin  │◄───│ Consent  │◄───│  ~/.solosoul/    │       │
+│  │  API     │    │ Manager  │    │  (Encrypted)     │       │
+│  └──────────┘    └──────────┘    └──────────────────┘       │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
