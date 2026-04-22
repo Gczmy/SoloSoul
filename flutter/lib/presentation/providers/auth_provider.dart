@@ -103,6 +103,30 @@ class AccountInfo {
     'last_operation_desc': lastOperationDesc,
     'recent_devices': recentDevices.map((e) => e.toJson()).toList(),
   };
+
+  AccountInfo copyWith({
+    String? id,
+    String? name,
+    String? passwordHint,
+    DateTime? lastAccessed,
+    DateTime? createdAt,
+    DateTime? lastLoginAt,
+    DateTime? lastOperationAt,
+    String? lastOperationDesc,
+    List<DeviceInfo>? recentDevices,
+  }) {
+    return AccountInfo(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      passwordHint: passwordHint ?? this.passwordHint,
+      lastAccessed: lastAccessed ?? this.lastAccessed,
+      createdAt: createdAt ?? this.createdAt,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
+      lastOperationAt: lastOperationAt ?? this.lastOperationAt,
+      lastOperationDesc: lastOperationDesc ?? this.lastOperationDesc,
+      recentDevices: recentDevices ?? this.recentDevices,
+    );
+  }
 }
 
 /// Auth state
@@ -505,13 +529,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final rustAccounts = RustVaultService.instance.listAccountsFromRust();
     List<AccountInfo> accounts;
 
+    List<AccountInfo> rustMappedAccounts;
     if (rustAccounts != null && rustAccounts.isNotEmpty) {
-      accounts = rustAccounts.map((r) => AccountInfo(
+      rustMappedAccounts = rustAccounts.map((r) => AccountInfo(
         id: r['id'] as String? ?? '',
         name: r['name'] as String? ?? '',
         lastAccessed: r['last_accessed'] != null ? DateTime.tryParse(r['last_accessed'] as String) : null,
         createdAt: DateTime.now(),
       )).toList();
+
+      // Merge Rust data with full metadata from SecureAccountStorage
+      // Rust only stores id/name/last_accessed; other fields are in Keychain
+      final storageAccounts = await _storage.listAccounts();
+      final storageById = {for (final a in storageAccounts) a.id: a};
+
+      accounts = rustMappedAccounts.map((rustAccount) {
+        final storageAccount = storageById[rustAccount.id];
+        if (storageAccount != null) {
+          return rustAccount.copyWith(
+            lastLoginAt: storageAccount.lastLoginAt,
+            lastOperationAt: storageAccount.lastOperationAt,
+            lastOperationDesc: storageAccount.lastOperationDesc,
+            recentDevices: storageAccount.recentDevices,
+          );
+        }
+        return rustAccount;
+      }).toList();
     } else {
       // Fall back to SecureAccountStorage when Rust vault returns nothing
       // This handles FFI failure cases in release builds
