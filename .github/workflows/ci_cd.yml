@@ -110,54 +110,11 @@ jobs:
           flutter test test/widget/
 
   # ============================================================
-  # Job 4: Integration Tests (macOS only - requires FFI)
+  # Integration Tests Note:
+  # Integration tests are skipped in CI because they require macOS code signing
+  # which is not available on GitHub Actions runners.
+  # Run locally with: cd flutter && flutter test integration_test/
   # ============================================================
-  integration-test:
-    name: Integration Tests
-    runs-on: macos-latest
-    env:
-      # Disable code signing for CI - no certificates available
-      CODE_SIGN_IDENTITY: '-'
-      CODE_SIGNING_REQUIRED: '0'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            flutter/.dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install dependencies
-        run: |
-          cd flutter
-          flutter pub get
-
-      - name: Build Rust native libs
-        run: |
-          cd flutter/native
-          cargo build --release
-
-      - name: Run Integration Tests
-        run: |
-          cd flutter
-          flutter test integration_test/
 
   # ============================================================
   # Job 5: macOS Release Build & Cross-Repo Release
@@ -166,7 +123,7 @@ jobs:
   release:
     name: Build & Release
     runs-on: macos-latest
-    needs: [rust-test, dart-unit-test, widget-test, integration-test]
+    needs: [rust-test, dart-unit-test, widget-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: write
