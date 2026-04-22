@@ -802,46 +802,18 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
     TravelHistoryData item,
     Map<String, String> itemMap,
   ) {
-    final fields = <LabelValueField>[];
-    if (item.date != null && item.date!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Date', value: item.date!));
-    }
-    if (item.departureCity != null && item.departureCity!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Departure', value: item.departureCity!),
-      );
-    }
-    if (item.departureTime != null && item.departureTime!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Departure Time', value: item.departureTime!),
-      );
-    }
-    if (item.arrivalTime != null && item.arrivalTime!.isNotEmpty) {
-      fields.add(
-        LabelValueField(label: 'Arrival Time', value: item.arrivalTime!),
-      );
-    }
-    if (item.flightNumber != null && item.flightNumber!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Flight', value: item.flightNumber!));
-    }
-    if (item.ticketPrice != null && item.ticketPrice!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Price', value: item.ticketPrice!));
-    }
-    if (item.airline != null && item.airline!.isNotEmpty) {
-      fields.add(LabelValueField(label: 'Airline', value: item.airline!));
-    }
-    final subtitle = (item.flightNumber ?? item.date ?? '').isNotEmpty
-        ? item.flightNumber ?? item.date ?? null
-        : null;
     return EntryCardWidget<TravelHistoryData>(
       item: item,
       title: item.destination,
-      subtitle: subtitle,
+      subtitle: item.flightNumber ?? item.date,
       icon: Icons.place,
-      fields: fields,
       itemId: item.id,
       historyFieldId: 'travel',
       formatAllFields: (t) => '${t.entryType}\n${t.toFormattedString()}',
+      // Auto-build mode
+      itemData: itemMap,
+      fieldPrefix: 'travelHistory',
+      excludeFields: const {'destination'},
     );
   }
 
