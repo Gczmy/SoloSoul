@@ -164,6 +164,11 @@ jobs:
           cd flutter
           flutter pub get
 
+      - name: Copy Rust dylib to Frameworks
+        run: |
+          mkdir -p flutter/macos/Runner/Frameworks
+          cp flutter/native/target/release/libsolosoul_core.dylib flutter/macos/Runner/Frameworks/
+
       - name: Build macOS Release (Obfuscated)
         id: build
         env:
