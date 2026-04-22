@@ -48,7 +48,7 @@ SoloSoul is a **Local Digital Twin & Universal Identity Engine** — a decentral
 
 ### Install via DMG
 
-1. Download `SoloSoul-v1.0.dmg`
+1. Download the latest release from [GitHub Releases](https://github.com/Gczmy/SoloSoul/releases)
 2. Double-click to open the DMG
 3. Drag **SoloSoul.app** into your Applications folder
 4. On first run, right-click SoloSoul in Finder → **Open** → Allow apps from unidentified developers
