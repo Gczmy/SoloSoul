@@ -813,7 +813,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       // Auto-build mode
       itemData: itemMap,
       fieldPrefix: 'travel',
-      excludeFields: const {'destination'},
+      excludeFields: const {'destination', 'flightNumber', 'date'},
     );
   }
 
