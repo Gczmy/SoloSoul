@@ -75,6 +75,7 @@ class SettingsPage extends ConsumerWidget {
                           onTap: () => _showCurrentAccountSheet(
                             context,
                             ref,
+                            currentAccount,
                           ),
                         ),
                         const Divider(height: 1),
@@ -380,15 +381,8 @@ class SettingsPage extends ConsumerWidget {
   void _showCurrentAccountSheet(
     BuildContext context,
     WidgetRef ref,
-  ) async {
-    // Reload fresh account data so last operation is up to date
-    final accounts = await SecureAccountStorage.instance.listAccounts();
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-    final selectedId = authNotifier.selectedAccountId;
-    final account = accounts.cast<AccountInfo?>().firstWhere(
-      (a) => a?.id == selectedId,
-      orElse: () => null,
-    );
+    AccountInfo? account,
+  ) {
     if (account == null) return;
 
     if (!context.mounted) return;
