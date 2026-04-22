@@ -2,7 +2,7 @@
 
 **SoloSoul** is a local-first, zero-knowledge personal identity engine. Your data stays encrypted on your device — only you can access it.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS-green.svg)](https://flutter.dev)
 
 ---
@@ -181,9 +181,11 @@ All sensitivity changes are recorded in the operation history for security audit
 
 ## License
 
-MIT License
+Apache License 2.0
 
 Copyright (c) 2026 SoloSoul
+
+See [LICENSE](./LICENSE) for full license terms.
 
 ---
 
