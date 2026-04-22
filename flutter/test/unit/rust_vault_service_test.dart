@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 
 void main() {
+  // Skip tests that require FFI (macOS/Android only) when running on Linux CI
+  final isLinux = Platform.operatingSystem == 'linux';
+  final skipOnLinux = isLinux ? 'RustVaultService requires FFI (macOS/Android only)' : null;
   group('BridgeProfileSummary', () {
     test('creates with all fields', () {
       const summary = BridgeProfileSummary(
@@ -75,7 +79,7 @@ void main() {
     });
   });
 
-  group('RustVaultService instance management', () {
+  group('RustVaultService instance management', skip: skipOnLinux, () {
     test('instance returns singleton', () {
       final instance1 = RustVaultService.instance;
       final instance2 = RustVaultService.instance;
@@ -220,7 +224,7 @@ void main() {
     });
   });
 
-  group('RustVaultService account operations', () {
+  group('RustVaultService account operations', skip: skipOnLinux, () {
     late RustVaultService service;
 
     setUp(() {
