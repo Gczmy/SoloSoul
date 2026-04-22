@@ -5,7 +5,7 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-04-22
+## [1.0.0-pre.1] - 2026-04-22
 
 ### Added
 
@@ -46,9 +46,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | Backend | Go, Gin |
 | Storage | Local encrypted files |
 
+### Known Issues
+
+- macOS only (other platforms coming soon)
+- Touch ID not yet functional
+
 ---
 
 ## [Unreleased]
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.0.0-pre.1...HEAD
+[1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
