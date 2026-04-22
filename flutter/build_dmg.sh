@@ -13,7 +13,7 @@ set -e
 
 VERSION=${1:-"1.0.0"}
 APP_NAME="SoloSoul"
-DMG_NAME="${APP_NAME}-v${VERSION}-macos"
+DMG_NAME="${APP_NAME}"
 
 # Colors for output
 RED='\033[0;31m'
