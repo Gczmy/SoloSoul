@@ -65,6 +65,9 @@ dependencies:
   # Markdown rendering
   flutter_markdown: ^0.7.4
 
+  # Version info (SSOT: read version from platform build)
+  package_info_plus: ^8.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

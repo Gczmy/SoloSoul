@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
@@ -10,6 +11,10 @@ import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dar
 import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
+  return PackageInfo.fromPlatform();
+});
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -243,11 +248,20 @@ class SettingsPage extends ConsumerWidget {
                   title: 'About',
                   icon: Icons.info_outlined,
                   children: [
-                    _SettingsTile(
-                      icon: Icons.code,
-                      title: 'Version',
-                      subtitle: '1.0.0',
-                      onTap: () => _showVersionSheet(context),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final packageInfo = ref.watch(packageInfoProvider);
+                        return _SettingsTile(
+                          icon: Icons.code,
+                          title: 'Version',
+                          subtitle: packageInfo.when(
+                            data: (info) => info.version,
+                            loading: () => '...',
+                            error: (_, __) => '1.0.0',
+                          ),
+                          onTap: () => _showVersionSheet(context, ref),
+                        );
+                      },
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -421,11 +435,12 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showVersionSheet(BuildContext context) {
+  void _showVersionSheet(BuildContext context, WidgetRef ref) {
+    final packageInfo = ref.read(packageInfoProvider);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => const _VersionSheet(),
+      builder: (context) => _VersionSheet(packageInfo: packageInfo),
     );
   }
 
@@ -1077,13 +1092,14 @@ class _AllAccountsSheet extends StatelessWidget {
   }
 }
 
-class _VersionSheet extends StatelessWidget {
-  const _VersionSheet();
+class _VersionSheet extends ConsumerWidget {
+  final AsyncValue<PackageInfo> packageInfo;
+
+  const _VersionSheet({required this.packageInfo});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    const currentVersion = '1.0.0';
     const latestVersion = '1.0.0';
     const hasUpdate = false;
 
@@ -1137,7 +1153,11 @@ class _VersionSheet extends StatelessWidget {
                   _VersionInfoTile(
                     icon: Icons.info_outline,
                     title: 'Current Version',
-                    value: currentVersion,
+                    value: packageInfo.when(
+                      data: (info) => info.version,
+                      loading: () => '...',
+                      error: (_, __) => '1.0.0',
+                    ),
                   ),
                   const Divider(height: 1),
                   _VersionInfoTile(
