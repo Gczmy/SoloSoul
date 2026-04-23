@@ -7,7 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, SnackBarType, showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
-    show profileNotifierProvider, identityProvider, idCardItemsProvider, contactItemsProvider, addressItemsProvider, fieldHistoriesProvider;
+    show profileNotifierProvider, profileIdentityProvider, idCardItemsProvider, contactItemsProvider, addressItemsProvider, fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
@@ -147,14 +147,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     setState(() => _isSavingName = true);
     final newIdentity = IdentityData(
       fullName: name,
-      givenName: ref.read(identityProvider)?.givenName,
-      familyName: ref.read(identityProvider)?.familyName,
-      dateOfBirth: ref.read(identityProvider)?.dateOfBirth,
-      gender: ref.read(identityProvider)?.gender,
-      nationality: ref.read(identityProvider)?.nationality,
-      idCards: ref.read(identityProvider)?.idCards,
-      contact: ref.read(identityProvider)?.contact,
-      addresses: ref.read(identityProvider)?.addresses,
+      givenName: ref.read(profileIdentityProvider)?.givenName,
+      familyName: ref.read(profileIdentityProvider)?.familyName,
+      dateOfBirth: ref.read(profileIdentityProvider)?.dateOfBirth,
+      gender: ref.read(profileIdentityProvider)?.gender,
+      nationality: ref.read(profileIdentityProvider)?.nationality,
+      idCards: ref.read(profileIdentityProvider)?.idCards,
+      contact: ref.read(profileIdentityProvider)?.contact,
+      addresses: ref.read(profileIdentityProvider)?.addresses,
     );
 
     final success = await ref
