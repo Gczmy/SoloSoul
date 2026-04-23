@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 // Re-export SensitivityLevel from sensitivity_enums for backward compatibility
@@ -23,6 +24,8 @@ import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart'
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 
+part 'sensitivity_provider.g.dart';
+
 /// Provider for reactive field registry.
 /// Forms register fields via this provider, settings page watches it.
 final formFieldRegistryProvider =
@@ -32,8 +35,8 @@ final formFieldRegistryProvider =
 
 /// OPTIMIZED: Effective sensitivity level for a specific field.
 /// Uses select() to narrow watch scope - only rebuilds when THIS fieldId changes.
-final effectiveSensitivityProvider =
-    Provider.family<SensitivityLevel, String>((ref, fieldId) {
+@riverpod
+SensitivityLevel effectiveSensitivity(Ref ref, String fieldId) {
   // Only watch this specific fieldId's registry entry
   final fieldDef = ref.watch(
     formFieldRegistryProvider.select((s) => s[fieldId]),
@@ -73,13 +76,13 @@ final effectiveSensitivityProvider =
 
   // 5. Fallback to public
   return SensitivityLevel.public;
-});
+}
 
 /// Provider for field metadata (name, section, etc.) for settings page display.
-final fieldMetadataProvider =
-    Provider.family<FieldSensitivity?, String>((ref, fieldId) {
+@riverpod
+FieldSensitivity? fieldMetadata(Ref ref, String fieldId) {
   return ref.watch(
     formFieldRegistryProvider.select((s) => s[fieldId]),
   );
-});
+}
 

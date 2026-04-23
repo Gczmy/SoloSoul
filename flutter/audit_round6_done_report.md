@@ -76,7 +76,37 @@ dart analyze → No issues found!
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
 | freezed 试点 | P3 | 依赖已添加但未使用 |
-| riverpod_generator 试点 | P3 | 依赖已添加但未使用 |
+| riverpod_generator 试点 | P3 | 🔄 进行中：sensitivity_provider.dart 转换 |
+
+---
+
+## 七、riverpod_generator 试点
+
+### 目标
+将 `effectiveSensitivityProvider` 和 `fieldMetadataProvider` 从 `Provider.family` 转换为 `@riverpod` 注解风格。
+
+### 完成情况
+- ✅ effectiveSensitivityProvider → @riverpod
+- ✅ fieldMetadataProvider → @riverpod
+- ✅ sensitivity_provider.g.dart 已生成
+- ✅ dart analyze 通过
+
+### 使用方法
+旧代码:
+```dart
+final effectiveSensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
+final metadata = ref.watch(fieldMetadataProvider(fieldId));
+```
+
+新代码:
+```dart
+final effectiveSensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
+final metadata = ref.watch(fieldMetadataProvider(fieldId));
+// 或使用生成的扩展方法:
+// ref.watch(effectiveSensitivityProvider(fieldId))
+```
+
+注意：由于 @riverpod 生成的 provider 名称与原来相同，调用方式保持不变。
 
 ---
 
