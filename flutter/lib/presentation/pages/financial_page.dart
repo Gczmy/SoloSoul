@@ -249,15 +249,14 @@ class _BankAccountSectionState
 
     // Persist via provider with rollback on failure
     try {
-      final currentFinancial = ref.read(profileNotifierProvider)?.financial;
       final accounts = ref.read(bankAccountItemsProvider);
       final updatedAccounts = wasAdding
           ? [...accounts, accountToSave]
           : accounts.map((a) => a.id == editingItem.id ? accountToSave : a).toList();
       final financial = FinancialData(
         bankAccounts: updatedAccounts,
-        cards: currentFinancial?.cards ?? [],
-        taxIds: currentFinancial?.taxIds ?? [],
+        cards: ref.read(cardItemsProvider),
+        taxIds: ref.read(taxIdItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -494,15 +493,14 @@ class _CardSectionState
 
     // Persist via provider with rollback on failure
     try {
-      final currentFinancial = ref.read(profileNotifierProvider)?.financial;
       final cards = ref.read(cardItemsProvider);
       final updatedCards = wasAdding
           ? [...cards, cardToSave]
           : cards.map((c) => c.id == editingItem.id ? cardToSave : c).toList();
       final financial = FinancialData(
-        bankAccounts: currentFinancial?.bankAccounts ?? [],
+        bankAccounts: ref.read(bankAccountItemsProvider),
         cards: updatedCards,
-        taxIds: currentFinancial?.taxIds ?? [],
+        taxIds: ref.read(taxIdItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -733,14 +731,13 @@ class _TaxIdSectionState
 
     // Persist via provider with rollback on failure
     try {
-      final currentFinancial = ref.read(profileNotifierProvider)?.financial;
       final taxIds = ref.read(taxIdItemsProvider);
       final updatedTaxIds = wasAdding
           ? [...taxIds, taxIdToSave]
           : taxIds.map((t) => t.id == editingItem.id ? taxIdToSave : t).toList();
       final financial = FinancialData(
-        bankAccounts: currentFinancial?.bankAccounts ?? [],
-        cards: currentFinancial?.cards ?? [],
+        bankAccounts: ref.read(bankAccountItemsProvider),
+        cards: ref.read(cardItemsProvider),
         taxIds: updatedTaxIds,
       );
       await ref

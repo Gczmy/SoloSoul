@@ -223,11 +223,9 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
     try {
       final professional = ProfessionalData(
         education: ref.read(educationItemsProvider),
-        employment:
-            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-        languages:
-            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+        employment: ref.read(employmentItemsProvider),
+        skills: ref.read(skillItemsProvider),
+        languages: ref.read(languageItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -574,13 +572,11 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
     // Persist via provider
     try {
       final professional = ProfessionalData(
-        education:
-            ref.read(profileNotifierProvider)?.professional?.education ?? [],
+        education: ref.read(educationItemsProvider),
         employment: ref.read(employmentItemsProvider),
-        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-        languages:
-            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
-        awards: ref.read(profileNotifierProvider)?.professional?.awards ?? [],
+        skills: ref.read(skillItemsProvider),
+        languages: ref.read(languageItemsProvider),
+        awards: ref.read(awardItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -781,13 +777,10 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
     // Persist via provider - UI derives state from skillItemsProvider
     try {
       final professional = ProfessionalData(
-        education:
-            ref.read(profileNotifierProvider)?.professional?.education ?? [],
-        employment:
-            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+        education: ref.read(educationItemsProvider),
+        employment: ref.read(employmentItemsProvider),
         skills: [...ref.read(skillItemsProvider)],
-        languages:
-            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+        languages: ref.read(languageItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -976,11 +969,9 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
     // Persist via provider
     try {
       final professional = ProfessionalData(
-        education:
-            ref.read(profileNotifierProvider)?.professional?.education ?? [],
-        employment:
-            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
+        education: ref.read(educationItemsProvider),
+        employment: ref.read(employmentItemsProvider),
+        skills: ref.read(skillItemsProvider),
         languages: ref.read(languageItemsProvider),
       );
       await ref
@@ -1179,13 +1170,10 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
     // Persist via provider
     try {
       final professional = ProfessionalData(
-        education:
-            ref.read(profileNotifierProvider)?.professional?.education ?? [],
-        employment:
-            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-        languages:
-            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+        education: ref.read(educationItemsProvider),
+        employment: ref.read(employmentItemsProvider),
+        skills: ref.read(skillItemsProvider),
+        languages: ref.read(languageItemsProvider),
         awards: ref.read(awardItemsProvider),
       );
       await ref

@@ -148,14 +148,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     setState(() => _isSavingName = true);
     final newIdentity = IdentityData(
       fullName: name,
-      givenName: ref.read(profileNotifierProvider)?.identity?.givenName,
-      familyName: ref.read(profileNotifierProvider)?.identity?.familyName,
-      dateOfBirth: ref.read(profileNotifierProvider)?.identity?.dateOfBirth,
-      gender: ref.read(profileNotifierProvider)?.identity?.gender,
-      nationality: ref.read(profileNotifierProvider)?.identity?.nationality,
-      idCards: ref.read(profileNotifierProvider)?.identity?.idCards,
-      contact: ref.read(profileNotifierProvider)?.identity?.contact,
-      addresses: ref.read(profileNotifierProvider)?.identity?.addresses,
+      givenName: ref.read(identityProvider)?.givenName,
+      familyName: ref.read(identityProvider)?.familyName,
+      dateOfBirth: ref.read(identityProvider)?.dateOfBirth,
+      gender: ref.read(identityProvider)?.gender,
+      nationality: ref.read(identityProvider)?.nationality,
+      idCards: ref.read(identityProvider)?.idCards,
+      contact: ref.read(identityProvider)?.contact,
+      addresses: ref.read(identityProvider)?.addresses,
     );
 
     final success = await ref

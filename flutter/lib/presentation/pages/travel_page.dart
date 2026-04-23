@@ -114,27 +114,7 @@ class _PassportSectionState
 
   @override
   void loadItems() {
-    final travel = ref.read(profileNotifierProvider)?.travel;
-    _passports = [
-      ...?(travel?.activePassports.map((p) {
-        return PassportData(
-          id: p.id,
-          title: p.title,
-          country: p.country,
-          countryCode: p.countryCode,
-          number: p.number,
-          issueDate: p.issueDate,
-          placeOfIssue: p.placeOfIssue,
-          expiryDate: p.expiryDate,
-          dateOfBirth: p.dateOfBirth,
-          placeOfBirth: p.placeOfBirth,
-          sex: p.sex,
-          nationality: p.nationality,
-          authority: p.authority,
-          holderName: p.holderName,
-        );
-      })),
-    ];
+    _passports = [...ref.read(passportItemsProvider)];
   }
 
   PassportData _createPassportFromValues(
@@ -304,9 +284,8 @@ class _PassportSectionState
     try {
       final travel = TravelData(
         passports: _passports,
-        visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
-        travelHistory:
-            ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
+        visas: ref.read(visaItemsProvider),
+        travelHistory: ref.read(travelHistoryItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -606,10 +585,9 @@ class _VisaSectionState
     // Persist via provider
     try {
       final travel = TravelData(
-        passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
+        passports: ref.read(passportItemsProvider),
         visas: updatedVisas,
-        travelHistory:
-            ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
+        travelHistory: ref.read(travelHistoryItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
@@ -870,8 +848,8 @@ class _TravelHistorySectionState
     // Persist via provider
     try {
       final travel = TravelData(
-        passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
-        visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
+        passports: ref.read(passportItemsProvider),
+        visas: ref.read(visaItemsProvider),
         travelHistory: updatedHistory,
       );
       await ref
