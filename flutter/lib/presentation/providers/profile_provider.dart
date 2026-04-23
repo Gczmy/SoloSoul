@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/log_section_config.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/providers/profile_section_editor.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show formFieldRegistryProvider;
@@ -1033,7 +1034,13 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     if (actualIndex < 0) {
       return;
     }
-    final newProfile = _markItemDeleted(current, section, itemType, actualIndex, now);
+    final (newProfile, deletedFound) = ProfileSectionEditor.markDeleted(
+      current: current,
+      section: section,
+      itemType: itemType,
+      index: actualIndex,
+      deletedAt: now,
+    );
 
     // Log the delete operation
     _logSoftDelete(section, itemType, deletedItem);
@@ -1057,271 +1064,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .updateOperation('Deleted $itemType');
   }
 
-  /// Mark an item as deleted in the profile
-  ProfileData _markItemDeleted(
-    ProfileData current,
-    String section,
-    String itemType,
-    int index,
-    DateTime deletedAt,
-  ) {
-    switch (section) {
-      case 'travel':
-        final travel = current.travel ?? TravelData();
-        if (itemType == 'passport' && index < travel.passports.length) {
-          final updated = List<PassportData>.from(travel.passports);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: TravelData(
-              passports: updated,
-              visas: travel.visas,
-              travelHistory: travel.travelHistory,
-            ),
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'visa' && index < travel.visas.length) {
-          final updated = List<VisaData>.from(travel.visas);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: TravelData(
-              passports: travel.passports,
-              visas: updated,
-              travelHistory: travel.travelHistory,
-            ),
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'travel_history' &&
-            index < travel.travelHistory.length) {
-          final updated = List<TravelHistoryData>.from(travel.travelHistory);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: TravelData(
-              passports: travel.passports,
-              visas: travel.visas,
-              travelHistory: updated,
-            ),
-            financial: current.financial,
-            professional: current.professional,
-          );
-        }
-        break;
-      case 'financial':
-        final financial = current.financial ?? FinancialData();
-        if (itemType == 'bank_account' &&
-            index < financial.bankAccounts.length) {
-          final updated = List<BankAccountData>.from(financial.bankAccounts);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: FinancialData(
-              bankAccounts: updated,
-              cards: financial.cards,
-              taxIds: financial.taxIds,
-            ),
-            professional: current.professional,
-          );
-        } else if (itemType == 'card' && index < financial.cards.length) {
-          final updated = List<CardData>.from(financial.cards);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: FinancialData(
-              bankAccounts: financial.bankAccounts,
-              cards: updated,
-              taxIds: financial.taxIds,
-            ),
-            professional: current.professional,
-          );
-        } else if (itemType == 'tax_id' && index < financial.taxIds.length) {
-          final updated = List<TaxIdData>.from(financial.taxIds);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: FinancialData(
-              bankAccounts: financial.bankAccounts,
-              cards: financial.cards,
-              taxIds: updated,
-            ),
-            professional: current.professional,
-          );
-        }
-        break;
-      case 'professional':
-        final professional = current.professional ?? ProfessionalData();
-        if (itemType == 'education' && index < professional.education.length) {
-          final updated = List<EducationData>.from(professional.education);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: updated,
-              employment: professional.employment,
-              skills: professional.skills,
-              languages: professional.languages,
-            ),
-          );
-        } else if (itemType == 'employment' &&
-            index < professional.employment.length) {
-          final updated = List<EmploymentData>.from(professional.employment);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: professional.education,
-              employment: updated,
-              skills: professional.skills,
-              languages: professional.languages,
-            ),
-          );
-        } else if (itemType == 'skill' && index < professional.skills.length) {
-          final updated = List<SkillData>.from(professional.skills);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: professional.education,
-              employment: professional.employment,
-              skills: updated,
-              languages: professional.languages,
-            ),
-          );
-        } else if (itemType == 'language' &&
-            index < professional.languages.length) {
-          final updated = List<LanguageData>.from(professional.languages);
-          updated[index] = updated[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: professional.education,
-              employment: professional.employment,
-              skills: professional.skills,
-              languages: updated,
-            ),
-          );
-        }
-        break;
-      case 'profile':
-        final identity = current.identity ?? IdentityData();
-        if (itemType == 'contact' &&
-            index < (identity.contact?.entries.length ?? 0)) {
-          final entries = List<ContactEntry>.from(identity.contact!.entries);
-          entries[index] = entries[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: IdentityData(
-              fullName: identity.fullName,
-              givenName: identity.givenName,
-              familyName: identity.familyName,
-              dateOfBirth: identity.dateOfBirth,
-              gender: identity.gender,
-              nationality: identity.nationality,
-              idCards: identity.idCards,
-              contact: ContactData(entries: entries),
-              addresses: identity.addresses,
-            ),
-            travel: current.travel,
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'idCard' &&
-            index < (identity.idCards?.length ?? 0)) {
-          final idCards = List<IdCardData>.from(identity.idCards!);
-          idCards[index] = idCards[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: IdentityData(
-              fullName: identity.fullName,
-              givenName: identity.givenName,
-              familyName: identity.familyName,
-              dateOfBirth: identity.dateOfBirth,
-              gender: identity.gender,
-              nationality: identity.nationality,
-              idCards: idCards,
-              contact: identity.contact,
-              addresses: identity.addresses,
-            ),
-            travel: current.travel,
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'address' &&
-            index < (identity.addresses?.length ?? 0)) {
-          final addresses = List<AddressData>.from(identity.addresses!);
-          addresses[index] = addresses[index].copyWith(
-            isDeleted: true,
-            deletedAt: deletedAt,
-          );
-          return ProfileData(
-            identity: IdentityData(
-              fullName: identity.fullName,
-              givenName: identity.givenName,
-              familyName: identity.familyName,
-              dateOfBirth: identity.dateOfBirth,
-              gender: identity.gender,
-              nationality: identity.nationality,
-              idCards: identity.idCards,
-              contact: identity.contact,
-              addresses: addresses,
-            ),
-            travel: current.travel,
-            financial: current.financial,
-            professional: current.professional,
-          );
-        }
-        break;
-    }
-    return current;
-  }
 
   /// Log a soft delete operation
   void _logSoftDelete(String section, String itemType, dynamic deletedItem) {
@@ -1364,14 +1106,24 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     }
 
     // Verify item exists and is deleted at this index
-    final itemAtIndex = _getItemAtIndex(state!, section, itemType, actualIndex);
+    final itemAtIndex = ProfileSectionEditor.getItem(
+      profile: state!,
+      section: section,
+      itemType: itemType,
+      index: actualIndex,
+    );
     if (itemAtIndex == null || !_isItemDeleted(itemAtIndex)) {
       // Item doesn't exist or was already restored - silently return
       return;
     }
 
     final current = state!;
-    final newProfile = _markItemRestored(current, section, itemType, actualIndex);
+    final (newProfile, restoredFound) = ProfileSectionEditor.markRestored(
+      current: current,
+      section: section,
+      itemType: itemType,
+      index: actualIndex,
+    );
 
     // Log the restore operation
     _logRestore(section, itemType, actualIndex);
@@ -1407,112 +1159,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     }
   }
 
-  /// Get item at specific index (returns null if not found or wrong type)
-  dynamic _getItemAtIndex(
-    ProfileData profile,
-    String section,
-    String itemType,
-    int index,
-  ) {
-    switch (section) {
-      case 'travel':
-        final travel = profile.travel;
-        if (travel == null) return null;
-        switch (itemType) {
-          case 'passport':
-            if (index >= 0 && index < travel.passports.length) {
-              return travel.passports[index];
-            }
-            break;
-          case 'visa':
-            if (index >= 0 && index < travel.visas.length) {
-              return travel.visas[index];
-            }
-            break;
-          case 'travel_history':
-            if (index >= 0 && index < travel.travelHistory.length) {
-              return travel.travelHistory[index];
-            }
-            break;
-        }
-        break;
-      case 'financial':
-        final financial = profile.financial;
-        if (financial == null) return null;
-        switch (itemType) {
-          case 'bank_account':
-            if (index >= 0 && index < financial.bankAccounts.length) {
-              return financial.bankAccounts[index];
-            }
-            break;
-          case 'card':
-            if (index >= 0 && index < financial.cards.length) {
-              return financial.cards[index];
-            }
-            break;
-          case 'tax_id':
-            if (index >= 0 && index < financial.taxIds.length) {
-              return financial.taxIds[index];
-            }
-            break;
-        }
-        break;
-      case 'professional':
-        final professional = profile.professional;
-        if (professional == null) return null;
-        switch (itemType) {
-          case 'education':
-            if (index >= 0 && index < professional.education.length) {
-              return professional.education[index];
-            }
-            break;
-          case 'employment':
-            if (index >= 0 && index < professional.employment.length) {
-              return professional.employment[index];
-            }
-            break;
-          case 'skill':
-            if (index >= 0 && index < professional.skills.length) {
-              return professional.skills[index];
-            }
-            break;
-          case 'language':
-            if (index >= 0 && index < professional.languages.length) {
-              return professional.languages[index];
-            }
-            break;
-        }
-        break;
-      case 'profile':
-        final identity = profile.identity;
-        if (identity == null) return null;
-        switch (itemType) {
-          case 'contact':
-            if (identity.contact != null &&
-                index >= 0 &&
-                index < identity.contact!.entries.length) {
-              return identity.contact!.entries[index];
-            }
-            break;
-          case 'idCard':
-            if (identity.idCards != null &&
-                index >= 0 &&
-                index < identity.idCards!.length) {
-              return identity.idCards![index];
-            }
-            break;
-          case 'address':
-            if (identity.addresses != null &&
-                index >= 0 &&
-                index < identity.addresses!.length) {
-              return identity.addresses![index];
-            }
-            break;
-        }
-        break;
-    }
-    return null;
-  }
 
   /// Permanently delete an item (remove from list completely)
   Future<void> permanentDelete({
@@ -1538,7 +1184,12 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     }
 
     // Verify item exists and is deleted at this index
-    final itemAtIndex = _getItemAtIndex(state!, section, itemType, actualIndex);
+    final itemAtIndex = ProfileSectionEditor.getItem(
+      profile: state!,
+      section: section,
+      itemType: itemType,
+      index: actualIndex,
+    );
     if (itemAtIndex == null) {
       throw Exception('$itemType not found at index $actualIndex');
     }
@@ -1573,270 +1224,6 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         .updateOperation('Purged $itemType');
   }
 
-  /// Mark an item as restored (not deleted) in the profile
-  ProfileData _markItemRestored(
-    ProfileData current,
-    String section,
-    String itemType,
-    int index,
-  ) {
-    switch (section) {
-      case 'travel':
-        final travel = current.travel ?? TravelData();
-        if (itemType == 'passport' && index < travel.passports.length) {
-          final updated = List<PassportData>.from(travel.passports);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: TravelData(
-              passports: updated,
-              visas: travel.visas,
-              travelHistory: travel.travelHistory,
-            ),
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'visa' && index < travel.visas.length) {
-          final updated = List<VisaData>.from(travel.visas);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: TravelData(
-              passports: travel.passports,
-              visas: updated,
-              travelHistory: travel.travelHistory,
-            ),
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'travel_history' &&
-            index < travel.travelHistory.length) {
-          final updated = List<TravelHistoryData>.from(travel.travelHistory);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: TravelData(
-              passports: travel.passports,
-              visas: travel.visas,
-              travelHistory: updated,
-            ),
-            financial: current.financial,
-            professional: current.professional,
-          );
-        }
-        break;
-      case 'financial':
-        final financial = current.financial ?? FinancialData();
-        if (itemType == 'bank_account' &&
-            index < financial.bankAccounts.length) {
-          final updated = List<BankAccountData>.from(financial.bankAccounts);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: FinancialData(
-              bankAccounts: updated,
-              cards: financial.cards,
-              taxIds: financial.taxIds,
-            ),
-            professional: current.professional,
-          );
-        } else if (itemType == 'card' && index < financial.cards.length) {
-          final updated = List<CardData>.from(financial.cards);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: FinancialData(
-              bankAccounts: financial.bankAccounts,
-              cards: updated,
-              taxIds: financial.taxIds,
-            ),
-            professional: current.professional,
-          );
-        } else if (itemType == 'tax_id' && index < financial.taxIds.length) {
-          final updated = List<TaxIdData>.from(financial.taxIds);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: FinancialData(
-              bankAccounts: financial.bankAccounts,
-              cards: financial.cards,
-              taxIds: updated,
-            ),
-            professional: current.professional,
-          );
-        }
-        break;
-      case 'professional':
-        final professional = current.professional ?? ProfessionalData();
-        if (itemType == 'education' && index < professional.education.length) {
-          final updated = List<EducationData>.from(professional.education);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: updated,
-              employment: professional.employment,
-              skills: professional.skills,
-              languages: professional.languages,
-            ),
-          );
-        } else if (itemType == 'employment' &&
-            index < professional.employment.length) {
-          final updated = List<EmploymentData>.from(professional.employment);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: professional.education,
-              employment: updated,
-              skills: professional.skills,
-              languages: professional.languages,
-            ),
-          );
-        } else if (itemType == 'skill' && index < professional.skills.length) {
-          final updated = List<SkillData>.from(professional.skills);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: professional.education,
-              employment: professional.employment,
-              skills: updated,
-              languages: professional.languages,
-            ),
-          );
-        } else if (itemType == 'language' &&
-            index < professional.languages.length) {
-          final updated = List<LanguageData>.from(professional.languages);
-          updated[index] = updated[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: current.identity,
-            travel: current.travel,
-            financial: current.financial,
-            professional: ProfessionalData(
-              education: professional.education,
-              employment: professional.employment,
-              skills: professional.skills,
-              languages: updated,
-            ),
-          );
-        }
-        break;
-      case 'profile':
-        final identity = current.identity ?? IdentityData();
-        if (itemType == 'contact' &&
-            index < (identity.contact?.entries.length ?? 0)) {
-          final entries = List<ContactEntry>.from(identity.contact!.entries);
-          entries[index] = entries[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: IdentityData(
-              fullName: identity.fullName,
-              givenName: identity.givenName,
-              familyName: identity.familyName,
-              dateOfBirth: identity.dateOfBirth,
-              gender: identity.gender,
-              nationality: identity.nationality,
-              idCards: identity.idCards,
-              contact: ContactData(entries: entries),
-              addresses: identity.addresses,
-            ),
-            travel: current.travel,
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'idCard' &&
-            index < (identity.idCards?.length ?? 0)) {
-          final idCards = List<IdCardData>.from(identity.idCards!);
-          idCards[index] = idCards[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: IdentityData(
-              fullName: identity.fullName,
-              givenName: identity.givenName,
-              familyName: identity.familyName,
-              dateOfBirth: identity.dateOfBirth,
-              gender: identity.gender,
-              nationality: identity.nationality,
-              idCards: idCards,
-              contact: identity.contact,
-              addresses: identity.addresses,
-            ),
-            travel: current.travel,
-            financial: current.financial,
-            professional: current.professional,
-          );
-        } else if (itemType == 'address' &&
-            index < (identity.addresses?.length ?? 0)) {
-          final addresses = List<AddressData>.from(identity.addresses!);
-          addresses[index] = addresses[index].copyWith(
-            isDeleted: false,
-            deletedAt: null,
-          );
-          return ProfileData(
-            identity: IdentityData(
-              fullName: identity.fullName,
-              givenName: identity.givenName,
-              familyName: identity.familyName,
-              dateOfBirth: identity.dateOfBirth,
-              gender: identity.gender,
-              nationality: identity.nationality,
-              idCards: identity.idCards,
-              contact: identity.contact,
-              addresses: addresses,
-            ),
-            travel: current.travel,
-            financial: current.financial,
-            professional: current.professional,
-          );
-        }
-        break;
-    }
-    return current;
-  }
 
   /// Log a restore operation
   void _logRestore(String section, String itemType, int index) {
