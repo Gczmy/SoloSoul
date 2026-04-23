@@ -1069,7 +1069,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           radius: 22,
                           backgroundColor: AppTheme.primaryColor,
                           child: Text(
-                            account.name.runes.first.toString().toUpperCase(),
+                            account.name[0].toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,

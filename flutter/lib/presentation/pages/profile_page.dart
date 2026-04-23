@@ -314,7 +314,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     radius: 48,
                     backgroundColor: AppTheme.primaryColor,
                     child: Text(
-                      fullName.isNotEmpty ? fullName.runes.first.toString().toUpperCase() : '?',
+                      fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
                       style: const TextStyle(
                         fontSize: 36,
                         color: Colors.white,
