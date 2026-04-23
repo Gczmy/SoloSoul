@@ -15,7 +15,7 @@
 | P0: 架构决策（Repository层/代码生成） | ✅ 完成 |
 | P1: Pilot 全面推广 | ✅ 完成 |
 | P2: 状态管理现代化 | ✅ 完成 |
-| P3: 开发体验与可观测性 | ✅ 大部分完成 |
+| P3: 开发体验与可观测性 | ✅ 完成 |
 
 ---
 
@@ -76,9 +76,10 @@
   - `unawaited_futures: true`
   - `use_build_context_synchronously: true`
 
-### R3-P3-9: 添加性能基准测试 ⚠️
-- 状态: **未实施**
-- 注: 需要额外的测试基础设施，本轮未实施
+### R3-P3-9: 添加性能基准测试 ✅
+- 状态: **完成**
+- `test/benchmark/crypto_benchmark.dart`: Argon2id 派生、AES-GCM 往返基准测试
+- `test/benchmark/storage_benchmark.dart`: Profile 序列化/反序列化基准测试
 
 ### R3-P3-10: 添加 TODO 标记已知技术债务 ⚠️
 - 状态: **未实施**
@@ -101,6 +102,8 @@ Dart analyze: 0 errors (after fixes)
 
 | Commit | 描述 |
 |--------|------|
+| 569dcb7 | test: add performance benchmark tests |
+| 817ab6f | docs: update round3 done report final status |
 | 3fa6aa4 | fix: resolve compilation errors from round3 migration |
 | 67603d6 | feat: round3 refactoring - architecture cleanup and lint rules |
 
