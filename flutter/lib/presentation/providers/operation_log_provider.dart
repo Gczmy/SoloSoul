@@ -341,18 +341,27 @@ class OperationLogEntries extends _$OperationLogEntries {
 class LogActionFilter extends _$LogActionFilter {
   @override
   Set<String> build() => {};
+
+  void setFilters(Set<String> filters) => state = filters;
+  void clear() => state = {};
 }
 
 @riverpod
 class LogDeviceFilter extends _$LogDeviceFilter {
   @override
   Set<String> build() => {};
+
+  void setFilters(Set<String> filters) => state = filters;
+  void clear() => state = {};
 }
 
 @riverpod
 class LogSensitivityFilter extends _$LogSensitivityFilter {
   @override
   Set<SensitivityLevel> build() => {};
+
+  void setFilters(Set<SensitivityLevel> filters) => state = filters;
+  void clear() => state = {};
 }
 
 // Filtered entries provider

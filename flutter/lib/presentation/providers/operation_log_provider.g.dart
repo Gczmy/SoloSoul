@@ -26,7 +26,7 @@ final operationLogEntriesProvider =
     );
 
 typedef _$OperationLogEntries = AutoDisposeNotifier<List<OperationEntry>>;
-String _$logActionFilterHash() => r'f7ffc167eadadeb2a0e7d808ff80a4ef2ef83cde';
+String _$logActionFilterHash() => r'b1f64df29a0c627c862ef52718ba5ee5e00a89c4';
 
 /// See also [LogActionFilter].
 @ProviderFor(LogActionFilter)
@@ -42,7 +42,7 @@ final logActionFilterProvider =
     );
 
 typedef _$LogActionFilter = AutoDisposeNotifier<Set<String>>;
-String _$logDeviceFilterHash() => r'bd24797958745cd73815f90dd19d6c17d650da37';
+String _$logDeviceFilterHash() => r'dfcdd35cb3be966eb65cee9b2a25444b0bd85106';
 
 /// See also [LogDeviceFilter].
 @ProviderFor(LogDeviceFilter)
@@ -59,7 +59,7 @@ final logDeviceFilterProvider =
 
 typedef _$LogDeviceFilter = AutoDisposeNotifier<Set<String>>;
 String _$logSensitivityFilterHash() =>
-    r'815292d934488102406cd574b33b713462eae42d';
+    r'755ea84831ffba79c18191659137fedd08b1ebef';
 
 /// See also [LogSensitivityFilter].
 @ProviderFor(LogSensitivityFilter)
