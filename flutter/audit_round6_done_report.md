@@ -1,7 +1,7 @@
-# SoloSoul Flutter 第六轮修复完成报告 (P2)
+# SoloSoul Flutter 第六轮修复完成报告
 
 > 生成时间：2026-04-23
-> 前提：audit_round6_report.md 中识别的 P2 问题
+> 前提：audit_round6_report.md 中识别的问题
 > 范围：`flutter/` 目录
 
 ---
@@ -71,46 +71,57 @@ dart analyze → No issues found!
 
 ---
 
-## 四、剩余未解决问题
+## 四、riverpod_generator 试点完成
+
+### 转化统计
+
+| 文件 | 转化数 | 生成文件 |
+|------|--------|---------|
+| sensitivity_provider.dart | 2 | sensitivity_provider.g.dart |
+| profile_provider.dart | 18 | profile_provider.g.dart |
+| auth_provider.dart | 2 | auth_provider.g.dart |
+| account_style_provider.dart | 1 | account_style_provider.g.dart |
+| operation_log_provider.dart | 5 | operation_log_provider.g.dart |
+| **总计** | **28** | **5 个 .g.dart 文件** |
+
+### 转化详情
+
+**sensitivity_provider.dart**:
+- effectiveSensitivityProvider → @riverpod
+- fieldMetadataProvider → @riverpod
+
+**profile_provider.dart** (items providers):
+- EducationItems, BankAccountItems, EmploymentItems, SkillItems, TaxIdItems, PassportItems, VisaItems, TravelHistoryItems, CardItems, ContactItems, LanguageItems, AwardItems, IdCardItems, AddressItems
+
+**profile_provider.dart** (section providers):
+- ProfileIdentity, ProfileTravel, ProfileFinancial, ProfileProfessional
+
+**auth_provider.dart**:
+- AccountsVersion
+- IsSensitiveAccessGranted
+
+**account_style_provider.dart**:
+- DisplayMode
+
+**operation_log_provider.dart**:
+- OperationLogEntries, LogActionFilter, LogDeviceFilter, LogSensitivityFilter, OperationLogFilteredEntries
+
+### 兼容性修复
+
+**operation_log_page.dart**: 使用类型化空 Set 字面量 (`<String>{}`) 替代无类型 `{}`，改善 Riverpod 2.x 类型安全。
+
+---
+
+## 五、剩余未解决问题
 
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
 | freezed 试点 | P3 | 依赖已添加但未使用 |
-| riverpod_generator 试点 | P3 | 🔄 进行中：sensitivity_provider.dart 转换 |
+| .state = 访问警告 | P3 | Riverpod 2.x 设计限制，需要 public 方法替代 |
 
 ---
 
-## 七、riverpod_generator 试点
-
-### 目标
-将 `effectiveSensitivityProvider` 和 `fieldMetadataProvider` 从 `Provider.family` 转换为 `@riverpod` 注解风格。
-
-### 完成情况
-- ✅ effectiveSensitivityProvider → @riverpod
-- ✅ fieldMetadataProvider → @riverpod
-- ✅ sensitivity_provider.g.dart 已生成
-- ✅ dart analyze 通过
-
-### 使用方法
-旧代码:
-```dart
-final effectiveSensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
-final metadata = ref.watch(fieldMetadataProvider(fieldId));
-```
-
-新代码:
-```dart
-final effectiveSensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
-final metadata = ref.watch(fieldMetadataProvider(fieldId));
-// 或使用生成的扩展方法:
-// ref.watch(effectiveSensitivityProvider(fieldId))
-```
-
-注意：由于 @riverpod 生成的 provider 名称与原来相同，调用方式保持不变。
-
----
-
-## 五、累计修复统计
+## 六、累计修复统计
 
 | 轮次 | 修复数 | 主要问题 |
 |------|--------|---------|
@@ -122,3 +133,4 @@ final metadata = ref.watch(fieldMetadataProvider(fieldId));
 | Round 5+ | 8 | switch→Map、纯函数化、final 字段化、文件拆分、go_router、AsyncNotifier |
 | Round 6 P0/P1 | 7 | AsyncValue 类型错误、.value 访问模式、Timer leak、catch clause |
 | Round 6 P2 | 3 | GoRouter redirect isLoading、StateNotifier→Notifier 迁移 |
+| riverpod_generator | 28 | Provider → @riverpod 注解转换 |
