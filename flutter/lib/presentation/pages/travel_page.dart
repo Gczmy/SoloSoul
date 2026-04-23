@@ -479,24 +479,11 @@ class _VisaSection extends ConsumerStatefulWidget {
 
 class _VisaSectionState
     extends ProfileSectionState<_VisaSection> {
-  late List<VisaData> _visas;
+  // No local state - uses ref.watch(visaItemsProvider) instead
 
   @override
   void loadItems() {
-    final travel = ref.read(profileNotifierProvider)?.travel;
-    _visas = [
-      ...?(travel?.activeVisas.map(
-        (v) => VisaData(
-          id: v.id,
-          title: v.title,
-          country: v.country,
-          visaType: v.visaType,
-          number: v.number,
-          issueDate: v.issueDate,
-          expiryDate: v.expiryDate,
-        ),
-      )),
-    ];
+    // No-op: visaItemsProvider handles data sourcing via ref.watch(profileNotifierProvider)
   }
 
   VisaData _createVisaFromValues(Map<String, String> values, {String? id}) {
@@ -536,8 +523,9 @@ class _VisaSectionState
   }
 
   Future<void> _onVisaDelete(VisaData visa) async {
+    final visas = ref.read(visaItemsProvider);
     // Use ID-based lookup since VisaData has no == override (uses object identity)
-    final index = _visas.indexById(visa.id, (v) => v.id);
+    final index = visas.indexById(visa.id, (v) => v.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -545,10 +533,6 @@ class _VisaSectionState
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = visa.id;
-
-    setState(() {
-      _visas = List.from(_visas)..removeAt(index);
-    });
 
     try {
       await ref
@@ -560,11 +544,6 @@ class _VisaSectionState
             deletedItem: visa,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _visas = List.from(_visas)..insert(index, visa);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -589,8 +568,6 @@ class _VisaSectionState
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'visa', id: deletedId);
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -610,24 +587,27 @@ class _VisaSectionState
     }
     final itemName = visaToSave.country ?? 'Visa';
 
-    // Snapshot for rollback on failure
-    final originalVisas = List<VisaData>.from(_visas);
+    // Get current visas from provider
+    final currentVisas = ref.read(visaItemsProvider);
 
-    // Update local state optimistically
+    // Build updated visas list
+    final updatedVisas = <VisaData>[];
     if (wasAdding) {
-      _visas = List.from(_visas)..add(visaToSave);
+      updatedVisas.addAll(currentVisas);
+      updatedVisas.add(visaToSave);
     } else {
-      final index = _visas.indexById(editingItem.id, (v) => v.id);
+      updatedVisas.addAll(currentVisas);
+      final index = updatedVisas.indexById(editingItem.id, (v) => v.id);
       if (index != -1) {
-        _visas = List.from(_visas)..[index] = visaToSave;
+        updatedVisas[index] = visaToSave;
       }
     }
 
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final travel = TravelData(
         passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
-        visas: _visas,
+        visas: updatedVisas,
         travelHistory:
             ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
       );
@@ -635,8 +615,6 @@ class _VisaSectionState
           .read(profileNotifierProvider.notifier)
           .updateTravelImmediate(travel);
     } on Exception catch (e) {
-      // Rollback on failure
-      _visas = originalVisas;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save visa: $e', type: SnackBarType.error);
       }
@@ -661,10 +639,11 @@ class _VisaSectionState
 
   @override
   Widget build(BuildContext context) {
+    final visas = ref.watch(visaItemsProvider);
     return UnifiedFormSection<VisaData>(
       title: 'Visas',
       icon: Icons.article_outlined,
-      items: _visas,
+      items: visas,
       maxVisibleItems: 3,
       itemFactory: _createVisaFromValues,
       fieldDefs: [
@@ -749,12 +728,9 @@ class _TravelHistorySection extends ConsumerStatefulWidget {
 
 class _TravelHistorySectionState
     extends ProfileSectionState<_TravelHistorySection> {
-  late List<TravelHistoryData> _history;
-
   @override
   void loadItems() {
-    final travel = ref.read(profileNotifierProvider)?.travel;
-    _history = [...(travel?.activeTravelHistory ?? [])];
+    // No-op: items now come from ref.watch(travelHistoryItemsProvider) in build()
   }
 
   Widget _buildTravelHistoryItem(
@@ -776,8 +752,9 @@ class _TravelHistorySectionState
   }
 
   Future<void> _onHistoryDelete(TravelHistoryData item) async {
+    final history = ref.read(travelHistoryItemsProvider);
     // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
-    final index = _history.indexById(item.id, (h) => h.id);
+    final index = history.indexById(item.id, (h) => h.id);
     if (index == -1) return;
 
     final isPrivacyMode =
@@ -785,10 +762,6 @@ class _TravelHistorySectionState
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = item.id;
-
-    setState(() {
-      _history = List.from(_history)..removeAt(index);
-    });
 
     try {
       await ref
@@ -800,11 +773,6 @@ class _TravelHistorySectionState
             deletedItem: item,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _history = List.from(_history)..insert(index, item);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -833,8 +801,6 @@ class _TravelHistorySectionState
                 itemType: 'travel_history',
                 id: deletedId,
               );
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -885,32 +851,33 @@ class _TravelHistorySectionState
       );
     }
 
-    // Snapshot for rollback on failure
-    final originalHistory = List<TravelHistoryData>.from(_history);
+    // Get current history from provider
+    final currentHistory = ref.read(travelHistoryItemsProvider);
 
-    // Update local state optimistically
+    // Build updated history list
+    final updatedHistory = <TravelHistoryData>[];
     if (wasAdding) {
-      _history = List.from(_history)..add(itemToSave);
+      updatedHistory.addAll(currentHistory);
+      updatedHistory.add(itemToSave);
     } else {
-      final index = _history.indexById(editingItem.id, (h) => h.id);
+      updatedHistory.addAll(currentHistory);
+      final index = updatedHistory.indexById(editingItem.id, (h) => h.id);
       if (index != -1) {
-        _history = List.from(_history)..[index] = itemToSave;
+        updatedHistory[index] = itemToSave;
       }
     }
 
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final travel = TravelData(
         passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
         visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
-        travelHistory: _history,
+        travelHistory: updatedHistory,
       );
       await ref
           .read(profileNotifierProvider.notifier)
           .updateTravelImmediate(travel);
     } on Exception catch (e) {
-      // Rollback on failure
-      _history = originalHistory;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save travel history: $e', type: SnackBarType.error);
       }
@@ -935,10 +902,11 @@ class _TravelHistorySectionState
 
   @override
   Widget build(BuildContext context) {
+    final history = ref.watch(travelHistoryItemsProvider);
     return UnifiedFormSection<TravelHistoryData>(
       title: 'Travel History',
       icon: Icons.history,
-      items: _history,
+      items: history,
       maxVisibleItems: 3,
       itemFactory: (values, {String? id}) => TravelHistoryData(
         id: id ?? generateEntryId(),

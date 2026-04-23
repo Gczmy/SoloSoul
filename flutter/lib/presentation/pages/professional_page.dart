@@ -885,12 +885,9 @@ class _LanguageSection extends ConsumerStatefulWidget {
 }
 
 class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
-  late List<LanguageData> _items;
-
   @override
   void loadItems() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeLanguages)];
+    // No-op: items come from ref.watch(languageItemsProvider) in build()
   }
 
   LanguageData _createFromValues(Map<String, String> values, {String? id}) {
@@ -911,16 +908,13 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
   }
 
   Future<void> _onDelete(LanguageData item) async {
-    final index = _items.indexById(item.id, (x) => x.id);
+    final items = ref.read(languageItemsProvider);
+    final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-
-    setState(() {
-      _items = List.from(_items)..removeAt(index);
-    });
 
     try {
       await ref
@@ -932,11 +926,6 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
             deletedItem: item,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _items = List.from(_items)..insert(index, item);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -965,8 +954,6 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
                 itemType: 'language',
                 id: deletedId,
               );
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -986,20 +973,7 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
     }
     if (itemToSave.name.isEmpty) return;
 
-    // Snapshot for rollback on failure
-    final originalItems = List<LanguageData>.from(_items);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _items = List.from(_items)..add(itemToSave);
-    } else {
-      final index = _items.indexById(editingItem.id, (x) => x.id);
-      if (index != -1) {
-        _items = List.from(_items)..[index] = itemToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final professional = ProfessionalData(
         education:
@@ -1007,14 +981,12 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
         employment:
             ref.read(profileNotifierProvider)?.professional?.employment ?? [],
         skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-        languages: _items,
+        languages: ref.read(languageItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
     } on Exception catch (e) {
-      // Rollback on failure
-      _items = originalItems;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save language: $e', type: SnackBarType.error);
       }
@@ -1039,10 +1011,11 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
 
   @override
   Widget build(BuildContext context) {
+    final items = ref.watch(languageItemsProvider);
     return UnifiedFormSection<LanguageData>(
       title: 'Languages',
       icon: Icons.translate,
-      items: _items,
+      items: items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
@@ -1106,12 +1079,10 @@ class _AwardSection extends ConsumerStatefulWidget {
 }
 
 class _AwardSectionState extends ProfileSectionState<_AwardSection> {
-  late List<AwardData> _items;
-
+  // No-op: awards are now loaded via awardItemsProvider
   @override
   void loadItems() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeAwards)];
+    // Awards are now sourced from awardItemsProvider in build()
   }
 
   AwardData _createFromValues(Map<String, String> values, {String? id}) {
@@ -1140,16 +1111,13 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
   }
 
   Future<void> _onDelete(AwardData item) async {
-    final index = _items.indexById(item.id, (x) => x.id);
+    final items = ref.read(awardItemsProvider);
+    final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-
-    setState(() {
-      _items = List.from(_items)..removeAt(index);
-    });
 
     try {
       await ref
@@ -1161,11 +1129,6 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
             deletedItem: item,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _items = List.from(_items)..insert(index, item);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -1194,8 +1157,6 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
                 itemType: 'award',
                 id: deletedId,
               );
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -1215,20 +1176,7 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
     }
     if (itemToSave.title == null || itemToSave.title!.isEmpty) return;
 
-    // Snapshot for rollback on failure
-    final originalItems = List<AwardData>.from(_items);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _items = List.from(_items)..add(itemToSave);
-    } else {
-      final index = _items.indexById(editingItem.id, (x) => x.id);
-      if (index != -1) {
-        _items = List.from(_items)..[index] = itemToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final professional = ProfessionalData(
         education:
@@ -1238,14 +1186,12 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
         skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
         languages:
             ref.read(profileNotifierProvider)?.professional?.languages ?? [],
-        awards: _items,
+        awards: ref.read(awardItemsProvider),
       );
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
     } on Exception catch (e) {
-      // Rollback on failure
-      _items = originalItems;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save award: $e', type: SnackBarType.error);
       }
@@ -1270,10 +1216,11 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
 
   @override
   Widget build(BuildContext context) {
+    final items = ref.watch(awardItemsProvider);
     return UnifiedFormSection<AwardData>(
       title: 'Awards',
       icon: Icons.emoji_events_outlined,
-      items: _items,
+      items: items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [

@@ -6,12 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, SnackBarType, showOverlaySnackBar;
-import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show profileNotifierProvider, idCardItemsProvider, contactItemsProvider, addressItemsProvider, fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show SensitivityLevel, SensitivityDisplayMode, effectiveSensitivityProvider;
-import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
@@ -427,8 +427,6 @@ class _ContactSection extends ConsumerStatefulWidget {
 }
 
 class _ContactSectionState extends ConsumerState<_ContactSection> {
-  late List<ContactEntry> _contacts;
-
   @override
   void initState() {
     super.initState();
@@ -436,22 +434,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   }
 
   void _loadData() {
-    // Use read instead of watch since this is called explicitly, not for reactivity
-    final profile = ref.read(profileNotifierProvider);
-    final identity = profile?.identity;
-    _contacts = [
-      ...?(identity?.contact?.activeEntries.map(
-        (e) => ContactEntry(
-          id: e.id,
-          title: e.title,
-          type: e.type,
-          value: e.value,
-          updatedAt: e.updatedAt,
-          isDeleted: e.isDeleted,
-          deletedAt: e.deletedAt,
-        ),
-      )),
-    ];
+    // No-op: contact items are now derived via ref.watch(contactItemsProvider)
+    // in build(). Kept for compatibility with mixin/interface expectations.
   }
 
   ContactEntry _createContactFromValues(
@@ -475,7 +459,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   /// Thin passthrough - softDelete is the only persistence operation.
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onContactDelete(ContactEntry contact) async {
-    final index = _contacts.indexOf(contact);
+    final contacts = ref.read(contactItemsProvider);
+    final index = contacts.indexOf(contact);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)
@@ -534,20 +519,13 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         ? contactToSave.title
         : contactToSave.value;
 
-    // Snapshot for rollback on failure
-    final originalContacts = List<ContactEntry>.from(_contacts);
+    // Get current contacts from provider for building new identity
+    final currentContacts = ref.read(contactItemsProvider);
+    final updatedContacts = wasAdding
+        ? [...currentContacts, contactToSave]
+        : currentContacts.map((c) => c.id == editingItem.id ? contactToSave : c).toList();
 
-    // Update local state optimistically
-    if (wasAdding) {
-      _contacts = List.from(_contacts)..add(contactToSave);
-    } else {
-      final index = _contacts.indexById(editingItem.id, (c) => c.id);
-      if (index != -1) {
-        _contacts = List.from(_contacts)..[index] = contactToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final newIdentity = IdentityData(
         fullName: widget.identity?.fullName,
@@ -557,15 +535,13 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         gender: widget.identity?.gender,
         nationality: widget.identity?.nationality,
         idCards: widget.identity?.idCards,
-        contact: ContactData(entries: _contacts),
+        contact: ContactData(entries: updatedContacts),
         addresses: widget.identity?.addresses,
       );
       await ref
           .read(profileNotifierProvider.notifier)
           .updateIdentity(newIdentity);
     } on Exception catch (e) {
-      // Rollback on failure
-      _contacts = originalContacts;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save contact: $e', type: SnackBarType.error);
       }
@@ -591,10 +567,11 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
   @override
   Widget build(BuildContext context) {
+    final contacts = ref.watch(contactItemsProvider);
     final formSection = UnifiedFormSection<ContactEntry>(
       title: 'Contact Information',
       icon: Icons.contact_mail_outlined,
-      items: _contacts,
+      items: contacts,
       maxVisibleItems: 3,
       itemFactory: _createContactFromValues,
       fieldDefs: [
@@ -773,24 +750,12 @@ class _IdCardSection extends ConsumerStatefulWidget {
 }
 
 class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
-  late List<IdCardData> _idCards;
-
+  /// No-op: items are now derived via ref.watch(idCardItemsProvider) in build().
+  /// The provider automatically reacts to profileNotifierProvider changes.
   @override
   void loadItems() {
-    final identity = ref.read(profileNotifierProvider)?.identity;
-    _idCards = [
-      ...?(identity?.activeIdCards.map(
-        (c) => IdCardData(
-          id: c.id,
-          title: c.title,
-          number: c.number,
-          issueDate: c.issueDate,
-          expiryDate: c.expiryDate,
-          holderName: c.holderName,
-          country: c.country,
-        ),
-      )),
-    ];
+    // Items are now sourced from idCardItemsProvider which watches profileNotifierProvider.
+    // This method is kept for ProfileSectionState lifecycle compatibility.
   }
 
   IdCardData _createIdCardFromValues(Map<String, String> values, {String? id}) {
@@ -820,7 +785,8 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
   /// Thin passthrough - softDelete is the only persistence operation.
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onIdCardDelete(IdCardData card) async {
-    final index = _idCards.indexOf(card);
+    final idCards = ref.read(idCardItemsProvider);
+    final index = idCards.indexOf(card);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)
@@ -851,7 +817,6 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
         await ref
             .read(profileNotifierProvider.notifier)
             .restore(section: 'profile', itemType: 'idCard', id: deletedId);
-        loadItems();
       },
     );
   }
@@ -878,21 +843,13 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
     }
     final itemName = cardToSave.title ?? cardToSave.number ?? 'ID Card';
 
-    // Snapshot for rollback on failure
-    final originalIdCards = List<IdCardData>.from(_idCards);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _idCards = List.from(_idCards)..add(cardToSave);
-    } else {
-      final index = _idCards.indexById(editingItem.id, (c) => c.id);
-      if (index != -1) {
-        _idCards = List.from(_idCards)..[index] = cardToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider - UI will update automatically via idCardItemsProvider watch
     try {
+      final idCards = ref.read(idCardItemsProvider);
+      final newIdCards = wasAdding
+          ? [...idCards, cardToSave]
+          : idCards.map((c) => c.id == editingItem.id ? cardToSave : c).toList();
+
       final identity = IdentityData(
         fullName: widget.identity?.fullName,
         givenName: widget.identity?.givenName,
@@ -900,14 +857,12 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
         dateOfBirth: widget.identity?.dateOfBirth,
         gender: widget.identity?.gender,
         nationality: widget.identity?.nationality,
-        idCards: _idCards,
+        idCards: newIdCards,
         contact: widget.identity?.contact,
         addresses: widget.identity?.addresses,
       );
       await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
     } on Exception catch (e) {
-      // Rollback on failure
-      _idCards = originalIdCards;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save ID card: $e', type: SnackBarType.error);
       }
@@ -933,13 +888,14 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
 
   @override
   Widget build(BuildContext context) {
+    final idCards = ref.watch(idCardItemsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         UnifiedFormSection<IdCardData>(
           title: 'Identity Documents',
           icon: Icons.badge_outlined,
-          items: _idCards,
+          items: idCards,
           maxVisibleItems: 3,
           itemFactory: _createIdCardFromValues,
           fieldDefs: [
@@ -1049,24 +1005,10 @@ class _AddressSection extends ConsumerStatefulWidget {
 }
 
 class _AddressSectionState extends ProfileSectionState<_AddressSection> {
-  late List<AddressData> _addresses;
-
   @override
   void loadItems() {
-    final identity = ref.read(profileNotifierProvider)?.identity;
-    _addresses = [
-      ...?(identity?.activeAddresses.map(
-        (a) => AddressData(
-          id: a.id,
-          title: a.title,
-          street: a.street,
-          city: a.city,
-          state: a.state,
-          postalCode: a.postalCode,
-          country: a.country,
-        ),
-      )),
-    ];
+    // No-op: address items are now derived via ref.watch(addressItemsProvider)
+    // in build(). Kept for compatibility with mixin/interface expectations.
   }
 
   AddressData _createAddressFromValues(
@@ -1096,7 +1038,8 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
   /// Thin passthrough - softDelete is the only persistence operation.
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onAddressDelete(AddressData address) async {
-    final index = _addresses.indexOf(address);
+    final addresses = ref.read(addressItemsProvider);
+    final index = addresses.indexOf(address);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)
@@ -1154,20 +1097,10 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
     }
     final itemName = addressToSave.title ?? 'Address';
 
-    // Snapshot for rollback on failure
-    final originalAddresses = List<AddressData>.from(_addresses);
+    // Get current addresses from provider for building new list
+    final currentAddresses = ref.read(addressItemsProvider);
 
-    // Update local state optimistically
-    if (wasAdding) {
-      _addresses = List.from(_addresses)..add(addressToSave);
-    } else {
-      final index = _addresses.indexById(editingItem.id, (a) => a.id);
-      if (index != -1) {
-        _addresses = List.from(_addresses)..[index] = addressToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider - UnifiedFormSection handles optimistic UI via ref.watch
     try {
       final identity = IdentityData(
         fullName: widget.identity?.fullName,
@@ -1178,12 +1111,10 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
         nationality: widget.identity?.nationality,
         idCards: widget.identity?.idCards,
         contact: widget.identity?.contact,
-        addresses: _addresses,
+        addresses: currentAddresses,
       );
       await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
     } on Exception catch (e) {
-      // Rollback on failure
-      _addresses = originalAddresses;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save address: $e', type: SnackBarType.error);
       }
@@ -1209,13 +1140,14 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
 
   @override
   Widget build(BuildContext context) {
+    final addresses = ref.watch(addressItemsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         UnifiedFormSection<AddressData>(
           title: 'Addresses',
           icon: Icons.location_on_outlined,
-          items: _addresses,
+          items: addresses,
           maxVisibleItems: 3,
           itemFactory: _createAddressFromValues,
           fieldDefs: [

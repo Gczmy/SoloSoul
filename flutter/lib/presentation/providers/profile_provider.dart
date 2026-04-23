@@ -1794,6 +1794,30 @@ final visaItemsProvider = Provider<List<VisaData>>((ref) {
   )).toList();
 });
 
+/// Travel history items provider - derives TravelHistoryData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final travelHistoryItemsProvider = Provider<List<TravelHistoryData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final travel = profile?.travel;
+  if (travel == null) return [];
+
+  return travel.activeTravelHistory.map((t) => TravelHistoryData(
+    id: t.id,
+    destination: t.destination,
+    date: t.date,
+    departureCity: t.departureCity,
+    departureTime: t.departureTime,
+    arrivalTime: t.arrivalTime,
+    flightNumber: t.flightNumber,
+    ticketPrice: t.ticketPrice,
+    airline: t.airline,
+    travelType: t.travelType,
+    updatedAt: t.updatedAt,
+    isDeleted: t.isDeleted,
+    deletedAt: t.deletedAt,
+  )).toList();
+});
+
 /// Card items provider - derives CardData from profileNotifierProvider.
 /// Reacts automatically to profile changes via ref.watch().
 final cardItemsProvider = Provider<List<CardData>>((ref) {

@@ -393,24 +393,9 @@ class _CardSectionState
     );
   }
 
-  late List<CardData> _cards;
-
   @override
   void loadItems() {
-    final financial = ref.read(profileNotifierProvider)?.financial;
-    _cards = [
-      ...?(financial?.activeCards.map(
-        (c) => CardData(
-          id: c.id,
-          title: c.title,
-          cardType: c.cardType,
-          cardNumber: c.cardNumber,
-          expiryDate: c.expiryDate,
-          holderName: c.holderName,
-          cvv: c.cvv,
-        ),
-      )),
-    ];
+    // No-op: items are now sourced from cardItemsProvider
   }
 
   CardData _createCardFromValues(Map<String, String> values, {String? id}) {
@@ -449,7 +434,8 @@ class _CardSectionState
   /// Thin passthrough - softDelete is the only persistence operation.
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onCardDelete(CardData card) async {
-    final index = _cards.indexById(card.id, (c) => c.id);
+    final cards = ref.read(cardItemsProvider);
+    final index = cards.indexById(card.id, (c) => c.id);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)
@@ -506,33 +492,22 @@ class _CardSectionState
     }
     final itemName = cardToSave.cardType ?? 'Card';
 
-    // Snapshot for rollback on failure
-    final originalCards = List<CardData>.from(_cards);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _cards = List.from(_cards)..add(cardToSave);
-    } else {
-      final index = _cards.indexById(editingItem.id, (c) => c.id);
-      if (index != -1) {
-        _cards = List.from(_cards)..[index] = cardToSave;
-      }
-    }
-
     // Persist via provider with rollback on failure
     try {
       final currentFinancial = ref.read(profileNotifierProvider)?.financial;
+      final cards = ref.read(cardItemsProvider);
+      final updatedCards = wasAdding
+          ? [...cards, cardToSave]
+          : cards.map((c) => c.id == editingItem.id ? cardToSave : c).toList();
       final financial = FinancialData(
         bankAccounts: currentFinancial?.bankAccounts ?? [],
-        cards: _cards,
+        cards: updatedCards,
         taxIds: currentFinancial?.taxIds ?? [],
       );
       await ref
           .read(profileNotifierProvider.notifier)
           .updateFinancialImmediate(financial);
     } on Exception catch (e) {
-      // Rollback on failure
-      _cards = originalCards;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save card: $e', type: SnackBarType.error);
       }
@@ -556,10 +531,11 @@ class _CardSectionState
 
   @override
   Widget build(BuildContext context) {
+    final cards = ref.watch(cardItemsProvider);
     return UnifiedFormSection<CardData>(
       title: 'Cards',
       icon: Icons.credit_card_outlined,
-      items: _cards,
+      items: cards,
       maxVisibleItems: 3,
       itemFactory: _createCardFromValues,
       fieldDefs: [
@@ -660,23 +636,9 @@ class _TaxIdSectionState
     );
   }
 
-  late List<TaxIdData> _taxIds;
-
   @override
   void loadItems() {
-    final financial = ref.read(profileNotifierProvider)?.financial;
-    _taxIds = [
-      ...?(financial?.activeTaxIds.map(
-        (t) => TaxIdData(
-          id: t.id,
-          title: t.title,
-          taxIdNumber: t.taxIdNumber,
-          taxIdType: t.taxIdType,
-          issuingAuthority: t.issuingAuthority,
-          country: t.country,
-        ),
-      )),
-    ];
+    // No-op: items are now sourced from taxIdItemsProvider
   }
 
   TaxIdData _createTaxIdFromValues(Map<String, String> values, {String? id}) {
@@ -713,7 +675,8 @@ class _TaxIdSectionState
   /// Thin passthrough - softDelete is the only persistence operation.
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onTaxIdDelete(TaxIdData taxId) async {
-    final index = _taxIds.indexById(taxId.id, (t) => t.id);
+    final taxIds = ref.read(taxIdItemsProvider);
+    final index = taxIds.indexById(taxId.id, (t) => t.id);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)
@@ -742,7 +705,6 @@ class _TaxIdSectionState
         await ref
             .read(profileNotifierProvider.notifier)
             .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
-        loadItems();
       },
     );
   }
@@ -769,33 +731,22 @@ class _TaxIdSectionState
     }
     final itemName = taxIdToSave.taxIdType ?? 'Tax ID';
 
-    // Snapshot for rollback on failure
-    final originalTaxIds = List<TaxIdData>.from(_taxIds);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _taxIds = List.from(_taxIds)..add(taxIdToSave);
-    } else {
-      final index = _taxIds.indexById(editingItem.id, (t) => t.id);
-      if (index != -1) {
-        _taxIds = List.from(_taxIds)..[index] = taxIdToSave;
-      }
-    }
-
     // Persist via provider with rollback on failure
     try {
       final currentFinancial = ref.read(profileNotifierProvider)?.financial;
+      final taxIds = ref.read(taxIdItemsProvider);
+      final updatedTaxIds = wasAdding
+          ? [...taxIds, taxIdToSave]
+          : taxIds.map((t) => t.id == editingItem.id ? taxIdToSave : t).toList();
       final financial = FinancialData(
-        bankAccounts: currentFinancial?.activeBankAccounts ?? [],
-        cards: currentFinancial?.activeCards ?? [],
-        taxIds: _taxIds,
+        bankAccounts: currentFinancial?.bankAccounts ?? [],
+        cards: currentFinancial?.cards ?? [],
+        taxIds: updatedTaxIds,
       );
       await ref
           .read(profileNotifierProvider.notifier)
           .updateFinancialImmediate(financial);
     } on Exception catch (e) {
-      // Rollback on failure
-      _taxIds = originalTaxIds;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save tax ID: $e', type: SnackBarType.error);
       }
@@ -819,10 +770,11 @@ class _TaxIdSectionState
 
   @override
   Widget build(BuildContext context) {
+    final taxIds = ref.watch(taxIdItemsProvider);
     return UnifiedFormSection<TaxIdData>(
       title: 'Tax Identification',
       icon: Icons.receipt_long_outlined,
-      items: _taxIds,
+      items: taxIds,
       maxVisibleItems: 3,
       itemFactory: _createTaxIdFromValues,
       fieldDefs: [
