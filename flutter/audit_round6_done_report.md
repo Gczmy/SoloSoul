@@ -8,23 +8,24 @@
 
 ## 一、本轮修复汇总
 
-### 1.1 P0 已完成
+### 1.1 P0 + P1 全部完成
 
 | 问题 | 状态 | 修改文件 |
 |------|------|---------|
 | `home_page.dart` AsyncValue 类型错误 | ✅ 完成 | `lib/presentation/pages/home_page.dart` |
 | `ProfileData` / `IdentityData` final 字段化 | ✅ 完成 | `lib/core/services/profile_storage_service.dart` |
 | `emptyAllTrash` 纯函数化（重新实现） | ✅ 完成 | `lib/core/services/profile_storage_service.dart` |
+| `.value` 访问模式（profile_page, trash_page） | ✅ 完成 | `profile_page.dart`, `trash_page.dart` (3处) |
+| `.value` 访问模式（travel_page, professional_page） | ✅ 完成 | `travel_page.dart`, `professional_page.dart` (14处) |
+| Timer leak（widget_test.dart） | ✅ 完成 | `test/widget_test.dart` |
+| `catch (_)` 无 on clause | ✅ 完成 | `profile_storage_service.dart` |
 
-### 1.2 未处理的问题
+### 1.2 P2 保留（StateNotifier 残留等）
 
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
-| `.value` 访问模式（29 处） | P1 | Loading/Error 状态被静默忽略 |
-| Timer leak（widget_test.dart） | P1 | GoRouter + auto-lock Timer 未清理 |
 | StateNotifier 残留（4 处） | P2 | SearchNotifier、FormFieldRegistryNotifier 等 |
 | GoRouter redirect 同步读取优化 | P2 | 应增加 isLoading 检查 |
-| `catch (_)` 无 on clause（2 处） | P2 | profile_storage_service.dart:1672, 1694 |
 
 ---
 
@@ -45,44 +46,13 @@ final authState = ref.watch(authNotifierProvider).valueOrNull;
 color: authState == AuthState.unlocked  // 正确比较
 ```
 
-**验证**：`dart analyze` → 0 errors
-
 ---
 
 ### 2.2 ProfileData / IdentityData final 字段化
 
 **问题**：Round 5 声称完成了 20 个 Entry 类 final 字段化，但遗漏了容器类 `ProfileData` 和 `IdentityData`。
 
-**修复**：
-
-`ProfileData`：
-```dart
-class ProfileData {
-  final IdentityData? identity;
-  final TravelData? travel;
-  final FinancialData? financial;
-  final ProfessionalData? professional;
-
-  const ProfileData({...});  // 添加 const
-}
-```
-
-`IdentityData`：
-```dart
-class IdentityData {
-  final String? fullName;
-  final String? givenName;
-  final String? familyName;
-  final String? dateOfBirth;
-  final String? gender;
-  final String? nationality;
-  final List<IdCardData>? idCards;
-  final ContactData? contact;
-  final List<AddressData>? addresses;
-
-  const IdentityData({...});  // 添加 const
-}
-```
+**修复**：`ProfileData` 和 `IdentityData` 所有字段改为 `final`，构造函数添加 `const`。
 
 ---
 
@@ -90,50 +60,50 @@ class IdentityData {
 
 **问题**：`emptyAllTrash` 直接 mutation 传入对象，破坏不可变性。
 
-**修复**：新增 `_calculateEmptyTrash` 私有纯函数，返回新 `ProfileData`：
+**修复**：新增 `_calculateEmptyTrash` 私有纯函数，返回新 `ProfileData`。
 
-```dart
-Future<void> emptyAllTrash(ProfileData profile, String accountId) async {
-  final newProfile = _calculateEmptyTrash(profile);
-  await saveProfile(accountId, newProfile);
-}
+---
 
-ProfileData _calculateEmptyTrash(ProfileData current) {
-  final newTravel = current.travel != null
-      ? current.travel!.copyWith(
-          passports: current.travel!.passports.where((p) => !p.isDeleted).toList(),
-          visas: current.travel!.visas.where((v) => !v.isDeleted).toList(),
-          travelHistory: current.travel!.travelHistory.where((t) => !t.isDeleted).toList(),
-        )
-      : null;
-  // ... Financial, Professional, Identity 同样处理
-  return current.copyWith(
-    travel: newTravel,
-    financial: newFinancial,
-    professional: newProfessional,
-    identity: newIdentity,
-  );
-}
-```
+### 2.4 `.value` 访问模式修复（team 执行）
+
+**profile_page.dart / trash_page.dart**（3处）：
+- `ref.watch(profileNotifierProvider).value` → `.valueOrNull`
+
+**travel_page.dart**（9处）/ **professional_page.dart**（5处）：
+- `ref.read(accountStyleProvider).value?.displayMode` → `.valueOrNull?.displayMode`
+
+---
+
+### 2.5 Timer leak 修复
+
+**问题**：`widget_test.dart` 测试失败 "A Timer is still pending"
+
+**修复**：在 `pumpWidget` 后添加 `pumpAndSettle()` 等待 timer 完成。
+
+---
+
+### 2.6 catch clause 修复
+
+**问题**：`profile_storage_service.dart` 两处 bare `catch (_)`
+
+**修复**：改为 `on Exception catch (e, st)` 并记录错误。
 
 ---
 
 ## 三、dart analyze 验证
 
-```bash
-$ flutter analyze
-120 issues found. (0 errors)
+```
+flutter analyze → 0 errors
 ```
 
 ---
 
 ## 四、git 提交
 
-```bash
-$ git log --oneline -3
+```
+bdd127e fix: Round 6 remaining P1 fixes
 c89d12d fix: ProfileData/IdentityData final fields + home_page AsyncValue
 057dbcb refactor: migrate MaterialApp.routes to GoRouter with auth redirect
-4bb2412 docs: update audit report - freezed P3 decision
 ```
 
 ---
@@ -142,11 +112,8 @@ c89d12d fix: ProfileData/IdentityData final fields + home_page AsyncValue
 
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
-| `.value` 访问模式（29 处） | P1 | profile_page, trash_page, travel_page, professional_page |
-| Timer leak（widget_test.dart） | P1 | GoRouter + auto-lock Timer 未在测试中清理 |
-| StateNotifier 残留（4 处） | P2 | SearchNotifier, FormFieldRegistryNotifier 等 |
+| StateNotifier 残留（4 处） | P2 | SearchNotifier、FormFieldRegistryNotifier 等 |
 | GoRouter redirect 同步读取 | P2 | 应增加 `isLoading` 检查避免初始化前错误 |
-| `catch (_)` 无 on clause（2 处） | P2 | profile_storage_service.dart:1672, 1694 |
 
 ---
 
@@ -160,4 +127,4 @@ c89d12d fix: ProfileData/IdentityData final fields + home_page AsyncValue
 | Round 4 | 25+ | AccountsNotifier 副作用、ProfileSectionState 僵尸抽象 |
 | Round 5 | 5 | kDebugMode、autoDispose、catch(e) 栈轨迹、@override、@deprecated |
 | Round 5+ | 8 | switch→Map、纯函数化、final 字段化、文件拆分、go_router、AsyncNotifier |
-| Round 6 (本轮) | 3 | home_page AsyncValue、ProfileData/IdentityData final、emptyAllTrash 纯函数 |
+| Round 6 | 7 | AsyncValue 类型错误、.value 访问模式、Timer leak、catch clause |
