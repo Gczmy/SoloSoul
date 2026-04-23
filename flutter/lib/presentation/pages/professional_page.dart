@@ -17,7 +17,6 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
-import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 class ProfessionalPage extends ConsumerStatefulWidget {
   const ProfessionalPage({super.key});
@@ -113,12 +112,7 @@ class _EducationSection extends ConsumerStatefulWidget {
   ConsumerState<_EducationSection> createState() => _EducationSectionState();
 }
 
-class _EducationSectionState extends ProfileSectionState<_EducationSection> {
-  @override
-  void loadItems() {
-    // No-op: items come from ref.watch(educationItemsProvider) in build()
-  }
-
+class _EducationSectionState extends ConsumerState<_EducationSection> {
   EducationData _createFromValues(Map<String, String> values, {String? id}) {
     return EducationData(
       id: id ?? generateEntryId(),
@@ -172,7 +166,7 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
             index: index,
             deletedItem: item,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -467,12 +461,7 @@ class _EmploymentSection extends ConsumerStatefulWidget {
   ConsumerState<_EmploymentSection> createState() => _EmploymentSectionState();
 }
 
-class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
-  @override
-  void loadItems() {
-    // No-op: items come from ref.watch(employmentItemsProvider) in build()
-  }
-
+class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
   EmploymentData _createFromValues(Map<String, String> values, {String? id}) {
     return EmploymentData(
       id: id ?? generateEntryId(),
@@ -522,7 +511,7 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
             index: index,
             deletedItem: item,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -688,12 +677,7 @@ class _SkillsSection extends ConsumerStatefulWidget {
   ConsumerState<_SkillsSection> createState() => _SkillsSectionState();
 }
 
-class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
-  @override
-  void loadItems() {
-    // No-op: items are now derived from skillItemsProvider
-  }
-
+class _SkillsSectionState extends ConsumerState<_SkillsSection> {
   SkillData _createFromValues(Map<String, String> values, {String? id}) {
     final name = values['skill.name']?.trim() ?? '';
     final level = values['skill.level']?.trim() ?? '';
@@ -726,7 +710,7 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
             index: index,
             deletedItem: item,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -877,12 +861,7 @@ class _LanguageSection extends ConsumerStatefulWidget {
   ConsumerState<_LanguageSection> createState() => _LanguageSectionState();
 }
 
-class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
-  @override
-  void loadItems() {
-    // No-op: items come from ref.watch(languageItemsProvider) in build()
-  }
-
+class _LanguageSectionState extends ConsumerState<_LanguageSection> {
   LanguageData _createFromValues(Map<String, String> values, {String? id}) {
     final name = values['language.name']?.trim() ?? '';
     final proficiency = values['language.proficiency']?.trim() ?? '';
@@ -918,7 +897,7 @@ class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
             index: index,
             deletedItem: item,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -1069,13 +1048,7 @@ class _AwardSection extends ConsumerStatefulWidget {
   ConsumerState<_AwardSection> createState() => _AwardSectionState();
 }
 
-class _AwardSectionState extends ProfileSectionState<_AwardSection> {
-  // No-op: awards are now loaded via awardItemsProvider
-  @override
-  void loadItems() {
-    // Awards are now sourced from awardItemsProvider in build()
-  }
-
+class _AwardSectionState extends ConsumerState<_AwardSection> {
   AwardData _createFromValues(Map<String, String> values, {String? id}) {
     return AwardData(
       id: id ?? generateEntryId(),
@@ -1119,7 +1092,7 @@ class _AwardSectionState extends ProfileSectionState<_AwardSection> {
             index: index,
             deletedItem: item,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,

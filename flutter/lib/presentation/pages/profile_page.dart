@@ -30,7 +30,6 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
         sensitivePageAccessProvider,
         isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -749,15 +748,7 @@ class _IdCardSection extends ConsumerStatefulWidget {
   ConsumerState<_IdCardSection> createState() => _IdCardSectionState();
 }
 
-class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
-  /// No-op: items are now derived via ref.watch(idCardItemsProvider) in build().
-  /// The provider automatically reacts to profileNotifierProvider changes.
-  @override
-  void loadItems() {
-    // Items are now sourced from idCardItemsProvider which watches profileNotifierProvider.
-    // This method is kept for ProfileSectionState lifecycle compatibility.
-  }
-
+class _IdCardSectionState extends ConsumerState<_IdCardSection> {
   IdCardData _createIdCardFromValues(Map<String, String> values, {String? id}) {
     return IdCardData(
       id: id ?? generateEntryId(),
@@ -1004,13 +995,7 @@ class _AddressSection extends ConsumerStatefulWidget {
   ConsumerState<_AddressSection> createState() => _AddressSectionState();
 }
 
-class _AddressSectionState extends ProfileSectionState<_AddressSection> {
-  @override
-  void loadItems() {
-    // No-op: address items are now derived via ref.watch(addressItemsProvider)
-    // in build(). Kept for compatibility with mixin/interface expectations.
-  }
-
+class _AddressSectionState extends ConsumerState<_AddressSection> {
   AddressData _createAddressFromValues(
     Map<String, String> values, {
     String? id,
@@ -1070,7 +1055,6 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
         await ref
             .read(profileNotifierProvider.notifier)
             .restore(section: 'profile', itemType: 'address', id: deletedId);
-        loadItems();
       },
     );
   }

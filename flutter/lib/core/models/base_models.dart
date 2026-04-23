@@ -1,3 +1,9 @@
+/// Interface for items that have a unique identifier.
+/// Used by UnifiedFormSection to properly type its generic parameter.
+abstract class IdentifiableItem {
+  String get id;
+}
+
 /// Mixin for entries that can format themselves for sharing/copying.
 mixin FormattableEntry {
   String get entryType;

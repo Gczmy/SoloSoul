@@ -2,6 +2,7 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/models/base_models.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
@@ -53,7 +54,7 @@ class FormFieldDef {
 }
 
 /// Unified form section widget that abstracts add/edit/delete/copy/expand-collapse logic
-class UnifiedFormSection<T> extends ConsumerStatefulWidget {
+class UnifiedFormSection<T extends IdentifiableItem> extends ConsumerStatefulWidget {
   final String title;
   final IconData icon;
   final List<T> items;
@@ -109,7 +110,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   final String? historyFieldIdPrefix;
 
   /// An extractor function to get the item ID for history lookups.
-  /// If not provided, uses (item as dynamic).id as a fallback.
+  /// If not provided, uses item.id directly since T extends IdentifiableItem.
   final String Function(T item)? itemIdExtractor;
 
   /// Called after a delete succeeds. Use for showing OperationNotification with undo.
@@ -149,7 +150,7 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
       _UnifiedFormSectionState<T>();
 }
 
-class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
+class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState<UnifiedFormSection<T>> {
   String _mode = 'idle';
   int _editingIndex = -1;
   late List<T> _items;
@@ -301,7 +302,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       await widget.onDelete(item);
       widget.onDidDelete?.call(item, index);
       return true;
-    } on Exception catch (e) {
+    } on Exception {
+      // Rollback on failure
       // Rollback on failure
       setState(() {
         _items = List.from(_items)..insert(index, item);
@@ -326,8 +328,8 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     if (widget.itemIdExtractor != null) {
       return widget.itemIdExtractor!(item);
     }
-    // Fallback: try to get .id from the item
-    return (item as dynamic).id as String? ?? '';
+    // Use item.id directly since T extends IdentifiableItem
+    return item.id;
   }
 
   Future<void> _submitForm() async {
@@ -357,7 +359,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       if (widget.itemFactory != null && editingItem != null) {
         createdItem = widget.itemFactory!(
           values,
-          id: (editingItem as dynamic).id as String?,
+          id: editingItem.id,
         );
       }
     }
@@ -370,11 +372,11 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       if (wasAdding) {
         // Insert at position 0 instead of adding at end
         if (createdItem != null) {
-          _items.insert(0, createdItem as T);
+          _items.insert(0, createdItem);
         }
       } else {
         if (createdItem != null) {
-          _items[_editingIndex] = createdItem as T;
+          _items[_editingIndex] = createdItem;
         }
       }
       _mode = 'idle';
@@ -681,7 +683,7 @@ class EntryActionsContext extends InheritedWidget {
 }
 
 /// Wrapper widget that wraps an item with edit/delete actions and optional history expansion.
-class _ItemWithHistory<T> extends ConsumerWidget {
+class _ItemWithHistory<T extends IdentifiableItem> extends ConsumerWidget {
   final T item;
   final int index;
   final bool historyExpanded;

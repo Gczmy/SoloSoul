@@ -24,23 +24,14 @@ class BridgeProfileSummary {
     required this.version,
   });
 
-  factory BridgeProfileSummary.fromJson(Map<String, dynamic> json) {
-    return BridgeProfileSummary(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      createdAt: json['created_at'] as String,
-      updatedAt: json['updated_at'] as String,
-      version: json['version'] as int,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory BridgeProfileSummary.fromJson(Map<String, dynamic> json) =>
+      _$BridgeProfileSummaryFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'created_at': createdAt,
-    'updated_at': updatedAt,
-    'version': version,
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$BridgeProfileSummaryToJson(this);
 }
 
 /// Rust Vault Service - Flutter wrapper around Rust VaultStore via FFI

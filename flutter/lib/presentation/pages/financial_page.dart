@@ -20,7 +20,6 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
-import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
   const FinancialPage({super.key});
@@ -122,7 +121,7 @@ class _BankAccountSection extends ConsumerStatefulWidget {
 }
 
 class _BankAccountSectionState
-    extends ProfileSectionState<_BankAccountSection> {
+    extends ConsumerState<_BankAccountSection> {
   Widget _buildBankAccountItem(
     BankAccountData account,
     Map<String, String> itemMap,
@@ -139,11 +138,6 @@ class _BankAccountSectionState
       excludeFields: const {'title'},
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
-  }
-
-  @override
-  void loadItems() {
-    // No-op: items are now sourced from bankAccountItemsProvider
   }
 
   BankAccountData _createAccountFromValues(
@@ -376,7 +370,7 @@ class _CardSection extends ConsumerStatefulWidget {
 }
 
 class _CardSectionState
-    extends ProfileSectionState<_CardSection> {
+    extends ConsumerState<_CardSection> {
   Widget _buildCardItem(CardData card, Map<String, String> itemMap) {
     return EntryCardWidget<CardData>(
       item: card,
@@ -390,11 +384,6 @@ class _CardSectionState
       excludeFields: const {'title'},
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
-  }
-
-  @override
-  void loadItems() {
-    // No-op: items are now sourced from cardItemsProvider
   }
 
   CardData _createCardFromValues(Map<String, String> values, {String? id}) {
@@ -463,7 +452,6 @@ class _CardSectionState
         await ref
             .read(profileNotifierProvider.notifier)
             .restore(section: 'financial', itemType: 'card', id: deletedId);
-        loadItems();
         if (mounted) setState(() {});
       },
     );
@@ -618,7 +606,7 @@ class _TaxIdSection extends ConsumerStatefulWidget {
 }
 
 class _TaxIdSectionState
-    extends ProfileSectionState<_TaxIdSection> {
+    extends ConsumerState<_TaxIdSection> {
   Widget _buildTaxIdItem(TaxIdData taxId, Map<String, String> itemMap) {
     return EntryCardWidget<TaxIdData>(
       item: taxId,
@@ -632,11 +620,6 @@ class _TaxIdSectionState
       excludeFields: const {'title'},
       formatAllFields: (e) => '${e.entryType}\n${e.toFormattedString()}',
     );
-  }
-
-  @override
-  void loadItems() {
-    // No-op: items are now sourced from taxIdItemsProvider
   }
 
   TaxIdData _createTaxIdFromValues(Map<String, String> values, {String? id}) {

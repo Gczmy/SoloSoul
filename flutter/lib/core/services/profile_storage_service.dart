@@ -173,7 +173,7 @@ class IdentityData {
 }
 
 @JsonSerializable()
-class ContactEntry with FormattableEntry {
+class ContactEntry with FormattableEntry implements IdentifiableItem {
   String id;
   String title; // e.g., "Personal", "Work", "Emergency"
   String type; // "email", "phone", "mobile"
@@ -202,30 +202,14 @@ class ContactEntry with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory ContactEntry.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return ContactEntry(
-      id: id ?? generateEntryId(),
-      title: json['title'] ?? '',
-      type: json['type'] ?? 'email',
-      value: json['value'] ?? '',
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory ContactEntry.fromJson(Map<String, dynamic> json) =>
+      _$ContactEntryFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'type': type,
-    'value': value,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$ContactEntryToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -258,20 +242,14 @@ class ContactData {
 
   ContactData({this.entries = const []});
 
-  factory ContactData.fromJson(Map<String, dynamic> json) {
-    final entriesList = json['entries'] as List<dynamic>?;
-    return ContactData(
-      entries:
-          entriesList
-              ?.map((e) => ContactEntry.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory ContactData.fromJson(Map<String, dynamic> json) =>
+      _$ContactDataFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return {'entries': entries.map((e) => e.toJson()).toList()};
-  }
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$ContactDataToJson(this);
 
   ContactData copyWith({List<ContactEntry>? entries}) {
     return ContactData(entries: entries ?? this.entries);
@@ -283,7 +261,7 @@ class ContactData {
 }
 
 @JsonSerializable()
-class AddressData with FormattableEntry {
+class AddressData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? street;
@@ -321,36 +299,14 @@ class AddressData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory AddressData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return AddressData(
-      id: id ?? generateEntryId(),
-      title: json['label'],
-      street: json['street'],
-      city: json['city'],
-      state: json['state'],
-      postalCode: json['postal_code'],
-      country: json['country'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory AddressData.fromJson(Map<String, dynamic> json) =>
+      _$AddressDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'street': street,
-    'city': city,
-    'state': state,
-    'postal_code': postalCode,
-    'country': country,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$AddressDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -384,7 +340,7 @@ class AddressData with FormattableEntry {
 }
 
 @JsonSerializable()
-class IdCardData with FormattableEntry {
+class IdCardData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? number;
@@ -422,36 +378,14 @@ class IdCardData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory IdCardData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return IdCardData(
-      id: id ?? generateEntryId(), // Generate ID if missing (for legacy data)
-      title: json['title'],
-      number: json['number'],
-      issueDate: json['issue_date'],
-      expiryDate: json['expiry_date'],
-      holderName: json['holder_name'],
-      country: json['country'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory IdCardData.fromJson(Map<String, dynamic> json) =>
+      _$IdCardDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'number': number,
-    'issue_date': issueDate,
-    'expiry_date': expiryDate,
-    'holder_name': holderName,
-    'country': country,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$IdCardDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -485,7 +419,7 @@ class IdCardData with FormattableEntry {
 }
 
 @JsonSerializable()
-class TravelHistoryData with FormattableEntry {
+class TravelHistoryData with FormattableEntry implements IdentifiableItem {
   String id;
   String destination;
   String? date;
@@ -532,42 +466,14 @@ class TravelHistoryData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory TravelHistoryData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return TravelHistoryData(
-      id: id ?? generateEntryId(),
-      destination: json['destination'] ?? '',
-      date: json['date'],
-      departureCity: json['departure_city'],
-      departureTime: json['departure_time'],
-      arrivalTime: json['arrival_time'],
-      flightNumber: json['flight_number'],
-      ticketPrice: json['ticket_price'],
-      airline: json['airline'],
-      travelType: json['travel_type'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory TravelHistoryData.fromJson(Map<String, dynamic> json) =>
+      _$TravelHistoryDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'destination': destination,
-    'date': date,
-    'departure_city': departureCity,
-    'departure_time': departureTime,
-    'arrival_time': arrivalTime,
-    'flight_number': flightNumber,
-    'ticket_price': ticketPrice,
-    'airline': airline,
-    'travel_type': travelType,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$TravelHistoryDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -639,31 +545,14 @@ class TravelData {
   List<TravelHistoryData> get deletedTravelHistory =>
       travelHistory.where((t) => t.isDeleted).toList();
 
-  factory TravelData.fromJson(Map<String, dynamic> json) {
-    return TravelData(
-      passports:
-          (json['passports'] as List<dynamic>?)
-              ?.map((e) => PassportData.fromJson(e))
-              .toList() ??
-          [],
-      visas:
-          (json['visas'] as List<dynamic>?)
-              ?.map((e) => VisaData.fromJson(e))
-              .toList() ??
-          [],
-      travelHistory:
-          (json['travel_history'] as List<dynamic>?)
-              ?.map((e) => TravelHistoryData.fromJson(e))
-              .toList() ??
-          [],
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory TravelData.fromJson(Map<String, dynamic> json) =>
+      _$TravelDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'passports': passports.map((e) => e.toJson()).toList(),
-    'visas': visas.map((e) => e.toJson()).toList(),
-    'travel_history': travelHistory.map((e) => e.toJson()).toList(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$TravelDataToJson(this);
 
   TravelData copyWith({
     List<PassportData>? passports,
@@ -679,7 +568,7 @@ class TravelData {
 }
 
 @JsonSerializable()
-class PassportData with FormattableEntry {
+class PassportData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? number;
@@ -738,50 +627,14 @@ class PassportData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory PassportData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return PassportData(
-      id: id ?? generateEntryId(),
-      title: json['title'],
-      number: json['number'],
-      country: json['country'],
-      countryCode: json['country_code'],
-      issueDate: json['issue_date'],
-      placeOfIssue: json['place_of_issue'],
-      expiryDate: json['expiry_date'],
-      dateOfBirth: json['date_of_birth'],
-      placeOfBirth: json['place_of_birth'],
-      sex: json['sex'],
-      nationality: json['nationality'],
-      authority: json['authority'],
-      holderName: json['holder_name'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory PassportData.fromJson(Map<String, dynamic> json) =>
+      _$PassportDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'number': number,
-    'country': country,
-    'country_code': countryCode,
-    'issue_date': issueDate,
-    'place_of_issue': placeOfIssue,
-    'expiry_date': expiryDate,
-    'date_of_birth': dateOfBirth,
-    'place_of_birth': placeOfBirth,
-    'sex': sex,
-    'nationality': nationality,
-    'authority': authority,
-    'holder_name': holderName,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$PassportDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -829,7 +682,7 @@ class PassportData with FormattableEntry {
 }
 
 @JsonSerializable()
-class VisaData with FormattableEntry {
+class VisaData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? country;
@@ -867,36 +720,14 @@ class VisaData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory VisaData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return VisaData(
-      id: id ?? generateEntryId(),
-      title: json['title'],
-      country: json['country'],
-      visaType: json['visa_type'],
-      number: json['number'],
-      issueDate: json['issue_date'],
-      expiryDate: json['expiry_date'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory VisaData.fromJson(Map<String, dynamic> json) =>
+      _$VisaDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'country': country,
-    'visa_type': visaType,
-    'number': number,
-    'issue_date': issueDate,
-    'expiry_date': expiryDate,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$VisaDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -958,31 +789,14 @@ class FinancialData {
   List<TaxIdData> get deletedTaxIds =>
       taxIds.where((t) => t.isDeleted).toList();
 
-  factory FinancialData.fromJson(Map<String, dynamic> json) {
-    return FinancialData(
-      bankAccounts:
-          (json['bank_accounts'] as List<dynamic>?)
-              ?.map((e) => BankAccountData.fromJson(e))
-              .toList() ??
-          [],
-      cards:
-          (json['cards'] as List<dynamic>?)
-              ?.map((e) => CardData.fromJson(e))
-              .toList() ??
-          [],
-      taxIds:
-          (json['tax_ids'] as List<dynamic>?)
-              ?.map((e) => TaxIdData.fromJson(e))
-              .toList() ??
-          [],
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory FinancialData.fromJson(Map<String, dynamic> json) =>
+      _$FinancialDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'bank_accounts': bankAccounts.map((e) => e.toJson()).toList(),
-    'cards': cards.map((e) => e.toJson()).toList(),
-    'tax_ids': taxIds.map((e) => e.toJson()).toList(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$FinancialDataToJson(this);
 
   FinancialData copyWith({
     List<BankAccountData>? bankAccounts,
@@ -998,7 +812,7 @@ class FinancialData {
 }
 
 @JsonSerializable()
-class BankAccountData with FormattableEntry {
+class BankAccountData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? bankName;
@@ -1036,36 +850,14 @@ class BankAccountData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory BankAccountData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return BankAccountData(
-      id: id ?? generateEntryId(),
-      title: json['title'],
-      bankName: json['bank_name'],
-      accountNumber: json['account_number'],
-      currency: json['currency'],
-      swiftBic: json['swift_bic'],
-      sortCode: json['sort_code'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory BankAccountData.fromJson(Map<String, dynamic> json) =>
+      _$BankAccountDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'bank_name': bankName,
-    'account_number': accountNumber,
-    'currency': currency,
-    'swift_bic': swiftBic,
-    'sort_code': sortCode,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$BankAccountDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -1099,7 +891,7 @@ class BankAccountData with FormattableEntry {
 }
 
 @JsonSerializable()
-class CardData with FormattableEntry {
+class CardData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? cardNumber;
@@ -1137,36 +929,14 @@ class CardData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory CardData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return CardData(
-      id: id ?? generateEntryId(),
-      title: json['title'],
-      cardNumber: json['card_number'],
-      cardType: json['card_type'],
-      expiryDate: json['expiry_date'],
-      holderName: json['holder_name'],
-      cvv: json['cvv'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory CardData.fromJson(Map<String, dynamic> json) =>
+      _$CardDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'card_number': cardNumber,
-    'card_type': cardType,
-    'expiry_date': expiryDate,
-    'holder_name': holderName,
-    'cvv': cvv,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$CardDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -1200,7 +970,7 @@ class CardData with FormattableEntry {
 }
 
 @JsonSerializable()
-class TaxIdData with FormattableEntry {
+class TaxIdData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? taxIdNumber;
@@ -1235,34 +1005,14 @@ class TaxIdData with FormattableEntry {
     this.deletedAt,
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
-  factory TaxIdData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return TaxIdData(
-      id: id ?? generateEntryId(),
-      title: json['title'],
-      taxIdNumber: json['tax_id_number'],
-      taxIdType: json['tax_id_type'],
-      issuingAuthority: json['issuing_authority'],
-      country: json['country'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory TaxIdData.fromJson(Map<String, dynamic> json) =>
+      _$TaxIdDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'tax_id_number': taxIdNumber,
-    'tax_id_type': taxIdType,
-    'issuing_authority': issuingAuthority,
-    'country': country,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$TaxIdDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -1294,7 +1044,7 @@ class TaxIdData with FormattableEntry {
 }
 
 @JsonSerializable()
-class SkillData with FormattableEntry {
+class SkillData with FormattableEntry implements IdentifiableItem {
   String id;
   String name;
   String? level;
@@ -1320,28 +1070,14 @@ class SkillData with FormattableEntry {
     'level': level,
   };
 
-  factory SkillData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return SkillData(
-      id: id ?? generateEntryId(),
-      name: json['name'] ?? '',
-      level: json['level'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory SkillData.fromJson(Map<String, dynamic> json) =>
+      _$SkillDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'level': level,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$SkillDataToJson(this);
 
   SkillData copyWith({
     String? id,
@@ -1367,7 +1103,7 @@ class SkillData with FormattableEntry {
 }
 
 @JsonSerializable()
-class LanguageData with FormattableEntry {
+class LanguageData with FormattableEntry implements IdentifiableItem {
   String id;
   String name;
   String? proficiency;
@@ -1393,28 +1129,14 @@ class LanguageData with FormattableEntry {
     'proficiency': proficiency,
   };
 
-  factory LanguageData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return LanguageData(
-      id: id ?? generateEntryId(),
-      name: json['name'] ?? '',
-      proficiency: json['proficiency'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory LanguageData.fromJson(Map<String, dynamic> json) =>
+      _$LanguageDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'proficiency': proficiency,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$LanguageDataToJson(this);
 
   LanguageData copyWith({
     String? id,
@@ -1439,7 +1161,7 @@ class LanguageData with FormattableEntry {
 }
 
 @JsonSerializable()
-class AwardData with FormattableEntry {
+class AwardData with FormattableEntry implements IdentifiableItem {
   String id;
   String? title;
   String? issuer;
@@ -1471,32 +1193,14 @@ class AwardData with FormattableEntry {
     'description': description,
   };
 
-  factory AwardData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return AwardData(
-      id: id ?? generateEntryId(),
-      title: json['title'],
-      issuer: json['issuer'],
-      date: json['date'],
-      description: json['description'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory AwardData.fromJson(Map<String, dynamic> json) =>
+      _$AwardDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'issuer': issuer,
-    'date': date,
-    'description': description,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$AwardDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -1573,43 +1277,14 @@ class ProfessionalData {
   List<AwardData> get deletedAwards =>
       awards.where((a) => a.isDeleted).toList();
 
-  factory ProfessionalData.fromJson(Map<String, dynamic> json) {
-    return ProfessionalData(
-      education:
-          (json['education'] as List<dynamic>?)
-              ?.map((e) => EducationData.fromJson(e))
-              .toList() ??
-          [],
-      employment:
-          (json['employment'] as List<dynamic>?)
-              ?.map((e) => EmploymentData.fromJson(e))
-              .toList() ??
-          [],
-      skills:
-          (json['skills'] as List<dynamic>?)
-              ?.map((e) => SkillData.fromJson(e))
-              .toList() ??
-          [],
-      languages:
-          (json['languages'] as List<dynamic>?)
-              ?.map((e) => LanguageData.fromJson(e))
-              .toList() ??
-          [],
-      awards:
-          (json['awards'] as List<dynamic>?)
-              ?.map((a) => AwardData.fromJson(a))
-              .toList() ??
-          [],
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory ProfessionalData.fromJson(Map<String, dynamic> json) =>
+      _$ProfessionalDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'education': education.map((e) => e.toJson()).toList(),
-    'employment': employment.map((e) => e.toJson()).toList(),
-    'skills': skills.map((s) => s.toJson()).toList(),
-    'languages': languages.map((l) => l.toJson()).toList(),
-    'awards': awards.map((a) => a.toJson()).toList(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$ProfessionalDataToJson(this);
 
   ProfessionalData copyWith({
     List<EducationData>? education,
@@ -1629,7 +1304,7 @@ class ProfessionalData {
 }
 
 @JsonSerializable()
-class EducationData with FormattableEntry {
+class EducationData with FormattableEntry implements IdentifiableItem {
   String id;
   String? institution;
   String? degree;
@@ -1667,36 +1342,14 @@ class EducationData with FormattableEntry {
     'endDate': endDate,
   };
 
-  factory EducationData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return EducationData(
-      id: id ?? generateEntryId(),
-      institution: json['institution'],
-      degree: json['degree'],
-      degreeCustom: json['degree_custom'],
-      field: json['field'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory EducationData.fromJson(Map<String, dynamic> json) =>
+      _$EducationDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'institution': institution,
-    'degree': degree,
-    'degree_custom': degreeCustom,
-    'field': field,
-    'start_date': startDate,
-    'end_date': endDate,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$EducationDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -1730,7 +1383,7 @@ class EducationData with FormattableEntry {
 }
 
 @JsonSerializable()
-class EmploymentData with FormattableEntry {
+class EmploymentData with FormattableEntry implements IdentifiableItem {
   String id;
   String? company;
   String? position;
@@ -1765,34 +1418,14 @@ class EmploymentData with FormattableEntry {
     'endDate': endDate,
   };
 
-  factory EmploymentData.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] as String?;
-    return EmploymentData(
-      id: id ?? generateEntryId(),
-      company: json['company'],
-      position: json['position'],
-      responsibilities: json['responsibilities'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
-      updatedAt: json['updated_at'] ?? currentTimestamp(),
-      isDeleted: json['is_deleted'] ?? false,
-      deletedAt: json['deleted_at'] != null
-          ? DateTime.tryParse(json['deleted_at'])
-          : null,
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory EmploymentData.fromJson(Map<String, dynamic> json) =>
+      _$EmploymentDataFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'company': company,
-    'position': position,
-    'responsibilities': responsibilities,
-    'start_date': startDate,
-    'end_date': endDate,
-    'updated_at': updatedAt,
-    'is_deleted': isDeleted,
-    'deleted_at': deletedAt?.toIso8601String(),
-  };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$EmploymentDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
 
@@ -2028,7 +1661,8 @@ class ProfileStorageService {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
       return profile;
-    } on Exception catch (e) {
+    } catch (_) {
+      // TypeError from cast or other Error subclasses could occur here
       return null;
     }
   }
@@ -2049,7 +1683,8 @@ class ProfileStorageService {
       _invalidateDeletedItemsCache();
 
       return true;
-    } on Exception catch (e) {
+    } catch (_) {
+      // IOException or other Error subclasses could occur here
       return false;
     }
   }

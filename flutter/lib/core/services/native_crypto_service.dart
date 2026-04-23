@@ -79,8 +79,8 @@ class NativeCryptoService {
           .lookup<NativeFunction<Int32 Function(Pointer<Uint8>, IntPtr)>>(
               'argon2_generate_salt')
           .asFunction();
-    } catch (e) {
-      throw Exception('Failed to bind argon2_generate_salt: $e');
+    } catch (e, st) {
+      throw Exception('Failed to bind argon2_generate_salt: $e\nStack: $st');
     }
 
     // Bind argon2_derive_key
@@ -100,8 +100,8 @@ class NativeCryptoService {
                       IntPtr,
                   )>>('argon2_derive_key')
           .asFunction();
-    } catch (e) {
-      throw Exception('Failed to bind argon2_derive_key: $e');
+    } catch (e, st) {
+      throw Exception('Failed to bind argon2_derive_key: $e\nStack: $st');
     }
 
     // Bind aes_256_gcm_encrypt
@@ -118,8 +118,8 @@ class NativeCryptoService {
                       Pointer<IntPtr>,
                   )>>('aes_256_gcm_encrypt')
           .asFunction();
-    } catch (e) {
-      throw Exception('Failed to bind aes_256_gcm_encrypt: $e');
+    } catch (e, st) {
+      throw Exception('Failed to bind aes_256_gcm_encrypt: $e\nStack: $st');
     }
 
     // Bind aes_256_gcm_decrypt
@@ -136,8 +136,8 @@ class NativeCryptoService {
                       Pointer<IntPtr>,
                   )>>('aes_256_gcm_decrypt')
           .asFunction();
-    } catch (e) {
-      throw Exception('Failed to bind aes_256_gcm_decrypt: $e');
+    } catch (e, st) {
+      throw Exception('Failed to bind aes_256_gcm_decrypt: $e\nStack: $st');
     }
   }
 

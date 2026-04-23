@@ -1108,7 +1108,6 @@ class _VersionSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     const latestVersion = '1.0.0';
-    const hasUpdate = false;
 
     return Container(
       decoration: BoxDecoration(
@@ -1174,9 +1173,9 @@ class _VersionSheet extends ConsumerWidget {
                   ),
                   const Divider(height: 1),
                   const _VersionInfoTile(
-                    icon: hasUpdate ? Icons.update : Icons.check_circle_outline,
+                    icon: Icons.check_circle_outline,
                     title: 'Update Status',
-                    value: hasUpdate ? 'Update available' : 'Up to date',
+                    value: 'Up to date',
                   ),
                   const Divider(height: 1),
                   _VersionInfoTile(
@@ -1241,19 +1240,19 @@ class _VersionInfoTile extends StatelessWidget {
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
+  final Color? iconColor;
   final String title;
   final String subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
-  final Color? iconColor;
 
   const _SettingsTile({
     required this.icon,
+    this.iconColor,
     required this.title,
     required this.subtitle,
     this.trailing,
     this.onTap,
-    this.iconColor,
   });
 
   static const _verticalPadding = 12.0;

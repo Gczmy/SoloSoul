@@ -14,21 +14,14 @@ class FieldHistoryEntry {
     required this.timestamp,
   });
 
-  factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) {
-    final valuesJson = json['values'] as Map<String, dynamic>? ?? {};
-    final values = valuesJson.map((k, v) => MapEntry(k, v as String? ?? ''));
-    return FieldHistoryEntry(
-      values: values,
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'] as String)
-          : DateTime.now(),
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) =>
+      _$FieldHistoryEntryFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-        'values': values,
-        'timestamp': timestamp.toIso8601String(),
-      };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$FieldHistoryEntryToJson(this);
 
   String? getValue(String fieldName) => values[fieldName];
 }
@@ -46,22 +39,14 @@ class FieldHistory {
     required this.entries,
   });
 
-  factory FieldHistory.fromJson(Map<String, dynamic> json) {
-    return FieldHistory(
-      fieldId: json['field_id'] as String? ?? '',
-      itemId: json['item_id'] as String? ?? '',
-      entries: (json['entries'] as List<dynamic>?)
-              ?.map((e) => FieldHistoryEntry.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-    );
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory FieldHistory.fromJson(Map<String, dynamic> json) =>
+      _$FieldHistoryFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-        'field_id': fieldId,
-        'item_id': itemId,
-        'entries': entries.map((e) => e.toJson()).toList(),
-      };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$FieldHistoryToJson(this);
 
   FieldHistory copyWith({
     String? fieldId,
@@ -86,30 +71,14 @@ class FormHistories {
   FormHistories({Map<String, Map<String, FieldHistory>>? histories})
       : histories = histories ?? {};
 
-  factory FormHistories.fromJson(Map<String, dynamic> json) {
-    final result = <String, Map<String, FieldHistory>>{};
-    final data = json['histories'] as Map<String, dynamic>? ?? {};
-    for (final itemEntry in data.entries) {
-      final itemId = itemEntry.key;
-      final fields = itemEntry.value as Map<String, dynamic>? ?? {};
-      result[itemId] = {};
-      for (final fieldEntry in fields.entries) {
-        final fieldId = fieldEntry.key;
-        final historyData = fieldEntry.value as Map<String, dynamic>? ?? {};
-        result[itemId]![fieldId] = FieldHistory.fromJson(historyData);
-      }
-    }
-    return FormHistories(histories: result);
-  }
+  /// Deprecated: using generated fromJson
+  @deprecated
+  factory FormHistories.fromJson(Map<String, dynamic> json) =>
+      _$FormHistoriesFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-        'histories': histories.map(
-          (itemId, fields) => MapEntry(
-            itemId,
-            fields.map((fieldId, h) => MapEntry(fieldId, h.toJson())),
-          ),
-        ),
-      };
+  /// Deprecated: using generated toJson
+  @deprecated
+  Map<String, dynamic> toJson() => _$FormHistoriesToJson(this);
 
   /// Get history for a specific field.
   FieldHistory? getHistory(String itemId, String fieldId) {

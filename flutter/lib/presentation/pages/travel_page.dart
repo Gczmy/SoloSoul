@@ -22,7 +22,6 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
-import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
   const TravelPage({super.key});
@@ -109,11 +108,16 @@ class _PassportSection extends ConsumerStatefulWidget {
 }
 
 class _PassportSectionState
-    extends ProfileSectionState<_PassportSection> {
+    extends ConsumerState<_PassportSection> {
   late List<PassportData> _passports;
 
   @override
-  void loadItems() {
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
     _passports = [...ref.read(passportItemsProvider)];
   }
 
@@ -214,7 +218,7 @@ class _PassportSectionState
             index: index,
             deletedItem: passport,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         setState(() {
           _passports = List.from(_passports)..insert(index, passport);
@@ -244,7 +248,7 @@ class _PassportSectionState
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'passport', id: deletedId);
-          loadItems();
+          _loadData();
           if (mounted) setState(() {});
         },
       );
@@ -457,13 +461,8 @@ class _VisaSection extends ConsumerStatefulWidget {
 }
 
 class _VisaSectionState
-    extends ProfileSectionState<_VisaSection> {
+    extends ConsumerState<_VisaSection> {
   // No local state - uses ref.watch(visaItemsProvider) instead
-
-  @override
-  void loadItems() {
-    // No-op: visaItemsProvider handles data sourcing via ref.watch(profileNotifierProvider)
-  }
 
   VisaData _createVisaFromValues(Map<String, String> values, {String? id}) {
     return VisaData(
@@ -522,7 +521,7 @@ class _VisaSectionState
             index: index,
             deletedItem: visa,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -705,12 +704,7 @@ class _TravelHistorySection extends ConsumerStatefulWidget {
 }
 
 class _TravelHistorySectionState
-    extends ProfileSectionState<_TravelHistorySection> {
-  @override
-  void loadItems() {
-    // No-op: items now come from ref.watch(travelHistoryItemsProvider) in build()
-  }
-
+    extends ConsumerState<_TravelHistorySection> {
   Widget _buildTravelHistoryItem(
     TravelHistoryData item,
     Map<String, String> itemMap,
@@ -750,7 +744,7 @@ class _TravelHistorySectionState
             index: index,
             deletedItem: item,
           );
-    } on Exception catch (e) {
+    } on Exception {
       if (mounted) {
         showOverlaySnackBar(
           context,

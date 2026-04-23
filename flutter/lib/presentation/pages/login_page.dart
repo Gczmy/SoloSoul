@@ -306,7 +306,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         }
         traceLog = File('${logDir.path}/flutter_native_vault.log');
         await traceLog.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] _handleCreateAccount start\n', mode: FileMode.append);
-      } on Exception catch (e) {
+      } on Exception {
         // Silently fail if logging fails - not critical path
       }
     }
