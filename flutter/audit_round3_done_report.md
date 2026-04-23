@@ -12,10 +12,10 @@
 
 | 维度 | 状态 |
 |------|------|
-| P0: 架构决策（Repository层/代码生成） | ✅ 完成 |
+| P0: 架构决策（Repository层/代码生成） | ✅ 完成(部分跳过) |
 | P1: Pilot 全面推广 | ✅ 完成 |
-| P2: 状态管理现代化 | ✅ 完成 |
-| P3: 开发体验与可观测性 | ✅ 完成 |
+| P2: 状态管理现代化 | ✅ 完成(部分跳过) |
+| P3: 开发体验与可观测性 | ✅ 完成(部分跳过) |
 
 ---
 
@@ -27,9 +27,9 @@
 - 删除 `base_vault_repository.dart` 和 `vault_repository.dart`
 - 架构更新为: UI → Provider → Service → FFI → Rust (无 Repository 层)
 
-### R3-P0-2: 代码生成启用 (json_serializable Pilot) ⚠️
-- 状态: **未实施**
-- 决定: 代码生成需要较大的迁移成本，本轮聚焦架构清理
+### R3-P0-2: 代码生成启用 (json_serializable Pilot) ⏭️
+- 状态: **跳过**
+- 决定: 代码生成需要较大的迁移成本（涉及 fromJson/toJson 重写），本轮聚焦架构清理。后续可按需启用。
 
 ---
 
@@ -61,9 +61,9 @@
 - `selectAccount()` 和 `createAccount()` 中更新 `_accountsVersion++`
 - 移除 `state = state;` hack，改为版本号递增
 
-### R3-P2-7: 减少 ref.read 在 build 中的使用 ⚠️
-- 状态: **部分完成**
-- 注: 完全消除 `ref.read` 需要更大的架构调整，本轮未完全实施
+### R3-P2-7: 减少 ref.read 在 build 中的使用 ⏭️
+- 状态: **跳过**
+- 决定: 完全消除 `ref.read` 需要更大的架构调整（将 Section 的 `_items` 提升为 provider），本轮未实施。
 
 ---
 
@@ -81,9 +81,9 @@
 - `test/benchmark/crypto_benchmark.dart`: Argon2id 派生、AES-GCM 往返基准测试
 - `test/benchmark/storage_benchmark.dart`: Profile 序列化/反序列化基准测试
 
-### R3-P3-10: 添加 TODO 标记已知技术债务 ⚠️
-- 状态: **未实施**
-- 注: 空 Repository 已删除，预留模块暂无需要标记的债务
+### R3-P3-10: 添加 TODO 标记已知技术债务 ⏭️
+- 状态: **跳过**
+- 决定: 空 Repository 已删除，预留模块暂无需要标记的债务。
 
 ---
 
