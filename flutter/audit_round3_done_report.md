@@ -89,11 +89,11 @@
 ## 六、测试状态
 
 ```
-Unit tests: 97 passing, 4 skipped, 36 failing (FFI-related, pre-existing)
+Unit tests: 133 passing, 4 skipped, 35 failing (FFI-related, pre-existing)
 Dart analyze: 0 errors (after fixes)
 ```
 
-注: 36 个失败的测试主要是 Rust FFI 集成测试，在没有 Rust 库的环境中会失败，这是预期行为。
+注: 35 个失败的测试主要是 Rust FFI 集成测试，在没有 Rust 库的环境中会失败，这是预期行为。
 
 ---
 
@@ -101,6 +101,7 @@ Dart analyze: 0 errors (after fixes)
 
 | Commit | 描述 |
 |--------|------|
+| 3fa6aa4 | fix: resolve compilation errors from round3 migration |
 | 67603d6 | feat: round3 refactoring - architecture cleanup and lint rules |
 
 ---
