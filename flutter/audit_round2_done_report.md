@@ -80,13 +80,29 @@
 
 ---
 
-## 四、待修复问题
+## 四、进行中：R9 profile_provider.dart 拆分
 
-### P2 — 重构与技术债
+### Phase 1: ProfileSectionEditor 提取 (进行中)
 
-| # | 问题 | 严重性 | 说明 |
-|---|------|--------|------|
-| R9 | `profile_provider.dart` 2195行 God Class | 🟠 High | 需要拆分：变更日志、softDelete/restore等 |
+**目标**：消除 3 个大型 switch-case 链（`_markItemDeleted`、`_markItemRestored`、`_getItemAtIndex`）
+
+**方案**：方案 B - 提取 helper 函数，将 switch-case 集中到单一类中
+
+**架构**：
+```
+providers/
+├── profile_provider.dart          (~1750行，核心notifier)
+└── profile_section_editor.dart    (~400行，新增，switch-case集中)
+```
+
+**具体变更**：
+- 新建 `profile_section_editor.dart`，包含：
+  - `ProfileSectionEditor.getItem()` - 统一读取
+  - `ProfileSectionEditor.markDeleted()` - 软删除
+  - `ProfileSectionEditor.markRestored()` - 恢复
+- `ProfileNotifier` 调用上述方法，消除 ~450 行重复代码
+
+**预计效果**：2195行 → ~1750行（减少 ~450行）
 
 ---
 
@@ -108,7 +124,7 @@
 - [x] R17: 核心服务测试 (54 tests added)
 - [x] R18: Provider 行为测试
 - [x] R19: 集成测试补全
-- [ ] R9: `profile_provider.dart` 拆分 (2195行大工程)
+- [ ] R9: `profile_provider.dart` 拆分 Phase 1 (进行中)
 
 ---
 
