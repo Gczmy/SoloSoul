@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+
+part 'auth_provider.g.dart';
 
 /// Convert bytes to hex string (for Rust-compatible verification hashes)
 String _bytesToHex(List<int> bytes) {
@@ -1257,10 +1260,14 @@ final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(() {
 });
 
 /// Provider that watches accountsVersion from AuthNotifier
-final accountsVersionProvider = Provider<int>((ref) {
-  ref.watch(authNotifierProvider);
-  return ref.read(authNotifierProvider.notifier).accountsVersion;
-});
+@riverpod
+class AccountsVersion extends _$AccountsVersion {
+  @override
+  int build() {
+    ref.watch(authNotifierProvider);
+    return ref.read(authNotifierProvider.notifier).accountsVersion;
+  }
+}
 
 /// Accounts notifier - manages account list with version-based invalidation
 class AccountsNotifier extends AsyncNotifier<List<AccountInfo>> {
@@ -1331,7 +1338,11 @@ final sensitivePageAccessProvider =
 });
 
 /// Provider that checks if sensitive access is currently granted
-final isSensitiveAccessGrantedProvider = Provider<bool>((ref) {
-  final access = ref.watch(sensitivePageAccessProvider);
-  return access.isValid;
-});
+@riverpod
+class IsSensitiveAccessGranted extends _$IsSensitiveAccessGranted {
+  @override
+  bool build() {
+    final access = ref.watch(sensitivePageAccessProvider);
+    return access.isValid;
+  }
+}
