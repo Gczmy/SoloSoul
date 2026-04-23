@@ -193,7 +193,7 @@ $ git diff --stat
 | ~~巨型文件 (operation_log_page.dart 1631行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为5个文件 |
 | ~~巨型文件 (sensitivity_provider.dart 1091行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为2个文件 (1091→85行 provider + 1019行 models) |
 | ~~Riverpod v1/v2 混用~~ | ~~P2~~ | ✅ **已完成** - 统一到 AsyncNotifier |
-| go_router 迁移 | P2 | 顺带迁移 |
+| ~~go_router 迁移~~ | ~~P2~~ | ✅ **已完成** - MaterialApp.routes → GoRouter，auth redirect，auto-lock 重写 |
 | freezed 引入 | ~~P2~~ | ❌ **P3** - FormattableEntry mixin + Sentinel pattern 冲突，见 architecture_decisions/001_freezed_pilot_assessment.md |
 
 ---
@@ -219,3 +219,4 @@ $ git diff --stat
 | Round 5 (本轮) | 1 | operation_log_page.dart 拆分 (1631→659行, 5个文件) |
 | Round 5 (本轮) | 1 | sensitivity_provider.dart 拆分 (1091→85行, 2个文件) |
 | Round 5 (本轮) | 1 | Riverpod v1→v2 AsyncNotifier 统一 |
+| Round 5 (本轮) | 1 | go_router 迁移 (MaterialApp.routes → GoRouter) |

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solosoul_flutter/main.dart' show AppRoutes;
+import 'package:go_router/go_router.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
@@ -118,42 +119,42 @@ class HomePage extends ConsumerWidget {
               icon: Icons.person_outline,
               title: 'Profile',
               subtitle: 'Manage your identity information',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
+              onTap: () => context.push(AppRoutes.profile),
             ),
 
             _QuickActionCard(
               icon: Icons.flight_outlined,
               title: 'Travel',
               subtitle: 'Passports, visas, travel history',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.travel),
+              onTap: () => context.push(AppRoutes.travel),
             ),
 
             _QuickActionCard(
               icon: Icons.account_balance_outlined,
               title: 'Financial',
               subtitle: 'Bank accounts, cards, tax IDs',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.financial),
+              onTap: () => context.push(AppRoutes.financial),
             ),
 
             _QuickActionCard(
               icon: Icons.work_outline,
               title: 'Professional',
               subtitle: 'Education, employment, skills',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.professional),
+              onTap: () => context.push(AppRoutes.professional),
             ),
 
             _QuickActionCard(
               icon: Icons.delete_outline,
               title: 'Trash',
               subtitle: 'View and restore deleted items',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.trash),
+              onTap: () => context.push(AppRoutes.trash),
             ),
 
             _QuickActionCard(
               icon: Icons.settings_outlined,
               title: 'Settings',
               subtitle: 'Account, security, sync',
-              onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+              onTap: () => context.push(AppRoutes.settings),
             ),
 
             const SizedBox(height: 32),

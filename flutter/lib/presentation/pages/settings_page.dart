@@ -4,8 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:solosoul_flutter/main.dart' show AppRoutes;
+import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
@@ -123,11 +124,10 @@ class SettingsPage extends ConsumerWidget {
                       onTap: () {
                         // Lock vault first (synchronously sets AuthState.locked)
                         ref.read(authNotifierProvider.notifier).lockVault();
-                        // Navigate to login
-                        Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
                         // Clear sensitive access after navigation to prevent
                         // watched pages from briefly showing verification screens
                         ref.read(sensitivePageAccessProvider.notifier).clear();
+                        // GoRouter redirect will navigate to login
                       },
                     ),
                     const Divider(height: 1),
@@ -184,8 +184,7 @@ class SettingsPage extends ConsumerWidget {
                       icon: Icons.lock_clock_outlined,
                       title: 'Auto-Lock & Privacy',
                       subtitle: 'Configure timeout and privacy settings',
-                      onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.securitySettings),
+                      onTap: () => context.push(AppRoutes.securitySettings),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -193,7 +192,7 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Sensitivity Level Settings',
                       subtitle: 'Configure field sensitivity',
                       onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.sensitivitySettings),
+                          context.push(AppRoutes.sensitivitySettings),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -201,7 +200,7 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Operation Log',
                       subtitle: 'View activity history',
                       onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.operationLog),
+                          context.push(AppRoutes.operationLog),
                     ),
                   ],
                 )
@@ -475,7 +474,8 @@ class SettingsPage extends ConsumerWidget {
     );
 
     if (result == true && context.mounted) {
-      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false));
+      ref.read(authNotifierProvider.notifier).lockVault();
+      ref.read(sensitivePageAccessProvider.notifier).clear();
     }
   }
 }

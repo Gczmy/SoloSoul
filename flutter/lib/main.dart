@@ -2,24 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
-import 'package:solosoul_flutter/presentation/pages/splash_page.dart';
-import 'package:solosoul_flutter/presentation/pages/login_page.dart';
-import 'package:solosoul_flutter/presentation/pages/home_page.dart';
-import 'package:solosoul_flutter/presentation/pages/profile_page.dart';
-import 'package:solosoul_flutter/presentation/pages/travel_page.dart';
-import 'package:solosoul_flutter/presentation/pages/financial_page.dart';
-import 'package:solosoul_flutter/presentation/pages/professional_page.dart';
-import 'package:solosoul_flutter/presentation/pages/settings_page.dart';
-import 'package:solosoul_flutter/presentation/pages/security_settings_page.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
-import 'package:solosoul_flutter/presentation/pages/sensitivity_settings_page.dart';
-import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
-import 'package:solosoul_flutter/presentation/pages/search_page.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show AppTheme, showOverlaySnackBar, SnackBarType;
+    show AppTheme;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 
@@ -38,24 +27,6 @@ void main() async {
   );
 }
 
-/// Centralized route constants to avoid hardcoded strings across the codebase
-class AppRoutes {
-  AppRoutes._();
-
-  static const String login = '/login';
-  static const String home = '/home';
-  static const String profile = '/profile';
-  static const String travel = '/travel';
-  static const String financial = '/financial';
-  static const String professional = '/professional';
-  static const String settings = '/settings';
-  static const String securitySettings = '/security_settings';
-  static const String operationLog = '/operation_log';
-  static const String sensitivitySettings = '/sensitivity_settings';
-  static const String trash = '/trash';
-  static const String search = '/search';
-}
-
 class SoloSoulApp extends ConsumerStatefulWidget {
   const SoloSoulApp({super.key});
 
@@ -63,10 +34,11 @@ class SoloSoulApp extends ConsumerStatefulWidget {
   ConsumerState<SoloSoulApp> createState() => _SoloSoulAppState();
 }
 
-class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingObserver {
+class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
+    with WidgetsBindingObserver {
   DateTime? _pausedAt;
   Timer? _autoLockTimer;
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late final GoRouter _router;
 
   @override
   void initState() {
@@ -75,6 +47,9 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
 
     // Load security settings at startup
     SecurityService.instance.loadSettings();
+
+    // Create router after initState (needs ref)
+    _router = createRouter(ref);
 
     // Set up native lock callback for macOS menu bar
     if (Platform.isMacOS) {
@@ -117,7 +92,8 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
   void _startAutoLockTimer() {
     if (!SecurityService.instance.settings.lockOnWindowBlur) return;
 
-    final delayMinutes = SecurityService.instance.settings.autoLockDelayMinutes;
+    final delayMinutes =
+        SecurityService.instance.settings.autoLockDelayMinutes;
     if (delayMinutes == -1) return; // Never auto-lock
 
     _pausedAt = DateTime.now();
@@ -139,25 +115,6 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     if (authNotifier.isUnlocked) {
       _wipeSensitiveState();
       authNotifier.lockVault();
-      // Use addPostFrameCallback so the overlay exists (runs after first frame builds MaterialApp)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          final navContext = _navigatorKey.currentContext;
-          if (navContext != null) {
-            showOverlaySnackBar(
-              navContext,
-              content: 'Vault auto-locked after leaving the app',
-              type: SnackBarType.info,
-            );
-          }
-        } on Exception catch (_) {
-          // SnackBar failed (no overlay), continue with navigation
-        }
-        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-          AppRoutes.login,
-          (route) => false,
-        );
-      });
     }
     _pausedAt = null;
   }
@@ -165,7 +122,8 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
   void _checkAutoLock() {
     if (_pausedAt == null) return;
 
-    final delayMinutes = SecurityService.instance.settings.autoLockDelayMinutes;
+    final delayMinutes =
+        SecurityService.instance.settings.autoLockDelayMinutes;
     if (delayMinutes == -1) return; // Never auto-lock
 
     final elapsedMinutes = DateTime.now().difference(_pausedAt!).inMinutes;
@@ -185,32 +143,27 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
 
   @override
   Widget build(BuildContext context) {
+    // Watch auth state to trigger redirect when it changes (e.g., after lockVault)
+    ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (previous, next) {
+      final wasUnlocked = previous?.valueOrNull == AuthState.unlocked;
+      final isUnlocked = next.valueOrNull == AuthState.unlocked;
+      if (wasUnlocked && !isUnlocked) {
+        // Auth state changed from unlocked to locked - navigate to login
+        _router.go(AppRoutes.login);
+      }
+    });
+
     // Wrap with ScaffoldMessenger at root level so SnackBars persist across navigation.
     // Without this, each Scaffold has its own ScaffoldMessengerState and when that
     // Scaffold is removed (on navigation), all SnackBar timers are cancelled.
     return ScaffoldMessenger(
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'SoloSoul',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        navigatorKey: _navigatorKey,
-        home: const SplashPage(),
-        routes: {
-          AppRoutes.login: (context) => const LoginPage(),
-          AppRoutes.home: (context) => const HomePage(),
-          AppRoutes.profile: (context) => const ProfilePage(),
-          AppRoutes.travel: (context) => const TravelPage(),
-          AppRoutes.financial: (context) => const FinancialPage(),
-          AppRoutes.professional: (context) => const ProfessionalPage(),
-          AppRoutes.settings: (context) => const SettingsPage(),
-          AppRoutes.securitySettings: (context) => const SecuritySettingsPage(),
-          AppRoutes.operationLog: (context) => const OperationLogPage(),
-          AppRoutes.sensitivitySettings: (context) => const SensitivitySettingsPage(),
-          AppRoutes.trash: (context) => const TrashPage(),
-          AppRoutes.search: (context) => const SearchPage(),
-        },
+        routerConfig: _router,
       ),
     );
   }
