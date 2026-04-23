@@ -6,7 +6,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 void main() {
   group('ProfileData serialization', () {
     test('serializes and deserializes identity data correctly', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         identity: IdentityData(
           fullName: 'John Doe',
           givenName: 'John',
@@ -607,7 +607,7 @@ void main() {
     });
 
     test('handles null sections gracefully', () {
-      final profile = ProfileData();
+      const profile = ProfileData();
 
       final json = jsonEncode(profile.toJson());
       final restored = ProfileData.fromJson(jsonDecode(json) as Map<String, dynamic>);
@@ -622,7 +622,7 @@ void main() {
       // Note: IdentityData() has nullable fields (idCards, addresses are null)
       // When serialized, null fields stay null (not empty lists)
       final profile = ProfileData(
-        identity: IdentityData(
+        identity: const IdentityData(
           idCards: [], // Explicitly empty list
           addresses: [], // Explicitly empty list
         ),
@@ -666,7 +666,7 @@ void main() {
 
     test('null sections remain null after roundtrip', () {
       // When sections are null (not provided), they stay null after serialization
-      final profile = ProfileData(); // All sections null
+      const profile = ProfileData(); // All sections null
 
       final json = jsonEncode(profile.toJson());
       final restored = ProfileData.fromJson(jsonDecode(json) as Map<String, dynamic>);

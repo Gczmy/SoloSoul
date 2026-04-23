@@ -269,8 +269,8 @@ void main() {
 
     test('constant-time behavior: no early return', () {
       // Verify the algorithm doesn't short-circuit
-      final a = 'abcdefghijklmnop';
-      final b = 'abcdefghijklmnoo';
+      const a = 'abcdefghijklmnop';
+      const b = 'abcdefghijklmnoo';
       expect(testConstantTimeEquals(a, b), false);
       expect(testConstantTimeEquals(a, a), true);
     });

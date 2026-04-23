@@ -19,11 +19,11 @@ void _benchmarkArgon2idKeyDerivation() {
   print('\n--- Argon2id Key Derivation ---');
 
   final crypto = NativeCryptoService.instance;
-  final password = 'test_password_123';
+  const password = 'test_password_123';
   final salt = crypto.generateSalt()!;
-  final iterations = 3;
-  final memoryKib = 65536;
-  final parallelism = 4;
+  const iterations = 3;
+  const memoryKib = 65536;
+  const parallelism = 4;
 
   // Warm-up run
   crypto.deriveKey(

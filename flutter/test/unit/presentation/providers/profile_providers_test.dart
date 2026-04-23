@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 
@@ -614,11 +613,11 @@ void main() {
       });
 
       test('returns identity data from profile', () {
-        final identity = IdentityData(fullName: 'Test User');
+        const identity = IdentityData(fullName: 'Test User');
         final container = ProviderContainer(
           overrides: [
             profileNotifierProvider.overrideWith(
-              () => _FakeProfileNotifier(ProfileData(identity: identity)),
+              () => _FakeProfileNotifier(const ProfileData(identity: identity)),
             ),
           ],
         );

@@ -4,7 +4,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 void main() {
   group('ProfileData', () {
     test('creates with null sections', () {
-      final profile = ProfileData();
+      const profile = ProfileData();
 
       expect(profile.identity, isNull);
       expect(profile.travel, isNull);
@@ -13,7 +13,7 @@ void main() {
     });
 
     test('creates with provided sections', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         identity: IdentityData(fullName: 'Test User'),
       );
 
@@ -66,7 +66,7 @@ void main() {
     });
 
     test('toJson produces correct structure', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         identity: IdentityData(fullName: 'Test'),
       );
 
@@ -79,12 +79,12 @@ void main() {
     });
 
     test('copyWith creates new instance with updated values', () {
-      final original = ProfileData(
+      const original = ProfileData(
         identity: IdentityData(fullName: 'Original'),
       );
 
       final copied = original.copyWith(
-        identity: IdentityData(fullName: 'Updated'),
+        identity: const IdentityData(fullName: 'Updated'),
       );
 
       expect(copied.identity!.fullName, 'Updated');

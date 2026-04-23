@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -181,8 +180,7 @@ void main() {
       late RustVaultService vaultService;
       late ProfileStorageService storageService;
       String? testAccountId;
-      final testPassword = 'TestPass123!';
-      final testBasePath = Directory.systemTemp.path;
+      const testPassword = 'TestPass123!';
 
       setUpAll(() {
         vaultService = RustVaultService.instance;

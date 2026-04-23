@@ -280,7 +280,7 @@ ProviderContainer createTestContainer({
 
 ProfileData createTestProfile() {
   return ProfileData(
-    identity: IdentityData(
+    identity: const IdentityData(
       fullName: 'Test User',
       givenName: 'Test',
       familyName: 'User',

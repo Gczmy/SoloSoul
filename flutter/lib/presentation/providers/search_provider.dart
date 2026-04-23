@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
@@ -9,16 +11,29 @@ import 'package:solosoul_flutter/presentation/models/search_models.dart';
 
 /// Search notifier
 class SearchNotifier extends Notifier<SearchState> {
+  Timer? _debounceTimer;
+
   @override
   SearchState build() => const SearchState();
 
   void setQuery(String query) {
     state = state.copyWith(query: query);
     if (query.length >= 2) {
-      _performSearch();
+      _debounceSearch();
     } else {
+      _cancelDebounce();
       state = state.copyWith(results: []);
     }
+  }
+
+  void _debounceSearch() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), _performSearch);
+  }
+
+  void _cancelDebounce() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
   }
 
   void togglePublic() {
