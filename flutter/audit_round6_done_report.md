@@ -1,6 +1,7 @@
 # SoloSoul Flutter 第六轮修复完成报告
 
 > 生成时间：2026-04-23
+> 更新：2026-04-23 (all fixes completed)
 > 前提：audit_round6_report.md 中识别的问题
 > 范围：`flutter/` 目录
 
@@ -15,6 +16,17 @@
 | GoRouter redirect isLoading 检查 | ✅ 完成 | `lib/core/router/app_router.dart` | dart analyze 通过 |
 | SearchNotifier → Notifier 迁移 | ✅ 完成 | `lib/presentation/providers/search_provider.dart` | dart analyze 通过 |
 | FormFieldRegistryNotifier → Notifier 迁移 | ✅ 完成 | `lib/presentation/models/sensitivity_models.dart`, `lib/presentation/providers/sensitivity_provider.dart` | dart analyze 通过 |
+
+### 额外修复（审查发现）
+
+| 问题 | 状态 | 修改文件 | 验证 |
+|------|------|---------|------|
+| `identityProvider` → `profileIdentityProvider` 重命名后未更新引用 | ✅ 完成 | `lib/presentation/pages/profile_page.dart` | dart analyze 通过 |
+| Riverpod 2.x `.state =` protected 访问警告 | ✅ 完成 | `lib/presentation/providers/operation_log_provider.dart`, `lib/presentation/pages/operation_log_page.dart` | dart analyze 通过 |
+| profile_storage_service.dart unused_catch_clause | ✅ 完成 | `lib/core/services/profile_storage_service.dart` | dart analyze 通过 |
+| settings_page.dart unused iconColor 参数 | ✅ 完成 | `lib/presentation/pages/settings_page.dart` | dart analyze 通过 |
+| entry_card_widget.dart unused AccountStyle import | ✅ 完成 | `lib/presentation/widgets/entry_card_widget.dart` | dart analyze 通过 |
+| profile_page.dart dead code null check | ✅ 完成 | `lib/presentation/pages/profile_page.dart` | dart analyze 通过 |
 
 ---
 
@@ -34,39 +46,50 @@ redirect: (context, state) {
 }
 ```
 
-**文件**：`lib/core/router/app_router.dart`
-
 ### 2.2 SearchNotifier StateNotifier → Notifier
 
 **问题**：`SearchNotifier` 使用 `StateNotifier`（Riverpod v1 已废弃），应迁移到 Riverpod v2 的 `Notifier`。
 
 **修复**：
 - `class SearchNotifier extends StateNotifier<SearchState>` → `extends Notifier<SearchState>`
-- `StateNotifierProvider<SearchNotifier, SearchState>` → `NotifierProvider<SearchNotifier, SearchState>`
+- `StateNotifierProvider` → `NotifierProvider`
 - 移除手动管理的 `_ref` 字段，使用 `Notifier` 基类提供的 `ref`
-- 添加 `@override SearchState build()` 方法替代构造函数
-
-**文件**：`lib/presentation/providers/search_provider.dart`
 
 ### 2.3 FormFieldRegistryNotifier StateNotifier → Notifier
 
 **问题**：`FormFieldRegistryNotifier` 使用 `StateNotifier`（已废弃），应迁移到 Riverpod v2 的 `Notifier`。
 
 **修复**：
-- `class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivity>>` → `extends Notifier<Map<String, FieldSensitivity>>`
 - `StateNotifierProvider` → `NotifierProvider`
 - 添加 `@override Map<String, FieldSensitivity> build()` 方法
 
-**文件**：
-- `lib/presentation/models/sensitivity_models.dart`
-- `lib/presentation/providers/sensitivity_provider.dart`
+### 2.4 Riverpod 2.x .state = 警告修复
+
+**问题**：直接访问 `.state =` 在 Riverpod 2.x 中产生 protected 成员警告。
+
+**修复**：给 filter notifiers 添加 public 方法：
+```dart
+class LogActionFilter extends _$LogActionFilter {
+  @override
+  Set<String> build() => {};
+
+  void setFilters(Set<String> filters) => state = filters;
+  void clear() => state = {};
+}
+```
+
+### 2.5 provider 重命名后引用更新
+
+**问题**：riverpod_generator 转换时 `identityProvider` → `profileIdentityProvider`，但 `profile_page.dart` 仍使用旧名。
+
+**修复**：更新 `profile_page.dart` 中的所有引用。
 
 ---
 
 ## 三、dart analyze 验证
 
 ```
-dart analyze → No issues found!
+lib/ 目录: 0 errors, 0 warnings
 ```
 
 ---
@@ -106,18 +129,13 @@ dart analyze → No issues found!
 **operation_log_provider.dart**:
 - OperationLogEntries, LogActionFilter, LogDeviceFilter, LogSensitivityFilter, OperationLogFilteredEntries
 
-### 兼容性修复
-
-**operation_log_page.dart**: 使用类型化空 Set 字面量 (`<String>{}`) 替代无类型 `{}`，改善 Riverpod 2.x 类型安全。
-
 ---
 
 ## 五、剩余未解决问题
 
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
-| freezed 试点 | P3 | 依赖已添加但未使用 |
-| .state = 访问警告 | P3 | Riverpod 2.x 设计限制，需要 public 方法替代 |
+| freezed 试点 | P3 | FormattableEntry mixin + Sentinel pattern 冲突，见 architecture_decisions/001_freezed_pilot_assessment.md |
 
 ---
 
@@ -133,4 +151,5 @@ dart analyze → No issues found!
 | Round 5+ | 8 | switch→Map、纯函数化、final 字段化、文件拆分、go_router、AsyncNotifier |
 | Round 6 P0/P1 | 7 | AsyncValue 类型错误、.value 访问模式、Timer leak、catch clause |
 | Round 6 P2 | 3 | GoRouter redirect isLoading、StateNotifier→Notifier 迁移 |
+| Round 6 额外 | 6 | provider 重命名、.state=警告、unused imports/params |
 | riverpod_generator | 28 | Provider → @riverpod 注解转换 |
