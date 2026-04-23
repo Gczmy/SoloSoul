@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/log_section_config.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'

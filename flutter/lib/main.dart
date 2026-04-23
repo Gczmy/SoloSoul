@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/pages/splash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/login_page.dart';
 import 'package:solosoul_flutter/presentation/pages/home_page.dart';
