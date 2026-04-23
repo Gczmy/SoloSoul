@@ -194,7 +194,7 @@ $ git diff --stat
 | ~~巨型文件 (sensitivity_provider.dart 1091行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为2个文件 (1091→85行 provider + 1019行 models) |
 | ~~Riverpod v1/v2 混用~~ | ~~P2~~ | ✅ **已完成** - 统一到 AsyncNotifier |
 | go_router 迁移 | P2 | 顺带迁移 |
-| freezed 引入 | P2 | 分阶段试点 |
+| freezed 引入 | ~~P2~~ | ❌ **P3** - FormattableEntry mixin + Sentinel pattern 冲突，见 architecture_decisions/001_freezed_pilot_assessment.md |
 
 ---
 
