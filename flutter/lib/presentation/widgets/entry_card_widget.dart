@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,7 +97,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   Future<void> _handleCopy(String formattedText) async {
     await Clipboard.setData(ClipboardData(text: formattedText));
-    ClipboardMonitorService.instance.notifySensitiveCopied();
+    unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
     if (mounted) {
       showOverlaySnackBar(
         context,

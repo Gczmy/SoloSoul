@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
@@ -121,7 +123,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           type: SnackBarType.info,
         );
       }
-      SecurityService.instance.setBiometricsEnabled(false);
+      unawaited(SecurityService.instance.setBiometricsEnabled(false));
     }
   }
 
@@ -203,7 +205,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           type: SnackBarType.info,
         );
       }
-      SecurityService.instance.setFaceIdEnabled(false);
+      unawaited(SecurityService.instance.setFaceIdEnabled(false));
     }
   }
 

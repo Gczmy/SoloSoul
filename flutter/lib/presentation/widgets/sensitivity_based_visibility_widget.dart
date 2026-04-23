@@ -122,7 +122,7 @@ class _SensitivityBasedVisibilityWidgetState
     }
 
     await Clipboard.setData(ClipboardData(text: widget.value));
-    ClipboardMonitorService.instance.notifySensitiveCopied();
+    unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
     if (mounted) {
       showOverlaySnackBar(
         context,

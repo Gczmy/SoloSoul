@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
@@ -792,7 +794,7 @@ class _ItemWithHistory<T> extends ConsumerWidget {
   }
 
   Future<void> _showActions(BuildContext context) async {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
@@ -826,7 +828,7 @@ class _ItemWithHistory<T> extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

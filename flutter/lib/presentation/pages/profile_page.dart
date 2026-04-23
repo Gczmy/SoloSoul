@@ -472,64 +472,50 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     );
   }
 
+  /// Thin passthrough - softDelete is the only persistence operation.
+  /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onContactDelete(ContactEntry contact) async {
     final index = _contacts.indexOf(contact);
     if (index == -1) return;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'profile',
+          itemType: 'contact',
+          index: index,
+          deletedItem: contact,
+        );
+  }
 
+  void _onContactDidDelete(ContactEntry contact, int index) {
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
-
     final deletedId = contact.id;
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotification(
+        section: LogSection.contactInformation,
+        action: LogAction.delete,
+        itemName: contact.title.isNotEmpty ? contact.title : contact.value,
+        isPrivacyModeActive: isPrivacyMode,
+      ),
+      duration: const Duration(seconds: 5),
+      onUndo: () async {
+        await ref
+            .read(profileNotifierProvider.notifier)
+            .restore(section: 'profile', itemType: 'contact', id: deletedId);
+        _loadData();
+      },
+    );
+  }
 
-    setState(() {
-      _contacts = List.from(_contacts)..removeAt(index);
-    });
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'profile',
-            itemType: 'contact',
-            index: index,
-            deletedItem: contact,
-          );
-    } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _contacts = List.from(_contacts)..insert(index, contact);
-        });
-      }
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete contact',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.contactInformation,
-          action: LogAction.delete,
-          itemName: contact.title.isNotEmpty ? contact.title : contact.value,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'profile', itemType: 'contact', id: deletedId);
-          _loadData();
-          if (mounted) setState(() {});
-        },
-      );
-    }
+  void _onContactDeleteFailed(ContactEntry contact, int index) {
+    showOverlaySnackBar(
+      context,
+      content: 'Failed to delete contact',
+      type: SnackBarType.error,
+    );
   }
 
   Future<void> _onContactSave(
@@ -724,7 +710,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       itemToMap: (c) => {'title': c.title, 'type': c.type, 'value': c.value},
       onCopyAll: (contact, text) async {
         unawaited(Clipboard.setData(ClipboardData(text: text)));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -753,6 +739,8 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'contact',
       itemIdExtractor: (c) => c.id,
+      onDidDelete: _onContactDidDelete,
+      onDeleteFailed: _onContactDeleteFailed,
       displayItemBuilder: (contact, itemMap) => EntryCardWidget<ContactEntry>(
         item: contact,
         title: contact.title.isNotEmpty ? contact.title : contact.value,
@@ -829,65 +817,51 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
     );
   }
 
+  /// Thin passthrough - softDelete is the only persistence operation.
+  /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onIdCardDelete(IdCardData card) async {
     final index = _idCards.indexOf(card);
     if (index == -1) return;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'profile',
+          itemType: 'idCard',
+          index: index,
+          deletedItem: card,
+        );
+  }
 
+  void _onIdCardDidDelete(IdCardData card, int index) {
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
-
     final deletedId = card.id;
+    final itemName = card.title ?? card.number ?? 'ID Card';
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotification(
+        section: LogSection.idCard,
+        action: LogAction.delete,
+        itemName: itemName,
+        isPrivacyModeActive: isPrivacyMode,
+      ),
+      duration: const Duration(seconds: 5),
+      onUndo: () async {
+        await ref
+            .read(profileNotifierProvider.notifier)
+            .restore(section: 'profile', itemType: 'idCard', id: deletedId);
+        loadItems();
+      },
+    );
+  }
 
-    setState(() {
-      _idCards = List.from(_idCards)..removeAt(index);
-    });
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'profile',
-            itemType: 'idCard',
-            index: index,
-            deletedItem: card,
-          );
-    } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _idCards = List.from(_idCards)..insert(index, card);
-        });
-      }
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete ID card',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      final itemName = card.title ?? card.number ?? 'ID Card';
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.idCard,
-          action: LogAction.delete,
-          itemName: itemName,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'profile', itemType: 'idCard', id: deletedId);
-          loadItems();
-          if (mounted) setState(() {});
-        },
-      );
-    }
+  void _onIdCardDeleteFailed(IdCardData card, int index) {
+    showOverlaySnackBar(
+      context,
+      content: 'Failed to delete ID card',
+      type: SnackBarType.error,
+    );
   }
 
   Future<void> _onIdCardSave(
@@ -1024,8 +998,8 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
             'expiryDate': c.expiryDate ?? '',
           },
           onCopyAll: (card, text) async {
-            Clipboard.setData(ClipboardData(text: text));
-            ClipboardMonitorService.instance.notifySensitiveCopied();
+            unawaited(Clipboard.setData(ClipboardData(text: text)));
+            unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
             showOverlaySnackBar(
               context,
               content: 'Copied to clipboard',
@@ -1054,6 +1028,8 @@ class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
               },
           showHistoryExpansion: true,
           historyFieldIdPrefix: 'idCard',
+          onDidDelete: _onIdCardDidDelete,
+          onDeleteFailed: _onIdCardDeleteFailed,
         ),
       ],
     );
@@ -1117,65 +1093,51 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
     );
   }
 
+  /// Thin passthrough - softDelete is the only persistence operation.
+  /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onAddressDelete(AddressData address) async {
     final index = _addresses.indexOf(address);
     if (index == -1) return;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'profile',
+          itemType: 'address',
+          index: index,
+          deletedItem: address,
+        );
+  }
 
+  void _onAddressDidDelete(AddressData address, int index) {
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
-
     final deletedId = address.id;
+    final itemName = address.title ?? 'Address';
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotification(
+        section: LogSection.address,
+        action: LogAction.delete,
+        itemName: itemName,
+        isPrivacyModeActive: isPrivacyMode,
+      ),
+      duration: const Duration(seconds: 5),
+      onUndo: () async {
+        await ref
+            .read(profileNotifierProvider.notifier)
+            .restore(section: 'profile', itemType: 'address', id: deletedId);
+        loadItems();
+      },
+    );
+  }
 
-    setState(() {
-      _addresses = List.from(_addresses)..removeAt(index);
-    });
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'profile',
-            itemType: 'address',
-            index: index,
-            deletedItem: address,
-          );
-    } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _addresses = List.from(_addresses)..insert(index, address);
-        });
-      }
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete address',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      final itemName = address.title ?? 'Address';
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.address,
-          action: LogAction.delete,
-          itemName: itemName,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'profile', itemType: 'address', id: deletedId);
-          loadItems();
-          if (mounted) setState(() {});
-        },
-      );
-    }
+  void _onAddressDeleteFailed(AddressData address, int index) {
+    showOverlaySnackBar(
+      context,
+      content: 'Failed to delete address',
+      type: SnackBarType.error,
+    );
   }
 
   Future<void> _onAddressSave(
@@ -1308,8 +1270,8 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
             'country': a.country ?? '',
           },
           onCopyAll: (address, text) async {
-            Clipboard.setData(ClipboardData(text: text));
-            ClipboardMonitorService.instance.notifySensitiveCopied();
+            unawaited(Clipboard.setData(ClipboardData(text: text)));
+            unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
             showOverlaySnackBar(
               context,
               content: 'Copied to clipboard',
@@ -1339,6 +1301,8 @@ class _AddressSectionState extends ProfileSectionState<_AddressSection> {
           showHistoryExpansion: true,
           historyFieldIdPrefix: 'address',
           itemIdExtractor: (a) => a.id,
+          onDidDelete: _onAddressDidDelete,
+          onDeleteFailed: _onAddressDeleteFailed,
         ),
       ],
     );

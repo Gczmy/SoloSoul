@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -17,7 +19,7 @@ Future<void> showLegalDocumentSheet({
 
   if (!context.mounted) return;
 
-  showModalBottomSheet(
+  unawaited(showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -26,7 +28,7 @@ Future<void> showLegalDocumentSheet({
       title: title,
       content: content,
     ),
-  );
+  ));
 }
 
 class _LegalDocumentSheet extends StatelessWidget {

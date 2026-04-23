@@ -199,67 +199,53 @@ class _BankAccountSectionState
     };
   }
 
+  /// Thin passthrough - softDelete is the only persistence operation.
+  /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onAccountDelete(BankAccountData account) async {
     final index = _accounts.indexById(account.id, (a) => a.id);
     if (index == -1) return;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'financial',
+          itemType: 'bank_account',
+          index: index,
+          deletedItem: account,
+        );
+  }
 
+  void _onDidDelete(BankAccountData account, int index) {
     final isPrivacyMode =
         ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
-
     final deletedId = account.id;
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotification(
+        section: LogSection.financial,
+        action: LogAction.delete,
+        itemName: account.bankName ?? 'Bank account',
+        isPrivacyModeActive: isPrivacyMode,
+      ),
+      duration: const Duration(seconds: 5),
+      onUndo: () async {
+        await ref
+            .read(profileNotifierProvider.notifier)
+            .restore(
+              section: 'financial',
+              itemType: 'bank_account',
+              id: deletedId,
+            );
+        loadItems();
+      },
+    );
+  }
 
-    // Optimistic removal from UI
-    setState(() {
-      _accounts = List.from(_accounts)..removeAt(index);
-    });
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'financial',
-            itemType: 'bank_account',
-            index: index,
-            deletedItem: account,
-          );
-    } on Exception catch (e) {
-      // Rollback on failure
-      setState(() {
-        _accounts = List.from(_accounts)..insert(index, account);
-      });
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete bank account',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.financial,
-          action: LogAction.delete,
-          itemName: account.bankName ?? 'Bank account',
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(
-                section: 'financial',
-                itemType: 'bank_account',
-                id: deletedId,
-              );
-          loadItems();
-          if (mounted) setState(() {});
-        },
-      );
-    }
+  void _onDeleteFailed(BankAccountData account, int index) {
+    showOverlaySnackBar(
+      context,
+      content: 'Failed to delete bank account',
+      type: SnackBarType.error,
+    );
   }
 
   Future<void> _onAccountSave(
@@ -402,6 +388,8 @@ class _BankAccountSectionState
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'bankAccount',
       itemIdExtractor: (item) => item.id,
+      onDidDelete: _onDidDelete,
+      onDeleteFailed: _onDeleteFailed,
     );
   }
 }
@@ -747,63 +735,49 @@ class _TaxIdSectionState
     };
   }
 
+  /// Thin passthrough - softDelete is the only persistence operation.
+  /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onTaxIdDelete(TaxIdData taxId) async {
     final index = _taxIds.indexById(taxId.id, (t) => t.id);
     if (index == -1) return;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'financial',
+          itemType: 'tax_id',
+          index: index,
+          deletedItem: taxId,
+        );
+  }
 
+  void _onTaxIdDidDelete(TaxIdData taxId, int index) {
     final isPrivacyMode =
         ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
-
     final deletedId = taxId.id;
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotification(
+        section: LogSection.financial,
+        action: LogAction.delete,
+        itemName: taxId.taxIdType ?? 'Tax ID',
+        isPrivacyModeActive: isPrivacyMode,
+      ),
+      duration: const Duration(seconds: 5),
+      onUndo: () async {
+        await ref
+            .read(profileNotifierProvider.notifier)
+            .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
+        loadItems();
+      },
+    );
+  }
 
-    setState(() {
-      _taxIds = List.from(_taxIds)..removeAt(index);
-    });
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'financial',
-            itemType: 'tax_id',
-            index: index,
-            deletedItem: taxId,
-          );
-    } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _taxIds = List.from(_taxIds)..insert(index, taxId);
-        });
-      }
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete tax ID',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.financial,
-          action: LogAction.delete,
-          itemName: taxId.taxIdType ?? 'Tax ID',
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
-          loadItems();
-          if (mounted) setState(() {});
-        },
-      );
-    }
+  void _onTaxIdDeleteFailed(TaxIdData taxId, int index) {
+    showOverlaySnackBar(
+      context,
+      content: 'Failed to delete tax ID',
+      type: SnackBarType.error,
+    );
   }
 
   Future<void> _onTaxIdSave(
@@ -939,6 +913,8 @@ class _TaxIdSectionState
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'taxId',
       itemIdExtractor: (item) => item.id,
+      onDidDelete: _onTaxIdDidDelete,
+      onDeleteFailed: _onTaxIdDeleteFailed,
     );
   }
 }

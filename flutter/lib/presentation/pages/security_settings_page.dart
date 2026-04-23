@@ -100,10 +100,10 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                               reason: 'Verify your identity to enable biometric unlock',
                             );
                             if (authenticated) {
-                              _updateSettings(_settings.copyWith(biometricsEnabled: true));
+                              unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: true)));
                               setState(() => _biometricsEnabled = true);
                               if (mounted) {
-                                unawaited(scaffoldMessenger.showSnackBar(
+                                scaffoldMessenger.showSnackBar(
                                   const SnackBar(
                                     content: Row(
                                       children: [

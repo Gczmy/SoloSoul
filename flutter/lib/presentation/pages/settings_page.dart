@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -429,7 +430,7 @@ class SettingsPage extends ConsumerWidget {
           await authNotifier.selectAccount(accountId);
           if (context.mounted) {
             Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, AppRoutes.login);
+            unawaited(Navigator.pushReplacementNamed(context, AppRoutes.login));
           }
         },
       ),
@@ -474,7 +475,7 @@ class SettingsPage extends ConsumerWidget {
     );
 
     if (result == true && context.mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false));
     }
   }
 }

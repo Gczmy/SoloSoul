@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -453,8 +455,8 @@ class _PassportSectionState
         'authority': p.authority ?? '',
       },
       onCopyAll: (passport, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -722,8 +724,8 @@ class _VisaSectionState
         'expiryDate': v.expiryDate ?? '',
       },
       onCopyAll: (visa, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -1491,8 +1493,8 @@ class _TravelHistorySectionState
         'airline': item.airline ?? '',
       },
       onCopyAll: (item, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',

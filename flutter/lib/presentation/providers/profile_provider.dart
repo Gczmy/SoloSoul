@@ -113,7 +113,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
         // Initialize lastSavedJson for change detection
         _lastSavedJson = jsonEncode(profile.toJson());
         // Load field histories after profile loads
-        _ref.read(fieldHistoriesProvider.notifier).loadHistories(accountId);
+        unawaited(_ref.read(fieldHistoriesProvider.notifier).loadHistories(accountId));
       } else {
       }
     } finally {
