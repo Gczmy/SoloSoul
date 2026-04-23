@@ -179,6 +179,7 @@ $ git diff --stat
 - `4731dbf` - refactor: switch → Map dispatch
 - `f91c4d3` - refactor: emptyAllTrash/restoreItem/permanentDeleteItem pure functions
 - `9961943` - refactor: make all Entry class fields final
+- `9f565f4` - refactor: split 1324-line search_page.dart into 8 focused files
 
 ---
 
@@ -188,7 +189,7 @@ $ git diff --stat
 |------|--------|------|
 | ~~数据模型可变性 (ProfileData 等)~~ | ~~P0~~ | ✅ **已完成** - 阶段1+2完成 |
 | ~~emptyAllTrash / restoreItem mutation~~ | ~~P0~~ | ✅ **已完成** |
-| 巨型文件 (search_page.dart 1324行) | P1 | 拆分 |
+| ~~巨型文件 (search_page.dart 1324行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为8个文件 |
 | 巨型文件 (operation_log_page.dart 1631行) | P1 | 拆分 |
 | 巨型文件 (sensitivity_provider.dart 1091行) | P1 | 拆分 |
 | Riverpod v1/v2 混用 | P2 | 统一到 AsyncNotifier |
