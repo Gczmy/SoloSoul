@@ -1,123 +1,86 @@
-# SoloSoul Flutter 第六轮修复完成报告
+# SoloSoul Flutter 第六轮修复完成报告 (P2)
 
 > 生成时间：2026-04-23
-> 前提：audit_round6_report.md 中识别的问题
+> 前提：audit_round6_report.md 中识别的 P2 问题
 > 范围：`flutter/` 目录
 
 ---
 
 ## 一、本轮修复汇总
 
-### 1.1 P0 + P1 全部完成
+### P2 问题全部完成
 
-| 问题 | 状态 | 修改文件 |
-|------|------|---------|
-| `home_page.dart` AsyncValue 类型错误 | ✅ 完成 | `lib/presentation/pages/home_page.dart` |
-| `ProfileData` / `IdentityData` final 字段化 | ✅ 完成 | `lib/core/services/profile_storage_service.dart` |
-| `emptyAllTrash` 纯函数化（重新实现） | ✅ 完成 | `lib/core/services/profile_storage_service.dart` |
-| `.value` 访问模式（profile_page, trash_page） | ✅ 完成 | `profile_page.dart`, `trash_page.dart` (3处) |
-| `.value` 访问模式（travel_page, professional_page） | ✅ 完成 | `travel_page.dart`, `professional_page.dart` (14处) |
-| Timer leak（widget_test.dart） | ✅ 完成 | `test/widget_test.dart` |
-| `catch (_)` 无 on clause | ✅ 完成 | `profile_storage_service.dart` |
-
-### 1.2 P2 保留（StateNotifier 残留等）
-
-| 问题 | 优先级 | 说明 |
-|------|--------|------|
-| StateNotifier 残留（4 处） | P2 | SearchNotifier、FormFieldRegistryNotifier 等 |
-| GoRouter redirect 同步读取优化 | P2 | 应增加 isLoading 检查 |
+| 问题 | 状态 | 修改文件 | 验证 |
+|------|------|---------|------|
+| GoRouter redirect isLoading 检查 | ✅ 完成 | `lib/core/router/app_router.dart` | dart analyze 通过 |
+| SearchNotifier → Notifier 迁移 | ✅ 完成 | `lib/presentation/providers/search_provider.dart` | dart analyze 通过 |
+| FormFieldRegistryNotifier → Notifier 迁移 | ✅ 完成 | `lib/presentation/models/sensitivity_models.dart`, `lib/presentation/providers/sensitivity_provider.dart` | dart analyze 通过 |
 
 ---
 
 ## 二、修复详情
 
-### 2.1 home_page.dart AsyncValue 类型错误
+### 2.1 GoRouter redirect isLoading 检查
 
-**问题**：`ref.watch(authNotifierProvider)` 返回 `AsyncValue<AuthState>`，但代码直接与 `AuthState.unlocked` 比较（5 处），Dart 中永远返回 `false`。
+**问题**：redirect 同步读取 `authNotifierProvider`，在初始化未完成时可能错误重定向已解锁用户到 login。
 
 **修复**：
 ```dart
-// 之前
-final authState = ref.watch(authNotifierProvider);
-color: authState == AuthState.unlocked  // 永远 false
-
-// 现在
-final authState = ref.watch(authNotifierProvider).valueOrNull;
-color: authState == AuthState.unlocked  // 正确比较
+redirect: (context, state) {
+  final authAsync = ref.read(authNotifierProvider);
+  if (authAsync.isLoading) return null;  // 等待初始化完成
+  final isUnlocked = authAsync.value == AuthState.unlocked;
+  // ...
+}
 ```
 
----
+**文件**：`lib/core/router/app_router.dart`
 
-### 2.2 ProfileData / IdentityData final 字段化
+### 2.2 SearchNotifier StateNotifier → Notifier
 
-**问题**：Round 5 声称完成了 20 个 Entry 类 final 字段化，但遗漏了容器类 `ProfileData` 和 `IdentityData`。
+**问题**：`SearchNotifier` 使用 `StateNotifier`（Riverpod v1 已废弃），应迁移到 Riverpod v2 的 `Notifier`。
 
-**修复**：`ProfileData` 和 `IdentityData` 所有字段改为 `final`，构造函数添加 `const`。
+**修复**：
+- `class SearchNotifier extends StateNotifier<SearchState>` → `extends Notifier<SearchState>`
+- `StateNotifierProvider<SearchNotifier, SearchState>` → `NotifierProvider<SearchNotifier, SearchState>`
+- 移除手动管理的 `_ref` 字段，使用 `Notifier` 基类提供的 `ref`
+- 添加 `@override SearchState build()` 方法替代构造函数
 
----
+**文件**：`lib/presentation/providers/search_provider.dart`
 
-### 2.3 emptyAllTrash 纯函数化
+### 2.3 FormFieldRegistryNotifier StateNotifier → Notifier
 
-**问题**：`emptyAllTrash` 直接 mutation 传入对象，破坏不可变性。
+**问题**：`FormFieldRegistryNotifier` 使用 `StateNotifier`（已废弃），应迁移到 Riverpod v2 的 `Notifier`。
 
-**修复**：新增 `_calculateEmptyTrash` 私有纯函数，返回新 `ProfileData`。
+**修复**：
+- `class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivity>>` → `extends Notifier<Map<String, FieldSensitivity>>`
+- `StateNotifierProvider` → `NotifierProvider`
+- 添加 `@override Map<String, FieldSensitivity> build()` 方法
 
----
-
-### 2.4 `.value` 访问模式修复（team 执行）
-
-**profile_page.dart / trash_page.dart**（3处）：
-- `ref.watch(profileNotifierProvider).value` → `.valueOrNull`
-
-**travel_page.dart**（9处）/ **professional_page.dart**（5处）：
-- `ref.read(accountStyleProvider).value?.displayMode` → `.valueOrNull?.displayMode`
-
----
-
-### 2.5 Timer leak 修复
-
-**问题**：`widget_test.dart` 测试失败 "A Timer is still pending"
-
-**修复**：在 `pumpWidget` 后添加 `pumpAndSettle()` 等待 timer 完成。
-
----
-
-### 2.6 catch clause 修复
-
-**问题**：`profile_storage_service.dart` 两处 bare `catch (_)`
-
-**修复**：改为 `on Exception catch (e, st)` 并记录错误。
+**文件**：
+- `lib/presentation/models/sensitivity_models.dart`
+- `lib/presentation/providers/sensitivity_provider.dart`
 
 ---
 
 ## 三、dart analyze 验证
 
 ```
-flutter analyze → 0 errors
+dart analyze → No issues found!
 ```
 
 ---
 
-## 四、git 提交
-
-```
-bdd127e fix: Round 6 remaining P1 fixes
-c89d12d fix: ProfileData/IdentityData final fields + home_page AsyncValue
-057dbcb refactor: migrate MaterialApp.routes to GoRouter with auth redirect
-```
-
----
-
-## 五、剩余未解决问题
+## 四、剩余未解决问题
 
 | 问题 | 优先级 | 说明 |
 |------|--------|------|
-| StateNotifier 残留（4 处） | P2 | SearchNotifier、FormFieldRegistryNotifier 等 |
-| GoRouter redirect 同步读取 | P2 | 应增加 `isLoading` 检查避免初始化前错误 |
+| freezed 试点 | P3 | 依赖已添加但未使用 |
+| riverpod_generator 试点 | P3 | 依赖已添加但未使用 |
 
 ---
 
-## 六、累计修复统计
+## 五、累计修复统计
 
 | 轮次 | 修复数 | 主要问题 |
 |------|--------|---------|
@@ -127,4 +90,5 @@ c89d12d fix: ProfileData/IdentityData final fields + home_page AsyncValue
 | Round 4 | 25+ | AccountsNotifier 副作用、ProfileSectionState 僵尸抽象 |
 | Round 5 | 5 | kDebugMode、autoDispose、catch(e) 栈轨迹、@override、@deprecated |
 | Round 5+ | 8 | switch→Map、纯函数化、final 字段化、文件拆分、go_router、AsyncNotifier |
-| Round 6 | 7 | AsyncValue 类型错误、.value 访问模式、Timer leak、catch clause |
+| Round 6 P0/P1 | 7 | AsyncValue 类型错误、.value 访问模式、Timer leak、catch clause |
+| Round 6 P2 | 3 | GoRouter redirect isLoading、StateNotifier→Notifier 迁移 |

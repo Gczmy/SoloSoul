@@ -947,10 +947,11 @@ class FieldIds {
 // Reactive Field Registry (ADR-013)
 // =============================================================================
 
-/// Reactive field registry notifier using StateNotifier.
+/// Reactive field registry notifier using Notifier.
 /// Replaces static FormFieldRegistry for declarative, data-flow based updates.
-class FormFieldRegistryNotifier extends StateNotifier<Map<String, FieldSensitivity>> {
-  FormFieldRegistryNotifier() : super({});
+class FormFieldRegistryNotifier extends Notifier<Map<String, FieldSensitivity>> {
+  @override
+  Map<String, FieldSensitivity> build() => {};
 
   /// Register a single field. Idempotent - calling twice replaces.
   void register(FieldSensitivity field) {

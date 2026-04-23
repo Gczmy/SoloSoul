@@ -45,7 +45,9 @@ GoRouter createRouter(WidgetRef ref) {
     initialLocation: AppRoutes.login,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      final isUnlocked = ref.read(authNotifierProvider.notifier).isUnlocked;
+      final authAsync = ref.read(authNotifierProvider);
+      if (authAsync.isLoading) return null;
+      final isUnlocked = authAsync.value == AuthState.unlocked;
       final currentPath = state.matchedLocation;
 
       // Public routes are always accessible

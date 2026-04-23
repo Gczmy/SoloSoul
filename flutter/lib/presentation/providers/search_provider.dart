@@ -8,10 +8,9 @@ import 'package:solosoul_flutter/presentation/widgets/password_verification_dial
 import 'package:solosoul_flutter/presentation/models/search_models.dart';
 
 /// Search notifier
-class SearchNotifier extends StateNotifier<SearchState> {
-  final Ref _ref;
-
-  SearchNotifier(this._ref) : super(const SearchState());
+class SearchNotifier extends Notifier<SearchState> {
+  @override
+  SearchState build() => const SearchState();
 
   void setQuery(String query) {
     state = state.copyWith(query: query);
@@ -43,10 +42,10 @@ class SearchNotifier extends StateNotifier<SearchState> {
   }
 
   bool isFieldRevealed(String fieldPath, SensitivityLevel level) {
-    final style = _ref.read(accountStyleProvider).value;
+    final style = ref.read(accountStyleProvider).value;
     if (style == null || !style.revealedFields.contains(fieldPath)) return false;
     if (level == SensitivityLevel.critical) {
-      return _ref.read(isSensitiveAccessGrantedProvider);
+      return ref.read(isSensitiveAccessGrantedProvider);
     }
     return true;
   }
@@ -110,7 +109,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
     state = state.copyWith(isSearching: true);
 
-    final profileAsync = _ref.read(profileNotifierProvider);
+    final profileAsync = ref.read(profileNotifierProvider);
     final profile = profileAsync.value;
     if (profile == null) {
       state = state.copyWith(results: [], isSearching: false);
@@ -675,8 +674,6 @@ class SearchNotifier extends StateNotifier<SearchState> {
 }
 
 /// Search provider
-final searchProvider = StateNotifierProvider<SearchNotifier, SearchState>((
-  ref,
-) {
-  return SearchNotifier(ref);
+final searchProvider = NotifierProvider<SearchNotifier, SearchState>(() {
+  return SearchNotifier();
 });

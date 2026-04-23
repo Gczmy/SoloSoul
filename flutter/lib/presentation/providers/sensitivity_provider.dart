@@ -26,7 +26,7 @@ import 'package:solosoul_flutter/presentation/providers/account_style_provider.d
 /// Provider for reactive field registry.
 /// Forms register fields via this provider, settings page watches it.
 final formFieldRegistryProvider =
-    StateNotifierProvider<FormFieldRegistryNotifier, Map<String, FieldSensitivity>>((ref) {
+    NotifierProvider<FormFieldRegistryNotifier, Map<String, FieldSensitivity>>(() {
   return FormFieldRegistryNotifier();
 });
 
