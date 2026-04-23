@@ -1,4 +1,5 @@
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/core/models/base_models.dart';
 
 /// Centralized editor for profile section items.
 ///
@@ -28,13 +29,6 @@ class ProfileSectionEditor {
     'financial': _markRestoredFinancial,
     'professional': _markRestoredProfessional,
     'profile': _markRestoredProfile,
-  };
-
-  static final _itemHandlers = {
-    'travel': _getItemTravel,
-    'financial': _getItemFinancial,
-    'professional': _getItemProfessional,
-    'profile': _getItemProfile,
   };
 
   // ===========================================================================
@@ -724,18 +718,26 @@ class ProfileSectionEditor {
   // ===========================================================================
 
   /// Gets the item at [index] in [section].[itemType], or null if not found.
-  static dynamic getItem({
+  static T? getItem<T extends IdentifiableItem>({
     required ProfileData profile,
     required String section,
     required String itemType,
     required int index,
   }) {
-    final handler = _itemHandlers[section];
-    if (handler == null) return null;
-    return handler(profile, itemType, index);
+    switch (section) {
+      case 'travel':
+        return _getItemTravel<T>(profile, itemType, index);
+      case 'financial':
+        return _getItemFinancial<T>(profile, itemType, index);
+      case 'professional':
+        return _getItemProfessional<T>(profile, itemType, index);
+      case 'profile':
+        return _getItemProfile<T>(profile, itemType, index);
+    }
+    return null;
   }
 
-  static dynamic _getItemTravel(
+  static T? _getItemTravel<T extends IdentifiableItem>(
     ProfileData profile,
     String itemType,
     int index,
@@ -745,24 +747,24 @@ class ProfileSectionEditor {
     switch (itemType) {
       case 'passport':
         if (index >= 0 && index < travel.passports.length) {
-          return travel.passports[index];
+          return travel.passports[index] as T;
         }
         break;
       case 'visa':
         if (index >= 0 && index < travel.visas.length) {
-          return travel.visas[index];
+          return travel.visas[index] as T;
         }
         break;
       case 'travel_history':
         if (index >= 0 && index < travel.travelHistory.length) {
-          return travel.travelHistory[index];
+          return travel.travelHistory[index] as T;
         }
         break;
     }
     return null;
   }
 
-  static dynamic _getItemFinancial(
+  static T? _getItemFinancial<T extends IdentifiableItem>(
     ProfileData profile,
     String itemType,
     int index,
@@ -772,24 +774,24 @@ class ProfileSectionEditor {
     switch (itemType) {
       case 'bank_account':
         if (index >= 0 && index < financial.bankAccounts.length) {
-          return financial.bankAccounts[index];
+          return financial.bankAccounts[index] as T;
         }
         break;
       case 'card':
         if (index >= 0 && index < financial.cards.length) {
-          return financial.cards[index];
+          return financial.cards[index] as T;
         }
         break;
       case 'tax_id':
         if (index >= 0 && index < financial.taxIds.length) {
-          return financial.taxIds[index];
+          return financial.taxIds[index] as T;
         }
         break;
     }
     return null;
   }
 
-  static dynamic _getItemProfessional(
+  static T? _getItemProfessional<T extends IdentifiableItem>(
     ProfileData profile,
     String itemType,
     int index,
@@ -799,29 +801,29 @@ class ProfileSectionEditor {
     switch (itemType) {
       case 'education':
         if (index >= 0 && index < professional.education.length) {
-          return professional.education[index];
+          return professional.education[index] as T;
         }
         break;
       case 'employment':
         if (index >= 0 && index < professional.employment.length) {
-          return professional.employment[index];
+          return professional.employment[index] as T;
         }
         break;
       case 'skill':
         if (index >= 0 && index < professional.skills.length) {
-          return professional.skills[index];
+          return professional.skills[index] as T;
         }
         break;
       case 'language':
         if (index >= 0 && index < professional.languages.length) {
-          return professional.languages[index];
+          return professional.languages[index] as T;
         }
         break;
     }
     return null;
   }
 
-  static dynamic _getItemProfile(
+  static T? _getItemProfile<T extends IdentifiableItem>(
     ProfileData profile,
     String itemType,
     int index,
@@ -833,21 +835,21 @@ class ProfileSectionEditor {
         if (identity.contact != null &&
             index >= 0 &&
             index < identity.contact!.entries.length) {
-          return identity.contact!.entries[index];
+          return identity.contact!.entries[index] as T;
         }
         break;
       case 'idCard':
         if (identity.idCards != null &&
             index >= 0 &&
             index < identity.idCards!.length) {
-          return identity.idCards![index];
+          return identity.idCards![index] as T;
         }
         break;
       case 'address':
         if (identity.addresses != null &&
             index >= 0 &&
             index < identity.addresses!.length) {
-          return identity.addresses![index];
+          return identity.addresses![index] as T;
         }
         break;
     }
