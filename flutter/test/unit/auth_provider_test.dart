@@ -329,7 +329,7 @@ void main() {
       expect(key1, equals(key2));
     });
 
-    test('deriveKey with different salts produces different keys', () {
+    test('deriveKey with different salts produces different keys', skip: !_isSupported, () {
       final service = NativeCryptoService.instance;
       final salt1 = service.generateSalt()!;
       final salt2 = service.generateSalt()!;
@@ -355,7 +355,7 @@ void main() {
       expect(key1, isNot(equals(key2)));
     });
 
-    test('verifyHash roundtrip with base64 encoding', () {
+    test('verifyHash roundtrip with base64 encoding', skip: !_isSupported, () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -377,7 +377,7 @@ void main() {
       expect(decoded, equals(key));
     });
 
-    test('verifyHash roundtrip with hex encoding', () {
+    test('verifyHash roundtrip with hex encoding', skip: !_isSupported, () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
