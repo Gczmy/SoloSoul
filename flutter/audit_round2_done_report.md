@@ -80,9 +80,9 @@
 
 ---
 
-## 四、进行中：R9 profile_provider.dart 拆分
+## 四、已完成：R9 profile_provider.dart 拆分
 
-### Phase 1: ProfileSectionEditor 提取 (进行中)
+### Phase 1: ProfileSectionEditor 提取 ✅
 
 **目标**：消除 3 个大型 switch-case 链（`_markItemDeleted`、`_markItemRestored`、`_getItemAtIndex`）
 
@@ -100,9 +100,12 @@ providers/
   - `ProfileSectionEditor.getItem()` - 统一读取
   - `ProfileSectionEditor.markDeleted()` - 软删除
   - `ProfileSectionEditor.markRestored()` - 恢复
-- `ProfileNotifier` 调用上述方法，消除 ~450 行重复代码
+- `ProfileNotifier` 调用上述方法，消除 ~550 行重复代码
+- 原有的 3 个方法已删除（call site 直接调用 `ProfileSectionEditor`）
 
-**预计效果**：2195行 → ~1750行（减少 ~450行）
+**实际效果**：2195行 → ~1645行（减少 ~550行）
+
+**提交**: 8384b22
 
 ---
 
@@ -124,7 +127,7 @@ providers/
 - [x] R17: 核心服务测试 (54 tests added)
 - [x] R18: Provider 行为测试
 - [x] R19: 集成测试补全
-- [ ] R9: `profile_provider.dart` 拆分 Phase 1 (进行中)
+- [x] R9: `profile_provider.dart` 拆分 Phase 1 ✅
 
 ---
 
