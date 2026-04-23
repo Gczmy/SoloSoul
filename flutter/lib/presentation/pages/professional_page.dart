@@ -114,44 +114,9 @@ class _EducationSection extends ConsumerStatefulWidget {
 }
 
 class _EducationSectionState extends ProfileSectionState<_EducationSection> {
-  late List<EducationData> _items;
-
-  static const _degreeOrder = {
-    'PhD': 0,
-    'Master': 1,
-    'Bachelor': 2,
-    'Senior High': 3,
-    'Junior High': 4,
-    'Elementary': 5,
-  };
-
-  int _degreeSortOrder(EducationData e) {
-    final degree = e.degree ?? '';
-    if (e.degreeCustom != null &&
-        e.degreeCustom!.isNotEmpty &&
-        !_degreeOrder.containsKey(degree)) {
-      return -1; // Custom degrees come before preset options
-    }
-    return _degreeOrder[degree] ?? 6;
-  }
-
   @override
   void loadItems() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [
-      ...?(professional?.activeEducation.map(
-        (e) => EducationData(
-          id: e.id,
-          institution: e.institution,
-          degree: e.degree,
-          degreeCustom: e.degreeCustom,
-          field: e.field,
-          startDate: e.startDate,
-          endDate: e.endDate,
-        ),
-      )),
-    ];
-    _items.sort((a, b) => _degreeSortOrder(a).compareTo(_degreeSortOrder(b)));
+    // No-op: items come from ref.watch(educationItemsProvider) in build()
   }
 
   EducationData _createFromValues(Map<String, String> values, {String? id}) {
@@ -190,16 +155,13 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
   }
 
   Future<void> _onDelete(EducationData item) async {
-    final index = _items.indexById(item.id, (x) => x.id);
+    final items = ref.read(educationItemsProvider);
+    final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-
-    setState(() {
-      _items = List.from(_items)..removeAt(index);
-    });
 
     try {
       await ref
@@ -211,11 +173,6 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
             deletedItem: item,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _items = List.from(_items)..insert(index, item);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -244,8 +201,6 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
                 itemType: 'education',
                 id: deletedId,
               );
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -264,23 +219,10 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
 
-    // Snapshot for rollback on failure
-    final originalItems = List<EducationData>.from(_items);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _items = List.from(_items)..add(itemToSave);
-    } else {
-      final index = _items.indexById(editingItem.id, (x) => x.id);
-      if (index != -1) {
-        _items = List.from(_items)..[index] = itemToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final professional = ProfessionalData(
-        education: _items,
+        education: ref.read(educationItemsProvider),
         employment:
             ref.read(profileNotifierProvider)?.professional?.employment ?? [],
         skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
@@ -291,8 +233,6 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
     } on Exception catch (e) {
-      // Rollback on failure
-      _items = originalItems;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save education: $e', type: SnackBarType.error);
       }
@@ -326,10 +266,11 @@ class _EducationSectionState extends ProfileSectionState<_EducationSection> {
 
   @override
   Widget build(BuildContext context) {
+    final items = ref.watch(educationItemsProvider);
     return UnifiedFormSection<EducationData>(
       title: 'Education',
       icon: Icons.school_outlined,
-      items: _items,
+      items: items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [

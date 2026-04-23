@@ -1586,3 +1586,285 @@ final professionalProvider = Provider<ProfessionalData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   return profile?.professional;
 });
+
+// =============================================================================
+// Section Item Providers (Pilot: reduce ref.read usage)
+// =============================================================================
+//
+// PILOT PATTERN:
+// Instead of each section having local _items + loadItems() using ref.read(),
+// use ref.watch() on these providers to automatically react to profile changes.
+//
+// Current pattern (anti-pattern for reactive UI):
+//   class _EducationSectionState extends ProfileSectionState<_EducationSection> {
+//     late List<EducationData> _items;
+//     @override
+//     void loadItems() {
+//       final professional = ref.read(profileNotifierProvider)?.professional;  // ref.read!
+//       _items = professional?.activeEducation.map((e) => EducationData(...)).toList() ?? [];
+//     }
+//   }
+//
+// New pattern (reactive, no ref.read for data loading):
+//   class _EducationSectionState extends ProfileSectionState<_EducationSection> {
+//     @override
+//     void loadItems() {
+//       // No-op: items come from ref.watch(educationItemsProvider) in build()
+//     }
+//     @override
+//     Widget build(BuildContext context) {
+//       final items = ref.watch(educationItemsProvider);  // ref.watch! reactive
+//       return UnifiedFormSection<EducationData>(items: items, ...);
+//     }
+//   }
+//
+// Benefits:
+// - No local _items state to manage
+// - No setState() needed after mutations (profileNotifierProvider triggers rebuild)
+// - Clear data flow: profile -> itemsProvider -> UI
+// - Easier to test: itemsProvider is just a Provider<List<T>>
+//
+// =============================================================================
+
+/// Education items provider - derives sorted EducationData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final educationItemsProvider = Provider<List<EducationData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final professional = profile?.professional;
+  if (professional == null) return [];
+
+  final items = professional.activeEducation.map((e) => EducationData(
+    id: e.id,
+    institution: e.institution,
+    degree: e.degree,
+    degreeCustom: e.degreeCustom,
+    field: e.field,
+    startDate: e.startDate,
+    endDate: e.endDate,
+    updatedAt: e.updatedAt,
+    isDeleted: e.isDeleted,
+    deletedAt: e.deletedAt,
+  )).toList();
+
+  // Sort by degree order (PhD first, Elementary last)
+  const degreeOrder = ['PhD', 'Master', 'Bachelor', 'Senior High', 'Junior High', 'Elementary'];
+  items.sort((a, b) {
+    final aOrder = _degreeSortOrder(a, degreeOrder);
+    final bOrder = _degreeSortOrder(b, degreeOrder);
+    return aOrder.compareTo(bOrder);
+  });
+
+  return items;
+});
+
+/// Degree sort order helper for education items.
+int _degreeSortOrder(EducationData e, List<String> degreeOrder) {
+  final degree = e.degree ?? '';
+  if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty && !degreeOrder.contains(degree)) {
+    return -1; // Custom degrees come before preset options
+  }
+  final index = degreeOrder.indexOf(degree);
+  return index >= 0 ? index : degreeOrder.length;
+}
+
+/// Bank account items provider - derives BankAccountData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final bankAccountItemsProvider = Provider<List<BankAccountData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final financial = profile?.financial;
+  if (financial == null) return [];
+
+  return financial.activeBankAccounts.map((b) => BankAccountData(
+    id: b.id,
+    title: b.title,
+    bankName: b.bankName,
+    accountNumber: b.accountNumber,
+    currency: b.currency,
+    swiftBic: b.swiftBic,
+    sortCode: b.sortCode,
+    updatedAt: b.updatedAt,
+    isDeleted: b.isDeleted,
+    deletedAt: b.deletedAt,
+  )).toList();
+});
+
+/// Employment items provider - derives EmploymentData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final employmentItemsProvider = Provider<List<EmploymentData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final professional = profile?.professional;
+  if (professional == null) return [];
+
+  return professional.activeEmployment.map((e) => EmploymentData(
+    id: e.id,
+    company: e.company,
+    position: e.position,
+    responsibilities: e.responsibilities,
+    startDate: e.startDate,
+    endDate: e.endDate,
+    updatedAt: e.updatedAt,
+    isDeleted: e.isDeleted,
+    deletedAt: e.deletedAt,
+  )).toList();
+});
+
+/// Skill items provider - derives SkillData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final skillItemsProvider = Provider<List<SkillData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final professional = profile?.professional;
+  if (professional == null) return [];
+
+  return professional.activeSkills.map((s) => SkillData(
+    id: s.id,
+    name: s.name,
+    level: s.level,
+    updatedAt: s.updatedAt,
+    isDeleted: s.isDeleted,
+    deletedAt: s.deletedAt,
+  )).toList();
+});
+
+/// Tax ID items provider - derives TaxIdData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final taxIdItemsProvider = Provider<List<TaxIdData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final financial = profile?.financial;
+  if (financial == null) return [];
+
+  return financial.activeTaxIds.map((t) => TaxIdData(
+    id: t.id,
+    title: t.title,
+    taxIdNumber: t.taxIdNumber,
+    taxIdType: t.taxIdType,
+    issuingAuthority: t.issuingAuthority,
+    country: t.country,
+    updatedAt: t.updatedAt,
+    isDeleted: t.isDeleted,
+    deletedAt: t.deletedAt,
+  )).toList();
+});
+
+/// Passport items provider - derives PassportData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final passportItemsProvider = Provider<List<PassportData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final travel = profile?.travel;
+  if (travel == null) return [];
+
+  return travel.activePassports.map((p) => PassportData(
+    id: p.id,
+    title: p.title,
+    number: p.number,
+    country: p.country,
+    countryCode: p.countryCode,
+    issueDate: p.issueDate,
+    placeOfIssue: p.placeOfIssue,
+    expiryDate: p.expiryDate,
+    dateOfBirth: p.dateOfBirth,
+    placeOfBirth: p.placeOfBirth,
+    sex: p.sex,
+    nationality: p.nationality,
+    authority: p.authority,
+    holderName: p.holderName,
+    updatedAt: p.updatedAt,
+    isDeleted: p.isDeleted,
+    deletedAt: p.deletedAt,
+  )).toList();
+});
+
+/// Visa items provider - derives VisaData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final visaItemsProvider = Provider<List<VisaData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final travel = profile?.travel;
+  if (travel == null) return [];
+
+  return travel.activeVisas.map((v) => VisaData(
+    id: v.id,
+    title: v.title,
+    country: v.country,
+    visaType: v.visaType,
+    number: v.number,
+    issueDate: v.issueDate,
+    expiryDate: v.expiryDate,
+    updatedAt: v.updatedAt,
+    isDeleted: v.isDeleted,
+    deletedAt: v.deletedAt,
+  )).toList();
+});
+
+/// Card items provider - derives CardData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final cardItemsProvider = Provider<List<CardData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final financial = profile?.financial;
+  if (financial == null) return [];
+
+  return financial.activeCards.map((c) => CardData(
+    id: c.id,
+    title: c.title,
+    cardNumber: c.cardNumber,
+    cardType: c.cardType,
+    expiryDate: c.expiryDate,
+    holderName: c.holderName,
+    cvv: c.cvv,
+    updatedAt: c.updatedAt,
+    isDeleted: c.isDeleted,
+    deletedAt: c.deletedAt,
+  )).toList();
+});
+
+/// Contact items provider - derives ContactEntry from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final contactItemsProvider = Provider<List<ContactEntry>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final contact = profile?.identity?.contact;
+  if (contact == null) return [];
+
+  return contact.activeEntries.map((e) => ContactEntry(
+    id: e.id,
+    title: e.title,
+    type: e.type,
+    value: e.value,
+    updatedAt: e.updatedAt,
+    isDeleted: e.isDeleted,
+    deletedAt: e.deletedAt,
+  )).toList();
+});
+
+/// Language items provider - derives LanguageData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final languageItemsProvider = Provider<List<LanguageData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final professional = profile?.professional;
+  if (professional == null) return [];
+  return professional.activeLanguages.toList();
+});
+
+/// Award items provider - derives AwardData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final awardItemsProvider = Provider<List<AwardData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final professional = profile?.professional;
+  if (professional == null) return [];
+  return professional.activeAwards.toList();
+});
+
+/// ID card items provider - derives IdCardData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final idCardItemsProvider = Provider<List<IdCardData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final identity = profile?.identity;
+  if (identity == null) return [];
+  return identity.activeIdCards.toList();
+});
+
+/// Address items provider - derives AddressData from profileNotifierProvider.
+/// Reacts automatically to profile changes via ref.watch().
+final addressItemsProvider = Provider<List<AddressData>>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  final identity = profile?.identity;
+  if (identity == null) return [];
+  return identity.activeAddresses.toList();
+});

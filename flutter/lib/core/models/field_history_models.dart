@@ -1,5 +1,10 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'field_history_models.g.dart';
+
 /// Single historical value entry for a field.
 /// Stores all field values at a point in time.
+@JsonSerializable(explicitToJson: true)
 class FieldHistoryEntry {
   final Map<String, String> values; // fieldName -> value
   final DateTime timestamp;
@@ -29,6 +34,7 @@ class FieldHistoryEntry {
 }
 
 /// Complete history for a specific field on an item.
+@JsonSerializable(explicitToJson: true)
 class FieldHistory {
   final String fieldId;
   final String itemId;
@@ -72,6 +78,7 @@ class FieldHistory {
 
 /// All field histories, keyed by item id and field id.
 /// Generic - no profile-specific naming.
+@JsonSerializable(explicitToJson: true)
 class FormHistories {
   final Map<String, Map<String, FieldHistory>>
       histories; // itemId -> fieldId -> FieldHistory
