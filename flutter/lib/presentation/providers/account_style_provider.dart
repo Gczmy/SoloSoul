@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
@@ -12,6 +12,8 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 // Re-export for single import point
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
 export 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show SensitivityDisplayMode, firstWhereOrNull, effectiveSensitivityProvider;
+
+part 'account_style_provider.g.dart';
 
 /// Sensitivity display mode
 enum SensitivityDisplayMode {
@@ -474,6 +476,10 @@ final accountStyleProvider =
 });
 
 /// Provider for display mode (reuses existing sensitivity settings).
-final displayModeProvider = StateProvider<SensitivityDisplayMode>((ref) {
-  return SensitivityDisplayMode.hidePrivate;
-});
+@riverpod
+class DisplayMode extends _$DisplayMode {
+  @override
+  SensitivityDisplayMode build() {
+    return SensitivityDisplayMode.hidePrivate;
+  }
+}
