@@ -1240,7 +1240,6 @@ class _VersionInfoTile extends StatelessWidget {
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
-  final Color? iconColor;
   final String title;
   final String subtitle;
   final Widget? trailing;
@@ -1248,7 +1247,6 @@ class _SettingsTile extends StatelessWidget {
 
   const _SettingsTile({
     required this.icon,
-    this.iconColor,
     required this.title,
     required this.subtitle,
     this.trailing,
@@ -1269,7 +1267,7 @@ class _SettingsTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: _verticalPadding),
         child: Row(
           children: [
-            Icon(icon, size: _iconSize, color: iconColor ?? theme.colorScheme.onSurfaceVariant),
+            Icon(icon, size: _iconSize, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: _spacing),
             Expanded(
               child: Column(

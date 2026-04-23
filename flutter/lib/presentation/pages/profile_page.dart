@@ -107,9 +107,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     // or if the auto-load hasn't completed yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final notifier = ref.read(profileNotifierProvider.notifier);
-      if (ref.read(profileNotifierProvider) == null) {
-        notifier.loadProfile();
+      final profileAsync = ref.read(profileNotifierProvider);
+      if (profileAsync.value == null && !profileAsync.hasValue) {
+        ref.read(profileNotifierProvider.notifier).loadProfile();
       }
     });
   }

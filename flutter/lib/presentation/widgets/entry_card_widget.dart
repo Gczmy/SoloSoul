@@ -17,7 +17,7 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
-    show accountStyleProvider, SensitivityDisplayMode, AccountStyle;
+    show accountStyleProvider, SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
