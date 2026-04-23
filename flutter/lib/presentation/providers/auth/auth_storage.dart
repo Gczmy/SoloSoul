@@ -1,0 +1,384 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
+import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
+
+/// Secure storage for account data using FlutterSecureStorage (Keychain on macOS)
+class SecureAccountStorage {
+  static const _accountsKey = 'solosoul_accounts';
+  static const _accountDataPrefix = 'solosoul_account_';
+
+  const SecureAccountStorage._();
+
+  static const SecureAccountStorage _instance = SecureAccountStorage._();
+  static SecureAccountStorage get instance => _instance;
+
+  FlutterSecureStorage get _secureStorage {
+    return const FlutterSecureStorage();
+  }
+
+  Future<void> _writeSecure(String key, String? value) async {
+    try {
+      await _secureStorage.write(key: key, value: value).timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              throw Exception('Keychain write timed out for key: $key');
+            },
+          );
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('STORAGE', 'Keychain write error: $e\nStack trace: $st');
+      rethrow;
+    }
+  }
+
+  Future<List<AccountInfo>> listAccounts() async {
+    final data = await _secureStorage.read(key: _accountsKey);
+
+    if (data == null || data.isEmpty) {
+      return [];
+    }
+
+    final decoded = jsonDecode(data) as List<dynamic>;
+    final accounts = decoded
+        .map((e) => AccountInfo.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    return accounts;
+  }
+
+  Future<void> _saveAccounts(List<AccountInfo> accounts) async {
+    final jsonData = jsonEncode(accounts.map((e) => e.toJson()).toList());
+    await _writeSecure(_accountsKey, jsonData);
+  }
+
+  Future<Map<String, dynamic>?> getAccountData(String id) async {
+    final data = await _secureStorage.read(key: '$_accountDataPrefix$id');
+    if (data == null) {
+      return null;
+    }
+    return jsonDecode(data) as Map<String, dynamic>;
+  }
+
+  Future<void> saveAccountData(String id, Map<String, dynamic> data) async {
+    await _writeSecure('$_accountDataPrefix$id', jsonEncode(data));
+  }
+
+  Future<(
+      {bool success,
+      String? error,
+      AccountInfo? account,
+      Uint8List? sessionKey})>
+      createAccount(
+    String name,
+    String password, {
+    String? passwordHint,
+    String? accountId,
+    String? salt,
+    String? verifyHashFromRust,
+  }) async {
+    DebugLogger.instance.logInfo('STORAGE', 'createAccount start');
+
+    if (name.trim().isEmpty) {
+      DebugLogger.instance.logInfo('STORAGE', 'name empty, returning error');
+      return (
+        success: false,
+        error: 'Account name is required',
+        account: null,
+        sessionKey: null
+      );
+    }
+    if (password.length < 8) {
+      return (
+        success: false,
+        error: 'Password must be at least 8 characters',
+        account: null,
+        sessionKey: null
+      );
+    }
+
+    final accounts = await listAccounts();
+    if (accounts.any((a) => a.name.toLowerCase() == name.toLowerCase())) {
+      return (
+        success: false,
+        error: 'This account name is already taken',
+        account: null,
+        sessionKey: null
+      );
+    }
+
+    final effectiveAccountId =
+        accountId ?? 'acc_${DateTime.now().millisecondsSinceEpoch}';
+
+    String saltToStore;
+    String hashToStore;
+    Uint8List? sessionKey;
+
+    if (salt != null && verifyHashFromRust != null) {
+      saltToStore = salt;
+      hashToStore = verifyHashFromRust;
+      sessionKey = NativeCryptoService.instance.deriveKey(
+        password: password,
+        salt: base64Decode(salt),
+        memoryKib: 16384,
+        iterations: 1,
+        parallelism: 4,
+      );
+    } else {
+      final dartSalt = NativeCryptoService.instance.generateSalt();
+      if (dartSalt == null) {
+        return (
+          success: false,
+          error: 'Failed to generate salt',
+          account: null,
+          sessionKey: null
+        );
+      }
+      saltToStore = base64Encode(dartSalt);
+      final verifyKey = NativeCryptoService.instance.deriveKey(
+        password: password,
+        salt: dartSalt,
+        memoryKib: 16384,
+        iterations: 1,
+        parallelism: 4,
+      );
+      if (verifyKey == null) {
+        return (
+          success: false,
+          error: 'Failed to derive key',
+          account: null,
+          sessionKey: null
+        );
+      }
+      hashToStore = base64Encode(verifyKey);
+      sessionKey = verifyKey;
+    }
+
+    final now = DateTime.now();
+    final account = AccountInfo(
+      id: effectiveAccountId,
+      name: name.trim(),
+      passwordHint: passwordHint,
+      lastAccessed: now,
+      createdAt: now,
+      lastLoginAt: now,
+    );
+
+    DebugLogger.instance.logInfo('STORAGE', 'calling saveAccountData');
+    await saveAccountData(effectiveAccountId, {
+      'salt': saltToStore,
+      'verify_hash': hashToStore,
+      'crypto_version': 2,
+    });
+    DebugLogger.instance.logInfo('STORAGE', 'saveAccountData done');
+
+    DebugLogger.instance.logInfo('STORAGE', 'calling _saveAccounts');
+    accounts.add(account);
+    await _saveAccounts(accounts);
+    DebugLogger.instance.logInfo('STORAGE', '_saveAccounts done, returning success');
+
+    return (
+      success: true,
+      error: null,
+      account: account,
+      sessionKey: sessionKey
+    );
+  }
+
+  Future<({bool success, String? error, Uint8List? sessionKey})>
+      unlockAccount(
+    String accountId,
+    String password,
+  ) async {
+    final accountData = await getAccountData(accountId);
+    if (accountData == null) {
+      return (success: false, error: 'Account not found', sessionKey: null);
+    }
+
+    final salt = base64Decode(accountData['salt'] as String);
+    final storedHash = accountData['verify_hash'] as String;
+
+    final derivedKey = NativeCryptoService.instance.deriveKey(
+      password: password,
+      salt: Uint8List.fromList(salt),
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+
+    if (derivedKey == null) {
+      return (success: false, error: 'Key derivation failed', sessionKey: null);
+    }
+
+    final derivedHashBase64 = base64Encode(derivedKey);
+    final derivedHashHex = bytesToHex(derivedKey);
+
+    if (!constantTimeEquals(derivedHashBase64, storedHash) &&
+        !constantTimeEquals(derivedHashHex, storedHash)) {
+      return (success: false, error: 'Invalid password', sessionKey: null);
+    }
+
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      final existing = accounts[idx];
+      accounts[idx] = AccountInfo(
+        id: existing.id,
+        name: existing.name,
+        passwordHint: existing.passwordHint,
+        lastAccessed: DateTime.now(),
+        createdAt: existing.createdAt,
+        lastLoginAt: DateTime.now(),
+        lastOperationAt: existing.lastOperationAt,
+        lastOperationDesc: existing.lastOperationDesc,
+        recentDevices: existing.recentDevices,
+      );
+      await _saveAccounts(accounts);
+    }
+
+    return (success: true, error: null, sessionKey: derivedKey);
+  }
+
+  Future<bool> verifyPassword(String accountId, String password) async {
+    final accountData = await getAccountData(accountId);
+    if (accountData == null) return false;
+
+    final salt = base64Decode(accountData['salt'] as String);
+    final storedHash = accountData['verify_hash'] as String;
+
+    final derivedKey = NativeCryptoService.instance.deriveKey(
+      password: password,
+      salt: Uint8List.fromList(salt),
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+
+    if (derivedKey == null) return false;
+
+    final derivedHashBase64 = base64Encode(derivedKey);
+    final derivedHashHex = bytesToHex(derivedKey);
+    return constantTimeEquals(derivedHashBase64, storedHash) ||
+        constantTimeEquals(derivedHashHex, storedHash);
+  }
+
+  Future<bool> deleteAccount(String accountId) async {
+    try {
+      final accounts = await listAccounts();
+      accounts.removeWhere((a) => a.id == accountId);
+      await _saveAccounts(accounts);
+
+      await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
+
+      return true;
+    } on Exception {
+      return false;
+    }
+  }
+
+  Future<void> updateAccountSalt(
+      String accountId, Uint8List salt, Uint8List verifyHash) async {
+    await saveAccountData(accountId, {
+      'salt': base64Encode(salt),
+      'verify_hash': base64Encode(verifyHash),
+    });
+  }
+
+  Future<bool> updateAccountCryptoVersion(
+      String accountId, int cryptoVersion) async {
+    final data = await getAccountData(accountId);
+    if (data == null) return false;
+    data['crypto_version'] = cryptoVersion;
+    await saveAccountData(accountId, data);
+    return true;
+  }
+
+  Future<void> updateAccountOperation(
+      String accountId, String operationDesc) async {
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      final existing = accounts[idx];
+      accounts[idx] = AccountInfo(
+        id: existing.id,
+        name: existing.name,
+        passwordHint: existing.passwordHint,
+        lastAccessed: existing.lastAccessed,
+        createdAt: existing.createdAt,
+        lastLoginAt: existing.lastLoginAt,
+        lastOperationAt: DateTime.now(),
+        lastOperationDesc: operationDesc,
+        recentDevices: existing.recentDevices,
+      );
+      await _saveAccounts(accounts);
+    }
+  }
+
+  Future<void> updatePasswordHint(String accountId, String hint) async {
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      final existing = accounts[idx];
+      accounts[idx] = AccountInfo(
+        id: existing.id,
+        name: existing.name,
+        passwordHint: hint,
+        lastAccessed: existing.lastAccessed,
+        createdAt: existing.createdAt,
+        lastLoginAt: existing.lastLoginAt,
+        lastOperationAt: existing.lastOperationAt,
+        lastOperationDesc: existing.lastOperationDesc,
+        recentDevices: existing.recentDevices,
+      );
+      await _saveAccounts(accounts);
+    }
+  }
+
+  Future<void> updateAccountMetadata(
+    String accountId, {
+    DateTime? lastLoginAt,
+    DateTime? lastOperationAt,
+    String? lastOperationDesc,
+    Map<String, dynamic>? device,
+  }) async {
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx < 0) return;
+
+    final existing = accounts[idx];
+    final recentDevices = List<DeviceInfo>.from(existing.recentDevices);
+
+    if (device != null) {
+      final existingIdx =
+          recentDevices.indexWhere((d) => d.deviceName == device['device_name']);
+      if (existingIdx >= 0) {
+        recentDevices[existingIdx] = DeviceInfo(
+          deviceName: device['device_name'] as String,
+          lastUsed: DateTime.parse(device['last_used'] as String),
+        );
+      } else {
+        if (recentDevices.length >= 5) {
+          recentDevices.removeAt(0);
+        }
+        recentDevices.add(DeviceInfo(
+          deviceName: device['device_name'] as String,
+          lastUsed: DateTime.parse(device['last_used'] as String),
+        ));
+      }
+    }
+
+    accounts[idx] = AccountInfo(
+      id: existing.id,
+      name: existing.name,
+      passwordHint: existing.passwordHint,
+      lastAccessed: lastLoginAt ?? existing.lastAccessed,
+      createdAt: existing.createdAt,
+      lastLoginAt: lastLoginAt ?? existing.lastLoginAt,
+      lastOperationAt: lastOperationAt ?? existing.lastOperationAt,
+      lastOperationDesc: lastOperationDesc ?? existing.lastOperationDesc,
+      recentDevices: recentDevices,
+    );
+    await _saveAccounts(accounts);
+  }
+}

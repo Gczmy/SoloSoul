@@ -1,29 +1,11 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_provider.dart';
+part of 'auth_state.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$accountsVersionHash() => r'7537c353a8ed6b38596d0289ccb8ca55732d294d';
-
-/// Provider that watches accountsVersion from AuthNotifier
-///
-/// Copied from [AccountsVersion].
-@ProviderFor(AccountsVersion)
-final accountsVersionProvider =
-    AutoDisposeNotifierProvider<AccountsVersion, int>.internal(
-      AccountsVersion.new,
-      name: r'accountsVersionProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$accountsVersionHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$AccountsVersion = AutoDisposeNotifier<int>;
 String _$isSensitiveAccessGrantedHash() =>
     r'68ecfdb376c379691709eb56adfe43ecd823a885';
 
