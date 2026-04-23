@@ -1,6 +1,6 @@
 # Flutter 第三轮重构完成报告 (Round 3)
 
-> 更新时间：2026-04-23 14:30
+> 更新时间：2026-04-23 15:00
 > 范围：`flutter/` 目录
 > 依据：[audit_round3_report.md](./audit_round3_report.md)
 
@@ -27,13 +27,15 @@
 - 删除 `base_vault_repository.dart` 和 `vault_repository.dart`
 - 架构更新为: UI → Provider → Service → FFI → Rust (无 Repository 层)
 
-### R3-P0-2: 代码生成启用 (json_serializable Pilot) ✅
+### R3-P0-2: 代码生成启用 (json_serializable) ✅
 - 状态: **完成**
-- 启用 `@JsonSerializable()` 于 4 个模型:
-  - `BridgeProfileSummary` (rust_vault_service.dart)
-  - `FieldHistoryEntry`, `FieldHistory`, `FormHistories` (field_history_models.dart)
-- 迁移策略: pilot 模式，逐步迁移剩余 19 个模型
-- 生成文件: `rust_vault_service.g.dart`, `field_history_models.g.dart`
+- 启用 `@JsonSerializable()` 于全部 23 个模型:
+  - Entry models: ContactEntry, AddressData, IdCardData, TravelHistoryData, PassportData, VisaData, BankAccountData, CardData, TaxIdData, SkillData, LanguageData, AwardData, EducationData, EmploymentData (14个)
+  - Container models: ContactData, TravelData, FinancialData, ProfessionalData (4个)
+  - Complex models: IdentityData, ProfileData (2个)
+  - 其他: BridgeProfileSummary, FieldHistoryEntry, FieldHistory, FormHistories (4个)
+- 使用 `@JsonSerializable(explicitToJson: true)` 于嵌套类型模型
+- 生成文件: `rust_vault_service.g.dart`, `field_history_models.g.dart`, `profile_storage_service.g.dart`
 
 ---
 
@@ -120,13 +122,15 @@ Dart analyze: 0 errors (after fixes)
 
 | Commit | 描述 |
 |--------|------|
-| 0d8c69a | refactor: migrate all remaining sections to reactive provider pattern |
-| 85e8182 | feat: implement round3 skipped items - json_serializable pilot and section providers |
-| 6902fff | refactor: migrate Employment, Skills, BankAccount sections to use providers |
+| d01e30d | feat: migrate all models to json_serializable |
+| 89de53f | docs: update round3 done report |
+| 0d8c69a | refactor: migrate all remaining sections |
+| 85e8182 | feat: json_serializable pilot + providers |
+| 6902fff | refactor: migrate Employment/Skills/BankAccount |
 | 569dcb7 | test: add performance benchmark tests |
-| 817ab6f | docs: update round3 done report final status |
-| 3fa6aa4 | fix: resolve compilation errors from round3 migration |
-| 67603d6 | feat: round3 refactoring - architecture cleanup and lint rules |
+| 817ab6f | docs: update round3 done report |
+| 3fa6aa4 | fix: resolve compilation errors from round3 |
+| 67603d6 | feat: round3 refactoring |
 
 ---
 
