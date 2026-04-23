@@ -27,6 +27,7 @@
 ### ✅ R7: 清理 Rust dead `#[frb]` 代码
 - 文件: `lib.rs`, `aes.rs`, `argon2.rs`
 - 移除16个禁用async函数，恢复zeroize导入
+- `cargo check` 通过
 
 ### ✅ R10: `ProfileSectionState` 基类提取
 - 文件: `lib/presentation/mixins/profile_section_mixin.dart` (新建)
@@ -64,7 +65,7 @@
 ### ✅ R19: 集成测试补全 (新增/扩展)
 - `test/unit/profile_data_test.dart` (28 tests)
 - `integration_test/app_test.dart` 扩展 (FFI flow tests)
-- **54 tests now passing**
+- **168 tests now passing**
 
 ---
 
@@ -107,4 +108,29 @@
 - [x] R17: 核心服务测试 (54 tests added)
 - [x] R18: Provider 行为测试
 - [x] R19: 集成测试补全
-- [ ] R9: `profile_provider.dart` 拆分 (大工程，2195行)
+- [ ] R9: `profile_provider.dart` 拆分 (2195行大工程)
+
+---
+
+## 六、测试结果
+
+```
+168 tests passing
+- test/unit/native_crypto_service_test.dart: 23 passed
+- test/unit/auth_provider_test.dart: 27 passed
+- test/unit/profile_data_test.dart: 28 passed
+- test/unit/rust_vault_service_test.dart: 25 passed
+- test/unit/sensitivity_provider_test.dart: 65 passed
+```
+
+---
+
+## 七、提交历史
+
+| Commit | 描述 |
+|--------|------|
+| ae8b574 | fix: address critical audit findings (R1, R7, R12, R15, R16) |
+| 6581dee | refactor: extract ProfileSectionMixin and consolidate optimistic delete |
+| e4c5822 | fix: use dynamic SensitivityLevel in professional_page.dart |
+| b48db4e | test: add comprehensive unit tests for core services |
+| eba6b98 | fix: add missing DebugLogger imports |
