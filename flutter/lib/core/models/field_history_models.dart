@@ -15,12 +15,12 @@ class FieldHistoryEntry {
   });
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory FieldHistoryEntry.fromJson(Map<String, dynamic> json) =>
       _$FieldHistoryEntryFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$FieldHistoryEntryToJson(this);
 
   String? getValue(String fieldName) => values[fieldName];
@@ -40,12 +40,12 @@ class FieldHistory {
   });
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory FieldHistory.fromJson(Map<String, dynamic> json) =>
       _$FieldHistoryFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$FieldHistoryToJson(this);
 
   FieldHistory copyWith({
@@ -72,12 +72,12 @@ class FormHistories {
       : histories = histories ?? {};
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory FormHistories.fromJson(Map<String, dynamic> json) =>
       _$FormHistoriesFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$FormHistoriesToJson(this);
 
   /// Get history for a specific field.

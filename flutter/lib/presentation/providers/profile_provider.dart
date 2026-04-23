@@ -240,7 +240,7 @@ final professionalProvider = Provider<ProfessionalData?>((ref) {
 // =============================================================================
 
 /// Education items provider - derives sorted EducationData from profileNotifierProvider.
-final educationItemsProvider = Provider<List<EducationData>>((ref) {
+final educationItemsProvider = Provider.autoDispose<List<EducationData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final professional = profile?.professional;
   if (professional == null) return [];
@@ -278,7 +278,7 @@ int _degreeSortOrder(EducationData e, List<String> degreeOrder) {
 }
 
 /// Bank account items provider
-final bankAccountItemsProvider = Provider<List<BankAccountData>>((ref) {
+final bankAccountItemsProvider = Provider.autoDispose<List<BankAccountData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final financial = profile?.financial;
   if (financial == null) return [];
@@ -298,7 +298,7 @@ final bankAccountItemsProvider = Provider<List<BankAccountData>>((ref) {
 });
 
 /// Employment items provider
-final employmentItemsProvider = Provider<List<EmploymentData>>((ref) {
+final employmentItemsProvider = Provider.autoDispose<List<EmploymentData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final professional = profile?.professional;
   if (professional == null) return [];
@@ -317,7 +317,7 @@ final employmentItemsProvider = Provider<List<EmploymentData>>((ref) {
 });
 
 /// Skill items provider
-final skillItemsProvider = Provider<List<SkillData>>((ref) {
+final skillItemsProvider = Provider.autoDispose<List<SkillData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final professional = profile?.professional;
   if (professional == null) return [];
@@ -333,7 +333,7 @@ final skillItemsProvider = Provider<List<SkillData>>((ref) {
 });
 
 /// Tax ID items provider
-final taxIdItemsProvider = Provider<List<TaxIdData>>((ref) {
+final taxIdItemsProvider = Provider.autoDispose<List<TaxIdData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final financial = profile?.financial;
   if (financial == null) return [];
@@ -352,7 +352,7 @@ final taxIdItemsProvider = Provider<List<TaxIdData>>((ref) {
 });
 
 /// Passport items provider
-final passportItemsProvider = Provider<List<PassportData>>((ref) {
+final passportItemsProvider = Provider.autoDispose<List<PassportData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final travel = profile?.travel;
   if (travel == null) return [];
@@ -379,7 +379,7 @@ final passportItemsProvider = Provider<List<PassportData>>((ref) {
 });
 
 /// Visa items provider
-final visaItemsProvider = Provider<List<VisaData>>((ref) {
+final visaItemsProvider = Provider.autoDispose<List<VisaData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final travel = profile?.travel;
   if (travel == null) return [];
@@ -399,7 +399,7 @@ final visaItemsProvider = Provider<List<VisaData>>((ref) {
 });
 
 /// Travel history items provider
-final travelHistoryItemsProvider = Provider<List<TravelHistoryData>>((ref) {
+final travelHistoryItemsProvider = Provider.autoDispose<List<TravelHistoryData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final travel = profile?.travel;
   if (travel == null) return [];
@@ -422,7 +422,7 @@ final travelHistoryItemsProvider = Provider<List<TravelHistoryData>>((ref) {
 });
 
 /// Card items provider
-final cardItemsProvider = Provider<List<CardData>>((ref) {
+final cardItemsProvider = Provider.autoDispose<List<CardData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final financial = profile?.financial;
   if (financial == null) return [];
@@ -442,7 +442,7 @@ final cardItemsProvider = Provider<List<CardData>>((ref) {
 });
 
 /// Contact items provider
-final contactItemsProvider = Provider<List<ContactEntry>>((ref) {
+final contactItemsProvider = Provider.autoDispose<List<ContactEntry>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final contact = profile?.identity?.contact;
   if (contact == null) return [];
@@ -459,7 +459,7 @@ final contactItemsProvider = Provider<List<ContactEntry>>((ref) {
 });
 
 /// Language items provider
-final languageItemsProvider = Provider<List<LanguageData>>((ref) {
+final languageItemsProvider = Provider.autoDispose<List<LanguageData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final professional = profile?.professional;
   if (professional == null) return [];
@@ -467,7 +467,7 @@ final languageItemsProvider = Provider<List<LanguageData>>((ref) {
 });
 
 /// Award items provider
-final awardItemsProvider = Provider<List<AwardData>>((ref) {
+final awardItemsProvider = Provider.autoDispose<List<AwardData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final professional = profile?.professional;
   if (professional == null) return [];
@@ -475,7 +475,7 @@ final awardItemsProvider = Provider<List<AwardData>>((ref) {
 });
 
 /// ID card items provider
-final idCardItemsProvider = Provider<List<IdCardData>>((ref) {
+final idCardItemsProvider = Provider.autoDispose<List<IdCardData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final identity = profile?.identity;
   if (identity == null) return [];
@@ -483,7 +483,7 @@ final idCardItemsProvider = Provider<List<IdCardData>>((ref) {
 });
 
 /// Address items provider
-final addressItemsProvider = Provider<List<AddressData>>((ref) {
+final addressItemsProvider = Provider.autoDispose<List<AddressData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
   final identity = profile?.identity;
   if (identity == null) return [];

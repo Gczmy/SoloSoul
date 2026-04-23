@@ -25,12 +25,12 @@ class BridgeProfileSummary {
   });
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory BridgeProfileSummary.fromJson(Map<String, dynamic> json) =>
       _$BridgeProfileSummaryFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$BridgeProfileSummaryToJson(this);
 }
 

@@ -174,6 +174,7 @@ class IdentityData {
 
 @JsonSerializable()
 class ContactEntry with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String title; // e.g., "Personal", "Work", "Emergency"
   String type; // "email", "phone", "mobile"
@@ -203,12 +204,12 @@ class ContactEntry with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory ContactEntry.fromJson(Map<String, dynamic> json) =>
       _$ContactEntryFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$ContactEntryToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -243,12 +244,12 @@ class ContactData {
   ContactData({this.entries = const []});
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory ContactData.fromJson(Map<String, dynamic> json) =>
       _$ContactDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$ContactDataToJson(this);
 
   ContactData copyWith({List<ContactEntry>? entries}) {
@@ -262,6 +263,7 @@ class ContactData {
 
 @JsonSerializable()
 class AddressData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? street;
@@ -300,12 +302,12 @@ class AddressData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory AddressData.fromJson(Map<String, dynamic> json) =>
       _$AddressDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$AddressDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -341,6 +343,7 @@ class AddressData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class IdCardData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? number;
@@ -379,12 +382,12 @@ class IdCardData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory IdCardData.fromJson(Map<String, dynamic> json) =>
       _$IdCardDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$IdCardDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -420,6 +423,7 @@ class IdCardData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class TravelHistoryData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String destination;
   String? date;
@@ -467,12 +471,12 @@ class TravelHistoryData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory TravelHistoryData.fromJson(Map<String, dynamic> json) =>
       _$TravelHistoryDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$TravelHistoryDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -546,12 +550,12 @@ class TravelData {
       travelHistory.where((t) => t.isDeleted).toList();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory TravelData.fromJson(Map<String, dynamic> json) =>
       _$TravelDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$TravelDataToJson(this);
 
   TravelData copyWith({
@@ -569,6 +573,7 @@ class TravelData {
 
 @JsonSerializable()
 class PassportData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? number;
@@ -628,12 +633,12 @@ class PassportData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory PassportData.fromJson(Map<String, dynamic> json) =>
       _$PassportDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$PassportDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -683,6 +688,7 @@ class PassportData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class VisaData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? country;
@@ -721,12 +727,12 @@ class VisaData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory VisaData.fromJson(Map<String, dynamic> json) =>
       _$VisaDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$VisaDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -790,12 +796,12 @@ class FinancialData {
       taxIds.where((t) => t.isDeleted).toList();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory FinancialData.fromJson(Map<String, dynamic> json) =>
       _$FinancialDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$FinancialDataToJson(this);
 
   FinancialData copyWith({
@@ -813,6 +819,7 @@ class FinancialData {
 
 @JsonSerializable()
 class BankAccountData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? bankName;
@@ -851,12 +858,12 @@ class BankAccountData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory BankAccountData.fromJson(Map<String, dynamic> json) =>
       _$BankAccountDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$BankAccountDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -892,6 +899,7 @@ class BankAccountData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class CardData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? cardNumber;
@@ -930,12 +938,12 @@ class CardData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory CardData.fromJson(Map<String, dynamic> json) =>
       _$CardDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$CardDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -971,6 +979,7 @@ class CardData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class TaxIdData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? taxIdNumber;
@@ -1006,12 +1015,12 @@ class TaxIdData with FormattableEntry implements IdentifiableItem {
   }) : updatedAt = updatedAt ?? currentTimestamp();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory TaxIdData.fromJson(Map<String, dynamic> json) =>
       _$TaxIdDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$TaxIdDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -1045,6 +1054,7 @@ class TaxIdData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class SkillData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String name;
   String? level;
@@ -1071,12 +1081,12 @@ class SkillData with FormattableEntry implements IdentifiableItem {
   };
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory SkillData.fromJson(Map<String, dynamic> json) =>
       _$SkillDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$SkillDataToJson(this);
 
   SkillData copyWith({
@@ -1104,6 +1114,7 @@ class SkillData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class LanguageData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String name;
   String? proficiency;
@@ -1130,12 +1141,12 @@ class LanguageData with FormattableEntry implements IdentifiableItem {
   };
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory LanguageData.fromJson(Map<String, dynamic> json) =>
       _$LanguageDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$LanguageDataToJson(this);
 
   LanguageData copyWith({
@@ -1162,6 +1173,7 @@ class LanguageData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class AwardData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? title;
   String? issuer;
@@ -1194,12 +1206,12 @@ class AwardData with FormattableEntry implements IdentifiableItem {
   };
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory AwardData.fromJson(Map<String, dynamic> json) =>
       _$AwardDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$AwardDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -1278,12 +1290,12 @@ class ProfessionalData {
       awards.where((a) => a.isDeleted).toList();
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory ProfessionalData.fromJson(Map<String, dynamic> json) =>
       _$ProfessionalDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$ProfessionalDataToJson(this);
 
   ProfessionalData copyWith({
@@ -1305,6 +1317,7 @@ class ProfessionalData {
 
 @JsonSerializable()
 class EducationData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? institution;
   String? degree;
@@ -1343,12 +1356,12 @@ class EducationData with FormattableEntry implements IdentifiableItem {
   };
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory EducationData.fromJson(Map<String, dynamic> json) =>
       _$EducationDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$EducationDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();
@@ -1384,6 +1397,7 @@ class EducationData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable()
 class EmploymentData with FormattableEntry implements IdentifiableItem {
+  @override
   String id;
   String? company;
   String? position;
@@ -1419,12 +1433,12 @@ class EmploymentData with FormattableEntry implements IdentifiableItem {
   };
 
   /// Deprecated: using generated fromJson
-  @deprecated
+  @Deprecated('Use the generated fromJson instead')
   factory EmploymentData.fromJson(Map<String, dynamic> json) =>
       _$EmploymentDataFromJson(json);
 
   /// Deprecated: using generated toJson
-  @deprecated
+  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$EmploymentDataToJson(this);
 
   static const _sentinel = _DeletedAtSentinel();

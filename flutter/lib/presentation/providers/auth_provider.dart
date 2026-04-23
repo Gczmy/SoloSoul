@@ -174,8 +174,8 @@ class SecureAccountStorage {
               throw Exception('Keychain write timed out for key: $key');
             },
           );
-    } on Exception catch (e) {
-      DebugLogger.instance.logError('STORAGE', 'Keychain write error: $e');
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('STORAGE', 'Keychain write error: $e\nStack trace: $st');
       rethrow;
     }
   }
@@ -623,8 +623,8 @@ class MigrationService {
         versionUpdated =
             await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
       }
-    } on Exception catch (e) {
-      DebugLogger.instance.logError('AUTH', 'Migration error: $e');
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('AUTH', 'Migration error: $e\nStack trace: $st');
     }
   }
 
@@ -657,8 +657,8 @@ class MigrationService {
                 onTimeout: () =>
                     throw TimeoutException('updateAccountCryptoVersion timed out'),
               );
-        } on Exception catch (e) {
-          DebugLogger.instance.logError('AUTH', 'Failed to update crypto version: $e');
+        } on Exception catch (e, st) {
+          DebugLogger.instance.logError('AUTH', 'Failed to update crypto version: $e\nStack trace: $st');
         }
         return;
       }
@@ -688,9 +688,9 @@ class MigrationService {
                 onTimeout: () =>
                     throw TimeoutException('saveAccountData timed out'),
               );
-        } on Exception catch (e) {
+        } on Exception catch (e, st) {
           DebugLogger.instance
-              .logError('AUTH', 'Failed to save new account data during migration: $e');
+              .logError('AUTH', 'Failed to save new account data during migration: $e\nStack trace: $st');
         }
       } else {
         try {
@@ -705,9 +705,9 @@ class MigrationService {
                 onTimeout: () =>
                     throw TimeoutException('updateAccountSalt timed out'),
               );
-        } on Exception catch (e) {
+        } on Exception catch (e, st) {
           DebugLogger.instance
-              .logError('AUTH', 'Failed to update account salt during migration: $e');
+              .logError('AUTH', 'Failed to update account salt during migration: $e\nStack trace: $st');
         }
         try {
           await _storage
@@ -717,13 +717,13 @@ class MigrationService {
                 onTimeout: () =>
                     throw TimeoutException('updateAccountCryptoVersion timed out'),
               );
-        } on Exception catch (e) {
+        } on Exception catch (e, st) {
           DebugLogger.instance
-              .logError('AUTH', 'Failed to update crypto version during migration: $e');
+              .logError('AUTH', 'Failed to update crypto version during migration: $e\nStack trace: $st');
         }
       }
-    } on Exception catch (e) {
-      DebugLogger.instance.logError('AUTH', 'Migration error: $e');
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('AUTH', 'Migration error: $e\nStack trace: $st');
     }
   }
 }
@@ -1134,8 +1134,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
           cryptoVersion: vaultResult.cryptoVersion ?? 2,
         );
       }
-    } on Exception catch (e) {
-      DebugLogger.instance.logError('AUTH', 'Migration error: $e');
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('AUTH', 'Migration error: $e\nStack trace: $st');
     }
 
     // Step 3: Get session key for profile encryption
