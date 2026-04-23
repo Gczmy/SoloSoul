@@ -134,18 +134,18 @@ void main() {
       expect(entry.isDeleted, false);
     });
 
-    test('fromJson handles missing id', () {
+    test('fromJson handles missing id - throws TypeError (strict generated code)', () {
       final json = {
         'title': 'Work',
         'type': 'phone',
         'value': '+1234567890',
       };
 
-      final entry = ContactEntry.fromJson(json);
-
-      expect(entry.id, isNotEmpty);
-      expect(entry.title, 'Work');
-      expect(entry.type, 'phone');
+      // Generated fromJson is strict - missing required 'id' field throws TypeError
+      expect(
+        () => ContactEntry.fromJson(json),
+        throwsA(isA<TypeError>()),
+      );
     });
 
     test('copyWith preserves immutability', () {
