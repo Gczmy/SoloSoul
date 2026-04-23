@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 
-import 'package:encrypt/encrypt.dart' as enc;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pointycastle/export.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 
 // NativeCryptoService only supports Android/macOS/iOS - skip on Linux
@@ -15,7 +13,8 @@ void main() {
   // by directly invoking the static instance methods
 
   group('NativeCryptoService Dart Fallback - Salt Generation', () {
-    test(', skip: !_isSupported,generateSalt returns 32 bytes on Android', () {
+    test('generateSalt returns 32 bytes on Android',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       // On Android (_isAndroid=true), it uses _generateSaltDart
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt();
@@ -24,7 +23,8 @@ void main() {
       expect(salt!.length, 32);
     });
 
-    test(', skip: !_isSupported,generateSalt returns unique values (randomness)', () {
+    test('generateSalt returns unique values (randomness)',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final salt1 = service.generateSalt();
       final salt2 = service.generateSalt();
@@ -40,7 +40,8 @@ void main() {
     // Note: Our implementation requires 32-byte salt (matching Argon2id requirement)
     // RFC 6070 uses 4-byte salt, so we test our implementation differently
 
-    test(', skip: !_isSupported,deriveKey produces consistent output for same inputs', () {
+    test('deriveKey produces consistent output for same inputs',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -65,7 +66,8 @@ void main() {
       expect(key1, equals(key2));
     });
 
-    test(', skip: !_isSupported,deriveKey returns null for invalid salt length', () {
+    test('deriveKey returns null for invalid salt length',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       // Salt must be 32 bytes (as enforced by the service)
@@ -80,7 +82,8 @@ void main() {
       );
     });
 
-    test(', skip: !_isSupported,deriveKey returns different keys for different passwords', () {
+    test('deriveKey returns different keys for different passwords',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -105,7 +108,8 @@ void main() {
       expect(key1, isNot(equals(key2)));
     });
 
-    test(', skip: !_isSupported,deriveKey returns different keys for different salts', () {
+    test('deriveKey returns different keys for different salts',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final salt1 = service.generateSalt()!;
       final salt2 = service.generateSalt()!;
@@ -131,7 +135,8 @@ void main() {
       expect(key1, isNot(equals(key2)));
     });
 
-    test(', skip: !_isSupported,deriveKey returns same key for same inputs (deterministic)', () {
+    test('deriveKey returns same key for same inputs (deterministic)',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final salt = Uint8List.fromList(List.filled(32, 0x42));
 
@@ -156,7 +161,8 @@ void main() {
       expect(key1, equals(key2));
     });
 
-    test(', skip: !_isSupported,deriveKey returns 32-byte key', () {
+    test('deriveKey returns 32-byte key',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -185,7 +191,8 @@ void main() {
       testPlaintext = Uint8List.fromList(utf8.encode('Hello, World!'));
     });
 
-    test(', skip: !_isSupported,encrypt and decrypt roundtrip succeeds', () {
+    test('encrypt and decrypt roundtrip succeeds',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -207,7 +214,8 @@ void main() {
       expect(utf8.decode(decrypted!), equals('Hello, World!'));
     });
 
-    test(', skip: !_isSupported,encrypt produces different ciphertext for same plaintext (due to random IV behavior)', () {
+    test('encrypt produces different ciphertext for same plaintext (due to random IV behavior)',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       // Note: With GCM mode, the encrypt package uses the provided nonce as IV
       // If we use different nonces, we get different ciphertext
       final service = NativeCryptoService.instance;
@@ -230,7 +238,8 @@ void main() {
       expect(ciphertext1, isNot(equals(ciphertext2)));
     });
 
-    test(', skip: !_isSupported,decrypt fails with wrong key', () {
+    test('decrypt fails with wrong key',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -254,7 +263,8 @@ void main() {
       expect(decrypted, isNull);
     });
 
-    test(', skip: !_isSupported,decrypt fails with wrong nonce', () {
+    test('decrypt fails with wrong nonce',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -278,7 +288,8 @@ void main() {
       expect(decrypted, isNull);
     });
 
-    test(', skip: !_isSupported,decrypt fails with tampered ciphertext', () {
+    test('decrypt fails with tampered ciphertext',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -303,7 +314,8 @@ void main() {
       expect(decrypted, isNull);
     });
 
-    test(', skip: !_isSupported,encrypt throws ArgumentError for invalid key length', () {
+    test('encrypt throws ArgumentError for invalid key length',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final invalidKey = Uint8List.fromList(List.filled(16, 0x42)); // 16 bytes instead of 32
@@ -318,7 +330,8 @@ void main() {
       );
     });
 
-    test(', skip: !_isSupported,encrypt throws ArgumentError for invalid nonce length', () {
+    test('encrypt throws ArgumentError for invalid nonce length',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final invalidNonce = Uint8List.fromList(List.filled(16, 0x24)); // 16 bytes instead of 12
@@ -333,7 +346,8 @@ void main() {
       );
     });
 
-    test(', skip: !_isSupported,decrypt throws ArgumentError for invalid key length', () {
+    test('decrypt throws ArgumentError for invalid key length',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final invalidKey = Uint8List.fromList(List.filled(16, 0x42));
@@ -348,7 +362,8 @@ void main() {
       );
     });
 
-    test(', skip: !_isSupported,decrypt throws ArgumentError for invalid nonce length', () {
+    test('decrypt throws ArgumentError for invalid nonce length',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
 
       final invalidNonce = Uint8List.fromList(List.filled(16, 0x24));
@@ -363,7 +378,8 @@ void main() {
       );
     });
 
-    test(', skip: !_isSupported,encrypt and decrypt empty data', () {
+    test('encrypt and decrypt empty data',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       final emptyData = Uint8List(0);
 
@@ -385,7 +401,8 @@ void main() {
       expect(decrypted!.length, 0);
     });
 
-    test(', skip: !_isSupported,encrypt and decrypt large data', () {
+    test('encrypt and decrypt large data',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final service = NativeCryptoService.instance;
       // 1 MB of data
       final largeData = Uint8List.fromList(List.filled(1024 * 1024, 0xAB));
@@ -414,7 +431,8 @@ void main() {
   });
 
   group('NativeCryptoService Base64 Helpers', () {
-    test(', skip: !_isSupported,base64 encoding roundtrip', () {
+    test('base64 encoding roundtrip',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final original = Uint8List.fromList(utf8.encode('Hello, World!'));
       final encoded = base64Encode(original);
       final decoded = base64Decode(encoded);
@@ -423,7 +441,8 @@ void main() {
       expect(utf8.decode(decoded), equals('Hello, World!'));
     });
 
-    test(', skip: !_isSupported,base64 encoding of binary data', () {
+    test('base64 encoding of binary data',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       final binary = Uint8List.fromList([0x00, 0xFF, 0x42, 0x7F, 0x80]);
       final encoded = base64Encode(binary);
 
@@ -434,21 +453,19 @@ void main() {
   });
 
   group('Default Constants', () {
-    test(', skip: !_isSupported,defaultMemoryKib is 65536 (64MB)', () {
+    test('defaultMemoryKib is 65536 (64MB)',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       expect(defaultMemoryKib, 65536);
     });
 
-    test(', skip: !_isSupported,defaultIterations is 3', () {
+    test('defaultIterations is 3',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       expect(defaultIterations, 3);
     });
 
-    test(', skip: !_isSupported,defaultParallelism is 4', () {
+    test('defaultParallelism is 4',
+        skip: !_isSupported ? 'Not supported on Linux' : null, () {
       expect(defaultParallelism, 4);
     });
   });
-}
-
-// Helper function to convert bytes to hex string (matches _bytesToHex in auth_provider)
-String _bytesToHex(List<int> bytes) {
-  return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 }
