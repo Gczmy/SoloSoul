@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+
+// NativeCryptoService only supports Android/macOS/iOS - skip on Linux
+final _isSupported = Platform.isAndroid || Platform.isMacOS || Platform.isIOS;
 
 void main() {
   group('SensitivePageAccessState', () {
@@ -300,7 +304,7 @@ void main() {
   });
 
   group('NativeCryptoService integration for key derivation', () {
-    test('deriveKey with same salt produces consistent results', () {
+    test('deriveKey with same salt produces consistent results', skip: !_isSupported, () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
