@@ -221,6 +221,56 @@ class TrashManager {
     );
   }
 
+  /// Calculate a new ProfileData with all soft-deleted items permanently removed.
+  /// This is a pure function - it does not mutate the input.
+  ProfileData _calculateEmptyTrash(ProfileData current) {
+    return current.copyWith(
+      travel: current.travel?.copyWith(
+        passports:
+            current.travel!.passports.where((p) => !p.isDeleted).toList(),
+        visas: current.travel!.visas.where((v) => !v.isDeleted).toList(),
+        travelHistory: current.travel!.travelHistory
+            .where((t) => !t.isDeleted)
+            .toList(),
+      ),
+      financial: current.financial?.copyWith(
+        bankAccounts:
+            current.financial!.bankAccounts.where((b) => !b.isDeleted).toList(),
+        cards: current.financial!.cards.where((c) => !c.isDeleted).toList(),
+        taxIds: current.financial!.taxIds.where((t) => !t.isDeleted).toList(),
+      ),
+      professional: current.professional?.copyWith(
+        education: current.professional!.education
+            .where((e) => !e.isDeleted)
+            .toList(),
+        employment: current.professional!.employment
+            .where((emp) => !emp.isDeleted)
+            .toList(),
+        skills:
+            current.professional!.skills.where((s) => !s.isDeleted).toList(),
+        languages: current.professional!.languages
+            .where((l) => !l.isDeleted)
+            .toList(),
+      ),
+      identity: current.identity?.copyWith(
+        contact: current.identity!.contact?.copyWith(
+          entries:
+              current.identity!.contact!.entries.where((e) => !e.isDeleted).toList(),
+        ),
+        idCards:
+            current.identity!.idCards?.where((c) => !c.isDeleted).toList(),
+        addresses:
+            current.identity!.addresses?.where((a) => !a.isDeleted).toList(),
+      ),
+    );
+  }
+
+  /// Log deletion for a single item before permanent removal.
+  void _logItemDeletion(ProfileData profile, String section, String itemType, int index) {
+    final label = _getItemLabel(profile, section, itemType, index);
+    _logPermanentDelete(section, itemType, label);
+  }
+
   /// Empty all trash (permanent delete all soft-deleted items)
   Future<void> emptyAllTrash({
     required ProfileData currentProfile,
@@ -229,35 +279,24 @@ class TrashManager {
     final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return;
 
+    // Log all items that will be deleted BEFORE computing the new state
     final profile = currentProfile;
 
     // Travel section
     if (profile.travel != null) {
       for (var i = 0; i < profile.travel!.passports.length; i++) {
         if (profile.travel!.passports[i].isDeleted) {
-          _logPermanentDelete(
-            'travel',
-            'passport',
-            profile.travel!.passports[i].country ?? 'Passport',
-          );
+          _logItemDeletion(profile, 'travel', 'passport', i);
         }
       }
       for (var i = 0; i < profile.travel!.visas.length; i++) {
         if (profile.travel!.visas[i].isDeleted) {
-          _logPermanentDelete(
-            'travel',
-            'visa',
-            profile.travel!.visas[i].country ?? 'Visa',
-          );
+          _logItemDeletion(profile, 'travel', 'visa', i);
         }
       }
       for (var i = 0; i < profile.travel!.travelHistory.length; i++) {
         if (profile.travel!.travelHistory[i].isDeleted) {
-          _logPermanentDelete(
-            'travel',
-            'travel_history',
-            profile.travel!.travelHistory[i].destination,
-          );
+          _logItemDeletion(profile, 'travel', 'travel_history', i);
         }
       }
     }
@@ -266,20 +305,17 @@ class TrashManager {
     if (profile.financial != null) {
       for (var i = 0; i < profile.financial!.bankAccounts.length; i++) {
         if (profile.financial!.bankAccounts[i].isDeleted) {
-          _logPermanentDelete(
-            'financial',
-            'bank_account',
-            profile.financial!.bankAccounts[i].bankName ?? 'Bank Account',
-          );
+          _logItemDeletion(profile, 'financial', 'bank_account', i);
         }
       }
       for (var i = 0; i < profile.financial!.cards.length; i++) {
         if (profile.financial!.cards[i].isDeleted) {
-          _logPermanentDelete(
-            'financial',
-            'card',
-            profile.financial!.cards[i].cardType ?? 'Card',
-          );
+          _logItemDeletion(profile, 'financial', 'card', i);
+        }
+      }
+      for (var i = 0; i < profile.financial!.taxIds.length; i++) {
+        if (profile.financial!.taxIds[i].isDeleted) {
+          _logItemDeletion(profile, 'financial', 'tax_id', i);
         }
       }
     }
@@ -288,38 +324,22 @@ class TrashManager {
     if (profile.professional != null) {
       for (var i = 0; i < profile.professional!.education.length; i++) {
         if (profile.professional!.education[i].isDeleted) {
-          _logPermanentDelete(
-            'professional',
-            'education',
-            profile.professional!.education[i].institution ?? 'Education',
-          );
+          _logItemDeletion(profile, 'professional', 'education', i);
         }
       }
       for (var i = 0; i < profile.professional!.employment.length; i++) {
         if (profile.professional!.employment[i].isDeleted) {
-          _logPermanentDelete(
-            'professional',
-            'employment',
-            profile.professional!.employment[i].company ?? 'Employment',
-          );
+          _logItemDeletion(profile, 'professional', 'employment', i);
         }
       }
       for (var i = 0; i < profile.professional!.skills.length; i++) {
         if (profile.professional!.skills[i].isDeleted) {
-          _logPermanentDelete(
-            'professional',
-            'skill',
-            profile.professional!.skills[i].toString(),
-          );
+          _logItemDeletion(profile, 'professional', 'skill', i);
         }
       }
       for (var i = 0; i < profile.professional!.languages.length; i++) {
         if (profile.professional!.languages[i].isDeleted) {
-          _logPermanentDelete(
-            'professional',
-            'language',
-            profile.professional!.languages[i].toString(),
-          );
+          _logItemDeletion(profile, 'professional', 'language', i);
         }
       }
     }
@@ -328,50 +348,36 @@ class TrashManager {
     if (profile.identity?.contact != null) {
       for (var i = 0; i < profile.identity!.contact!.entries.length; i++) {
         if (profile.identity!.contact!.entries[i].isDeleted) {
-          final entry = profile.identity!.contact!.entries[i];
-          final label = entry.title.isNotEmpty
-              ? '${entry.title} - ${entry.value}'
-              : entry.value;
-          _logPermanentDelete('profile', 'contact', label);
+          _logItemDeletion(profile, 'profile', 'contact', i);
         }
       }
     }
     if (profile.identity?.idCards != null) {
       for (var i = 0; i < profile.identity!.idCards!.length; i++) {
         if (profile.identity!.idCards![i].isDeleted) {
-          _logPermanentDelete(
-            'profile',
-            'idCard',
-            profile.identity!.idCards![i].title ??
-                profile.identity!.idCards![i].number ??
-                'ID Card',
-          );
+          _logItemDeletion(profile, 'profile', 'idCard', i);
         }
       }
     }
     if (profile.identity?.addresses != null) {
       for (var i = 0; i < profile.identity!.addresses!.length; i++) {
         if (profile.identity!.addresses![i].isDeleted) {
-          _logPermanentDelete(
-            'profile',
-            'address',
-            profile.identity!.addresses![i].title ?? 'Address',
-          );
+          _logItemDeletion(profile, 'profile', 'address', i);
         }
       }
     }
 
-    // Purge all soft-deleted items
-    await _storage.emptyAllTrash(profile, accountId);
+    // Calculate new profile with all deleted items removed (pure function)
+    final newProfile = _calculateEmptyTrash(currentProfile);
+
+    // Save the new profile
+    await _persistence.saveProfile(newProfile, immediate: true);
 
     // Ensure all purge logs are flushed to disk before returning
     await OperationLogService.instance.flush();
 
-    // Reload profile to get updated state
-    final updatedProfile = await _persistence.reloadProfile(accountId);
-    if (updatedProfile != null) {
-      onStateUpdate(updatedProfile);
-    }
+    // Update state with the new profile
+    onStateUpdate(newProfile);
 
     // Update account operation metadata
     await _ref

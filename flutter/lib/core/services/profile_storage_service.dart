@@ -1941,68 +1941,137 @@ class ProfileStorageService {
     int index,
   ) async {
     _invalidateDeletedItemsCache();
+    final updatedProfile = _calculateRestoreItem(
+      profile,
+      section,
+      itemType,
+      index,
+    );
+    await saveProfile(accountId, updatedProfile);
+  }
+
+  /// Pure function: calculates a new ProfileData with the restored item.
+  /// Does not mutate the input profile.
+  static ProfileData _calculateRestoreItem(
+    ProfileData profile,
+    String section,
+    String itemType,
+    int index,
+  ) {
     switch (section) {
       case 'travel':
-        if (profile.travel == null) return;
+        if (profile.travel == null) return profile;
         if (itemType == 'passport' &&
             index < profile.travel!.passports.length) {
-          profile.travel!.passports[index] = profile.travel!.passports[index]
-              .copyWith(isDeleted: false, deletedAt: null);
-        } else if (itemType == 'visa' && index < profile.travel!.visas.length) {
-          profile.travel!.visas[index] = profile.travel!.visas[index].copyWith(
+          final passports = List<PassportData>.from(profile.travel!.passports);
+          passports[index] = passports[index].copyWith(
             isDeleted: false,
             deletedAt: null,
           );
+          return profile.copyWith(
+            travel: profile.travel!.copyWith(passports: passports),
+          );
+        } else if (itemType == 'visa' && index < profile.travel!.visas.length) {
+          final visas = List<VisaData>.from(profile.travel!.visas);
+          visas[index] = visas[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            travel: profile.travel!.copyWith(visas: visas),
+          );
         }
-        break;
+        return profile;
       case 'financial':
-        if (profile.financial == null) return;
+        if (profile.financial == null) return profile;
         if (itemType == 'bank_account' &&
             index < profile.financial!.bankAccounts.length) {
-          profile.financial!.bankAccounts[index] = profile
-              .financial!
-              .bankAccounts[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final bankAccounts = List<BankAccountData>.from(
+            profile.financial!.bankAccounts,
+          );
+          bankAccounts[index] = bankAccounts[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            financial: profile.financial!.copyWith(bankAccounts: bankAccounts),
+          );
         } else if (itemType == 'card' &&
             index < profile.financial!.cards.length) {
-          profile.financial!.cards[index] = profile.financial!.cards[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final cards = List<CardData>.from(profile.financial!.cards);
+          cards[index] = cards[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            financial: profile.financial!.copyWith(cards: cards),
+          );
         } else if (itemType == 'tax_id' &&
             index < profile.financial!.taxIds.length) {
-          profile.financial!.taxIds[index] = profile.financial!.taxIds[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final taxIds = List<TaxIdData>.from(profile.financial!.taxIds);
+          taxIds[index] = taxIds[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            financial: profile.financial!.copyWith(taxIds: taxIds),
+          );
         }
-        break;
+        return profile;
       case 'professional':
-        if (profile.professional == null) return;
+        if (profile.professional == null) return profile;
         if (itemType == 'education' &&
             index < profile.professional!.education.length) {
-          profile.professional!.education[index] = profile
-              .professional!
-              .education[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final education = List<EducationData>.from(
+            profile.professional!.education,
+          );
+          education[index] = education[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            professional: profile.professional!.copyWith(education: education),
+          );
         } else if (itemType == 'employment' &&
             index < profile.professional!.employment.length) {
-          profile.professional!.employment[index] = profile
-              .professional!
-              .employment[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final employment = List<EmploymentData>.from(
+            profile.professional!.employment,
+          );
+          employment[index] = employment[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            professional:
+                profile.professional!.copyWith(employment: employment),
+          );
         } else if (itemType == 'skill' &&
             index < profile.professional!.skills.length) {
-          profile.professional!.skills[index] = profile
-              .professional!
-              .skills[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final skills = List<SkillData>.from(profile.professional!.skills);
+          skills[index] = skills[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            professional: profile.professional!.copyWith(skills: skills),
+          );
         } else if (itemType == 'language' &&
             index < profile.professional!.languages.length) {
-          profile.professional!.languages[index] = profile
-              .professional!
-              .languages[index]
-              .copyWith(isDeleted: false, deletedAt: null);
+          final languages = List<LanguageData>.from(
+            profile.professional!.languages,
+          );
+          languages[index] = languages[index].copyWith(
+            isDeleted: false,
+            deletedAt: null,
+          );
+          return profile.copyWith(
+            professional:
+                profile.professional!.copyWith(languages: languages),
+          );
         }
-        break;
+        return profile;
       case 'profile':
-        if (profile.identity == null) return;
+        if (profile.identity == null) return profile;
         if (itemType == 'contact' &&
             index < (profile.identity!.contact?.entries.length ?? 0)) {
           final entries = List<ContactEntry>.from(
@@ -2012,8 +2081,10 @@ class ProfileStorageService {
             isDeleted: false,
             deletedAt: null,
           );
-          profile.identity = profile.identity!.copyWith(
-            contact: ContactData(entries: entries),
+          return profile.copyWith(
+            identity: profile.identity!.copyWith(
+              contact: ContactData(entries: entries),
+            ),
           );
         } else if (itemType == 'idCard' &&
             index < (profile.identity!.idCards?.length ?? 0)) {
@@ -2022,7 +2093,9 @@ class ProfileStorageService {
             isDeleted: false,
             deletedAt: null,
           );
-          profile.identity = profile.identity!.copyWith(idCards: idCards);
+          return profile.copyWith(
+            identity: profile.identity!.copyWith(idCards: idCards),
+          );
         } else if (itemType == 'address' &&
             index < (profile.identity!.addresses?.length ?? 0)) {
           final addresses = List<AddressData>.from(
@@ -2032,11 +2105,147 @@ class ProfileStorageService {
             isDeleted: false,
             deletedAt: null,
           );
-          profile.identity = profile.identity!.copyWith(addresses: addresses);
+          return profile.copyWith(
+            identity: profile.identity!.copyWith(addresses: addresses),
+          );
         }
-        break;
+        return profile;
     }
-    await saveProfile(accountId, profile);
+    return profile;
+  }
+
+  /// Calculate the result of permanently deleting an item (pure function).
+  /// Returns a new ProfileData with the item removed, or null if the item
+  /// could not be deleted (e.g., invalid index or null section).
+  static ProfileData? _calculatePermanentDeleteItem(
+    ProfileData profile,
+    String section,
+    String itemType,
+    int index,
+  ) {
+    switch (section) {
+      case 'travel':
+        if (profile.travel == null) return null;
+        if (itemType == 'passport' &&
+            index < profile.travel!.passports.length) {
+          final updated = List<PassportData>.from(
+            profile.travel!.passports,
+          )..removeAt(index);
+          return profile.copyWith(
+            travel: profile.travel!.copyWith(passports: updated),
+          );
+        } else if (itemType == 'visa' &&
+            index < profile.travel!.visas.length) {
+          final updated = List<VisaData>.from(profile.travel!.visas)
+            ..removeAt(index);
+          return profile.copyWith(
+            travel: profile.travel!.copyWith(visas: updated),
+          );
+        } else if (itemType == 'travel_history' &&
+            index < profile.travel!.travelHistory.length) {
+          final updated = List<TravelHistoryData>.from(
+            profile.travel!.travelHistory,
+          )..removeAt(index);
+          return profile.copyWith(
+            travel: profile.travel!.copyWith(travelHistory: updated),
+          );
+        }
+        return null;
+      case 'financial':
+        if (profile.financial == null) return null;
+        if (itemType == 'bank_account' &&
+            index < profile.financial!.bankAccounts.length) {
+          final updated = List<BankAccountData>.from(
+            profile.financial!.bankAccounts,
+          )..removeAt(index);
+          return profile.copyWith(
+            financial: profile.financial!.copyWith(bankAccounts: updated),
+          );
+        } else if (itemType == 'card' &&
+            index < profile.financial!.cards.length) {
+          final updated = List<CardData>.from(profile.financial!.cards)
+            ..removeAt(index);
+          return profile.copyWith(
+            financial: profile.financial!.copyWith(cards: updated),
+          );
+        } else if (itemType == 'tax_id' &&
+            index < profile.financial!.taxIds.length) {
+          final updated = List<TaxIdData>.from(profile.financial!.taxIds)
+            ..removeAt(index);
+          return profile.copyWith(
+            financial: profile.financial!.copyWith(taxIds: updated),
+          );
+        }
+        return null;
+      case 'professional':
+        if (profile.professional == null) return null;
+        if (itemType == 'education' &&
+            index < profile.professional!.education.length) {
+          final updated = List<EducationData>.from(
+            profile.professional!.education,
+          )..removeAt(index);
+          return profile.copyWith(
+            professional: profile.professional!.copyWith(education: updated),
+          );
+        } else if (itemType == 'employment' &&
+            index < profile.professional!.employment.length) {
+          final updated = List<EmploymentData>.from(
+            profile.professional!.employment,
+          )..removeAt(index);
+          return profile.copyWith(
+            professional: profile.professional!.copyWith(employment: updated),
+          );
+        } else if (itemType == 'skill' &&
+            index < profile.professional!.skills.length) {
+          final updated = List<SkillData>.from(
+            profile.professional!.skills,
+          )..removeAt(index);
+          return profile.copyWith(
+            professional: profile.professional!.copyWith(skills: updated),
+          );
+        } else if (itemType == 'language' &&
+            index < profile.professional!.languages.length) {
+          final updated = List<LanguageData>.from(
+            profile.professional!.languages,
+          )..removeAt(index);
+          return profile.copyWith(
+            professional: profile.professional!.copyWith(languages: updated),
+          );
+        }
+        return null;
+      case 'profile':
+        if (profile.identity == null) return null;
+        if (itemType == 'contact' &&
+            index < (profile.identity!.contact?.entries.length ?? 0)) {
+          final entries = List<ContactEntry>.from(
+            profile.identity!.contact!.entries,
+          )..removeAt(index);
+          return profile.copyWith(
+            identity: profile.identity!.copyWith(
+              contact: ContactData(entries: entries),
+            ),
+          );
+        } else if (itemType == 'idCard' &&
+            index < (profile.identity!.idCards?.length ?? 0)) {
+          final idCards = List<IdCardData>.from(
+            profile.identity!.idCards!,
+          )..removeAt(index);
+          return profile.copyWith(
+            identity: profile.identity!.copyWith(idCards: idCards),
+          );
+        } else if (itemType == 'address' &&
+            index < (profile.identity!.addresses?.length ?? 0)) {
+          final addresses = List<AddressData>.from(
+            profile.identity!.addresses!,
+          )..removeAt(index);
+          return profile.copyWith(
+            identity: profile.identity!.copyWith(addresses: addresses),
+          );
+        }
+        return null;
+      default:
+        return null;
+    }
   }
 
   /// Permanently delete a specific item (removes from list completely)
@@ -2048,113 +2257,14 @@ class ProfileStorageService {
     int index,
   ) async {
     _invalidateDeletedItemsCache();
-    switch (section) {
-      case 'travel':
-        if (profile.travel == null) return;
-        if (itemType == 'passport' &&
-            index < profile.travel!.passports.length) {
-          final updated = List<PassportData>.from(profile.travel!.passports);
-          updated.removeAt(index);
-          profile.travel = profile.travel!.copyWith(passports: updated);
-        } else if (itemType == 'visa' && index < profile.travel!.visas.length) {
-          final updated = List<VisaData>.from(profile.travel!.visas);
-          updated.removeAt(index);
-          profile.travel = profile.travel!.copyWith(visas: updated);
-        } else if (itemType == 'travel_history' &&
-            index < profile.travel!.travelHistory.length) {
-          final updated = List<TravelHistoryData>.from(profile.travel!.travelHistory);
-          updated.removeAt(index);
-          profile.travel = profile.travel!.copyWith(travelHistory: updated);
-        }
-        break;
-      case 'financial':
-        if (profile.financial == null) return;
-        if (itemType == 'bank_account' &&
-            index < profile.financial!.bankAccounts.length) {
-          final updated = List<BankAccountData>.from(
-            profile.financial!.bankAccounts,
-          );
-          updated.removeAt(index);
-          profile.financial = profile.financial!.copyWith(
-            bankAccounts: updated,
-          );
-        } else if (itemType == 'card' &&
-            index < profile.financial!.cards.length) {
-          final updated = List<CardData>.from(profile.financial!.cards);
-          updated.removeAt(index);
-          profile.financial = profile.financial!.copyWith(cards: updated);
-        } else if (itemType == 'tax_id' &&
-            index < profile.financial!.taxIds.length) {
-          final updated = List<TaxIdData>.from(profile.financial!.taxIds);
-          updated.removeAt(index);
-          profile.financial = profile.financial!.copyWith(taxIds: updated);
-        }
-        break;
-      case 'professional':
-        if (profile.professional == null) return;
-        if (itemType == 'education' &&
-            index < profile.professional!.education.length) {
-          final updated = List<EducationData>.from(
-            profile.professional!.education,
-          );
-          updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(
-            education: updated,
-          );
-        } else if (itemType == 'employment' &&
-            index < profile.professional!.employment.length) {
-          final updated = List<EmploymentData>.from(
-            profile.professional!.employment,
-          );
-          updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(
-            employment: updated,
-          );
-        } else if (itemType == 'skill' &&
-            index < profile.professional!.skills.length) {
-          final updated = List<SkillData>.from(profile.professional!.skills);
-          updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(
-            skills: updated,
-          );
-        } else if (itemType == 'language' &&
-            index < profile.professional!.languages.length) {
-          final updated = List<LanguageData>.from(
-            profile.professional!.languages,
-          );
-          updated.removeAt(index);
-          profile.professional = profile.professional!.copyWith(
-            languages: updated,
-          );
-        }
-        break;
-      case 'profile':
-        if (profile.identity == null) return;
-        if (itemType == 'contact' &&
-            index < (profile.identity!.contact?.entries.length ?? 0)) {
-          final entries = List<ContactEntry>.from(
-            profile.identity!.contact!.entries,
-          );
-          entries.removeAt(index);
-          profile.identity = profile.identity!.copyWith(
-            contact: ContactData(entries: entries),
-          );
-        } else if (itemType == 'idCard' &&
-            index < (profile.identity!.idCards?.length ?? 0)) {
-          final idCards = List<IdCardData>.from(profile.identity!.idCards!);
-          idCards.removeAt(index);
-          profile.identity = profile.identity!.copyWith(idCards: idCards);
-        } else if (itemType == 'address' &&
-            index < (profile.identity!.addresses?.length ?? 0)) {
-          final addresses = List<AddressData>.from(
-            profile.identity!.addresses!,
-          );
-          addresses.removeAt(index);
-          profile.identity = profile.identity!.copyWith(addresses: addresses);
-        }
-        break;
-    }
-    await saveProfile(accountId, profile);
+    final updatedProfile = _calculatePermanentDeleteItem(
+      profile,
+      section,
+      itemType,
+      index,
+    );
+    if (updatedProfile == null) return;
+    await saveProfile(accountId, updatedProfile);
   }
 
   /// Permanently delete items older than 30 days
