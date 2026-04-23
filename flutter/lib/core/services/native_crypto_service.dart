@@ -74,7 +74,6 @@ class NativeCryptoService {
         '$exePath/../Frameworks/libsolosoul_core.dylib',
         '$exePath/../../Frameworks/libsolosoul_core.dylib',
         'libsolosoul_core.dylib',
-        '../native/target/aarch64-apple-darwin/release/libsolosoul_core.dylib',
       ];
 
       DynamicLibrary? loadedLib;
@@ -98,55 +97,71 @@ class NativeCryptoService {
     }
 
     // Bind argon2_generate_salt
-    _generateSalt = _lib
-        .lookup<NativeFunction<Int32 Function(Pointer<Uint8>, IntPtr)>>(
-            'argon2_generate_salt')
-        .asFunction();
+    try {
+      _generateSalt = _lib
+          .lookup<NativeFunction<Int32 Function(Pointer<Uint8>, IntPtr)>>(
+              'argon2_generate_salt')
+          .asFunction();
+    } catch (e) {
+      throw Exception('Failed to bind argon2_generate_salt: $e');
+    }
 
     // Bind argon2_derive_key
-    _deriveKey = _lib
-        .lookup<
-            NativeFunction<
-                Int32 Function(
-                    Pointer<Uint8>,
-                    IntPtr,
-                    Pointer<Uint8>,
-                    IntPtr,
-                    Uint32,
-                    Uint32,
-                    Uint32,
-                    Pointer<Uint8>,
-                    IntPtr,
-                )>>('argon2_derive_key')
-        .asFunction();
+    try {
+      _deriveKey = _lib
+          .lookup<
+              NativeFunction<
+                  Int32 Function(
+                      Pointer<Uint8>,
+                      IntPtr,
+                      Pointer<Uint8>,
+                      IntPtr,
+                      Uint32,
+                      Uint32,
+                      Uint32,
+                      Pointer<Uint8>,
+                      IntPtr,
+                  )>>('argon2_derive_key')
+          .asFunction();
+    } catch (e) {
+      throw Exception('Failed to bind argon2_derive_key: $e');
+    }
 
     // Bind aes_256_gcm_encrypt
-    _aesEncrypt = _lib
-        .lookup<
-            NativeFunction<
-                Int32 Function(
-                    Pointer<Uint8>,
-                    Pointer<Uint8>,
-                    IntPtr,
-                    Pointer<Uint8>,
-                    Pointer<Uint8>,
-                    Pointer<IntPtr>,
-                )>>('aes_256_gcm_encrypt')
-        .asFunction();
+    try {
+      _aesEncrypt = _lib
+          .lookup<
+              NativeFunction<
+                  Int32 Function(
+                      Pointer<Uint8>,
+                      Pointer<Uint8>,
+                      IntPtr,
+                      Pointer<Uint8>,
+                      Pointer<Uint8>,
+                      Pointer<IntPtr>,
+                  )>>('aes_256_gcm_encrypt')
+          .asFunction();
+    } catch (e) {
+      throw Exception('Failed to bind aes_256_gcm_encrypt: $e');
+    }
 
     // Bind aes_256_gcm_decrypt
-    _aesDecrypt = _lib
-        .lookup<
-            NativeFunction<
-                Int32 Function(
-                    Pointer<Uint8>,
-                    Pointer<Uint8>,
-                    IntPtr,
-                    Pointer<Uint8>,
-                    Pointer<Uint8>,
-                    Pointer<IntPtr>,
-                )>>('aes_256_gcm_decrypt')
-        .asFunction();
+    try {
+      _aesDecrypt = _lib
+          .lookup<
+              NativeFunction<
+                  Int32 Function(
+                      Pointer<Uint8>,
+                      Pointer<Uint8>,
+                      IntPtr,
+                      Pointer<Uint8>,
+                      Pointer<Uint8>,
+                      Pointer<IntPtr>,
+                  )>>('aes_256_gcm_decrypt')
+          .asFunction();
+    } catch (e) {
+      throw Exception('Failed to bind aes_256_gcm_decrypt: $e');
+    }
   }
 
   /// Generate a cryptographically secure random 32-byte salt
@@ -193,8 +208,8 @@ class NativeCryptoService {
   Uint8List? deriveKey({
     required String password,
     required Uint8List salt,
-    int memoryKib = 16384,
-    int iterations = 1,
+    int memoryKib = defaultMemoryKib,
+    int iterations = defaultIterations,
     int parallelism = 4,
   }) {
     if (salt.length != 32) {
@@ -205,7 +220,7 @@ class NativeCryptoService {
       return _deriveKeyDart(password, salt, memoryKib, iterations, parallelism);
     }
 
-    final passwordBytes = Uint8List.fromList(password.codeUnits);
+    final passwordBytes = Uint8List.fromList(utf8.encode(password));
     final passwordPtr = calloc<Uint8>(passwordBytes.length);
     for (var i = 0; i < passwordBytes.length; i++) {
       passwordPtr[i] = passwordBytes[i];
@@ -230,6 +245,11 @@ class NativeCryptoService {
         outputPtr,
         32,
       );
+
+      // Securely zero the password buffer after FFI call
+      for (var i = 0; i < passwordBytes.length; i++) {
+        passwordBytes[i] = 0;
+      }
 
       if (result != 0) {
         return null;

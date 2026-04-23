@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/main.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
@@ -117,42 +118,42 @@ class HomePage extends ConsumerWidget {
               icon: Icons.person_outline,
               title: 'Profile',
               subtitle: 'Manage your identity information',
-              onTap: () => Navigator.pushNamed(context, '/profile'),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
             ),
 
             _QuickActionCard(
               icon: Icons.flight_outlined,
               title: 'Travel',
               subtitle: 'Passports, visas, travel history',
-              onTap: () => Navigator.pushNamed(context, '/travel'),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.travel),
             ),
 
             _QuickActionCard(
               icon: Icons.account_balance_outlined,
               title: 'Financial',
               subtitle: 'Bank accounts, cards, tax IDs',
-              onTap: () => Navigator.pushNamed(context, '/financial'),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.financial),
             ),
 
             _QuickActionCard(
               icon: Icons.work_outline,
               title: 'Professional',
               subtitle: 'Education, employment, skills',
-              onTap: () => Navigator.pushNamed(context, '/professional'),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.professional),
             ),
 
             _QuickActionCard(
               icon: Icons.delete_outline,
               title: 'Trash',
               subtitle: 'View and restore deleted items',
-              onTap: () => Navigator.pushNamed(context, '/trash'),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.trash),
             ),
 
             _QuickActionCard(
               icon: Icons.settings_outlined,
               title: 'Settings',
               subtitle: 'Account, security, sync',
-              onTap: () => Navigator.pushNamed(context, '/settings'),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
             ),
 
             const SizedBox(height: 32),
@@ -161,9 +162,9 @@ class HomePage extends ConsumerWidget {
             Text('Security Status', style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
 
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   children: [
                     _SecurityItem(
@@ -172,14 +173,14 @@ class HomePage extends ConsumerWidget {
                       title: 'End-to-End Encrypted',
                       subtitle: 'AES-256-GCM + Argon2id',
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
                     _SecurityItem(
                       icon: Icons.check_circle,
                       color: AppTheme.successColor,
                       title: 'Local Storage',
                       subtitle: 'Data encrypted and stored locally',
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
                     _SecurityItem(
                       icon: Icons.check_circle,
                       color: AppTheme.successColor,
@@ -210,12 +211,14 @@ class _QuickActionCard extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _cardMargin = EdgeInsets.only(bottom: 12);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: _cardMargin,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -227,7 +230,7 @@ class _QuickActionCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: AppTheme.primaryColor),

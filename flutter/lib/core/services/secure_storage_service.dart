@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Simple file-based secure storage for development/testing
-/// This stores data in the app's Application Support directory
-/// which is private to the app.
+/// Secure storage using flutter_secure_storage (Keychain on iOS/macOS,
+/// EncryptedSharedPreferences on Android).
+/// This replaces the previous JSON file-based storage with platform-native
+/// secure storage that properly encrypts data at rest.
 class SimpleSecureStorage {
   static SimpleSecureStorage? _instance;
-  late Directory _storageDir;
+  late final FlutterSecureStorage _secureStorage;
   bool _initialized = false;
 
   SimpleSecureStorage._();
@@ -19,32 +19,32 @@ class SimpleSecureStorage {
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
-    final appDir = await getApplicationSupportDirectory();
-    _storageDir = Directory('${appDir.path}/solosoul_data');
-    if (!await _storageDir.exists()) {
-      await _storageDir.create(recursive: true);
-    }
+    // NOTE: flutter_secure_storage 9.x does not support after_first_unlock_this_device.
+    // Using first_unlock_this_device instead - data is accessible after first device unlock
+    // but NOT before. This is appropriate for passwords that should persist after initial
+    // device setup while still protecting against cold-boot attacks.
+    _secureStorage = const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+      ),
+    );
     _initialized = true;
   }
 
-  String _getAccountsFile() => '${_storageDir.path}/accounts.json';
-  String _getAccountFile(String accountId) => '${_storageDir.path}/account_$accountId.json';
+  final String _accountsKey = 'solosoul_accounts';
+  String _accountKey(String accountId) => 'solosoul_account_$accountId';
 
   /// Read the accounts list
   Future<String?> _readAccounts() async {
     await _ensureInitialized();
-    final file = File(_getAccountsFile());
-    if (await file.exists()) {
-      return await file.readAsString();
-    }
-    return null;
+    return await _secureStorage.read(key: _accountsKey);
   }
 
   /// Write the accounts list
   Future<void> _writeAccounts(String data) async {
     await _ensureInitialized();
-    final file = File(_getAccountsFile());
-    await file.writeAsString(data);
+    await _secureStorage.write(key: _accountsKey, value: data);
   }
 
   /// List all accounts
@@ -65,40 +65,31 @@ class SimpleSecureStorage {
   /// Read account data
   Future<String?> readAccountData(String accountId) async {
     await _ensureInitialized();
-    final file = File(_getAccountFile(accountId));
-    if (await file.exists()) {
-      return await file.readAsString();
-    }
-    return null;
+    return await _secureStorage.read(key: _accountKey(accountId));
   }
 
   /// Write account data
   Future<void> writeAccountData(String accountId, Map<String, dynamic> data) async {
     await _ensureInitialized();
-    final file = File(_getAccountFile(accountId));
-    await file.writeAsString(jsonEncode(data));
+    await _secureStorage.write(key: _accountKey(accountId), value: jsonEncode(data));
   }
 
   /// Delete account data
   Future<void> deleteAccountData(String accountId) async {
     await _ensureInitialized();
-    final file = File(_getAccountFile(accountId));
-    if (await file.exists()) {
-      await file.delete();
-    }
+    await _secureStorage.delete(key: _accountKey(accountId));
   }
 
   /// Update account salt and verification hash (for password change)
   Future<void> updateAccountSalt(String accountId, String newSalt, String newVerifyHash) async {
     await _ensureInitialized();
-    final file = File(_getAccountFile(accountId));
-    if (!await file.exists()) return;
+    final content = await _secureStorage.read(key: _accountKey(accountId));
+    if (content == null) return;
 
-    final content = await file.readAsString();
     final data = jsonDecode(content) as Map<String, dynamic>;
     data['salt'] = newSalt;
     data['verify_hash'] = newVerifyHash;
-    await file.writeAsString(jsonEncode(data));
+    await _secureStorage.write(key: _accountKey(accountId), value: jsonEncode(data));
   }
 
   /// Update account metadata fields
@@ -111,10 +102,9 @@ class SimpleSecureStorage {
     Map<String, dynamic>? device,
   }) async {
     await _ensureInitialized();
-    final file = File(_getAccountFile(accountId));
-    if (!await file.exists()) return;
+    final content = await _secureStorage.read(key: _accountKey(accountId));
+    if (content == null) return;
 
-    final content = await file.readAsString();
     final data = jsonDecode(content) as Map<String, dynamic>;
 
     if (lastLoginAt != null) {
@@ -147,22 +137,21 @@ class SimpleSecureStorage {
       data['recent_devices'] = devices;
     }
 
-    await file.writeAsString(jsonEncode(data));
+    await _secureStorage.write(key: _accountKey(accountId), value: jsonEncode(data));
   }
 
   /// Set account creation time (only if not already set)
   Future<void> setAccountCreatedAt(String accountId, DateTime createdAt) async {
     await _ensureInitialized();
-    final file = File(_getAccountFile(accountId));
-    if (!await file.exists()) return;
+    final content = await _secureStorage.read(key: _accountKey(accountId));
+    if (content == null) return;
 
-    final content = await file.readAsString();
     final data = jsonDecode(content) as Map<String, dynamic>;
 
     // Only set if not already present (backward compatibility)
     if (!data.containsKey('created_at') || data['created_at'] == null) {
       data['created_at'] = createdAt.toIso8601String();
-      await file.writeAsString(jsonEncode(data));
+      await _secureStorage.write(key: _accountKey(accountId), value: jsonEncode(data));
     }
   }
 }

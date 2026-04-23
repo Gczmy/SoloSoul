@@ -61,7 +61,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Vault Security Section
-                  _SectionHeader(
+                  const _SectionHeader(
                     title: 'Vault Security',
                     icon: Icons.lock_outlined,
                   ),
@@ -93,7 +93,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                         enabled: _biometricsAvailable,
                         onChanged: (value) async {
                           if (value) {
-                            // First verify biometrics to ensure it's the user
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             final authenticated = await BiometricService.instance.authenticate(
                               reason: 'Verify your identity to enable biometric unlock',
                             );
@@ -101,13 +101,13 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                               _updateSettings(_settings.copyWith(biometricsEnabled: true));
                               setState(() => _biometricsEnabled = true);
                               if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
+                                scaffoldMessenger.showSnackBar(
+                                  const SnackBar(
                                     content: Row(
                                       children: [
                                         Icon(Icons.check_circle, color: Colors.white, size: 20),
-                                        const SizedBox(width: 12),
-                                        const Text('Biometric unlock enabled'),
+                                        SizedBox(width: 12),
+                                        Text('Biometric unlock enabled'),
                                       ],
                                     ),
                                     behavior: SnackBarBehavior.floating,
@@ -128,7 +128,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                   const SizedBox(height: 24),
 
                   // Privacy Section
-                  _SectionHeader(
+                  const _SectionHeader(
                     title: 'Privacy',
                     icon: Icons.visibility_off_outlined,
                   ),
@@ -166,7 +166,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                   const SizedBox(height: 24),
 
                   // Clipboard Section
-                  _SectionHeader(
+                  const _SectionHeader(
                     title: 'Clipboard',
                     icon: Icons.content_paste_outlined,
                   ),
@@ -268,8 +268,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
 
   void _showNotImplementedSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
+      const SnackBar(
+        content: Row(
           children: [
             Icon(Icons.info_outline, color: Colors.white, size: 20),
             SizedBox(width: 12),
@@ -278,7 +278,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         ),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppTheme.primaryColor,
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       ),
     );
   }

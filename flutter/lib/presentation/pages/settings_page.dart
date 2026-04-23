@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:solosoul_flutter/main.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
@@ -68,7 +69,7 @@ class SettingsPage extends ConsumerWidget {
                               ),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
+                            child: const Text(
                               'Active',
                               style: TextStyle(
                                 color: AppTheme.successColor,
@@ -122,7 +123,7 @@ class SettingsPage extends ConsumerWidget {
                         // Lock vault first (synchronously sets AuthState.locked)
                         ref.read(authNotifierProvider.notifier).lockVault();
                         // Navigate to login
-                        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                        Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
                         // Clear sensitive access after navigation to prevent
                         // watched pages from briefly showing verification screens
                         ref.read(sensitivePageAccessProvider.notifier).clear();
@@ -141,15 +142,15 @@ class SettingsPage extends ConsumerWidget {
                         if (success && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Row(
+                              content: const Row(
                                 children: [
                                   Icon(
                                     Icons.check_circle,
                                     color: Colors.white,
                                     size: 20,
                                   ),
-                                  const SizedBox(width: 12),
-                                  const Text('Master password changed successfully'),
+                                  SizedBox(width: 12),
+                                  Text('Master password changed successfully'),
                                 ],
                               ),
                               backgroundColor: AppTheme.successColor,
@@ -183,7 +184,7 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Auto-Lock & Privacy',
                       subtitle: 'Configure timeout and privacy settings',
                       onTap: () =>
-                          Navigator.pushNamed(context, '/security_settings'),
+                          Navigator.pushNamed(context, AppRoutes.securitySettings),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -191,7 +192,7 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Sensitivity Level Settings',
                       subtitle: 'Configure field sensitivity',
                       onTap: () =>
-                          Navigator.pushNamed(context, '/sensitivity_settings'),
+                          Navigator.pushNamed(context, AppRoutes.sensitivitySettings),
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -199,7 +200,7 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Operation Log',
                       subtitle: 'View activity history',
                       onTap: () =>
-                          Navigator.pushNamed(context, '/operation_log'),
+                          Navigator.pushNamed(context, AppRoutes.operationLog),
                     ),
                   ],
                 )
@@ -225,7 +226,7 @@ class SettingsPage extends ConsumerWidget {
                       ),
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
+                    const _SettingsTile(
                       icon: Icons.wifi_off_outlined,
                       title: 'Offline Mode',
                       subtitle: 'Local data only',
@@ -428,7 +429,7 @@ class SettingsPage extends ConsumerWidget {
           await authNotifier.selectAccount(accountId);
           if (context.mounted) {
             Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pushReplacementNamed(context, AppRoutes.login);
           }
         },
       ),
@@ -473,7 +474,7 @@ class SettingsPage extends ConsumerWidget {
     );
 
     if (result == true && context.mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
     }
   }
 }
@@ -516,7 +517,7 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
                   ]
                 : null,
           ),
-          child: Text(
+          child: const Text(
             'Delete Account',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -563,6 +564,7 @@ class _DeleteAccountDialogContentState extends State<_DeleteAccountDialogContent
     setState(() => _isDeleting = true);
 
     final authNotifier = widget.ref.read(authNotifierProvider.notifier);
+    final navigator = Navigator.of(widget.dialogContext);
     final success = await authNotifier.deleteAccount(_passwordController.text);
 
     if (!success) {
@@ -576,7 +578,7 @@ class _DeleteAccountDialogContentState extends State<_DeleteAccountDialogContent
     widget.ref.invalidate(accountsProvider);
 
     if (mounted) {
-      Navigator.pop(widget.dialogContext, true);
+      navigator.pop(true);
     }
   }
 
@@ -665,11 +667,13 @@ class _CurrentAccountSheet extends StatelessWidget {
 
   IconData _getDeviceIcon(String deviceName) {
     final lower = deviceName.toLowerCase();
-    if (lower.contains('iphone') || lower.contains('ios'))
+    if (lower.contains('iphone') || lower.contains('ios')) {
       return Icons.phone_iphone;
+    }
     if (lower.contains('android')) return Icons.phone_android;
-    if (lower.contains('mac') || lower.contains('darwin'))
+    if (lower.contains('mac') || lower.contains('darwin')) {
       return Icons.laptop_mac;
+    }
     if (lower.contains('windows')) return Icons.desktop_windows;
     if (lower.contains('linux')) return Icons.computer;
     if (lower.contains('web') || lower.contains('browser')) return Icons.web;
@@ -908,11 +912,13 @@ class _AllAccountsSheet extends StatelessWidget {
 
   IconData _getDeviceIcon(String deviceName) {
     final lower = deviceName.toLowerCase();
-    if (lower.contains('iphone') || lower.contains('ios'))
+    if (lower.contains('iphone') || lower.contains('ios')) {
       return Icons.phone_iphone;
+    }
     if (lower.contains('android')) return Icons.phone_android;
-    if (lower.contains('mac') || lower.contains('darwin'))
+    if (lower.contains('mac') || lower.contains('darwin')) {
       return Icons.laptop_mac;
+    }
     if (lower.contains('windows')) return Icons.desktop_windows;
     if (lower.contains('linux')) return Icons.computer;
     if (lower.contains('web') || lower.contains('browser')) return Icons.web;
@@ -948,7 +954,7 @@ class _AllAccountsSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.manage_accounts_outlined,
                   color: AppTheme.primaryColor,
                 ),
@@ -1040,7 +1046,7 @@ class _AllAccountsSheet extends StatelessWidget {
                                             4,
                                           ),
                                         ),
-                                        child: Text(
+                                        child: const Text(
                                           'Active',
                                           style: TextStyle(
                                             color: AppTheme.successColor,
@@ -1160,17 +1166,16 @@ class _VersionSheet extends ConsumerWidget {
                     ),
                   ),
                   const Divider(height: 1),
-                  _VersionInfoTile(
+                  const _VersionInfoTile(
                     icon: Icons.cloud_download_outlined,
                     title: 'Latest Version',
                     value: latestVersion,
                   ),
                   const Divider(height: 1),
-                  _VersionInfoTile(
+                  const _VersionInfoTile(
                     icon: hasUpdate ? Icons.update : Icons.check_circle_outline,
                     title: 'Update Status',
                     value: hasUpdate ? 'Update available' : 'Up to date',
-                    valueColor: hasUpdate ? Colors.orange : AppTheme.successColor,
                   ),
                   const Divider(height: 1),
                   _VersionInfoTile(
@@ -1194,13 +1199,11 @@ class _VersionInfoTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
-  final Color? valueColor;
 
   const _VersionInfoTile({
     required this.icon,
     required this.title,
     required this.value,
-    this.valueColor,
   });
 
   @override
@@ -1225,7 +1228,7 @@ class _VersionInfoTile extends StatelessWidget {
           Text(
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: valueColor ?? theme.colorScheme.onSurfaceVariant,
+              color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1252,6 +1255,10 @@ class _SettingsTile extends StatelessWidget {
     this.iconColor,
   });
 
+  static const _verticalPadding = 12.0;
+  static const _iconSize = 20.0;
+  static const _spacing = 12.0;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1259,11 +1266,11 @@ class _SettingsTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: _verticalPadding),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: iconColor ?? theme.colorScheme.onSurfaceVariant),
-            const SizedBox(width: 12),
+            Icon(icon, size: _iconSize, color: iconColor ?? theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: _spacing),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

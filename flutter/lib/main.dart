@@ -37,6 +37,24 @@ void main() async {
   );
 }
 
+/// Centralized route constants to avoid hardcoded strings across the codebase
+class AppRoutes {
+  AppRoutes._();
+
+  static const String login = '/login';
+  static const String home = '/home';
+  static const String profile = '/profile';
+  static const String travel = '/travel';
+  static const String financial = '/financial';
+  static const String professional = '/professional';
+  static const String settings = '/settings';
+  static const String securitySettings = '/security_settings';
+  static const String operationLog = '/operation_log';
+  static const String sensitivitySettings = '/sensitivity_settings';
+  static const String trash = '/trash';
+  static const String search = '/search';
+}
+
 class SoloSoulApp extends ConsumerStatefulWidget {
   const SoloSoulApp({super.key});
 
@@ -131,7 +149,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
           // SnackBar failed (no overlay), continue with navigation
         }
         _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-          '/login',
+          AppRoutes.login,
           (route) => false,
         );
       });
@@ -175,18 +193,18 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
         navigatorKey: _navigatorKey,
         home: const SplashPage(),
         routes: {
-          '/login': (context) => const LoginPage(),
-          '/home': (context) => const HomePage(),
-          '/profile': (context) => const ProfilePage(),
-          '/travel': (context) => const TravelPage(),
-          '/financial': (context) => const FinancialPage(),
-          '/professional': (context) => const ProfessionalPage(),
-          '/settings': (context) => const SettingsPage(),
-          '/security_settings': (context) => const SecuritySettingsPage(),
-          '/operation_log': (context) => const OperationLogPage(),
-          '/sensitivity_settings': (context) => const SensitivitySettingsPage(),
-          '/trash': (context) => const TrashPage(),
-          '/search': (context) => const SearchPage(),
+          AppRoutes.login: (context) => const LoginPage(),
+          AppRoutes.home: (context) => const HomePage(),
+          AppRoutes.profile: (context) => const ProfilePage(),
+          AppRoutes.travel: (context) => const TravelPage(),
+          AppRoutes.financial: (context) => const FinancialPage(),
+          AppRoutes.professional: (context) => const ProfessionalPage(),
+          AppRoutes.settings: (context) => const SettingsPage(),
+          AppRoutes.securitySettings: (context) => const SecuritySettingsPage(),
+          AppRoutes.operationLog: (context) => const OperationLogPage(),
+          AppRoutes.sensitivitySettings: (context) => const SensitivitySettingsPage(),
+          AppRoutes.trash: (context) => const TrashPage(),
+          AppRoutes.search: (context) => const SearchPage(),
         },
       ),
     );

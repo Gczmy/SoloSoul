@@ -64,8 +64,13 @@ class RustVaultService {
   /// Get the encryption key
   Uint8List? get encryptionKey => _encryptionKey;
 
-  /// Clear the encryption key (on lock)
+  /// Clear the encryption key (on lock) - securely zero the buffer
   void clearEncryptionKey() {
+    if (_encryptionKey != null) {
+      for (var i = 0; i < _encryptionKey!.length; i++) {
+        _encryptionKey![i] = 0;
+      }
+    }
     _encryptionKey = null;
   }
 

@@ -78,6 +78,10 @@ class SecurityService {
   SecurityService._();
 
   static SecurityService? _instance;
+  // NOTE: Using first_unlock_this_device ensures data is accessible after first device unlock
+  // but NOT before device is unlocked. This is appropriate for passwords that should persist
+  // after initial device setup. Consider after_first_unlock_this_device if data must be
+  // accessible even before any unlock (requires device passcode setup).
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),

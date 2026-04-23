@@ -17,6 +17,8 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		BD6340FF2B66910503E043BE /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 587886F52CC9639FCCCDD803 /* Pods_Runner.framework */; };
+		S0L0C0R3DYL1B000000000003 /* libsolosoul_core.a in Link Binary With Libraries */ = {isa = PBXBuildFile; fileRef = S0L0C0R3DYL1B000000000004 /* libsolosoul_core.a */; };
+		S0L0C0R3CPY000000000002 /* Copy Static Lib to Frameworks */ = {isa = PBXBuildFile; fileRef = S0L0C0R3DYL1B000000000004 /* libsolosoul_core.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,8 +38,18 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				S0L0C0R3CPY000000000002 /* Copy Static Lib to Frameworks */,
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		S0L0C0R3CPY000000000001 /* Copy Static Lib to Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+			files = (
+			);
+			name = "Copy Static Lib to Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -67,6 +79,7 @@
 		98CB19EFC6363B5B8286D927 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		BA19683F4493DA2ED1398EAA /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		F73CDF63B2320506B736EE35 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		S0L0C0R3DYL1B000000000004 /* libsolosoul_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = Runner/Frameworks/libsolosoul_core.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +96,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BD6340FF2B66910503E043BE /* Pods_Runner.framework in Frameworks */,
+				S0L0C0R3DYL1B000000000003 /* libsolosoul_core.a in Link Binary With Libraries */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +116,7 @@
 			children = (
 				587886F52CC9639FCCCDD803 /* Pods_Runner.framework */,
 				5DDD40E2DB406E74ECDA4DF0 /* Pods_RunnerTests.framework */,
+				S0L0C0R3DYL1B000000000004 /* libsolosoul_core.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -195,6 +210,7 @@
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				9FFBAF148F660A64178217DF /* [CP] Check Pods Manifest.lock */,
+				S0L0C0R3SCP000000000001 /* Copy Rust Static Lib */,
 				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
@@ -364,6 +380,20 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
+		};
+		S0L0C0R3SCP000000000001 /* Copy Rust Static Lib */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Rust Static Lib";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p \"$PROJECT_DIR/Runner/Frameworks\"\ncp \"$PROJECT_DIR/../../native/target/release/libsolosoul_core.a\" \"$PROJECT_DIR/Runner/Frameworks/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

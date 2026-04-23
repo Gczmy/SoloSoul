@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_blurred_widget.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' hide SensitivityLevel;
 
@@ -121,6 +122,7 @@ class _SensitivityBasedVisibilityWidgetState
     }
 
     await Clipboard.setData(ClipboardData(text: widget.value));
+    ClipboardMonitorService.instance.notifySensitiveCopied();
     if (mounted) {
       showOverlaySnackBar(
         context,

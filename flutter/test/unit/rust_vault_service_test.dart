@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -60,7 +59,7 @@ void main() {
     });
 
     test('roundtrip: fromJson -> toJson preserves data', () {
-      final original = BridgeProfileSummary(
+      const original = BridgeProfileSummary(
         id: 'roundtrip',
         name: 'Roundtrip Test',
         createdAt: '2024-01-01T00:00:00Z',

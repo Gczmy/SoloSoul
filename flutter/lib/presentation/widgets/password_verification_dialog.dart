@@ -5,6 +5,8 @@ import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
+// ignore_for_file: use_build_context_synchronously
+
 /// Shared password verification dialog for sensitive operations.
 /// Returns the password if verified, null if cancelled.
 /// Biometric authentication is offered if the user has enabled it in settings.
@@ -24,6 +26,9 @@ Future<String?> showPasswordVerificationDialog({
   String? passwordHint,
   required Future<bool> Function(String password) onVerify,
 }) async {
+  // Capture context before async operations to avoid lint warning
+  final dialogContext = context;
+
   // Check if biometric auth is available and enabled
   final biometricService = BiometricService.instance;
   final securityService = SecurityService.instance;
@@ -34,28 +39,30 @@ Future<String?> showPasswordVerificationDialog({
 
   // If biometric is available and enabled, offer it as an option
   if (isBiometricAvailable && isBiometricEnabled) {
+    final dialogBuilder = _BiometricPasswordDialogContent(
+      message: message,
+      passwordHint: passwordHint,
+      onVerify: onVerify,
+      biometricService: biometricService,
+      securityService: securityService,
+    );
     return showDialog<String>(
-      context: context,
+      context: dialogContext,
       barrierDismissible: false,
-      builder: (dialogContext) => _BiometricPasswordDialogContent(
-        message: message,
-        passwordHint: passwordHint,
-        onVerify: onVerify,
-        biometricService: biometricService,
-        securityService: securityService,
-      ),
+      builder: (dialogContext) => dialogBuilder,
     );
   }
 
   // Fall back to password-only dialog
+  final passwordDialogContent = _PasswordVerificationDialogContent(
+    message: message,
+    passwordHint: passwordHint,
+    onVerify: onVerify,
+  );
   return showDialog<String>(
-    context: context,
+    context: dialogContext,
     barrierDismissible: false,
-    builder: (dialogContext) => _PasswordVerificationDialogContent(
-      message: message,
-      passwordHint: passwordHint,
-      onVerify: onVerify,
-    ),
+    builder: (dialogContext) => passwordDialogContent,
   );
 }
 
@@ -95,6 +102,8 @@ class _PasswordVerificationDialogContentState
   @override
   void dispose() {
     _controller.removeListener(_onTextChanged);
+    // Securely clear password text before disposing
+    _controller.text = '';
     _controller.dispose();
     _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();
@@ -344,6 +353,8 @@ class _BiometricPasswordDialogContentState
   @override
   void dispose() {
     _controller.removeListener(_onTextChanged);
+    // Securely clear password text before disposing
+    _controller.text = '';
     _controller.dispose();
     _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();

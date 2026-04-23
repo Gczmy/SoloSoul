@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -27,7 +26,7 @@ void main() {
     });
 
     test('copyWith creates new instance with updated values', () {
-      final original = SensitivePageAccessState();
+      const original = SensitivePageAccessState();
       final now = DateTime.now();
       final copied = original.copyWith(lastVerified: now);
 

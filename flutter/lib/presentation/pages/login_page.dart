@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:solosoul_flutter/main.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
-import 'package:solosoul_flutter/presentation/pages/home_page.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -170,7 +172,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         Navigator.of(
           context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+        ).pushReplacementNamed(AppRoutes.home);
       }
     } else if (mounted) {
       setState(() => _isLoading = false);
@@ -221,8 +223,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       });
       return;
     }
-
-    final password = _passwordController.text;
 
     final authNotifier = ref.read(authNotifierProvider.notifier);
     if (authNotifier.selectedAccountId == null) return;
@@ -283,7 +283,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         Navigator.of(
           context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+        ).pushReplacementNamed(AppRoutes.home);
       }
     } else if (mounted) {
       setState(() {
@@ -295,8 +295,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleCreateAccount() async {
-    final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] _handleCreateAccount start\n', mode: FileMode.append);
+    // Use path_provider for cross-platform log directory (debug build only)
+    File? traceLog;
+    if (kDebugMode) {
+      try {
+        final appDocDir = await getApplicationDocumentsDirectory();
+        final logDir = Directory('${appDocDir.path}/logs');
+        if (!await logDir.exists()) {
+          await logDir.create(recursive: true);
+        }
+        traceLog = File('${logDir.path}/flutter_native_vault.log');
+        await traceLog.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] _handleCreateAccount start\n', mode: FileMode.append);
+      } catch (e) {
+        // Silently fail if logging fails - not critical path
+      }
+    }
 
     final name = _newAccountNameController.text.trim();
     final password = _newPasswordController.text;
@@ -321,7 +334,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _isLoading = true;
     });
 
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.createAccount\n', mode: FileMode.append);
+    await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.createAccount\n', mode: FileMode.append);
 
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final passwordHint = _passwordHintController.text.trim();
@@ -331,20 +344,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       passwordHint: passwordHint.isEmpty ? null : passwordHint,
     );
 
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] createAccount returned, success=${result.success}\n', mode: FileMode.append);
+    await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] createAccount returned, success=${result.success}\n', mode: FileMode.append);
 
     if (result.success && mounted) {
       // Account created, now unlock
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.unlockVault\n', mode: FileMode.append);
+      await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.unlockVault\n', mode: FileMode.append);
       final success = await authNotifier.unlockVault(password);
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [LOGIN] unlockVault returned, success=$success\n', mode: FileMode.append);
+      await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] unlockVault returned, success=$success\n', mode: FileMode.append);
       if (success && mounted) {
         // Pre-load profile before navigating to home
         await ref.read(profileNotifierProvider.notifier).loadProfile();
         // Pre-register all form fields for sensitivity settings
         ref.read(formFieldRegistryProvider.notifier).registerAllForms();
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          Navigator.of(context).pushReplacementNamed(AppRoutes.home);
         }
       } else if (mounted) {
         setState(() {
@@ -390,7 +403,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     _passwordHintOverlayEntry = OverlayEntry(
       builder: (ctx) => Positioned(
-        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+        top: MediaQuery.of(ctx).padding.top + kToolbarHeight + 8,
         left: 16,
         right: 16,
         child: SafeArea(
@@ -460,8 +473,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final selectedAccountId = authNotifier.selectedAccountId;
 
-    // Use ref.read to avoid FutureProvider re-execution on setState rebuilds
-    final accountsAsync = ref.read(accountsProvider);
+    // Use ref.watch to reactively rebuild when accounts change
+    final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -849,7 +862,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 focusNode: _passwordFocusNode,
-                autofocus: true,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: (_) => _handleUnlock(),
                 decoration: InputDecoration(
@@ -1070,7 +1082,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           radius: 22,
                           backgroundColor: AppTheme.primaryColor,
                           child: Text(
-                            account.name[0].toUpperCase(),
+                            account.name.runes.first.toString().toUpperCase(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,

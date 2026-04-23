@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 
 void main() {
@@ -39,7 +38,7 @@ void main() {
 
   group('FieldSensitivity', () {
     test('creates correctly with all fields', () {
-      final field = FieldSensitivity(
+      const field = FieldSensitivity(
         fieldId: 'test.field',
         fieldName: 'Test Field',
         fieldSection: 'test',
@@ -53,7 +52,7 @@ void main() {
     });
 
     test('copyWith creates new instance with updated values', () {
-      final original = FieldSensitivity(
+      const original = FieldSensitivity(
         fieldId: 'test.field',
         fieldName: 'Original',
         fieldSection: 'test',
@@ -73,7 +72,7 @@ void main() {
     });
 
     test('toJson and fromJson roundtrip preserves data', () {
-      final original = FieldSensitivity(
+      const original = FieldSensitivity(
         fieldId: 'test.field',
         fieldName: 'Test Field',
         fieldSection: 'test',
@@ -90,21 +89,21 @@ void main() {
     });
 
     test('equality is based on fieldId', () {
-      final field1 = FieldSensitivity(
+      const field1 = FieldSensitivity(
         fieldId: 'same.id',
         fieldName: 'Field 1',
         fieldSection: 'section',
         level: SensitivityLevel.public,
       );
 
-      final field2 = FieldSensitivity(
+      const field2 = FieldSensitivity(
         fieldId: 'same.id',
         fieldName: 'Field 2',
         fieldSection: 'different',
         level: SensitivityLevel.critical,
       );
 
-      final field3 = FieldSensitivity(
+      const field3 = FieldSensitivity(
         fieldId: 'different.id',
         fieldName: 'Field 1',
         fieldSection: 'section',
@@ -175,7 +174,7 @@ void main() {
     });
 
     test('register adds field to registry', () {
-      final field = FieldSensitivity(
+      const field = FieldSensitivity(
         fieldId: 'custom.field',
         fieldName: 'Custom Field',
         fieldSection: 'custom',
@@ -188,14 +187,14 @@ void main() {
     });
 
     test('register replaces existing field with same id', () {
-      final field1 = FieldSensitivity(
+      const field1 = FieldSensitivity(
         fieldId: 'custom.field',
         fieldName: 'Original',
         fieldSection: 'custom',
         level: SensitivityLevel.public,
       );
 
-      final field2 = FieldSensitivity(
+      const field2 = FieldSensitivity(
         fieldId: 'custom.field',
         fieldName: 'Updated',
         fieldSection: 'custom',
@@ -212,13 +211,13 @@ void main() {
 
     test('registerAll adds multiple fields', () {
       final fields = [
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'field1',
           fieldName: 'Field 1',
           fieldSection: 'test',
           level: SensitivityLevel.public,
         ),
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'field2',
           fieldName: 'Field 2',
           fieldSection: 'test',
@@ -244,7 +243,7 @@ void main() {
     });
 
     test('reset clears all registered fields', () {
-      FormFieldRegistry.register(FieldSensitivity(
+      FormFieldRegistry.register(const FieldSensitivity(
         fieldId: 'temp.field',
         fieldName: 'Temp',
         fieldSection: 'temp',
@@ -258,7 +257,7 @@ void main() {
     });
 
     test('isRegistered returns true for registered fields', () {
-      FormFieldRegistry.register(FieldSensitivity(
+      FormFieldRegistry.register(const FieldSensitivity(
         fieldId: 'registered.field',
         fieldName: 'Registered',
         fieldSection: 'test',
@@ -278,7 +277,7 @@ void main() {
     });
 
     test('register adds field to state', () {
-      final field = FieldSensitivity(
+      const field = FieldSensitivity(
         fieldId: 'notifier.field',
         fieldName: 'Notifier Field',
         fieldSection: 'notifier',
@@ -292,13 +291,13 @@ void main() {
 
     test('registerAll adds multiple fields', () {
       final fields = [
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'n1',
           fieldName: 'N1',
           fieldSection: 'test',
           level: SensitivityLevel.public,
         ),
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'n2',
           fieldName: 'N2',
           fieldSection: 'test',
@@ -313,7 +312,7 @@ void main() {
     });
 
     test('reset clears state', () {
-      notifier.register(FieldSensitivity(
+      notifier.register(const FieldSensitivity(
         fieldId: 'temp',
         fieldName: 'Temp',
         fieldSection: 'temp',
@@ -378,7 +377,7 @@ void main() {
     });
 
     test('returns FormFieldRegistry default when no override or tag', () {
-      FormFieldRegistry.register(FieldSensitivity(
+      FormFieldRegistry.register(const FieldSensitivity(
         fieldId: 'registry.field',
         fieldName: 'Registry Field',
         fieldSection: 'test',
@@ -398,7 +397,7 @@ void main() {
     });
 
     test('precedence: reveal > user override > tag > registry > fallback', () {
-      FormFieldRegistry.register(FieldSensitivity(
+      FormFieldRegistry.register(const FieldSensitivity(
         fieldId: 'priority.field',
         fieldName: 'Priority',
         fieldSection: 'test',
@@ -448,13 +447,13 @@ void main() {
   group('firstWhereOrNull', () {
     test('returns first matching element', () {
       final fields = [
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'a',
           fieldName: 'A',
           fieldSection: 'test',
           level: SensitivityLevel.public,
         ),
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'b',
           fieldName: 'B',
           fieldSection: 'test',
@@ -472,7 +471,7 @@ void main() {
 
     test('returns null when no match', () {
       final fields = [
-        FieldSensitivity(
+        const FieldSensitivity(
           fieldId: 'a',
           fieldName: 'A',
           fieldSection: 'test',

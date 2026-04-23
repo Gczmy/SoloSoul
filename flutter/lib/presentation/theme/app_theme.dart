@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
 
@@ -140,7 +139,7 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: lightBackground,
       textTheme: _buildTextTheme(lightOnSurface),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: lightSurface,
         foregroundColor: lightOnSurface,
         elevation: 0,
@@ -160,7 +159,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -174,7 +173,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           side: const BorderSide(color: primaryColor, width: 1.5),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -186,11 +185,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightOnSurfaceVariant.withOpacity(0.2)),
+          borderSide: BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightOnSurfaceVariant.withOpacity(0.2)),
+          borderSide: BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -200,7 +199,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: errorColor),
         ),
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
           color: lightOnSurfaceVariant,
           fontSize: 16,
         ),
@@ -210,11 +209,11 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: lightOnSurfaceVariant.withOpacity(0.1)),
+          side: BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.1)),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: lightOnSurfaceVariant.withOpacity(0.1),
+        color: lightOnSurfaceVariant.withValues(alpha: 0.1),
         thickness: 1,
       ),
     );
@@ -236,7 +235,7 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: darkBackground,
       textTheme: _buildTextTheme(darkOnSurface),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: darkSurface,
         foregroundColor: darkOnSurface,
         elevation: 0,
@@ -256,7 +255,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -270,7 +269,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           side: const BorderSide(color: primaryColor, width: 1.5),
-          textStyle: TextStyle(
+          textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -282,11 +281,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkOnSurfaceVariant.withOpacity(0.2)),
+          borderSide: BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkOnSurfaceVariant.withOpacity(0.2)),
+          borderSide: BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -296,7 +295,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: errorColor),
         ),
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
           color: darkOnSurfaceVariant,
           fontSize: 16,
         ),
@@ -306,11 +305,11 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: darkOnSurfaceVariant.withOpacity(0.1)),
+          side: BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.1)),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: darkOnSurfaceVariant.withOpacity(0.1),
+        color: darkOnSurfaceVariant.withValues(alpha: 0.1),
         thickness: 1,
       ),
     );

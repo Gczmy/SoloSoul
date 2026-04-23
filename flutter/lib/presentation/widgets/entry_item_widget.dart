@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/entry_configs.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'

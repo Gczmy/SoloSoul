@@ -67,7 +67,7 @@ class AccountDetailBottomSheet extends StatelessWidget {
                       color: AppTheme.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.person,
                       color: AppTheme.primaryColor,
                       size: 28,
@@ -92,7 +92,7 @@ class AccountDetailBottomSheet extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Info section
-              _SectionTitle(title: 'Account Info'),
+              const _SectionTitle(title: 'Account Info'),
               const SizedBox(height: 12),
               _InfoRow(
                 label: 'Created',
@@ -114,7 +114,7 @@ class AccountDetailBottomSheet extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Recent devices section
-              _SectionTitle(title: 'Recent Devices'),
+              const _SectionTitle(title: 'Recent Devices'),
               const SizedBox(height: 12),
               if (account.recentDevices.isEmpty)
                 Padding(

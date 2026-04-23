@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/main.dart' show AppRoutes;
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -33,7 +34,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(milliseconds: 800));
 
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
     }
   }
 

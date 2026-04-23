@@ -4,15 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show showOverlaySnackBar, SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
 import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
-import 'package:solosoul_flutter/core/services/field_history_service.dart'
-    show fieldHistoriesProvider;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -20,11 +16,10 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
-import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
-    show LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
+import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
   const TravelPage({super.key});
@@ -37,13 +32,6 @@ class _TravelPageState extends ConsumerState<TravelPage> {
   @override
   void initState() {
     super.initState();
-    // Ensure profile is loaded if accessed directly
-    Future.microtask(() {
-      final notifier = ref.read(profileNotifierProvider.notifier);
-      if (!notifier.isLoading && ref.read(profileNotifierProvider) == null) {
-        notifier.loadProfile();
-      }
-    });
   }
 
   @override
@@ -265,9 +253,11 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
             deletedItem: passport,
           );
     } catch (e) {
-      setState(() {
-        _passports = List.from(_passports)..insert(index, passport);
-      });
+      if (mounted) {
+        setState(() {
+          _passports = List.from(_passports)..insert(index, passport);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -311,7 +301,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     if (wasAdding) {
       passportToSave = newItem!;
     } else {
-      passportToSave = _createPassportFromValues(values, id: editingItem!.id);
+      passportToSave = _createPassportFromValues(values, id: editingItem.id);
     }
     final itemName = passportToSave.country ?? 'Passport';
 
@@ -319,7 +309,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       _passports = List.from(_passports)..add(passportToSave);
     } else {
       // Use ID-based lookup since PassportData has no == override (uses object identity)
-      final index = _passports.indexById(editingItem!.id, (p) => p.id);
+      final index = _passports.indexById(editingItem.id, (p) => p.id);
       if (index != -1) {
         _passports = List.from(_passports)..[index] = passportToSave;
       }
@@ -471,6 +461,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       },
       onCopyAll: (passport, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -595,9 +586,11 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
             deletedItem: visa,
           );
     } catch (e) {
-      setState(() {
-        _visas = List.from(_visas)..insert(index, visa);
-      });
+      if (mounted) {
+        setState(() {
+          _visas = List.from(_visas)..insert(index, visa);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -639,7 +632,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
     if (wasAdding) {
       visaToSave = newItem!;
     } else {
-      visaToSave = _createVisaFromValues(values, id: editingItem!.id);
+      visaToSave = _createVisaFromValues(values, id: editingItem.id);
     }
     final itemName = visaToSave.country ?? 'Visa';
 
@@ -648,7 +641,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       _visas = List.from(_visas)..add(visaToSave);
     } else {
       // Use ID-based lookup since VisaData has no == override (uses object identity)
-      final index = _visas.indexById(editingItem!.id, (v) => v.id);
+      final index = _visas.indexById(editingItem.id, (v) => v.id);
       if (index != -1) {
         _visas = List.from(_visas)..[index] = visaToSave;
       }
@@ -747,6 +740,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       },
       onCopyAll: (visa, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -842,9 +836,11 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
             deletedItem: item,
           );
     } catch (e) {
-      setState(() {
-        _history = List.from(_history)..insert(index, item);
-      });
+      if (mounted) {
+        setState(() {
+          _history = List.from(_history)..insert(index, item);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -896,7 +892,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       itemToSave = newItem!;
     } else {
       itemToSave = TravelHistoryData(
-        id: editingItem!.id,
+        id: editingItem.id,
         destination: dest,
         date: values['travel.date']?.isEmpty == true
             ? null
@@ -929,7 +925,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       _history = List.from(_history)..add(itemToSave);
     } else {
       // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
-      final index = _history.indexById(editingItem!.id, (h) => h.id);
+      final index = _history.indexById(editingItem.id, (h) => h.id);
       if (index != -1) {
         _history = List.from(_history)..[index] = itemToSave;
       }
@@ -1079,8 +1075,8 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 const SizedBox(height: 12),
                 // Travel Type Dropdown
                 DropdownButtonFormField<String>(
-                  value: travelType.isEmpty ? null : travelType,
-                  decoration: InputDecoration(
+                  initialValue: travelType.isEmpty ? null : travelType,
+                  decoration: const InputDecoration(
                     labelText: 'Travel Type',
                     border: OutlineInputBorder(),
                   ),
@@ -1214,7 +1210,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                         padding: const EdgeInsets.only(right: 8),
                         child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1223,15 +1219,15 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     maxLength: kMaxFieldLength,
                     decoration: InputDecoration(
                       labelText: 'Ticket Price',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 8),
                         child: SensitivityTag(
                           level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Train') ...[
@@ -1289,15 +1285,15 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     maxLength: kMaxFieldLength,
                     decoration: InputDecoration(
                       labelText: 'Ticket Price',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 8),
                         child: SensitivityTag(
                           level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Bus') ...[
@@ -1355,15 +1351,15 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     maxLength: kMaxFieldLength,
                     decoration: InputDecoration(
                       labelText: 'Ticket Price',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 8),
                         child: SensitivityTag(
                           level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Taxi') ...[
@@ -1406,15 +1402,15 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                     maxLength: kMaxFieldLength,
                     decoration: InputDecoration(
                       labelText: 'Price',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       counterText: '',
                       suffixIcon: Padding(
-                        padding: EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 8),
                         child: SensitivityTag(
                           level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
                         ),
                       ),
-                      suffixIconConstraints: BoxConstraints(),
+                      suffixIconConstraints: const BoxConstraints(),
                     ),
                   ),
                 ] else if (travelType == 'Drive') ...[
@@ -1521,6 +1517,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       },
       onCopyAll: (item, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',

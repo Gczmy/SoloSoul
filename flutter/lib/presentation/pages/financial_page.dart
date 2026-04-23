@@ -4,16 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
-    show SensitivityLevel;
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show SensitivityDisplayMode;
-import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -24,6 +17,7 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
   const FinancialPage({super.key});
@@ -36,9 +30,6 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(profileNotifierProvider.notifier).loadProfile();
-    });
   }
 
   @override
@@ -79,7 +70,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.lock_outline,
                     color: AppTheme.primaryColor,
                     size: 24,
@@ -89,7 +80,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'End-to-End Encrypted',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
@@ -297,14 +288,14 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     if (wasAdding) {
       accountToSave = newItem!;
     } else {
-      accountToSave = _createAccountFromValues(values, id: editingItem!.id);
+      accountToSave = _createAccountFromValues(values, id: editingItem.id);
     }
     final itemName = accountToSave.bankName ?? 'Bank account';
 
     if (wasAdding) {
       _accounts = List.from(_accounts)..add(accountToSave);
     } else {
-      final index = _accounts.indexById(editingItem!.id, (a) => a.id);
+      final index = _accounts.indexById(editingItem.id, (a) => a.id);
       if (index != -1) {
         _accounts = List.from(_accounts)..[index] = accountToSave;
       }
@@ -383,6 +374,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       itemToMap: _accountToMap,
       onCopyAll: (account, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -407,7 +399,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
               fieldIdPrefix: 'bankAccount',
               allFieldValues: oldValues ?? {},
             );
-        await _onAccountSave(null, values, editingItem);
+        // Save is handled by onSave callback - historyAwareOnSave only records history
       },
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'bankAccount',
@@ -535,9 +527,11 @@ class _CardSectionState extends ConsumerState<_CardSection>
             deletedItem: card,
           );
     } catch (e) {
-      setState(() {
-        _cards = List.from(_cards)..insert(index, card);
-      });
+      if (mounted) {
+        setState(() {
+          _cards = List.from(_cards)..insert(index, card);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -579,14 +573,14 @@ class _CardSectionState extends ConsumerState<_CardSection>
     if (wasAdding) {
       cardToSave = newItem!;
     } else {
-      cardToSave = _createCardFromValues(values, id: editingItem!.id);
+      cardToSave = _createCardFromValues(values, id: editingItem.id);
     }
     final itemName = cardToSave.cardType ?? 'Card';
 
     if (wasAdding) {
       _cards = List.from(_cards)..add(cardToSave);
     } else {
-      final index = _cards.indexById(editingItem!.id, (c) => c.id);
+      final index = _cards.indexById(editingItem.id, (c) => c.id);
       if (index != -1) {
         _cards = List.from(_cards)..[index] = cardToSave;
       }
@@ -663,6 +657,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
       itemToMap: _cardToMap,
       onCopyAll: (card, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -687,7 +682,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
               fieldIdPrefix: 'card',
               allFieldValues: oldValues ?? {},
             );
-        await _onCardSave(null, values, editingItem);
+        // Save is handled by onSave callback - historyAwareOnSave only records history
       },
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'card',
@@ -812,9 +807,11 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
             deletedItem: taxId,
           );
     } catch (e) {
-      setState(() {
-        _taxIds = List.from(_taxIds)..insert(index, taxId);
-      });
+      if (mounted) {
+        setState(() {
+          _taxIds = List.from(_taxIds)..insert(index, taxId);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -856,14 +853,14 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     if (wasAdding) {
       taxIdToSave = newItem!;
     } else {
-      taxIdToSave = _createTaxIdFromValues(values, id: editingItem!.id);
+      taxIdToSave = _createTaxIdFromValues(values, id: editingItem.id);
     }
     final itemName = taxIdToSave.taxIdType ?? 'Tax ID';
 
     if (wasAdding) {
       _taxIds = List.from(_taxIds)..add(taxIdToSave);
     } else {
-      final index = _taxIds.indexById(editingItem!.id, (t) => t.id);
+      final index = _taxIds.indexById(editingItem.id, (t) => t.id);
       if (index != -1) {
         _taxIds = List.from(_taxIds)..[index] = taxIdToSave;
       }
@@ -935,6 +932,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       itemToMap: _taxIdToMap,
       onCopyAll: (taxId, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -959,7 +957,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
               fieldIdPrefix: 'taxId',
               allFieldValues: oldValues ?? {},
             );
-        await _onTaxIdSave(null, values, editingItem);
+        // Save is handled by onSave callback - historyAwareOnSave only records history
       },
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'taxId',

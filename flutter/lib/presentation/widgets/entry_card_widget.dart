@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
+import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
@@ -94,6 +95,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   Future<void> _handleCopy(String formattedText) async {
     await Clipboard.setData(ClipboardData(text: formattedText));
+    ClipboardMonitorService.instance.notifySensitiveCopied();
     if (mounted) {
       showOverlaySnackBar(
         context,

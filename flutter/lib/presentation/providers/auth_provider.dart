@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -22,6 +23,19 @@ Uint8List _hexToBytes(String hex) {
     result.add(int.parse(hex.substring(i, i + 2), radix: 16));
   }
   return Uint8List.fromList(result);
+}
+
+/// Constant-time string comparison to prevent timing attacks
+/// Returns true if strings are equal, false otherwise
+bool _constantTimeEquals(String a, String b) {
+  if (a.length != b.length) {
+    return false;
+  }
+  var result = 0;
+  for (var i = 0; i < a.length; i++) {
+    result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+  }
+  return result == 0;
 }
 
 /// Device info for tracking recent device logins
@@ -157,9 +171,13 @@ class SecureAccountStorage {
         },
       );
     } catch (e) {
-      // Log but don't throw - this helps diagnose Keychain issues
-      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] Keychain write error: $e\n', mode: FileMode.append);
+      // Log the error for diagnostics
+      if (kDebugMode) {
+        final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+        traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] Keychain write error: $e\n', mode: FileMode.append);
+      }
+      // Re-throw to propagate error to caller
+      rethrow;
     }
   }
 
@@ -208,12 +226,17 @@ class SecureAccountStorage {
     String? salt,               // Optional: Rust-generated salt (Base64)
     String? verifyHashFromRust, // Optional: Rust-generated verify_hash (Hex)
   }) async {
-    final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] createAccount start\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] createAccount start\n', mode: FileMode.append);
+    }
 
     // Validation
     if (name.trim().isEmpty) {
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] name empty, returning error\n', mode: FileMode.append);
+      if (kDebugMode) {
+        final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+        traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] name empty, returning error\n', mode: FileMode.append);
+      }
       return (success: false, error: 'Account name is required', account: null, sessionKey: null);
     }
     if (password.length < 8) {
@@ -289,19 +312,31 @@ class SecureAccountStorage {
     );
 
     // Save account data (salt + verify hash) to Keychain
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] calling saveAccountData\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] calling saveAccountData\n', mode: FileMode.append);
+    }
     await saveAccountData(effectiveAccountId, {
       'salt': saltToStore,
       'verify_hash': hashToStore,
       'crypto_version': 2,
     });
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] saveAccountData done\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] saveAccountData done\n', mode: FileMode.append);
+    }
 
     // Add to accounts list
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] calling _saveAccounts\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] calling _saveAccounts\n', mode: FileMode.append);
+    }
     accounts.add(account);
     await _saveAccounts(accounts);
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] _saveAccounts done, returning success\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [STORAGE] _saveAccounts done, returning success\n', mode: FileMode.append);
+    }
 
     return (success: true, error: null, account: account, sessionKey: sessionKey);
   }
@@ -336,7 +371,7 @@ class SecureAccountStorage {
     final derivedHashHex = _bytesToHex(derivedKey);
 
     // Support both base64 (Dart-generated) and hex (Rust-generated) verify hashes
-    if (derivedHashBase64 != storedHash && derivedHashHex != storedHash) {
+    if (!_constantTimeEquals(derivedHashBase64, storedHash) && !_constantTimeEquals(derivedHashHex, storedHash)) {
       return (success: false, error: 'Invalid password', sessionKey: null);
     }
 
@@ -383,7 +418,7 @@ class SecureAccountStorage {
     // Support both base64 (Dart-generated) and hex (Rust-generated) verify hashes
     final derivedHashBase64 = base64Encode(derivedKey);
     final derivedHashHex = _bytesToHex(derivedKey);
-    return derivedHashBase64 == storedHash || derivedHashHex == storedHash;
+    return _constantTimeEquals(derivedHashBase64, storedHash) || _constantTimeEquals(derivedHashHex, storedHash);
   }
 
   /// Delete an account and all its data
@@ -535,11 +570,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         id: r['id'] as String? ?? '',
         name: r['name'] as String? ?? '',
         lastAccessed: r['last_accessed'] != null ? DateTime.tryParse(r['last_accessed'] as String) : null,
-        createdAt: DateTime.now(),
+        createdAt: r['created_at'] != null ? DateTime.tryParse(r['created_at'] as String) : null,
       )).toList();
 
       // Merge Rust data with full metadata from SecureAccountStorage
-      // Rust only stores id/name/last_accessed; other fields are in Keychain
+      // Rust only stores id/name/last_accessed/created_at; other fields are in Keychain
       final storageAccounts = await _storage.listAccounts();
       final storageById = {for (final a in storageAccounts) a.id: a};
 
@@ -547,6 +582,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final storageAccount = storageById[rustAccount.id];
         if (storageAccount != null) {
           return rustAccount.copyWith(
+            createdAt: rustAccount.createdAt ?? storageAccount.createdAt,
             lastLoginAt: storageAccount.lastLoginAt,
             lastOperationAt: storageAccount.lastOperationAt,
             lastOperationDesc: storageAccount.lastOperationDesc,
@@ -587,9 +623,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } else {
       _selectedAccountInfo = null;
     }
-    // NOTE: Do NOT change auth state here!
-    // If vault is unlocked, keep it unlocked - selectAccount is for account selection, not auth state management.
-    // The unlockVault and lockVault methods are the only places that should change auth state.
+    // Trigger rebuild for widgets watching authNotifierProvider.notifier.selectedAccount
+    // StateNotifier doesn't have notifyListeners() - use state = state to trigger
+    state = state;
   }
 
   /// Create a new account
@@ -599,27 +635,41 @@ class AuthNotifier extends StateNotifier<AuthState> {
     String? passwordHint,
   }) async {
     // Sync trace to detect exactly where hang occurs
-    final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: createAccount start\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: createAccount start\n', mode: FileMode.append);
+    }
 
     state = AuthState.loading;
     // First create account in Rust vault (this also auto-unlocks)
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: calling RustVaultService.createAccount\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: calling RustVaultService.createAccount\n', mode: FileMode.append);
+    }
     final vaultResult = RustVaultService.instance.createAccount(
       name: name,
       password: password,
     );
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: RustVaultService.createAccount returned, success=${vaultResult.success}\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: RustVaultService.createAccount returned, success=${vaultResult.success}\n', mode: FileMode.append);
+    }
 
     if (!vaultResult.success) {
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: vaultResult failed, returning error\n', mode: FileMode.append);
+      if (kDebugMode) {
+        final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+        traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: vaultResult failed, returning error\n', mode: FileMode.append);
+      }
       state = AuthState.locked;
       return (success: false, error: vaultResult.error ?? 'Failed to create vault account');
     }
 
     // Also create account in SecureAccountStorage (Dart Keychain)
     // Use the SAME accountId, salt, and verify_hash that Rust generated so both are in sync
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: calling _storage.createAccount\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: calling _storage.createAccount\n', mode: FileMode.append);
+    }
     final result = await _storage.createAccount(
       name,
       password,
@@ -628,7 +678,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       salt: vaultResult.salt,
       verifyHashFromRust: vaultResult.verifyHash,
     );
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: _storage.createAccount returned, success=${result.success}\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: _storage.createAccount returned, success=${result.success}\n', mode: FileMode.append);
+    }
 
     if (result.success && result.account != null && result.sessionKey != null) {
       _selectedAccountId = result.account!.id;
@@ -649,15 +702,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Handles automatic migration from V1 to V2 crypto on successful login
   Future<bool> unlockVault(String password) async {
     // Sync trace to detect exactly where hang occurs
-    final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: unlockVault start, selectedAccountId=$_selectedAccountId\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: unlockVault start, selectedAccountId=$_selectedAccountId\n', mode: FileMode.append);
+    }
 
     if (_selectedAccountId == null) {
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: _selectedAccountId is null, returning false\n', mode: FileMode.append);
+      if (kDebugMode) {
+        final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+        traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: _selectedAccountId is null, returning false\n', mode: FileMode.append);
+      }
       return false;
     }
     if (password.isEmpty) {
-      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: password is empty, returning false\n', mode: FileMode.append);
+      if (kDebugMode) {
+        final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+        traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: password is empty, returning false\n', mode: FileMode.append);
+      }
       state = AuthState.locked;
       return false;
     }
@@ -665,12 +726,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.loading;
 
     // Step 1: Unlock Rust vault (source of truth for authentication)
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: calling RustVaultService.unlockVault\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: calling RustVaultService.unlockVault\n', mode: FileMode.append);
+    }
     final vaultResult = RustVaultService.instance.unlockVault(
       accountId: _selectedAccountId!,
       password: password,
     );
-    traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: RustVaultService.unlockVault returned, success=${vaultResult.success}\n', mode: FileMode.append);
+    if (kDebugMode) {
+      final traceLog = File('${Platform.environment['HOME']}/Library/Logs/flutter_native_vault.log');
+      traceLog.writeAsStringSync('${DateTime.now().toIso8601String()} [AUTH] CHECKPOINT: RustVaultService.unlockVault returned, success=${vaultResult.success}\n', mode: FileMode.append);
+    }
 
     DebugLogger.instance.logInfo('AUTH', 'Rust unlock result: success=${vaultResult.success}, error=${vaultResult.error}, cryptoVersion=${vaultResult.cryptoVersion}');
 
@@ -1037,9 +1104,8 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
 /// Accounts provider - lists all accounts sorted by recent access
 final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
   final notifier = ref.read(authNotifierProvider.notifier);
-  // Watch the notifier object - it only changes when account selection changes,
-  // NOT when lock/unlock state changes
-  ref.watch(authNotifierProvider.notifier);
+  // Watch the AuthState - re-evaluates when state changes (account modifications)
+  ref.watch(authNotifierProvider);
   return notifier.getAccountsSortedByRecent();
 });
 

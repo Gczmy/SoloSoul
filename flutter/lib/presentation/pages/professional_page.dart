@@ -5,17 +5,11 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
-    show SensitivityLevel;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
-    show LabelValueField;
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -35,9 +29,6 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(profileNotifierProvider.notifier).loadProfile();
-    });
   }
 
   @override
@@ -239,9 +230,11 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
             deletedItem: item,
           );
     } catch (e) {
-      setState(() {
-        _items = List.from(_items)..insert(index, item);
-      });
+      if (mounted) {
+        setState(() {
+          _items = List.from(_items)..insert(index, item);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -287,12 +280,12 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
     if (wasAdding) {
       itemToSave = newItem!;
     } else {
-      itemToSave = _createFromValues(values, id: editingItem!.id);
+      itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexById(editingItem!.id, (x) => x.id);
+      final index = _items.indexById(editingItem.id, (x) => x.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -341,7 +334,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: [
+      fieldDefs: const [
         FormFieldDef(
           fieldId: 'education.institution',
           label: 'Institution',
@@ -406,7 +399,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: isCustomSelected
+                        initialValue: isCustomSelected
                             ? null
                             : (degreeController.text.isEmpty
                                   ? null
@@ -630,9 +623,11 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
             deletedItem: item,
           );
     } catch (e) {
-      setState(() {
-        _items = List.from(_items)..insert(index, item);
-      });
+      if (mounted) {
+        setState(() {
+          _items = List.from(_items)..insert(index, item);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -678,12 +673,12 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
     if (wasAdding) {
       itemToSave = newItem!;
     } else {
-      itemToSave = _createFromValues(values, id: editingItem!.id);
+      itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexById(editingItem!.id, (x) => x.id);
+      final index = _items.indexById(editingItem.id, (x) => x.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -725,12 +720,12 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'employment.company',
           label: 'Company',
           sensitivity: SensitivityLevel.public,
         ),
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'employment.position',
           label: 'Position',
           sensitivity: SensitivityLevel.public,
@@ -740,12 +735,12 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
           label: 'Responsibilities',
           sensitivity: ref.watch(effectiveSensitivityProvider('employment.responsibilities')),
         ),
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'employment.startDate',
           label: 'Start Date',
           sensitivity: SensitivityLevel.public,
         ),
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'employment.endDate',
           label: 'End Date',
           sensitivity: SensitivityLevel.public,
@@ -864,9 +859,11 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
             deletedItem: item,
           );
     } catch (e) {
-      setState(() {
-        _items = List.from(_items)..insert(index, item);
-      });
+      if (mounted) {
+        setState(() {
+          _items = List.from(_items)..insert(index, item);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -912,13 +909,13 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
     if (wasAdding) {
       itemToSave = newItem!;
     } else {
-      itemToSave = _createFromValues(values, id: editingItem!.id);
+      itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (itemToSave.name.isEmpty) return;
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexById(editingItem!.id, (x) => x.id);
+      final index = _items.indexById(editingItem.id, (x) => x.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -959,7 +956,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: [
+      fieldDefs: const [
         FormFieldDef(
           fieldId: 'skill.name',
           label: 'Skill Name',
@@ -1087,9 +1084,11 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
             deletedItem: item,
           );
     } catch (e) {
-      setState(() {
-        _items = List.from(_items)..insert(index, item);
-      });
+      if (mounted) {
+        setState(() {
+          _items = List.from(_items)..insert(index, item);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -1135,13 +1134,13 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
     if (wasAdding) {
       itemToSave = newItem!;
     } else {
-      itemToSave = _createFromValues(values, id: editingItem!.id);
+      itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (itemToSave.name.isEmpty) return;
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexById(editingItem!.id, (x) => x.id);
+      final index = _items.indexById(editingItem.id, (x) => x.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -1181,7 +1180,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: [
+      fieldDefs: const [
         FormFieldDef(
           fieldId: 'language.name',
           label: 'Language',
@@ -1317,9 +1316,11 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
             deletedItem: item,
           );
     } catch (e) {
-      setState(() {
-        _items = List.from(_items)..insert(index, item);
-      });
+      if (mounted) {
+        setState(() {
+          _items = List.from(_items)..insert(index, item);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -1365,13 +1366,13 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
     if (wasAdding) {
       itemToSave = newItem!;
     } else {
-      itemToSave = _createFromValues(values, id: editingItem!.id);
+      itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (itemToSave.title == null || itemToSave.title!.isEmpty) return;
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
-      final index = _items.indexById(editingItem!.id, (x) => x.id);
+      final index = _items.indexById(editingItem.id, (x) => x.id);
       if (index != -1) {
         _items = List.from(_items)..[index] = itemToSave;
       }
@@ -1414,17 +1415,17 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'award.title',
           label: 'Title',
           sensitivity: SensitivityLevel.public,
         ),
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'award.issuer',
           label: 'Issuer',
           sensitivity: SensitivityLevel.public,
         ),
-        FormFieldDef(
+        const FormFieldDef(
           fieldId: 'award.date',
           label: 'Date',
           sensitivity: SensitivityLevel.public,

@@ -19,6 +19,7 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
+import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
@@ -27,9 +28,6 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
         sensitivePageAccessProvider,
         isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
-import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
-    show fieldHistoriesProvider;
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -37,6 +35,7 @@ Future<bool> verifyPasswordForRestrictedField({
   required BuildContext context,
   required WidgetRef ref,
   required String fieldId,
+  bool Function()? isMounted,
 }) async {
   final level = ref.watch(effectiveSensitivityProvider(fieldId));
 
@@ -60,6 +59,11 @@ Future<bool> verifyPasswordForRestrictedField({
     onVerify: authNotifier.verifyPasswordForSensitiveData,
   );
   if (password == null) {
+    return false;
+  }
+
+  // Check mounted before accessing state after await
+  if (isMounted != null && !isMounted()) {
     return false;
   }
 
@@ -162,6 +166,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         // Persist operation to account metadata
         await _persistOperation('Updated Full Name');
         // Show top notification for operation feedback
+        if (!mounted) return;
         final isPrivacyMode =
             ref.read(accountStyleProvider).displayMode ==
             SensitivityDisplayMode.hidePrivate;
@@ -207,6 +212,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               tooltip: 'Copy Name',
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: fullName));
+                ClipboardMonitorService.instance.notifySensitiveCopied();
                 showOverlaySnackBar(
                   context,
                   content: 'Copied to clipboard',
@@ -306,7 +312,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     radius: 48,
                     backgroundColor: AppTheme.primaryColor,
                     child: Text(
-                      fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
+                      fullName.isNotEmpty ? fullName.runes.first.toString().toUpperCase() : '?',
                       style: const TextStyle(
                         fontSize: 36,
                         color: Colors.white,
@@ -368,7 +374,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.lock_outline,
                     color: AppTheme.primaryColor,
                     size: 24,
@@ -378,7 +384,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'End-to-End Encrypted',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
@@ -487,9 +493,11 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
             deletedItem: contact,
           );
     } catch (e) {
-      setState(() {
-        _contacts = List.from(_contacts)..insert(index, contact);
-      });
+      if (mounted) {
+        setState(() {
+          _contacts = List.from(_contacts)..insert(index, contact);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -531,7 +539,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     if (wasAdding) {
       contactToSave = newItem!;
     } else {
-      contactToSave = _createContactFromValues(values, id: editingItem!.id);
+      contactToSave = _createContactFromValues(values, id: editingItem.id);
     }
     final itemName = contactToSave.title.isNotEmpty
         ? contactToSave.title
@@ -541,7 +549,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
     if (wasAdding) {
       _contacts = List.from(_contacts)..add(contactToSave);
     } else {
-      final index = _contacts.indexById(editingItem!.id, (c) => c.id);
+      final index = _contacts.indexById(editingItem.id, (c) => c.id);
       if (index != -1) {
         _contacts = List.from(_contacts)..[index] = contactToSave;
       }
@@ -636,7 +644,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedType.isEmpty ? 'email' : selectedType,
+                  initialValue: selectedType.isEmpty ? 'email' : selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Type',
                     border: OutlineInputBorder(),
@@ -701,6 +709,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       itemToMap: (c) => {'title': c.title, 'type': c.type, 'value': c.value},
       onCopyAll: (contact, text) async {
         Clipboard.setData(ClipboardData(text: text));
+        ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -789,7 +798,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
   void _loadData() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _idCards = [
-      ...?(identity?.activeIdCards?.map(
+      ...?(identity?.activeIdCards.map(
         (c) => IdCardData(
           id: c.id,
           title: c.title,
@@ -851,9 +860,11 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
             deletedItem: card,
           );
     } catch (e) {
-      setState(() {
-        _idCards = List.from(_idCards)..insert(index, card);
-      });
+      if (mounted) {
+        setState(() {
+          _idCards = List.from(_idCards)..insert(index, card);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -896,7 +907,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     if (wasAdding) {
       cardToSave = newItem!;
     } else {
-      cardToSave = _createIdCardFromValues(values, id: editingItem!.id);
+      cardToSave = _createIdCardFromValues(values, id: editingItem.id);
     }
     final itemName = cardToSave.title ?? cardToSave.number ?? 'ID Card';
 
@@ -904,7 +915,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     if (wasAdding) {
       _idCards = List.from(_idCards)..add(cardToSave);
     } else {
-      final index = _idCards.indexById(editingItem!.id, (c) => c.id);
+      final index = _idCards.indexById(editingItem.id, (c) => c.id);
       if (index != -1) {
         _idCards = List.from(_idCards)..[index] = cardToSave;
       }
@@ -1009,6 +1020,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           },
           onCopyAll: (card, text) async {
             Clipboard.setData(ClipboardData(text: text));
+            ClipboardMonitorService.instance.notifySensitiveCopied();
             showOverlaySnackBar(
               context,
               content: 'Copied to clipboard',
@@ -1084,7 +1096,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
   void _loadData() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _addresses = [
-      ...?(identity?.activeAddresses?.map(
+      ...?(identity?.activeAddresses.map(
         (a) => AddressData(
           id: a.id,
           title: a.title,
@@ -1146,9 +1158,11 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
             deletedItem: address,
           );
     } catch (e) {
-      setState(() {
-        _addresses = List.from(_addresses)..insert(index, address);
-      });
+      if (mounted) {
+        setState(() {
+          _addresses = List.from(_addresses)..insert(index, address);
+        });
+      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -1191,7 +1205,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     if (wasAdding) {
       addressToSave = newItem!;
     } else {
-      addressToSave = _createAddressFromValues(values, id: editingItem!.id);
+      addressToSave = _createAddressFromValues(values, id: editingItem.id);
     }
     final itemName = addressToSave.title ?? 'Address';
 
@@ -1199,7 +1213,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     if (wasAdding) {
       _addresses = List.from(_addresses)..add(addressToSave);
     } else {
-      final index = _addresses.indexById(editingItem!.id, (a) => a.id);
+      final index = _addresses.indexById(editingItem.id, (a) => a.id);
       if (index != -1) {
         _addresses = List.from(_addresses)..[index] = addressToSave;
       }
@@ -1300,6 +1314,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           },
           onCopyAll: (address, text) async {
             Clipboard.setData(ClipboardData(text: text));
+            ClipboardMonitorService.instance.notifySensitiveCopied();
             showOverlaySnackBar(
               context,
               content: 'Copied to clipboard',

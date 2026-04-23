@@ -15,11 +15,9 @@ void main() async {
   ];
 
   DynamicLibrary? lib;
-  String? loadedPath;
   for (final path in paths) {
     try {
       lib = DynamicLibrary.open(path);
-      loadedPath = path;
       print('✓ Loaded library from: $path');
       break;
     } catch (e) {
@@ -39,7 +37,7 @@ void main() async {
   late final void Function(Pointer<Utf8>) freeRustString;
 
   try {
-    vaultRequest = lib!
+    vaultRequest = lib
         .lookup<NativeFunction<Pointer<Utf8> Function(Pointer<Utf8>, IntPtr)>>('vault_request_ffi')
         .asFunction();
     initAccountManager = lib

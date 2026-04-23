@@ -454,9 +454,12 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
     if (isEditing) {
       // Semi-transparent overlay over existing items
       displayItems.add(
-        IgnorePointer(
-          child: Container(
-            color: Colors.black.withValues(alpha: 0.05),
+        SizedBox(
+          height: 0,
+          child: IgnorePointer(
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.05),
+            ),
           ),
         ),
       );

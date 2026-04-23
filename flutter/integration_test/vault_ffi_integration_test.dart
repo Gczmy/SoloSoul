@@ -51,7 +51,7 @@ void main() {
       expect(salt, isNotNull, reason: 'Salt generation should work');
       expect(salt!.length, equals(32), reason: 'Salt should be 32 bytes');
 
-      final password = 'test_password_123!';
+      const password = 'test_password_123!';
       final derivedKey = NativeCryptoService.instance.deriveKey(
         password: password,
         salt: salt,
@@ -63,7 +63,7 @@ void main() {
       expect(derivedKey, isNotNull, reason: 'Key derivation should succeed');
 
       // Set encryption key for profile storage
-      RustVaultService.instance.setEncryptionKey(derivedKey);
+      RustVaultService.instance.setEncryptionKey(derivedKey!);
 
       // Now we could save/load profiles
       RustVaultService.instance.isVaultUnlocked();

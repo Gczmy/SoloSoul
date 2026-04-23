@@ -34,6 +34,13 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
   ProfileNotifier(this._ref) : super(null);
 
+  @override
+  void dispose() {
+    _saveDebounceTimer?.cancel();
+    _saveDebounceTimer = null;
+    super.dispose();
+  }
+
   bool get isLoading => _isLoading;
 
   /// Clear profile state (when auth is locked or reset)

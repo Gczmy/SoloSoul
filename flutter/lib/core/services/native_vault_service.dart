@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 /// FFI bindings to Rust vault implementation (iOS/macOS only)
 /// Uses JSON relay pattern to communicate with Rust vault store
@@ -12,8 +13,9 @@ class NativeVaultService {
   late DynamicLibrary _lib;
   bool _isAndroid = false;
 
-  /// Write debug log to file
+  /// Write debug log to file (debug build only)
   void _log(String msg) {
+    if (!kDebugMode) return;
     try {
       // Use home directory for macOS sandbox compatibility
       final homeDir = Platform.environment['HOME'] ?? '/tmp';
@@ -171,7 +173,7 @@ class NativeVaultService {
 
     final requestJson = jsonEncode(request);
     final requestPtr = requestJson.toNativeUtf8();
-    final requestLen = requestJson.length;
+    final requestLen = utf8.encode(requestJson).length;
 
     try {
       final responsePtr = _vaultRequest(requestPtr, requestLen);

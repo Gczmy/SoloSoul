@@ -62,11 +62,7 @@ enum LogDevice {
   const LogDevice(this.value);
 
   static LogDevice get current {
-    try {
-      return Platform.operatingSystem.toLowerCase() as LogDevice;
-    } catch (_) {
-      return LogDevice.unknown;
-    }
+    return fromString(Platform.operatingSystem);
   }
 
   static LogDevice fromString(String value) {
@@ -817,7 +813,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: entries.length,
-                    separatorBuilder: (_, _a) => const SizedBox(height: 8),
+                    separatorBuilder: (_, a) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final entry = entries[index];
                       return _OperationTile(entry: entry);
@@ -1215,7 +1211,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
               Navigator.pop(context);
               setState(() {}); // Refresh view
             },
-            child: Text('Clear', style: TextStyle(color: AppTheme.errorColor)),
+            child: const Text('Clear', style: TextStyle(color: AppTheme.errorColor)),
           ),
         ],
       ),
@@ -1279,7 +1275,7 @@ class _OperationTile extends StatelessWidget {
           children: [
             Icon(_actionIcon, color: _actionColor(context)),
             const SizedBox(width: 8),
-            Expanded(child: Text('Operation Details')),
+            const Expanded(child: Text('Operation Details')),
           ],
         ),
         content: Column(

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
@@ -16,8 +18,6 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show effectiveSensitivityProvider;
 
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
@@ -542,11 +542,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.restore, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            const Text('Confirm Restore'),
+            SizedBox(width: 8),
+            Text('Confirm Restore'),
           ],
         ),
         content: Column(
@@ -748,13 +748,14 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(context);
+              final snackBarContext = context;
+              final overlaySnackBar = showOverlaySnackBar;
+              Navigator.pop(snackBarContext);
               await ref.read(profileNotifierProvider.notifier).emptyAllTrash();
               if (mounted) {
-                // Trigger rebuild to remove all items immediately
                 setState(() {});
-                showOverlaySnackBar(
-                  context,
+                overlaySnackBar(
+                  snackBarContext,
                   content: 'All $itemCount items permanently deleted',
                   type: SnackBarType.error,
                 );

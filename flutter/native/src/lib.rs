@@ -352,15 +352,15 @@ pub async fn real_list_profiles() -> Vec<BridgeProfileSummary> {
 // #[frb] // disabled
 pub async fn encrypt_data(data: Vec<u8>, key: Vec<u8>) -> Vec<u8> {
     if key.len() != 32 {
-        return data;
+        return Vec::new(); // Return empty on error - do NOT return plaintext
     }
     let key_array: [u8; 32] = match key.try_into() {
         Ok(k) => k,
-        Err(_) => return data,
+        Err(_) => return Vec::new(),
     };
     match crate::crypto::encrypt_blob(&key_array, &data) {
         Ok(blob) => blob.to_vec(),
-        Err(_) => data,
+        Err(_) => Vec::new(), // Return empty on error - do NOT return plaintext
     }
 }
 
@@ -368,15 +368,15 @@ pub async fn encrypt_data(data: Vec<u8>, key: Vec<u8>) -> Vec<u8> {
 // #[frb] // disabled
 pub async fn decrypt_data(encrypted: Vec<u8>, key: Vec<u8>) -> Vec<u8> {
     if key.len() != 32 {
-        return encrypted;
+        return Vec::new(); // Return empty on error - do NOT return ciphertext as plaintext
     }
     let key_array: [u8; 32] = match key.try_into() {
         Ok(k) => k,
-        Err(_) => return encrypted,
+        Err(_) => return Vec::new(),
     };
     match crate::crypto::decrypt_blob(&key_array, &encrypted) {
         Ok(blob) => blob.to_vec(),
-        Err(_) => encrypted,
+        Err(_) => Vec::new(), // Return empty on error - do NOT return ciphertext as plaintext
     }
 }
 
@@ -437,24 +437,39 @@ pub extern "C" fn vault_request_ffi(
     request_ptr: *const libc::c_char,
     request_len: libc::size_t,
 ) -> *mut libc::c_char {
-    use std::ffi::{CStr, CString};
+    use std::ffi::CString;
+    use std::panic;
     use std::slice;
 
-    if request_ptr.is_null() {
-        let response = vault::processor::VaultResponse::error("Null request pointer".to_string());
-        let json = serde_json::to_string(&response).unwrap_or_default();
-        return CString::new(json).unwrap().into_raw();
+    // Catch panics to prevent crashing the entire process
+    let result = panic::catch_unwind(|| {
+        if request_ptr.is_null() {
+            let response = vault::processor::VaultResponse::error("Null request pointer".to_string());
+            let json = serde_json::to_string(&response).unwrap_or_default();
+            return CString::new(json).unwrap().into_raw();
+        }
+
+        // Read the request string from C
+        let request_bytes = unsafe { slice::from_raw_parts(request_ptr as *const u8, request_len) };
+        let request_str = String::from_utf8_lossy(request_bytes);
+
+        // Process the request
+        let response_str = vault_request(request_str.to_string());
+
+        // Return ownership to Dart (caller must free)
+        CString::new(response_str).unwrap_or_else(|_| {
+            CString::new(r#"{"success":false,"error":"response encoding error"}"#).unwrap()
+        }).into_raw()
+    });
+
+    match result {
+        Ok(ptr) => ptr,
+        Err(_) => {
+            let response = vault::processor::VaultResponse::error("Internal error".to_string());
+            let json = serde_json::to_string(&response).unwrap_or_default();
+            CString::new(json).unwrap_or_else(|_| CString::new("{}").unwrap()).into_raw()
+        }
     }
-
-    // Read the request string from C
-    let request_bytes = unsafe { slice::from_raw_parts(request_ptr as *const u8, request_len) };
-    let request_str = String::from_utf8_lossy(request_bytes);
-
-    // Process the request
-    let response_str = vault_request(request_str.to_string());
-
-    // Return ownership to Dart (caller must free)
-    CString::new(response_str).unwrap().into_raw()
 }
 
 /// Initialize account manager from base path (C-compatible)

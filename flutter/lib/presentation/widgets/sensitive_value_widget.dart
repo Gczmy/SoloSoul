@@ -4,8 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
@@ -73,7 +71,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     }
 
     // Check if this field requires verification
-    final level = ref.watch(effectiveSensitivityProvider(widget.fieldId));
+    final level = ref.read(effectiveSensitivityProvider(widget.fieldId));
     final isRestricted = level == SensitivityLevel.critical;
 
     if (isRestricted) {
