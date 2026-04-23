@@ -112,16 +112,16 @@ class IdentityData {
       nationality: json['nationality'],
       idCards: json['id_cards'] != null
           ? (json['id_cards'] as List)
-              .map((e) => IdCardData.fromJson(e))
-              .toList()
+                .map((e) => IdCardData.fromJson(e))
+                .toList()
           : null,
       contact: json['contact'] != null
           ? ContactData.fromJson(json['contact'])
           : null,
       addresses: json['addresses'] != null
           ? (json['addresses'] as List)
-              .map((e) => AddressData.fromJson(e))
-              .toList()
+                .map((e) => AddressData.fromJson(e))
+                .toList()
           : null,
     );
   }
@@ -175,13 +175,13 @@ class IdentityData {
 @JsonSerializable()
 class ContactEntry with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String title; // e.g., "Personal", "Work", "Emergency"
-  String type; // "email", "phone", "mobile"
-  String value;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String title; // e.g., "Personal", "Work", "Emergency"
+  final String type; // "email", "phone", "mobile"
+  final String value;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'Contact';
@@ -239,7 +239,7 @@ class ContactEntry with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable(explicitToJson: true)
 class ContactData {
-  List<ContactEntry> entries;
+  final List<ContactEntry> entries;
 
   ContactData({this.entries = const []});
 
@@ -264,16 +264,16 @@ class ContactData {
 @JsonSerializable()
 class AddressData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? street;
-  String? city;
-  String? state;
-  String? postalCode;
-  String? country;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? street;
+  final String? city;
+  final String? state;
+  final String? postalCode;
+  final String? country;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'Address';
@@ -344,16 +344,16 @@ class AddressData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class IdCardData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? number;
-  String? issueDate;
-  String? expiryDate;
-  String? holderName;
-  String? country;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? number;
+  final String? issueDate;
+  final String? expiryDate;
+  final String? holderName;
+  final String? country;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'IdCard';
@@ -424,19 +424,19 @@ class IdCardData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class TravelHistoryData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String destination;
-  String? date;
-  String? departureCity;
-  String? departureTime;
-  String? arrivalTime;
-  String? flightNumber;
-  String? ticketPrice;
-  String? airline;
-  String? travelType; // Airplane, Train, Bus, Taxi, Drive, Other
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String destination;
+  final String? date;
+  final String? departureCity;
+  final String? departureTime;
+  final String? arrivalTime;
+  final String? flightNumber;
+  final String? ticketPrice;
+  final String? airline;
+  final String? travelType; // Airplane, Train, Bus, Taxi, Drive, Other
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'TravelHistory';
@@ -521,9 +521,9 @@ class TravelHistoryData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable(explicitToJson: true)
 class TravelData {
-  List<PassportData> passports;
-  List<VisaData> visas;
-  List<TravelHistoryData> travelHistory;
+  final List<PassportData> passports;
+  final List<VisaData> visas;
+  final List<TravelHistoryData> travelHistory;
 
   TravelData({
     this.passports = const [],
@@ -574,23 +574,23 @@ class TravelData {
 @JsonSerializable()
 class PassportData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? number;
-  String? country;
-  String? countryCode;
-  String? issueDate;
-  String? placeOfIssue;
-  String? expiryDate;
-  String? dateOfBirth;
-  String? placeOfBirth;
-  String? sex;
-  String? nationality;
-  String? authority;
-  String? holderName;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? number;
+  final String? country;
+  final String? countryCode;
+  final String? issueDate;
+  final String? placeOfIssue;
+  final String? expiryDate;
+  final String? dateOfBirth;
+  final String? placeOfBirth;
+  final String? sex;
+  final String? nationality;
+  final String? authority;
+  final String? holderName;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'Passport';
@@ -689,16 +689,16 @@ class PassportData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class VisaData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? country;
-  String? visaType;
-  String? number;
-  String? issueDate;
-  String? expiryDate;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? country;
+  final String? visaType;
+  final String? number;
+  final String? issueDate;
+  final String? expiryDate;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'Visa';
@@ -767,9 +767,9 @@ class VisaData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable(explicitToJson: true)
 class FinancialData {
-  List<BankAccountData> bankAccounts;
-  List<CardData> cards;
-  List<TaxIdData> taxIds;
+  final List<BankAccountData> bankAccounts;
+  final List<CardData> cards;
+  final List<TaxIdData> taxIds;
 
   FinancialData({
     this.bankAccounts = const [],
@@ -820,16 +820,16 @@ class FinancialData {
 @JsonSerializable()
 class BankAccountData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? bankName;
-  String? accountNumber;
-  String? currency;
-  String? swiftBic;
-  String? sortCode;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? bankName;
+  final String? accountNumber;
+  final String? currency;
+  final String? swiftBic;
+  final String? sortCode;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'BankAccount';
@@ -900,16 +900,16 @@ class BankAccountData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class CardData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? cardNumber;
-  String? cardType;
-  String? expiryDate;
-  String? holderName;
-  String? cvv;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? cardNumber;
+  final String? cardType;
+  final String? expiryDate;
+  final String? holderName;
+  final String? cvv;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'Card';
@@ -980,15 +980,15 @@ class CardData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class TaxIdData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? taxIdNumber;
-  String? taxIdType;
-  String? issuingAuthority;
-  String? country;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? taxIdNumber;
+  final String? taxIdType;
+  final String? issuingAuthority;
+  final String? country;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   @override
   String get entryType => 'TaxId';
@@ -1055,12 +1055,12 @@ class TaxIdData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class SkillData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String name;
-  String? level;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String name;
+  final String? level;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   SkillData({
     required this.id,
@@ -1075,10 +1075,7 @@ class SkillData with FormattableEntry implements IdentifiableItem {
   String get entryType => 'Skill';
 
   @override
-  Map<String, dynamic> toMap() => {
-    'name': name,
-    'level': level,
-  };
+  Map<String, dynamic> toMap() => {'name': name, 'level': level};
 
   /// Deprecated: using generated fromJson
   @Deprecated('Use the generated fromJson instead')
@@ -1115,12 +1112,12 @@ class SkillData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class LanguageData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String name;
-  String? proficiency;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String name;
+  final String? proficiency;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   LanguageData({
     required this.id,
@@ -1135,10 +1132,7 @@ class LanguageData with FormattableEntry implements IdentifiableItem {
   String get entryType => 'Language';
 
   @override
-  Map<String, dynamic> toMap() => {
-    'name': name,
-    'proficiency': proficiency,
-  };
+  Map<String, dynamic> toMap() => {'name': name, 'proficiency': proficiency};
 
   /// Deprecated: using generated fromJson
   @Deprecated('Use the generated fromJson instead')
@@ -1174,14 +1168,14 @@ class LanguageData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class AwardData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? title;
-  String? issuer;
-  String? date;
-  String? description;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? title;
+  final String? issuer;
+  final String? date;
+  final String? description;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   AwardData({
     required this.id,
@@ -1243,11 +1237,11 @@ class AwardData with FormattableEntry implements IdentifiableItem {
 
 @JsonSerializable(explicitToJson: true)
 class ProfessionalData {
-  List<EducationData> education;
-  List<EmploymentData> employment;
-  List<SkillData> skills;
-  List<LanguageData> languages;
-  List<AwardData> awards;
+  final List<EducationData> education;
+  final List<EmploymentData> employment;
+  final List<SkillData> skills;
+  final List<LanguageData> languages;
+  final List<AwardData> awards;
 
   ProfessionalData({
     this.education = const [],
@@ -1318,16 +1312,16 @@ class ProfessionalData {
 @JsonSerializable()
 class EducationData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? institution;
-  String? degree;
-  String? degreeCustom;
-  String? field;
-  String? startDate;
-  String? endDate;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? institution;
+  final String? degree;
+  final String? degreeCustom;
+  final String? field;
+  final String? startDate;
+  final String? endDate;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   EducationData({
     required this.id,
@@ -1398,15 +1392,15 @@ class EducationData with FormattableEntry implements IdentifiableItem {
 @JsonSerializable()
 class EmploymentData with FormattableEntry implements IdentifiableItem {
   @override
-  String id;
-  String? company;
-  String? position;
-  String? responsibilities;
-  String? startDate;
-  String? endDate;
-  int updatedAt;
-  bool isDeleted;
-  DateTime? deletedAt;
+  final String id;
+  final String? company;
+  final String? position;
+  final String? responsibilities;
+  final String? startDate;
+  final String? endDate;
+  final int updatedAt;
+  final bool isDeleted;
+  final DateTime? deletedAt;
 
   EmploymentData({
     required this.id,
@@ -2042,8 +2036,9 @@ class ProfileStorageService {
             deletedAt: null,
           );
           return profile.copyWith(
-            professional:
-                profile.professional!.copyWith(employment: employment),
+            professional: profile.professional!.copyWith(
+              employment: employment,
+            ),
           );
         } else if (itemType == 'skill' &&
             index < profile.professional!.skills.length) {
@@ -2065,8 +2060,7 @@ class ProfileStorageService {
             deletedAt: null,
           );
           return profile.copyWith(
-            professional:
-                profile.professional!.copyWith(languages: languages),
+            professional: profile.professional!.copyWith(languages: languages),
           );
         }
         return profile;
@@ -2128,14 +2122,12 @@ class ProfileStorageService {
         if (profile.travel == null) return null;
         if (itemType == 'passport' &&
             index < profile.travel!.passports.length) {
-          final updated = List<PassportData>.from(
-            profile.travel!.passports,
-          )..removeAt(index);
+          final updated = List<PassportData>.from(profile.travel!.passports)
+            ..removeAt(index);
           return profile.copyWith(
             travel: profile.travel!.copyWith(passports: updated),
           );
-        } else if (itemType == 'visa' &&
-            index < profile.travel!.visas.length) {
+        } else if (itemType == 'visa' && index < profile.travel!.visas.length) {
           final updated = List<VisaData>.from(profile.travel!.visas)
             ..removeAt(index);
           return profile.copyWith(
@@ -2197,9 +2189,8 @@ class ProfileStorageService {
           );
         } else if (itemType == 'skill' &&
             index < profile.professional!.skills.length) {
-          final updated = List<SkillData>.from(
-            profile.professional!.skills,
-          )..removeAt(index);
+          final updated = List<SkillData>.from(profile.professional!.skills)
+            ..removeAt(index);
           return profile.copyWith(
             professional: profile.professional!.copyWith(skills: updated),
           );
@@ -2227,17 +2218,15 @@ class ProfileStorageService {
           );
         } else if (itemType == 'idCard' &&
             index < (profile.identity!.idCards?.length ?? 0)) {
-          final idCards = List<IdCardData>.from(
-            profile.identity!.idCards!,
-          )..removeAt(index);
+          final idCards = List<IdCardData>.from(profile.identity!.idCards!)
+            ..removeAt(index);
           return profile.copyWith(
             identity: profile.identity!.copyWith(idCards: idCards),
           );
         } else if (itemType == 'address' &&
             index < (profile.identity!.addresses?.length ?? 0)) {
-          final addresses = List<AddressData>.from(
-            profile.identity!.addresses!,
-          )..removeAt(index);
+          final addresses = List<AddressData>.from(profile.identity!.addresses!)
+            ..removeAt(index);
           return profile.copyWith(
             identity: profile.identity!.copyWith(addresses: addresses),
           );
