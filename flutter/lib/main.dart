@@ -81,7 +81,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
       NativeChannelService.setLockCallback(() {
         try {
           ref.read(authNotifierProvider.notifier).lockVault();
-        } catch (e) {
+        } on Exception catch (e) {
           DebugLogger.instance.logError('MAIN', 'Lock callback error: $e');
         }
       });
@@ -150,7 +150,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
               type: SnackBarType.info,
             );
           }
-        } catch (_) {
+        } on Exception catch (_) {
           // SnackBar failed (no overlay), continue with navigation
         }
         _navigatorKey.currentState?.pushNamedAndRemoveUntil(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,7 +35,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(milliseconds: 800));
 
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      unawaited(Navigator.of(context).pushReplacementNamed(AppRoutes.login));
     }
   }
 

@@ -180,7 +180,7 @@ class AccountStyleService {
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       return AccountStyle.fromJson(json);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }

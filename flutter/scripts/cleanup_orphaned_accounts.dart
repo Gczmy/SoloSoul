@@ -101,7 +101,7 @@ void main(List<String> args) async {
 
     try {
       rustAccounts = jsonDecode(content) as List<dynamic>;
-    } catch (e) {
+    } on Exception catch (e) {
       print('Error parsing accounts.json: $e');
       rustAccounts = null;
     }
@@ -162,7 +162,7 @@ void main(List<String> args) async {
               try {
                 await dir.delete(recursive: true);
                 print('  ✓ Deleted: ${dir.path}');
-              } catch (e) {
+              } on Exception catch (e) {
                 print('  ✗ Failed to delete ${dir.path}: $e');
               }
             }

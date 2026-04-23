@@ -20,7 +20,7 @@ void main() async {
       lib = DynamicLibrary.open(path);
       print('✓ Loaded library from: $path');
       break;
-    } catch (e) {
+    } on Exception catch (e) {
       print('✗ Failed to load from: $path');
     }
   }
@@ -50,7 +50,7 @@ void main() async {
         .lookup<NativeFunction<Void Function(Pointer<Utf8>)>>('free_rust_string_ffi')
         .asFunction();
     print('✓ All FFI symbols bound\n');
-  } catch (e) {
+  } on Exception catch (e) {
     print('\n✗ Failed to bind symbols: $e');
     exit(1);
   }

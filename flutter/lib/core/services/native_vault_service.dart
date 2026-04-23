@@ -40,7 +40,9 @@ class NativeVaultService {
     _log('NativeVaultService initializing...');
 
     if (_isAndroid) {
-      // Android: Vault operations not yet supported via FFI
+      // TODO: [P1] Android FFI not implemented - Vault operations return null/false
+      // Requires Rust library cross-compiled for Android (aarch64-linux-android)
+      // Until then, Android users cannot use local vault storage
       return;
     }
 
@@ -64,7 +66,7 @@ class NativeVaultService {
           loadedLib = _lib;
           _log('Successfully loaded dylib from: $path');
           break;
-        } catch (e) {
+        } on Exception catch (e) {
           _log('Failed to load from $path: $e');
         }
       }

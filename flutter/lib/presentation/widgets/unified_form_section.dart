@@ -299,7 +299,7 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
       await widget.onDelete(item);
       widget.onDidDelete?.call(item, index);
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       setState(() {
         _items = List.from(_items)..insert(index, item);

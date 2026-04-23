@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -220,7 +222,7 @@ class _BankAccountSectionState
             index: index,
             deletedItem: account,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       setState(() {
         _accounts = List.from(_accounts)..insert(index, account);
@@ -298,7 +300,7 @@ class _BankAccountSectionState
       await ref
           .read(profileNotifierProvider.notifier)
           .updateFinancialImmediate(financial);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _accounts = originalAccounts;
       if (mounted) {
@@ -369,8 +371,8 @@ class _BankAccountSectionState
       onSave: _onAccountSave,
       itemToMap: _accountToMap,
       onCopyAll: (account, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -411,8 +413,8 @@ class _CardSection extends ConsumerStatefulWidget {
   ConsumerState<_CardSection> createState() => _CardSectionState();
 }
 
-class _CardSectionState extends ConsumerState<_CardSection>
-    with WidgetsBindingObserver {
+class _CardSectionState
+    extends ProfileSectionState<_CardSection> {
   Widget _buildCardItem(CardData card, Map<String, String> itemMap) {
     return EntryCardWidget<CardData>(
       item: card,
@@ -431,26 +433,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
   late List<CardData> _cards;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _cards = [
       ...?(financial?.activeCards.map(
@@ -532,7 +515,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
         await ref
             .read(profileNotifierProvider.notifier)
             .restore(section: 'financial', itemType: 'card', id: deletedId);
-        _loadData();
+        loadItems();
         if (mounted) setState(() {});
       },
     );
@@ -584,7 +567,7 @@ class _CardSectionState extends ConsumerState<_CardSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateFinancialImmediate(financial);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _cards = originalCards;
       if (mounted) {
@@ -653,8 +636,8 @@ class _CardSectionState extends ConsumerState<_CardSection>
       onSave: _onCardSave,
       itemToMap: _cardToMap,
       onCopyAll: (card, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',
@@ -697,8 +680,8 @@ class _TaxIdSection extends ConsumerStatefulWidget {
   ConsumerState<_TaxIdSection> createState() => _TaxIdSectionState();
 }
 
-class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
-    with WidgetsBindingObserver {
+class _TaxIdSectionState
+    extends ProfileSectionState<_TaxIdSection> {
   Widget _buildTaxIdItem(TaxIdData taxId, Map<String, String> itemMap) {
     return EntryCardWidget<TaxIdData>(
       item: taxId,
@@ -717,26 +700,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
   late List<TaxIdData> _taxIds;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _taxIds = [
       ...?(financial?.activeTaxIds.map(
@@ -805,7 +769,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
             index: index,
             deletedItem: taxId,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _taxIds = List.from(_taxIds)..insert(index, taxId);
@@ -835,7 +799,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'financial', itemType: 'tax_id', id: deletedId);
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -880,7 +844,7 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateFinancialImmediate(financial);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _taxIds = originalTaxIds;
       if (mounted) {
@@ -944,8 +908,8 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       onSave: _onTaxIdSave,
       itemToMap: _taxIdToMap,
       onCopyAll: (taxId, text) async {
-        Clipboard.setData(ClipboardData(text: text));
-        ClipboardMonitorService.instance.notifySensitiveCopied();
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
+        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
         showOverlaySnackBar(
           context,
           content: 'Copied to clipboard',

@@ -82,7 +82,7 @@ class NativeCryptoService {
           _lib = DynamicLibrary.open(path);
           loadedLib = _lib;
           break;
-        } catch (_) {
+        } on Exception catch (_) {
           // Try next path
         }
       }
@@ -269,6 +269,8 @@ class NativeCryptoService {
 
   /// Dart implementation of key derivation using PBKDF2-HMAC-SHA256
   /// Note: This is a fallback for Android. For production, use Argon2id.
+  // TODO: [P1] Android uses PBKDF2 instead of Argon2id - less secure on Android
+  // Argon2id provides better protection against GPU/ASIC attacks
   Uint8List? _deriveKeyDart(
     String password,
     Uint8List salt,
@@ -286,7 +288,7 @@ class NativeCryptoService {
       final derivedKey = pbkdf2.process(passwordBytes);
 
       return Uint8List.fromList(derivedKey);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -378,7 +380,7 @@ class NativeCryptoService {
 
       // encrypt package already includes the GCM tag in the ciphertext
       return Uint8List.fromList(encrypted.bytes);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -474,7 +476,7 @@ class NativeCryptoService {
       final decrypted = encrypter.decryptBytes(encryptedObj, iv: ivObj);
 
       return Uint8List.fromList(decrypted);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }

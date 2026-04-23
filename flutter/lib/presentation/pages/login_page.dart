@@ -170,9 +170,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       if (mounted) {
-        Navigator.of(
+        unawaited(Navigator.of(
           context,
-        ).pushReplacementNamed(AppRoutes.home);
+        ).pushReplacementNamed(AppRoutes.home));
       }
     } else if (mounted) {
       setState(() => _isLoading = false);
@@ -281,9 +281,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       if (mounted) {
-        Navigator.of(
+        unawaited(Navigator.of(
           context,
-        ).pushReplacementNamed(AppRoutes.home);
+        ).pushReplacementNamed(AppRoutes.home));
       }
     } else if (mounted) {
       setState(() {
@@ -306,7 +306,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         }
         traceLog = File('${logDir.path}/flutter_native_vault.log');
         await traceLog.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] _handleCreateAccount start\n', mode: FileMode.append);
-      } catch (e) {
+      } on Exception catch (e) {
         // Silently fail if logging fails - not critical path
       }
     }
@@ -357,7 +357,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         // Pre-register all form fields for sensitivity settings
         ref.read(formFieldRegistryProvider.notifier).registerAllForms();
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+          unawaited(Navigator.of(context).pushReplacementNamed(AppRoutes.home));
         }
       } else if (mounted) {
         setState(() {

@@ -20,6 +20,7 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
+import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
   const TravelPage({super.key});
@@ -105,33 +106,12 @@ class _PassportSection extends ConsumerStatefulWidget {
   ConsumerState<_PassportSection> createState() => _PassportSectionState();
 }
 
-class _PassportSectionState extends ConsumerState<_PassportSection>
-    with WidgetsBindingObserver {
+class _PassportSectionState
+    extends ProfileSectionState<_PassportSection> {
   late List<PassportData> _passports;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        _loadData();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _passports = [
       ...?(travel?.activePassports.map((p) {
@@ -252,7 +232,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
             index: index,
             deletedItem: passport,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _passports = List.from(_passports)..insert(index, passport);
@@ -282,7 +262,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'passport', id: deletedId);
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -329,7 +309,7 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateTravelImmediate(travel);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _passports = originalPassports;
       if (mounted) {
@@ -495,33 +475,12 @@ class _VisaSection extends ConsumerStatefulWidget {
   ConsumerState<_VisaSection> createState() => _VisaSectionState();
 }
 
-class _VisaSectionState extends ConsumerState<_VisaSection>
-    with WidgetsBindingObserver {
+class _VisaSectionState
+    extends ProfileSectionState<_VisaSection> {
   late List<VisaData> _visas;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        _loadData();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _visas = [
       ...?(travel?.activeVisas.map(
@@ -598,7 +557,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
             index: index,
             deletedItem: visa,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _visas = List.from(_visas)..insert(index, visa);
@@ -628,7 +587,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'travel', itemType: 'visa', id: deletedId);
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -673,7 +632,7 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateTravelImmediate(travel);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _visas = originalVisas;
       if (mounted) {
@@ -786,33 +745,12 @@ class _TravelHistorySection extends ConsumerStatefulWidget {
       _TravelHistorySectionState();
 }
 
-class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
-    with WidgetsBindingObserver {
+class _TravelHistorySectionState
+    extends ProfileSectionState<_TravelHistorySection> {
   late List<TravelHistoryData> _history;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        _loadData();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final travel = ref.read(profileNotifierProvider)?.travel;
     _history = [...(travel?.activeTravelHistory ?? [])];
   }
@@ -859,7 +797,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
             index: index,
             deletedItem: item,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _history = List.from(_history)..insert(index, item);
@@ -893,7 +831,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
                 itemType: 'travel_history',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -968,7 +906,7 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateTravelImmediate(travel);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _history = originalHistory;
       if (mounted) {

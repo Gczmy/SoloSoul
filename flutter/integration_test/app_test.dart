@@ -199,7 +199,7 @@ void main() {
 
         if (!createResult.success || createResult.accountId == null) {
           // Vault not available - skip test gracefully
-          throw const SkipTest('Rust vault not available - FFI test skipped');
+          throw const Skip('Rust vault not available - FFI test skipped');
         }
 
         testAccountId = createResult.accountId;
@@ -296,7 +296,7 @@ void main() {
         );
 
         if (!createResult.success || createResult.accountId == null) {
-          throw const SkipTest('Rust vault not available');
+          throw const Skip('Rust vault not available');
         }
 
         final accountId = createResult.accountId!;
@@ -361,7 +361,7 @@ void main() {
         );
 
         if (!createResult.success || createResult.accountId == null) {
-          throw const SkipTest('Rust vault not available');
+          throw const Skip('Rust vault not available');
         }
 
         final accountId = createResult.accountId!;

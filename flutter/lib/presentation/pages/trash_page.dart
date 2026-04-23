@@ -1146,7 +1146,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
 
     try {
       await widget.onRestore(widget.item);
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         showOverlaySnackBar(
             context,
@@ -1174,7 +1174,7 @@ class _TrashItemCardState extends State<_TrashItemCard> {
     try {
       // Await the entire purge flow: dialog confirmation + actual deletion
       await widget.onPurge(widget.item);
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         showOverlaySnackBar(
             context,

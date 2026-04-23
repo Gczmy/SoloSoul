@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart' as enc;
@@ -6,12 +7,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pointycastle/export.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 
+// NativeCryptoService only supports Android/macOS/iOS - skip on Linux
+final _isSupported = Platform.isAndroid || Platform.isMacOS || Platform.isIOS;
+
 void main() {
   // NativeCryptoService uses singleton pattern, we test its Dart fallback behavior
   // by directly invoking the static instance methods
 
   group('NativeCryptoService Dart Fallback - Salt Generation', () {
-    test('generateSalt returns 32 bytes on Android', () {
+    test(', skip: !_isSupported,generateSalt returns 32 bytes on Android', () {
       // On Android (_isAndroid=true), it uses _generateSaltDart
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt();
@@ -20,7 +24,7 @@ void main() {
       expect(salt!.length, 32);
     });
 
-    test('generateSalt returns unique values (randomness)', () {
+    test(', skip: !_isSupported,generateSalt returns unique values (randomness)', () {
       final service = NativeCryptoService.instance;
       final salt1 = service.generateSalt();
       final salt2 = service.generateSalt();
@@ -36,7 +40,7 @@ void main() {
     // Note: Our implementation requires 32-byte salt (matching Argon2id requirement)
     // RFC 6070 uses 4-byte salt, so we test our implementation differently
 
-    test('deriveKey produces consistent output for same inputs', () {
+    test(', skip: !_isSupported,deriveKey produces consistent output for same inputs', () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -61,7 +65,7 @@ void main() {
       expect(key1, equals(key2));
     });
 
-    test('deriveKey returns null for invalid salt length', () {
+    test(', skip: !_isSupported,deriveKey returns null for invalid salt length', () {
       final service = NativeCryptoService.instance;
 
       // Salt must be 32 bytes (as enforced by the service)
@@ -76,7 +80,7 @@ void main() {
       );
     });
 
-    test('deriveKey returns different keys for different passwords', () {
+    test(', skip: !_isSupported,deriveKey returns different keys for different passwords', () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -101,7 +105,7 @@ void main() {
       expect(key1, isNot(equals(key2)));
     });
 
-    test('deriveKey returns different keys for different salts', () {
+    test(', skip: !_isSupported,deriveKey returns different keys for different salts', () {
       final service = NativeCryptoService.instance;
       final salt1 = service.generateSalt()!;
       final salt2 = service.generateSalt()!;
@@ -127,7 +131,7 @@ void main() {
       expect(key1, isNot(equals(key2)));
     });
 
-    test('deriveKey returns same key for same inputs (deterministic)', () {
+    test(', skip: !_isSupported,deriveKey returns same key for same inputs (deterministic)', () {
       final service = NativeCryptoService.instance;
       final salt = Uint8List.fromList(List.filled(32, 0x42));
 
@@ -152,7 +156,7 @@ void main() {
       expect(key1, equals(key2));
     });
 
-    test('deriveKey returns 32-byte key', () {
+    test(', skip: !_isSupported,deriveKey returns 32-byte key', () {
       final service = NativeCryptoService.instance;
       final salt = service.generateSalt()!;
 
@@ -181,7 +185,7 @@ void main() {
       testPlaintext = Uint8List.fromList(utf8.encode('Hello, World!'));
     });
 
-    test('encrypt and decrypt roundtrip succeeds', () {
+    test(', skip: !_isSupported,encrypt and decrypt roundtrip succeeds', () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -203,7 +207,7 @@ void main() {
       expect(utf8.decode(decrypted!), equals('Hello, World!'));
     });
 
-    test('encrypt produces different ciphertext for same plaintext (due to random IV behavior)', () {
+    test(', skip: !_isSupported,encrypt produces different ciphertext for same plaintext (due to random IV behavior)', () {
       // Note: With GCM mode, the encrypt package uses the provided nonce as IV
       // If we use different nonces, we get different ciphertext
       final service = NativeCryptoService.instance;
@@ -226,7 +230,7 @@ void main() {
       expect(ciphertext1, isNot(equals(ciphertext2)));
     });
 
-    test('decrypt fails with wrong key', () {
+    test(', skip: !_isSupported,decrypt fails with wrong key', () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -250,7 +254,7 @@ void main() {
       expect(decrypted, isNull);
     });
 
-    test('decrypt fails with wrong nonce', () {
+    test(', skip: !_isSupported,decrypt fails with wrong nonce', () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -274,7 +278,7 @@ void main() {
       expect(decrypted, isNull);
     });
 
-    test('decrypt fails with tampered ciphertext', () {
+    test(', skip: !_isSupported,decrypt fails with tampered ciphertext', () {
       final service = NativeCryptoService.instance;
 
       final ciphertext = service.encrypt(
@@ -299,7 +303,7 @@ void main() {
       expect(decrypted, isNull);
     });
 
-    test('encrypt throws ArgumentError for invalid key length', () {
+    test(', skip: !_isSupported,encrypt throws ArgumentError for invalid key length', () {
       final service = NativeCryptoService.instance;
 
       final invalidKey = Uint8List.fromList(List.filled(16, 0x42)); // 16 bytes instead of 32
@@ -314,7 +318,7 @@ void main() {
       );
     });
 
-    test('encrypt throws ArgumentError for invalid nonce length', () {
+    test(', skip: !_isSupported,encrypt throws ArgumentError for invalid nonce length', () {
       final service = NativeCryptoService.instance;
 
       final invalidNonce = Uint8List.fromList(List.filled(16, 0x24)); // 16 bytes instead of 12
@@ -329,7 +333,7 @@ void main() {
       );
     });
 
-    test('decrypt throws ArgumentError for invalid key length', () {
+    test(', skip: !_isSupported,decrypt throws ArgumentError for invalid key length', () {
       final service = NativeCryptoService.instance;
 
       final invalidKey = Uint8List.fromList(List.filled(16, 0x42));
@@ -344,7 +348,7 @@ void main() {
       );
     });
 
-    test('decrypt throws ArgumentError for invalid nonce length', () {
+    test(', skip: !_isSupported,decrypt throws ArgumentError for invalid nonce length', () {
       final service = NativeCryptoService.instance;
 
       final invalidNonce = Uint8List.fromList(List.filled(16, 0x24));
@@ -359,7 +363,7 @@ void main() {
       );
     });
 
-    test('encrypt and decrypt empty data', () {
+    test(', skip: !_isSupported,encrypt and decrypt empty data', () {
       final service = NativeCryptoService.instance;
       final emptyData = Uint8List(0);
 
@@ -381,7 +385,7 @@ void main() {
       expect(decrypted!.length, 0);
     });
 
-    test('encrypt and decrypt large data', () {
+    test(', skip: !_isSupported,encrypt and decrypt large data', () {
       final service = NativeCryptoService.instance;
       // 1 MB of data
       final largeData = Uint8List.fromList(List.filled(1024 * 1024, 0xAB));
@@ -410,7 +414,7 @@ void main() {
   });
 
   group('NativeCryptoService Base64 Helpers', () {
-    test('base64 encoding roundtrip', () {
+    test(', skip: !_isSupported,base64 encoding roundtrip', () {
       final original = Uint8List.fromList(utf8.encode('Hello, World!'));
       final encoded = base64Encode(original);
       final decoded = base64Decode(encoded);
@@ -419,7 +423,7 @@ void main() {
       expect(utf8.decode(decoded), equals('Hello, World!'));
     });
 
-    test('base64 encoding of binary data', () {
+    test(', skip: !_isSupported,base64 encoding of binary data', () {
       final binary = Uint8List.fromList([0x00, 0xFF, 0x42, 0x7F, 0x80]);
       final encoded = base64Encode(binary);
 
@@ -430,15 +434,15 @@ void main() {
   });
 
   group('Default Constants', () {
-    test('defaultMemoryKib is 65536 (64MB)', () {
+    test(', skip: !_isSupported,defaultMemoryKib is 65536 (64MB)', () {
       expect(defaultMemoryKib, 65536);
     });
 
-    test('defaultIterations is 3', () {
+    test(', skip: !_isSupported,defaultIterations is 3', () {
       expect(defaultIterations, 3);
     });
 
-    test('defaultParallelism is 4', () {
+    test(', skip: !_isSupported,defaultParallelism is 4', () {
       expect(defaultParallelism, 4);
     });
   });

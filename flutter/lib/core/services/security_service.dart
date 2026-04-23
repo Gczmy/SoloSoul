@@ -114,7 +114,7 @@ class SecurityService {
         _settings = SecuritySettings.fromJson(json);
       }
       _initialized = true;
-    } catch (e) {
+    } on Exception catch (e) {
       _initialized = true;
     }
   }

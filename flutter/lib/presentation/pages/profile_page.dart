@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +30,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
         sensitivePageAccessProvider,
         isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -492,7 +495,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
             index: index,
             deletedItem: contact,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _contacts = List.from(_contacts)..insert(index, contact);
@@ -574,7 +577,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       await ref
           .read(profileNotifierProvider.notifier)
           .updateIdentity(newIdentity);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _contacts = originalContacts;
       if (mounted) {
@@ -720,7 +723,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       // Keys WITHOUT prefix - _autoBuildFields adds prefix; _populateControllersFromItem strips prefix.
       itemToMap: (c) => {'title': c.title, 'type': c.type, 'value': c.value},
       onCopyAll: (contact, text) async {
-        Clipboard.setData(ClipboardData(text: text));
+        unawaited(Clipboard.setData(ClipboardData(text: text)));
         ClipboardMonitorService.instance.notifySensitiveCopied();
         showOverlaySnackBar(
           context,
@@ -781,33 +784,11 @@ class _IdCardSection extends ConsumerStatefulWidget {
   ConsumerState<_IdCardSection> createState() => _IdCardSectionState();
 }
 
-class _IdCardSectionState extends ConsumerState<_IdCardSection>
-    with WidgetsBindingObserver {
+class _IdCardSectionState extends ProfileSectionState<_IdCardSection> {
   late List<IdCardData> _idCards;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        _loadData();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _idCards = [
       ...?(identity?.activeIdCards.map(
@@ -871,7 +852,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
             index: index,
             deletedItem: card,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _idCards = List.from(_idCards)..insert(index, card);
@@ -902,7 +883,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'idCard', id: deletedId);
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -950,7 +931,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
         addresses: widget.identity?.addresses,
       );
       await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _idCards = originalIdCards;
       if (mounted) {
@@ -1091,33 +1072,11 @@ class _AddressSection extends ConsumerStatefulWidget {
   ConsumerState<_AddressSection> createState() => _AddressSectionState();
 }
 
-class _AddressSectionState extends ConsumerState<_AddressSection>
-    with WidgetsBindingObserver {
+class _AddressSectionState extends ProfileSectionState<_AddressSection> {
   late List<AddressData> _addresses;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      setState(() {
-        _loadData();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final identity = ref.read(profileNotifierProvider)?.identity;
     _addresses = [
       ...?(identity?.activeAddresses.map(
@@ -1181,7 +1140,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
             index: index,
             deletedItem: address,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _addresses = List.from(_addresses)..insert(index, address);
@@ -1212,7 +1171,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
           await ref
               .read(profileNotifierProvider.notifier)
               .restore(section: 'profile', itemType: 'address', id: deletedId);
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -1260,7 +1219,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
         addresses: _addresses,
       );
       await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _addresses = originalAddresses;
       if (mounted) {

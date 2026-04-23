@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -101,7 +103,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                               _updateSettings(_settings.copyWith(biometricsEnabled: true));
                               setState(() => _biometricsEnabled = true);
                               if (mounted) {
-                                scaffoldMessenger.showSnackBar(
+                                unawaited(scaffoldMessenger.showSnackBar(
                                   const SnackBar(
                                     content: Row(
                                       children: [
@@ -117,7 +119,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                               }
                             }
                           } else {
-                            _updateSettings(_settings.copyWith(biometricsEnabled: false));
+                            unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: false)));
                             setState(() => _biometricsEnabled = false);
                           }
                         },

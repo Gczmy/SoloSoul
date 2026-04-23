@@ -29,7 +29,7 @@ void main() {
         if (await dir.exists()) {
           await dir.delete(recursive: true);
         }
-      } catch (_) {}
+      } on Exception catch (_) {}
     });
 
     test('1. Path handshake: initAccountManager creates vault directory', () async {

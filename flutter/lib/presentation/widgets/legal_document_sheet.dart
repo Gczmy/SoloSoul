@@ -11,7 +11,7 @@ Future<void> showLegalDocumentSheet({
   String content = '';
   try {
     content = await rootBundle.loadString(assetPath);
-  } catch (e) {
+  } on Exception catch (e) {
     content = 'Error loading document: $e';
   }
 

@@ -178,7 +178,7 @@ class SecureAccountStorage {
           throw Exception('Keychain write timed out for key: $key');
         },
       );
-    } catch (e) {
+    } on Exception catch (e) {
       DebugLogger.instance.logError('STORAGE', 'Keychain write error: $e');
       rethrow;
     }
@@ -418,7 +418,7 @@ class SecureAccountStorage {
       await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
 
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       return false;
     }
   }
@@ -539,9 +539,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final ProfileStorageService _profileStorage = ProfileStorageService.instance;
   String? _selectedAccountId;
   AccountInfo? _selectedAccountInfo;
+  int _accountsVersion = 0;
   String? get selectedAccountId => _selectedAccountId;
   AccountInfo? get selectedAccount => _selectedAccountInfo;
   bool get isUnlocked => state == AuthState.unlocked;
+  int get accountsVersion => _accountsVersion;
 
   /// Get all accounts sorted by most recent access
   /// Uses Rust vault as primary source, falls back to SecureAccountStorage when FFI fails
@@ -608,9 +610,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } else {
       _selectedAccountInfo = null;
     }
-    // Trigger rebuild for widgets watching authNotifierProvider.notifier.selectedAccount
-    // StateNotifier doesn't have notifyListeners() - use state = state to trigger
-    state = state;
+    // Increment version to trigger rebuild for widgets watching accountsProvider
+    _accountsVersion++;
   }
 
   /// Create a new account
@@ -658,6 +659,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Keep vault locked after account creation - user must explicitly unlock
       // This ensures the home page shows "Locked" state on first entry
       state = AuthState.locked;
+      _accountsVersion++;
       return (success: true, error: null);
     } else {
       state = AuthState.locked;
@@ -725,7 +727,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           vaultResult.cryptoVersion ?? 2,
         );
       }
-    } catch (e) {
+    } on Exception catch (e) {
       DebugLogger.instance.logError('AUTH', 'Migration error: $e');
       // Migration failed - continue anyway since Rust unlock succeeded
     }
@@ -830,7 +832,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await Future.delayed(const Duration(milliseconds: 100));
         versionUpdated = await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
       }
-    } catch (e) {
+    } on Exception catch (e) {
       DebugLogger.instance.logError('AUTH', 'Migration error: $e');
     }
   }
@@ -857,7 +859,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             const Duration(seconds: 5),
             onTimeout: () => throw TimeoutException('updateAccountCryptoVersion timed out'),
           );
-        } catch (e) {
+        } on Exception catch (e) {
           // Crypto version update failed - log but don't block migration
           DebugLogger.instance.logError('AUTH', 'Failed to update crypto version: $e');
         }
@@ -887,7 +889,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             'verify_hash': rustConfig.verifyHash,
             'crypto_version': cryptoVersion,
           }).timeout(const Duration(seconds: 5), onTimeout: () => throw TimeoutException('saveAccountData timed out'));
-        } catch (e) {
+        } on Exception catch (e) {
           DebugLogger.instance.logError('AUTH', 'Failed to save new account data during migration: $e');
         }
       } else {
@@ -898,7 +900,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             Uint8List.fromList(saltBytes),
             Uint8List.fromList(verifyHashBytes),
           ).timeout(const Duration(seconds: 5), onTimeout: () => throw TimeoutException('updateAccountSalt timed out'));
-        } catch (e) {
+        } on Exception catch (e) {
           DebugLogger.instance.logError('AUTH', 'Failed to update account salt during migration: $e');
         }
         try {
@@ -906,11 +908,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
             const Duration(seconds: 5),
             onTimeout: () => throw TimeoutException('updateAccountCryptoVersion timed out'),
           );
-        } catch (e) {
+        } on Exception catch (e) {
           DebugLogger.instance.logError('AUTH', 'Failed to update crypto version during migration: $e');
         }
       }
-    } catch (e) {
+    } on Exception catch (e) {
       DebugLogger.instance.logError('AUTH', 'Migration error: $e');
     }
   }
@@ -959,6 +961,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       _selectedAccountId = null;
       _selectedAccountInfo = null;
       state = AuthState.locked;
+      _accountsVersion++;
     }
     return success;
   }
@@ -1062,12 +1065,19 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
   return AuthNotifier();
 });
 
+/// Accounts notifier - manages account list with version-based invalidation
+class AccountsNotifier extends AsyncNotifier<List<AccountInfo>> {
+  @override
+  Future<List<AccountInfo>> build() async {
+    // Watch authNotifierProvider to re-run when accountsVersion changes
+    ref.watch(authNotifierProvider.notifier);
+    return ref.read(authNotifierProvider.notifier).getAccountsSortedByRecent();
+  }
+}
+
 /// Accounts provider - lists all accounts sorted by recent access
-final accountsProvider = FutureProvider<List<AccountInfo>>((ref) async {
-  final notifier = ref.read(authNotifierProvider.notifier);
-  // Watch the AuthState - re-evaluates when state changes (account modifications)
-  ref.watch(authNotifierProvider);
-  return notifier.getAccountsSortedByRecent();
+final accountsProvider = AsyncNotifierProvider<AccountsNotifier, List<AccountInfo>>(() {
+  return AccountsNotifier();
 });
 
 /// 敏感数据访问验证的有效期（唯一常量）

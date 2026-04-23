@@ -1154,7 +1154,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     // Each data type has isDeleted property
     try {
       return item.isDeleted == true;
-    } catch (_) {
+    } on Exception catch (_) {
       return false;
     }
   }

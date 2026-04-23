@@ -17,6 +17,7 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
+import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 class ProfessionalPage extends ConsumerStatefulWidget {
   const ProfessionalPage({super.key});
@@ -112,8 +113,7 @@ class _EducationSection extends ConsumerStatefulWidget {
   ConsumerState<_EducationSection> createState() => _EducationSectionState();
 }
 
-class _EducationSectionState extends ConsumerState<_EducationSection>
-    with WidgetsBindingObserver {
+class _EducationSectionState extends ProfileSectionState<_EducationSection> {
   late List<EducationData> _items;
 
   static const _degreeOrder = {
@@ -135,7 +135,8 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
     return _degreeOrder[degree] ?? 6;
   }
 
-  void _loadData() {
+  @override
+  void loadItems() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [
       ...?(professional?.activeEducation.map(
@@ -151,26 +152,6 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
       )),
     ];
     _items.sort((a, b) => _degreeSortOrder(a).compareTo(_degreeSortOrder(b)));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   EducationData _createFromValues(Map<String, String> values, {String? id}) {
@@ -229,7 +210,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
             index: index,
             deletedItem: item,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _items = List.from(_items)..insert(index, item);
@@ -263,7 +244,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
                 itemType: 'education',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -309,7 +290,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _items = originalItems;
       if (mounted) {
@@ -547,31 +528,11 @@ class _EmploymentSection extends ConsumerStatefulWidget {
   ConsumerState<_EmploymentSection> createState() => _EmploymentSectionState();
 }
 
-class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
-    with WidgetsBindingObserver {
+class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
   late List<EmploymentData> _items;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [
       ...?(professional?.activeEmployment.map(
@@ -639,7 +600,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
             index: index,
             deletedItem: item,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _items = List.from(_items)..insert(index, item);
@@ -673,7 +634,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
                 itemType: 'employment',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -720,7 +681,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _items = originalItems;
       if (mounted) {
@@ -754,30 +715,30 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'employment.company',
           label: 'Company',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('employment.company')),
         ),
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'employment.position',
           label: 'Position',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('employment.position')),
         ),
         FormFieldDef(
           fieldId: 'employment.responsibilities',
           label: 'Responsibilities',
           sensitivity: ref.watch(effectiveSensitivityProvider('employment.responsibilities')),
         ),
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'employment.startDate',
           label: 'Start Date',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('employment.startDate')),
         ),
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'employment.endDate',
           label: 'End Date',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('employment.endDate')),
         ),
       ],
       displayItemBuilder: _buildEmploymentItem,
@@ -828,31 +789,11 @@ class _SkillsSection extends ConsumerStatefulWidget {
   ConsumerState<_SkillsSection> createState() => _SkillsSectionState();
 }
 
-class _SkillsSectionState extends ConsumerState<_SkillsSection>
-    with WidgetsBindingObserver {
+class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
   late List<SkillData> _items;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeSkills)];
   }
@@ -892,7 +833,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
             index: index,
             deletedItem: item,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _items = List.from(_items)..insert(index, item);
@@ -926,7 +867,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
                 itemType: 'skill',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -974,7 +915,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _items = originalItems;
       if (mounted) {
@@ -1067,31 +1008,11 @@ class _LanguageSection extends ConsumerStatefulWidget {
   ConsumerState<_LanguageSection> createState() => _LanguageSectionState();
 }
 
-class _LanguageSectionState extends ConsumerState<_LanguageSection>
-    with WidgetsBindingObserver {
+class _LanguageSectionState extends ProfileSectionState<_LanguageSection> {
   late List<LanguageData> _items;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeLanguages)];
   }
@@ -1134,7 +1055,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
             index: index,
             deletedItem: item,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _items = List.from(_items)..insert(index, item);
@@ -1168,7 +1089,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
                 itemType: 'language',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -1215,7 +1136,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _items = originalItems;
       if (mounted) {
@@ -1308,31 +1229,11 @@ class _AwardSection extends ConsumerStatefulWidget {
   ConsumerState<_AwardSection> createState() => _AwardSectionState();
 }
 
-class _AwardSectionState extends ConsumerState<_AwardSection>
-    with WidgetsBindingObserver {
+class _AwardSectionState extends ProfileSectionState<_AwardSection> {
   late List<AwardData> _items;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final professional = ref.read(profileNotifierProvider)?.professional;
     _items = [...?(professional?.activeAwards)];
   }
@@ -1383,7 +1284,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
             index: index,
             deletedItem: item,
           );
-    } catch (e) {
+    } on Exception catch (e) {
       if (mounted) {
         setState(() {
           _items = List.from(_items)..insert(index, item);
@@ -1417,7 +1318,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
                 itemType: 'award',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -1466,7 +1367,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
-    } catch (e) {
+    } on Exception catch (e) {
       // Rollback on failure
       _items = originalItems;
       if (mounted) {
@@ -1500,20 +1401,20 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'award.title',
           label: 'Title',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('award.title')),
         ),
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'award.issuer',
           label: 'Issuer',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('award.issuer')),
         ),
-        const FormFieldDef(
+        FormFieldDef(
           fieldId: 'award.date',
           label: 'Date',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('award.date')),
         ),
         FormFieldDef(
           fieldId: 'award.description',

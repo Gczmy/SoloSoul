@@ -23,6 +23,7 @@ class SimpleSecureStorage {
     // Using first_unlock_this_device instead - data is accessible after first device unlock
     // but NOT before. This is appropriate for passwords that should persist after initial
     // device setup while still protecting against cold-boot attacks.
+    // TODO: [P2] Consider migration to platform-native Keychain when iOS 13+ requirement drops support for older iOS
     _secureStorage = const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
       iOptions: IOSOptions(

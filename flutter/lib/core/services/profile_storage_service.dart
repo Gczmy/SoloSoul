@@ -1949,6 +1949,9 @@ class ItemTypeMeta {
 
 /// Profile storage service - stores encrypted profile data locally
 /// Delegates to RustVaultService via FFI for SQLCipher-encrypted storage
+// TODO: [P2] ProfileStorageService is 700+ lines - consider extracting:
+// - DeletedItemInfo caching logic to a separate service
+// - restoreItem/permanentDeleteItem to a TrashService class
 class ProfileStorageService {
   static ProfileStorageService? _instance;
 
@@ -2004,7 +2007,7 @@ class ProfileStorageService {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
       return profile;
-    } catch (e) {
+    } on Exception catch (e) {
       return null;
     }
   }
@@ -2025,7 +2028,7 @@ class ProfileStorageService {
       _invalidateDeletedItemsCache();
 
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       return false;
     }
   }

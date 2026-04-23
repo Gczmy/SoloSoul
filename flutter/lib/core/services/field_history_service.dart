@@ -27,7 +27,7 @@ class FieldHistoryService {
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       return FormHistories.fromJson(json);
-    } catch (_) {
+    } on Exception catch (_) {
       return FormHistories();
     }
   }

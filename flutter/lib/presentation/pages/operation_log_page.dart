@@ -183,7 +183,7 @@ class OperationLogService extends ChangeNotifier {
           const Duration(seconds: 2),
           onTimeout: () => null,
         );
-      } catch (_) {
+      } on Exception catch (_) {
         // Ignore save errors - we're clearing anyway
       }
     }
@@ -254,7 +254,7 @@ class OperationLogService extends ChangeNotifier {
 
       // Apply TTL cleanup
       _applyTTL();
-    } catch (_) {
+    } on Exception catch (_) {
       _entries.clear();
     }
   }
@@ -288,7 +288,7 @@ class OperationLogService extends ChangeNotifier {
         final logFile = await _logFile;
         await logFile.writeAsString(encrypted);
       }
-    } catch (_) {
+    } on Exception catch (_) {
       // Silently fail on save errors to not disrupt user workflow
     }
   }
@@ -317,7 +317,7 @@ class OperationLogService extends ChangeNotifier {
       combined.setRange(12, combined.length, encrypted);
 
       return base64Encode(combined);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -342,7 +342,7 @@ class OperationLogService extends ChangeNotifier {
       if (decrypted == null) return null;
 
       return utf8.decode(decrypted);
-    } catch (_) {
+    } on Exception catch (_) {
       return null;
     }
   }
@@ -390,7 +390,7 @@ class OperationLogService extends ChangeNotifier {
   String _getCurrentDevice() {
     try {
       return Platform.operatingSystem.toLowerCase();
-    } catch (_) {
+    } on Exception catch (_) {
       return 'unknown';
     }
   }
