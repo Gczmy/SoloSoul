@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+
+part 'profile_storage_service.g.dart';
 
 // Re-export for backward compatibility
 typedef ProfileFieldHistories = FormHistories;
@@ -109,16 +112,16 @@ class IdentityData {
       nationality: json['nationality'],
       idCards: json['id_cards'] != null
           ? (json['id_cards'] as List)
-                .map((e) => IdCardData.fromJson(e))
-                .toList()
+              .map((e) => IdCardData.fromJson(e))
+              .toList()
           : null,
       contact: json['contact'] != null
           ? ContactData.fromJson(json['contact'])
           : null,
       addresses: json['addresses'] != null
           ? (json['addresses'] as List)
-                .map((e) => AddressData.fromJson(e))
-                .toList()
+              .map((e) => AddressData.fromJson(e))
+              .toList()
           : null,
     );
   }
@@ -169,6 +172,7 @@ class IdentityData {
       addresses?.where((a) => !a.isDeleted).toList() ?? [];
 }
 
+@JsonSerializable()
 class ContactEntry with FormattableEntry {
   String id;
   String title; // e.g., "Personal", "Work", "Emergency"
@@ -248,6 +252,7 @@ class ContactEntry with FormattableEntry {
   }
 }
 
+@JsonSerializable(explicitToJson: true)
 class ContactData {
   List<ContactEntry> entries;
 
@@ -277,6 +282,7 @@ class ContactData {
       entries.where((e) => !e.isDeleted).toList();
 }
 
+@JsonSerializable()
 class AddressData with FormattableEntry {
   String id;
   String? title;
@@ -377,6 +383,7 @@ class AddressData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class IdCardData with FormattableEntry {
   String id;
   String? title;
@@ -477,6 +484,7 @@ class IdCardData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class TravelHistoryData with FormattableEntry {
   String id;
   String destination;
@@ -601,6 +609,7 @@ class TravelHistoryData with FormattableEntry {
   String toString() => destination;
 }
 
+@JsonSerializable(explicitToJson: true)
 class TravelData {
   List<PassportData> passports;
   List<VisaData> visas;
@@ -669,6 +678,7 @@ class TravelData {
   }
 }
 
+@JsonSerializable()
 class PassportData with FormattableEntry {
   String id;
   String? title;
@@ -818,6 +828,7 @@ class PassportData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class VisaData with FormattableEntry {
   String id;
   String? title;
@@ -917,6 +928,7 @@ class VisaData with FormattableEntry {
   }
 }
 
+@JsonSerializable(explicitToJson: true)
 class FinancialData {
   List<BankAccountData> bankAccounts;
   List<CardData> cards;
@@ -985,6 +997,7 @@ class FinancialData {
   }
 }
 
+@JsonSerializable()
 class BankAccountData with FormattableEntry {
   String id;
   String? title;
@@ -1085,6 +1098,7 @@ class BankAccountData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class CardData with FormattableEntry {
   String id;
   String? title;
@@ -1185,6 +1199,7 @@ class CardData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class TaxIdData with FormattableEntry {
   String id;
   String? title;
@@ -1278,6 +1293,7 @@ class TaxIdData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class SkillData with FormattableEntry {
   String id;
   String name;
@@ -1350,6 +1366,7 @@ class SkillData with FormattableEntry {
       level != null && level!.isNotEmpty ? '$name ($level)' : name;
 }
 
+@JsonSerializable()
 class LanguageData with FormattableEntry {
   String id;
   String name;
@@ -1421,6 +1438,7 @@ class LanguageData with FormattableEntry {
   String toString() => name;
 }
 
+@JsonSerializable()
 class AwardData with FormattableEntry {
   String id;
   String? title;
@@ -1507,6 +1525,7 @@ class AwardData with FormattableEntry {
   }
 }
 
+@JsonSerializable(explicitToJson: true)
 class ProfessionalData {
   List<EducationData> education;
   List<EmploymentData> employment;
@@ -1609,6 +1628,7 @@ class ProfessionalData {
   }
 }
 
+@JsonSerializable()
 class EducationData with FormattableEntry {
   String id;
   String? institution;
@@ -1709,6 +1729,7 @@ class EducationData with FormattableEntry {
   }
 }
 
+@JsonSerializable()
 class EmploymentData with FormattableEntry {
   String id;
   String? company;
