@@ -351,36 +351,36 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'education.institution',
           label: 'Institution',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('education.institution')),
         ),
         FormFieldDef(
           fieldId: 'education.degree',
           label: 'Degree',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('education.degree')),
         ),
         FormFieldDef(
           fieldId: 'education.degreeCustom',
           label: 'Custom Degree',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('education.degreeCustom')),
         ),
         FormFieldDef(
           fieldId: 'education.fieldOfStudy',
           label: 'Field of Study',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('education.fieldOfStudy')),
         ),
         FormFieldDef(
           fieldId: 'education.startDate',
           label: 'Start Date',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('education.startDate')),
         ),
         FormFieldDef(
           fieldId: 'education.endDate',
           label: 'End Date',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('education.endDate')),
         ),
       ],
       customFormBuilder:
@@ -1007,16 +1007,16 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'skill.name',
           label: 'Skill Name',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('skill.name')),
         ),
         FormFieldDef(
           fieldId: 'skill.level',
           label: 'Level (e.g. Beginner, Intermediate, Expert)',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('skill.level')),
         ),
       ],
       displayItemBuilder: _buildSkillItem,
@@ -1248,16 +1248,16 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
       items: _items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
-      fieldDefs: const [
+      fieldDefs: [
         FormFieldDef(
           fieldId: 'language.name',
           label: 'Language',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('language.name')),
         ),
         FormFieldDef(
           fieldId: 'language.proficiency',
           label: 'Proficiency (e.g. Native, Fluent, Intermediate)',
-          sensitivity: SensitivityLevel.public,
+          sensitivity: ref.watch(effectiveSensitivityProvider('language.proficiency')),
         ),
       ],
       displayItemBuilder: _buildLanguageItem,
