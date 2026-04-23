@@ -42,7 +42,7 @@ const _publicRoutes = {
 /// Creates the GoRouter instance
 GoRouter createRouter(WidgetRef ref) {
   return GoRouter(
-    initialLocation: AppRoutes.login,
+    initialLocation: '/',  // Must start at / to run SplashPage which initializes account manager
     debugLogDiagnostics: true,
     redirect: (context, state) {
       final authAsync = ref.read(authNotifierProvider);

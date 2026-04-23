@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -169,9 +170,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       if (mounted) {
-        unawaited(Navigator.of(
-          context,
-        ).pushReplacementNamed(AppRoutes.home));
+        context.go(AppRoutes.home);
       }
     } else if (mounted) {
       setState(() => _isLoading = false);
@@ -271,9 +270,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
 
       if (mounted) {
-        unawaited(Navigator.of(
-          context,
-        ).pushReplacementNamed(AppRoutes.home));
+        context.go(AppRoutes.home);
       }
     } else if (mounted) {
       setState(() {
@@ -347,7 +344,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         // Pre-register all form fields for sensitivity settings
         ref.read(formFieldRegistryProvider.notifier).registerAllForms();
         if (mounted) {
-          unawaited(Navigator.of(context).pushReplacementNamed(AppRoutes.home));
+          context.go(AppRoutes.home);
         }
       } else if (mounted) {
         setState(() {

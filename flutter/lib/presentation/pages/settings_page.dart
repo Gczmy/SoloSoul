@@ -429,7 +429,7 @@ class SettingsPage extends ConsumerWidget {
           await authNotifier.selectAccount(accountId);
           if (context.mounted) {
             Navigator.pop(context);
-            unawaited(Navigator.pushReplacementNamed(context, AppRoutes.login));
+            context.go(AppRoutes.login);
           }
         },
       ),

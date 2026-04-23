@@ -1,8 +1,9 @@
-import 'dart:async' show unawaited;
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -35,7 +36,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(milliseconds: 800));
 
     if (mounted) {
-      unawaited(Navigator.of(context).pushReplacementNamed(AppRoutes.login));
+      context.go(AppRoutes.login);
     }
   }
 
