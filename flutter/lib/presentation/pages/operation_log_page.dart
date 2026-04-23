@@ -626,9 +626,9 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   }
 
   void _clearAllFilters() {
-    ref.read(logActionFilterProvider.notifier).state = {};
-    ref.read(logDeviceFilterProvider.notifier).state = {};
-    ref.read(logSensitivityFilterProvider.notifier).state = {};
+    ref.read(logActionFilterProvider.notifier).state = <String>{};
+    ref.read(logDeviceFilterProvider.notifier).state = <String>{};
+    ref.read(logSensitivityFilterProvider.notifier).state = <SensitivityLevel>{};
   }
 
   void _confirmClearLog(BuildContext context) {
