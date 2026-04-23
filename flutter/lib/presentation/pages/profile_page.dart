@@ -7,7 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, SnackBarType, showOverlaySnackBar;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
-    show profileNotifierProvider, idCardItemsProvider, contactItemsProvider, addressItemsProvider, fieldHistoriesProvider;
+    show profileNotifierProvider, identityProvider, idCardItemsProvider, contactItemsProvider, addressItemsProvider, fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
