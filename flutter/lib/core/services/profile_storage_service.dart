@@ -2392,45 +2392,35 @@ class ProfileStorageService {
   /// Pure function: returns a new ProfileData with all soft-deleted items removed
   ProfileData _calculateEmptyTrash(ProfileData current) {
     // Travel section
-    final newTravel = current.travel != null
-        ? current.travel!.copyWith(
-            passports: current.travel!.passports.where((p) => !p.isDeleted).toList(),
-            visas: current.travel!.visas.where((v) => !v.isDeleted).toList(),
-            travelHistory: current.travel!.travelHistory.where((t) => !t.isDeleted).toList(),
-          )
-        : null;
+    final newTravel = current.travel?.copyWith(
+      passports: current.travel!.passports.where((p) => !p.isDeleted).toList(),
+      visas: current.travel!.visas.where((v) => !v.isDeleted).toList(),
+      travelHistory: current.travel!.travelHistory.where((t) => !t.isDeleted).toList(),
+    );
 
     // Financial section
-    final newFinancial = current.financial != null
-        ? current.financial!.copyWith(
-            bankAccounts: current.financial!.bankAccounts.where((b) => !b.isDeleted).toList(),
-            cards: current.financial!.cards.where((c) => !c.isDeleted).toList(),
-            taxIds: current.financial!.taxIds.where((t) => !t.isDeleted).toList(),
-          )
-        : null;
+    final newFinancial = current.financial?.copyWith(
+      bankAccounts: current.financial!.bankAccounts.where((b) => !b.isDeleted).toList(),
+      cards: current.financial!.cards.where((c) => !c.isDeleted).toList(),
+      taxIds: current.financial!.taxIds.where((t) => !t.isDeleted).toList(),
+    );
 
     // Professional section
-    final newProfessional = current.professional != null
-        ? current.professional!.copyWith(
-            education: current.professional!.education.where((e) => !e.isDeleted).toList(),
-            employment: current.professional!.employment.where((emp) => !emp.isDeleted).toList(),
-            skills: current.professional!.skills.where((s) => !s.isDeleted).toList(),
-            languages: current.professional!.languages.where((l) => !l.isDeleted).toList(),
-          )
-        : null;
+    final newProfessional = current.professional?.copyWith(
+      education: current.professional!.education.where((e) => !e.isDeleted).toList(),
+      employment: current.professional!.employment.where((emp) => !emp.isDeleted).toList(),
+      skills: current.professional!.skills.where((s) => !s.isDeleted).toList(),
+      languages: current.professional!.languages.where((l) => !l.isDeleted).toList(),
+    );
 
     // Identity section
-    final newIdentity = current.identity != null
-        ? current.identity!.copyWith(
-            idCards: current.identity!.idCards?.where((c) => !c.isDeleted).toList(),
-            addresses: current.identity!.addresses?.where((a) => !a.isDeleted).toList(),
-            contact: current.identity!.contact != null
-                ? current.identity!.contact!.copyWith(
-                    entries: current.identity!.contact!.entries.where((e) => !e.isDeleted).toList(),
-                  )
-                : null,
-          )
-        : null;
+    final newIdentity = current.identity?.copyWith(
+      idCards: current.identity!.idCards?.where((c) => !c.isDeleted).toList(),
+      addresses: current.identity!.addresses?.where((a) => !a.isDeleted).toList(),
+      contact: current.identity!.contact?.copyWith(
+        entries: current.identity!.contact!.entries.where((e) => !e.isDeleted).toList(),
+      ),
+    );
 
     return current.copyWith(
       travel: newTravel,

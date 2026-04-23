@@ -58,7 +58,7 @@ class ProfileNotifier extends AsyncNotifier<ProfileData?> {
     try {
       final profile = await _loadFromStorage();
       state = AsyncData(profile);
-    } on Exception catch (e, st) {
+    } on Object catch (e, st) {
       state = AsyncError(e, st);
     }
   }
@@ -273,8 +273,7 @@ int _degreeSortOrder(EducationData e, List<String> degreeOrder) {
 class EducationItems extends _$EducationItems {
   @override
   List<EducationData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final professional = profile.value?.professional;
+    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
     if (professional == null) return [];
 
     final items = professional.activeEducation.map((e) => EducationData(
@@ -306,8 +305,7 @@ class EducationItems extends _$EducationItems {
 class BankAccountItems extends _$BankAccountItems {
   @override
   List<BankAccountData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final financial = profile.value?.financial;
+    final financial = ref.watch(profileNotifierProvider.select((p) => p.value?.financial));
     if (financial == null) return [];
 
     return financial.activeBankAccounts.map((b) => BankAccountData(
@@ -330,8 +328,7 @@ class BankAccountItems extends _$BankAccountItems {
 class EmploymentItems extends _$EmploymentItems {
   @override
   List<EmploymentData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final professional = profile.value?.professional;
+    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
     if (professional == null) return [];
 
     return professional.activeEmployment.map((e) => EmploymentData(
@@ -353,8 +350,7 @@ class EmploymentItems extends _$EmploymentItems {
 class SkillItems extends _$SkillItems {
   @override
   List<SkillData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final professional = profile.value?.professional;
+    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
     if (professional == null) return [];
 
     return professional.activeSkills.map((s) => SkillData(
@@ -373,8 +369,7 @@ class SkillItems extends _$SkillItems {
 class TaxIdItems extends _$TaxIdItems {
   @override
   List<TaxIdData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final financial = profile.value?.financial;
+    final financial = ref.watch(profileNotifierProvider.select((p) => p.value?.financial));
     if (financial == null) return [];
 
     return financial.activeTaxIds.map((t) => TaxIdData(
@@ -396,8 +391,7 @@ class TaxIdItems extends _$TaxIdItems {
 class PassportItems extends _$PassportItems {
   @override
   List<PassportData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final travel = profile.value?.travel;
+    final travel = ref.watch(profileNotifierProvider.select((p) => p.value?.travel));
     if (travel == null) return [];
 
     return travel.activePassports.map((p) => PassportData(
@@ -427,8 +421,7 @@ class PassportItems extends _$PassportItems {
 class VisaItems extends _$VisaItems {
   @override
   List<VisaData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final travel = profile.value?.travel;
+    final travel = ref.watch(profileNotifierProvider.select((p) => p.value?.travel));
     if (travel == null) return [];
 
     return travel.activeVisas.map((v) => VisaData(
@@ -451,8 +444,7 @@ class VisaItems extends _$VisaItems {
 class TravelHistoryItems extends _$TravelHistoryItems {
   @override
   List<TravelHistoryData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final travel = profile.value?.travel;
+    final travel = ref.watch(profileNotifierProvider.select((p) => p.value?.travel));
     if (travel == null) return [];
 
     return travel.activeTravelHistory.map((t) => TravelHistoryData(
@@ -478,8 +470,7 @@ class TravelHistoryItems extends _$TravelHistoryItems {
 class CardItems extends _$CardItems {
   @override
   List<CardData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final financial = profile.value?.financial;
+    final financial = ref.watch(profileNotifierProvider.select((p) => p.value?.financial));
     if (financial == null) return [];
 
     return financial.activeCards.map((c) => CardData(
@@ -502,8 +493,7 @@ class CardItems extends _$CardItems {
 class ContactItems extends _$ContactItems {
   @override
   List<ContactEntry> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final contact = profile.value?.identity?.contact;
+    final contact = ref.watch(profileNotifierProvider.select((p) => p.value?.identity?.contact));
     if (contact == null) return [];
 
     return contact.activeEntries.map((e) => ContactEntry(
@@ -523,8 +513,7 @@ class ContactItems extends _$ContactItems {
 class LanguageItems extends _$LanguageItems {
   @override
   List<LanguageData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final professional = profile.value?.professional;
+    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
     if (professional == null) return [];
     return professional.activeLanguages.toList();
   }
@@ -535,8 +524,7 @@ class LanguageItems extends _$LanguageItems {
 class AwardItems extends _$AwardItems {
   @override
   List<AwardData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final professional = profile.value?.professional;
+    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
     if (professional == null) return [];
     return professional.activeAwards.toList();
   }
@@ -547,8 +535,7 @@ class AwardItems extends _$AwardItems {
 class IdCardItems extends _$IdCardItems {
   @override
   List<IdCardData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final identity = profile.value?.identity;
+    final identity = ref.watch(profileNotifierProvider.select((p) => p.value?.identity));
     if (identity == null) return [];
     return identity.activeIdCards.toList();
   }
@@ -559,8 +546,7 @@ class IdCardItems extends _$IdCardItems {
 class AddressItems extends _$AddressItems {
   @override
   List<AddressData> build() {
-    final profile = ref.watch(profileNotifierProvider);
-    final identity = profile.value?.identity;
+    final identity = ref.watch(profileNotifierProvider.select((p) => p.value?.identity));
     if (identity == null) return [];
     return identity.activeAddresses.toList();
   }

@@ -82,7 +82,7 @@ final profileProfessionalProvider =
     );
 
 typedef _$ProfileProfessional = AutoDisposeNotifier<ProfessionalData?>;
-String _$educationItemsHash() => r'd35a2da739f6add6644373e9c8bb5a90d74c3dd6';
+String _$educationItemsHash() => r'f32830cafab9b2e32ffaf7752619468740f48275';
 
 /// Education items provider - derives sorted EducationData from profileNotifierProvider.
 ///
@@ -100,7 +100,7 @@ final educationItemsProvider =
     );
 
 typedef _$EducationItems = AutoDisposeNotifier<List<EducationData>>;
-String _$bankAccountItemsHash() => r'463cd6415af68ba01457eb4a27d12f3f1654fd03';
+String _$bankAccountItemsHash() => r'a698ddd4c21884e35ee10ab104f5f0e337415033';
 
 /// Bank account items provider
 ///
@@ -121,7 +121,7 @@ final bankAccountItemsProvider =
     );
 
 typedef _$BankAccountItems = AutoDisposeNotifier<List<BankAccountData>>;
-String _$employmentItemsHash() => r'45027db71ce11b07141e7b8bf6e6f5ee8da43d66';
+String _$employmentItemsHash() => r'3b7636caed5b88d38a29119609f165078eb0dfbf';
 
 /// Employment items provider
 ///
@@ -139,7 +139,7 @@ final employmentItemsProvider =
     );
 
 typedef _$EmploymentItems = AutoDisposeNotifier<List<EmploymentData>>;
-String _$skillItemsHash() => r'7232495484d4cec4429106fa83d0c418519b242b';
+String _$skillItemsHash() => r'1e7c9e000684fa7522195d94d502907d969cb0e9';
 
 /// Skill items provider
 ///
@@ -157,7 +157,7 @@ final skillItemsProvider =
     );
 
 typedef _$SkillItems = AutoDisposeNotifier<List<SkillData>>;
-String _$taxIdItemsHash() => r'097d5870278148cf47bebfde558a0061f17821e5';
+String _$taxIdItemsHash() => r'53c9cba0d641fd562cc540fd586aea05f1eb008c';
 
 /// Tax ID items provider
 ///
@@ -175,7 +175,7 @@ final taxIdItemsProvider =
     );
 
 typedef _$TaxIdItems = AutoDisposeNotifier<List<TaxIdData>>;
-String _$passportItemsHash() => r'78f4ace3fb4e47cd72d693d46604050d2efc0c7c';
+String _$passportItemsHash() => r'15ae06710a083b5c733bb4bae7431ce254b583ae';
 
 /// Passport items provider
 ///
@@ -193,7 +193,7 @@ final passportItemsProvider =
     );
 
 typedef _$PassportItems = AutoDisposeNotifier<List<PassportData>>;
-String _$visaItemsHash() => r'dc5c8b2d28d2d0844e097abe22310b8cf7b84580';
+String _$visaItemsHash() => r'20bb9d2611487139bc3a401d1fa3cc9e4d82e7d7';
 
 /// Visa items provider
 ///
@@ -212,7 +212,7 @@ final visaItemsProvider =
 
 typedef _$VisaItems = AutoDisposeNotifier<List<VisaData>>;
 String _$travelHistoryItemsHash() =>
-    r'87e120b7abdd825b4192a3a1217784157eff7794';
+    r'cdec59130fd93dfc5381de0fef6ac73a1f053d05';
 
 /// Travel history items provider
 ///
@@ -233,7 +233,7 @@ final travelHistoryItemsProvider =
     );
 
 typedef _$TravelHistoryItems = AutoDisposeNotifier<List<TravelHistoryData>>;
-String _$cardItemsHash() => r'e3d08b3782be91eaf088175c45e18bd3679707bc';
+String _$cardItemsHash() => r'dda1cf907ee4f1fe1650cd85b8b646affdffc744';
 
 /// Card items provider
 ///
@@ -251,7 +251,7 @@ final cardItemsProvider =
     );
 
 typedef _$CardItems = AutoDisposeNotifier<List<CardData>>;
-String _$contactItemsHash() => r'f87b21b8b441b4bdae3899e7fe8ea9cd1c9098dc';
+String _$contactItemsHash() => r'688c5d062c0b254c679d9c28d9d4dd8bb6a06f63';
 
 /// Contact items provider
 ///
@@ -269,7 +269,7 @@ final contactItemsProvider =
     );
 
 typedef _$ContactItems = AutoDisposeNotifier<List<ContactEntry>>;
-String _$languageItemsHash() => r'8adc02fcee63512ed827f2334bc35697f87738b3';
+String _$languageItemsHash() => r'98f70e70f82f87425f478183b11c3ef3d40b51e0';
 
 /// Language items provider
 ///
@@ -287,7 +287,7 @@ final languageItemsProvider =
     );
 
 typedef _$LanguageItems = AutoDisposeNotifier<List<LanguageData>>;
-String _$awardItemsHash() => r'9874f70a56802bc192e625f68a7e6815996ea789';
+String _$awardItemsHash() => r'59aa035bad5b95c2723b14b0e859b1e6769015da';
 
 /// Award items provider
 ///
@@ -305,7 +305,7 @@ final awardItemsProvider =
     );
 
 typedef _$AwardItems = AutoDisposeNotifier<List<AwardData>>;
-String _$idCardItemsHash() => r'3cbfdff8cd0ba0ea4a47a861a13059203e4f6e6a';
+String _$idCardItemsHash() => r'59d9e16129af5640c779e0aa1a32cdf4d7e546c0';
 
 /// ID card items provider
 ///
@@ -323,7 +323,7 @@ final idCardItemsProvider =
     );
 
 typedef _$IdCardItems = AutoDisposeNotifier<List<IdCardData>>;
-String _$addressItemsHash() => r'0e3922c2e3d0d3b3cc2898121dfdfa319bccda82';
+String _$addressItemsHash() => r'1f3d7b79e02896eb86467ea2f7b93c1be19f7d9b';
 
 /// Address items provider
 ///

@@ -295,6 +295,7 @@ class ProfileSectionEditor {
     int index,
     DateTime deletedAt,
   ) {
+    // ignore: prefer_const_constructors — IdentityData() inside ?? can't be const at compile time
     final identity = current.identity ?? IdentityData();
 
     if (itemType == 'contact' &&
@@ -633,6 +634,7 @@ class ProfileSectionEditor {
     String itemType,
     int index,
   ) {
+    // ignore: prefer_const_constructors — IdentityData() inside ?? can't be const at compile time
     final identity = current.identity ?? IdentityData();
 
     if (itemType == 'contact' &&

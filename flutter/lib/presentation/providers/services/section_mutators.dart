@@ -51,6 +51,7 @@ class SectionMutators {
 
     final isCreate = oldTravel == null;
 
+    // ignore: prefer_const_constructors — ProfileData() inside ?? can't be const at compile time
     final updated = (current ?? ProfileData()).copyWith(travel: travel);
 
     final result = await _persistence.saveProfile(updated);
@@ -72,6 +73,7 @@ class SectionMutators {
     _logAggregator.logTravelChanges(oldTravel, travel);
     final isCreate = oldTravel == null;
 
+    // ignore: prefer_const_constructors — ProfileData() inside ?? can't be const at compile time
     final updated = (current ?? ProfileData()).copyWith(travel: travel);
     final result = await _persistence.saveProfileImmediate(updated);
 
@@ -93,6 +95,7 @@ class SectionMutators {
 
     final isCreate = oldFinancial == null;
 
+    // ignore: prefer_const_constructors — ProfileData() inside ?? can't be const at compile time
     final updated = (current ?? ProfileData()).copyWith(financial: financial);
 
     final result = await _persistence.saveProfile(updated);
@@ -114,6 +117,7 @@ class SectionMutators {
     _logAggregator.logFinancialChanges(oldFinancial, financial);
     final isCreate = oldFinancial == null;
 
+    // ignore: prefer_const_constructors — ProfileData() inside ?? can't be const at compile time
     final updated = (current ?? ProfileData()).copyWith(financial: financial);
     final result = await _persistence.saveProfileImmediate(updated);
 
@@ -135,6 +139,7 @@ class SectionMutators {
 
     final isCreate = oldProfessional == null;
 
+    // ignore: prefer_const_constructors — ProfileData() inside ?? can't be const at compile time
     final updated = (current ?? ProfileData()).copyWith(professional: professional);
 
     final result = await _persistence.saveProfile(updated);
@@ -156,6 +161,7 @@ class SectionMutators {
     _logAggregator.logProfessionalChanges(oldProfessional, professional);
     final isCreate = oldProfessional == null;
 
+    // ignore: prefer_const_constructors — ProfileData() inside ?? can't be const at compile time
     final updated = (current ?? ProfileData()).copyWith(professional: professional);
     final result = await _persistence.saveProfileImmediate(updated);
 

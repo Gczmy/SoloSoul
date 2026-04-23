@@ -170,7 +170,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         // Show top notification for operation feedback
         if (!mounted) return;
         final isPrivacyMode =
-            ref.read(accountStyleProvider).value?.displayMode ==
+            ref.read(accountStyleProvider).valueOrNull?.displayMode ==
             SensitivityDisplayMode.hidePrivate;
         OperationNotification.show(
           context,
@@ -473,7 +473,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
   void _onContactDidDelete(ContactEntry contact, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
+        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = contact.id;
     OperationNotification.show(
@@ -549,7 +549,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
+          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -791,7 +791,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
   void _onIdCardDidDelete(IdCardData card, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
+        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = card.id;
     final itemName = card.title ?? card.number ?? 'ID Card';
@@ -862,7 +862,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
+          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1038,7 +1038,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
   void _onAddressDidDelete(AddressData address, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
+        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = address.id;
     final itemName = address.title ?? 'Address';
@@ -1107,7 +1107,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
+          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
