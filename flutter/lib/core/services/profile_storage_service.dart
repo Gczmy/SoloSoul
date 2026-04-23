@@ -33,12 +33,12 @@ int currentTimestamp() => DateTime.now().millisecondsSinceEpoch;
 
 /// Profile data types matching Rust profile.rs
 class ProfileData {
-  IdentityData? identity;
-  TravelData? travel;
-  FinancialData? financial;
-  ProfessionalData? professional;
+  final IdentityData? identity;
+  final TravelData? travel;
+  final FinancialData? financial;
+  final ProfessionalData? professional;
 
-  ProfileData({this.identity, this.travel, this.financial, this.professional});
+  const ProfileData({this.identity, this.travel, this.financial, this.professional});
 
   factory ProfileData.fromJson(Map<String, dynamic> json) {
     return ProfileData(
@@ -80,17 +80,17 @@ class ProfileData {
 }
 
 class IdentityData {
-  String? fullName;
-  String? givenName;
-  String? familyName;
-  String? dateOfBirth;
-  String? gender;
-  String? nationality;
-  List<IdCardData>? idCards;
-  ContactData? contact;
-  List<AddressData>? addresses;
+  final String? fullName;
+  final String? givenName;
+  final String? familyName;
+  final String? dateOfBirth;
+  final String? gender;
+  final String? nationality;
+  final List<IdCardData>? idCards;
+  final ContactData? contact;
+  final List<AddressData>? addresses;
 
-  IdentityData({
+  const IdentityData({
     this.fullName,
     this.givenName,
     this.familyName,
@@ -2385,50 +2385,58 @@ class ProfileStorageService {
 
   /// Manually empty all trash (permanent delete all soft-deleted items)
   Future<void> emptyAllTrash(ProfileData profile, String accountId) async {
+    final newProfile = _calculateEmptyTrash(profile);
+    await saveProfile(accountId, newProfile);
+  }
+
+  /// Pure function: returns a new ProfileData with all soft-deleted items removed
+  ProfileData _calculateEmptyTrash(ProfileData current) {
     // Travel section
-    if (profile.travel != null) {
-      profile.travel!.passports.removeWhere((p) => p.isDeleted);
-      profile.travel!.visas.removeWhere((v) => v.isDeleted);
-      profile.travel!.travelHistory.removeWhere((t) => t.isDeleted);
-    }
+    final newTravel = current.travel != null
+        ? current.travel!.copyWith(
+            passports: current.travel!.passports.where((p) => !p.isDeleted).toList(),
+            visas: current.travel!.visas.where((v) => !v.isDeleted).toList(),
+            travelHistory: current.travel!.travelHistory.where((t) => !t.isDeleted).toList(),
+          )
+        : null;
 
     // Financial section
-    if (profile.financial != null) {
-      profile.financial!.bankAccounts.removeWhere((b) => b.isDeleted);
-      profile.financial!.cards.removeWhere((c) => c.isDeleted);
-      profile.financial!.taxIds.removeWhere((t) => t.isDeleted);
-    }
+    final newFinancial = current.financial != null
+        ? current.financial!.copyWith(
+            bankAccounts: current.financial!.bankAccounts.where((b) => !b.isDeleted).toList(),
+            cards: current.financial!.cards.where((c) => !c.isDeleted).toList(),
+            taxIds: current.financial!.taxIds.where((t) => !t.isDeleted).toList(),
+          )
+        : null;
 
     // Professional section
-    if (profile.professional != null) {
-      profile.professional!.education.removeWhere((e) => e.isDeleted);
-      profile.professional!.employment.removeWhere((emp) => emp.isDeleted);
-      profile.professional!.skills.removeWhere((s) => s.isDeleted);
-      profile.professional!.languages.removeWhere((l) => l.isDeleted);
-    }
+    final newProfessional = current.professional != null
+        ? current.professional!.copyWith(
+            education: current.professional!.education.where((e) => !e.isDeleted).toList(),
+            employment: current.professional!.employment.where((emp) => !emp.isDeleted).toList(),
+            skills: current.professional!.skills.where((s) => !s.isDeleted).toList(),
+            languages: current.professional!.languages.where((l) => !l.isDeleted).toList(),
+          )
+        : null;
 
-    // Profile/Identity section
-    if (profile.identity?.contact != null) {
-      final entries = profile.identity!.contact!.entries
-          .where((e) => !e.isDeleted)
-          .toList();
-      profile.identity = profile.identity!.copyWith(
-        contact: ContactData(entries: entries),
-      );
-    }
-    if (profile.identity?.idCards != null) {
-      final idCards = profile.identity!.idCards!
-          .where((c) => !c.isDeleted)
-          .toList();
-      profile.identity = profile.identity!.copyWith(idCards: idCards);
-    }
-    if (profile.identity?.addresses != null) {
-      final addresses = profile.identity!.addresses!
-          .where((a) => !a.isDeleted)
-          .toList();
-      profile.identity = profile.identity!.copyWith(addresses: addresses);
-    }
+    // Identity section
+    final newIdentity = current.identity != null
+        ? current.identity!.copyWith(
+            idCards: current.identity!.idCards?.where((c) => !c.isDeleted).toList(),
+            addresses: current.identity!.addresses?.where((a) => !a.isDeleted).toList(),
+            contact: current.identity!.contact != null
+                ? current.identity!.contact!.copyWith(
+                    entries: current.identity!.contact!.entries.where((e) => !e.isDeleted).toList(),
+                  )
+                : null,
+          )
+        : null;
 
-    await saveProfile(accountId, profile);
+    return current.copyWith(
+      travel: newTravel,
+      financial: newFinancial,
+      professional: newProfessional,
+      identity: newIdentity,
+    );
   }
 }
