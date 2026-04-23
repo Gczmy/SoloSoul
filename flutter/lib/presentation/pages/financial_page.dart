@@ -141,24 +141,9 @@ class _BankAccountSectionState
     );
   }
 
-  late List<BankAccountData> _accounts;
-
   @override
   void loadItems() {
-    final financial = ref.read(profileNotifierProvider)?.financial;
-    _accounts = [
-      ...?(financial?.activeBankAccounts.map(
-        (b) => BankAccountData(
-          id: b.id,
-          title: b.title,
-          bankName: b.bankName,
-          accountNumber: b.accountNumber,
-          currency: b.currency,
-          swiftBic: b.swiftBic,
-          sortCode: b.sortCode,
-        ),
-      )),
-    ];
+    // No-op: items are now sourced from bankAccountItemsProvider
   }
 
   BankAccountData _createAccountFromValues(
@@ -202,7 +187,8 @@ class _BankAccountSectionState
   /// Thin passthrough - softDelete is the only persistence operation.
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onAccountDelete(BankAccountData account) async {
-    final index = _accounts.indexById(account.id, (a) => a.id);
+    final accounts = ref.read(bankAccountItemsProvider);
+    final index = accounts.indexById(account.id, (a) => a.id);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)
@@ -235,7 +221,6 @@ class _BankAccountSectionState
               itemType: 'bank_account',
               id: deletedId,
             );
-        loadItems();
       },
     );
   }
@@ -262,24 +247,15 @@ class _BankAccountSectionState
     }
     final itemName = accountToSave.bankName ?? 'Bank account';
 
-    // Snapshot for rollback on failure
-    final originalAccounts = List<BankAccountData>.from(_accounts);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _accounts = List.from(_accounts)..add(accountToSave);
-    } else {
-      final index = _accounts.indexById(editingItem.id, (a) => a.id);
-      if (index != -1) {
-        _accounts = List.from(_accounts)..[index] = accountToSave;
-      }
-    }
-
     // Persist via provider with rollback on failure
     try {
       final currentFinancial = ref.read(profileNotifierProvider)?.financial;
+      final accounts = ref.read(bankAccountItemsProvider);
+      final updatedAccounts = wasAdding
+          ? [...accounts, accountToSave]
+          : accounts.map((a) => a.id == editingItem.id ? accountToSave : a).toList();
       final financial = FinancialData(
-        bankAccounts: _accounts,
+        bankAccounts: updatedAccounts,
         cards: currentFinancial?.cards ?? [],
         taxIds: currentFinancial?.taxIds ?? [],
       );
@@ -287,8 +263,6 @@ class _BankAccountSectionState
           .read(profileNotifierProvider.notifier)
           .updateFinancialImmediate(financial);
     } on Exception catch (e) {
-      // Rollback on failure
-      _accounts = originalAccounts;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save bank account: $e', type: SnackBarType.error);
       }
@@ -312,10 +286,11 @@ class _BankAccountSectionState
 
   @override
   Widget build(BuildContext context) {
+    final accounts = ref.watch(bankAccountItemsProvider);
     return UnifiedFormSection<BankAccountData>(
       title: 'Bank Accounts',
       icon: Icons.account_balance_outlined,
-      items: _accounts,
+      items: accounts,
       maxVisibleItems: 3,
       itemFactory: _createAccountFromValues,
       fieldDefs: [

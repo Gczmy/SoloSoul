@@ -470,23 +470,9 @@ class _EmploymentSection extends ConsumerStatefulWidget {
 }
 
 class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
-  late List<EmploymentData> _items;
-
   @override
   void loadItems() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [
-      ...?(professional?.activeEmployment.map(
-        (e) => EmploymentData(
-          id: e.id,
-          company: e.company,
-          position: e.position,
-          responsibilities: e.responsibilities,
-          startDate: e.startDate,
-          endDate: e.endDate,
-        ),
-      )),
-    ];
+    // No-op: items come from ref.watch(employmentItemsProvider) in build()
   }
 
   EmploymentData _createFromValues(Map<String, String> values, {String? id}) {
@@ -521,16 +507,13 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
   }
 
   Future<void> _onDelete(EmploymentData item) async {
-    final index = _items.indexById(item.id, (x) => x.id);
+    final items = ref.read(employmentItemsProvider);
+    final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-
-    setState(() {
-      _items = List.from(_items)..removeAt(index);
-    });
 
     try {
       await ref
@@ -542,11 +525,6 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
             deletedItem: item,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _items = List.from(_items)..insert(index, item);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -575,8 +553,6 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
                 itemType: 'employment',
                 id: deletedId,
               );
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -595,25 +571,12 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
 
-    // Snapshot for rollback on failure
-    final originalItems = List<EmploymentData>.from(_items);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _items = List.from(_items)..add(itemToSave);
-    } else {
-      final index = _items.indexById(editingItem.id, (x) => x.id);
-      if (index != -1) {
-        _items = List.from(_items)..[index] = itemToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider
     try {
       final professional = ProfessionalData(
         education:
             ref.read(profileNotifierProvider)?.professional?.education ?? [],
-        employment: _items,
+        employment: ref.read(employmentItemsProvider),
         skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
         languages:
             ref.read(profileNotifierProvider)?.professional?.languages ?? [],
@@ -623,8 +586,6 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
     } on Exception catch (e) {
-      // Rollback on failure
-      _items = originalItems;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save employment: $e', type: SnackBarType.error);
       }
@@ -649,10 +610,11 @@ class _EmploymentSectionState extends ProfileSectionState<_EmploymentSection> {
 
   @override
   Widget build(BuildContext context) {
+    final items = ref.watch(employmentItemsProvider);
     return UnifiedFormSection<EmploymentData>(
       title: 'Employment',
       icon: Icons.work_outlined,
-      items: _items,
+      items: items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
@@ -731,12 +693,9 @@ class _SkillsSection extends ConsumerStatefulWidget {
 }
 
 class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
-  late List<SkillData> _items;
-
   @override
   void loadItems() {
-    final professional = ref.read(profileNotifierProvider)?.professional;
-    _items = [...?(professional?.activeSkills)];
+    // No-op: items are now derived from skillItemsProvider
   }
 
   SkillData _createFromValues(Map<String, String> values, {String? id}) {
@@ -754,16 +713,13 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
   }
 
   Future<void> _onDelete(SkillData item) async {
-    final index = _items.indexById(item.id, (x) => x.id);
+    final items = ref.watch(skillItemsProvider);
+    final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
         ref.read(accountStyleProvider).displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
-
-    setState(() {
-      _items = List.from(_items)..removeAt(index);
-    });
 
     try {
       await ref
@@ -775,11 +731,6 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
             deletedItem: item,
           );
     } on Exception catch (e) {
-      if (mounted) {
-        setState(() {
-          _items = List.from(_items)..insert(index, item);
-        });
-      }
       if (mounted) {
         showOverlaySnackBar(
           context,
@@ -808,8 +759,6 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
                 itemType: 'skill',
                 id: deletedId,
               );
-          loadItems();
-          if (mounted) setState(() {});
         },
       );
     }
@@ -829,27 +778,14 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
     }
     if (itemToSave.name.isEmpty) return;
 
-    // Snapshot for rollback on failure
-    final originalItems = List<SkillData>.from(_items);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _items = List.from(_items)..add(itemToSave);
-    } else {
-      final index = _items.indexById(editingItem.id, (x) => x.id);
-      if (index != -1) {
-        _items = List.from(_items)..[index] = itemToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
+    // Persist via provider - UI derives state from skillItemsProvider
     try {
       final professional = ProfessionalData(
         education:
             ref.read(profileNotifierProvider)?.professional?.education ?? [],
         employment:
             ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-        skills: _items,
+        skills: [...ref.read(skillItemsProvider)],
         languages:
             ref.read(profileNotifierProvider)?.professional?.languages ?? [],
       );
@@ -857,8 +793,6 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
           .read(profileNotifierProvider.notifier)
           .updateProfessionalImmediate(professional);
     } on Exception catch (e) {
-      // Rollback on failure
-      _items = originalItems;
       if (mounted) {
         showOverlaySnackBar(context, content: 'Failed to save skill: $e', type: SnackBarType.error);
       }
@@ -883,10 +817,11 @@ class _SkillsSectionState extends ProfileSectionState<_SkillsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final items = ref.watch(skillItemsProvider);
     return UnifiedFormSection<SkillData>(
       title: 'Skills',
       icon: Icons.star_outline,
-      items: _items,
+      items: items,
       maxVisibleItems: 3,
       itemFactory: _createFromValues,
       fieldDefs: [
