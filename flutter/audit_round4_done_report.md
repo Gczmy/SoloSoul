@@ -184,12 +184,44 @@ abstract class IdentifiableItem {
 
 | 指标 | 数值 |
 |------|------|
-| 提交哈希 | `3ca47f6` |
-| 修改文件 | 22 |
-| 新增行 | 2764 |
-| 删除行 | 2626 |
+| 提交哈希 | `3ca47f6`, `969a4c4`, `8640d77` |
+| 修改文件 | 25 |
+| 新增行 | 2800+ |
+| 删除行 | 2650+ |
 | 新建文件 | 6 |
 | 删除文件 | 1 |
+
+---
+
+## 额外修复的问题
+
+### ✅ contactItemsProvider indexOf 静默删除修复
+
+**提交**: `8640d77`
+
+**问题**: `profile_page.dart:462` 使用 `indexOf(contact)` 但 ContactEntry 未覆盖 `==`，导致删除静默失败
+
+**修复**: 改用 `indexWhere((c) => c.id == contact.id)` 按 ID 查找
+
+---
+
+### ✅ BridgeProfileSummary key-naming drift 修复
+
+**提交**: `8640d77`
+
+**问题**: 手写 fromJson 使用 snake_case (`created_at`)，生成代码使用 camelCase (`createdAt`)
+
+**修复**: 添加 `@JsonSerializable(fieldRename: FieldRename.snake)` 确保生成代码使用 snake_case
+
+---
+
+### ✅ ProfileNotifier Timer Leak 修复
+
+**提交**: `8640d77`
+
+**问题**: ProfileNotifier 无 autoDispose，debounce Timer 在 widget tear down 后仍存在
+
+**修复**: 添加 `.autoDispose` 到 `profileNotifierProvider`
 
 ---
 
@@ -213,6 +245,9 @@ abstract class IdentifiableItem {
 - ✅ 消除双份序列化维护负担
 - ✅ 消除Provider不刷新bug (_accountsVersion)
 - ✅ 消除多WidgetsBindingObserver浪费
+- ✅ 消除contactItemsProvider静默删除失败
+- ✅ 消除BridgeProfileSummary命名不一致风险
+- ✅ 消除ProfileNotifier Timer leak
 
 ---
 
