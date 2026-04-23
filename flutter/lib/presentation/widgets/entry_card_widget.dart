@@ -109,8 +109,8 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   Future<void> _handleHistoryPress(bool isSensitive) async {
     final currentExpanded = ref.read(historyExpandedProvider(_historyKey));
-    final currentSettings = ref.read(accountStyleProvider);
-    final isPrivacyMode = currentSettings.displayMode != SensitivityDisplayMode.showAll;
+    final currentSettings = ref.read(accountStyleProvider).value;
+    final isPrivacyMode = currentSettings?.displayMode != SensitivityDisplayMode.showAll;
 
     // Non-sensitive items: toggle freely
     if (!isSensitive) {
@@ -231,12 +231,13 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     final inFormSection = EntryActionsContext.of(context) != null;
 
     // Auto-collapse restricted history when entering privacy mode
-    ref.listen<AccountStyle>(
+    ref.listen(
       accountStyleProvider,
       (previous, next) {
         if (!widget.isRestricted) return;
-        final wasShowAll = previous?.displayMode == SensitivityDisplayMode.showAll;
-        final isNowPrivacy = next.displayMode != SensitivityDisplayMode.showAll;
+        final prevStyle = previous?.value;
+        final wasShowAll = prevStyle?.displayMode == SensitivityDisplayMode.showAll;
+        final isNowPrivacy = next.value?.displayMode != SensitivityDisplayMode.showAll;
         if (wasShowAll && isNowPrivacy) {
           Future.microtask(() {
             if (context.mounted) {

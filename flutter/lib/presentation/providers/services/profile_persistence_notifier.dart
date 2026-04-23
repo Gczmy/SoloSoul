@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
 /// Debounce duration for profile saves (500ms)
@@ -45,7 +45,7 @@ class ProfilePersistenceService {
     _isLoading = true;
 
     try {
-      final authState = _ref.read(authNotifierProvider);
+      final authState = _ref.read(authNotifierProvider).value;
       if (authState != AuthState.unlocked) return null;
 
       final authNotifier = _ref.read(authNotifierProvider.notifier);
@@ -61,13 +61,13 @@ class ProfilePersistenceService {
 
       await OperationLogService.instance.initializeForAccount(accountId);
 
-      final authStateBeforeLoad = _ref.read(authNotifierProvider);
+      final authStateBeforeLoad = _ref.read(authNotifierProvider).value;
       if (authStateBeforeLoad != AuthState.unlocked) return null;
 
       final profile = await _storage.loadProfile(accountId);
       await _storage.purgeOldDeletedItemsIfNeeded(accountId, existingProfile: profile);
 
-      final authStateAfterLoad = _ref.read(authNotifierProvider);
+      final authStateAfterLoad = _ref.read(authNotifierProvider).value;
       if (authStateAfterLoad != AuthState.unlocked) return null;
 
       if (profile != null) {
@@ -87,7 +87,7 @@ class ProfilePersistenceService {
 
     if (newJson == _lastSavedJson) return true;
 
-    final authState = _ref.read(authNotifierProvider);
+    final authState = _ref.read(authNotifierProvider).value;
     if (authState != AuthState.unlocked) return false;
 
     final encryptionKey = _storage.encryptionKey;

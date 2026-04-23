@@ -14,7 +14,7 @@ import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
     show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
@@ -201,7 +201,7 @@ class _PassportSectionState
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(accountStyleProvider).displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = passport.id;
@@ -305,7 +305,7 @@ class _PassportSectionState
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -507,7 +507,7 @@ class _VisaSectionState
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(accountStyleProvider).displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = visa.id;
@@ -600,7 +600,7 @@ class _VisaSectionState
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -730,7 +730,7 @@ class _TravelHistorySectionState
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(accountStyleProvider).displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = item.id;
@@ -858,7 +858,7 @@ class _TravelHistorySectionState
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

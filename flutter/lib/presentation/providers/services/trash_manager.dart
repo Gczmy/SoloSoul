@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/log_section_config.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_section_editor.dart';
 import 'package:solosoul_flutter/presentation/providers/services/operation_log_aggregator.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/services/profile_persistence_notifier.dart';
 
 /// Service responsible for trash management (soft delete, restore, permanent delete).

@@ -1,7 +1,8 @@
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 
 /// Typedef for section aggregator function
 typedef SectionAggregator = OperationEntry Function({

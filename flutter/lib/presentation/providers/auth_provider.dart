@@ -988,10 +988,16 @@ class AccountManager {
 }
 
 // ============================================================================
-// AuthNotifier - Facade that delegates to services
+// AuthNotifier - Facade that delegates to services (AsyncNotifier)
 // ============================================================================
 
-class AuthNotifier extends StateNotifier<AuthState> {
+class AuthNotifier extends AsyncNotifier<AuthState> {
+  @override
+  Future<AuthState> build() async {
+    // Initial state - vault starts locked until user unlocks it
+    return AuthState.initial;
+  }
+
   final SecureAccountStorage _storage;
   final ProfileStorageService _profileStorage;
   final VaultUnlockService _vaultUnlockService;
@@ -1013,13 +1019,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         _accountManager = AccountManager(
           storage ?? SecureAccountStorage.instance,
           profileStorage ?? ProfileStorageService.instance,
-        ),
-        super(AuthState.initial);
+        );
 
   // Convenience getters delegating to services
   String? get selectedAccountId => _accountManager.selectedAccountId;
   AccountInfo? get selectedAccount => _accountManager.selectedAccount;
-  bool get isUnlocked => state == AuthState.unlocked;
+  bool get isUnlocked => state.valueOrNull == AuthState.unlocked;
   int get accountsVersion => _accountManager.accountsVersion;
 
   /// Get all accounts sorted by most recent access
@@ -1035,7 +1040,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Select an account
   Future<void> selectAccount(String? accountId) async {
     await _accountManager.selectAccount(accountId);
-    state = state; // Trigger rebuild
+    // Trigger rebuild by setting state to current value
+    state = AsyncData(state.valueOrNull ?? AuthState.locked);
   }
 
   /// Create a new account
@@ -1046,7 +1052,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     DebugLogger.instance.logInfo('AUTH', 'CHECKPOINT: createAccount start');
 
-    state = AuthState.loading;
+    state = const AsyncLoading();
 
     final result = await _accountManager.createAccount(
       name,
@@ -1056,10 +1062,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (result.success) {
       // Keep vault locked after account creation
-      state = AuthState.locked;
+      state = const AsyncData(AuthState.locked);
       return (success: true, error: null);
     } else {
-      state = AuthState.locked;
+      state = const AsyncData(AuthState.locked);
       return (success: false, error: result.error);
     }
   }
@@ -1077,11 +1083,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (password.isEmpty) {
       DebugLogger.instance
           .logInfo('AUTH', 'CHECKPOINT: password is empty, returning false');
-      state = AuthState.locked;
+      state = const AsyncData(AuthState.locked);
       return false;
     }
 
-    state = AuthState.loading;
+    state = const AsyncLoading();
 
     // Step 1: Unlock Rust vault
     DebugLogger.instance
@@ -1101,7 +1107,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         'error=${vaultResult.error}, cryptoVersion=${vaultResult.cryptoVersion}');
 
     if (!vaultResult.success) {
-      state = AuthState.locked;
+      state = const AsyncData(AuthState.locked);
       return false;
     }
 
@@ -1163,7 +1169,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (rustConfig?.salt == null) {
         DebugLogger.instance
             .logError('AUTH', 'Cannot get salt from Rust - returning false');
-        state = AuthState.locked;
+        state = const AsyncData(AuthState.locked);
         return false;
       }
       salt = base64Decode(rustConfig!.salt!);
@@ -1180,13 +1186,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
 
     if (sessionKey == null) {
-      state = AuthState.locked;
+      state = const AsyncData(AuthState.locked);
       return false;
     }
 
     _profileStorage.setEncryptionKey(sessionKey);
 
-    state = AuthState.unlocked;
+    state = const AsyncData(AuthState.unlocked);
 
     return true;
   }
@@ -1202,7 +1208,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void lockVault() {
     _vaultUnlockService.lockVault();
     _profileStorage.clearEncryptionKey();
-    state = AuthState.locked;
+    state = const AsyncData(AuthState.locked);
   }
 
   /// Check if vault exists
@@ -1215,7 +1221,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> deleteAccount(String password) async {
     final success = await _accountManager.deleteAccount(password);
     if (success) {
-      state = AuthState.locked;
+      state = const AsyncData(AuthState.locked);
     }
     return success;
   }
@@ -1246,7 +1252,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 /// Auth state provider
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(() {
   return AuthNotifier();
 });
 

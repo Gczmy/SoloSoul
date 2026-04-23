@@ -8,7 +8,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/main.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show formFieldRegistryProvider;
@@ -245,15 +244,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       // Pre-register all form fields for sensitivity settings
       ref.read(formFieldRegistryProvider.notifier).registerAllForms();
-
-      // Load account style (sensitivity settings) after unlock
-      final styleAccountId = authNotifier.selectedAccountId;
-      if (styleAccountId != null) {
-        await ref.read(accountStyleProvider.notifier).loadStyle(styleAccountId).timeout(
-          const Duration(seconds: 5),
-          onTimeout: () {},
-        );
-      }
 
       // Record login metadata (lastLoginAt + device)
       final accountId = authNotifier.selectedAccountId;

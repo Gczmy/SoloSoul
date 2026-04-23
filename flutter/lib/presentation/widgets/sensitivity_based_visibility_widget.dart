@@ -411,11 +411,11 @@ class _SensitivityBasedVisibilityWidgetState
 final effectiveFieldLevelProvider =
     Provider.family<SensitivityLevel, ({String fieldId, List<String> tags})>(
         (ref, params) {
-  final style = ref.watch(accountStyleProvider);
+  final style = ref.watch(accountStyleProvider).value;
   return sensitivityResolver.resolve(
     fieldId: params.fieldId,
-    fieldSettings: style.fieldSettings,
-    revealedFields: style.revealedFields,
+    fieldSettings: style?.fieldSettings ?? {},
+    revealedFields: style?.revealedFields ?? {},
     tags: params.tags,
   );
 });

@@ -140,8 +140,8 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final theme = Theme.of(context);
 
     // Watch sensitivity settings to rebuild when they change
-    final settings = ref.watch(accountStyleProvider);
-    final isPrivacyShieldEnabled = settings.displayMode == SensitivityDisplayMode.hidePrivate;
+    final settings = ref.watch(accountStyleProvider).value;
+    final isPrivacyShieldEnabled = settings?.displayMode == SensitivityDisplayMode.hidePrivate;
     final fieldLevel = ref.watch(effectiveSensitivityProvider(widget.fieldId));
 
     // Watch sensitive page access to detect recent verification
@@ -149,7 +149,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
 
     // Privacy mode is ON when hidePrivate or hideAll is enabled
     final isPrivacyModeOn = isPrivacyShieldEnabled ||
-        settings.displayMode == SensitivityDisplayMode.hideAll;
+        settings?.displayMode == SensitivityDisplayMode.hideAll;
 
     bool shouldMask = switch (fieldLevel) {
       SensitivityLevel.public => false,

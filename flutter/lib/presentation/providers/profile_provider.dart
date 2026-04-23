@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/providers/services/profile_persistence_notifier.dart';
 import 'package:solosoul_flutter/presentation/providers/services/operation_log_aggregator.dart';
 import 'package:solosoul_flutter/presentation/providers/services/trash_manager.dart';
@@ -19,24 +17,29 @@ export 'package:solosoul_flutter/core/models/field_history_models.dart'
 /// - OperationLogAggregator: change detection and summary
 /// - TrashManager: soft delete/restore/permanent delete
 /// - SectionMutators: domain model updates
-class ProfileNotifier extends StateNotifier<ProfileData?> {
+class ProfileNotifier extends AsyncNotifier<ProfileData?> {
   late final ProfilePersistenceService _persistence;
   late final OperationLogAggregator _logAggregator;
   late final TrashManager _trashManager;
   late final SectionMutators _sectionMutators;
-  final Ref _ref;
-
-  ProfileNotifier(this._ref) : super(null) {
-    _logAggregator = OperationLogAggregator();
-    _persistence = ProfilePersistenceService(_ref);
-    _trashManager = TrashManager(_ref, _logAggregator, _persistence);
-    _sectionMutators = SectionMutators(_ref, _logAggregator, _persistence);
-  }
 
   @override
-  void dispose() {
-    _persistence.dispose();
-    super.dispose();
+  Future<ProfileData?> build() async {
+    _logAggregator = OperationLogAggregator();
+    _persistence = ProfilePersistenceService(ref);
+    _trashManager = TrashManager(ref, _logAggregator, _persistence);
+    _sectionMutators = SectionMutators(ref, _logAggregator, _persistence);
+
+    ref.onDispose(() {
+      _persistence.dispose();
+    });
+
+    return await _loadFromStorage();
+  }
+
+  Future<ProfileData?> _loadFromStorage() async {
+    final profile = await _persistence.loadProfile();
+    return profile;
   }
 
   bool get isLoading => _persistence.isLoading;
@@ -44,14 +47,17 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
   /// Clear profile state (when auth is locked or reset)
   Future<void> clearProfile() async {
     await _persistence.clearProfile();
-    state = null;
+    state = const AsyncData(null);
   }
 
-  /// Load profile for the currently unlocked account
+  /// Reload profile (for manual refresh or auth state changes)
   Future<void> loadProfile() async {
-    final profile = await _persistence.loadProfile();
-    if (profile != null) {
-      state = profile;
+    state = const AsyncLoading();
+    try {
+      final profile = await _loadFromStorage();
+      state = AsyncData(profile);
+    } on Exception catch (e, st) {
+      state = AsyncError(e, st);
     }
   }
 
@@ -67,37 +73,44 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
   /// Update identity data
   Future<bool> updateIdentity(IdentityData identity) async {
-    return _sectionMutators.updateIdentity(identity, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateIdentity(identity, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Add or update travel data
   Future<bool> updateTravel(TravelData travel) async {
-    return _sectionMutators.updateTravel(travel, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateTravel(travel, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Update travel data with immediate save (bypasses debounce)
   Future<bool> updateTravelImmediate(TravelData travel) async {
-    return _sectionMutators.updateTravelImmediate(travel, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateTravelImmediate(travel, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Add or update financial data
   Future<bool> updateFinancial(FinancialData financial) async {
-    return _sectionMutators.updateFinancial(financial, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateFinancial(financial, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Update financial data with immediate save (bypasses debounce)
   Future<bool> updateFinancialImmediate(FinancialData financial) async {
-    return _sectionMutators.updateFinancialImmediate(financial, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateFinancialImmediate(financial, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Add or update professional data
   Future<bool> updateProfessional(ProfessionalData professional) async {
-    return _sectionMutators.updateProfessional(professional, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateProfessional(professional, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Update professional data with immediate save (bypasses debounce)
   Future<bool> updateProfessionalImmediate(ProfessionalData professional) async {
-    return _sectionMutators.updateProfessionalImmediate(professional, state, (p) => state = p);
+    final currentProfile = state.value;
+    return _sectionMutators.updateProfessionalImmediate(professional, currentProfile, (p) => state = AsyncData(p));
   }
 
   /// Soft delete an item (marks as deleted but doesn't remove)
@@ -107,21 +120,22 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required int index,
     required dynamic deletedItem,
   }) async {
-    if (state == null) return;
+    final currentProfile = state.value;
+    if (currentProfile == null) return;
 
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return;
 
-    final actualIndex = _trashManager.findIndexById(state!, section, itemType, deletedItem.id);
+    final actualIndex = _trashManager.findIndexById(currentProfile, section, itemType, deletedItem.id);
     if (actualIndex < 0) return;
 
     await _trashManager.softDelete(
-      currentProfile: state!,
+      currentProfile: currentProfile,
       section: section,
       itemType: itemType,
       index: actualIndex,
       deletedItem: deletedItem,
-      onStateUpdate: (profile) => state = profile,
+      onStateUpdate: (profile) => state = AsyncData(profile),
     );
   }
 
@@ -131,21 +145,22 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required String itemType,
     required String id,
   }) async {
-    if (state == null) {
+    final currentProfile = state.value;
+    if (currentProfile == null) {
       throw Exception('No profile loaded');
     }
 
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) {
       throw Exception('No account selected');
     }
 
     await _trashManager.restore(
-      currentProfile: state!,
+      currentProfile: currentProfile,
       section: section,
       itemType: itemType,
       id: id,
-      onStateUpdate: (profile) => state = profile,
+      onStateUpdate: (profile) => state = AsyncData(profile),
     );
   }
 
@@ -155,84 +170,64 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     required String itemType,
     required String id,
   }) async {
-    if (state == null) {
+    final currentProfile = state.value;
+    if (currentProfile == null) {
       throw Exception('No profile loaded');
     }
 
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) {
       throw Exception('No account selected');
     }
 
     await _trashManager.permanentDelete(
-      currentProfile: state!,
+      currentProfile: currentProfile,
       section: section,
       itemType: itemType,
       id: id,
-      onStateUpdate: (profile) => state = profile,
+      onStateUpdate: (profile) => state = AsyncData(profile),
     );
   }
 
   /// Empty all trash (permanent delete all soft-deleted items)
   Future<void> emptyAllTrash() async {
-    if (state == null) return;
+    final currentProfile = state.value;
+    if (currentProfile == null) return;
 
-    final accountId = _ref.read(authNotifierProvider.notifier).selectedAccountId;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return;
 
     await _trashManager.emptyAllTrash(
-      currentProfile: state!,
-      onStateUpdate: (profile) => state = profile,
+      currentProfile: currentProfile,
+      onStateUpdate: (profile) => state = AsyncData(profile),
     );
   }
 }
 
 /// Auto-loading profile provider that loads when auth state is unlocked
-final profileNotifierProvider =
-    StateNotifierProvider.autoDispose<ProfileNotifier, ProfileData?>((ref) {
-      final notifier = ProfileNotifier(ref);
-
-      // Watch auth state and auto-load when unlocked
-      ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-        if (next == AuthState.unlocked) {
-          notifier.loadProfile();
-          // Pre-register all form fields so sensitivity settings page has full list
-          ref.read(formFieldRegistryProvider.notifier).registerAllForms();
-        } else if (previous == AuthState.unlocked &&
-                   (next == AuthState.locked || next == AuthState.initial)) {
-          // Only clear profile when transitioning FROM unlocked to locked/initial.
-          notifier.clearProfile();
-        }
-      });
-
-      // If already unlocked when provider is first created (e.g., on hot reload)
-      final authState = ref.read(authNotifierProvider);
-      if (authState == AuthState.unlocked) {
-        notifier.loadProfile();
-      }
-
-      return notifier;
-    });
+final profileNotifierProvider = AsyncNotifierProvider<ProfileNotifier, ProfileData?>(() {
+  return ProfileNotifier();
+});
 
 /// Convenience providers for individual data sections
 final identityProvider = Provider<IdentityData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  return profile?.identity;
+  return profile.value?.identity;
 });
 
 final travelProvider = Provider<TravelData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  return profile?.travel;
+  return profile.value?.travel;
 });
 
 final financialProvider = Provider<FinancialData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  return profile?.financial;
+  return profile.value?.financial;
 });
 
 final professionalProvider = Provider<ProfessionalData?>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  return profile?.professional;
+  return profile.value?.professional;
 });
 
 // =============================================================================
@@ -242,7 +237,7 @@ final professionalProvider = Provider<ProfessionalData?>((ref) {
 /// Education items provider - derives sorted EducationData from profileNotifierProvider.
 final educationItemsProvider = Provider.autoDispose<List<EducationData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final professional = profile?.professional;
+  final professional = profile.value?.professional;
   if (professional == null) return [];
 
   final items = professional.activeEducation.map((e) => EducationData(
@@ -280,7 +275,7 @@ int _degreeSortOrder(EducationData e, List<String> degreeOrder) {
 /// Bank account items provider
 final bankAccountItemsProvider = Provider.autoDispose<List<BankAccountData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final financial = profile?.financial;
+  final financial = profile.value?.financial;
   if (financial == null) return [];
 
   return financial.activeBankAccounts.map((b) => BankAccountData(
@@ -300,7 +295,7 @@ final bankAccountItemsProvider = Provider.autoDispose<List<BankAccountData>>((re
 /// Employment items provider
 final employmentItemsProvider = Provider.autoDispose<List<EmploymentData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final professional = profile?.professional;
+  final professional = profile.value?.professional;
   if (professional == null) return [];
 
   return professional.activeEmployment.map((e) => EmploymentData(
@@ -319,7 +314,7 @@ final employmentItemsProvider = Provider.autoDispose<List<EmploymentData>>((ref)
 /// Skill items provider
 final skillItemsProvider = Provider.autoDispose<List<SkillData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final professional = profile?.professional;
+  final professional = profile.value?.professional;
   if (professional == null) return [];
 
   return professional.activeSkills.map((s) => SkillData(
@@ -335,7 +330,7 @@ final skillItemsProvider = Provider.autoDispose<List<SkillData>>((ref) {
 /// Tax ID items provider
 final taxIdItemsProvider = Provider.autoDispose<List<TaxIdData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final financial = profile?.financial;
+  final financial = profile.value?.financial;
   if (financial == null) return [];
 
   return financial.activeTaxIds.map((t) => TaxIdData(
@@ -354,7 +349,7 @@ final taxIdItemsProvider = Provider.autoDispose<List<TaxIdData>>((ref) {
 /// Passport items provider
 final passportItemsProvider = Provider.autoDispose<List<PassportData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final travel = profile?.travel;
+  final travel = profile.value?.travel;
   if (travel == null) return [];
 
   return travel.activePassports.map((p) => PassportData(
@@ -381,7 +376,7 @@ final passportItemsProvider = Provider.autoDispose<List<PassportData>>((ref) {
 /// Visa items provider
 final visaItemsProvider = Provider.autoDispose<List<VisaData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final travel = profile?.travel;
+  final travel = profile.value?.travel;
   if (travel == null) return [];
 
   return travel.activeVisas.map((v) => VisaData(
@@ -401,7 +396,7 @@ final visaItemsProvider = Provider.autoDispose<List<VisaData>>((ref) {
 /// Travel history items provider
 final travelHistoryItemsProvider = Provider.autoDispose<List<TravelHistoryData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final travel = profile?.travel;
+  final travel = profile.value?.travel;
   if (travel == null) return [];
 
   return travel.activeTravelHistory.map((t) => TravelHistoryData(
@@ -424,7 +419,7 @@ final travelHistoryItemsProvider = Provider.autoDispose<List<TravelHistoryData>>
 /// Card items provider
 final cardItemsProvider = Provider.autoDispose<List<CardData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final financial = profile?.financial;
+  final financial = profile.value?.financial;
   if (financial == null) return [];
 
   return financial.activeCards.map((c) => CardData(
@@ -444,7 +439,7 @@ final cardItemsProvider = Provider.autoDispose<List<CardData>>((ref) {
 /// Contact items provider
 final contactItemsProvider = Provider.autoDispose<List<ContactEntry>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final contact = profile?.identity?.contact;
+  final contact = profile.value?.identity?.contact;
   if (contact == null) return [];
 
   return contact.activeEntries.map((e) => ContactEntry(
@@ -461,7 +456,7 @@ final contactItemsProvider = Provider.autoDispose<List<ContactEntry>>((ref) {
 /// Language items provider
 final languageItemsProvider = Provider.autoDispose<List<LanguageData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final professional = profile?.professional;
+  final professional = profile.value?.professional;
   if (professional == null) return [];
   return professional.activeLanguages.toList();
 });
@@ -469,7 +464,7 @@ final languageItemsProvider = Provider.autoDispose<List<LanguageData>>((ref) {
 /// Award items provider
 final awardItemsProvider = Provider.autoDispose<List<AwardData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final professional = profile?.professional;
+  final professional = profile.value?.professional;
   if (professional == null) return [];
   return professional.activeAwards.toList();
 });
@@ -477,7 +472,7 @@ final awardItemsProvider = Provider.autoDispose<List<AwardData>>((ref) {
 /// ID card items provider
 final idCardItemsProvider = Provider.autoDispose<List<IdCardData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final identity = profile?.identity;
+  final identity = profile.value?.identity;
   if (identity == null) return [];
   return identity.activeIdCards.toList();
 });
@@ -485,7 +480,7 @@ final idCardItemsProvider = Provider.autoDispose<List<IdCardData>>((ref) {
 /// Address items provider
 final addressItemsProvider = Provider.autoDispose<List<AddressData>>((ref) {
   final profile = ref.watch(profileNotifierProvider);
-  final identity = profile?.identity;
+  final identity = profile.value?.identity;
   if (identity == null) return [];
   return identity.activeAddresses.toList();
 });

@@ -192,7 +192,7 @@ $ git diff --stat
 | ~~巨型文件 (search_page.dart 1324行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为8个文件 |
 | ~~巨型文件 (operation_log_page.dart 1631行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为5个文件 |
 | ~~巨型文件 (sensitivity_provider.dart 1091行)~~ | ~~P1~~ | ✅ **已完成** - 拆分为2个文件 (1091→85行 provider + 1019行 models) |
-| Riverpod v1/v2 混用 | P2 | 统一到 AsyncNotifier |
+| ~~Riverpod v1/v2 混用~~ | ~~P2~~ | ✅ **已完成** - 统一到 AsyncNotifier |
 | go_router 迁移 | P2 | 顺带迁移 |
 | freezed 引入 | P2 | 分阶段试点 |
 
@@ -218,3 +218,4 @@ $ git diff --stat
 | Round 5 (本轮) | 2 | switch → Map 派发重构 (2个文件) |
 | Round 5 (本轮) | 1 | operation_log_page.dart 拆分 (1631→659行, 5个文件) |
 | Round 5 (本轮) | 1 | sensitivity_provider.dart 拆分 (1091→85行, 2个文件) |
+| Round 5 (本轮) | 1 | Riverpod v1→v2 AsyncNotifier 统一 |

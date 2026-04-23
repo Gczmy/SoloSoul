@@ -302,8 +302,8 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
   Widget _buildSettingsView() {
     // Watch reactive formFieldRegistryProvider for field list changes
     final registry = ref.watch(formFieldRegistryProvider);
-    // Use select() to only rebuild when fieldSettings changes, not entire accountStyle
-    final accountStyle = ref.watch(accountStyleProvider.select((s) => s.fieldSettings));
+    // Watch the full accountStyle - select on AsyncNotifier gives AsyncValue, access via .value
+    final accountStyle = ref.watch(accountStyleProvider).value?.fieldSettings ?? {};
     final notifier = ref.read(accountStyleProvider.notifier);
 
     // Build effective field list by combining formFieldRegistryProvider with account style overrides
@@ -563,11 +563,11 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     WidgetRef ref,
     String fieldId,
   ) {
-    final accountStyle = ref.read(accountStyleProvider);
+    final accountStyle = ref.read(accountStyleProvider).value;
     final registry = ref.read(formFieldRegistryProvider);
     final field = registry[fieldId];
     if (field == null) return; // Field not found, shouldn't happen
-    final effectiveLevel = accountStyle.fieldSettings[fieldId] ?? field.level;
+    final effectiveLevel = accountStyle?.fieldSettings[fieldId] ?? field.level;
 
     showDialog(
       context: context,

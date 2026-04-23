@@ -40,11 +40,11 @@ final effectiveSensitivityProvider =
   );
   // Only watch this specific fieldId's user override
   final userOverride = ref.watch(
-    accountStyleProvider.select((s) => s.fieldSettings[fieldId]),
+    accountStyleProvider.select((s) => s.value?.fieldSettings[fieldId]),
   );
   // Watch revealed fields set
   final revealedFields = ref.watch(
-    accountStyleProvider.select((s) => s.revealedFields),
+    accountStyleProvider.select((s) => s.value?.revealedFields ?? {}),
   );
 
   // 1. Temporary reveal

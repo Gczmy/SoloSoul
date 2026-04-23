@@ -22,7 +22,7 @@ import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart'
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show
@@ -170,7 +170,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         // Show top notification for operation feedback
         if (!mounted) return;
         final isPrivacyMode =
-            ref.read(accountStyleProvider).displayMode ==
+            ref.read(accountStyleProvider).value?.displayMode ==
             SensitivityDisplayMode.hidePrivate;
         OperationNotification.show(
           context,
@@ -290,7 +290,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final profile = ref.watch(profileNotifierProvider);
+    final profile = ref.watch(profileNotifierProvider).value;
     final identity = profile?.identity;
     final contact = identity?.contact;
 
@@ -473,7 +473,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
   void _onContactDidDelete(ContactEntry contact, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = contact.id;
     OperationNotification.show(
@@ -549,7 +549,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -791,7 +791,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
   void _onIdCardDidDelete(IdCardData card, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = card.id;
     final itemName = card.title ?? card.number ?? 'ID Card';
@@ -862,7 +862,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1038,7 +1038,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
   void _onAddressDidDelete(AddressData address, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = address.id;
     final itemName = address.title ?? 'Address';
@@ -1107,7 +1107,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

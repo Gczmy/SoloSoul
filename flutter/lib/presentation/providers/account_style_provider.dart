@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart' show OperationLogService, LogAction;
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart' show LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show FieldRegistry, FormFieldRegistry, firstWhereOrNull;
@@ -198,82 +198,81 @@ class AccountStyleService {
 }
 
 /// State notifier for account style management.
-class AccountStyleNotifier extends StateNotifier<AccountStyle> {
-  final Ref _ref;
+class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
   String? _currentAccountId;
   Timer? _autoSaveTimer;
 
-  AccountStyleNotifier(this._ref) : super(const AccountStyle());
-
   String? get _accountId =>
-      _ref.read(authNotifierProvider.notifier).selectedAccountId;
+      ref.read(authNotifierProvider.notifier).selectedAccountId;
 
-  /// Load style for account (call after unlock).
-  Future<void> loadStyle([String? accountId]) async {
-    final accId = accountId ?? _accountId;
-    if (accId == null) return;
+  @override
+  Future<AccountStyle> build() async {
+    final accId = _accountId;
+    if (accId == null) return const AccountStyle();
 
     // Skip if already loaded for this account
-    if (_currentAccountId == accId && state.fieldSettings.isNotEmpty) {
-      return;
+    if (_currentAccountId == accId && state.hasValue && state.value!.fieldSettings.isNotEmpty) {
+      return state.value!;
     }
 
     _currentAccountId = accId;
     final style = await AccountStyleService.instance.loadStyle(accId);
-    if (style != null) {
-      state = style;
-    } else {
-      // Use defaults if no stored style
-      state = const AccountStyle();
-    }
+    return style ?? const AccountStyle();
   }
 
   /// Reload style from disk.
   Future<void> reloadStyle(String accountId) async {
     _currentAccountId = accountId;
-    final style = await AccountStyleService.instance.loadStyle(accountId);
-    if (style != null) {
-      state = style;
+    state = const AsyncLoading();
+    try {
+      final style = await AccountStyleService.instance.loadStyle(accountId);
+      state = AsyncData(style ?? const AccountStyle());
+    } on Exception catch (e, st) {
+      state = AsyncError(e, st);
     }
   }
 
   /// Update field sensitivity level.
-  void setFieldLevel(String fieldId, SensitivityLevel level) {
+  Future<void> setFieldLevel(String fieldId, SensitivityLevel level) async {
     if (_currentAccountId == null) return;
+    if (!state.hasValue) return;
 
-    final oldLevel = state.fieldSettings[fieldId];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
+    final currentStyle = state.value!;
+    final oldLevel = currentStyle.fieldSettings[fieldId];
+    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
     newFieldSettings[fieldId] = level;
 
-    state = state.copyWith(
+    final updated = currentStyle.copyWith(
       fieldSettings: newFieldSettings,
       lastModified: DateTime.now(),
     );
+
+    state = AsyncData(updated);
     _autoSave();
 
     // Log the sensitivity change
     final description = oldLevel != null
         ? 'Changed "$fieldId" sensitivity from ${oldLevel.label} to ${level.label}'
         : 'Set "$fieldId" sensitivity to ${level.label}';
-    OperationLogService.instance.addEntry(
-      OperationLogger.logSensitivitySettings(
-        action: oldLevel != null ? LogAction.update : LogAction.create,
-        description: description,
-        fieldPath: fieldId,
-        sensitivityLevel: level,
-      ),
+    OperationLogger.logSensitivitySettings(
+      action: oldLevel != null ? LogAction.update : LogAction.create,
+      description: description,
+      fieldPath: fieldId,
+      sensitivityLevel: level,
     );
   }
 
   /// Remove field sensitivity override (revert to tag/global default).
   Future<bool> clearFieldLevel(String fieldId) async {
     if (_currentAccountId == null) return false;
+    if (!state.hasValue) return false;
 
-    final oldLevel = state.fieldSettings[fieldId];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
+    final currentStyle = state.value!;
+    final oldLevel = currentStyle.fieldSettings[fieldId];
+    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
     newFieldSettings.remove(fieldId);
 
-    final updated = state.copyWith(
+    final updated = currentStyle.copyWith(
       fieldSettings: newFieldSettings,
       lastModified: DateTime.now(),
     );
@@ -284,16 +283,14 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
     );
 
     if (saved) {
-      state = updated;
+      state = AsyncData(updated);
       // Log the sensitivity revert
       if (oldLevel != null) {
-        OperationLogService.instance.addEntry(
-          OperationLogger.logSensitivitySettings(
-            action: LogAction.delete,
-            description: 'Reverted "$fieldId" sensitivity to default (was ${oldLevel.label})',
-            fieldPath: fieldId,
-            sensitivityLevel: oldLevel,
-          ),
+        OperationLogger.logSensitivitySettings(
+          action: LogAction.delete,
+          description: 'Reverted "$fieldId" sensitivity to default (was ${oldLevel.label})',
+          fieldPath: fieldId,
+          sensitivityLevel: oldLevel,
         );
       }
     }
@@ -304,11 +301,13 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   /// Update tag default sensitivity level.
   Future<bool> setTagLevel(String tag, SensitivityLevel level) async {
     if (_currentAccountId == null) return false;
+    if (!state.hasValue) return false;
 
-    final newTagDefaults = Map<String, SensitivityLevel>.from(state.tagDefaults);
+    final currentStyle = state.value!;
+    final newTagDefaults = Map<String, SensitivityLevel>.from(currentStyle.tagDefaults);
     newTagDefaults[tag] = level;
 
-    final updated = state.copyWith(
+    final updated = currentStyle.copyWith(
       tagDefaults: newTagDefaults,
       lastModified: DateTime.now(),
     );
@@ -319,7 +318,7 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
     );
 
     if (saved) {
-      state = updated;
+      state = AsyncData(updated);
     }
 
     return saved;
@@ -328,14 +327,16 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   /// Remove tag default (revert to global default).
   Future<bool> clearTagLevel(String tag) async {
     if (_currentAccountId == null) return false;
+    if (!state.hasValue) return false;
 
-    final newTagDefaults = Map<String, SensitivityLevel>.from(state.tagDefaults);
+    final currentStyle = state.value!;
+    final newTagDefaults = Map<String, SensitivityLevel>.from(currentStyle.tagDefaults);
     newTagDefaults.remove(tag);
 
-    state = state.copyWith(
+    state = AsyncData(currentStyle.copyWith(
       tagDefaults: newTagDefaults,
       lastModified: DateTime.now(),
-    );
+    ));
     _autoSave();
 
     return true;
@@ -344,38 +345,42 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
   /// Debounced auto-save with 300ms timer.
   void _autoSave() {
     _autoSaveTimer?.cancel();
-    _autoSaveTimer = Timer(const Duration(milliseconds: 300), () {
-      if (_currentAccountId != null) {
-        AccountStyleService.instance.saveStyle(_currentAccountId!, state);
+    _autoSaveTimer = Timer(const Duration(milliseconds: 300), () async {
+      if (_currentAccountId != null && state.hasValue) {
+        await AccountStyleService.instance.saveStyle(_currentAccountId!, state.value!);
       }
     });
   }
 
   /// Set the sensitivity display mode.
   void setDisplayMode(SensitivityDisplayMode mode) {
-    state = state.copyWith(displayMode: mode);
+    if (!state.hasValue) return;
+    state = AsyncData(state.value!.copyWith(displayMode: mode));
     _autoSave();
   }
 
   /// Reveal a specific field temporarily.
   void revealField(String fieldId) {
-    state = state.copyWith(
-      revealedFields: {...state.revealedFields, fieldId},
-    );
+    if (!state.hasValue) return;
+    state = AsyncData(state.value!.copyWith(
+      revealedFields: {...state.value!.revealedFields, fieldId},
+    ));
     _autoSave();
   }
 
   /// Hide a specific field.
   void hideField(String fieldId) {
-    state = state.copyWith(
-      revealedFields: state.revealedFields.where((id) => id != fieldId).toSet(),
-    );
+    if (!state.hasValue) return;
+    state = AsyncData(state.value!.copyWith(
+      revealedFields: state.value!.revealedFields.where((id) => id != fieldId).toSet(),
+    ));
     _autoSave();
   }
 
   /// Toggle field visibility.
   void toggleField(String fieldId) {
-    if (state.revealedFields.contains(fieldId)) {
+    if (!state.hasValue) return;
+    if (state.value!.revealedFields.contains(fieldId)) {
       hideField(fieldId);
     } else {
       revealField(fieldId);
@@ -384,14 +389,18 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
 
   /// Hide all revealed private fields.
   void hideAllPrivate() {
-    state = state.copyWith(revealedFields: {});
+    if (!state.hasValue) return;
+    state = AsyncData(state.value!.copyWith(revealedFields: {}));
     _autoSave();
   }
 
   /// Upgrade field to a higher sensitivity level.
   void upgradeField(String fieldId) {
+    if (!state.hasValue || _currentAccountId == null) return;
+
+    final currentStyle = state.value!;
     // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
-    final effectiveLevel = state.fieldSettings[fieldId] ??
+    final effectiveLevel = currentStyle.fieldSettings[fieldId] ??
         FormFieldRegistry.getField(fieldId)?.level ??
         firstWhereOrNull(
             FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
@@ -399,29 +408,30 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
         SensitivityLevel.public;
     if (effectiveLevel.index >= SensitivityLevel.critical.index) return;
     final newLevel = SensitivityLevel.values[effectiveLevel.index + 1];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
+    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
     newFieldSettings[fieldId] = newLevel;
-    state = state.copyWith(
+    state = AsyncData(currentStyle.copyWith(
       fieldSettings: newFieldSettings,
       lastModified: DateTime.now(),
-    );
+    ));
     _autoSave();
 
     // Log the sensitivity upgrade
-    OperationLogService.instance.addEntry(
-      OperationLogger.logSensitivitySettings(
-        action: LogAction.update,
-        description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
-        fieldPath: fieldId,
-        sensitivityLevel: newLevel,
-      ),
+    OperationLogger.logSensitivitySettings(
+      action: LogAction.update,
+      description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+      fieldPath: fieldId,
+      sensitivityLevel: newLevel,
     );
   }
 
   /// Downgrade field to a lower sensitivity level.
   void downgradeField(String fieldId) {
+    if (!state.hasValue || _currentAccountId == null) return;
+
+    final currentStyle = state.value!;
     // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
-    final effectiveLevel = state.fieldSettings[fieldId] ??
+    final effectiveLevel = currentStyle.fieldSettings[fieldId] ??
         FormFieldRegistry.getField(fieldId)?.level ??
         firstWhereOrNull(
             FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
@@ -429,53 +439,41 @@ class AccountStyleNotifier extends StateNotifier<AccountStyle> {
         SensitivityLevel.public;
     if (effectiveLevel.index <= SensitivityLevel.public.index) return;
     final newLevel = SensitivityLevel.values[effectiveLevel.index - 1];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(state.fieldSettings);
+    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
     newFieldSettings[fieldId] = newLevel;
-    state = state.copyWith(
+    state = AsyncData(currentStyle.copyWith(
       fieldSettings: newFieldSettings,
       lastModified: DateTime.now(),
-    );
+    ));
     _autoSave();
 
     // Log the sensitivity downgrade
-    OperationLogService.instance.addEntry(
-      OperationLogger.logSensitivitySettings(
-        action: LogAction.update,
-        description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
-        fieldPath: fieldId,
-        sensitivityLevel: newLevel,
-      ),
+    OperationLogger.logSensitivitySettings(
+      action: LogAction.update,
+      description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+      fieldPath: fieldId,
+      sensitivityLevel: newLevel,
     );
   }
 
   /// Clear style state (on lock).
   void clear() {
     _autoSaveTimer?.cancel();
-    if (_currentAccountId != null) {
-      AccountStyleService.instance.saveStyle(_currentAccountId!, state);
+    if (_currentAccountId != null && state.hasValue) {
+      AccountStyleService.instance.saveStyle(_currentAccountId!, state.value!);
     }
-    state = const AccountStyle();
+    state = const AsyncData(AccountStyle());
     _currentAccountId = null;
-  }
-
-  @override
-  void dispose() {
-    _autoSaveTimer?.cancel();
-    if (_currentAccountId != null) {
-      AccountStyleService.instance.saveStyle(_currentAccountId!, state);
-    }
-    super.dispose();
   }
 }
 
 /// Provider for account style.
 final accountStyleProvider =
-    StateNotifierProvider<AccountStyleNotifier, AccountStyle>((ref) {
-  return AccountStyleNotifier(ref);
+    AsyncNotifierProvider<AccountStyleNotifier, AccountStyle>(() {
+  return AccountStyleNotifier();
 });
 
 /// Provider for display mode (reuses existing sensitivity settings).
 final displayModeProvider = StateProvider<SensitivityDisplayMode>((ref) {
   return SensitivityDisplayMode.hidePrivate;
 });
-

@@ -13,7 +13,7 @@ import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
-import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -312,7 +312,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   Widget _buildTrashView() {
     final theme = Theme.of(context);
-    final profile = ref.watch(profileNotifierProvider);
+    final profile = ref.watch(profileNotifierProvider).value;
 
     if (profile == null) {
       return Scaffold(
@@ -771,7 +771,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   void _showDetail(BuildContext context, DeletedItemInfo item) {
     final theme = Theme.of(context);
-    final profile = ref.read(profileNotifierProvider);
+    final profile = ref.read(profileNotifierProvider).value;
     if (profile == null) return;
 
     String detailText = '';

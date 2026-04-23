@@ -43,8 +43,8 @@ class SearchNotifier extends StateNotifier<SearchState> {
   }
 
   bool isFieldRevealed(String fieldPath, SensitivityLevel level) {
-    final style = _ref.read(accountStyleProvider);
-    if (!style.revealedFields.contains(fieldPath)) return false;
+    final style = _ref.read(accountStyleProvider).value;
+    if (style == null || !style.revealedFields.contains(fieldPath)) return false;
     if (level == SensitivityLevel.critical) {
       return _ref.read(isSensitiveAccessGrantedProvider);
     }
@@ -110,7 +110,8 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
     state = state.copyWith(isSearching: true);
 
-    final profile = _ref.read(profileNotifierProvider);
+    final profileAsync = _ref.read(profileNotifierProvider);
+    final profile = profileAsync.value;
     if (profile == null) {
       state = state.copyWith(results: [], isSearching: false);
       return;
