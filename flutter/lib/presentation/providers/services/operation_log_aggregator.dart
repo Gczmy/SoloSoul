@@ -1,6 +1,15 @@
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
+
+/// Typedef for section aggregator function
+typedef SectionAggregator = OperationEntry Function({
+  required LogAction action,
+  required String description,
+  String? fieldPath,
+  SensitivityLevel sensitivityLevel,
+});
 
 /// Service responsible for change detection and summary generation.
 /// This class handles:
@@ -8,6 +17,32 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 /// - Summarizing changes into human-readable operation strings
 class OperationLogAggregator {
   OperationLogAggregator();
+
+  // ===========================================================================
+  // Section Aggregator Map (Map-based dispatch instead of switch)
+  // ===========================================================================
+
+  /// Static map for section-to-aggregator dispatch
+  static final Map<LogSection, SectionAggregator> _sectionAggregators =
+      <LogSection, SectionAggregator>{
+    LogSection.identity: OperationLogger.logIdentity,
+    LogSection.contactInformation: OperationLogger.logContactInformation,
+    LogSection.address: OperationLogger.logAddress,
+    LogSection.idCard: OperationLogger.logIdCard,
+    LogSection.passport: OperationLogger.logPassport,
+    LogSection.visa: OperationLogger.logVisa,
+    LogSection.travelHistory: OperationLogger.logTravelHistory,
+    LogSection.bankAccount: OperationLogger.logBankAccount,
+    LogSection.card: OperationLogger.logCard,
+    LogSection.education: OperationLogger.logEducation,
+    LogSection.employment: OperationLogger.logEmployment,
+    LogSection.skill: OperationLogger.logSkill,
+    LogSection.language: OperationLogger.logLanguage,
+    LogSection.travel: OperationLogger.logTravel,
+    LogSection.financial: OperationLogger.logFinancial,
+    LogSection.professional: OperationLogger.logProfessional,
+    LogSection.sensitivitySettings: OperationLogger.logSensitivitySettings,
+  };
 
   // ===========================================================================
   // Change Detection and Logging
@@ -299,81 +334,24 @@ class OperationLogAggregator {
     );
   }
 
-  /// Add a log entry based on section
+  /// Add a log entry based on section (Map-based dispatch)
   void addLogEntry({
     required LogSection section,
     required LogAction action,
     required String description,
+    String? fieldPath,
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
   }) {
-    switch (section) {
-      case LogSection.identity:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logIdentity(action: action, description: description),
-        );
-      case LogSection.contactInformation:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logContactInformation(action: action, description: description),
-        );
-      case LogSection.address:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logAddress(action: action, description: description),
-        );
-      case LogSection.idCard:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logIdCard(action: action, description: description),
-        );
-      case LogSection.passport:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logPassport(action: action, description: description),
-        );
-      case LogSection.visa:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logVisa(action: action, description: description),
-        );
-      case LogSection.travelHistory:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logTravelHistory(action: action, description: description),
-        );
-      case LogSection.bankAccount:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logBankAccount(action: action, description: description),
-        );
-      case LogSection.card:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logCard(action: action, description: description),
-        );
-      case LogSection.education:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logEducation(action: action, description: description),
-        );
-      case LogSection.employment:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logEmployment(action: action, description: description),
-        );
-      case LogSection.skill:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logSkill(action: action, description: description),
-        );
-      case LogSection.language:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logLanguage(action: action, description: description),
-        );
-      case LogSection.travel:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logTravel(action: action, description: description),
-        );
-      case LogSection.financial:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logFinancial(action: action, description: description),
-        );
-      case LogSection.professional:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logProfessional(action: action, description: description),
-        );
-      case LogSection.sensitivitySettings:
-        OperationLogService.instance.addEntry(
-          OperationLogger.logSensitivitySettings(action: action, description: description),
-        );
+    final aggregator = _sectionAggregators[section];
+    if (aggregator != null) {
+      OperationLogService.instance.addEntry(
+        aggregator(
+          action: action,
+          description: description,
+          fieldPath: fieldPath,
+          sensitivityLevel: sensitivityLevel,
+        ),
+      );
     }
   }
 

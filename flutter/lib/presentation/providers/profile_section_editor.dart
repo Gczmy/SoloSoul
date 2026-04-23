@@ -2,8 +2,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 
 /// Centralized editor for profile section items.
 ///
-/// Eliminates the 3 massive switch-case chains that previously duplicated
-/// across travel/financial/professional/profile sections for:
+/// Converts the previous switch-case chains to use handler dispatch for:
 /// - marking items deleted (soft-delete with timestamp)
 /// - marking items restored (undo soft-delete)
 /// - reading items by index
@@ -12,6 +11,31 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 /// whether the target item was found and modified.
 class ProfileSectionEditor {
   ProfileSectionEditor._();
+
+  // ===========================================================================
+  // Section handler dispatch — eliminates 4-case switch statements
+  // ===========================================================================
+
+  static final _deleteHandlers = {
+    'travel': _markDeletedTravel,
+    'financial': _markDeletedFinancial,
+    'professional': _markDeletedProfessional,
+    'profile': _markDeletedProfile,
+  };
+
+  static final _restoreHandlers = {
+    'travel': _markRestoredTravel,
+    'financial': _markRestoredFinancial,
+    'professional': _markRestoredProfessional,
+    'profile': _markRestoredProfile,
+  };
+
+  static final _itemHandlers = {
+    'travel': _getItemTravel,
+    'financial': _getItemFinancial,
+    'professional': _getItemProfessional,
+    'profile': _getItemProfile,
+  };
 
   // ===========================================================================
   // Soft-delete (mark as deleted)
@@ -26,17 +50,9 @@ class ProfileSectionEditor {
     required int index,
     required DateTime deletedAt,
   }) {
-    switch (section) {
-      case 'travel':
-        return _markDeletedTravel(current, itemType, index, deletedAt);
-      case 'financial':
-        return _markDeletedFinancial(current, itemType, index, deletedAt);
-      case 'professional':
-        return _markDeletedProfessional(current, itemType, index, deletedAt);
-      case 'profile':
-        return _markDeletedProfile(current, itemType, index, deletedAt);
-    }
-    return (current, false);
+    final handler = _deleteHandlers[section];
+    if (handler == null) return (current, false);
+    return handler(current, itemType, index, deletedAt);
   }
 
   static (ProfileData, bool) _markDeletedTravel(
@@ -376,17 +392,9 @@ class ProfileSectionEditor {
     required String itemType,
     required int index,
   }) {
-    switch (section) {
-      case 'travel':
-        return _markRestoredTravel(current, itemType, index);
-      case 'financial':
-        return _markRestoredFinancial(current, itemType, index);
-      case 'professional':
-        return _markRestoredProfessional(current, itemType, index);
-      case 'profile':
-        return _markRestoredProfile(current, itemType, index);
-    }
-    return (current, false);
+    final handler = _restoreHandlers[section];
+    if (handler == null) return (current, false);
+    return handler(current, itemType, index);
   }
 
   static (ProfileData, bool) _markRestoredTravel(
@@ -720,24 +728,17 @@ class ProfileSectionEditor {
     required String itemType,
     required int index,
   }) {
-    switch (section) {
-      case 'travel':
-        return _getItemTravel(profile.travel, itemType, index);
-      case 'financial':
-        return _getItemFinancial(profile.financial, itemType, index);
-      case 'professional':
-        return _getItemProfessional(profile.professional, itemType, index);
-      case 'profile':
-        return _getItemProfile(profile.identity, itemType, index);
-    }
-    return null;
+    final handler = _itemHandlers[section];
+    if (handler == null) return null;
+    return handler(profile, itemType, index);
   }
 
   static dynamic _getItemTravel(
-    TravelData? travel,
+    ProfileData profile,
     String itemType,
     int index,
   ) {
+    final travel = profile.travel;
     if (travel == null) return null;
     switch (itemType) {
       case 'passport':
@@ -760,10 +761,11 @@ class ProfileSectionEditor {
   }
 
   static dynamic _getItemFinancial(
-    FinancialData? financial,
+    ProfileData profile,
     String itemType,
     int index,
   ) {
+    final financial = profile.financial;
     if (financial == null) return null;
     switch (itemType) {
       case 'bank_account':
@@ -786,10 +788,11 @@ class ProfileSectionEditor {
   }
 
   static dynamic _getItemProfessional(
-    ProfessionalData? professional,
+    ProfileData profile,
     String itemType,
     int index,
   ) {
+    final professional = profile.professional;
     if (professional == null) return null;
     switch (itemType) {
       case 'education':
@@ -817,10 +820,11 @@ class ProfileSectionEditor {
   }
 
   static dynamic _getItemProfile(
-    IdentityData? identity,
+    ProfileData profile,
     String itemType,
     int index,
   ) {
+    final identity = profile.identity;
     if (identity == null) return null;
     switch (itemType) {
       case 'contact':
