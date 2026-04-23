@@ -78,7 +78,11 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp> with WidgetsBindingOb
     // Set up native lock callback for macOS menu bar
     if (Platform.isMacOS) {
       NativeChannelService.setLockCallback(() {
-        ref.read(authNotifierProvider.notifier).lockVault();
+        try {
+          ref.read(authNotifierProvider.notifier).lockVault();
+        } catch (e) {
+          DebugLogger.instance.logError('MAIN', 'Lock callback error: $e');
+        }
       });
     }
   }

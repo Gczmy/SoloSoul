@@ -309,28 +309,38 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
 
     // Capture the newly created item (with correct ID) for "adding" mode
     T? createdItem;
+    if (wasAdding) {
+      // Create new item via itemFactory
+      if (widget.itemFactory != null) {
+        createdItem = widget.itemFactory!(values);
+      }
+    } else {
+      // For editing, create updated item
+      if (widget.itemFactory != null && editingItem != null) {
+        createdItem = widget.itemFactory!(
+          values,
+          id: (editingItem as dynamic).id as String?,
+        );
+      }
+    }
+
+    // Persist first - only update local state after successful save
+    await widget.onSave(createdItem, values, editingItem);
+
+    // Update local state after successful persistence
     setState(() {
       if (wasAdding) {
-        // Create new item via itemFactory
-        if (widget.itemFactory != null) {
-          createdItem = widget.itemFactory!(values);
-          // Insert at position 0 instead of adding at end
+        // Insert at position 0 instead of adding at end
+        if (createdItem != null) {
           _items.insert(0, createdItem as T);
         }
       } else {
-        // For editing, create updated item
-        if (widget.itemFactory != null && editingItem != null) {
-          _items[_editingIndex] = widget.itemFactory!(
-            values,
-            id: (editingItem as dynamic).id as String?,
-          );
+        if (createdItem != null) {
+          _items[_editingIndex] = createdItem as T;
         }
       }
       _mode = 'idle';
     });
-
-    // Always persist via onSave (handles notifications and storage)
-    await widget.onSave(createdItem, values, editingItem);
 
     // Record history if configured (only for edits, adds have no oldValues)
     if (widget.historyAwareOnSave != null && widget.historyConfig != null && !wasAdding) {

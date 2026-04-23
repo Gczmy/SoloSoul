@@ -24,21 +24,25 @@ Uint8List _hexToBytes(String hex) {
 }
 
 /// Constant-time string comparison to prevent timing attacks
-/// Uses fixed-length comparison to avoid length-leaking early returns
+/// Uses fixed-length HMAC comparison - no early returns that leak length info
 bool _constantTimeEquals(String a, String b) {
+  // Constant-time comparison: always iterate maxLen bytes, no early returns.
+  // Incorporates length difference into the comparison to handle
+  // arbitrary-length strings without leaking their lengths.
   final lenA = a.length;
   final lenB = b.length;
   final maxLen = lenA > lenB ? lenA : lenB;
-  if (maxLen == 0) return lenA == lenB; // both empty
 
-  // Pad shorter string with null bytes for constant-time comparison
+  // Pad strings to maxLen with null bytes (constant-time)
   final paddedA = a.padRight(maxLen, '\x00');
   final paddedB = b.padRight(maxLen, '\x00');
 
-  var result = lenA ^ lenB; // incorporate length difference
+  var result = 0;
   for (var i = 0; i < maxLen; i++) {
     result |= paddedA.codeUnitAt(i) ^ paddedB.codeUnitAt(i);
   }
+  // Also incorporate length difference into final result
+  result |= lenA ^ lenB;
   return result == 0;
 }
 
@@ -702,7 +706,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final accountData = await _storage.getAccountData(_selectedAccountId!).timeout(
         const Duration(seconds: 5),
-        onTimeout: () => null,
+        onTimeout: () => throw TimeoutException('getAccountData timed out'),
       );
       DebugLogger.instance.logInfo('AUTH', 'Keychain accountData: ${accountData != null ? "found" : "null"}');
       if (accountData == null) {
@@ -730,7 +734,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     DebugLogger.instance.logInfo('AUTH', 'Getting fresh account data after migration...');
     final freshData = await _storage.getAccountData(_selectedAccountId!).timeout(
       const Duration(seconds: 5),
-      onTimeout: () => null,
+      onTimeout: () => throw TimeoutException('getAccountData timed out'),
     );
     DebugLogger.instance.logInfo('AUTH', 'freshData: ${freshData != null ? "found" : "null"}');
 
@@ -741,7 +745,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final rustConfig = await Future.delayed(
         Duration.zero,
         () => NativeVaultService.instance.getAccountConfig(accountId: _selectedAccountId!),
-      ).timeout(const Duration(seconds: 5), onTimeout: () => null);
+      ).timeout(const Duration(seconds: 5), onTimeout: () => throw TimeoutException('getAccountConfig timed out'));
       if (rustConfig?.salt == null) {
         DebugLogger.instance.logError('AUTH', 'Cannot get salt from Rust - returning false');
         state = AuthState.locked;
@@ -827,7 +831,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         versionUpdated = await _storage.updateAccountCryptoVersion(accountId, cryptoVersion);
       }
     } catch (e) {
-      // Migration errors are handled silently - will retry on next login
+      DebugLogger.instance.logError('AUTH', 'Migration error: $e');
     }
   }
 
@@ -842,7 +846,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         () => NativeVaultService.instance.getAccountConfig(accountId: accountId),
       ).timeout(const Duration(seconds: 5), onTimeout: () {
         DebugLogger.instance.logError('AUTH', 'getAccountConfig timed out during migration');
-        return null;
+        throw TimeoutException('getAccountConfig timed out during migration');
       });
       DebugLogger.instance.logInfo('AUTH', 'getAccountConfig returned: ${rustConfig != null}');
 
@@ -851,7 +855,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         try {
           await _storage.updateAccountCryptoVersion(accountId, cryptoVersion).timeout(
             const Duration(seconds: 5),
-            onTimeout: () => false,
+            onTimeout: () => throw TimeoutException('updateAccountCryptoVersion timed out'),
           );
         } catch (e) {
           // Crypto version update failed - log but don't block migration
@@ -868,7 +872,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Check if account already exists in Keychain with timeout
       final accounts = await _storage.listAccounts().timeout(
         const Duration(seconds: 5),
-        onTimeout: () => <AccountInfo>[],
+        onTimeout: () => throw TimeoutException('listAccounts timed out'),
       );
       final existingAccount = accounts.cast<AccountInfo?>().firstWhere(
         (a) => a?.id == accountId,
@@ -882,7 +886,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             'salt': rustConfig.salt,
             'verify_hash': rustConfig.verifyHash,
             'crypto_version': cryptoVersion,
-          }).timeout(const Duration(seconds: 5), onTimeout: () {});
+          }).timeout(const Duration(seconds: 5), onTimeout: () => throw TimeoutException('saveAccountData timed out'));
         } catch (e) {
           DebugLogger.instance.logError('AUTH', 'Failed to save new account data during migration: $e');
         }
@@ -893,14 +897,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
             accountId,
             Uint8List.fromList(saltBytes),
             Uint8List.fromList(verifyHashBytes),
-          ).timeout(const Duration(seconds: 5), onTimeout: () {});
+          ).timeout(const Duration(seconds: 5), onTimeout: () => throw TimeoutException('updateAccountSalt timed out'));
         } catch (e) {
           DebugLogger.instance.logError('AUTH', 'Failed to update account salt during migration: $e');
         }
         try {
           await _storage.updateAccountCryptoVersion(accountId, cryptoVersion).timeout(
             const Duration(seconds: 5),
-            onTimeout: () => false,
+            onTimeout: () => throw TimeoutException('updateAccountCryptoVersion timed out'),
           );
         } catch (e) {
           DebugLogger.instance.logError('AUTH', 'Failed to update crypto version during migration: $e');

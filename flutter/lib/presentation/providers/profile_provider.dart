@@ -168,7 +168,12 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
     _saveDebounceTimer?.cancel();
     _saveDebounceTimer = Timer(_kSaveDebounceDuration, () async {
       _saveDebounceTimer = null;
-      await doSave();
+      try {
+        await doSave();
+      } catch (e, st) {
+        DebugLogger.instance.logError('PROFILE', 'Debounced save failed: $e $st');
+        rethrow;
+      }
     });
 
     return true;
