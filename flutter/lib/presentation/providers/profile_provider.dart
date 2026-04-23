@@ -211,26 +211,49 @@ final profileNotifierProvider = AsyncNotifierProvider<ProfileNotifier, ProfileDa
   return ProfileNotifier();
 });
 
-/// Convenience providers for individual data sections
-final identityProvider = Provider<IdentityData?>((ref) {
-  final profile = ref.watch(profileNotifierProvider);
-  return profile.value?.identity;
-});
+// =============================================================================
+// Section Providers (converted to @riverpod)
+// =============================================================================
 
-final travelProvider = Provider<TravelData?>((ref) {
-  final profile = ref.watch(profileNotifierProvider);
-  return profile.value?.travel;
-});
+/// Identity section provider
+@riverpod
+class ProfileIdentity extends _$ProfileIdentity {
+  @override
+  IdentityData? build() {
+    final profile = ref.watch(profileNotifierProvider);
+    return profile.value?.identity;
+  }
+}
 
-final financialProvider = Provider<FinancialData?>((ref) {
-  final profile = ref.watch(profileNotifierProvider);
-  return profile.value?.financial;
-});
+/// Travel section provider
+@riverpod
+class ProfileTravel extends _$ProfileTravel {
+  @override
+  TravelData? build() {
+    final profile = ref.watch(profileNotifierProvider);
+    return profile.value?.travel;
+  }
+}
 
-final professionalProvider = Provider<ProfessionalData?>((ref) {
-  final profile = ref.watch(profileNotifierProvider);
-  return profile.value?.professional;
-});
+/// Financial section provider
+@riverpod
+class ProfileFinancial extends _$ProfileFinancial {
+  @override
+  FinancialData? build() {
+    final profile = ref.watch(profileNotifierProvider);
+    return profile.value?.financial;
+  }
+}
+
+/// Professional section provider
+@riverpod
+class ProfileProfessional extends _$ProfileProfessional {
+  @override
+  ProfessionalData? build() {
+    final profile = ref.watch(profileNotifierProvider);
+    return profile.value?.professional;
+  }
+}
 
 // =============================================================================
 // Section Item Providers (Pilot: reduce ref.read usage)

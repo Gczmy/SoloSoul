@@ -5,10 +5,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+
+part 'operation_log_provider.g.dart';
 
 /// Operation log storage service with ENCRYPTED persistence
 /// Logs are stored encrypted in the vault, matching profile encryption
@@ -324,30 +327,48 @@ final operationLogProvider = ChangeNotifierProvider<OperationLogService>((ref) {
 });
 
 // Derived provider that returns the entries list and rebuilds when service notifies
-final operationLogEntriesProvider = Provider<List<OperationEntry>>((ref) {
-  ref.watch(
-    operationLogProvider,
-  ); // depend on the service so we rebuild when notified
-  return OperationLogService.instance.getEntries();
-});
+@riverpod
+class OperationLogEntries extends _$OperationLogEntries {
+  @override
+  List<OperationEntry> build() {
+    ref.watch(operationLogProvider);
+    return OperationLogService.instance.getEntries();
+  }
+}
 
 // Filter state providers
-final logActionFilterProvider = StateProvider<Set<String>>((ref) => {});
-final logDeviceFilterProvider = StateProvider<Set<String>>((ref) => {});
-final logSensitivityFilterProvider = StateProvider<Set<SensitivityLevel>>((ref) => {});
+@riverpod
+class LogActionFilter extends _$LogActionFilter {
+  @override
+  Set<String> build() => {};
+}
+
+@riverpod
+class LogDeviceFilter extends _$LogDeviceFilter {
+  @override
+  Set<String> build() => {};
+}
+
+@riverpod
+class LogSensitivityFilter extends _$LogSensitivityFilter {
+  @override
+  Set<SensitivityLevel> build() => {};
+}
 
 // Filtered entries provider
-final operationLogFilteredEntriesProvider = Provider<List<OperationEntry>>((
-  ref,
-) {
-  ref.watch(operationLogProvider);
-  final actionFilters = ref.watch(logActionFilterProvider);
-  final deviceFilters = ref.watch(logDeviceFilterProvider);
-  final sensitivityFilters = ref.watch(logSensitivityFilterProvider);
+@riverpod
+class OperationLogFilteredEntries extends _$OperationLogFilteredEntries {
+  @override
+  List<OperationEntry> build() {
+    ref.watch(operationLogProvider);
+    final actionFilters = ref.watch(logActionFilterProvider);
+    final deviceFilters = ref.watch(logDeviceFilterProvider);
+    final sensitivityFilters = ref.watch(logSensitivityFilterProvider);
 
-  return OperationLogService.instance.getFilteredEntries(
-    actionFilters: actionFilters.isEmpty ? null : actionFilters,
-    deviceFilters: deviceFilters.isEmpty ? null : deviceFilters,
-    sensitivityFilters: sensitivityFilters.isEmpty ? null : sensitivityFilters,
-  );
-});
+    return OperationLogService.instance.getFilteredEntries(
+      actionFilters: actionFilters.isEmpty ? null : actionFilters,
+      deviceFilters: deviceFilters.isEmpty ? null : deviceFilters,
+      sensitivityFilters: sensitivityFilters.isEmpty ? null : sensitivityFilters,
+    );
+  }
+}

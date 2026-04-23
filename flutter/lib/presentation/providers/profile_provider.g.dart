@@ -6,6 +6,82 @@ part of 'profile_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$profileIdentityHash() => r'f9ee523f55d247909309fc99cb0fcf83b2c26d48';
+
+/// Identity section provider
+///
+/// Copied from [ProfileIdentity].
+@ProviderFor(ProfileIdentity)
+final profileIdentityProvider =
+    AutoDisposeNotifierProvider<ProfileIdentity, IdentityData?>.internal(
+      ProfileIdentity.new,
+      name: r'profileIdentityProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$profileIdentityHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ProfileIdentity = AutoDisposeNotifier<IdentityData?>;
+String _$profileTravelHash() => r'6102ea79d88174f93e81447a9572c49fc1eb8e8c';
+
+/// Travel section provider
+///
+/// Copied from [ProfileTravel].
+@ProviderFor(ProfileTravel)
+final profileTravelProvider =
+    AutoDisposeNotifierProvider<ProfileTravel, TravelData?>.internal(
+      ProfileTravel.new,
+      name: r'profileTravelProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$profileTravelHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ProfileTravel = AutoDisposeNotifier<TravelData?>;
+String _$profileFinancialHash() => r'6f867402030e0464eff2dac25e6c3352447c5f77';
+
+/// Financial section provider
+///
+/// Copied from [ProfileFinancial].
+@ProviderFor(ProfileFinancial)
+final profileFinancialProvider =
+    AutoDisposeNotifierProvider<ProfileFinancial, FinancialData?>.internal(
+      ProfileFinancial.new,
+      name: r'profileFinancialProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$profileFinancialHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ProfileFinancial = AutoDisposeNotifier<FinancialData?>;
+String _$profileProfessionalHash() =>
+    r'e6afa824dc6ba8a40299357de3e7d0e8269b0e3f';
+
+/// Professional section provider
+///
+/// Copied from [ProfileProfessional].
+@ProviderFor(ProfileProfessional)
+final profileProfessionalProvider =
+    AutoDisposeNotifierProvider<
+      ProfileProfessional,
+      ProfessionalData?
+    >.internal(
+      ProfileProfessional.new,
+      name: r'profileProfessionalProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$profileProfessionalHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ProfileProfessional = AutoDisposeNotifier<ProfessionalData?>;
 String _$educationItemsHash() => r'd35a2da739f6add6644373e9c8bb5a90d74c3dd6';
 
 /// Education items provider - derives sorted EducationData from profileNotifierProvider.

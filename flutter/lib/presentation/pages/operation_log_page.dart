@@ -614,7 +614,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   void _toggleFilter<T>(
     Set<T> currentFilters,
     T value,
-    StateProvider<Set<T>> provider,
+    AutoDisposeNotifierProvider<dynamic, Set<T>> provider,
   ) {
     final newFilters = Set<T>.from(currentFilters);
     if (newFilters.contains(value)) {
