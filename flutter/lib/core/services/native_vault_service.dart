@@ -47,35 +47,9 @@ class NativeVaultService {
     }
 
     // iOS/macOS: Load the native library
-    if (Platform.isMacOS) {
-      final exePath = File(Platform.resolvedExecutable).parent.path;
-      final paths = [
-        '$exePath/Frameworks/libsolosoul_core.dylib',
-        '$exePath/../Frameworks/libsolosoul_core.dylib',
-        '$exePath/../../Frameworks/libsolosoul_core.dylib',
-        'libsolosoul_core.dylib',
-        '../native/target/aarch64-apple-darwin/release/libsolosoul_core.dylib',
-        '/Users/zzc/PycharmProjects/SoloSoul/flutter/native/target/release/libsolosoul_core.dylib',
-        '/Users/zzc/PycharmProjects/SoloSoul/flutter/macos/Runner/Frameworks/libsolosoul_core.dylib',
-      ];
-
-      DynamicLibrary? loadedLib;
-      for (final path in paths) {
-        try {
-          _lib = DynamicLibrary.open(path);
-          loadedLib = _lib;
-          _log('Successfully loaded dylib from: $path');
-          break;
-        } on Exception catch (e) {
-          _log('Failed to load from $path: $e');
-        }
-      }
-
-      if (loadedLib == null) {
-        throw Exception('Failed to load libsolosoul_core.dylib');
-      }
-    } else if (Platform.isIOS) {
+    if (Platform.isMacOS || Platform.isIOS) {
       _lib = DynamicLibrary.process();
+      _log('Loaded native library via DynamicLibrary.process()');
     } else {
       throw UnsupportedError(
         'Unsupported platform: ${Platform.operatingSystem}',

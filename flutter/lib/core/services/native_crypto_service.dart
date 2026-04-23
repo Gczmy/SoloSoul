@@ -67,30 +67,7 @@ class NativeCryptoService {
     }
 
     // iOS/macOS: Load the native library
-    if (Platform.isMacOS) {
-      final exePath = File(Platform.resolvedExecutable).parent.path;
-      final paths = [
-        '$exePath/Frameworks/libsolosoul_core.dylib',
-        '$exePath/../Frameworks/libsolosoul_core.dylib',
-        '$exePath/../../Frameworks/libsolosoul_core.dylib',
-        'libsolosoul_core.dylib',
-      ];
-
-      DynamicLibrary? loadedLib;
-      for (final path in paths) {
-        try {
-          _lib = DynamicLibrary.open(path);
-          loadedLib = _lib;
-          break;
-        } on Exception catch (_) {
-          // Try next path
-        }
-      }
-
-      if (loadedLib == null) {
-        throw Exception('Failed to load libsolosoul_core.dylib');
-      }
-    } else if (Platform.isIOS) {
+    if (Platform.isMacOS || Platform.isIOS) {
       _lib = DynamicLibrary.process();
     } else {
       throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
