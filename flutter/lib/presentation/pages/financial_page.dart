@@ -18,6 +18,7 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
+import 'package:solosoul_flutter/presentation/mixins/profile_section_mixin.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
   const FinancialPage({super.key});
@@ -118,8 +119,8 @@ class _BankAccountSection extends ConsumerStatefulWidget {
       _BankAccountSectionState();
 }
 
-class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
-    with WidgetsBindingObserver {
+class _BankAccountSectionState
+    extends ProfileSectionState<_BankAccountSection> {
   Widget _buildBankAccountItem(
     BankAccountData account,
     Map<String, String> itemMap,
@@ -141,26 +142,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
   late List<BankAccountData> _accounts;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadData();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadData();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _loadData() {
+  void loadItems() {
     final financial = ref.read(profileNotifierProvider)?.financial;
     _accounts = [
       ...?(financial?.activeBankAccounts.map(
@@ -271,7 +253,7 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
                 itemType: 'bank_account',
                 id: deletedId,
               );
-          _loadData();
+          loadItems();
           if (mounted) setState(() {});
         },
       );
@@ -518,63 +500,50 @@ class _CardSectionState extends ConsumerState<_CardSection>
     };
   }
 
+  /// Thin passthrough - softDelete is the only persistence operation.
+  /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onCardDelete(CardData card) async {
     final index = _cards.indexById(card.id, (c) => c.id);
     if (index == -1) return;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .softDelete(
+          section: 'financial',
+          itemType: 'card',
+          index: index,
+          deletedItem: card,
+        );
+  }
 
+  void _onDidDelete(CardData card, int index) {
     final isPrivacyMode =
         ref.read(displayModeProvider) == SensitivityDisplayMode.hidePrivate;
-
     final deletedId = card.id;
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotification(
+        section: LogSection.financial,
+        action: LogAction.delete,
+        itemName: card.cardType ?? 'Card',
+        isPrivacyModeActive: isPrivacyMode,
+      ),
+      duration: const Duration(seconds: 5),
+      onUndo: () async {
+        await ref
+            .read(profileNotifierProvider.notifier)
+            .restore(section: 'financial', itemType: 'card', id: deletedId);
+        _loadData();
+        if (mounted) setState(() {});
+      },
+    );
+  }
 
-    setState(() {
-      _cards = List.from(_cards)..removeAt(index);
-    });
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'financial',
-            itemType: 'card',
-            index: index,
-            deletedItem: card,
-          );
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _cards = List.from(_cards)..insert(index, card);
-        });
-      }
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete card',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.financial,
-          action: LogAction.delete,
-          itemName: card.cardType ?? 'Card',
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'financial', itemType: 'card', id: deletedId);
-          _loadData();
-          if (mounted) setState(() {});
-        },
-      );
-    }
+  void _onDeleteFailed(CardData card, int index) {
+    showOverlaySnackBar(
+      context,
+      content: 'Failed to delete card',
+      type: SnackBarType.error,
+    );
   }
 
   Future<void> _onCardSave(
@@ -715,6 +684,8 @@ class _CardSectionState extends ConsumerState<_CardSection>
       showHistoryExpansion: true,
       historyFieldIdPrefix: 'card',
       itemIdExtractor: (item) => item.id,
+      onDidDelete: _onDidDelete,
+      onDeleteFailed: _onDeleteFailed,
     );
   }
 }

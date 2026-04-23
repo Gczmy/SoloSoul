@@ -110,6 +110,14 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
   /// If not provided, uses (item as dynamic).id as a fallback.
   final String Function(T item)? itemIdExtractor;
 
+  /// Called after a delete succeeds. Use for showing OperationNotification with undo.
+  /// Parameters: (deletedItem, index)
+  final void Function(T item, int index)? onDidDelete;
+
+  /// Called when a delete fails after optimistic removal. Use for showing error snackbar.
+  /// Parameters: (deletedItem, index)
+  final void Function(T item, int index)? onDeleteFailed;
+
   const UnifiedFormSection({
     super.key,
     required this.title,
@@ -130,6 +138,8 @@ class UnifiedFormSection<T> extends ConsumerStatefulWidget {
     this.showHistoryExpansion = false,
     this.historyFieldIdPrefix,
     this.itemIdExtractor,
+    this.onDidDelete,
+    this.onDeleteFailed,
   });
 
   @override
@@ -258,18 +268,44 @@ class _UnifiedFormSectionState<T> extends ConsumerState<UnifiedFormSection<T>> {
 
   Future<void> _deleteEntry(int index) async {
     final deleted = _items[index];
-    final confirm = await showDeleteConfirmationDialog(
-      context: context,
-      itemName: _getItemName(deleted),
-      itemType: widget.title,
-    );
-    if (confirm) {
-      // Remove from local list immediately for responsive UI
-      // The async onDelete will persist to storage
+    // Delegate to handleDelete for optimistic update, persistence, rollback, and callbacks
+    await handleDelete(deleted, index, alreadyConfirmed: true);
+  }
+
+  /// Handles delete with optimistic update, persistence, rollback on failure,
+  /// and optional notification callbacks.
+  ///
+  /// [alreadyConfirmed] - if true, skips the confirmation dialog (useful when
+  /// calling handleDelete directly from the page section that already showed confirmation).
+  /// Returns true if delete succeeded, false if cancelled or failed.
+  Future<bool> handleDelete(T item, int index, {bool alreadyConfirmed = false}) async {
+    if (index < 0 || index >= _items.length) return false;
+
+    if (!alreadyConfirmed) {
+      final confirm = await showDeleteConfirmationDialog(
+        context: context,
+        itemName: _getItemName(item),
+        itemType: widget.title,
+      );
+      if (!confirm) return false;
+    }
+
+    // Optimistic removal from UI
+    setState(() {
+      _items = List.from(_items)..removeAt(index);
+    });
+
+    try {
+      await widget.onDelete(item);
+      widget.onDidDelete?.call(item, index);
+      return true;
+    } catch (e) {
+      // Rollback on failure
       setState(() {
-        _items = List.from(_items)..removeAt(index);
+        _items = List.from(_items)..insert(index, item);
       });
-      await widget.onDelete(deleted);
+      widget.onDeleteFailed?.call(item, index);
+      return false;
     }
   }
 
