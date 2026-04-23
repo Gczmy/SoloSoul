@@ -188,7 +188,10 @@ fn handle_list_profiles(manager: &AccountManager) -> VaultResponse {
                 .into_iter()
                 .map(JsonProfileSummary::from)
                 .collect();
-            VaultResponse::success(serde_json::to_value(summaries).unwrap())
+            match serde_json::to_value(summaries) {
+                Ok(json) => VaultResponse::success(json),
+                Err(e) => VaultResponse::error(format!("Failed to serialize profiles: {}", e)),
+            }
         }
         Err(e) => VaultResponse::error(format!("Failed to list profiles: {}", e)),
     }
@@ -252,7 +255,10 @@ fn handle_save_profile(payload: Option<serde_json::Value>, manager: &AccountMana
         return VaultResponse::error(format!("Failed to save profile: {}", e));
     }
 
-    VaultResponse::success(serde_json::to_value(JsonProfileSummary::from(summary)).unwrap())
+    match serde_json::to_value(JsonProfileSummary::from(summary)) {
+        Ok(json) => VaultResponse::success(json),
+        Err(e) => VaultResponse::error(format!("Failed to serialize profile: {}", e)),
+    }
 }
 
 fn handle_create_profile(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
@@ -287,7 +293,10 @@ fn handle_create_profile(payload: Option<serde_json::Value>, manager: &AccountMa
         return VaultResponse::error(format!("Failed to create profile: {}", e));
     }
 
-    VaultResponse::success(serde_json::to_value(JsonProfileSummary::from(summary)).unwrap())
+    match serde_json::to_value(JsonProfileSummary::from(summary)) {
+        Ok(json) => VaultResponse::success(json),
+        Err(e) => VaultResponse::error(format!("Failed to serialize profile: {}", e)),
+    }
 }
 
 fn handle_load_profile(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
@@ -534,7 +543,10 @@ fn handle_search_profiles(payload: Option<serde_json::Value>, manager: &AccountM
                 .into_iter()
                 .map(JsonProfileSummary::from)
                 .collect();
-            VaultResponse::success(serde_json::to_value(summaries).unwrap())
+            match serde_json::to_value(summaries) {
+                Ok(json) => VaultResponse::success(json),
+                Err(e) => VaultResponse::error(format!("Failed to serialize search results: {}", e)),
+            }
         }
         Err(e) => VaultResponse::error(format!("Search failed: {}", e)),
     }

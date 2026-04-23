@@ -7,7 +7,7 @@ use argon2::{
     Argon2, Params, Version, Algorithm,
 };
 use rand::RngCore;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroizing;
 
 /// Result codes for FFI functions
 const RESULT_OK: i32 = 0;

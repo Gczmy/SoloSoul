@@ -282,6 +282,11 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
     } else {
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
+
+    // Snapshot for rollback on failure
+    final originalItems = List<EducationData>.from(_items);
+
+    // Update local state optimistically
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
@@ -290,17 +295,29 @@ class _EducationSectionState extends ConsumerState<_EducationSection>
         _items = List.from(_items)..[index] = itemToSave;
       }
     }
-    final professional = ProfessionalData(
-      education: _items,
-      employment:
-          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-      skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-      languages:
-          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateProfessionalImmediate(professional);
+
+    // Persist via provider with rollback on failure
+    try {
+      final professional = ProfessionalData(
+        education: _items,
+        employment:
+            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
+        languages:
+            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfessionalImmediate(professional);
+    } catch (e) {
+      // Rollback on failure
+      _items = originalItems;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save education: $e', type: SnackBarType.error);
+      }
+      return;
+    }
+
     if (mounted) {
       final isPrivacyMode =
           ref.read(accountStyleProvider).displayMode ==
@@ -675,6 +692,11 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
     } else {
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
+
+    // Snapshot for rollback on failure
+    final originalItems = List<EmploymentData>.from(_items);
+
+    // Update local state optimistically
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
@@ -683,18 +705,30 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection>
         _items = List.from(_items)..[index] = itemToSave;
       }
     }
-    final professional = ProfessionalData(
-      education:
-          ref.read(profileNotifierProvider)?.professional?.education ?? [],
-      employment: _items,
-      skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-      languages:
-          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
-      awards: ref.read(profileNotifierProvider)?.professional?.awards ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateProfessionalImmediate(professional);
+
+    // Persist via provider with rollback on failure
+    try {
+      final professional = ProfessionalData(
+        education:
+            ref.read(profileNotifierProvider)?.professional?.education ?? [],
+        employment: _items,
+        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
+        languages:
+            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+        awards: ref.read(profileNotifierProvider)?.professional?.awards ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfessionalImmediate(professional);
+    } catch (e) {
+      // Rollback on failure
+      _items = originalItems;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save employment: $e', type: SnackBarType.error);
+      }
+      return;
+    }
+
     if (mounted) {
       final isPrivacyMode =
           ref.read(accountStyleProvider).displayMode ==
@@ -912,6 +946,11 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (itemToSave.name.isEmpty) return;
+
+    // Snapshot for rollback on failure
+    final originalItems = List<SkillData>.from(_items);
+
+    // Update local state optimistically
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
@@ -920,18 +959,30 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection>
         _items = List.from(_items)..[index] = itemToSave;
       }
     }
-    final professional = ProfessionalData(
-      education:
-          ref.read(profileNotifierProvider)?.professional?.education ?? [],
-      employment:
-          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-      skills: _items,
-      languages:
-          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateProfessionalImmediate(professional);
+
+    // Persist via provider with rollback on failure
+    try {
+      final professional = ProfessionalData(
+        education:
+            ref.read(profileNotifierProvider)?.professional?.education ?? [],
+        employment:
+            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+        skills: _items,
+        languages:
+            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfessionalImmediate(professional);
+    } catch (e) {
+      // Rollback on failure
+      _items = originalItems;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save skill: $e', type: SnackBarType.error);
+      }
+      return;
+    }
+
     if (mounted) {
       final isPrivacyMode =
           ref.read(accountStyleProvider).displayMode ==
@@ -1137,6 +1188,11 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (itemToSave.name.isEmpty) return;
+
+    // Snapshot for rollback on failure
+    final originalItems = List<LanguageData>.from(_items);
+
+    // Update local state optimistically
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
@@ -1145,17 +1201,29 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection>
         _items = List.from(_items)..[index] = itemToSave;
       }
     }
-    final professional = ProfessionalData(
-      education:
-          ref.read(profileNotifierProvider)?.professional?.education ?? [],
-      employment:
-          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-      skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-      languages: _items,
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateProfessionalImmediate(professional);
+
+    // Persist via provider with rollback on failure
+    try {
+      final professional = ProfessionalData(
+        education:
+            ref.read(profileNotifierProvider)?.professional?.education ?? [],
+        employment:
+            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
+        languages: _items,
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfessionalImmediate(professional);
+    } catch (e) {
+      // Rollback on failure
+      _items = originalItems;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save language: $e', type: SnackBarType.error);
+      }
+      return;
+    }
+
     if (mounted) {
       final isPrivacyMode =
           ref.read(accountStyleProvider).displayMode ==
@@ -1369,6 +1437,11 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
       itemToSave = _createFromValues(values, id: editingItem.id);
     }
     if (itemToSave.title == null || itemToSave.title!.isEmpty) return;
+
+    // Snapshot for rollback on failure
+    final originalItems = List<AwardData>.from(_items);
+
+    // Update local state optimistically
     if (wasAdding) {
       _items = List.from(_items)..add(itemToSave);
     } else {
@@ -1377,19 +1450,31 @@ class _AwardSectionState extends ConsumerState<_AwardSection>
         _items = List.from(_items)..[index] = itemToSave;
       }
     }
-    final professional = ProfessionalData(
-      education:
-          ref.read(profileNotifierProvider)?.professional?.education ?? [],
-      employment:
-          ref.read(profileNotifierProvider)?.professional?.employment ?? [],
-      skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
-      languages:
-          ref.read(profileNotifierProvider)?.professional?.languages ?? [],
-      awards: _items,
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateProfessionalImmediate(professional);
+
+    // Persist via provider with rollback on failure
+    try {
+      final professional = ProfessionalData(
+        education:
+            ref.read(profileNotifierProvider)?.professional?.education ?? [],
+        employment:
+            ref.read(profileNotifierProvider)?.professional?.employment ?? [],
+        skills: ref.read(profileNotifierProvider)?.professional?.skills ?? [],
+        languages:
+            ref.read(profileNotifierProvider)?.professional?.languages ?? [],
+        awards: _items,
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfessionalImmediate(professional);
+    } catch (e) {
+      // Rollback on failure
+      _items = originalItems;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save award: $e', type: SnackBarType.error);
+      }
+      return;
+    }
+
     if (mounted) {
       final isPrivacyMode =
           ref.read(accountStyleProvider).displayMode ==

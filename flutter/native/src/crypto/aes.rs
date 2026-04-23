@@ -7,7 +7,7 @@ use aes_gcm::{
     Aes256Gcm, Nonce,
 };
 use rand::RngCore;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroizing;
 
 /// AES-256-GCM nonce size (12 bytes)
 pub const NONCE_SIZE: usize = 12;

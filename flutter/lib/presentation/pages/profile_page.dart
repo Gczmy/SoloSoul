@@ -545,7 +545,10 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
         ? contactToSave.title
         : contactToSave.value;
 
-    // Update local state
+    // Snapshot for rollback on failure
+    final originalContacts = List<ContactEntry>.from(_contacts);
+
+    // Update local state optimistically
     if (wasAdding) {
       _contacts = List.from(_contacts)..add(contactToSave);
     } else {
@@ -555,21 +558,30 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
       }
     }
 
-    // Persist via provider
-    final newIdentity = IdentityData(
-      fullName: widget.identity?.fullName,
-      givenName: widget.identity?.givenName,
-      familyName: widget.identity?.familyName,
-      dateOfBirth: widget.identity?.dateOfBirth,
-      gender: widget.identity?.gender,
-      nationality: widget.identity?.nationality,
-      idCards: widget.identity?.idCards,
-      contact: ContactData(entries: _contacts),
-      addresses: widget.identity?.addresses,
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateIdentity(newIdentity);
+    // Persist via provider with rollback on failure
+    try {
+      final newIdentity = IdentityData(
+        fullName: widget.identity?.fullName,
+        givenName: widget.identity?.givenName,
+        familyName: widget.identity?.familyName,
+        dateOfBirth: widget.identity?.dateOfBirth,
+        gender: widget.identity?.gender,
+        nationality: widget.identity?.nationality,
+        idCards: widget.identity?.idCards,
+        contact: ContactData(entries: _contacts),
+        addresses: widget.identity?.addresses,
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateIdentity(newIdentity);
+    } catch (e) {
+      // Rollback on failure
+      _contacts = originalContacts;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save contact: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
@@ -911,7 +923,10 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
     }
     final itemName = cardToSave.title ?? cardToSave.number ?? 'ID Card';
 
-    // Update local state
+    // Snapshot for rollback on failure
+    final originalIdCards = List<IdCardData>.from(_idCards);
+
+    // Update local state optimistically
     if (wasAdding) {
       _idCards = List.from(_idCards)..add(cardToSave);
     } else {
@@ -921,19 +936,28 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection>
       }
     }
 
-    // Persist via provider
-    final identity = IdentityData(
-      fullName: widget.identity?.fullName,
-      givenName: widget.identity?.givenName,
-      familyName: widget.identity?.familyName,
-      dateOfBirth: widget.identity?.dateOfBirth,
-      gender: widget.identity?.gender,
-      nationality: widget.identity?.nationality,
-      idCards: _idCards,
-      contact: widget.identity?.contact,
-      addresses: widget.identity?.addresses,
-    );
-    await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
+    // Persist via provider with rollback on failure
+    try {
+      final identity = IdentityData(
+        fullName: widget.identity?.fullName,
+        givenName: widget.identity?.givenName,
+        familyName: widget.identity?.familyName,
+        dateOfBirth: widget.identity?.dateOfBirth,
+        gender: widget.identity?.gender,
+        nationality: widget.identity?.nationality,
+        idCards: _idCards,
+        contact: widget.identity?.contact,
+        addresses: widget.identity?.addresses,
+      );
+      await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
+    } catch (e) {
+      // Rollback on failure
+      _idCards = originalIdCards;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save ID card: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
@@ -1209,7 +1233,10 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
     }
     final itemName = addressToSave.title ?? 'Address';
 
-    // Update local state
+    // Snapshot for rollback on failure
+    final originalAddresses = List<AddressData>.from(_addresses);
+
+    // Update local state optimistically
     if (wasAdding) {
       _addresses = List.from(_addresses)..add(addressToSave);
     } else {
@@ -1219,19 +1246,28 @@ class _AddressSectionState extends ConsumerState<_AddressSection>
       }
     }
 
-    // Persist via provider
-    final identity = IdentityData(
-      fullName: widget.identity?.fullName,
-      givenName: widget.identity?.givenName,
-      familyName: widget.identity?.familyName,
-      dateOfBirth: widget.identity?.dateOfBirth,
-      gender: widget.identity?.gender,
-      nationality: widget.identity?.nationality,
-      idCards: widget.identity?.idCards,
-      contact: widget.identity?.contact,
-      addresses: _addresses,
-    );
-    await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
+    // Persist via provider with rollback on failure
+    try {
+      final identity = IdentityData(
+        fullName: widget.identity?.fullName,
+        givenName: widget.identity?.givenName,
+        familyName: widget.identity?.familyName,
+        dateOfBirth: widget.identity?.dateOfBirth,
+        gender: widget.identity?.gender,
+        nationality: widget.identity?.nationality,
+        idCards: widget.identity?.idCards,
+        contact: widget.identity?.contact,
+        addresses: _addresses,
+      );
+      await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
+    } catch (e) {
+      // Rollback on failure
+      _addresses = originalAddresses;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save address: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =

@@ -292,6 +292,10 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
     }
     final itemName = accountToSave.bankName ?? 'Bank account';
 
+    // Snapshot for rollback on failure
+    final originalAccounts = List<BankAccountData>.from(_accounts);
+
+    // Update local state optimistically
     if (wasAdding) {
       _accounts = List.from(_accounts)..add(accountToSave);
     } else {
@@ -301,15 +305,25 @@ class _BankAccountSectionState extends ConsumerState<_BankAccountSection>
       }
     }
 
-    final currentFinancial = ref.read(profileNotifierProvider)?.financial;
-    final financial = FinancialData(
-      bankAccounts: _accounts,
-      cards: currentFinancial?.cards ?? [],
-      taxIds: currentFinancial?.taxIds ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateFinancialImmediate(financial);
+    // Persist via provider with rollback on failure
+    try {
+      final currentFinancial = ref.read(profileNotifierProvider)?.financial;
+      final financial = FinancialData(
+        bankAccounts: _accounts,
+        cards: currentFinancial?.cards ?? [],
+        taxIds: currentFinancial?.taxIds ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateFinancialImmediate(financial);
+    } catch (e) {
+      // Rollback on failure
+      _accounts = originalAccounts;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save bank account: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
@@ -577,6 +591,10 @@ class _CardSectionState extends ConsumerState<_CardSection>
     }
     final itemName = cardToSave.cardType ?? 'Card';
 
+    // Snapshot for rollback on failure
+    final originalCards = List<CardData>.from(_cards);
+
+    // Update local state optimistically
     if (wasAdding) {
       _cards = List.from(_cards)..add(cardToSave);
     } else {
@@ -586,15 +604,25 @@ class _CardSectionState extends ConsumerState<_CardSection>
       }
     }
 
-    final currentFinancial = ref.read(profileNotifierProvider)?.financial;
-    final financial = FinancialData(
-      bankAccounts: currentFinancial?.bankAccounts ?? [],
-      cards: _cards,
-      taxIds: currentFinancial?.taxIds ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateFinancialImmediate(financial);
+    // Persist via provider with rollback on failure
+    try {
+      final currentFinancial = ref.read(profileNotifierProvider)?.financial;
+      final financial = FinancialData(
+        bankAccounts: currentFinancial?.bankAccounts ?? [],
+        cards: _cards,
+        taxIds: currentFinancial?.taxIds ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateFinancialImmediate(financial);
+    } catch (e) {
+      // Rollback on failure
+      _cards = originalCards;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save card: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
@@ -857,6 +885,10 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
     }
     final itemName = taxIdToSave.taxIdType ?? 'Tax ID';
 
+    // Snapshot for rollback on failure
+    final originalTaxIds = List<TaxIdData>.from(_taxIds);
+
+    // Update local state optimistically
     if (wasAdding) {
       _taxIds = List.from(_taxIds)..add(taxIdToSave);
     } else {
@@ -866,15 +898,25 @@ class _TaxIdSectionState extends ConsumerState<_TaxIdSection>
       }
     }
 
-    final currentFinancial = ref.read(profileNotifierProvider)?.financial;
-    final financial = FinancialData(
-      bankAccounts: currentFinancial?.activeBankAccounts ?? [],
-      cards: currentFinancial?.activeCards ?? [],
-      taxIds: _taxIds,
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateFinancialImmediate(financial);
+    // Persist via provider with rollback on failure
+    try {
+      final currentFinancial = ref.read(profileNotifierProvider)?.financial;
+      final financial = FinancialData(
+        bankAccounts: currentFinancial?.activeBankAccounts ?? [],
+        cards: currentFinancial?.activeCards ?? [],
+        taxIds: _taxIds,
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateFinancialImmediate(financial);
+    } catch (e) {
+      // Rollback on failure
+      _taxIds = originalTaxIds;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save tax ID: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =

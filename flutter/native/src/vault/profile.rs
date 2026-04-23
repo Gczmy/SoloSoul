@@ -5,10 +5,8 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
-use serde::de::Error;
 use std::collections::HashMap;
 use uuid::Uuid;
-use zeroize::{Zeroize, Zeroizing};
 
 /// Current profile schema version
 pub const PROFILE_SCHEMA_VERSION: u32 = 2;

@@ -114,9 +114,10 @@ impl AccountManager {
         if accounts_file.exists() {
             if let Ok(content) = fs::read_to_string(&accounts_file) {
                 if let Ok(accounts) = serde_json::from_str::<Vec<AccountMetadata>>(&content) {
-                    let mut cache = self.accounts_cache.write().unwrap();
-                    for account in accounts {
-                        cache.insert(account.id.clone(), account);
+                    if let Ok(mut cache) = self.accounts_cache.write().map_err(|e| format!("Lock poisoned: {}", e)) {
+                        for account in accounts {
+                            cache.insert(account.id.clone(), account);
+                        }
                     }
                 }
             }
@@ -125,7 +126,7 @@ impl AccountManager {
 
     /// Save accounts cache to disk
     fn save_accounts_cache(&self) -> Result<(), String> {
-        let cache = self.accounts_cache.read().unwrap();
+        let cache = self.accounts_cache.read().map_err(|e| format!("Lock poisoned: {}", e))?;
         let accounts: Vec<&AccountMetadata> = cache.values().collect();
         let content =
             serde_json::to_string_pretty(&accounts).map_err(|e| format!("Serialize failed: {}", e))?;
@@ -142,7 +143,13 @@ impl AccountManager {
 
     /// List all accounts
     pub fn list_accounts(&self) -> Vec<AccountInfo> {
-        let cache = self.accounts_cache.read().unwrap();
+        let cache = match self.accounts_cache.read() {
+            Ok(c) => c,
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Failed to read accounts cache: {}", e));
+                return Vec::new();
+            }
+        };
         cache
             .values()
             .map(|m| AccountInfo {
@@ -169,7 +176,13 @@ impl AccountManager {
 
     /// Check if an account name is available
     pub fn is_name_available(&self, name: &str) -> bool {
-        let cache = self.accounts_cache.read().unwrap();
+        let cache = match self.accounts_cache.read() {
+            Ok(c) => c,
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Failed to read accounts cache: {}", e));
+                return false;
+            }
+        };
         !cache.values().any(|a| a.name.to_lowercase() == name.to_lowercase())
     }
 
@@ -245,7 +258,7 @@ impl AccountManager {
         };
 
         {
-            let mut cache = self.accounts_cache.write().unwrap();
+            let mut cache = self.accounts_cache.write().map_err(|e| format!("Lock poisoned: {}", e))?;
             cache.insert(account_id.clone(), metadata);
         }
         self.save_accounts_cache()?;
@@ -253,11 +266,11 @@ impl AccountManager {
         // Store session key (clone the key)
         let key_copy = master_key.as_slice().try_into().unwrap();
         {
-            let mut session = self.session_key.write().unwrap();
+            let mut session = self.session_key.write().map_err(|e| format!("Lock poisoned: {}", e))?;
             *session = Some(Zeroizing::new(key_copy));
         }
         {
-            let mut unlocked = self.unlocked_account.write().unwrap();
+            let mut unlocked = self.unlocked_account.write().map_err(|e| format!("Lock poisoned: {}", e))?;
             *unlocked = Some(account_id.clone());
         }
 
@@ -270,21 +283,21 @@ impl AccountManager {
         };
         match VaultStore::open(vault_config) {
             Ok(vault) => {
-                let mut vault_store = self.vault_store.write().unwrap();
+                let mut vault_store = self.vault_store.write().map_err(|e| format!("Lock poisoned: {}", e))?;
                 *vault_store = Some(vault);
             }
             Err(e) => {
                 log_to_file(&format!("[MANAGER] Failed to open vault store during create_account: {}", e));
                 // Clear partial unlock state
                 {
-                    let mut session = self.session_key.write().unwrap();
+                    let mut session = self.session_key.write().map_err(|e| format!("Lock poisoned: {}", e))?;
                     if let Some(ref mut key) = *session {
                         key.zeroize();
                     }
                     session.take();
                 }
                 {
-                    let mut unlocked = self.unlocked_account.write().unwrap();
+                    let mut unlocked = self.unlocked_account.write().map_err(|e| format!("Lock poisoned: {}", e))?;
                     unlocked.take();
                 }
                 return Err(format!("Failed to open vault: {}", e));
@@ -342,10 +355,22 @@ impl AccountManager {
                         return VerifyResult { success: false, error: Some("Invalid password".to_string()), crypto_version: config.crypto_version };
                     }
                     // Ensure vault store is open (create_account sets unlocked state but may not open vault)
-                    let vault_guard = self.vault_store.read().unwrap();
+                    let vault_guard = match self.vault_store.read() {
+                        Ok(g) => g,
+                        Err(e) => {
+                            log_to_file(&format!("[MANAGER] Vault store lock poisoned: {}", e));
+                            return VerifyResult { success: false, error: Some("Internal error".to_string()), crypto_version: config.crypto_version };
+                        }
+                    };
                     if vault_guard.is_none() {
                         drop(vault_guard);
-                        let session_guard = self.session_key.read().unwrap();
+                        let session_guard = match self.session_key.read() {
+                            Ok(g) => g,
+                            Err(e) => {
+                                log_to_file(&format!("[MANAGER] Session key lock poisoned: {}", e));
+                                return VerifyResult { success: false, error: Some("Internal error".to_string()), crypto_version: config.crypto_version };
+                            }
+                        };
                         if let Some(ref key) = *session_guard {
                             let sqlcipher_key = self.derive_sqlcipher_key(&**key);
                             let vault_config = VaultConfig {
@@ -355,7 +380,13 @@ impl AccountManager {
                             };
                             match VaultStore::open(vault_config) {
                                 Ok(vault) => {
-                                    let mut vault_store = self.vault_store.write().unwrap();
+                                    let mut vault_store = match self.vault_store.write() {
+                                        Ok(guard) => guard,
+                                        Err(e) => {
+                                            log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                                        }
+                                    };
                                     *vault_store = Some(vault);
                                 }
                                 Err(e) => {
@@ -473,7 +504,13 @@ impl AccountManager {
 
         // Update last accessed
         {
-            let mut cache = self.accounts_cache.write().unwrap();
+            let mut cache = match self.accounts_cache.write() {
+                Ok(guard) => guard,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                }
+            };
             if let Some(account) = cache.get_mut(account_id) {
                 account.last_accessed = Some(Utc::now());
             }
@@ -483,11 +520,23 @@ impl AccountManager {
         // Store session key
         let key_copy = master_key.as_slice().try_into().unwrap();
         {
-            let mut session = self.session_key.write().unwrap();
+            let mut session = match self.session_key.write() {
+                Ok(guard) => guard,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                }
+            };
             *session = Some(Zeroizing::new(key_copy));
         }
         {
-            let mut unlocked = self.unlocked_account.write().unwrap();
+            let mut unlocked = match self.unlocked_account.write() {
+                Ok(guard) => guard,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                }
+            };
             *unlocked = Some(account_id.to_string());
         }
 
@@ -503,7 +552,13 @@ impl AccountManager {
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 log_to_file("[MANAGER] Vault opened successfully");
-                let mut vault_store = self.vault_store.write().unwrap();
+                let mut vault_store = match self.vault_store.write() {
+                    Ok(guard) => guard,
+                    Err(e) => {
+                        log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                        return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                    }
+                };
                 *vault_store = Some(vault);
                 VerifyResult {
                     success: true,
@@ -515,14 +570,26 @@ impl AccountManager {
                 log_to_file(&format!("[MANAGER] Vault open failed: {}", e));
                 // Vault failed to open - clear partial unlock state
                 {
-                    let mut session = self.session_key.write().unwrap();
+                    let mut session = match self.session_key.write() {
+                        Ok(guard) => guard,
+                        Err(e) => {
+                            log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                        }
+                    };
                     if let Some(ref mut key) = *session {
                         key.zeroize();
                     }
                     session.take();
                 }
                 {
-                    let mut unlocked = self.unlocked_account.write().unwrap();
+                    let mut unlocked = match self.unlocked_account.write() {
+                        Ok(guard) => guard,
+                        Err(e) => {
+                            log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                        }
+                    };
                     unlocked.take();
                 }
                 eprintln!("Failed to open vault: {}", e);
@@ -539,7 +606,13 @@ impl AccountManager {
     pub fn lock(&self) {
         // Lock vault to clear SQLCipher key
         {
-            let mut vault_store = self.vault_store.write().unwrap();
+            let mut vault_store = match self.vault_store.write() {
+                Ok(g) => g,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Vault store lock poisoned during lock: {}", e));
+                    return;
+                }
+            };
             if let Some(ref mut vault) = *vault_store {
                 vault.lock();
             }
@@ -547,13 +620,25 @@ impl AccountManager {
         }
         // Clear session key - extract from Option before zeroizing to ensure proper cleanup
         {
-            let mut session = self.session_key.write().unwrap();
+            let mut session = match self.session_key.write() {
+                Ok(g) => g,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Session key lock poisoned during lock: {}", e));
+                    return;
+                }
+            };
             if let Some(mut key) = session.take() {
                 key.zeroize();
             }
         }
         {
-            let mut unlocked = self.unlocked_account.write().unwrap();
+            let mut unlocked = match self.unlocked_account.write() {
+                Ok(g) => g,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Unlocked account lock poisoned during lock: {}", e));
+                    return;
+                }
+            };
             unlocked.take();
         }
     }
@@ -660,7 +745,7 @@ impl AccountManager {
         // Update session key to new key
         let key_copy = new_master_key.as_slice().try_into().unwrap();
         {
-            let mut session = self.session_key.write().unwrap();
+            let mut session = self.session_key.write().map_err(|e| format!("Lock poisoned: {}", e))?;
             *session = Some(Zeroizing::new(key_copy));
         }
 
@@ -676,20 +761,44 @@ impl AccountManager {
 
     /// Check if vault is unlocked
     pub fn is_unlocked(&self) -> bool {
-        let session = self.session_key.read().unwrap();
-        let unlocked = self.unlocked_account.read().unwrap();
+        let session = match self.session_key.read() {
+            Ok(s) => s,
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Session key lock poisoned in is_unlocked: {}", e));
+                return false;
+            }
+        };
+        let unlocked = match self.unlocked_account.read() {
+            Ok(u) => u,
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Unlocked account lock poisoned in is_unlocked: {}", e));
+                return false;
+            }
+        };
         session.is_some() && unlocked.is_some()
     }
 
     /// Get current unlocked account ID
     pub fn get_unlocked_account(&self) -> Option<String> {
-        let unlocked = self.unlocked_account.read().unwrap();
+        let unlocked = match self.unlocked_account.read() {
+            Ok(u) => u,
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Unlocked account lock poisoned: {}", e));
+                return None;
+            }
+        };
         unlocked.clone()
     }
 
     /// Get session key (only available when unlocked)
     pub fn get_session_key(&self) -> Option<Zeroizing<[u8; 32]>> {
-        let session = self.session_key.read().unwrap();
+        let session = match self.session_key.read() {
+            Ok(s) => s,
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Session key lock poisoned: {}", e));
+                return None;
+            }
+        };
         session.clone()
     }
 
@@ -733,7 +842,7 @@ impl AccountManager {
     pub fn delete_account(&self, account_id: &str) -> Result<(), String> {
         // Remove from accounts cache
         {
-            let mut cache = self.accounts_cache.write().unwrap();
+            let mut cache = self.accounts_cache.write().map_err(|e| format!("Lock poisoned: {}", e))?;
             cache.remove(account_id);
         }
 

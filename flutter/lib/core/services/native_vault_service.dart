@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
@@ -13,24 +14,10 @@ class NativeVaultService {
   late DynamicLibrary _lib;
   bool _isAndroid = false;
 
-  /// Write debug log to file (debug build only)
+  /// Write debug log using dart:developer (debug build only)
   void _log(String msg) {
     if (!kDebugMode) return;
-    try {
-      // Use home directory for macOS sandbox compatibility
-      final homeDir = Platform.environment['HOME'] ?? '/tmp';
-      final logDir = Directory('$homeDir/Library/Logs');
-      if (!logDir.existsSync()) {
-        logDir.createSync(recursive: true);
-      }
-      final logFile = File('$homeDir/Library/Logs/flutter_native_vault.log');
-      logFile.writeAsStringSync(
-        '${DateTime.now().toIso8601String()} $msg\n',
-        mode: FileMode.append,
-      );
-    } catch (_) {
-      // Silently ignore logging errors to not disrupt test flow
-    }
+    developer.log(msg, name: 'NativeVault');
   }
 
   // FFI function types

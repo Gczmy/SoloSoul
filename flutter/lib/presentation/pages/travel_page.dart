@@ -305,25 +305,38 @@ class _PassportSectionState extends ConsumerState<_PassportSection>
     }
     final itemName = passportToSave.country ?? 'Passport';
 
+    // Snapshot for rollback on failure
+    final originalPassports = List<PassportData>.from(_passports);
+
+    // Update local state optimistically
     if (wasAdding) {
       _passports = List.from(_passports)..add(passportToSave);
     } else {
-      // Use ID-based lookup since PassportData has no == override (uses object identity)
       final index = _passports.indexById(editingItem.id, (p) => p.id);
       if (index != -1) {
         _passports = List.from(_passports)..[index] = passportToSave;
       }
     }
 
-    final travel = TravelData(
-      passports: _passports,
-      visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
-      travelHistory:
-          ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateTravelImmediate(travel);
+    // Persist via provider with rollback on failure
+    try {
+      final travel = TravelData(
+        passports: _passports,
+        visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
+        travelHistory:
+            ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateTravelImmediate(travel);
+    } catch (e) {
+      // Rollback on failure
+      _passports = originalPassports;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save passport: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
@@ -636,27 +649,38 @@ class _VisaSectionState extends ConsumerState<_VisaSection>
     }
     final itemName = visaToSave.country ?? 'Visa';
 
-    // Update local state
+    // Snapshot for rollback on failure
+    final originalVisas = List<VisaData>.from(_visas);
+
+    // Update local state optimistically
     if (wasAdding) {
       _visas = List.from(_visas)..add(visaToSave);
     } else {
-      // Use ID-based lookup since VisaData has no == override (uses object identity)
       final index = _visas.indexById(editingItem.id, (v) => v.id);
       if (index != -1) {
         _visas = List.from(_visas)..[index] = visaToSave;
       }
     }
 
-    // Persist via provider
-    final travel = TravelData(
-      passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
-      visas: _visas,
-      travelHistory:
-          ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateTravelImmediate(travel);
+    // Persist via provider with rollback on failure
+    try {
+      final travel = TravelData(
+        passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
+        visas: _visas,
+        travelHistory:
+            ref.read(profileNotifierProvider)?.travel?.travelHistory ?? [],
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateTravelImmediate(travel);
+    } catch (e) {
+      // Rollback on failure
+      _visas = originalVisas;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save visa: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
@@ -921,24 +945,37 @@ class _TravelHistorySectionState extends ConsumerState<_TravelHistorySection>
       );
     }
 
+    // Snapshot for rollback on failure
+    final originalHistory = List<TravelHistoryData>.from(_history);
+
+    // Update local state optimistically
     if (wasAdding) {
       _history = List.from(_history)..add(itemToSave);
     } else {
-      // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
       final index = _history.indexById(editingItem.id, (h) => h.id);
       if (index != -1) {
         _history = List.from(_history)..[index] = itemToSave;
       }
     }
 
-    final travel = TravelData(
-      passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
-      visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
-      travelHistory: _history,
-    );
-    await ref
-        .read(profileNotifierProvider.notifier)
-        .updateTravelImmediate(travel);
+    // Persist via provider with rollback on failure
+    try {
+      final travel = TravelData(
+        passports: ref.read(profileNotifierProvider)?.travel?.passports ?? [],
+        visas: ref.read(profileNotifierProvider)?.travel?.visas ?? [],
+        travelHistory: _history,
+      );
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateTravelImmediate(travel);
+    } catch (e) {
+      // Rollback on failure
+      _history = originalHistory;
+      if (mounted) {
+        showOverlaySnackBar(context, content: 'Failed to save travel history: $e', type: SnackBarType.error);
+      }
+      return;
+    }
 
     if (mounted) {
       final isPrivacyMode =
