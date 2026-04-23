@@ -312,7 +312,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   Widget _buildTrashView() {
     final theme = Theme.of(context);
-    final profile = ref.watch(profileNotifierProvider).value;
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
 
     if (profile == null) {
       return Scaffold(
@@ -771,7 +771,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   void _showDetail(BuildContext context, DeletedItemInfo item) {
     final theme = Theme.of(context);
-    final profile = ref.read(profileNotifierProvider).value;
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
     if (profile == null) return;
 
     String detailText = '';

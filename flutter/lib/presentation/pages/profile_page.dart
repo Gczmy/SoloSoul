@@ -290,7 +290,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final profile = ref.watch(profileNotifierProvider).value;
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
     final identity = profile?.identity;
     final contact = identity?.contact;
 

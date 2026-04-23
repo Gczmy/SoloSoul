@@ -201,7 +201,7 @@ class _PassportSectionState
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
+        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = passport.id;
@@ -305,7 +305,7 @@ class _PassportSectionState
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
+          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -507,7 +507,7 @@ class _VisaSectionState
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
+        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = visa.id;
@@ -600,7 +600,7 @@ class _VisaSectionState
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
+          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -730,7 +730,7 @@ class _TravelHistorySectionState
     if (index == -1) return;
 
     final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
+        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     final deletedId = item.id;
@@ -858,7 +858,7 @@ class _TravelHistorySectionState
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
+          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

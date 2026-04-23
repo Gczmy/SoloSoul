@@ -1669,7 +1669,7 @@ class ProfileStorageService {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
       return profile;
-    } catch (_) {
+    } on Exception catch (e) {
       // TypeError from cast or other Error subclasses could occur here
       return null;
     }
@@ -1691,7 +1691,7 @@ class ProfileStorageService {
       _invalidateDeletedItemsCache();
 
       return true;
-    } catch (_) {
+    } on Exception catch (e) {
       // IOException or other Error subclasses could occur here
       return false;
     }

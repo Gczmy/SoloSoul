@@ -11,6 +11,9 @@ void main() {
       ),
     );
 
+    // Allow any async timers to settle before checking
+    await tester.pumpAndSettle();
+
     // Verify that the splash page shows the app name
     expect(find.text('SoloSoul'), findsOneWidget);
   });
