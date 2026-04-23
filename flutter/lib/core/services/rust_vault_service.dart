@@ -8,7 +8,7 @@ import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 part 'rust_vault_service.g.dart';
 
 /// Bridge profile summary returned from Rust FFI
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class BridgeProfileSummary {
   final String id;
   final String name;

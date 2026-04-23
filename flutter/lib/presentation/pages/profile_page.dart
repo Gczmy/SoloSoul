@@ -459,7 +459,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
   /// Optimistic UI, rollback, and notification are handled by handleDelete via callbacks.
   Future<void> _onContactDelete(ContactEntry contact) async {
     final contacts = ref.read(contactItemsProvider);
-    final index = contacts.indexOf(contact);
+    final index = contacts.indexWhere((c) => c.id == contact.id);
     if (index == -1) return;
     await ref
         .read(profileNotifierProvider.notifier)

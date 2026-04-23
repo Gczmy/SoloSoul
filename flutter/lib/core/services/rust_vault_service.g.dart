@@ -11,8 +11,8 @@ BridgeProfileSummary _$BridgeProfileSummaryFromJson(
 ) => BridgeProfileSummary(
   id: json['id'] as String,
   name: json['name'] as String,
-  createdAt: json['createdAt'] as String,
-  updatedAt: json['updatedAt'] as String,
+  createdAt: json['created_at'] as String,
+  updatedAt: json['updated_at'] as String,
   version: (json['version'] as num).toInt(),
 );
 
@@ -21,7 +21,7 @@ Map<String, dynamic> _$BridgeProfileSummaryToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'createdAt': instance.createdAt,
-  'updatedAt': instance.updatedAt,
+  'created_at': instance.createdAt,
+  'updated_at': instance.updatedAt,
   'version': instance.version,
 };

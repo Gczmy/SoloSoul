@@ -189,7 +189,7 @@ class ProfileNotifier extends StateNotifier<ProfileData?> {
 
 /// Auto-loading profile provider that loads when auth state is unlocked
 final profileNotifierProvider =
-    StateNotifierProvider<ProfileNotifier, ProfileData?>((ref) {
+    StateNotifierProvider.autoDispose<ProfileNotifier, ProfileData?>((ref) {
       final notifier = ProfileNotifier(ref);
 
       // Watch auth state and auto-load when unlocked
