@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_services.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
@@ -123,17 +124,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   /// Unlock vault with master password
   Future<bool> unlockVault(String password) async {
-    DebugLogger.instance
-        .logInfo('AUTH', 'unlockVault start, selectedAccountId=${_accountManager.selectedAccountId}');
+    SoloLog.d('Auth', 'unlockVault start, selectedAccountId=${_accountManager.selectedAccountId}');
 
     if (_accountManager.selectedAccountId == null) {
-      DebugLogger.instance
-          .logInfo('AUTH', 'CHECKPOINT: _selectedAccountId is null, returning false');
+      SoloLog.w('Auth', '_selectedAccountId is null, returning false');
       return false;
     }
     if (password.isEmpty) {
-      DebugLogger.instance
-          .logInfo('AUTH', 'CHECKPOINT: password is empty, returning false');
+      SoloLog.w('Auth', 'password is empty, returning false');
       state = const AsyncData(AuthState.locked);
       return false;
     }
@@ -141,30 +139,24 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncLoading();
 
     // Step 1: Unlock Rust vault
-    DebugLogger.instance
-        .logInfo('AUTH', 'CHECKPOINT: calling RustVaultService.unlockVault');
+    final timer1 = SoloLog.startTimer('Auth', 'RustVaultService.unlockVault');
     final vaultResult = _vaultUnlockService.unlockVault(
       accountId: _accountManager.selectedAccountId!,
       password: password,
     );
-    DebugLogger.instance.logInfo(
-        'AUTH',
-        'CHECKPOINT: RustVaultService.unlockVault returned, '
-        'success=${vaultResult.success}');
-
-    DebugLogger.instance.logInfo(
-        'AUTH',
-        'Rust unlock result: success=${vaultResult.success}, '
-        'error=${vaultResult.error}, cryptoVersion=${vaultResult.cryptoVersion}');
+    SoloLog.endTimer(timer1);
+    SoloLog.d('Auth', 'Rust unlock result: success=${vaultResult.success}, error=${vaultResult.error}, cryptoVersion=${vaultResult.cryptoVersion}');
 
     if (!vaultResult.success) {
+      SoloLog.e('Auth', 'Rust unlock failed: ${vaultResult.error}');
       state = const AsyncData(AuthState.locked);
       return false;
     }
 
-    DebugLogger.instance.logInfo('AUTH', 'Rust unlock succeeded, checking Keychain...');
+    SoloLog.d('Auth', 'Rust unlock succeeded, checking Keychain...');
 
     // Step 2: Check for migrations needed
+    final timer2 = SoloLog.startTimer('Auth', 'Keychain.getAccountData');
     try {
       final accountData = await _storage
           .getAccountData(_accountManager.selectedAccountId!)
@@ -172,19 +164,17 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
             const Duration(seconds: 5),
             onTimeout: () => throw TimeoutException('getAccountData timed out'),
           );
-      DebugLogger.instance
-          .logInfo('AUTH', 'Keychain accountData: ${accountData != null ? "found" : "null"}');
+      SoloLog.endTimer(timer2);
+      SoloLog.d('Auth', 'Keychain accountData: ${accountData != null ? "found" : "null"}');
 
       if (accountData == null) {
-        DebugLogger.instance
-            .logInfo('AUTH', 'Account not in Keychain, migrating from Rust...');
+        SoloLog.d('Auth', 'Account not in Keychain, migrating from Rust...');
         await _migrationService.migrateAccountFromRust(
           accountId: _accountManager.selectedAccountId!,
           cryptoVersion: vaultResult.cryptoVersion ?? 2,
         );
       } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
-        DebugLogger.instance
-            .logInfo('AUTH', 'V1 account detected, migrating to V2...');
+        SoloLog.d('Auth', 'V1 account detected, migrating to V2...');
         await _migrationService.migrateAccountToV2(
           accountId: _accountManager.selectedAccountId!,
           password: password,
@@ -192,11 +182,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         );
       }
     } on Object catch (e, st) {
-      DebugLogger.instance.logError('AUTH', 'Migration error: $e\nStack trace: $st');
+      SoloLog.e('Auth', 'Migration error', e, st);
     }
 
     // Step 3: Get session key for profile encryption
-    DebugLogger.instance.logInfo('AUTH', 'Getting fresh account data after migration...');
+    SoloLog.d('Auth', 'Step 3: Getting fresh account data after migration...');
+    final timer3 = SoloLog.startTimer('Auth', 'Keychain.getAccountData(fresh)');
     Uint8List? salt;
     try {
       final freshData = await _storage
@@ -205,12 +196,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
             const Duration(seconds: 5),
             onTimeout: () => throw TimeoutException('getAccountData timed out'),
           );
-      DebugLogger.instance
-          .logInfo('AUTH', 'freshData: ${freshData != null ? "found" : "null"}');
+      SoloLog.endTimer(timer3);
+      SoloLog.d('Auth', 'freshData: ${freshData != null ? "found" : "null"}');
 
       if (freshData == null) {
-        DebugLogger.instance
-            .logInfo('AUTH', 'freshData is null, getting salt from Rust...');
+        SoloLog.w('Auth', 'freshData is null, getting salt from Rust...');
         final rustConfig = await Future.delayed(
           Duration.zero,
           () => NativeVaultService.instance.getAccountConfig(
@@ -219,17 +209,17 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
             .timeout(const Duration(seconds: 5),
                 onTimeout: () => throw TimeoutException('getAccountConfig timed out'));
         if (rustConfig?.salt == null) {
-          DebugLogger.instance
-              .logError('AUTH', 'Cannot get salt from Rust - returning false');
+          SoloLog.e('Auth', 'Cannot get salt from Rust - returning false');
           state = const AsyncData(AuthState.locked);
           return false;
         }
         salt = base64Decode(rustConfig!.salt!);
+        SoloLog.d('Auth', 'Got salt from Rust');
       } else {
         salt = base64Decode(freshData['salt'] as String);
         // If Keychain has corrupted salt, fall back to Rust
         if (salt.length != 32) {
-          DebugLogger.instance.logInfo('AUTH', 'Keychain salt length=${salt.length}, falling back to Rust');
+          SoloLog.w('Auth', 'Keychain salt length=${salt.length} invalid, falling back to Rust');
           final rustConfig = NativeVaultService.instance.getAccountConfig(
               accountId: _accountManager.selectedAccountId!);
           if (rustConfig?.salt != null) {
@@ -238,16 +228,18 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         }
       }
     } on Object catch (e, st) {
-      DebugLogger.instance.logError('AUTH', 'Step 3 error (getAccountData): $e\nStack trace: $st');
+      SoloLog.endTimer(timer3);
+      SoloLog.e('Auth', 'Step 3 error (getAccountData)', e, st);
       // Try to get salt from Rust as last resort
       try {
         final rustConfig = NativeVaultService.instance.getAccountConfig(
             accountId: _accountManager.selectedAccountId!);
         if (rustConfig?.salt != null) {
           salt = base64Decode(rustConfig!.salt!);
+          SoloLog.d('Auth', 'Got salt from Rust as fallback');
         }
-      } on Object catch (e2) {
-        DebugLogger.instance.logError('AUTH', 'Rust fallback also failed: $e2');
+      } on Object catch (e2, st2) {
+        SoloLog.e('Auth', 'Rust fallback also failed', e2, st2);
       }
       if (salt == null || salt.length != 32) {
         state = const AsyncData(AuthState.locked);
@@ -256,11 +248,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
 
     if (salt.length != 32) {
-      DebugLogger.instance.logError('AUTH', 'Invalid salt length ${salt.length}, expected 32');
+      SoloLog.e('Auth', 'Invalid salt length ${salt.length}, expected 32');
       state = const AsyncData(AuthState.locked);
       return false;
     }
 
+    final timer4 = SoloLog.startTimer('Auth', 'NativeCryptoService.deriveKey');
     final sessionKey = NativeCryptoService.instance.deriveKey(
       password: password,
       salt: Uint8List.fromList(salt),
@@ -268,15 +261,19 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       iterations: 1,
       parallelism: 4,
     );
+    SoloLog.endTimer(timer4);
 
     if (sessionKey == null) {
+      SoloLog.e('Auth', 'Session key derivation failed');
       state = const AsyncData(AuthState.locked);
       return false;
     }
 
+    SoloLog.d('Auth', 'Session key derived, setting profile encryption...');
     _profileStorage.setEncryptionKey(sessionKey);
 
     state = const AsyncData(AuthState.unlocked);
+    SoloLog.d('Auth', 'Vault unlocked successfully!');
 
     return true;
   }
@@ -289,16 +286,18 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (_accountManager.selectedAccountId == null) return false;
     if (password.isEmpty) return false;
 
+    SoloLog.d('Auth', 'verifyPasswordForSensitiveData: Starting verification...');
     final result = await _storage.verifyPassword(
       _accountManager.selectedAccountId!,
       password,
     );
-    DebugLogger.instance.logInfo('AUTH', 'verifyPasswordForSensitiveData: result=$result');
+    SoloLog.d('Auth', 'verifyPasswordForSensitiveData: result=$result');
     return result;
   }
 
   /// Lock the vault
   void lockVault() {
+    SoloLog.d('Auth', 'Locking vault...');
     _vaultUnlockService.lockVault();
     _profileStorage.clearEncryptionKey();
     state = const AsyncData(AuthState.locked);

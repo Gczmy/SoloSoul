@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
@@ -318,10 +319,12 @@ class AccountManager {
 
   /// Get all accounts sorted by most recent access
   Future<List<AccountInfo>> getAccountsSortedByRecent() async {
+    SoloLog.d('AccountMgr', 'getAccountsSortedByRecent: Fetching accounts...');
     final rustAccounts = RustVaultService.instance.listAccountsFromRust();
     List<AccountInfo> accounts;
 
     if (rustAccounts != null && rustAccounts.isNotEmpty) {
+      SoloLog.d('AccountMgr', 'Found ${rustAccounts.length} accounts in Rust');
       final rustMappedAccounts = rustAccounts
           .map((r) => AccountInfo(
                 id: r['id'] as String? ?? '',
@@ -337,21 +340,25 @@ class AccountManager {
 
       final storageAccounts = await _storage.listAccounts();
       final storageById = {for (final a in storageAccounts) a.id: a};
+      SoloLog.d('AccountMgr', 'Found ${storageAccounts.length} accounts in Keychain');
 
       accounts = rustMappedAccounts.map((rustAccount) {
         final storageAccount = storageById[rustAccount.id];
         if (storageAccount != null) {
+          SoloLog.d('AccountMgr', 'Merging account ${rustAccount.id}: hasHint=${storageAccount.passwordHint != null}');
           return rustAccount.copyWith(
             createdAt: rustAccount.createdAt ?? storageAccount.createdAt,
             lastLoginAt: storageAccount.lastLoginAt,
             lastOperationAt: storageAccount.lastOperationAt,
             lastOperationDesc: storageAccount.lastOperationDesc,
             recentDevices: storageAccount.recentDevices,
+            passwordHint: storageAccount.passwordHint,
           );
         }
         return rustAccount;
       }).toList();
     } else {
+      SoloLog.d('AccountMgr', 'No Rust accounts, using Keychain only');
       accounts = await _storage.listAccounts();
     }
 
@@ -361,6 +368,7 @@ class AccountManager {
       if (b.lastAccessed == null) return -1;
       return b.lastAccessed!.compareTo(a.lastAccessed!);
     });
+    SoloLog.d('AccountMgr', 'Returning ${accounts.length} accounts sorted by recent');
     return accounts;
   }
 
@@ -371,6 +379,7 @@ class AccountManager {
 
   /// Select an account
   Future<void> selectAccount(String? accountId) async {
+    SoloLog.d('AccountMgr', 'Selecting account: $accountId');
     _selectedAccountId = accountId;
     if (accountId != null) {
       final accounts = await _storage.listAccounts();
@@ -378,8 +387,10 @@ class AccountManager {
             (a) => a?.id == accountId,
             orElse: () => null,
           );
+      SoloLog.d('AccountMgr', 'Account selected: ${_selectedAccountInfo?.name}, hasHint=${_selectedAccountInfo?.passwordHint != null}');
     } else {
       _selectedAccountInfo = null;
+      SoloLog.d('AccountMgr', 'Account deselected');
     }
     _accountsVersion++;
   }

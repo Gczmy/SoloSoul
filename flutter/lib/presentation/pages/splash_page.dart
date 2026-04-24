@@ -6,7 +6,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
-import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 

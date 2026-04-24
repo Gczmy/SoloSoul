@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
 /// Secure storage for account data using FlutterSecureStorage (Keychain on macOS)
@@ -22,6 +23,7 @@ class SecureAccountStorage {
   }
 
   Future<void> _writeSecure(String key, String? value) async {
+    SoloLog.d('AuthStorage', 'Writing to Keychain: key=$key');
     try {
       await _secureStorage.write(key: key, value: value).timeout(
             const Duration(seconds: 5),
@@ -29,18 +31,22 @@ class SecureAccountStorage {
               throw Exception('Keychain write timed out for key: $key');
             },
           );
+      SoloLog.d('AuthStorage', 'Keychain write successful: $key');
     } on Exception catch (e, st) {
-      DebugLogger.instance.logError('STORAGE', 'Keychain write error: $e\nStack trace: $st');
+      SoloLog.e('AuthStorage', 'Keychain write failed: $key', e, st);
       rethrow;
     }
   }
 
   Future<List<AccountInfo>> listAccounts() async {
+    SoloLog.d('AuthStorage', 'Reading accounts list from Keychain...');
     final data = await _secureStorage.read(key: _accountsKey);
 
     if (data == null || data.isEmpty) {
+      SoloLog.d('AuthStorage', 'No accounts found in Keychain');
       return [];
     }
+    SoloLog.d('AuthStorage', 'Found ${(jsonDecode(data) as List).length} accounts');
 
     final decoded = jsonDecode(data) as List<dynamic>;
     final accounts = decoded
@@ -56,16 +62,22 @@ class SecureAccountStorage {
   }
 
   Future<Map<String, dynamic>?> getAccountData(String id) async {
+    SoloLog.d('AuthStorage', 'Reading account data from Keychain: id=$id');
     try {
       final data = await _secureStorage
           .read(key: '$_accountDataPrefix$id')
           .timeout(const Duration(seconds: 5));
       if (data == null) {
+        SoloLog.w('AuthStorage', 'No account data found in Keychain: id=$id');
         return null;
       }
+      SoloLog.d('AuthStorage', 'Successfully read account data from Keychain: id=$id');
       return jsonDecode(data) as Map<String, dynamic>;
     } on TimeoutException {
-      DebugLogger.instance.logInfo('AUTH', 'getAccountData timed out for id=$id');
+      SoloLog.w('AuthStorage', 'Keychain read timed out for id=$id');
+      return null;
+    } on Exception catch (e, st) {
+      SoloLog.e('AuthStorage', 'Keychain read error for id=$id', e, st);
       return null;
     }
   }
@@ -283,44 +295,54 @@ class SecureAccountStorage {
   }
 
   Future<bool> verifyPassword(String accountId, String password) async {
+    SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId');
+    final timer = SoloLog.startTimer('AuthStorage', 'verifyPassword');
     try {
       final accountData = await getAccountData(accountId);
 
       String saltStr;
       String storedHash;
+      String source = 'unknown';
 
       if (accountData == null) {
         // Keychain has no data (migration may have failed) - fall back to Rust
-        DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain has no data, falling back to Rust');
+        SoloLog.w('AuthStorage', 'Keychain has no data, falling back to Rust');
         final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
         if (rustConfig == null || rustConfig.salt == null || rustConfig.verifyHash == null) {
-          DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust also has no data');
+          SoloLog.w('AuthStorage', 'Rust also has no data for this account');
+          SoloLog.endTimer(timer);
           return false;
         }
         saltStr = rustConfig.salt!;
         storedHash = rustConfig.verifyHash!;
-        DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust saltStr=$saltStr (len=${saltStr.length}), verifyHash=$storedHash (len=${storedHash.length})');
+        source = 'Rust';
+        SoloLog.d('AuthStorage', 'Using Rust storage: salt len=${saltStr.length}, hash len=${storedHash.length}');
       } else {
         saltStr = accountData['salt'] as String;
         storedHash = accountData['verify_hash'] as String;
+        source = 'Keychain';
         // If Keychain salt is corrupted (wrong length), fall back to Rust
         try {
           final decoded = base64Decode(saltStr);
           if (decoded.length != 32) {
-            DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain salt length=${decoded.length}, falling back to Rust');
+            SoloLog.w('AuthStorage', 'Keychain salt length=${decoded.length} invalid, falling back to Rust');
             final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
             if (rustConfig?.salt != null && rustConfig?.verifyHash != null) {
               saltStr = rustConfig!.salt!;
               storedHash = rustConfig.verifyHash!;
+              source = 'Rust (corrupted Keychain)';
             }
           }
-        } on Exception catch (_) {
-          DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain salt decode failed, falling back to Rust');
+        } on Exception catch (e, st) {
+          SoloLog.w('AuthStorage', 'Keychain salt decode failed, falling back to Rust', e);
           final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
           if (rustConfig?.salt != null && rustConfig?.verifyHash != null) {
             saltStr = rustConfig!.salt!;
             storedHash = rustConfig.verifyHash!;
+            source = 'Rust (decode error)';
           } else {
+            SoloLog.e('AuthStorage', 'Both Keychain and Rust failed', e, st);
+            SoloLog.endTimer(timer);
             return false;
           }
         }
@@ -328,13 +350,15 @@ class SecureAccountStorage {
 
       final salt = base64Decode(saltStr);
       if (salt.length != 32) {
-        DebugLogger.instance.logError('AUTH', 'verifyPassword: Invalid salt length ${salt.length}, expected 32');
+        SoloLog.e('AuthStorage', 'Invalid salt length ${salt.length}, expected 32');
+        SoloLog.endTimer(timer);
         return false;
       }
 
-      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: salt=${base64Encode(salt)}, storedHash length=${storedHash.length}');
+      SoloLog.d('AuthStorage', 'Source: $source, salt: ${base64Encode(salt).substring(0, 20)}..., storedHash len=${storedHash.length}');
 
       // Step 1: Derive master_key from password (same as Rust)
+      SoloLog.d('AuthStorage', 'Deriving master_key...');
       final masterKey = NativeCryptoService.instance.deriveKey(
         password: password,
         salt: Uint8List.fromList(salt),
@@ -342,11 +366,15 @@ class SecureAccountStorage {
         iterations: 1,
         parallelism: 4,
       );
-      if (masterKey == null) return false;
+      if (masterKey == null) {
+        SoloLog.e('AuthStorage', 'Key derivation failed - masterKey is null');
+        SoloLog.endTimer(timer);
+        return false;
+      }
 
       // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
       final masterKeyHex = bytesToHex(masterKey);
-      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: masterKeyHex length=${masterKeyHex.length}');
+      SoloLog.d('AuthStorage', 'masterKey derived, hex length=${masterKeyHex.length}');
       const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
       final verifyKey = NativeCryptoService.instance.deriveKey(
         password: masterKeyHex,
@@ -355,17 +383,22 @@ class SecureAccountStorage {
         iterations: 1,
         parallelism: 1,
       );
-      if (verifyKey == null) return false;
+      if (verifyKey == null) {
+        SoloLog.e('AuthStorage', 'Verify key derivation failed');
+        SoloLog.endTimer(timer);
+        return false;
+      }
 
       // Step 3: Hex-encode verify_key and compare (same as Rust)
       final derivedHashHex = bytesToHex(verifyKey);
-      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: derivedHashHex=$derivedHashHex, storedHash=$storedHash');
       final result = constantTimeEquals(derivedHashHex, storedHash);
-      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: result=$result');
+      SoloLog.d('AuthStorage', 'Password verification result: $result');
+      SoloLog.endTimer(timer);
       return result;
     } on Object catch (e, st) {
       // Catch both Exception and Error (e.g., ArgumentError from deriveKey)
-      DebugLogger.instance.logError('AUTH', 'verifyPassword error: $e\nStack trace: $st');
+      SoloLog.e('AuthStorage', 'verifyPassword unexpected error', e, st);
+      SoloLog.endTimer(timer);
       return false;
     }
   }
