@@ -24,8 +24,8 @@ class FallbackSecureStorage {
   FallbackSecureStorage({FlutterSecureStorage? secureStorage})
       : _secureStorage = secureStorage ??
           const FlutterSecureStorage(
-            mOptions: MacOSOptions(
-              keychainService: 'solosoul',
+            mOptions: MacOsOptions(
+              accessibility: KeychainAccessibility.first_unlock,
             ),
           );
 
