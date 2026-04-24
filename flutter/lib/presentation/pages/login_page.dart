@@ -933,7 +933,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 ).colorScheme.onSurfaceVariant,
                         ),
                         onPressed: () => _showPasswordHint(
-                          selectedAccount.passwordHint ?? 'No hint available',
+                          selectedAccount.passwordHint ?? 'No password hint available',
                         ),
                         tooltip: 'Show password hint',
                       ),
