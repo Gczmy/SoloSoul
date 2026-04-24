@@ -238,33 +238,6 @@ class _PasswordVerificationDialogContentState
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
-                const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
-                    borderRadius: BorderRadius.circular(4),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.help_outline,
-                            color: Colors.orange.shade700,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Hint',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -527,33 +500,6 @@ class _BiometricPasswordDialogContentState
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
-                const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
-                    borderRadius: BorderRadius.circular(4),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.help_outline,
-                            color: Colors.orange.shade700,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Hint',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
