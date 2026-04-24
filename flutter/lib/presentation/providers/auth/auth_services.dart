@@ -415,29 +415,60 @@ class AccountManager {
     }
 
     // Also create account in SecureAccountStorage (Dart Keychain)
+    // If Keychain fails, we can still use Rust-only mode
     DebugLogger.instance
         .logInfo('AUTH', 'CHECKPOINT: calling _storage.createAccount');
-    final result = await _storage.createAccount(
-      name,
-      password,
-      passwordHint: passwordHint,
-      accountId: vaultResult.accountId,
-      salt: vaultResult.salt,
-      verifyHashFromRust: vaultResult.verifyHash,
-    );
-    DebugLogger.instance.logInfo(
-        'AUTH',
-        'CHECKPOINT: _storage.createAccount returned, success=${result.success}');
+    try {
+      final result = await _storage.createAccount(
+        name,
+        password,
+        passwordHint: passwordHint,
+        accountId: vaultResult.accountId,
+        salt: vaultResult.salt,
+        verifyHashFromRust: vaultResult.verifyHash,
+      );
+      DebugLogger.instance.logInfo(
+          'AUTH',
+          'CHECKPOINT: _storage.createAccount returned, success=${result.success}');
 
-    if (result.success && result.account != null && result.sessionKey != null) {
-      _selectedAccountId = result.account!.id;
-      _selectedAccountInfo = result.account;
-      _profileStorage.setEncryptionKey(result.sessionKey!);
-      _accountsVersion++;
-      return (success: true, error: null);
-    } else {
-      return (success: false, error: result.error);
+      if (result.success && result.account != null && result.sessionKey != null) {
+        _selectedAccountId = result.account!.id;
+        _selectedAccountInfo = result.account;
+        _profileStorage.setEncryptionKey(result.sessionKey!);
+        _accountsVersion++;
+        return (success: true, error: null);
+      } else if (result.error != null) {
+        return (success: false, error: result.error);
+      }
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('AUTH', 'Keychain createAccount failed, using Rust-only mode: $e\nStack: $st');
     }
+
+    // If Keychain failed, we still have Rust account - derive session key from Rust data
+    DebugLogger.instance.logInfo('AUTH', 'Using Rust-only mode (Keychain unavailable)');
+    final salt = base64Decode(vaultResult.salt!);
+    final sessionKey = NativeCryptoService.instance.deriveKey(
+      password: password,
+      salt: salt,
+      memoryKib: 16384,
+      iterations: 1,
+      parallelism: 4,
+    );
+    if (sessionKey == null) {
+      return (success: false, error: 'Failed to derive session key');
+    }
+
+    _selectedAccountId = vaultResult.accountId;
+    _selectedAccountInfo = AccountInfo(
+      id: vaultResult.accountId!,
+      name: name,
+      passwordHint: passwordHint,
+      lastAccessed: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+    _profileStorage.setEncryptionKey(sessionKey);
+    _accountsVersion++;
+    return (success: true, error: null);
   }
 
   /// Delete the current account
