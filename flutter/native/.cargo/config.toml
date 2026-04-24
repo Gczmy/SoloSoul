@@ -1,8 +1,48 @@
 [target.aarch64-linux-android]
-ar = "llvm-ar"
-linker = "aarch64-linux-android21-clang"
+ar = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+linker = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android21-clang"
 
 [target.aarch64-linux-android.env]
-AR = "llvm-ar"
-CC = "aarch64-linux-android21-clang"
-CXX = "aarch64-linux-android21-clang++"
+PATH = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin:/Users/zzc/.cargo/bin:$PATH"
+AR = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+CC = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android21-clang"
+CXX = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android21-clang++"
+ANDROID_NDK = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198"
+SYSROOT = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android21-clang"
+
+[target.armv7-linux-androideabi]
+ar = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+linker = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/arm-linux-androideabi21-clang"
+
+[target.armv7-linux-androideabi.env]
+PATH = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin:/Users/zzc/.cargo/bin:$PATH"
+AR = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+CC = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/arm-linux-androideabi21-clang"
+CXX = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/arm-linux-androideabi21-clang++"
+ANDROID_NDK = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198"
+SYSROOT = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+
+[target.i686-linux-android]
+ar = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+linker = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android21-clang"
+
+[target.i686-linux-android.env]
+PATH = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin:/Users/zzc/.cargo/bin:$PATH"
+AR = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+CC = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android21-clang"
+CXX = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android21-clang++"
+ANDROID_NDK = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198"
+SYSROOT = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+
+[target.x86_64-linux-android]
+ar = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+linker = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android21-clang"
+
+[target.x86_64-linux-android.env]
+PATH = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin:/Users/zzc/.cargo/bin:$PATH"
+AR = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar"
+CC = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android21-clang"
+CXX = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android21-clang++"
+ANDROID_NDK = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198"
+SYSROOT = "/Users/zzc/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
