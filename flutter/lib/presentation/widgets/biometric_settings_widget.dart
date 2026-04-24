@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+
 /// Biometric settings and unlock management widget
 class BiometricSettingsWidget extends ConsumerStatefulWidget {
   const BiometricSettingsWidget({super.key});
@@ -51,6 +53,54 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     });
   }
 
+  Future<String?> _showPasswordDialog(String message) async {
+    final controller = TextEditingController();
+    bool obscure = true;
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Master Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                obscureText: obscure,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Master Password',
+                  prefixIcon: const Icon(Icons.key),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () => setDialogState(() => obscure = !obscure),
+                  ),
+                ),
+                onSubmitted: (_) => Navigator.pop(ctx, controller.text),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: const Text('Confirm'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _toggleBiometric(bool enable) async {
     if (enable) {
       // Verify biometric is available first
@@ -63,7 +113,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Show biometric prompt directly
+      // Show biometric prompt to verify device ownership
       final success = await biometricService.authenticate(
         reason: 'Enable $_biometricType unlock',
       );
@@ -74,9 +124,29 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Enable biometric unlock
+      // Ask for master password to store for biometric unlock
+      final password = await _showPasswordDialog(
+        'Enter your master password to enable biometric unlock',
+      );
+      if (!mounted) return;
+      if (password == null || password.isEmpty) {
+        setState(() => _error = 'Password is required to enable biometric unlock');
+        return;
+      }
+
+      // Verify password is correct
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final verified = await authNotifier.verifyPasswordForSensitiveData(password);
+      if (!mounted) return;
+      if (!verified) {
+        setState(() => _error = 'Invalid password');
+        return;
+      }
+
+      // Enable biometric unlock and save password
       final securityService = SecurityService.instance;
       await securityService.setBiometricsEnabled(true);
+      await securityService.saveBiometricPassword(password);
       if (!mounted) return;
       setState(() {
         _biometricEnabled = true;
@@ -126,7 +196,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Show biometric prompt directly
+      // Show biometric prompt to verify device ownership
       final success = await biometricService.authenticate(
         reason: 'Enable Face ID unlock',
       );
@@ -137,9 +207,29 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Enable Face ID unlock
+      // Ask for master password to store for biometric unlock
+      final password = await _showPasswordDialog(
+        'Enter your master password to enable Face ID unlock',
+      );
+      if (!mounted) return;
+      if (password == null || password.isEmpty) {
+        setState(() => _error = 'Password is required to enable Face ID unlock');
+        return;
+      }
+
+      // Verify password is correct
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final verified = await authNotifier.verifyPasswordForSensitiveData(password);
+      if (!mounted) return;
+      if (!verified) {
+        setState(() => _error = 'Invalid password');
+        return;
+      }
+
+      // Enable Face ID unlock and save password
       final securityService = SecurityService.instance;
       await securityService.setFaceIdEnabled(true);
+      await securityService.saveBiometricPassword(password);
       if (!mounted) return;
       setState(() {
         _faceIdEnabled = true;
@@ -307,9 +397,11 @@ class _BiometricToggleTile extends StatelessWidget {
             ],
           ),
         ),
-        Switch(
+        Switch.adaptive(
           value: value,
           onChanged: onChanged,
+          activeTrackColor: AppTheme.primaryColor.withValues(alpha: 0.5),
+          activeThumbColor: AppTheme.primaryColor,
         ),
       ],
     );
