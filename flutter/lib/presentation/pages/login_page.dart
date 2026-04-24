@@ -918,26 +918,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Visibility(
-                        visible: selectedAccount.passwordHint != null,
-                        child: IconButton(
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(8),
-                          icon: Icon(
-                            Icons.help_outline,
-                            size: 20,
-                            color: _hasPasswordError
-                                ? Colors.red.shade700
-                                : _isPasswordFocused
-                                ? AppTheme.primaryColor
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                          ),
-                          onPressed: () =>
-                              _showPasswordHint(selectedAccount.passwordHint!),
-                          tooltip: 'Show password hint',
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(8),
+                        icon: Icon(
+                          Icons.help_outline,
+                          size: 20,
+                          color: _hasPasswordError
+                              ? Colors.red.shade700
+                              : _isPasswordFocused
+                              ? AppTheme.primaryColor
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                         ),
+                        onPressed: () => _showPasswordHint(
+                          selectedAccount.passwordHint ?? 'No hint available',
+                        ),
+                        tooltip: 'Show password hint',
                       ),
                       IconButton(
                         constraints: const BoxConstraints(),
