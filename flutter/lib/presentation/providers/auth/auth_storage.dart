@@ -290,6 +290,7 @@ class SecureAccountStorage {
       }
       saltStr = rustConfig.salt!;
       storedHash = rustConfig.verifyHash!;
+      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust saltStr=$saltStr (len=${saltStr.length}), verifyHash=$storedHash (len=${storedHash.length})');
     } else {
       saltStr = accountData['salt'] as String;
       storedHash = accountData['verify_hash'] as String;
