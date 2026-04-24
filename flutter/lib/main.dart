@@ -21,8 +21,9 @@ void main() async {
   }
 
   runApp(
-    const ProviderScope(
+    ProviderScope(
       child: SoloSoulApp(),
+      retry: (retryCount, error) => null,
     ),
   );
 }
@@ -145,8 +146,8 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
   Widget build(BuildContext context) {
     // Watch auth state to trigger redirect when it changes (e.g., after lockVault)
     ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (previous, next) {
-      final wasUnlocked = previous?.valueOrNull == AuthState.unlocked;
-      final isUnlocked = next.valueOrNull == AuthState.unlocked;
+      final wasUnlocked = previous?.value == AuthState.unlocked;
+      final isUnlocked = next.value == AuthState.unlocked;
       if (wasUnlocked && !isUnlocked) {
         // Auth state changed from unlocked to locked - navigate to login
         _router.go(AppRoutes.login);

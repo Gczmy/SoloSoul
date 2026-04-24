@@ -272,7 +272,7 @@ class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState
   Future<void> _deleteEntry(int index) async {
     final deleted = _items[index];
     // Delegate to handleDelete for optimistic update, persistence, rollback, and callbacks
-    await handleDelete(deleted, index, alreadyConfirmed: true);
+    await handleDelete(deleted, index, alreadyConfirmed: false);
   }
 
   /// Handles delete with optimistic update, persistence, rollback on failure,

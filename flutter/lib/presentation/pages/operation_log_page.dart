@@ -613,7 +613,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   void _toggleFilter<T>(
     Set<T> currentFilters,
     T value,
-    AutoDisposeNotifierProvider<dynamic, Set<T>> provider,
+    dynamic provider,
   ) {
     final newFilters = Set<T>.from(currentFilters);
     if (newFilters.contains(value)) {
@@ -621,6 +621,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     } else {
       newFilters.add(value);
     }
+    // ignore: avoid_dynamic_calls
     ref.read(provider.notifier).state = newFilters;
   }
 

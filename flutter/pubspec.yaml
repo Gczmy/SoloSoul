@@ -40,10 +40,9 @@ dependencies:
 
   path_provider: ^2.1.2
 
-  # 状态管理：回退到稳定且支持 StateNotifier 的 2.x
-  flutter_riverpod: ^2.6.1
-  state_notifier: ^1.0.0
-  riverpod_annotation: ^2.6.1
+  # 状态管理：Riverpod 3.0
+  flutter_riverpod: ^3.0.0
+  riverpod_annotation: ^3.0.0
 
   # 导航：回退到 14.x
   go_router: ^14.2.0
@@ -51,8 +50,8 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_animate: ^4.5.0
 
-  # Utils：回退到兼容 2.x 的版本
-  freezed_annotation: ^2.4.4
+  # Utils：freezed 3.x for riverpod_generator 3.0 compatibility
+  freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
   uuid: ^4.4.0
   pointycastle: ^3.9.1
@@ -76,11 +75,11 @@ dev_dependencies:
   flutter_lints: ^4.0.0 # 适配当前的 SDK
   crypto: ^3.0.3
 
-  # Code Generation：回退到稳定版本
-  build_runner: ^2.4.9
-  freezed: ^2.5.7
-  json_serializable: ^6.8.0
-  riverpod_generator: ^2.6.2
+  # Code Generation：Riverpod 3.0 compatible
+  build_runner: ^2.6.1
+  freezed: ^3.0.0
+  json_serializable: ^6.9.0
+  riverpod_generator: ^3.0.0
   ffigen: ^20.1.1
 
 

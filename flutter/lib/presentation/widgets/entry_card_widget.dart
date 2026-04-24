@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
@@ -26,9 +27,18 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show SensitivityLevel;
 
+part 'entry_card_widget.g.dart';
+
 /// Provider for per-item history expanded state, keyed by itemId or title.
-final historyExpandedProvider =
-    StateProvider.family<bool, String>((ref, key) => false);
+@riverpod
+class HistoryExpanded extends _$HistoryExpanded {
+  @override
+  bool build(String key) => false;
+
+  void toggle() => state = !state;
+  void expand() => state = true;
+  void collapse() => state = false;
+}
 
 /// Generic entry card with actions, history, and sensitivity-aware access control.
 class EntryCardWidget<T> extends ConsumerStatefulWidget {
@@ -114,14 +124,14 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
     // Non-sensitive items: toggle freely
     if (!isSensitive) {
-      ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
+      ref.read(historyExpandedProvider(_historyKey).notifier).toggle();
       return;
     }
 
     // Restricted items in privacy mode: if expanded, collapse silently; if collapsed, require auth then expand
     if (widget.isRestricted && isPrivacyMode) {
       if (currentExpanded) {
-        ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+        ref.read(historyExpandedProvider(_historyKey).notifier).collapse();
         return;
       }
       // Collapsed: require password to expand
@@ -138,14 +148,14 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         ref.read(sensitivePageAccessProvider.notifier).markVerified();
       }
       if (mounted) {
-        ref.read(historyExpandedProvider(_historyKey).notifier).state = true;
+        ref.read(historyExpandedProvider(_historyKey).notifier).expand();
       }
       return;
     }
 
     // Sensitive items: require password verification
     if (ref.read(isSensitiveAccessGrantedProvider)) {
-      ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
+      ref.read(historyExpandedProvider(_historyKey).notifier).toggle();
       return;
     }
 
@@ -160,7 +170,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     if (password == null) return;
     ref.read(sensitivePageAccessProvider.notifier).markVerified();
     if (mounted) {
-      ref.read(historyExpandedProvider(_historyKey).notifier).state = !currentExpanded;
+      ref.read(historyExpandedProvider(_historyKey).notifier).toggle();
     }
   }
 
@@ -241,7 +251,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         if (wasShowAll && isNowPrivacy) {
           Future.microtask(() {
             if (context.mounted) {
-              ref.read(historyExpandedProvider(_historyKey).notifier).state = false;
+              ref.read(historyExpandedProvider(_historyKey).notifier).collapse();
             }
           });
         }

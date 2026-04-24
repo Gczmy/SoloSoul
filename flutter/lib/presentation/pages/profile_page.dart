@@ -170,7 +170,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         // Show top notification for operation feedback
         if (!mounted) return;
         final isPrivacyMode =
-            ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+            ref.read(accountStyleProvider).value?.displayMode ==
             SensitivityDisplayMode.hidePrivate;
         OperationNotification.show(
           context,
@@ -290,7 +290,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    final profile = ref.watch(profileNotifierProvider).value;
     final identity = profile?.identity;
     final contact = identity?.contact;
 
@@ -473,7 +473,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
   void _onContactDidDelete(ContactEntry contact, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = contact.id;
     OperationNotification.show(
@@ -549,7 +549,7 @@ class _ContactSectionState extends ConsumerState<_ContactSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -791,7 +791,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
   void _onIdCardDidDelete(IdCardData card, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = card.id;
     final itemName = card.title ?? card.number ?? 'ID Card';
@@ -862,7 +862,7 @@ class _IdCardSectionState extends ConsumerState<_IdCardSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1038,7 +1038,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
   void _onAddressDidDelete(AddressData address, int index) {
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = address.id;
     final itemName = address.title ?? 'Address';
@@ -1083,6 +1083,9 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
     // Get current addresses from provider for building new list
     final currentAddresses = ref.read(addressItemsProvider);
+    final newAddresses = wasAdding
+        ? [...currentAddresses, addressToSave]
+        : currentAddresses.map((a) => a.id == editingItem.id ? addressToSave : a).toList();
 
     // Persist via provider - UnifiedFormSection handles optimistic UI via ref.watch
     try {
@@ -1095,7 +1098,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
         nationality: widget.identity?.nationality,
         idCards: widget.identity?.idCards,
         contact: widget.identity?.contact,
-        addresses: currentAddresses,
+        addresses: newAddresses,
       );
       await ref.read(profileNotifierProvider.notifier).updateIdentity(identity);
     } on Exception catch (e) {
@@ -1107,7 +1110,7 @@ class _AddressSectionState extends ConsumerState<_AddressSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

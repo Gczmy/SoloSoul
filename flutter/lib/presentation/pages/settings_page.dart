@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -19,26 +21,25 @@ import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart'
     show DebugLogger, LogLevel, LogEntry;
 
+part 'settings_page.g.dart';
+
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
 });
 
 // Debug mode provider
-final debugModeProvider = StateNotifierProvider<DebugModeNotifier, bool>((ref) {
-  return DebugModeNotifier();
-});
-
-class DebugModeNotifier extends StateNotifier<bool> {
+@Riverpod(keepAlive: true)
+class DebugMode extends _$DebugMode {
   static const _key = 'solosoul_debug_mode';
 
-  DebugModeNotifier() : super(false) {
+  @override
+  bool build() {
     _loadDebugMode();
+    return false;
   }
 
   Future<void> _loadDebugMode() async {
-    // Always false for development (DebugLogger handles its own debug mode)
     if (kDebugMode) {
-      // In debug mode, DebugLogger is always active via kDebugMode check
       state = true;
       DebugLogger.instance.activate();
       return;
@@ -94,6 +95,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     final confirmed = await showDialog<bool>(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Row(
@@ -674,7 +676,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         initialChildSize: 0.7,
         minChildSize: 0.3,
         maxChildSize: 0.95,
-        builder: (context, scrollController) => _DebugLogSheet(scrollController: scrollController),
+        builder: (context, scrollController) => _DebugLogSheet(
+        scrollController: scrollController,
+        onDisableDebugMode: () async {
+          await ref.read(debugModeProvider.notifier).disableDebugMode();
+        },
+      ),
       ),
     );
   }
@@ -1335,8 +1342,12 @@ class _AllAccountsSheet extends StatelessWidget {
 
 class _DebugLogSheet extends StatefulWidget {
   final ScrollController scrollController;
+  final Future<void> Function() onDisableDebugMode;
 
-  const _DebugLogSheet({required this.scrollController});
+  const _DebugLogSheet({
+    required this.scrollController,
+    required this.onDisableDebugMode,
+  });
 
   @override
   State<_DebugLogSheet> createState() => _DebugLogSheetState();
@@ -1517,6 +1528,15 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
                         if (mounted) Navigator.pop(context);
                       },
                       tooltip: 'Copy to clipboard',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.power_settings_new),
+                      onPressed: () async {
+                        await widget.onDisableDebugMode();
+                        if (mounted) Navigator.pop(context);
+                      },
+                      tooltip: 'Disable debug mode',
+                      color: Colors.red,
                     ),
                   ],
                 ),

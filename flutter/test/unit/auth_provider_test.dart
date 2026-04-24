@@ -49,10 +49,6 @@ void main() {
       notifier = SensitivePageAccessNotifier();
     });
 
-    tearDown(() {
-      notifier.dispose();
-    });
-
     test('markVerified sets lastVerified to current time', () async {
       final before = DateTime.now();
 

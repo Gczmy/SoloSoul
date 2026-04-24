@@ -153,7 +153,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
     final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -233,7 +233,7 @@ class _EducationSectionState extends ConsumerState<_EducationSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -498,7 +498,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
     final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -579,7 +579,7 @@ class _EmploymentSectionState extends ConsumerState<_EmploymentSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -697,7 +697,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
     final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -778,7 +778,7 @@ class _SkillsSectionState extends ConsumerState<_SkillsSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -884,7 +884,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
     final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -965,7 +965,7 @@ class _LanguageSectionState extends ConsumerState<_LanguageSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,
@@ -1079,7 +1079,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
     final index = items.indexById(item.id, (x) => x.id);
     if (index == -1) return;
     final isPrivacyMode =
-        ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+        ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
     final deletedId = item.id;
 
@@ -1161,7 +1161,7 @@ class _AwardSectionState extends ConsumerState<_AwardSection> {
 
     if (mounted) {
       final isPrivacyMode =
-          ref.read(accountStyleProvider).valueOrNull?.displayMode ==
+          ref.read(accountStyleProvider).value?.displayMode ==
           SensitivityDisplayMode.hidePrivate;
       OperationNotification.show(
         context,

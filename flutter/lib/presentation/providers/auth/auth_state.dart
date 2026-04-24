@@ -6,8 +6,9 @@ import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 part 'auth_state.g.dart';
 
 /// Pure state machine for authentication state (locked/unlocked/loading)
-class AuthStateNotifier extends StateNotifier<AuthState> {
-  AuthStateNotifier() : super(AuthState.initial);
+class AuthStateNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() => AuthState.initial;
 
   void setInitial() => state = AuthState.initial;
   void setLoading() => state = AuthState.loading;
@@ -16,6 +17,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
   bool get isUnlocked => state == AuthState.unlocked;
 }
+
+/// Provider for auth state
+final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(() {
+  return AuthStateNotifier();
+});
 
 /// Sensitive data access validation timeout (unique constant)
 const kSensitiveAccessTimeout = Duration(minutes: 1);
@@ -37,10 +43,16 @@ class SensitivePageAccessState {
 }
 
 /// Notifier for sensitive page access
-class SensitivePageAccessNotifier extends StateNotifier<SensitivePageAccessState> {
+class SensitivePageAccessNotifier extends Notifier<SensitivePageAccessState> {
   Timer? _timer;
 
-  SensitivePageAccessNotifier() : super(const SensitivePageAccessState());
+  @override
+  SensitivePageAccessState build() {
+    ref.onDispose(() {
+      _timer?.cancel();
+    });
+    return const SensitivePageAccessState();
+  }
 
   void markVerified() {
     _timer?.cancel();
@@ -55,18 +67,11 @@ class SensitivePageAccessNotifier extends StateNotifier<SensitivePageAccessState
     _timer = null;
     state = const SensitivePageAccessState();
   }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
 }
 
 /// Provider for sensitive page access
 final sensitivePageAccessProvider =
-    StateNotifierProvider<SensitivePageAccessNotifier, SensitivePageAccessState>(
-        (ref) {
+    NotifierProvider<SensitivePageAccessNotifier, SensitivePageAccessState>(() {
   return SensitivePageAccessNotifier();
 });
 

@@ -321,10 +321,19 @@ class OperationLogService extends ChangeNotifier {
   }
 }
 
-// Provider for operation log - uses ChangeNotifierProvider to react to addEntry calls
-final operationLogProvider = ChangeNotifierProvider<OperationLogService>((ref) {
-  return OperationLogService.instance;
+/// Provider for operation log - uses NotifierProvider to react to addEntry calls
+final operationLogProvider = NotifierProvider<OperationLogServiceNotifier, OperationLogService>(() {
+  return OperationLogServiceNotifier();
 });
+
+/// Notifier that wraps OperationLogService singleton
+/// Exposes the service instance and its state to Riverpod consumers
+class OperationLogServiceNotifier extends Notifier<OperationLogService> {
+  @override
+  OperationLogService build() {
+    return OperationLogService.instance;
+  }
+}
 
 // Derived provider that returns the entries list and rebuilds when service notifies
 @riverpod

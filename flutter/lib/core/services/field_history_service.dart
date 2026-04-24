@@ -98,21 +98,21 @@ class FieldHistoryService {
 
 /// Provider for field histories.
 final fieldHistoriesProvider =
-    StateNotifierProvider<FieldHistoriesNotifier, FormHistories>((ref) {
-  return FieldHistoriesNotifier(ref);
+    NotifierProvider<FieldHistoriesNotifier, FormHistories>(() {
+  return FieldHistoriesNotifier();
 });
 
 /// Notifier for managing field histories.
-class FieldHistoriesNotifier extends StateNotifier<FormHistories> {
-  final Ref _ref;
+class FieldHistoriesNotifier extends Notifier<FormHistories> {
   String? _currentAccountId;
 
-  FieldHistoriesNotifier(this._ref) : super(FormHistories());
+  @override
+  FormHistories build() => FormHistories();
 
   FormHistories get histories => state;
 
   String? get _accountId =>
-      _ref.read(authNotifierProvider.notifier).selectedAccountId;
+      ref.read(authNotifierProvider.notifier).selectedAccountId;
 
   /// Load histories for current account.
   Future<void> loadHistories([String? accountId]) async {

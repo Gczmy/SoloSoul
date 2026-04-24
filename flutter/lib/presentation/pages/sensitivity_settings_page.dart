@@ -562,7 +562,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     WidgetRef ref,
     String fieldId,
   ) {
-    final accountStyle = ref.read(accountStyleProvider).valueOrNull ?? const AccountStyle();
+    final accountStyle = ref.read(accountStyleProvider).value ?? const AccountStyle();
     final registry = ref.read(formFieldRegistryProvider);
     final field = registry[fieldId];
     if (field == null) return; // Field not found, shouldn't happen

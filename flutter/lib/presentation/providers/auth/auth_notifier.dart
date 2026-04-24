@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
@@ -76,7 +77,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   // Convenience getters delegating to services
   String? get selectedAccountId => _accountManager.selectedAccountId;
   AccountInfo? get selectedAccount => _accountManager.selectedAccount;
-  bool get isUnlocked => state.valueOrNull == AuthState.unlocked;
+  bool get isUnlocked => state.value == AuthState.unlocked;
   int get accountsVersion => _accountManager.accountsVersion;
 
   /// Get all accounts sorted by most recent access
@@ -93,7 +94,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> selectAccount(String? accountId) async {
     await _accountManager.selectAccount(accountId);
     // Trigger rebuild by setting state to current value
-    state = AsyncData(state.valueOrNull ?? AuthState.locked);
+    state = AsyncData(state.value ?? AuthState.locked);
   }
 
   /// Create a new account

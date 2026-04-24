@@ -313,7 +313,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   Widget _buildTrashView() {
     final theme = Theme.of(context);
-    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    final profile = ref.watch(profileNotifierProvider).value;
 
     // Always show scaffold with search bar and warning banner
     return Scaffold(
@@ -805,7 +805,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   void _showDetail(BuildContext context, DeletedItemInfo item) {
     final theme = Theme.of(context);
-    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    final profile = ref.read(profileNotifierProvider).value;
     if (profile == null) return;
 
     String detailText = '';

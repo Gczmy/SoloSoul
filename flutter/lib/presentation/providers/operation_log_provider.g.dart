@@ -6,98 +6,276 @@ part of 'operation_log_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(OperationLogEntries)
+const operationLogEntriesProvider = OperationLogEntriesProvider._();
+
+final class OperationLogEntriesProvider
+    extends $NotifierProvider<OperationLogEntries, List<OperationEntry>> {
+  const OperationLogEntriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'operationLogEntriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$operationLogEntriesHash();
+
+  @$internal
+  @override
+  OperationLogEntries create() => OperationLogEntries();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<OperationEntry> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<OperationEntry>>(value),
+    );
+  }
+}
+
 String _$operationLogEntriesHash() =>
     r'1e17ae57c998a92c3b2d89168bed758ef388668d';
 
-/// See also [OperationLogEntries].
-@ProviderFor(OperationLogEntries)
-final operationLogEntriesProvider =
-    AutoDisposeNotifierProvider<
-      OperationLogEntries,
-      List<OperationEntry>
-    >.internal(
-      OperationLogEntries.new,
-      name: r'operationLogEntriesProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$operationLogEntriesHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+abstract class _$OperationLogEntries extends $Notifier<List<OperationEntry>> {
+  List<OperationEntry> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<List<OperationEntry>, List<OperationEntry>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<OperationEntry>, List<OperationEntry>>,
+              List<OperationEntry>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$OperationLogEntries = AutoDisposeNotifier<List<OperationEntry>>;
+@ProviderFor(LogActionFilter)
+const logActionFilterProvider = LogActionFilterProvider._();
+
+final class LogActionFilterProvider
+    extends $NotifierProvider<LogActionFilter, Set<String>> {
+  const LogActionFilterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'logActionFilterProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$logActionFilterHash();
+
+  @$internal
+  @override
+  LogActionFilter create() => LogActionFilter();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Set<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Set<String>>(value),
+    );
+  }
+}
+
 String _$logActionFilterHash() => r'b1f64df29a0c627c862ef52718ba5ee5e00a89c4';
 
-/// See also [LogActionFilter].
-@ProviderFor(LogActionFilter)
-final logActionFilterProvider =
-    AutoDisposeNotifierProvider<LogActionFilter, Set<String>>.internal(
-      LogActionFilter.new,
-      name: r'logActionFilterProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$logActionFilterHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+abstract class _$LogActionFilter extends $Notifier<Set<String>> {
+  Set<String> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Set<String>, Set<String>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Set<String>, Set<String>>,
+              Set<String>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$LogActionFilter = AutoDisposeNotifier<Set<String>>;
+@ProviderFor(LogDeviceFilter)
+const logDeviceFilterProvider = LogDeviceFilterProvider._();
+
+final class LogDeviceFilterProvider
+    extends $NotifierProvider<LogDeviceFilter, Set<String>> {
+  const LogDeviceFilterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'logDeviceFilterProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$logDeviceFilterHash();
+
+  @$internal
+  @override
+  LogDeviceFilter create() => LogDeviceFilter();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Set<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Set<String>>(value),
+    );
+  }
+}
+
 String _$logDeviceFilterHash() => r'dfcdd35cb3be966eb65cee9b2a25444b0bd85106';
 
-/// See also [LogDeviceFilter].
-@ProviderFor(LogDeviceFilter)
-final logDeviceFilterProvider =
-    AutoDisposeNotifierProvider<LogDeviceFilter, Set<String>>.internal(
-      LogDeviceFilter.new,
-      name: r'logDeviceFilterProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$logDeviceFilterHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+abstract class _$LogDeviceFilter extends $Notifier<Set<String>> {
+  Set<String> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Set<String>, Set<String>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Set<String>, Set<String>>,
+              Set<String>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$LogDeviceFilter = AutoDisposeNotifier<Set<String>>;
+@ProviderFor(LogSensitivityFilter)
+const logSensitivityFilterProvider = LogSensitivityFilterProvider._();
+
+final class LogSensitivityFilterProvider
+    extends $NotifierProvider<LogSensitivityFilter, Set<SensitivityLevel>> {
+  const LogSensitivityFilterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'logSensitivityFilterProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$logSensitivityFilterHash();
+
+  @$internal
+  @override
+  LogSensitivityFilter create() => LogSensitivityFilter();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Set<SensitivityLevel> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Set<SensitivityLevel>>(value),
+    );
+  }
+}
+
 String _$logSensitivityFilterHash() =>
     r'755ea84831ffba79c18191659137fedd08b1ebef';
 
-/// See also [LogSensitivityFilter].
-@ProviderFor(LogSensitivityFilter)
-final logSensitivityFilterProvider =
-    AutoDisposeNotifierProvider<
-      LogSensitivityFilter,
-      Set<SensitivityLevel>
-    >.internal(
-      LogSensitivityFilter.new,
-      name: r'logSensitivityFilterProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$logSensitivityFilterHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+abstract class _$LogSensitivityFilter extends $Notifier<Set<SensitivityLevel>> {
+  Set<SensitivityLevel> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Set<SensitivityLevel>, Set<SensitivityLevel>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Set<SensitivityLevel>, Set<SensitivityLevel>>,
+              Set<SensitivityLevel>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$LogSensitivityFilter = AutoDisposeNotifier<Set<SensitivityLevel>>;
+@ProviderFor(OperationLogFilteredEntries)
+const operationLogFilteredEntriesProvider =
+    OperationLogFilteredEntriesProvider._();
+
+final class OperationLogFilteredEntriesProvider
+    extends
+        $NotifierProvider<OperationLogFilteredEntries, List<OperationEntry>> {
+  const OperationLogFilteredEntriesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'operationLogFilteredEntriesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$operationLogFilteredEntriesHash();
+
+  @$internal
+  @override
+  OperationLogFilteredEntries create() => OperationLogFilteredEntries();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<OperationEntry> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<OperationEntry>>(value),
+    );
+  }
+}
+
 String _$operationLogFilteredEntriesHash() =>
     r'ce3000ce5f848218a7554a5417f03b5eaf11abb6';
 
-/// See also [OperationLogFilteredEntries].
-@ProviderFor(OperationLogFilteredEntries)
-final operationLogFilteredEntriesProvider =
-    AutoDisposeNotifierProvider<
-      OperationLogFilteredEntries,
-      List<OperationEntry>
-    >.internal(
-      OperationLogFilteredEntries.new,
-      name: r'operationLogFilteredEntriesProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$operationLogFilteredEntriesHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$OperationLogFilteredEntries =
-    AutoDisposeNotifier<List<OperationEntry>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$OperationLogFilteredEntries
+    extends $Notifier<List<OperationEntry>> {
+  List<OperationEntry> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<List<OperationEntry>, List<OperationEntry>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<OperationEntry>, List<OperationEntry>>,
+              List<OperationEntry>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
