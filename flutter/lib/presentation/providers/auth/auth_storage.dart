@@ -136,14 +136,15 @@ class SecureAccountStorage {
         );
       }
       saltToStore = base64Encode(dartSalt);
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      // Step 1: Derive master_key from password (same as Rust)
+      final masterKey = NativeCryptoService.instance.deriveKey(
         password: password,
         salt: dartSalt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
       );
-      if (verifyKey == null) {
+      if (masterKey == null) {
         return (
           success: false,
           error: 'Failed to derive key',
@@ -151,8 +152,27 @@ class SecureAccountStorage {
           sessionKey: null
         );
       }
-      hashToStore = base64Encode(verifyKey);
-      sessionKey = verifyKey;
+      // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
+      final masterKeyHex = bytesToHex(masterKey);
+      const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
+      final verifyKey = NativeCryptoService.instance.deriveKey(
+        password: masterKeyHex,
+        salt: Uint8List.fromList(utf8.encode(verifyData)),
+        memoryKib: 8192,
+        iterations: 1,
+        parallelism: 1,
+      );
+      if (verifyKey == null) {
+        return (
+          success: false,
+          error: 'Failed to derive verify key',
+          account: null,
+          sessionKey: null
+        );
+      }
+      // Step 3: Hex-encode verify_key (same as Rust)
+      hashToStore = bytesToHex(verifyKey);
+      sessionKey = masterKey;
     }
 
     final now = DateTime.now();
@@ -199,26 +219,39 @@ class SecureAccountStorage {
     final salt = base64Decode(accountData['salt'] as String);
     final storedHash = accountData['verify_hash'] as String;
 
-    final derivedKey = NativeCryptoService.instance.deriveKey(
+    // Step 1: Derive master_key from password (same as Rust)
+    final masterKey = NativeCryptoService.instance.deriveKey(
       password: password,
       salt: Uint8List.fromList(salt),
       memoryKib: 16384,
       iterations: 1,
       parallelism: 4,
     );
-
-    if (derivedKey == null) {
+    if (masterKey == null) {
       return (success: false, error: 'Key derivation failed', sessionKey: null);
     }
 
-    final derivedHashBase64 = base64Encode(derivedKey);
-    final derivedHashHex = bytesToHex(derivedKey);
+    // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
+    final masterKeyHex = bytesToHex(masterKey);
+    const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
+    final verifyKey = NativeCryptoService.instance.deriveKey(
+      password: masterKeyHex,
+      salt: Uint8List.fromList(utf8.encode(verifyData)),
+      memoryKib: 8192,
+      iterations: 1,
+      parallelism: 1,
+    );
+    if (verifyKey == null) {
+      return (success: false, error: 'Verify failed', sessionKey: null);
+    }
 
-    if (!constantTimeEquals(derivedHashBase64, storedHash) &&
-        !constantTimeEquals(derivedHashHex, storedHash)) {
+    // Step 3: Hex-encode verify_key and compare (same as Rust)
+    final derivedHashHex = bytesToHex(verifyKey);
+    if (!constantTimeEquals(derivedHashHex, storedHash)) {
       return (success: false, error: 'Invalid password', sessionKey: null);
     }
 
+    // Session key is masterKey (used for profile encryption)
     final accounts = await listAccounts();
     final idx = accounts.indexWhere((a) => a.id == accountId);
     if (idx >= 0) {
@@ -237,7 +270,7 @@ class SecureAccountStorage {
       await _saveAccounts(accounts);
     }
 
-    return (success: true, error: null, sessionKey: derivedKey);
+    return (success: true, error: null, sessionKey: masterKey);
   }
 
   Future<bool> verifyPassword(String accountId, String password) async {
@@ -247,20 +280,31 @@ class SecureAccountStorage {
     final salt = base64Decode(accountData['salt'] as String);
     final storedHash = accountData['verify_hash'] as String;
 
-    final derivedKey = NativeCryptoService.instance.deriveKey(
+    // Step 1: Derive master_key from password (same as Rust)
+    final masterKey = NativeCryptoService.instance.deriveKey(
       password: password,
       salt: Uint8List.fromList(salt),
       memoryKib: 16384,
       iterations: 1,
       parallelism: 4,
     );
+    if (masterKey == null) return false;
 
-    if (derivedKey == null) return false;
+    // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
+    final masterKeyHex = bytesToHex(masterKey);
+    const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
+    final verifyKey = NativeCryptoService.instance.deriveKey(
+      password: masterKeyHex,
+      salt: Uint8List.fromList(utf8.encode(verifyData)),
+      memoryKib: 8192,
+      iterations: 1,
+      parallelism: 1,
+    );
+    if (verifyKey == null) return false;
 
-    final derivedHashBase64 = base64Encode(derivedKey);
-    final derivedHashHex = bytesToHex(derivedKey);
-    return constantTimeEquals(derivedHashBase64, storedHash) ||
-        constantTimeEquals(derivedHashHex, storedHash);
+    // Step 3: Hex-encode verify_key and compare (same as Rust)
+    final derivedHashHex = bytesToHex(verifyKey);
+    return constantTimeEquals(derivedHashHex, storedHash);
   }
 
   Future<bool> deleteAccount(String accountId) async {

@@ -59,12 +59,25 @@ class MigrationService {
       final salt = NativeCryptoService.instance.generateSalt();
       if (salt == null) return;
 
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      // Step 1: Derive master_key from password (same as Rust)
+      final masterKey = NativeCryptoService.instance.deriveKey(
         password: password,
         salt: salt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
+      );
+      if (masterKey == null) return;
+
+      // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
+      final masterKeyHex = bytesToHex(masterKey);
+      const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
+      final verifyKey = NativeCryptoService.instance.deriveKey(
+        password: masterKeyHex,
+        salt: Uint8List.fromList(utf8.encode(verifyData)),
+        memoryKib: 8192,
+        iterations: 1,
+        parallelism: 1,
       );
       if (verifyKey == null) return;
 
@@ -73,6 +86,9 @@ class MigrationService {
       // Clear sensitive data from memory
       for (var i = 0; i < salt.length; i++) {
         salt[i] = 0;
+      }
+      for (var i = 0; i < masterKey.length; i++) {
+        masterKey[i] = 0;
       }
       for (var i = 0; i < verifyKey.length; i++) {
         verifyKey[i] = 0;
