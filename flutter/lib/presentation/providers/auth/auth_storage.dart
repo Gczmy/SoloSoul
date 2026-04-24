@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
+import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
 /// Secure storage for account data using FlutterSecureStorage (Keychain on macOS)
@@ -275,10 +276,26 @@ class SecureAccountStorage {
 
   Future<bool> verifyPassword(String accountId, String password) async {
     final accountData = await getAccountData(accountId);
-    if (accountData == null) return false;
 
-    final salt = base64Decode(accountData['salt'] as String);
-    final storedHash = accountData['verify_hash'] as String;
+    String saltStr;
+    String storedHash;
+
+    if (accountData == null) {
+      // Keychain has no data (migration may have failed) - fall back to Rust
+      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain has no data, falling back to Rust');
+      final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+      if (rustConfig == null || rustConfig.salt == null || rustConfig.verifyHash == null) {
+        DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust also has no data');
+        return false;
+      }
+      saltStr = rustConfig.salt!;
+      storedHash = rustConfig.verifyHash!;
+    } else {
+      saltStr = accountData['salt'] as String;
+      storedHash = accountData['verify_hash'] as String;
+    }
+
+    final salt = base64Decode(saltStr);
 
     DebugLogger.instance.logInfo('AUTH', 'verifyPassword: salt=${base64Encode(salt)}, storedHash length=${storedHash.length}');
 
