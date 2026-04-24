@@ -91,6 +91,7 @@ class _PasswordVerificationDialogContentState
   bool _isVerifying = false;
   bool _hasError = false;
   bool _userHasTypedAfterError = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -273,7 +274,7 @@ class _PasswordVerificationDialogContentState
           TextField(
             controller: _controller,
             focusNode: _focusNode,
-            obscureText: true,
+            obscureText: _obscurePassword,
             autofocus: true,
             decoration: InputDecoration(
               labelText: 'Master Password',
@@ -286,6 +287,31 @@ class _PasswordVerificationDialogContentState
               enabledBorder: AppTheme.passwordFieldEnabledBorder,
               errorBorder: AppTheme.passwordFieldErrorBorder,
               focusedErrorBorder: AppTheme.passwordFieldFocusedErrorBorder,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.passwordHint != null)
+                    IconButton(
+                      icon: const Icon(Icons.help_outline, size: 20),
+                      onPressed: () => _showHintOverlay(widget.passwordHint!),
+                      tooltip: 'Show password hint',
+                    ),
+                  IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                  ),
+                ],
+              ),
             ),
             onSubmitted: (_) => _verify(),
           ),
@@ -342,6 +368,7 @@ class _BiometricPasswordDialogContentState
   bool _hasError = false;
   bool _userHasTypedAfterError = false;
   bool _isBiometricVerified = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -565,7 +592,7 @@ class _BiometricPasswordDialogContentState
           TextField(
             controller: _controller,
             focusNode: _focusNode,
-            obscureText: true,
+            obscureText: _obscurePassword,
             autofocus: _isBiometricVerified,
             decoration: InputDecoration(
               labelText: 'Master Password',
@@ -578,6 +605,31 @@ class _BiometricPasswordDialogContentState
               enabledBorder: AppTheme.passwordFieldEnabledBorder,
               errorBorder: AppTheme.passwordFieldErrorBorder,
               focusedErrorBorder: AppTheme.passwordFieldFocusedErrorBorder,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.passwordHint != null)
+                    IconButton(
+                      icon: const Icon(Icons.help_outline, size: 20),
+                      onPressed: () => _showHintOverlay(widget.passwordHint!),
+                      tooltip: 'Show password hint',
+                    ),
+                  IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                  ),
+                ],
+              ),
             ),
             onSubmitted: (_) => _verify(),
           ),

@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
@@ -16,8 +17,8 @@ class SecureAccountStorage {
   static const SecureAccountStorage _instance = SecureAccountStorage._();
   static SecureAccountStorage get instance => _instance;
 
-  FlutterSecureStorage get _secureStorage {
-    return const FlutterSecureStorage();
+  FallbackSecureStorage get _secureStorage {
+    return FallbackSecureStorage();
   }
 
   Future<void> _writeSecure(String key, String? value) async {
@@ -55,11 +56,18 @@ class SecureAccountStorage {
   }
 
   Future<Map<String, dynamic>?> getAccountData(String id) async {
-    final data = await _secureStorage.read(key: '$_accountDataPrefix$id');
-    if (data == null) {
+    try {
+      final data = await _secureStorage
+          .read(key: '$_accountDataPrefix$id')
+          .timeout(const Duration(seconds: 5));
+      if (data == null) {
+        return null;
+      }
+      return jsonDecode(data) as Map<String, dynamic>;
+    } on TimeoutException {
+      DebugLogger.instance.logInfo('AUTH', 'getAccountData timed out for id=$id');
       return null;
     }
-    return jsonDecode(data) as Map<String, dynamic>;
   }
 
   Future<void> saveAccountData(String id, Map<String, dynamic> data) async {

@@ -58,10 +58,18 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     if (enable) {
       // First verify password before enabling biometric unlock
       final authNotifier = ref.read(authNotifierProvider.notifier);
-      final selectedAccount = authNotifier.selectedAccount;
+      AccountInfo? selectedAccount = authNotifier.selectedAccount;
+
+      // 如果当前没有选中账户，尝试使用第一个可用账户
+      if (selectedAccount == null) {
+        final accounts = await authNotifier.getAccountsSortedByRecent();
+        if (accounts.isNotEmpty) {
+          selectedAccount = accounts.first;
+        }
+      }
 
       if (selectedAccount == null) {
-        setState(() => _error = 'No account selected');
+        setState(() => _error = 'No account available. Please create or select an account first.');
         return;
       }
 
@@ -131,10 +139,18 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     if (enable) {
       // First verify password before enabling Face ID unlock
       final authNotifier = ref.read(authNotifierProvider.notifier);
-      final selectedAccount = authNotifier.selectedAccount;
+      AccountInfo? selectedAccount = authNotifier.selectedAccount;
+
+      // 如果当前没有选中账户，尝试使用第一个可用账户
+      if (selectedAccount == null) {
+        final accounts = await authNotifier.getAccountsSortedByRecent();
+        if (accounts.isNotEmpty) {
+          selectedAccount = accounts.first;
+        }
+      }
 
       if (selectedAccount == null) {
-        setState(() => _error = 'No account selected');
+        setState(() => _error = 'No account available. Please create or select an account first.');
         return;
       }
 
