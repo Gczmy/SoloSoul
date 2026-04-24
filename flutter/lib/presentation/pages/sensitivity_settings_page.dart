@@ -232,20 +232,19 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (hint != null)
-                              IconButton(
-                                icon: Icon(
-                                  Icons.help_outline,
-                                  size: 20,
-                                  color: hasError
-                                      ? errorColor
-                                      : _isPasswordFocused
-                                      ? AppTheme.primaryColor
-                                      : normalColor,
-                                ),
-                                onPressed: () => _showPasswordHint(hint),
-                                tooltip: 'Show password hint',
+                            IconButton(
+                              icon: Icon(
+                                Icons.help_outline,
+                                size: 20,
+                                color: hasError
+                                    ? errorColor
+                                    : _isPasswordFocused
+                                    ? AppTheme.primaryColor
+                                    : normalColor,
                               ),
+                              onPressed: () => _showPasswordHint(hint ?? 'No password hint available'),
+                              tooltip: 'Show password hint',
+                            ),
                             IconButton(
                               icon: Icon(
                                 _obscurePassword
