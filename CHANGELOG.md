@@ -78,6 +78,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.0.0...HEAD
+## [1.1.0] - 2026-04-24
+
+### Added
+
+- **Riverpod 3.0 Upgrade** — Upgraded from Riverpod 2.6.1 to 3.0.3
+- **Disable Debug Mode Button** — Added power button in debug log sheet to exit debug mode
+
+### Bug Fixes
+
+- Fixed address save not persisting new entries (missing list update logic)
+- Fixed soft delete confirmation dialog not showing (alreadyConfirmed flag was wrong)
+- Fixed debug mode being lost on page navigation (provider now uses keepAlive)
+- Fixed debug mode password dialog dismissing on outside tap (barrierDismissible: false)
+
+### Technical
+
+- StateNotifier → Notifier migration (4 classes)
+- ChangeNotifierProvider → NotifierProvider migration
+- Auto-retry disabled in ProviderScope
+- All generated code regenerated for Riverpod 3.0 compatibility
+
+---
+
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0
 [1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
