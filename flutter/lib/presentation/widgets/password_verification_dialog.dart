@@ -238,10 +238,9 @@ class _PasswordVerificationDialogContentState
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
-                if (widget.passwordHint != null) ...[
-                  const SizedBox(width: 4),
+                const SizedBox(width: 4),
                   InkWell(
-                    onTap: () => _showHintOverlay(widget.passwordHint!),
+                    onTap: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                     borderRadius: BorderRadius.circular(4),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
@@ -266,7 +265,6 @@ class _PasswordVerificationDialogContentState
                       ),
                     ),
                   ),
-                ],
               ],
             ),
           ),
@@ -290,10 +288,9 @@ class _PasswordVerificationDialogContentState
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (widget.passwordHint != null)
-                    IconButton(
+                  IconButton(
                       icon: const Icon(Icons.help_outline, size: 20),
-                      onPressed: () => _showHintOverlay(widget.passwordHint!),
+                      onPressed: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                       tooltip: 'Show password hint',
                     ),
                   IconButton(
@@ -530,10 +527,9 @@ class _BiometricPasswordDialogContentState
                     style: const TextStyle(fontSize: 13),
                   ),
                 ),
-                if (widget.passwordHint != null) ...[
-                  const SizedBox(width: 4),
+                const SizedBox(width: 4),
                   InkWell(
-                    onTap: () => _showHintOverlay(widget.passwordHint!),
+                    onTap: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                     borderRadius: BorderRadius.circular(4),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
@@ -558,7 +554,6 @@ class _BiometricPasswordDialogContentState
                       ),
                     ),
                   ),
-                ],
               ],
             ),
           ),
@@ -608,10 +603,9 @@ class _BiometricPasswordDialogContentState
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (widget.passwordHint != null)
-                    IconButton(
+                  IconButton(
                       icon: const Icon(Icons.help_outline, size: 20),
-                      onPressed: () => _showHintOverlay(widget.passwordHint!),
+                      onPressed: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                       tooltip: 'Show password hint',
                     ),
                   IconButton(
