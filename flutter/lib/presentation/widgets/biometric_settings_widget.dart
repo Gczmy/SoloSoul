@@ -54,6 +54,73 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     });
   }
 
+  Future<String?> _showPasswordInputDialog(BuildContext context, String message, String? passwordHint) async {
+    final controller = TextEditingController();
+    bool obscure = true;
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Verify Identity'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                obscureText: obscure,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Master Password',
+                  prefixIcon: const Icon(Icons.key),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (passwordHint != null && passwordHint.isNotEmpty)
+                        IconButton(
+                          icon: const Icon(Icons.help_outline, size: 20),
+                          onPressed: () {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(
+                                content: Text('Password Hint: $passwordHint'),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: AppTheme.primaryColor,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
+                          },
+                        ),
+                      IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          size: 20,
+                        ),
+                        onPressed: () => setDialogState(() => obscure = !obscure),
+                      ),
+                    ],
+                  ),
+                ),
+                onSubmitted: (_) => Navigator.pop(ctx, controller.text),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: const Text('Confirm'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _toggleBiometric(bool enable) async {
     if (enable) {
       // First verify password before enabling biometric unlock
@@ -63,6 +130,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       // 如果当前没有选中账户，尝试使用第一个可用账户
       if (selectedAccount == null) {
         final accounts = await authNotifier.getAccountsSortedByRecent();
+        if (!mounted) return;
         if (accounts.isNotEmpty) {
           selectedAccount = accounts.first;
         }
@@ -76,8 +144,8 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       String? password;
 
       if (ref.read(isSensitiveAccessGrantedProvider)) {
-        // Skip password verification if already verified
-        password = ''; // Non-null placeholder to indicate verified
+        // Skip password verification dialog if already verified, but we still need the actual password
+        password = '';
       } else {
         // Show password verification dialog
         password = await showPasswordVerificationDialog(
@@ -87,11 +155,38 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           passwordHint: selectedAccount.passwordHint,
           onVerify: authNotifier.verifyPasswordForSensitiveData,
         );
+        if (!mounted) return;
       }
 
       if (password == null) {
         // User cancelled
         return;
+      }
+
+      // If verified via biometric or already granted, we need the actual password for secure storage
+      if (password == 'biometric' || password.isEmpty) {
+        final actualPassword = await _showPasswordInputDialog(
+          context,
+          'Enter your master password to enable biometric unlock.',
+          selectedAccount.passwordHint,
+        );
+        if (!mounted) return;
+        if (actualPassword == null || actualPassword.isEmpty) return;
+
+        // Verify the actual password
+        final verified = await authNotifier.verifyPasswordForSensitiveData(actualPassword);
+        if (!mounted) return;
+        if (!verified) {
+          if (mounted) {
+            showOverlaySnackBar(
+              context,
+              content: 'Invalid password',
+              type: SnackBarType.error,
+            );
+          }
+          return;
+        }
+        password = actualPassword;
       }
 
       // Mark as verified so Lock Sensitivity Access button appears in header
@@ -100,15 +195,29 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       // Verify biometric is available
       final biometricService = BiometricService.instance;
       final canUse = await biometricService.isAvailable();
+      if (!mounted) return;
 
       if (!canUse) {
         setState(() => _error = 'Biometric authentication is not available on this device');
         return;
       }
 
+      // Authenticate with biometric to confirm device ownership
+      final biometricSuccess = await biometricService.authenticate(
+        reason: 'Verify your identity to enable $_biometricType unlock',
+      );
+      if (!mounted) return;
+
+      if (!biometricSuccess) {
+        setState(() => _error = 'Biometric authentication failed or was cancelled');
+        return;
+      }
+
       // Enable biometric unlock (Touch ID / fingerprint)
       final securityService = SecurityService.instance;
       await securityService.setBiometricsEnabled(true);
+      await securityService.saveBiometricPassword(password);
+      if (!mounted) return;
       setState(() {
         _biometricEnabled = true;
         _error = null;
@@ -132,6 +241,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
       unawaited(SecurityService.instance.setBiometricsEnabled(false));
+      unawaited(SecurityService.instance.clearBiometricPassword());
     }
   }
 
@@ -144,6 +254,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       // 如果当前没有选中账户，尝试使用第一个可用账户
       if (selectedAccount == null) {
         final accounts = await authNotifier.getAccountsSortedByRecent();
+        if (!mounted) return;
         if (accounts.isNotEmpty) {
           selectedAccount = accounts.first;
         }
@@ -157,7 +268,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       String? password;
 
       if (ref.read(isSensitiveAccessGrantedProvider)) {
-        // Skip password verification if already verified
+        // Skip password verification dialog if already verified, but we still need the actual password
         password = '';
       } else {
         // Show password verification dialog
@@ -168,11 +279,38 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           passwordHint: selectedAccount.passwordHint,
           onVerify: authNotifier.verifyPasswordForSensitiveData,
         );
+        if (!mounted) return;
       }
 
       if (password == null) {
         // User cancelled
         return;
+      }
+
+      // If verified via biometric or already granted, we need the actual password for secure storage
+      if (password == 'biometric' || password.isEmpty) {
+        final actualPassword = await _showPasswordInputDialog(
+          context,
+          'Enter your master password to enable Face ID unlock.',
+          selectedAccount.passwordHint,
+        );
+        if (!mounted) return;
+        if (actualPassword == null || actualPassword.isEmpty) return;
+
+        // Verify the actual password
+        final verified = await authNotifier.verifyPasswordForSensitiveData(actualPassword);
+        if (!mounted) return;
+        if (!verified) {
+          if (mounted) {
+            showOverlaySnackBar(
+              context,
+              content: 'Invalid password',
+              type: SnackBarType.error,
+            );
+          }
+          return;
+        }
+        password = actualPassword;
       }
 
       // Mark as verified so Lock Sensitivity Access button appears in header
@@ -181,6 +319,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       // Verify biometric is available
       final biometricService = BiometricService.instance;
       final canUse = await biometricService.isAvailable();
+      if (!mounted) return;
 
       if (!canUse) {
         setState(() => _error = 'Face ID is not available on this device');
@@ -196,9 +335,22 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
+      // Authenticate with Face ID to confirm device ownership
+      final biometricSuccess = await biometricService.authenticate(
+        reason: 'Verify your identity to enable Face ID unlock',
+      );
+      if (!mounted) return;
+
+      if (!biometricSuccess) {
+        setState(() => _error = 'Face ID authentication failed or was cancelled');
+        return;
+      }
+
       // Enable Face ID unlock
       final securityService = SecurityService.instance;
       await securityService.setFaceIdEnabled(true);
+      await securityService.saveBiometricPassword(password);
+      if (!mounted) return;
       setState(() {
         _faceIdEnabled = true;
         _error = null;
@@ -222,6 +374,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
       unawaited(SecurityService.instance.setFaceIdEnabled(false));
+      unawaited(SecurityService.instance.clearBiometricPassword());
     }
   }
 

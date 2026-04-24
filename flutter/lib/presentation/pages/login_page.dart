@@ -111,6 +111,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final available = await biometric.isAvailable();
     final settings = SecurityService.instance.settings;
     final availableBiometrics = await biometric.getAvailableBiometrics();
+    final storedPassword = await SecurityService.instance.getBiometricPassword();
+    final hasStoredPassword = storedPassword != null && storedPassword.isNotEmpty;
 
     String biometricType = 'Biometric';
     if (availableBiometrics.isNotEmpty) {
@@ -126,7 +128,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     setState(() {
-      _biometricsEnabled = settings.biometricsEnabled && available;
+      _biometricsEnabled = (settings.biometricsEnabled || settings.faceIdEnabled) && available && hasStoredPassword;
       _biometricType = biometricType;
     });
   }
@@ -137,11 +139,55 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    final success = await BiometricService.instance.authenticate(
-      reason: 'Unlock SoloSoul with $_biometricType',
-    );
+    try {
+      final success = await BiometricService.instance.authenticate(
+        reason: 'Unlock SoloSoul with $_biometricType',
+      );
 
-    if (success && mounted) {
+      if (!success) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          showOverlaySnackBar(
+            context,
+            content: 'Biometric authentication failed or was cancelled',
+            type: SnackBarType.error,
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
+      // Retrieve stored password for biometric unlock
+      final storedPassword = await SecurityService.instance.getBiometricPassword();
+      if (storedPassword == null || storedPassword.isEmpty) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          showOverlaySnackBar(
+            context,
+            content: 'Biometric unlock is not fully configured. Please unlock with your master password first and enable biometric unlock in settings.',
+            type: SnackBarType.error,
+          );
+        }
+        return;
+      }
+
+      // Unlock vault with stored password
+      final unlockSuccess = await authNotifier.unlockVault(storedPassword);
+      if (!unlockSuccess) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          showOverlaySnackBar(
+            context,
+            content: 'Failed to unlock vault. Please use your master password.',
+            type: SnackBarType.error,
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
       await ref.read(profileNotifierProvider.notifier).loadProfile();
       // Pre-register all form fields for sensitivity settings
       ref.read(formFieldRegistryProvider.notifier).registerAllForms();
@@ -172,13 +218,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         context.go(AppRoutes.home);
       }
-    } else if (mounted) {
-      setState(() => _isLoading = false);
-      showOverlaySnackBar(
-        context,
-        content: 'Biometric authentication failed',
-        type: SnackBarType.error,
-      );
+    } on Exception catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        showOverlaySnackBar(
+          context,
+          content: 'Biometric unlock error: $e',
+          type: SnackBarType.error,
+        );
+      }
     }
   }
 

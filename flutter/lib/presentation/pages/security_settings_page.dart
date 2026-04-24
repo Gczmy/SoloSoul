@@ -103,24 +103,61 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                               unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: true)));
                               setState(() => _biometricsEnabled = true);
                               if (mounted) {
-                                scaffoldMessenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Row(
-                                      children: [
-                                        Icon(Icons.check_circle, color: Colors.white, size: 20),
-                                        SizedBox(width: 12),
-                                        Text('Biometric unlock enabled'),
-                                      ],
+                                final hasPassword = await SecurityService.instance.getBiometricPassword();
+                                if (hasPassword == null || hasPassword.isEmpty) {
+                                  scaffoldMessenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Row(
+                                        children: [
+                                          Icon(Icons.info_outline, color: Colors.white, size: 20),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'Biometric unlock enabled. Please go to Settings > Access to complete biometric setup with your password.',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                      backgroundColor: AppTheme.primaryColor,
+                                      duration: Duration(seconds: 5),
                                     ),
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: AppTheme.successColor,
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  scaffoldMessenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Row(
+                                        children: [
+                                          Icon(Icons.check_circle, color: Colors.white, size: 20),
+                                          SizedBox(width: 12),
+                                          Text('Biometric unlock enabled'),
+                                        ],
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                      backgroundColor: AppTheme.successColor,
+                                    ),
+                                  );
+                                }
                               }
+                            } else if (mounted) {
+                              scaffoldMessenger.showSnackBar(
+                                const SnackBar(
+                                  content: Row(
+                                    children: [
+                                      Icon(Icons.error_outline, color: Colors.white, size: 20),
+                                      SizedBox(width: 12),
+                                      Text('Biometric authentication failed or was cancelled'),
+                                    ],
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: AppTheme.errorColor,
+                                ),
+                              );
                             }
                           } else {
                             unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: false)));
                             setState(() => _biometricsEnabled = false);
+                            unawaited(SecurityService.instance.clearBiometricPassword());
                           }
                         },
                       ),

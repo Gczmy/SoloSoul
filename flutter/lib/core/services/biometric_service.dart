@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -33,9 +35,11 @@ class BiometricService {
           stickyAuth: true,
           biometricOnly: true,
         ),
-      );
+      ).timeout(const Duration(seconds: 15));
       return result;
     } on PlatformException {
+      return false;
+    } on TimeoutException {
       return false;
     }
   }

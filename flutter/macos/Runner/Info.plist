@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>SoloSoul uses Face ID to securely unlock your vault and protect your sensitive data.</string>
 </dict>
 </plist>
