@@ -53,7 +53,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.0.0] - 2026-04-24
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.0.0-pre.1...HEAD
+### Added
+
+- **macOS DMG Installer** — Official v1.0.0 release with drag-and-drop installation
+- **Debug Mode** — Hidden debug log sheet (tap version 5 times to reveal) with colored log levels
+- **Improved Keychain Handling** — Better fallback mechanism for non-notarized distribution
+- **Biometric Authentication** — Face ID unlock support with password verification fallback
+- **Debug Logger Colors** — Color-coded log levels (INFO: cyan, WARN: yellow, ERROR: red, DEBUG: gray)
+
+### Bug Fixes
+
+- Fixed macOS Keychain probe false-negative issues
+- Fixed debug log copy button functionality
+- Fixed biometric toggle requiring password verification
+- Fixed password dialog ghost overlay when cancelled
+- Fixed duplicate hint button in message boxes
+
+### Build
+
+- Non-notarized distribution support (sandbox + identity signing disabled)
+- DMG packaging with create-dmg tool
+
+---
+
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0
 [1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
