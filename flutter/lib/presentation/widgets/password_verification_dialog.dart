@@ -93,6 +93,10 @@ class _PasswordVerificationDialogContentState
   bool _userHasTypedAfterError = false;
   bool _obscurePassword = true;
 
+  // Hint overlay tracking
+  OverlayEntry? _hintOverlayEntry;
+  Timer? _hintOverlayTimer;
+
   @override
   void initState() {
     super.initState();
@@ -102,6 +106,9 @@ class _PasswordVerificationDialogContentState
 
   @override
   void dispose() {
+    _hintOverlayTimer?.cancel();
+    _hintOverlayEntry?.remove();
+    _hintOverlayEntry = null;
     _controller.removeListener(_onTextChanged);
     // Securely clear password text before disposing
     _controller.text = '';
@@ -128,10 +135,12 @@ class _PasswordVerificationDialogContentState
   }
 
   void _showHintOverlay(String hint) {
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
+    // Cancel any existing timer and remove existing overlay
+    _hintOverlayTimer?.cancel();
+    _hintOverlayEntry?.remove();
 
-    entry = OverlayEntry(
+    final overlay = Overlay.of(context);
+    _hintOverlayEntry = OverlayEntry(
       builder: (overlayCtx) => Positioned(
         top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
         left: 16,
@@ -170,7 +179,11 @@ class _PasswordVerificationDialogContentState
                     icon: const Icon(Icons.close, color: Colors.white70, size: 18),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => entry.remove(),
+                    onPressed: () {
+                      _hintOverlayTimer?.cancel();
+                      _hintOverlayEntry?.remove();
+                      _hintOverlayEntry = null;
+                    },
                   ),
                 ],
               ),
@@ -180,11 +193,10 @@ class _PasswordVerificationDialogContentState
       ),
     );
 
-    overlay.insert(entry);
-    Timer(const Duration(seconds: 4), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
+    overlay.insert(_hintOverlayEntry!);
+    _hintOverlayTimer = Timer(const Duration(seconds: 4), () {
+      _hintOverlayEntry?.remove();
+      _hintOverlayEntry = null;
     });
   }
 
@@ -340,6 +352,10 @@ class _BiometricPasswordDialogContentState
   bool _isBiometricVerified = false;
   bool _obscurePassword = true;
 
+  // Hint overlay tracking
+  OverlayEntry? _hintOverlayEntry;
+  Timer? _hintOverlayTimer;
+
   @override
   void initState() {
     super.initState();
@@ -349,6 +365,9 @@ class _BiometricPasswordDialogContentState
 
   @override
   void dispose() {
+    _hintOverlayTimer?.cancel();
+    _hintOverlayEntry?.remove();
+    _hintOverlayEntry = null;
     _controller.removeListener(_onTextChanged);
     // Securely clear password text before disposing
     _controller.text = '';
@@ -404,10 +423,12 @@ class _BiometricPasswordDialogContentState
   }
 
   void _showHintOverlay(String hint) {
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
+    // Cancel any existing timer and remove existing overlay
+    _hintOverlayTimer?.cancel();
+    _hintOverlayEntry?.remove();
 
-    entry = OverlayEntry(
+    final overlay = Overlay.of(context);
+    _hintOverlayEntry = OverlayEntry(
       builder: (overlayCtx) => Positioned(
         top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
         left: 16,
@@ -446,7 +467,11 @@ class _BiometricPasswordDialogContentState
                     icon: const Icon(Icons.close, color: Colors.white70, size: 18),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => entry.remove(),
+                    onPressed: () {
+                      _hintOverlayTimer?.cancel();
+                      _hintOverlayEntry?.remove();
+                      _hintOverlayEntry = null;
+                    },
                   ),
                 ],
               ),
@@ -456,11 +481,10 @@ class _BiometricPasswordDialogContentState
       ),
     );
 
-    overlay.insert(entry);
-    Timer(const Duration(seconds: 4), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
+    overlay.insert(_hintOverlayEntry!);
+    _hintOverlayTimer = Timer(const Duration(seconds: 4), () {
+      _hintOverlayEntry?.remove();
+      _hintOverlayEntry = null;
     });
   }
 
