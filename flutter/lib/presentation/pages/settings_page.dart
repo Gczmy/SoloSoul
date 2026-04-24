@@ -1,7 +1,7 @@
-import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -266,6 +266,13 @@ class SettingsPage extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
+                      icon: Icons.bug_report_outlined,
+                      title: 'Debug Log',
+                      subtitle: 'View debug log',
+                      onTap: () => _showDebugLogSheet(context),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
                       icon: Icons.description_outlined,
                       title: 'Privacy Policy',
                       subtitle: 'View our privacy policy',
@@ -442,6 +449,20 @@ class SettingsPage extends ConsumerWidget {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _VersionSheet(packageInfo: packageInfo),
+    );
+  }
+
+  void _showDebugLogSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.3,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => _DebugLogSheet(scrollController: scrollController),
+      ),
     );
   }
 
@@ -1093,6 +1114,103 @@ class _AllAccountsSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _DebugLogSheet extends StatefulWidget {
+  final ScrollController scrollController;
+
+  const _DebugLogSheet({required this.scrollController});
+
+  @override
+  State<_DebugLogSheet> createState() => _DebugLogSheetState();
+}
+
+class _DebugLogSheetState extends State<_DebugLogSheet> {
+  String _logContent = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLog();
+  }
+
+  Future<void> _loadLog() async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final logFile = File('${dir.path}/solosoul_debug.log');
+      if (await logFile.exists()) {
+        final content = await logFile.readAsString();
+        if (mounted) {
+          setState(() => _logContent = content);
+        }
+      } else {
+        if (mounted) {
+          setState(() => _logContent = 'No debug log found');
+        }
+      }
+    } on Exception catch (e) {
+      if (mounted) {
+        setState(() => _logContent = 'Error reading log: $e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Debug Log', style: theme.textTheme.titleLarge),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () async {
+                    setState(() => _logContent = 'Loading...');
+                    await _loadLog();
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: SingleChildScrollView(
+              controller: widget.scrollController,
+              padding: const EdgeInsets.all(16),
+              child: SelectableText(
+                _logContent,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
