@@ -250,24 +250,18 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   /// Verify password for sensitive data access
+  /// Uses Rust unlockVault for verification since it handles all crypto properly
   Future<bool> verifyPasswordForSensitiveData(String password) async {
     if (_accountManager.selectedAccountId == null) return false;
     if (password.isEmpty) return false;
 
-    // Try Keychain verification first
-    try {
-      final keychainResult = await _storage.verifyPassword(_accountManager.selectedAccountId!, password);
-      if (keychainResult) return true;
-    } on Exception catch (e) {
-      // Keychain verification failed, fall back to Rust
-      DebugLogger.instance.logInfo('AUTH', 'Keychain verify failed, falling back to Rust: $e');
-    }
-
-    // Fall back to Rust unlockVault - it does its own password verification
+    // Use Rust unlockVault - it does its own password verification and handles
+    // all crypto correctly, including the salt length issues we see with Keychain
     final rustResult = _vaultUnlockService.unlockVault(
       accountId: _accountManager.selectedAccountId!,
       password: password,
     );
+    DebugLogger.instance.logInfo('AUTH', 'verifyPasswordForSensitiveData: rustResult=${rustResult.success}');
     return rustResult.success;
   }
 
