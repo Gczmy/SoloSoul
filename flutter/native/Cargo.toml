@@ -45,10 +45,6 @@ tokio-tungstenite = "0.21"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# Wasm (for plugin sandbox)
-wasmtime = "21.0"
-wasmtime-wasi = "21.0"
-
 # SHA-256 for plugin handshake
 sha2 = "0.10"
 
@@ -63,6 +59,14 @@ lazy_static = "1.4"
 
 # C-compatible FFI
 libc = "0.2"
+
+# Wasm (for plugin sandbox) - optional, excluded on iOS due to asm issues
+wasmtime = { version = "21.0", optional = true }
+wasmtime-wasi = { version = "21.0", optional = true }
+
+[features]
+# Sandbox is opt-in due to wasmtime dependency issues on iOS
+sandbox = ["dep:wasmtime", "dep:wasmtime-wasi"]
 
 [lib]
 name = "solosoul_core"

@@ -11,6 +11,7 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 pub mod crypto;
 pub mod vault;
 pub mod sync;
+#[cfg(feature = "sandbox")]
 pub mod plugin;
 pub mod account;
 

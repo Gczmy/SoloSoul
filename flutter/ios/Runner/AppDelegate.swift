@@ -1,4 +1,4 @@
-import Cocoa
+import UIKit
 import Flutter
 import LocalAuthentication
 import Security
@@ -60,6 +60,8 @@ class AppDelegate: FlutterAppDelegate {
     }
 
     // Setup native channel for vault operations
+    // Note: DistributedNotificationCenter is macOS-only and not available on iOS.
+    // On iOS, vault lock operations are handled directly via method channel within the same process.
     let nativeChannel = FlutterMethodChannel(
       name: "com.solosoul/native",
       binaryMessenger: flutterEngine.binaryMessenger
@@ -68,13 +70,9 @@ class AppDelegate: FlutterAppDelegate {
     nativeChannel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
       switch call.method {
       case "lockVault":
-        // Notify macOS to lock vault via DistributedNotificationCenter
-        DistributedNotificationCenter.default().postNotificationName(
-          NSNotification.Name("com.solosoul.lockVault"),
-          object: nil,
-          userInfo: nil,
-          deliverImmediately: true
-        )
+        // iOS is single-process with one Flutter engine - no cross-process notification needed.
+        // The vault lock is handled directly by the Rust service via Flutter's native_crypto_service.
+        // Return success to indicate the lock request was received.
         result(nil)
       default:
         result(FlutterMethodNotImplemented)
