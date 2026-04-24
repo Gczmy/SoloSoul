@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/operation_filter_chip.dart';
@@ -17,27 +16,12 @@ class OperationLogPage extends ConsumerStatefulWidget {
 }
 
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
-  final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
   bool _filterExpanded = false;
-  String? _error;
-
-  final _passwordFocusNode = FocusNode();
-  bool _isPasswordFocused = false;
 
   @override
   void initState() {
     super.initState();
     _refreshLogs();
-    _passwordFocusNode.addListener(_onPasswordFocusChange);
-  }
-
-  void _onPasswordFocusChange() {
-    final hasFocus = _passwordFocusNode.hasFocus;
-    if (hasFocus != _isPasswordFocused) {
-      setState(() => _isPasswordFocused = hasFocus);
-    }
   }
 
   Future<void> _refreshLogs() async {
@@ -45,239 +29,63 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     if (mounted) setState(() {});
   }
 
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    _passwordFocusNode.removeListener(_onPasswordFocusChange);
-    _passwordFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _showPasswordHint(String hint) {
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
-
-    entry = OverlayEntry(
-      builder: (ctx) => Positioned(
-        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
-        left: 16,
-        right: 16,
-        child: SafeArea(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.help_outline, color: Colors.white, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Password Hint: $hint',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => entry.remove(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+  Future<void> _verifyPassword() async {
+    // Use the shared password verification dialog with biometric support
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
+    final result = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      message: 'Enter your master password to view the operation log.',
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
 
-    overlay.insert(entry);
-    Timer(const Duration(seconds: 4), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
-    });
-  }
+    if (!mounted) return;
 
-  Future<void> _verifyPassword() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-    final success = await authNotifier.verifyPasswordForSensitiveData(_passwordController.text);
-
-    if (success) {
+    if (result != null) {
+      // Mark as verified in shared sensitive page access
       ref.read(sensitivePageAccessProvider.notifier).markVerified();
-    } else {
-      setState(() => _error = 'Invalid password');
     }
-    _passwordController.clear();
-    setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
-      return _buildPasswordVerification();
-    }
-    return _buildLogView();
-  }
-
-  Widget _buildPasswordVerification() {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Operation Log')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+      // Trigger the password dialog on build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _verifyPassword();
+      });
+      // Return a loading screen while dialog is shown
+      return Scaffold(
+        appBar: AppBar(title: const Text('Operation Log')),
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.lock_outline,
                 size: 64,
-                color: theme.colorScheme.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(height: 24),
-              Text('Password Required', style: theme.textTheme.headlineSmall),
+              Text(
+                'Password Required',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               Text(
-                'Enter your master password to view the operation log',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                'Verifying identity...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: 300,
-                child: Builder(
-                  builder: (ctx) {
-                    final authNotifier = ref.read(authNotifierProvider.notifier);
-                    final hint = authNotifier.selectedAccount?.passwordHint;
-                    final hasError = _error != null;
-                    final errorColor = Colors.red.shade700;
-                    final normalColor = Theme.of(ctx).colorScheme.onSurfaceVariant;
-                    return TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      focusNode: _passwordFocusNode,
-                      autofocus: true,
-                      onSubmitted: (_) => _verifyPassword(),
-                      decoration: InputDecoration(
-                        labelText: 'Master Password',
-                        labelStyle: TextStyle(
-                          color: hasError
-                              ? errorColor
-                              : _isPasswordFocused
-                                  ? AppTheme.primaryColor
-                                  : Theme.of(ctx).colorScheme.onSurface,
-                        ),
-                        floatingLabelStyle: TextStyle(
-                          color: hasError
-                              ? errorColor
-                              : _isPasswordFocused
-                                  ? AppTheme.primaryColor
-                                  : Theme.of(ctx).colorScheme.onSurface,
-                        ),
-                        errorText: _error,
-                        errorStyle: TextStyle(
-                          color: errorColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.key,
-                          color: hasError
-                              ? errorColor
-                              : _isPasswordFocused
-                                  ? AppTheme.primaryColor
-                                  : normalColor,
-                        ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.help_outline,
-                                size: 20,
-                                color: hasError
-                                    ? errorColor
-                                    : _isPasswordFocused
-                                        ? AppTheme.primaryColor
-                                        : normalColor,
-                              ),
-                              onPressed: () => _showPasswordHint(hint ?? 'No password hint available'),
-                              tooltip: 'Show password hint',
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                size: 20,
-                                color: hasError
-                                    ? errorColor
-                                    : _isPasswordFocused
-                                        ? AppTheme.primaryColor
-                                        : normalColor,
-                              ),
-                              onPressed: () {
-                                setState(() => _obscurePassword = !_obscurePassword);
-                              },
-                            ),
-                          ],
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade400),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.red.shade300),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.red.shade500, width: 2),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _verifyPassword,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Verify'),
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
+    }
+    return _buildLogView();
   }
 
   Widget _buildLogView() {

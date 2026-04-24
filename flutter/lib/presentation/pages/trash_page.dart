@@ -1,7 +1,5 @@
 // ignore_for_file: prefer_const_declarations
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 // ignore_for_file: use_build_context_synchronously
@@ -19,6 +17,7 @@ import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 
 class TrashPage extends ConsumerStatefulWidget {
@@ -29,19 +28,11 @@ class TrashPage extends ConsumerStatefulWidget {
 }
 
 class _TrashPageState extends ConsumerState<TrashPage> {
-  final _passwordController = TextEditingController();
   final _searchController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
-  String? _error;
   String _searchQuery = '';
 
   // Pre-computed sensitivity levels by item type
   Map<String, SensitivityLevel> _sensitivityByItemType = {};
-
-  // Password field focus state
-  final _passwordFocusNode = FocusNode();
-  bool _isPasswordFocused = false;
 
   @override
   void initState() {
@@ -51,264 +42,72 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       ref.read(profileNotifierProvider.notifier).loadProfile();
       ref.read(fieldHistoriesProvider.notifier).loadHistories();
     });
-    _passwordFocusNode.addListener(_onPasswordFocusChange);
-  }
-
-  void _onPasswordFocusChange() {
-    final hasFocus = _passwordFocusNode.hasFocus;
-    if (hasFocus != _isPasswordFocused) {
-      setState(() => _isPasswordFocused = hasFocus);
-    }
   }
 
   @override
   void dispose() {
-    _passwordController.dispose();
     _searchController.dispose();
-    _passwordFocusNode.removeListener(_onPasswordFocusChange);
-    _passwordFocusNode.dispose();
     super.dispose();
   }
 
-  void _showPasswordHint(String hint) {
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
-
-    entry = OverlayEntry(
-      builder: (ctx) => Positioned(
-        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
-        left: 16,
-        right: 16,
-        child: SafeArea(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.help_outline, color: Colors.white, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Password Hint: $hint',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white70,
-                      size: 18,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => entry.remove(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(entry);
-    Timer(const Duration(seconds: 4), () {
-      if (entry.mounted) {
-        entry.remove();
-      }
-    });
-  }
-
   Future<void> _verifyPassword() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    // Use verifyPasswordForSensitiveData instead of unlockVault
-    // to avoid changing auth state when vault is already unlocked
+    // Use the shared password verification dialog with biometric support
     final authNotifier = ref.read(authNotifierProvider.notifier);
-    final success = await authNotifier.verifyPasswordForSensitiveData(
-      _passwordController.text,
+    final selectedAccount = authNotifier.selectedAccount;
+    final result = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      message: 'Enter your master password to view the trash.',
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
 
-    if (success) {
+    if (!mounted) return;
+
+    if (result != null) {
+      // Mark as verified in shared sensitive page access
       ref.read(sensitivePageAccessProvider.notifier).markVerified();
-      if (mounted) {
-        _passwordController.clear();
-        setState(() => _isLoading = false);
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _error = 'Invalid password';
-          _isLoading = false;
-        });
-      }
-      _passwordController.clear();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show password verification dialog if not yet verified
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
-      return _buildPasswordVerification();
-    }
-    return _buildTrashView();
-  }
-
-  Widget _buildPasswordVerification() {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Trash')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+      // Trigger the password dialog on build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _verifyPassword();
+      });
+      // Return a loading screen while dialog is shown
+      return Scaffold(
+        appBar: AppBar(title: const Text('Trash')),
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.lock_outline,
                 size: 64,
-                color: theme.colorScheme.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(height: 24),
-              Text('Password Required', style: theme.textTheme.headlineSmall),
+              Text(
+                'Password Required',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               Text(
-                'Enter your master password to view the trash',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                'Verifying identity...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: 300,
-                child: Builder(
-                  builder: (ctx) {
-                    final authNotifier = ref.read(
-                      authNotifierProvider.notifier,
-                    );
-                    final hint = authNotifier.selectedAccount?.passwordHint;
-                    final hasError = _error != null;
-                    final errorColor = Colors.red.shade700;
-                    final normalColor = Theme.of(
-                      ctx,
-                    ).colorScheme.onSurfaceVariant;
-                    return TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      focusNode: _passwordFocusNode,
-                      autofocus: true,
-                      onSubmitted: (_) => _verifyPassword(),
-                      decoration: InputDecoration(
-                        labelText: 'Master Password',
-                        labelStyle: TextStyle(
-                          color: hasError
-                              ? errorColor
-                              : _isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : Theme.of(ctx).colorScheme.onSurface,
-                        ),
-                        floatingLabelStyle: TextStyle(
-                          color: hasError
-                              ? errorColor
-                              : _isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : Theme.of(ctx).colorScheme.onSurface,
-                        ),
-                        errorText: _error,
-                        errorStyle: TextStyle(
-                          color: errorColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.key,
-                          color: hasError
-                              ? errorColor
-                              : _isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : normalColor,
-                        ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.help_outline,
-                                size: 20,
-                                color: hasError
-                                    ? errorColor
-                                    : _isPasswordFocused
-                                    ? AppTheme.primaryColor
-                                    : normalColor,
-                              ),
-                              onPressed: () => _showPasswordHint(hint ?? 'No password hint available'),
-                              tooltip: 'Show password hint',
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                size: 20,
-                                color: hasError
-                                    ? errorColor
-                                    : _isPasswordFocused
-                                    ? AppTheme.primaryColor
-                                    : normalColor,
-                              ),
-                              onPressed: () {
-                                setState(
-                                  () => _obscurePassword = !_obscurePassword,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        enabledBorder: AppTheme.passwordFieldEnabledBorder,
-                        errorBorder: AppTheme.passwordFieldErrorBorder,
-                        focusedErrorBorder:
-                            AppTheme.passwordFieldFocusedErrorBorder,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _verifyPassword,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Verify'),
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
+    }
+    return _buildTrashView();
   }
 
   Widget _buildTrashView() {
@@ -607,11 +406,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'The item will be moved back to its original location.',
                       style: TextStyle(
-                        color: Colors.blue.shade900,
+                        color: Colors.blue,
                         fontSize: 13,
                       ),
                     ),
@@ -673,11 +472,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'This action cannot be undone. The item will be permanently removed.',
                       style: TextStyle(
-                        color: Colors.red.shade900,
+                        color: Colors.red,
                         fontSize: 13,
                       ),
                     ),
@@ -761,11 +560,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'This action cannot be undone. All items will be permanently removed.',
                       style: TextStyle(
-                        color: Colors.red.shade900,
+                        color: Colors.red,
                         fontSize: 13,
                       ),
                     ),
