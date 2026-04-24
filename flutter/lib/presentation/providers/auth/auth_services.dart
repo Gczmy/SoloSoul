@@ -444,8 +444,12 @@ class AccountManager {
   Future<bool> deleteAccount(String password) async {
     if (_selectedAccountId == null) return false;
 
-    final isValid = await _storage.verifyPassword(_selectedAccountId!, password);
-    if (!isValid) return false;
+    // Verify password using Rust (which handles salt length issues)
+    final vaultResult = RustVaultService.instance.unlockVault(
+      accountId: _selectedAccountId!,
+      password: password,
+    );
+    if (!vaultResult.success) return false;
 
     RustVaultService.instance.deleteAccount(_selectedAccountId!);
 
