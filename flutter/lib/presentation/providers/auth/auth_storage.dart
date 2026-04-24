@@ -18,9 +18,10 @@ class SecureAccountStorage {
   static const SecureAccountStorage _instance = SecureAccountStorage._();
   static SecureAccountStorage get instance => _instance;
 
-  FallbackSecureStorage get _secureStorage {
-    return FallbackSecureStorage();
-  }
+  static final FallbackSecureStorage _fallbackSecureStorage =
+      FallbackSecureStorage();
+
+  FallbackSecureStorage get _secureStorage => _fallbackSecureStorage;
 
   Future<void> _writeSecure(String key, String? value) async {
     SoloLog.d('AuthStorage', 'Writing to Keychain: key=$key');

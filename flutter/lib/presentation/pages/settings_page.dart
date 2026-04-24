@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -1342,7 +1343,6 @@ class _DebugLogSheet extends StatefulWidget {
 
 class _DebugLogSheetState extends State<_DebugLogSheet> {
   String _logContent = '';
-  final _clipboardIcon = Icons.copy;
 
   @override
   void initState() {
@@ -1357,18 +1357,22 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
     });
   }
 
-  void _copyToClipboard() {
-    // ignore: use_build_context_synchronously
+  Future<void> _copyToClipboard() async {
+    await Clipboard.setData(ClipboardData(text: _logContent));
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
+      SnackBar(
+        content: const Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
             SizedBox(width: 12),
             Text('Logs copied to clipboard'),
           ],
         ),
         backgroundColor: AppTheme.successColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -1436,11 +1440,10 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
                       tooltip: 'Refresh',
                     ),
                     IconButton(
-                      icon: Icon(_clipboardIcon),
-                      onPressed: () {
-                        // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                        _copyToClipboard();
+                      icon: const Icon(Icons.copy),
+                      onPressed: () async {
+                        await _copyToClipboard();
+                        if (mounted) Navigator.pop(context);
                       },
                       tooltip: 'Copy to clipboard',
                     ),

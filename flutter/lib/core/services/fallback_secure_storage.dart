@@ -45,7 +45,11 @@ class FallbackSecureStorage {
   Future<bool> _checkKeychainAvailable() async {
     if (_keychainAvailable != null) return _keychainAvailable!;
     try {
-      // Probe Keychain with a test write/read/delete cycle
+      // Probe Keychain with a test write/read/delete cycle.
+      // NOTE: On macOS sandboxed apps, this probe may return -34018
+      // (errSecMissingEntitlement) even when actual targeted read/write
+      // succeeds. We treat -34018 as "optimistically available" and let
+      // real operations validate individually.
       const testKey = '__keychain_probe__';
       await _secureStorage
           .write(key: testKey, value: 'probe')
@@ -56,9 +60,20 @@ class FallbackSecureStorage {
       await _secureStorage.delete(key: testKey);
       _keychainAvailable = readValue == 'probe';
     } on Exception catch (e) {
-      DebugLogger.instance.logError(
-          'FALLBACK_STORAGE', 'Keychain probe failed: $e');
-      _keychainAvailable = false;
+      final errorStr = e.toString();
+      final isMacOSProbeFalseNegative =
+          Platform.isMacOS && errorStr.contains('-34018');
+      if (isMacOSProbeFalseNegative) {
+        DebugLogger.instance.logDebug(
+            'FALLBACK_STORAGE',
+            'Keychain probe returned -34018 on macOS (sandbox false-negative). '
+            'Assuming optimistically available; real operations will fallback individually if needed.');
+        _keychainAvailable = true;
+      } else {
+        DebugLogger.instance.logDebug(
+            'FALLBACK_STORAGE', 'Keychain probe failed: $e');
+        _keychainAvailable = false;
+      }
     }
     DebugLogger.instance.logInfo(
         'FALLBACK_STORAGE', 'Keychain available: $_keychainAvailable');
