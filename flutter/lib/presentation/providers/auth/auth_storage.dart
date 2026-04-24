@@ -280,6 +280,8 @@ class SecureAccountStorage {
     final salt = base64Decode(accountData['salt'] as String);
     final storedHash = accountData['verify_hash'] as String;
 
+    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: salt=${base64Encode(salt)}, storedHash length=${storedHash.length}');
+
     // Step 1: Derive master_key from password (same as Rust)
     final masterKey = NativeCryptoService.instance.deriveKey(
       password: password,
@@ -292,6 +294,7 @@ class SecureAccountStorage {
 
     // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
     final masterKeyHex = bytesToHex(masterKey);
+    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: masterKeyHex length=${masterKeyHex.length}');
     const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
     final verifyKey = NativeCryptoService.instance.deriveKey(
       password: masterKeyHex,
@@ -304,7 +307,10 @@ class SecureAccountStorage {
 
     // Step 3: Hex-encode verify_key and compare (same as Rust)
     final derivedHashHex = bytesToHex(verifyKey);
-    return constantTimeEquals(derivedHashHex, storedHash);
+    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: derivedHashHex=$derivedHashHex, storedHash=$storedHash');
+    final result = constantTimeEquals(derivedHashHex, storedHash);
+    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: result=$result');
+    return result;
   }
 
   Future<bool> deleteAccount(String accountId) async {
