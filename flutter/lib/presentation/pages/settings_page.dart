@@ -119,8 +119,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (selectedAccount?.passwordHint != null)
-                        IconButton(
+                      IconButton(
                           icon: const Icon(Icons.help_outline),
                           onPressed: () {
                             ScaffoldMessenger.of(ctx).showSnackBar(
@@ -131,7 +130,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        'Password Hint: ${selectedAccount!.passwordHint}',
+                                        selectedAccount?.passwordHint != null
+                                            ? 'Password Hint: ${selectedAccount!.passwordHint}'
+                                            : 'No password hint available',
                                         style: const TextStyle(color: Colors.white),
                                       ),
                                     ),
