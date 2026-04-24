@@ -85,45 +85,100 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _showDebugActivationDialog() async {
     final passwordController = TextEditingController();
     final authNotifier = ref.read(authNotifierProvider.notifier);
+    bool obscurePassword = true;
+    bool hasError = false;
+    String? errorMessage;
+    final selectedAccount = authNotifier.selectedAccount;
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.bug_report, color: AppTheme.primaryColor),
-            SizedBox(width: 12),
-            Text('Enable Debug Mode'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Enter your master password to enable Debug Log.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Master Password',
-                prefixIcon: Icon(Icons.lock_outline),
-                border: OutlineInputBorder(),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.bug_report, color: AppTheme.primaryColor),
+              SizedBox(width: 12),
+              Text('Enable Debug Mode'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Enter your master password to enable Debug Log.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: obscurePassword,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Master Password',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  border: const OutlineInputBorder(),
+                  errorText: hasError ? errorMessage : null,
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (selectedAccount?.passwordHint != null)
+                        IconButton(
+                          icon: const Icon(Icons.help_outline),
+                          onPressed: () {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.help_outline, color: Colors.white),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Password Hint: ${selectedAccount!.passwordHint}',
+                                        style: const TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: AppTheme.primaryColor,
+                                duration: const Duration(seconds: 4),
+                              ),
+                            );
+                          },
+                          tooltip: 'Show password hint',
+                        ),
+                      IconButton(
+                        icon: Icon(
+                          obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        onPressed: () {
+                          setDialogState(() => obscurePassword = !obscurePassword);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                onChanged: (_) {
+                  if (hasError) {
+                    setDialogState(() {
+                      hasError = false;
+                      errorMessage = null;
+                    });
+                  }
+                },
               ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Enable'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Enable'),
-          ),
-        ],
       ),
     );
 
@@ -147,6 +202,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           );
         }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Invalid password'),
+              ],
+            ),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
       }
     }
   }
