@@ -189,9 +189,10 @@ class NativeCryptoService {
     int iterations = defaultIterations,
     int parallelism = 4,
   }) {
-    if (salt.length != 32) {
-      throw ArgumentError('Salt must be 32 bytes');
-    }
+    // Note: salt length is not enforced to be 32 bytes here.
+    // The Rust FFI derive_key accepts any salt length, and some derivation
+    // steps (e.g., verify derivation) use shorter fixed phrases.
+    // generateSalt() still produces 32 bytes for primary salt generation.
 
     if (_isAndroid) {
       return _deriveKeyDart(password, salt, memoryKib, iterations, parallelism);
@@ -203,8 +204,8 @@ class NativeCryptoService {
       passwordPtr[i] = passwordBytes[i];
     }
 
-    final saltPtr = calloc<Uint8>(32);
-    for (var i = 0; i < 32; i++) {
+    final saltPtr = calloc<Uint8>(salt.length);
+    for (var i = 0; i < salt.length; i++) {
       saltPtr[i] = salt[i];
     }
 
@@ -215,7 +216,7 @@ class NativeCryptoService {
         passwordPtr,
         passwordBytes.length,
         saltPtr,
-        32,
+        salt.length,
         memoryKib,
         iterations,
         parallelism,

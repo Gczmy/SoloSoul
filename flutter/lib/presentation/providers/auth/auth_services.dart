@@ -214,9 +214,8 @@ class MigrationService {
 /// Service for password modification operations
 class PasswordService {
   final SecureAccountStorage _storage;
-  final VaultUnlockService _vaultUnlockService;
 
-  const PasswordService(this._storage, this._vaultUnlockService);
+  const PasswordService(this._storage);
 
   /// Change master password for current account
   /// 1. Verify current password
@@ -230,13 +229,10 @@ class PasswordService {
     required ProfileStorageService profileStorage,
     String? newPasswordHint,
   }) async {
-    // Step 1: Verify current password via Rust
-    final vaultResult = _vaultUnlockService.unlockVault(
-      accountId: accountId,
-      password: currentPassword,
-    );
-
-    if (!vaultResult.success) {
+    // Step 1: Verify current password via Dart-side storage
+    // (consistent with verifyPasswordForSensitiveData, avoids Rust vault state issues)
+    final verifyResult = await _storage.verifyPassword(accountId, currentPassword);
+    if (!verifyResult) {
       return (success: false, error: 'Invalid current password');
     }
 
@@ -475,23 +471,24 @@ class AccountManager {
   Future<bool> deleteAccount(String password) async {
     if (_selectedAccountId == null) return false;
 
-    // Verify password using Rust (which handles salt length issues)
-    final vaultResult = RustVaultService.instance.unlockVault(
-      accountId: _selectedAccountId!,
-      password: password,
-    );
-    if (!vaultResult.success) return false;
+    // Verify password using Dart-side verification (consistent with
+    // verifyPasswordForSensitiveData, bypasses Rust vault state issues)
+    final verifyResult = await _storage.verifyPassword(_selectedAccountId!, password);
+    if (!verifyResult) return false;
 
-    RustVaultService.instance.deleteAccount(_selectedAccountId!);
+    final rustDeleted = RustVaultService.instance.deleteAccount(_selectedAccountId!);
 
-    final success = await _storage.deleteAccount(_selectedAccountId!);
-    if (success) {
+    // Clean up Keychain if possible, but don't fail if Keychain is unavailable
+    // Rust is the source of truth for account data
+    await _storage.deleteAccount(_selectedAccountId!);
+
+    if (rustDeleted) {
       _profileStorage.clearEncryptionKey();
       _selectedAccountId = null;
       _selectedAccountInfo = null;
       _accountsVersion++;
     }
-    return success;
+    return rustDeleted;
   }
 
   /// Update operation metadata

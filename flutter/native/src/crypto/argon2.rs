@@ -59,8 +59,8 @@ pub unsafe extern "C" fn argon2_generate_salt(salt: *mut u8, len: usize) -> i32 
 /// # Arguments
 /// * `password` - Pointer to password bytes
 /// * `password_len` - Length of password
-/// * `salt` - Pointer to 32-byte salt
-/// * `salt_len` - Must be 32
+/// * `salt` - Pointer to salt bytes (any length >= 8 is valid for Argon2)
+/// * `salt_len` - Length of salt
 /// * `memory_kib` - Memory in KiB (e.g., 65536 for 64MB) - MUST BE KiB, NOT KB!
 /// * `iterations` - Number of iterations
 /// * `parallelism` - Number of parallel threads
@@ -87,7 +87,9 @@ pub unsafe extern "C" fn argon2_derive_key(
     }
 
     // Validate lengths
-    if salt_len != 32 || output_len != 32 {
+    // Salt can be any length (Argon2 requires >= 8, but we let the caller decide)
+    // Output must be exactly 32 bytes for our use case
+    if output_len != 32 {
         return RESULT_INVALID_LEN;
     }
 

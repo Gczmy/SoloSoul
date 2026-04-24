@@ -275,60 +275,91 @@ class SecureAccountStorage {
   }
 
   Future<bool> verifyPassword(String accountId, String password) async {
-    final accountData = await getAccountData(accountId);
+    try {
+      final accountData = await getAccountData(accountId);
 
-    String saltStr;
-    String storedHash;
+      String saltStr;
+      String storedHash;
 
-    if (accountData == null) {
-      // Keychain has no data (migration may have failed) - fall back to Rust
-      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain has no data, falling back to Rust');
-      final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-      if (rustConfig == null || rustConfig.salt == null || rustConfig.verifyHash == null) {
-        DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust also has no data');
+      if (accountData == null) {
+        // Keychain has no data (migration may have failed) - fall back to Rust
+        DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain has no data, falling back to Rust');
+        final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+        if (rustConfig == null || rustConfig.salt == null || rustConfig.verifyHash == null) {
+          DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust also has no data');
+          return false;
+        }
+        saltStr = rustConfig.salt!;
+        storedHash = rustConfig.verifyHash!;
+        DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust saltStr=$saltStr (len=${saltStr.length}), verifyHash=$storedHash (len=${storedHash.length})');
+      } else {
+        saltStr = accountData['salt'] as String;
+        storedHash = accountData['verify_hash'] as String;
+        // If Keychain salt is corrupted (wrong length), fall back to Rust
+        try {
+          final decoded = base64Decode(saltStr);
+          if (decoded.length != 32) {
+            DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain salt length=${decoded.length}, falling back to Rust');
+            final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+            if (rustConfig?.salt != null && rustConfig?.verifyHash != null) {
+              saltStr = rustConfig!.salt!;
+              storedHash = rustConfig.verifyHash!;
+            }
+          }
+        } on Exception catch (_) {
+          DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Keychain salt decode failed, falling back to Rust');
+          final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+          if (rustConfig?.salt != null && rustConfig?.verifyHash != null) {
+            saltStr = rustConfig!.salt!;
+            storedHash = rustConfig.verifyHash!;
+          } else {
+            return false;
+          }
+        }
+      }
+
+      final salt = base64Decode(saltStr);
+      if (salt.length != 32) {
+        DebugLogger.instance.logError('AUTH', 'verifyPassword: Invalid salt length ${salt.length}, expected 32');
         return false;
       }
-      saltStr = rustConfig.salt!;
-      storedHash = rustConfig.verifyHash!;
-      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: Rust saltStr=$saltStr (len=${saltStr.length}), verifyHash=$storedHash (len=${storedHash.length})');
-    } else {
-      saltStr = accountData['salt'] as String;
-      storedHash = accountData['verify_hash'] as String;
+
+      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: salt=${base64Encode(salt)}, storedHash length=${storedHash.length}');
+
+      // Step 1: Derive master_key from password (same as Rust)
+      final masterKey = NativeCryptoService.instance.deriveKey(
+        password: password,
+        salt: Uint8List.fromList(salt),
+        memoryKib: 16384,
+        iterations: 1,
+        parallelism: 4,
+      );
+      if (masterKey == null) return false;
+
+      // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
+      final masterKeyHex = bytesToHex(masterKey);
+      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: masterKeyHex length=${masterKeyHex.length}');
+      const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
+      final verifyKey = NativeCryptoService.instance.deriveKey(
+        password: masterKeyHex,
+        salt: Uint8List.fromList(utf8.encode(verifyData)),
+        memoryKib: 8192,
+        iterations: 1,
+        parallelism: 1,
+      );
+      if (verifyKey == null) return false;
+
+      // Step 3: Hex-encode verify_key and compare (same as Rust)
+      final derivedHashHex = bytesToHex(verifyKey);
+      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: derivedHashHex=$derivedHashHex, storedHash=$storedHash');
+      final result = constantTimeEquals(derivedHashHex, storedHash);
+      DebugLogger.instance.logInfo('AUTH', 'verifyPassword: result=$result');
+      return result;
+    } on Object catch (e, st) {
+      // Catch both Exception and Error (e.g., ArgumentError from deriveKey)
+      DebugLogger.instance.logError('AUTH', 'verifyPassword error: $e\nStack trace: $st');
+      return false;
     }
-
-    final salt = base64Decode(saltStr);
-
-    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: salt=${base64Encode(salt)}, storedHash length=${storedHash.length}');
-
-    // Step 1: Derive master_key from password (same as Rust)
-    final masterKey = NativeCryptoService.instance.deriveKey(
-      password: password,
-      salt: Uint8List.fromList(salt),
-      memoryKib: 16384,
-      iterations: 1,
-      parallelism: 4,
-    );
-    if (masterKey == null) return false;
-
-    // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
-    final masterKeyHex = bytesToHex(masterKey);
-    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: masterKeyHex length=${masterKeyHex.length}');
-    const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-    final verifyKey = NativeCryptoService.instance.deriveKey(
-      password: masterKeyHex,
-      salt: Uint8List.fromList(utf8.encode(verifyData)),
-      memoryKib: 8192,
-      iterations: 1,
-      parallelism: 1,
-    );
-    if (verifyKey == null) return false;
-
-    // Step 3: Hex-encode verify_key and compare (same as Rust)
-    final derivedHashHex = bytesToHex(verifyKey);
-    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: derivedHashHex=$derivedHashHex, storedHash=$storedHash');
-    final result = constantTimeEquals(derivedHashHex, storedHash);
-    DebugLogger.instance.logInfo('AUTH', 'verifyPassword: result=$result');
-    return result;
   }
 
   Future<bool> deleteAccount(String accountId) async {
@@ -336,13 +367,18 @@ class SecureAccountStorage {
       final accounts = await listAccounts();
       accounts.removeWhere((a) => a.id == accountId);
       await _saveAccounts(accounts);
-
-      await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
-
-      return true;
-    } on Exception {
-      return false;
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('STORAGE', 'deleteAccount _saveAccounts error: $e\nStack trace: $st');
     }
+
+    try {
+      await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('STORAGE', 'deleteAccount _secureStorage.delete error: $e\nStack trace: $st');
+    }
+
+    // Return true regardless of Keychain errors - Rust is the source of truth
+    return true;
   }
 
   Future<void> updateAccountSalt(

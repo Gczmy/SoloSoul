@@ -66,7 +66,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         _migrationService = MigrationService(storage ?? SecureAccountStorage.instance),
         _passwordService = PasswordService(
           storage ?? SecureAccountStorage.instance,
-          const VaultUnlockService(),
         ),
         _accountManager = AccountManager(
           storage ?? SecureAccountStorage.instance,
@@ -192,41 +191,74 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
           cryptoVersion: vaultResult.cryptoVersion ?? 2,
         );
       }
-    } on Exception catch (e, st) {
+    } on Object catch (e, st) {
       DebugLogger.instance.logError('AUTH', 'Migration error: $e\nStack trace: $st');
     }
 
     // Step 3: Get session key for profile encryption
     DebugLogger.instance.logInfo('AUTH', 'Getting fresh account data after migration...');
-    final freshData = await _storage
-        .getAccountData(_accountManager.selectedAccountId!)
-        .timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => throw TimeoutException('getAccountData timed out'),
-        );
-    DebugLogger.instance
-        .logInfo('AUTH', 'freshData: ${freshData != null ? "found" : "null"}');
-
-    Uint8List salt;
-    if (freshData == null) {
+    Uint8List? salt;
+    try {
+      final freshData = await _storage
+          .getAccountData(_accountManager.selectedAccountId!)
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => throw TimeoutException('getAccountData timed out'),
+          );
       DebugLogger.instance
-          .logInfo('AUTH', 'freshData is null, getting salt from Rust...');
-      final rustConfig = await Future.delayed(
-        Duration.zero,
-        () => NativeVaultService.instance.getAccountConfig(
-            accountId: _accountManager.selectedAccountId!),
-      )
-          .timeout(const Duration(seconds: 5),
-              onTimeout: () => throw TimeoutException('getAccountConfig timed out'));
-      if (rustConfig?.salt == null) {
+          .logInfo('AUTH', 'freshData: ${freshData != null ? "found" : "null"}');
+
+      if (freshData == null) {
         DebugLogger.instance
-            .logError('AUTH', 'Cannot get salt from Rust - returning false');
+            .logInfo('AUTH', 'freshData is null, getting salt from Rust...');
+        final rustConfig = await Future.delayed(
+          Duration.zero,
+          () => NativeVaultService.instance.getAccountConfig(
+              accountId: _accountManager.selectedAccountId!),
+        )
+            .timeout(const Duration(seconds: 5),
+                onTimeout: () => throw TimeoutException('getAccountConfig timed out'));
+        if (rustConfig?.salt == null) {
+          DebugLogger.instance
+              .logError('AUTH', 'Cannot get salt from Rust - returning false');
+          state = const AsyncData(AuthState.locked);
+          return false;
+        }
+        salt = base64Decode(rustConfig!.salt!);
+      } else {
+        salt = base64Decode(freshData['salt'] as String);
+        // If Keychain has corrupted salt, fall back to Rust
+        if (salt.length != 32) {
+          DebugLogger.instance.logInfo('AUTH', 'Keychain salt length=${salt.length}, falling back to Rust');
+          final rustConfig = NativeVaultService.instance.getAccountConfig(
+              accountId: _accountManager.selectedAccountId!);
+          if (rustConfig?.salt != null) {
+            salt = base64Decode(rustConfig!.salt!);
+          }
+        }
+      }
+    } on Object catch (e, st) {
+      DebugLogger.instance.logError('AUTH', 'Step 3 error (getAccountData): $e\nStack trace: $st');
+      // Try to get salt from Rust as last resort
+      try {
+        final rustConfig = NativeVaultService.instance.getAccountConfig(
+            accountId: _accountManager.selectedAccountId!);
+        if (rustConfig?.salt != null) {
+          salt = base64Decode(rustConfig!.salt!);
+        }
+      } on Object catch (e2) {
+        DebugLogger.instance.logError('AUTH', 'Rust fallback also failed: $e2');
+      }
+      if (salt == null || salt.length != 32) {
         state = const AsyncData(AuthState.locked);
         return false;
       }
-      salt = base64Decode(rustConfig!.salt!);
-    } else {
-      salt = base64Decode(freshData['salt'] as String);
+    }
+
+    if (salt.length != 32) {
+      DebugLogger.instance.logError('AUTH', 'Invalid salt length ${salt.length}, expected 32');
+      state = const AsyncData(AuthState.locked);
+      return false;
     }
 
     final sessionKey = NativeCryptoService.instance.deriveKey(
@@ -250,19 +282,19 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   /// Verify password for sensitive data access
-  /// Uses Rust unlockVault for verification since it handles all crypto properly
+  /// Uses Dart-side verification which reads salt/verifyHash directly from
+  /// storage (Keychain or Rust config as fallback) without depending on
+  /// Rust vault unlock state.
   Future<bool> verifyPasswordForSensitiveData(String password) async {
     if (_accountManager.selectedAccountId == null) return false;
     if (password.isEmpty) return false;
 
-    // Use Rust unlockVault - it does its own password verification and handles
-    // all crypto correctly, including the salt length issues we see with Keychain
-    final rustResult = _vaultUnlockService.unlockVault(
-      accountId: _accountManager.selectedAccountId!,
-      password: password,
+    final result = await _storage.verifyPassword(
+      _accountManager.selectedAccountId!,
+      password,
     );
-    DebugLogger.instance.logInfo('AUTH', 'verifyPasswordForSensitiveData: rustResult=${rustResult.success}');
-    return rustResult.success;
+    DebugLogger.instance.logInfo('AUTH', 'verifyPasswordForSensitiveData: result=$result');
+    return result;
   }
 
   /// Lock the vault
