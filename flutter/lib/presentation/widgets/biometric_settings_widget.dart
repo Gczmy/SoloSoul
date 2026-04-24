@@ -53,9 +53,10 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     });
   }
 
-  Future<String?> _showPasswordDialog(String message) async {
+  Future<String?> _showPasswordDialog(String message, {String? passwordHint}) async {
     final controller = TextEditingController();
     bool obscure = true;
+    String? hint = passwordHint;
     return showDialog<String>(
       context: context,
       barrierDismissible: false,
@@ -74,12 +75,33 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
                 decoration: InputDecoration(
                   labelText: 'Master Password',
                   prefixIcon: const Icon(Icons.key),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      size: 20,
-                    ),
-                    onPressed: () => setDialogState(() => obscure = !obscure),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.help_outline, size: 20),
+                        onPressed: hint != null && hint.isNotEmpty
+                            ? () {
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Password Hint: $hint'),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppTheme.primaryColor,
+                                    duration: const Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            : null,
+                        tooltip: hint != null && hint.isNotEmpty ? 'Show password hint' : 'No hint available',
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          size: 20,
+                        ),
+                        onPressed: () => setDialogState(() => obscure = !obscure),
+                      ),
+                    ],
                   ),
                 ),
                 onSubmitted: (_) => Navigator.pop(ctx, controller.text),
@@ -124,9 +146,15 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
+      // Get password hint for the dialog
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final selectedAccount = authNotifier.selectedAccount;
+      final passwordHint = selectedAccount?.passwordHint;
+
       // Ask for master password to store for biometric unlock
       final password = await _showPasswordDialog(
         'Enter your master password to enable biometric unlock',
+        passwordHint: passwordHint,
       );
       if (!mounted) return;
       if (password == null || password.isEmpty) {
@@ -135,7 +163,6 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       }
 
       // Verify password is correct
-      final authNotifier = ref.read(authNotifierProvider.notifier);
       final verified = await authNotifier.verifyPasswordForSensitiveData(password);
       if (!mounted) return;
       if (!verified) {
@@ -207,9 +234,15 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
+      // Get password hint for the dialog
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final selectedAccount = authNotifier.selectedAccount;
+      final passwordHint = selectedAccount?.passwordHint;
+
       // Ask for master password to store for biometric unlock
       final password = await _showPasswordDialog(
         'Enter your master password to enable Face ID unlock',
+        passwordHint: passwordHint,
       );
       if (!mounted) return;
       if (password == null || password.isEmpty) {
@@ -218,7 +251,6 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       }
 
       // Verify password is correct
-      final authNotifier = ref.read(authNotifierProvider.notifier);
       final verified = await authNotifier.verifyPasswordForSensitiveData(password);
       if (!mounted) return;
       if (!verified) {
