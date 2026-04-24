@@ -16,7 +16,8 @@ import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
-import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart'
+    show DebugLogger, LogLevel, LogEntry;
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
@@ -1342,7 +1343,7 @@ class _DebugLogSheet extends StatefulWidget {
 }
 
 class _DebugLogSheetState extends State<_DebugLogSheet> {
-  String _logContent = '';
+  List<LogEntry> _entries = [];
 
   @override
   void initState() {
@@ -1351,14 +1352,14 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
   }
 
   void _loadLog() {
-    final logger = DebugLogger.instance;
     setState(() {
-      _logContent = logger.getExportLog();
+      _entries = DebugLogger.instance.entries;
     });
   }
 
   Future<void> _copyToClipboard() async {
-    await Clipboard.setData(ClipboardData(text: _logContent));
+    final text = DebugLogger.instance.getExportLog();
+    await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1374,6 +1375,76 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
       ),
+    );
+  }
+
+  Color _levelColor(LogLevel level) {
+    switch (level) {
+      case LogLevel.error:
+        return Colors.red.shade700;
+      case LogLevel.warning:
+        return Colors.orange.shade700;
+      case LogLevel.info:
+        return Colors.blue.shade700;
+      case LogLevel.debug:
+        return Colors.grey.shade600;
+    }
+  }
+
+  TextStyle _levelStyle(LogLevel level, Color baseColor) {
+    return TextStyle(
+      fontFamily: 'monospace',
+      fontSize: 11,
+      color: baseColor,
+      fontWeight: FontWeight.w600,
+    );
+  }
+
+  TextStyle _normalStyle(Color baseColor) {
+    return TextStyle(
+      fontFamily: 'monospace',
+      fontSize: 11,
+      color: baseColor,
+    );
+  }
+
+  Widget _buildLogText(BuildContext context) {
+    if (_entries.isEmpty) {
+      return Text(
+        'No debug logs available.',
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    final baseColor = Theme.of(context).colorScheme.onSurface;
+    final spans = <TextSpan>[];
+
+    for (final entry in _entries) {
+      final color = _levelColor(entry.level);
+      spans.add(TextSpan(
+        text: '[${entry.timestamp.toIso8601String()}] ',
+        style: _normalStyle(baseColor),
+      ));
+      spans.add(TextSpan(
+        text: '[${entry.level.name.toUpperCase()}] ',
+        style: _levelStyle(entry.level, color),
+      ));
+      spans.add(TextSpan(
+        text: '[${entry.tag}] ',
+        style: _normalStyle(baseColor),
+      ));
+      spans.add(TextSpan(
+        text: '${entry.message}\n',
+        style: _normalStyle(baseColor),
+      ));
+    }
+
+    return SelectableText.rich(
+      TextSpan(children: spans),
     );
   }
 
@@ -1457,14 +1528,7 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
             child: SingleChildScrollView(
               controller: widget.scrollController,
               padding: const EdgeInsets.all(16),
-              child: SelectableText(
-                _logContent,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 11,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
+              child: _buildLogText(context),
             ),
           ),
         ],

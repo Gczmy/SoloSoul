@@ -3,7 +3,7 @@ import 'package:solosoul_flutter/core/services/debug_logger.dart';
 /// Unified logging utility for SoloSoul.
 ///
 /// Uses DebugLogger internally - only active when debug mode is enabled.
-/// Provides structured logging with emoji severity indicators.
+/// Provides structured logging with text severity indicators.
 ///
 /// Usage:
 ///   SoloLog.d("TAG", "Info message");
@@ -17,28 +17,28 @@ class SoloLog {
   /// Internal stopwatch for timing operations
   static final Map<String, Stopwatch> _stopwatches = {};
 
-  /// Debug/Info level log - ℹ️
+  /// Debug/Info level log
   static void d(String tag, String message) {
-    DebugLogger.instance.logInfo(tag, 'ℹ️ $message');
+    DebugLogger.instance.logInfo(tag, message);
   }
 
-  /// Warning level log - ⚠️
+  /// Warning level log
   static void w(String tag, String message, [Object? error]) {
     if (error != null) {
-      DebugLogger.instance.logWarning(tag, '⚠️ $message | Error: $error');
+      DebugLogger.instance.logWarning(tag, '$message | Error: $error');
     } else {
-      DebugLogger.instance.logWarning(tag, '⚠️ $message');
+      DebugLogger.instance.logWarning(tag, message);
     }
   }
 
-  /// Error level log - ❌
+  /// Error level log
   static void e(
     String tag,
     String message, [
     Object? error,
     StackTrace? stackTrace,
   ]) {
-    String fullMessage = '❌ $message';
+    String fullMessage = message;
     if (error != null) {
       fullMessage += ' | Error: $error';
     }
@@ -48,9 +48,9 @@ class SoloLog {
     DebugLogger.instance.logError(tag, fullMessage);
   }
 
-  /// Debug level log (alias for d) - 🔍
+  /// Debug level log (alias for d)
   static void debug(String tag, String message) {
-    DebugLogger.instance.logDebug(tag, '🔍 $message');
+    DebugLogger.instance.logDebug(tag, message);
   }
 
   /// Start a named timer. Returns a handle to endTimer().
@@ -61,7 +61,7 @@ class SoloLog {
   static String startTimer(String tag, String operationName) {
     final key = '$tag:$operationName';
     _stopwatches[key] = Stopwatch()..start();
-    DebugLogger.instance.logDebug(tag, '🔍 [$operationName] started');
+    DebugLogger.instance.logDebug(tag, '[$operationName] started');
     return key;
   }
 
@@ -70,7 +70,7 @@ class SoloLog {
   static int endTimer(String handle) {
     final stopwatch = _stopwatches.remove(handle);
     if (stopwatch == null) {
-      DebugLogger.instance.logWarning('SoloLog', '⚠️ Timer not found: $handle');
+      DebugLogger.instance.logWarning('SoloLog', 'Timer not found: $handle');
       return 0;
     }
     stopwatch.stop();
@@ -81,11 +81,11 @@ class SoloLog {
     final operationName = parts.sublist(1).join(':');
 
     if (elapsed > 1000) {
-      DebugLogger.instance.logWarning(tag, '⚠️ [$operationName] took ${elapsed}ms (SLOW)');
+      DebugLogger.instance.logWarning(tag, '[$operationName] took ${elapsed}ms (SLOW)');
     } else if (elapsed > 100) {
-      DebugLogger.instance.logDebug(tag, '🔍 [$operationName] took ${elapsed}ms');
+      DebugLogger.instance.logDebug(tag, '[$operationName] took ${elapsed}ms');
     } else {
-      DebugLogger.instance.logDebug(tag, '🔍 [$operationName] took ${elapsed}ms');
+      DebugLogger.instance.logDebug(tag, '[$operationName] took ${elapsed}ms');
     }
     return elapsed;
   }
@@ -94,8 +94,8 @@ class SoloLog {
   /// Use this when you already know how long something took.
   static void dWithTiming(String tag, String message, int elapsedMs) {
     final timingStr = elapsedMs > 1000
-        ? '⚠️ (${elapsedMs}ms)'
+        ? '(${elapsedMs}ms SLOW)'
         : '(${elapsedMs}ms)';
-    DebugLogger.instance.logInfo(tag, 'ℹ️ $message $timingStr');
+    DebugLogger.instance.logInfo(tag, '$message $timingStr');
   }
 }

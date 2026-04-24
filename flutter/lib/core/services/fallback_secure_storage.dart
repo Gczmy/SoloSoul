@@ -7,21 +7,19 @@ import 'package:solosoul_flutter/core/services/debug_logger.dart';
 /// Keychain-aware secure storage with transparent file-based fallback.
 ///
 /// On macOS/iOS, FlutterSecureStorage uses Keychain. In sandboxed apps
-/// without proper entitlements/codesigning (ad-hoc signed builds), Keychain
-/// access returns -34018. This wrapper detects Keychain failures and
-/// transparently falls back to file storage in the app's support directory.
+/// without proper entitlements/codesigning, Keychain access may return -34018.
+/// This wrapper detects Keychain failures and transparently falls back to file
+/// storage in the app's support directory.
 ///
 /// SECURITY NOTE: The fallback files are stored in the app's sandboxed
 /// Application Support directory with 0600 permissions. This is less secure
-/// than Keychain but functional when Keychain is unavailable. When Keychain
-/// starts working (properly signed build), data is automatically migrated back.
+/// than Keychain but functional when Keychain is unavailable.
 class FallbackSecureStorage {
   static const _fallbackDirName = 'solosoul_fallback_storage';
   static const _metaKey = '__fallback_meta__';
 
   final FlutterSecureStorage _secureStorage;
   Directory? _fallbackDir;
-  bool? _keychainAvailable;
 
   FallbackSecureStorage({FlutterSecureStorage? secureStorage})
       : _secureStorage = secureStorage ?? const FlutterSecureStorage();
@@ -37,47 +35,16 @@ class FallbackSecureStorage {
   }
 
   String _fallbackFilePath(Directory dir, String key) {
-    // Sanitize key for filesystem safety
     final sanitized = base64Url.encode(utf8.encode(key));
     return '${dir.path}/$sanitized.json';
   }
 
-  Future<bool> _checkKeychainAvailable() async {
-    if (_keychainAvailable != null) return _keychainAvailable!;
-    try {
-      // Probe Keychain with a test write/read/delete cycle.
-      // NOTE: On macOS sandboxed apps, this probe may return -34018
-      // (errSecMissingEntitlement) even when actual targeted read/write
-      // succeeds. We treat -34018 as "optimistically available" and let
-      // real operations validate individually.
-      const testKey = '__keychain_probe__';
-      await _secureStorage
-          .write(key: testKey, value: 'probe')
-          .timeout(const Duration(seconds: 3));
-      final readValue = await _secureStorage
-          .read(key: testKey)
-          .timeout(const Duration(seconds: 3));
-      await _secureStorage.delete(key: testKey);
-      _keychainAvailable = readValue == 'probe';
-    } on Exception catch (e) {
-      final errorStr = e.toString();
-      final isMacOSProbeFalseNegative =
-          Platform.isMacOS && errorStr.contains('-34018');
-      if (isMacOSProbeFalseNegative) {
-        DebugLogger.instance.logDebug(
-            'FALLBACK_STORAGE',
-            'Keychain probe returned -34018 on macOS (sandbox false-negative). '
-            'Assuming optimistically available; real operations will fallback individually if needed.');
-        _keychainAvailable = true;
-      } else {
-        DebugLogger.instance.logDebug(
-            'FALLBACK_STORAGE', 'Keychain probe failed: $e');
-        _keychainAvailable = false;
-      }
+  bool _isKeychainError(Object e) {
+    if (Platform.isMacOS || Platform.isIOS) {
+      return e.toString().contains('-34018') ||
+          e.toString().contains('errSecMissingEntitlement');
     }
-    DebugLogger.instance.logInfo(
-        'FALLBACK_STORAGE', 'Keychain available: $_keychainAvailable');
-    return _keychainAvailable!;
+    return false;
   }
 
   Future<void> _writeFallback(String key, String? value) async {
@@ -92,7 +59,6 @@ class FallbackSecureStorage {
     }
     final data = {'value': value, 'timestamp': DateTime.now().toIso8601String()};
     await file.writeAsString(jsonEncode(data));
-    // Restrict permissions (best effort on macOS)
     try {
       await Process.run('chmod', ['600', path]);
     } on Exception {
@@ -127,15 +93,18 @@ class FallbackSecureStorage {
 
   /// Read value. Tries Keychain first, falls back to file storage.
   Future<String?> read({required String key}) async {
-    if (await _checkKeychainAvailable()) {
-      try {
-        final value = await _secureStorage
-            .read(key: key)
-            .timeout(const Duration(seconds: 5));
-        return value;
-      } on Exception catch (e) {
-        DebugLogger.instance
-            .logError('FALLBACK_STORAGE', 'Keychain read error for $key: $e');
+    try {
+      final value = await _secureStorage
+          .read(key: key)
+          .timeout(const Duration(seconds: 5));
+      return value;
+    } on Exception catch (e) {
+      if (_isKeychainError(e)) {
+        DebugLogger.instance.logWarning(
+            'FALLBACK_STORAGE', 'Keychain unavailable ($e). Using fallback.');
+      } else {
+        DebugLogger.instance.logError(
+            'FALLBACK_STORAGE', 'Keychain read error for $key: $e');
       }
     }
     return _readFallback(key);
@@ -143,15 +112,18 @@ class FallbackSecureStorage {
 
   /// Write value. Tries Keychain first, falls back to file storage.
   Future<void> write({required String key, required String? value}) async {
-    if (await _checkKeychainAvailable()) {
-      try {
-        await _secureStorage
-            .write(key: key, value: value)
-            .timeout(const Duration(seconds: 5));
-        return;
-      } on Exception catch (e) {
-        DebugLogger.instance
-            .logError('FALLBACK_STORAGE', 'Keychain write error for $key: $e');
+    try {
+      await _secureStorage
+          .write(key: key, value: value)
+          .timeout(const Duration(seconds: 5));
+      return;
+    } on Exception catch (e) {
+      if (_isKeychainError(e)) {
+        DebugLogger.instance.logWarning(
+            'FALLBACK_STORAGE', 'Keychain unavailable ($e). Using fallback.');
+      } else {
+        DebugLogger.instance.logError(
+            'FALLBACK_STORAGE', 'Keychain write error for $key: $e');
       }
     }
     await _writeFallback(key, value);
@@ -159,10 +131,13 @@ class FallbackSecureStorage {
 
   /// Delete value from both Keychain and fallback storage.
   Future<void> delete({required String key}) async {
-    if (await _checkKeychainAvailable()) {
-      try {
-        await _secureStorage.delete(key: key);
-      } on Exception catch (e) {
+    try {
+      await _secureStorage.delete(key: key);
+    } on Exception catch (e) {
+      if (_isKeychainError(e)) {
+        DebugLogger.instance.logDebug(
+            'FALLBACK_STORAGE', 'Keychain delete unavailable ($e).');
+      } else {
         DebugLogger.instance.logError(
             'FALLBACK_STORAGE', 'Keychain delete error for $key: $e');
       }
@@ -172,10 +147,13 @@ class FallbackSecureStorage {
 
   /// Delete all values from both Keychain and fallback storage.
   Future<void> deleteAll() async {
-    if (await _checkKeychainAvailable()) {
-      try {
-        await _secureStorage.deleteAll();
-      } on Exception catch (e) {
+    try {
+      await _secureStorage.deleteAll();
+    } on Exception catch (e) {
+      if (_isKeychainError(e)) {
+        DebugLogger.instance.logDebug(
+            'FALLBACK_STORAGE', 'Keychain deleteAll unavailable ($e).');
+      } else {
         DebugLogger.instance
             .logError('FALLBACK_STORAGE', 'Keychain deleteAll error: $e');
       }
