@@ -53,7 +53,7 @@ echo -e "${YELLOW}Creating DMG...${NC}"
 rm -f "$DMG_OUTPUT"
 
 create-dmg \
-    --volname "${APP_NAME} v${VERSION}" \
+    --volname "${APP_NAME}" \
     --window-pos 200 120 \
     --window-size 600 400 \
     --icon-size 100 \

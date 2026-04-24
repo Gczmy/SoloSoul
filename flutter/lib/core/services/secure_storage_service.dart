@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 
 /// Secure storage using flutter_secure_storage (Keychain on iOS/macOS,
-/// EncryptedSharedPreferences on Android).
-/// This replaces the previous JSON file-based storage with platform-native
-/// secure storage that properly encrypts data at rest.
+/// EncryptedSharedPreferences on Android) with transparent file fallback.
+/// When Keychain is unavailable (e.g., ad-hoc signed macOS builds),
+/// data is automatically stored in the app's support directory.
 class SimpleSecureStorage {
   static SimpleSecureStorage? _instance;
-  late final FlutterSecureStorage _secureStorage;
+  late final FallbackSecureStorage _secureStorage;
   bool _initialized = false;
 
   SimpleSecureStorage._();
@@ -19,17 +19,7 @@ class SimpleSecureStorage {
 
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
-    // NOTE: flutter_secure_storage 9.x does not support after_first_unlock_this_device.
-    // Using first_unlock_this_device instead - data is accessible after first device unlock
-    // but NOT before. This is appropriate for passwords that should persist after initial
-    // device setup while still protecting against cold-boot attacks.
-    // TODO: [P2] Consider migration to platform-native Keychain when iOS 13+ requirement drops support for older iOS
-    _secureStorage = const FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      iOptions: IOSOptions(
-        accessibility: KeychainAccessibility.first_unlock_this_device,
-      ),
-    );
+    _secureStorage = FallbackSecureStorage();
     _initialized = true;
   }
 

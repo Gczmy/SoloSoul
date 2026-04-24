@@ -30,7 +30,6 @@ class _SplashPageState extends State<SplashPage> {
       final appSupport = await getApplicationSupportDirectory();
       RustVaultService.instance.initAccountManager(appSupport.path);
     }
-    await DebugLogger.instance.init();
 
     // Small delay for splash animation to be visible (min 800ms)
     await Future.delayed(const Duration(milliseconds: 800));

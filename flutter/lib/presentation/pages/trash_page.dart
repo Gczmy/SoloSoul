@@ -316,82 +316,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     final theme = Theme.of(context);
     final profile = ref.watch(profileNotifierProvider).valueOrNull;
 
-    if (profile == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Trash')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.delete_outline,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Trash is empty',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Deleted items will appear here',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final deletedItems = ProfileStorageService.instance.getDeletedItems(
-      profile,
-    );
-
-    // Pre-compute sensitivity levels by item type (once, not per-item)
-    // DRY: derive item types from DeletedItemInfo's single source of truth
-    final sensitivityByItemType = <String, SensitivityLevel>{};
-    for (final type in DeletedItemInfo.itemTypes) {
-      final fieldId = _getFieldIdForItem(type);
-      if (fieldId != null) {
-        sensitivityByItemType[type] = ref.watch(effectiveSensitivityProvider(fieldId));
-      }
-    }
-    _sensitivityByItemType = sensitivityByItemType;
-
-    // Filter items based on search query
-    final filteredItems = _searchQuery.isEmpty
-        ? deletedItems
-        : deletedItems.where((item) {
-            final query = _searchQuery.toLowerCase();
-            return item.itemLabel.toLowerCase().contains(query) ||
-                item.section.toLowerCase().contains(query) ||
-                item.itemType.toLowerCase().contains(query);
-          }).toList();
-
+    // Always show scaffold with search bar and warning banner
     return Scaffold(
       appBar: AppBar(
         title: const Text('Trash'),
-        actions: [
-          const HeaderActionButtons(),
-          if (filteredItems.isNotEmpty)
-            TextButton.icon(
-              onPressed: () =>
-                  _confirmEmptyTrash(context, filteredItems.length),
-              icon: const Icon(
-                Icons.delete_forever,
-                color: AppTheme.errorColor,
-              ),
-              label: const Text(
-                'Empty Trash',
-                style: TextStyle(color: AppTheme.errorColor),
-              ),
-            ),
-        ],
+        actions: const [HeaderActionButtons()],
       ),
       body: Column(
         children: [
@@ -424,36 +353,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
             ),
           ),
 
-          // Results count
-          if (_searchQuery.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Text(
-                    filteredItems.isNotEmpty
-                        ? 'Found ${filteredItems.length} result(s)'
-                        : 'No results found',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: filteredItems.isNotEmpty
-                          ? Theme.of(context).colorScheme.onSurfaceVariant
-                          : Colors.orange,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${deletedItems.length} total items in trash',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          const SizedBox(height: 8),
-
-          // Trash info banner
+          // Trash info banner - always shown
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(16),
@@ -480,67 +380,175 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
           const SizedBox(height: 16),
 
-          // Items list
-          Expanded(
-            child: filteredItems.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _searchQuery.isEmpty
-                              ? Icons.delete_outline
-                              : Icons.search_off,
-                          size: 64,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? 'Trash is empty'
-                              : 'No matching items',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? 'Deleted items will appear here'
-                              : 'Try adjusting your search',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredItems.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      final hasHistory = _itemHasHistory(item);
-                      return _TrashItemCard(
-                        item: item,
-                        hasHistory: hasHistory,
-                        sensitivityLevel:
-                            _sensitivityByItemType[item.itemType] ??
-                            SensitivityLevel.public,
-                        onRestore: (item) => _confirmRestore(item),
-                        onPurge: (item) => _confirmPurge(context, item),
-                        onDetail: () => _showDetail(context, item),
-                        onHistory: hasHistory
-                            ? () => _showHistoryForItem(context, item)
-                            : null,
-                      );
-                    },
-                  ),
-          ),
+          // Main content area
+          Expanded(child: _buildTrashContent(theme, profile)),
         ],
       ),
+    );
+  }
+
+  Widget _buildTrashContent(ThemeData theme, profile) {
+    if (profile == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.delete_outline,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Trash is empty',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Deleted items will appear here',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final deletedItems = ProfileStorageService.instance.getDeletedItems(profile);
+
+    // Pre-compute sensitivity levels by item type (once, not per-item)
+    final sensitivityByItemType = <String, SensitivityLevel>{};
+    for (final type in DeletedItemInfo.itemTypes) {
+      final fieldId = _getFieldIdForItem(type);
+      if (fieldId != null) {
+        sensitivityByItemType[type] =
+            ref.watch(effectiveSensitivityProvider(fieldId));
+      }
+    }
+    _sensitivityByItemType = sensitivityByItemType;
+
+    // Filter items based on search query
+    final filteredItems = _searchQuery.isEmpty
+        ? deletedItems
+        : deletedItems.where((item) {
+            final query = _searchQuery.toLowerCase();
+            return item.itemLabel.toLowerCase().contains(query) ||
+                item.section.toLowerCase().contains(query) ||
+                item.itemType.toLowerCase().contains(query);
+          }).toList();
+
+    // Results count when searching
+    if (_searchQuery.isNotEmpty) {
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Text(
+              filteredItems.isNotEmpty
+                  ? 'Found ${filteredItems.length} result(s)'
+                  : 'No results found',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: filteredItems.isNotEmpty
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : Colors.orange,
+                  ),
+            ),
+            const Spacer(),
+            Text(
+              '${deletedItems.length} total items in trash',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      );
+
+      const SizedBox(height: 8);
+    }
+
+    // Empty state
+    if (filteredItems.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _searchQuery.isEmpty ? Icons.delete_outline : Icons.search_off,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _searchQuery.isEmpty ? 'Trash is empty' : 'No matching items',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _searchQuery.isEmpty
+                  ? 'Deleted items will appear here'
+                  : 'Try adjusting your search',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Items list with empty trash action
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () =>
+                    _confirmEmptyTrash(context, filteredItems.length),
+                icon: const Icon(
+                  Icons.delete_forever,
+                  color: AppTheme.errorColor,
+                ),
+                label: const Text(
+                  'Empty Trash',
+                  style: TextStyle(color: AppTheme.errorColor),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: filteredItems.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final item = filteredItems[index];
+              final hasHistory = _itemHasHistory(item);
+              return _TrashItemCard(
+                item: item,
+                hasHistory: hasHistory,
+                sensitivityLevel:
+                    _sensitivityByItemType[item.itemType] ??
+                        SensitivityLevel.public,
+                onRestore: (item) => _confirmRestore(item),
+                onPurge: (item) => _confirmPurge(context, item),
+                onDetail: () => _showDetail(context, item),
+                onHistory:
+                    hasHistory ? () => _showHistoryForItem(context, item) : null,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

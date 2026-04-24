@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -14,16 +14,145 @@ import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dar
 import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
 });
 
-class SettingsPage extends ConsumerWidget {
+// Debug mode provider
+final debugModeProvider = StateNotifierProvider<DebugModeNotifier, bool>((ref) {
+  return DebugModeNotifier();
+});
+
+class DebugModeNotifier extends StateNotifier<bool> {
+  static const _key = 'solosoul_debug_mode';
+
+  DebugModeNotifier() : super(false) {
+    _loadDebugMode();
+  }
+
+  Future<void> _loadDebugMode() async {
+    // Always false for development (DebugLogger handles its own debug mode)
+    if (kDebugMode) {
+      // In debug mode, DebugLogger is always active via kDebugMode check
+      state = true;
+      DebugLogger.instance.activate();
+      return;
+    }
+    try {
+      final storage = FallbackSecureStorage();
+      final value = await storage.read(key: _key);
+      state = value == 'true';
+      if (state == true) {
+        DebugLogger.instance.activate();
+      }
+    } on Exception {
+      state = false;
+    }
+  }
+
+  Future<void> enableDebugMode() async {
+    if (!kDebugMode) {
+      try {
+        final storage = FallbackSecureStorage();
+        await storage.write(key: _key, value: 'true');
+      } on Exception {}
+    }
+    state = true;
+    DebugLogger.instance.activate();
+  }
+
+  Future<void> disableDebugMode() async {
+    DebugLogger.instance.deactivate();
+    try {
+      final storage = FallbackSecureStorage();
+      await storage.write(key: _key, value: 'false');
+    } on Exception {}
+    state = false;
+  }
+}
+
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  Future<void> _showDebugActivationDialog() async {
+    final passwordController = TextEditingController();
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.bug_report, color: AppTheme.primaryColor),
+            SizedBox(width: 12),
+            Text('Enable Debug Mode'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Enter your master password to enable Debug Log.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Master Password',
+                prefixIcon: Icon(Icons.lock_outline),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Enable'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await authNotifier.verifyPasswordForSensitiveData(
+        passwordController.text,
+      );
+      if (success && mounted) {
+        await ref.read(debugModeProvider.notifier).enableDebugMode();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Debug mode enabled'),
+                ],
+              ),
+              backgroundColor: AppTheme.successColor,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final accountsAsync = ref.watch(accountsProvider);
@@ -264,12 +393,22 @@ class SettingsPage extends ConsumerWidget {
                         );
                       },
                     ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      icon: Icons.bug_report_outlined,
-                      title: 'Debug Log',
-                      subtitle: 'View debug log',
-                      onTap: () => _showDebugLogSheet(context),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final isDebugMode = ref.watch(debugModeProvider);
+                        if (!isDebugMode) return const SizedBox.shrink();
+                        return Column(
+                          children: [
+                            const Divider(height: 1),
+                            _SettingsTile(
+                              icon: Icons.bug_report_outlined,
+                              title: 'Debug Log',
+                              subtitle: 'View debug log',
+                              onTap: () => _showDebugLogSheet(context),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
@@ -448,7 +587,10 @@ class SettingsPage extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _VersionSheet(packageInfo: packageInfo),
+      builder: (context) => _VersionSheet(
+        packageInfo: packageInfo,
+        onDebugActivationRequested: _showDebugActivationDialog,
+      ),
     );
   }
 
@@ -1130,7 +1272,8 @@ class _DebugLogSheet extends StatefulWidget {
 }
 
 class _DebugLogSheetState extends State<_DebugLogSheet> {
-  String _logContent = 'Loading...';
+  String _logContent = '';
+  final _clipboardIcon = Icons.copy;
 
   @override
   void initState() {
@@ -1138,25 +1281,27 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
     _loadLog();
   }
 
-  Future<void> _loadLog() async {
-    try {
-      final dir = await getApplicationSupportDirectory();
-      final logFile = File('${dir.path}/solosoul_debug.log');
-      if (await logFile.exists()) {
-        final content = await logFile.readAsString();
-        if (mounted) {
-          setState(() => _logContent = content);
-        }
-      } else {
-        if (mounted) {
-          setState(() => _logContent = 'No debug log found');
-        }
-      }
-    } on Exception catch (e) {
-      if (mounted) {
-        setState(() => _logContent = 'Error reading log: $e');
-      }
-    }
+  void _loadLog() {
+    final logger = DebugLogger.instance;
+    setState(() {
+      _logContent = logger.getExportLog();
+    });
+  }
+
+  void _copyToClipboard() {
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Text('Logs copied to clipboard'),
+          ],
+        ),
+        backgroundColor: AppTheme.successColor,
+      ),
+    );
   }
 
   @override
@@ -1180,18 +1325,57 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
             ),
           ),
           const SizedBox(height: 16),
+
+          // Warning banner
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber, color: Colors.red.shade700, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Debug mode is active. Logs are being recorded.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.red.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Debug Log', style: theme.textTheme.titleLarge),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () async {
-                    setState(() => _logContent = 'Loading...');
-                    await _loadLog();
-                  },
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: _loadLog,
+                      tooltip: 'Refresh',
+                    ),
+                    IconButton(
+                      icon: Icon(_clipboardIcon),
+                      onPressed: () {
+                        // ignore: use_build_context_synchronously
+                        Navigator.pop(context);
+                        _copyToClipboard();
+                      },
+                      tooltip: 'Copy to clipboard',
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1217,13 +1401,40 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
   }
 }
 
-class _VersionSheet extends ConsumerWidget {
+class _VersionSheet extends ConsumerStatefulWidget {
   final AsyncValue<PackageInfo> packageInfo;
+  final Future<void> Function() onDebugActivationRequested;
 
-  const _VersionSheet({required this.packageInfo});
+  const _VersionSheet({
+    required this.packageInfo,
+    required this.onDebugActivationRequested,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_VersionSheet> createState() => _VersionSheetState();
+}
+
+class _VersionSheetState extends ConsumerState<_VersionSheet> {
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+
+  void _handleCurrentVersionTap() {
+    final now = DateTime.now();
+    // Reset if more than 2 seconds between taps
+    if (_lastTapTime != null && now.difference(_lastTapTime!).inSeconds > 2) {
+      _tapCount = 0;
+    }
+    _lastTapTime = now;
+    _tapCount++;
+
+    if (_tapCount >= 5) {
+      _tapCount = 0;
+      widget.onDebugActivationRequested();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const latestVersion = '1.0.0';
 
@@ -1274,13 +1485,33 @@ class _VersionSheet extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Version info items
-                  _VersionInfoTile(
-                    icon: Icons.info_outline,
-                    title: 'Current Version',
-                    value: packageInfo.when(
-                      data: (info) => info.version,
-                      loading: () => '...',
-                      error: (_, __) => '1.0.0',
+                  GestureDetector(
+                    onTap: _handleCurrentVersionTap,
+                    child: _VersionInfoTile(
+                      icon: Icons.info_outline,
+                      title: 'Current Version',
+                      value: widget.packageInfo.when(
+                        data: (info) => '${info.version}${_tapCount > 0 ? ' ($_tapCount)' : ''}',
+                        loading: () => '...',
+                        error: (_, __) => '1.0.0',
+                      ),
+                      trailing: _tapCount > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '/5',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
                   ),
                   const Divider(height: 1),
@@ -1317,11 +1548,13 @@ class _VersionInfoTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
+  final Widget? trailing;
 
   const _VersionInfoTile({
     required this.icon,
     required this.title,
     required this.value,
+    this.trailing,
   });
 
   @override
@@ -1343,6 +1576,10 @@ class _VersionInfoTile extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(title, style: theme.textTheme.bodyMedium)),
+          if (trailing != null) ...[
+            trailing!,
+            const SizedBox(width: 8),
+          ],
           Text(
             value,
             style: theme.textTheme.bodyMedium?.copyWith(

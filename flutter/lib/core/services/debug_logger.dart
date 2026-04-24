@@ -1,37 +1,108 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 
-/// Simple file-based debug logger for troubleshooting.
-/// Only active in debug mode to prevent privacy leaks in release builds.
+/// Memory-based debug logger for troubleshooting.
+/// Only active when debugModeProvider is true (user-activated in release builds).
+/// Automatically clears on dispose for "burn after reading" behavior.
 class DebugLogger {
   static final DebugLogger _instance = DebugLogger._();
   static DebugLogger get instance => _instance;
 
   DebugLogger._();
 
-  File? _logFile;
+  final List<String> _logBuffer = [];
+  bool _isActive = false;
 
-  Future<void> init() async {
-    if (!kDebugMode) return;
-    if (_logFile != null) return;
-    final dir = await getApplicationSupportDirectory();
-    _logFile = File('${dir.path}/solosoul_debug.log');
-    await _logFile!.writeAsString('=== Debug log started at ${DateTime.now()} ===\n');
+  static const int _maxBufferSize = 1000;
+
+  /// Patterns for sanitization - sensitive fields that should be redacted
+  static final List<RegExp> _sensitivePatterns = [
+    RegExp(r'(password|secret|key|token|auth)[=:]\s*[\w\-]+', caseSensitive: false),
+    RegExp(r'"password"\s*:\s*"[^"]+"', caseSensitive: false),
+    RegExp(r'"secret"\s*:\s*"[^"]+"', caseSensitive: false),
+    RegExp(r'"vault_key"\s*:\s*"[^"]+"', caseSensitive: false),
+    RegExp(r'"access_token"\s*:\s*"[^"]+"', caseSensitive: false),
+    RegExp(r'"refresh_token"\s*:\s*"[^"]+"', caseSensitive: false),
+  ];
+
+  /// Activate logging - must be called when debugModeProvider becomes true
+  void activate() {
+    _isActive = true;
+    _logBuffer.clear();
+    _log('DEBUG_MODE_ENABLED', 'Debug logging activated');
   }
 
-  void log(String message) {
-    if (!kDebugMode) return;
-    if (_logFile == null) return;
-    final entry = '[${DateTime.now()}] $message\n';
-    _logFile!.writeAsString(entry, mode: FileMode.append);
+  /// Deactivate and clear all logs - "burn after reading"
+  void deactivate() {
+    _log('DEBUG_MODE_DISABLED', 'Debug logging deactivated, buffer cleared');
+    _isActive = false;
+    _logBuffer.clear();
+  }
+
+  /// Check if logging is active
+  bool get isActive => _isActive;
+
+  /// Get all buffered logs as a single string (for export)
+  String getExportLog() {
+    if (_logBuffer.isEmpty) {
+      return 'No debug logs available.';
+    }
+    return _logBuffer.join('\n');
+  }
+
+  /// Sanitize a message by redacting sensitive patterns
+  String _sanitize(String message) {
+    String sanitized = message;
+    for (final pattern in _sensitivePatterns) {
+      sanitized = sanitized.replaceAllMapped(pattern, (match) {
+        final matchStr = match.group(0) ?? '';
+        final keyEnd = matchStr.indexOf(':');
+        if (keyEnd > 0) {
+          final key = matchStr.substring(0, keyEnd).trim();
+          return '$key: ***';
+        }
+        return 'redacted: ***';
+      });
+    }
+    return sanitized;
+  }
+
+  void _log(String tag, String message) {
+    if (!_isActive) return;
+
+    final sanitized = _sanitize(message);
+    final entry = '[${DateTime.now().toIso8601String()}] [$tag] $sanitized';
+
+    _logBuffer.add(entry);
+
+    // Prevent unbounded memory growth
+    if (_logBuffer.length > _maxBufferSize) {
+      _logBuffer.removeAt(0);
+    }
+
+    // Also print to console in debug mode
+    if (kDebugMode) {
+      // ignore: avoid_print
+      print(entry);
+    }
+  }
+
+  void log(String tag, String message) {
+    _log(tag, message);
   }
 
   void logError(String tag, String message) {
-    log('[$tag] ERROR: $message');
+    _log(tag, 'ERROR: $message');
   }
 
   void logInfo(String tag, String message) {
-    log('[$tag] INFO: $message');
+    _log(tag, 'INFO: $message');
+  }
+
+  void logDebug(String tag, String message) {
+    _log(tag, 'DEBUG: $message');
+  }
+
+  void logWarning(String tag, String message) {
+    _log(tag, 'WARNING: $message');
   }
 }
