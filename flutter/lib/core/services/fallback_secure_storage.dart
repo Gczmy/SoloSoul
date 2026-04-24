@@ -22,7 +22,12 @@ class FallbackSecureStorage {
   Directory? _fallbackDir;
 
   FallbackSecureStorage({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+      : _secureStorage = secureStorage ??
+          const FlutterSecureStorage(
+            mOptions: MacOSOptions(
+              keychainService: 'solosoul',
+            ),
+          );
 
   Future<Directory> _getFallbackDir() async {
     if (_fallbackDir != null) return _fallbackDir!;
