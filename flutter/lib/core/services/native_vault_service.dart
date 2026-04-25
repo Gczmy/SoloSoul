@@ -13,13 +13,14 @@ import 'fallback_secure_storage.dart';
 import 'native_crypto_service.dart';
 
 /// FFI bindings to Rust vault implementation (iOS/macOS only)
-/// Uses pure Dart implementation on Android with JSON file storage
+/// Uses pure Dart implementation on Android and Windows with JSON file storage
 class NativeVaultService {
   static NativeVaultService? _instance;
   late DynamicLibrary _lib;
   bool _isAndroid = false;
+  bool _isWindows = false;
 
-  // Android fallback storage
+  // Android/Windows fallback storage
   FallbackSecureStorage? _fallbackSecureStorage;
   Directory? _profilesDir;
   bool _isUnlocked = false;
@@ -58,14 +59,32 @@ class NativeVaultService {
     _log('Android fallback vault initialized at: ${_profilesDir!.path}');
   }
 
+  Future<void> _initializeWindows() async {
+    _fallbackSecureStorage = FallbackSecureStorage();
+    // Use %APPDATA% on Windows via path_provider
+    final supportDir = await getApplicationSupportDirectory();
+    _profilesDir = Directory('${supportDir.path}/solosoul_profiles');
+    if (!await _profilesDir!.exists()) {
+      await _profilesDir!.create(recursive: true);
+    }
+    _log('Windows fallback vault initialized at: ${_profilesDir!.path}');
+  }
+
   void _initialize() {
     _isAndroid = Platform.isAndroid;
+    _isWindows = Platform.isWindows;
 
     _log('NativeVaultService initializing...');
 
     if (_isAndroid) {
       // Android: Initialize fallback storage asynchronously
       _initializeAndroid();
+      return;
+    }
+
+    if (_isWindows) {
+      // Windows: Initialize fallback storage asynchronously
+      _initializeWindows();
       return;
     }
 
@@ -107,8 +126,8 @@ class NativeVaultService {
 
   /// Initialize the account manager with base path
   bool initAccountManager(String basePath) {
-    if (_isAndroid) {
-      // Android fallback doesn't need explicit initialization
+    if (_isAndroid || _isWindows) {
+      // Android/Windows fallback doesn't need explicit initialization
       return true;
     }
 
@@ -123,7 +142,7 @@ class NativeVaultService {
 
   /// Check if vault is unlocked
   bool isVaultUnlocked() {
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       return _isUnlocked;
     }
 
@@ -149,7 +168,7 @@ class NativeVaultService {
     String action, [
     Map<String, dynamic>? payload,
   ]) {
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       return _androidRequest(action, payload);
     }
 
@@ -275,11 +294,11 @@ class NativeVaultService {
     String? verifyHash,
   })?
   createAccount({required String name, required String password}) {
-    if (_isAndroid) {
-      // On Android, this must be called async - use createAccountAsync
+    if (_isAndroid || _isWindows) {
+      // On Android/Windows, this must be called async - use createAccountAsync
       return (
         success: false,
-        error: 'Use createAccountAsync on Android',
+        error: 'Use createAccountAsync on Android/Windows',
         accountId: null,
         name: null,
         salt: null,
@@ -320,9 +339,9 @@ class NativeVaultService {
     required String accountId,
     required String password,
   }) {
-    if (_isAndroid) {
-      // On Android, this must be called async - use unlockVaultAsync
-      return (success: false, error: 'Use unlockVaultAsync on Android', cryptoVersion: null);
+    if (_isAndroid || _isWindows) {
+      // On Android/Windows, this must be called async - use unlockVaultAsync
+      return (success: false, error: 'Use unlockVaultAsync on Android/Windows', cryptoVersion: null);
     }
 
     final payload = {'account_id': accountId, 'password': password};
@@ -340,7 +359,7 @@ class NativeVaultService {
 
   /// Lock the vault - clears session key and closes database connection
   void lockVault() {
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       _androidLockVault();
       return;
     }
@@ -387,8 +406,8 @@ class NativeVaultService {
     int? cryptoVersion,
   })?
   getAccountConfig({required String accountId}) {
-    if (_isAndroid) {
-      // On Android, this must be called async - use getAccountConfigAsync
+    if (_isAndroid || _isWindows) {
+      // On Android/Windows, this must be called async - use getAccountConfigAsync
       return null;
     }
 
@@ -409,8 +428,8 @@ class NativeVaultService {
 
   /// Delete an account and all its data from Rust vault
   bool deleteAccount({required String accountId}) {
-    if (_isAndroid) {
-      // On Android, this must be called async - use deleteAccountAsync
+    if (_isAndroid || _isWindows) {
+      // On Android/Windows, this must be called async - use deleteAccountAsync
       return false;
     }
 
@@ -421,8 +440,8 @@ class NativeVaultService {
   /// List all accounts from Rust vault via JSON relay
   /// Returns list of account info maps with id, name, last_accessed
   List<Map<String, dynamic>>? listAccounts() {
-    if (_isAndroid) {
-      // On Android, this must be called async - use listAccountsAsync
+    if (_isAndroid || _isWindows) {
+      // On Android/Windows, this must be called async - use listAccountsAsync
       return null;
     }
 
@@ -442,7 +461,7 @@ class NativeVaultService {
   }
 
   // ============================================================
-  // Android Fallback Implementation (Async versions)
+  // Android/Windows Fallback Implementation (Async versions)
   // ============================================================
 
   /// Async version of createAccount for Android
@@ -720,10 +739,10 @@ class NativeVaultService {
   }
 
   // ============================================================
-  // Android Fallback Implementation (Sync versions for request())
+  // Android/Windows Fallback Implementation (Sync versions for request())
   // ============================================================
 
-  /// Handle vault requests on Android using JSON file storage
+  /// Handle vault requests on Android/Windows using JSON file storage
   Map<String, dynamic>? _androidRequest(
     String action,
     Map<String, dynamic>? payload,
@@ -760,8 +779,8 @@ class NativeVaultService {
         return {'success': true, 'data': {'is_unlocked': _isUnlocked}};
 
       case actionUnlockVault:
-        // unlockVault is async on Android - return error to prompt use of async version
-        return {'success': false, 'error': 'Use unlockVaultAsync on Android'};
+        // unlockVault is async on Android/Windows - return error to prompt use of async version
+        return {'success': false, 'error': 'Use unlockVaultAsync on Android/Windows'};
 
       case actionLockVault:
         _androidLockVault();
@@ -775,23 +794,23 @@ class NativeVaultService {
         );
 
       case actionCreateAccount:
-        // createAccount is async on Android
-        return {'success': false, 'error': 'Use createAccountAsync on Android'};
+        // createAccount is async on Android/Windows
+        return {'success': false, 'error': 'Use createAccountAsync on Android/Windows'};
 
       case actionDeleteAccount:
-        // deleteAccount is async on Android
-        return {'success': false, 'error': 'Use deleteAccountAsync on Android'};
+        // deleteAccount is async on Android/Windows
+        return {'success': false, 'error': 'Use deleteAccountAsync on Android/Windows'};
 
       case 'list_accounts':
-        // listAccounts is async on Android
-        return {'success': false, 'error': 'Use listAccountsAsync on Android'};
+        // listAccounts is async on Android/Windows
+        return {'success': false, 'error': 'Use listAccountsAsync on Android/Windows'};
 
       case 'get_account_config':
-        // getAccountConfig is async on Android
-        return {'success': false, 'error': 'Use getAccountConfigAsync on Android'};
+        // getAccountConfig is async on Android/Windows
+        return {'success': false, 'error': 'Use getAccountConfigAsync on Android/Windows'};
 
       default:
-        _log('Unknown action on Android: $action');
+        _log('Unknown action on Android/Windows: $action');
         return {'success': false, 'error': 'Unknown action: $action'};
     }
   }

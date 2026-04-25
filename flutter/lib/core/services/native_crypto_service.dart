@@ -9,11 +9,12 @@ import 'package:ffi/ffi.dart';
 import 'package:pointycastle/export.dart';
 
 /// FFI bindings to Rust Argon2id implementation (iOS/macOS only)
-/// Uses pure Dart implementation on Android
+/// Uses pure Dart implementation on Android/Windows
 class NativeCryptoService {
   static NativeCryptoService? _instance;
   late DynamicLibrary _lib;
   bool _isAndroid = false;
+  bool _isWindows = false;
 
   // FFI function types (iOS/macOS only)
   late int Function(Pointer<Uint8> salt, int saltLen) _generateSalt;
@@ -60,9 +61,10 @@ class NativeCryptoService {
 
   void _initialize() {
     _isAndroid = Platform.isAndroid;
+    _isWindows = Platform.isWindows;
 
-    if (_isAndroid) {
-      // Android: Use pure Dart implementation - no FFI needed
+    if (_isAndroid || _isWindows) {
+      // Android/Windows: Use pure Dart implementation - no FFI needed
       return;
     }
 
@@ -144,7 +146,7 @@ class NativeCryptoService {
   /// Generate a cryptographically secure random 32-byte salt
   /// Returns null on failure
   Uint8List? generateSalt() {
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       return _generateSaltDart();
     }
 
@@ -194,7 +196,7 @@ class NativeCryptoService {
     // steps (e.g., verify derivation) use shorter fixed phrases.
     // generateSalt() still produces 32 bytes for primary salt generation.
 
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       return _deriveKeyDart(password, salt, memoryKib, iterations, parallelism);
     }
 
@@ -290,7 +292,7 @@ class NativeCryptoService {
       throw ArgumentError('Nonce must be 12 bytes');
     }
 
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       return _encryptDart(data, key, nonce);
     }
 
@@ -382,7 +384,7 @@ class NativeCryptoService {
       throw ArgumentError('Nonce must be 12 bytes');
     }
 
-    if (_isAndroid) {
+    if (_isAndroid || _isWindows) {
       return _decryptDart(encrypted, key, nonce);
     }
 
