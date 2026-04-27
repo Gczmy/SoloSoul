@@ -17,7 +17,9 @@ import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dar
 import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/lock_vault_dialog.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
+import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart'
@@ -87,6 +89,18 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  String _getVaultDataSize() {
+    final stats = RustVaultService.instance.getVaultStats();
+    if (stats == null) return 'Unknown';
+    final bytes = (stats['total_size_bytes'] as num?)?.toInt() ?? 0;
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+
   Future<void> _showDebugActivationDialog() async {
     final passwordController = TextEditingController();
     final authNotifier = ref.read(authNotifierProvider.notifier);
@@ -374,6 +388,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           onTap: () =>
                               _showAllAccountsSheet(context, ref, accounts),
                         ),
+                        const Divider(height: 1),
+                        _SettingsTile(
+                          icon: Icons.storage_outlined,
+                          title: 'Data Size',
+                          subtitle: _getVaultDataSize(),
+                        ),
                       ],
                     );
                   },
@@ -401,13 +421,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       icon: Icons.lock_open_outlined,
                       title: 'Lock Vault',
                       subtitle: 'Lock now and require password',
-                      onTap: () {
-                        // Lock vault first (synchronously sets AuthState.locked)
-                        ref.read(authNotifierProvider.notifier).lockVault();
-                        // Clear sensitive access after navigation to prevent
-                        // watched pages from briefly showing verification screens
-                        ref.read(sensitivePageAccessProvider.notifier).clear();
-                        // GoRouter redirect will navigate to login
+                      onTap: () async {
+                        final confirmed = await showLockVaultDialog(context);
+                        if (confirmed == true && context.mounted) {
+                          ref.read(authNotifierProvider.notifier).lockVault();
+                          ref.read(sensitivePageAccessProvider.notifier).clear();
+                        }
                       },
                     ),
                     const Divider(height: 1),
@@ -481,6 +500,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       subtitle: 'View activity history',
                       onTap: () =>
                           context.push(AppRoutes.operationLog),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsTile(
+                      icon: Icons.folder_outlined,
+                      title: 'Manage Objects',
+                      subtitle: 'Browse and organize all objects',
+                      onTap: () =>
+                          context.push(AppRoutes.objects),
                     ),
                   ],
                 )

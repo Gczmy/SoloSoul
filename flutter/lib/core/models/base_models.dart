@@ -21,3 +21,7 @@ mixin FormattableEntry {
 
   String _capitalize(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 }
+
+/// Schema version for tracking model evolution.
+/// Default value 0 means no migration applied.
+const int kDefaultSchemaVersion = 0;

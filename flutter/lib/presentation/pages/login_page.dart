@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
@@ -189,6 +190,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (!mounted) return;
 
       await ref.read(profileNotifierProvider.notifier).loadProfile();
+      await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
       // Pre-register all form fields for sensitivity settings
       ref.read(formFieldRegistryProvider.notifier).registerAllForms();
 
@@ -288,6 +290,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           DebugLogger.instance.logError('LOGIN', 'loadProfile timed out');
         },
       );
+      await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
 
       // Pre-register all form fields for sensitivity settings
       ref.read(formFieldRegistryProvider.notifier).registerAllForms();
@@ -389,6 +392,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (success && mounted) {
         // Pre-load profile before navigating to home
         await ref.read(profileNotifierProvider.notifier).loadProfile();
+        await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
         // Pre-register all form fields for sensitivity settings
         ref.read(formFieldRegistryProvider.notifier).registerAllForms();
         if (mounted) {

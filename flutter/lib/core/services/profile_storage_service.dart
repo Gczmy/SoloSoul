@@ -6,6 +6,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 
@@ -32,13 +33,23 @@ String generateEntryId() => _uuid.v4();
 int currentTimestamp() => DateTime.now().millisecondsSinceEpoch;
 
 /// Profile data types matching Rust profile.rs
+@JsonSerializable(explicitToJson: true)
 class ProfileData {
   final IdentityData? identity;
   final TravelData? travel;
   final FinancialData? financial;
   final ProfessionalData? professional;
+  final UnifiedObjectData? unifiedObjects;
+  final int? schemaVersion;
 
-  const ProfileData({this.identity, this.travel, this.financial, this.professional});
+  const ProfileData({
+    this.identity,
+    this.travel,
+    this.financial,
+    this.professional,
+    this.unifiedObjects,
+    this.schemaVersion,
+  });
 
   factory ProfileData.fromJson(Map<String, dynamic> json) {
     return ProfileData(
@@ -54,6 +65,10 @@ class ProfileData {
       professional: json['professional'] != null
           ? ProfessionalData.fromJson(json['professional'])
           : null,
+      unifiedObjects: json['unified_objects'] != null
+          ? UnifiedObjectData.fromJson(json['unified_objects'])
+          : null,
+      schemaVersion: json['schema_version'] as int?,
     );
   }
 
@@ -62,6 +77,8 @@ class ProfileData {
     'travel': travel?.toJson(),
     'financial': financial?.toJson(),
     'professional': professional?.toJson(),
+    'unified_objects': unifiedObjects?.toJson(),
+    'schema_version': schemaVersion,
   };
 
   ProfileData copyWith({
@@ -69,12 +86,16 @@ class ProfileData {
     TravelData? travel,
     FinancialData? financial,
     ProfessionalData? professional,
+    UnifiedObjectData? unifiedObjects,
+    int? schemaVersion,
   }) {
     return ProfileData(
       identity: identity ?? this.identity,
       travel: travel ?? this.travel,
       financial: financial ?? this.financial,
       professional: professional ?? this.professional,
+      unifiedObjects: unifiedObjects ?? this.unifiedObjects,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
     );
   }
 }
@@ -1656,6 +1677,164 @@ class ProfileStorageService {
     _cachedDeletedItems = null;
   }
 
+  /// Current schema version for unified object model.
+  static const int kSchemaVersion = 3;
+
+  /// Migrate profile to latest schema if needed.
+  /// v3: Unified object model - everything is a UnifiedObject.
+  ProfileData _migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
+    final currentVersion = profile.schemaVersion ?? 0;
+    if (currentVersion >= kSchemaVersion) return profile;
+
+    var migrated = profile;
+
+    // v0/v1/v2 → v3: migrate any legacy data to UnifiedObjectData
+    if (migrated.unifiedObjects == null || migrated.unifiedObjects!.objects.isEmpty) {
+      final unifiedData = _migrateLegacyToUnified(rawJson);
+      migrated = migrated.copyWith(
+        unifiedObjects: unifiedData,
+        schemaVersion: kSchemaVersion,
+      );
+    } else {
+      // Already has unifiedObjects but version not bumped
+      migrated = migrated.copyWith(schemaVersion: kSchemaVersion);
+    }
+
+    return migrated;
+  }
+
+  /// Migrate legacy flexibleSections / flexibleObjects to UnifiedObjectData.
+  /// Operates on raw JSON maps because old type definitions have been removed.
+  UnifiedObjectData _migrateLegacyToUnified(Map<String, dynamic> rawJson) {
+    final objects = <UnifiedObject>[];
+    final timestamp = currentTimestamp();
+
+    String? parseString(dynamic v) => v?.toString();
+    bool parseBool(dynamic v) => v == true || v == 'true';
+    int? parseMillis(dynamic v) => v is int ? v : (v is num ? v.toInt() : null);
+    DateTime? parseDateTime(dynamic v) {
+      if (v == null) return null;
+      if (v is String) return DateTime.tryParse(v);
+      return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Path A: old flexibleObjects (v2/v3-early FlexibleObject model)
+    // -------------------------------------------------------------------------
+    final legacyObjectsRaw = rawJson['flexible_objects'] as Map<String, dynamic>?;
+    final legacyObjects = legacyObjectsRaw != null
+        ? (legacyObjectsRaw['objects'] as List<dynamic>? ?? [])
+            .map((e) => e as Map<String, dynamic>)
+            .toList()
+        : const <Map<String, dynamic>>[];
+    if (legacyObjects.isNotEmpty) {
+      final childrenByParent = <String, List<String>>{};
+      for (final o in legacyObjects) {
+        final parentId = parseString(o['parentId']);
+        if (parentId != null) {
+          childrenByParent.putIfAbsent(parentId, () => []).add(parseString(o['id']) ?? generateEntryId());
+        }
+      }
+
+      for (final o in legacyObjects) {
+        final objectTypeName = parseString(o['objectType']) ?? 'item';
+        final typeId = switch (objectTypeName) {
+          'page' => 'page',
+          'section' => 'collection',
+          'item' || _ => 'note',
+        };
+        final id = parseString(o['id']) ?? generateEntryId();
+        objects.add(UnifiedObject(
+          id: id,
+          typeId: typeId,
+          name: parseString(o['name']) ?? 'Untitled',
+          iconName: parseString(o['iconName']) ?? 'folder',
+          parentId: parseString(o['parentId']),
+          childrenIds: childrenByParent[id] ?? const [],
+          properties: const {}, // Legacy properties used old PropertyValue; safest to drop
+          isDeleted: parseBool(o['isDeleted']),
+          deletedAt: parseDateTime(o['deletedAt']),
+          createdAt: timestamp,
+          updatedAt: parseMillis(o['updatedAt']) ?? timestamp,
+        ));
+      }
+      return UnifiedObjectData(objects: objects);
+    }
+
+    // -------------------------------------------------------------------------
+    // Path B: old flexibleSections (v1 FlexibleSection model)
+    // -------------------------------------------------------------------------
+    final legacySectionsRaw = rawJson['flexible_sections'] as Map<String, dynamic>?;
+    final legacySections = legacySectionsRaw != null
+        ? (legacySectionsRaw['sections'] as List<dynamic>? ?? [])
+            .map((e) => e as Map<String, dynamic>)
+            .toList()
+        : const <Map<String, dynamic>>[];
+    if (legacySections.isNotEmpty) {
+      for (final section in legacySections) {
+        if (parseBool(section['isDeleted'])) continue;
+
+        final sectionId = parseString(section['id']) ?? generateEntryId();
+        final sectionTitle = parseString(section['title']) ?? 'Untitled';
+        final sectionIcon = parseString(section['iconName']) ?? 'folder';
+        final pageId = 'page_$sectionId';
+
+        // Create a synthetic page for this section
+        objects.add(UnifiedObject(
+          id: pageId,
+          typeId: 'page',
+          name: sectionTitle,
+          iconName: sectionIcon,
+          parentId: null,
+          childrenIds: [sectionId],
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        ));
+
+        // Convert section items
+        final itemIds = <String>[];
+        final items = (section['items'] as List<dynamic>? ?? [])
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
+        for (final item in items) {
+          if (parseBool(item['isDeleted'])) continue;
+          final itemId = parseString(item['id']) ?? generateEntryId();
+          itemIds.add(itemId);
+          objects.add(UnifiedObject(
+            id: itemId,
+            typeId: 'note',
+            name: parseString(item['title']) ?? 'Untitled',
+            iconName: 'description',
+            parentId: sectionId,
+            properties: {
+              'data': TextProperty(text: jsonEncode(item['data'])),
+            },
+            createdAt: timestamp,
+            updatedAt: parseMillis(item['updatedAt']) ?? timestamp,
+          ));
+        }
+
+        // Convert section to collection
+        objects.add(UnifiedObject(
+          id: sectionId,
+          typeId: 'collection',
+          name: sectionTitle,
+          iconName: sectionIcon,
+          parentId: pageId,
+          childrenIds: itemIds,
+          isDeleted: false,
+          deletedAt: parseDateTime(section['deletedAt']),
+          createdAt: timestamp,
+          updatedAt: parseMillis(section['updatedAt']) ?? timestamp,
+        ));
+      }
+      return UnifiedObjectData(objects: objects);
+    }
+
+    // Empty default
+    return const UnifiedObjectData();
+  }
+
   /// Load profile data for an account
   /// Returns ProfileData with all fields decrypted, or null if not found
   Future<ProfileData?> loadProfile(String accountId) async {
@@ -1668,7 +1847,9 @@ class ProfileStorageService {
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
-      return profile;
+      // Apply migration if needed
+      final migratedProfile = _migrateIfNeeded(profile, json);
+      return migratedProfile;
     } on Exception catch (_) {
       // TypeError from cast or other Error subclasses could occur here
       return null;

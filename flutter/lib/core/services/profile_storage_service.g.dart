@@ -6,6 +6,37 @@ part of 'profile_storage_service.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+ProfileData _$ProfileDataFromJson(Map<String, dynamic> json) => ProfileData(
+  identity: json['identity'] == null
+      ? null
+      : IdentityData.fromJson(json['identity'] as Map<String, dynamic>),
+  travel: json['travel'] == null
+      ? null
+      : TravelData.fromJson(json['travel'] as Map<String, dynamic>),
+  financial: json['financial'] == null
+      ? null
+      : FinancialData.fromJson(json['financial'] as Map<String, dynamic>),
+  professional: json['professional'] == null
+      ? null
+      : ProfessionalData.fromJson(json['professional'] as Map<String, dynamic>),
+  unifiedObjects: json['unifiedObjects'] == null
+      ? null
+      : UnifiedObjectData.fromJson(
+          json['unifiedObjects'] as Map<String, dynamic>,
+        ),
+  schemaVersion: (json['schemaVersion'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$ProfileDataToJson(ProfileData instance) =>
+    <String, dynamic>{
+      'identity': instance.identity?.toJson(),
+      'travel': instance.travel?.toJson(),
+      'financial': instance.financial?.toJson(),
+      'professional': instance.professional?.toJson(),
+      'unifiedObjects': instance.unifiedObjects?.toJson(),
+      'schemaVersion': instance.schemaVersion,
+    };
+
 ContactEntry _$ContactEntryFromJson(Map<String, dynamic> json) => ContactEntry(
   id: json['id'] as String,
   title: json['title'] as String,

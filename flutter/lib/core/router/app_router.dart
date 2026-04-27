@@ -13,7 +13,10 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/pages/sensitivity_settings_page.dart';
 import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/search_page.dart';
+import 'package:solosoul_flutter/presentation/pages/object_workspace_page.dart';
+import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/scaffold_with_sidebar.dart';
 
 /// Route paths matching AppRoutes constants
 class AppRoutes {
@@ -31,6 +34,8 @@ class AppRoutes {
   static const String sensitivitySettings = '/sensitivity_settings';
   static const String trash = '/trash';
   static const String search = '/search';
+  static const String objects = '/objects';
+  static const String objectEditor = '/object_editor';
 }
 
 /// Pages that don't require authentication
@@ -42,7 +47,7 @@ const _publicRoutes = {
 /// Creates the GoRouter instance
 GoRouter createRouter(WidgetRef ref) {
   return GoRouter(
-    initialLocation: '/',  // Must start at / to run SplashPage which initializes account manager
+    initialLocation: '/', // Must start at / to run SplashPage which initializes account manager
     debugLogDiagnostics: true,
     redirect: (context, state) {
       final authAsync = ref.read(authNotifierProvider);
@@ -75,49 +80,76 @@ GoRouter createRouter(WidgetRef ref) {
         path: AppRoutes.login,
         builder: (context, state) => const LoginPage(),
       ),
-      GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfilePage(),
-      ),
-      GoRoute(
-        path: AppRoutes.travel,
-        builder: (context, state) => const TravelPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.financial,
-        builder: (context, state) => const FinancialPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.professional,
-        builder: (context, state) => const ProfessionalPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.settings,
-        builder: (context, state) => const SettingsPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.securitySettings,
-        builder: (context, state) => const SecuritySettingsPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.operationLog,
-        builder: (context, state) => const OperationLogPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.sensitivitySettings,
-        builder: (context, state) => const SensitivitySettingsPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.trash,
-        builder: (context, state) => const TrashPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.search,
-        builder: (context, state) => const SearchPage(),
+      ShellRoute(
+        builder: (context, state, child) => ScaffoldWithSidebar(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.home,
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: AppRoutes.profile,
+            builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: AppRoutes.travel,
+            builder: (context, state) => const TravelPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.financial,
+            builder: (context, state) => const FinancialPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.professional,
+            builder: (context, state) => const ProfessionalPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.settings,
+            builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.securitySettings,
+            builder: (context, state) => const SecuritySettingsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.operationLog,
+            builder: (context, state) => const OperationLogPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.sensitivitySettings,
+            builder: (context, state) => const SensitivitySettingsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.trash,
+            builder: (context, state) => const TrashPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.search,
+            builder: (context, state) => const SearchPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.objects,
+            builder: (context, state) => const ObjectWorkspacePage(),
+          ),
+          GoRoute(
+            path: '${AppRoutes.objects}/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return ObjectWorkspacePage(objectId: id);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.objectEditor,
+            builder: (context, state) {
+              final objectId = state.uri.queryParameters['id'];
+              final parentId = state.uri.queryParameters['parentId'];
+              return ObjectEditorPage(
+                objectId: objectId,
+                parentId: parentId,
+              );
+            },
+          ),
+        ],
       ),
     ],
   );
