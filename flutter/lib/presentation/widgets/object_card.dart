@@ -5,9 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/core/services/operation_notification.dart';
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -114,6 +118,21 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       properties: properties,
     );
 
+    if (mounted) {
+      final isPrivacyMode =
+          ref.read(accountStyleProvider).value?.displayMode ==
+              SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotificationForSection(
+          section: widget.object.name,
+          action: LogAction.create,
+          itemName: name,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
+    }
+
     setState(() {
       _isAddingItem = false;
       _disposeControllers();
@@ -128,7 +147,29 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Future<void> _deleteItem(String itemId) async {
+    final item = ref.read(objectByIdProvider(itemId));
+    if (item == null) return;
+
     await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
+
+    if (mounted) {
+      final isPrivacyMode =
+          ref.read(accountStyleProvider).value?.displayMode ==
+              SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotificationForSection(
+          section: widget.object.name,
+          action: LogAction.delete,
+          itemName: _itemDisplayTitle(item),
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+        duration: const Duration(seconds: 5),
+        onUndo: () async {
+          await ref.read(unifiedObjectProvider.notifier).restoreObject(itemId);
+        },
+      );
+    }
   }
 
   void _startEditingItem(UnifiedObject item) {
@@ -206,6 +247,21 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       name: name,
       properties: updatedProps,
     );
+
+    if (mounted) {
+      final isPrivacyMode =
+          ref.read(accountStyleProvider).value?.displayMode ==
+              SensitivityDisplayMode.hidePrivate;
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotificationForSection(
+          section: widget.object.name,
+          action: LogAction.update,
+          itemName: name,
+          isPrivacyModeActive: isPrivacyMode,
+        ),
+      );
+    }
 
     _cancelEditItem();
   }
@@ -678,8 +734,13 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       buffer.writeln('  ${entry.key}: ${_propertyValueToString(entry.value)}');
     }
     Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied to clipboard')),
+    OperationNotification.show(
+      context,
+      message: OperationLogger.createNotificationForSection(
+        section: widget.object.name,
+        action: LogAction.create,
+        itemName: _itemDisplayTitle(item),
+      ),
     );
   }
 }

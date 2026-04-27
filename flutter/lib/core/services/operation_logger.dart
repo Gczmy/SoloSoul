@@ -339,6 +339,22 @@ class OperationLogger {
     );
   }
 
+  static OperationMessage createNotificationForSection({
+    required String section,
+    required LogAction action,
+    required String itemName,
+    String? fieldName,
+    bool isPrivacyModeActive = false,
+  }) {
+    return OperationMessage(
+      type: toOperationType(action),
+      section: section,
+      itemName: itemName,
+      fieldName: fieldName,
+      isPrivacyModeActive: isPrivacyModeActive,
+    );
+  }
+
   /// Generate a human-readable description for an identity operation
   static String generateIdentityDescription({
     required LogAction action,
