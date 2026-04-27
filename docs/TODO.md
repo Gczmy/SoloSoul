@@ -1,7 +1,7 @@
 # SoloSoul 开发任务清单
 
-> 全面重写：2026-04-18
-> 项目状态：Flutter macOS 发布就绪，Rust Core 完整，云同步待开发
+> 全面重写：2026-04-27
+> 项目状态：Flutter macOS Release 已发布，Unified Object Model 已完成，云同步待开发
 
 ---
 
@@ -11,20 +11,28 @@
 SoloSoul/
 ├── flutter/                    # 主项目：Flutter 跨平台客户端
 │   ├── lib/
-│   │   ├── core/services/    # 17个核心服务
-│   │   │   ├── native_crypto_service.dart    # Rust FFI 加密
-│   │   │   ├── rust_vault_service.dart      # Rust Vault
-│   │   │   ├── profile_storage_service.dart  # Profile 存储
-│   │   │   ├── secure_storage_service.dart   # 安全存储
-│   │   │   ├── keychain_service.dart        # Keychain 封装
-│   │   │   ├── biometric_service.dart       # 生物识别
-│   │   │   ├── security_service.dart        # 安全服务
-│   │   │   ├── operation_logger.dart        # 操作日志
-│   │   │   └── clipboard_monitor_service.dart
+│   │   ├── core/
+│   │   │   ├── services/       # 核心服务（18个）
+│   │   │   │   ├── native_crypto_service.dart    # Rust FFI 加密
+│   │   │   │   ├── rust_vault_service.dart       # Rust Vault
+│   │   │   │   ├── profile_storage_service.dart  # Profile 存储
+│   │   │   │   ├── unified_object_service.dart   # UnifiedObject CRUD
+│   │   │   │   ├── secure_storage_service.dart   # 安全存储
+│   │   │   │   ├── keychain_service.dart         # Keychain 封装
+│   │   │   │   ├── biometric_service.dart        # 生物识别
+│   │   │   │   ├── security_service.dart         # 安全服务
+│   │   │   │   ├── operation_logger.dart         # 操作日志
+│   │   │   │   └── clipboard_monitor_service.dart
+│   │   │   ├── models/         # 基础模型
+│   │   │   │   ├── unified_object_model.dart     # UnifiedObject + PropertyValue
+│   │   │   │   └── base_models.dart              # 旧模型（兼容）
+│   │   │   └── router/         # GoRouter 配置
 │   │   └── presentation/
-│   │       ├── pages/        # 11个页面
+│   │       ├── pages/          # 13个页面
 │   │       │   ├── login_page.dart
 │   │       │   ├── home_page.dart
+│   │       │   ├── object_workspace_page.dart    # 对象工作区（新）
+│   │       │   ├── object_editor_page.dart       # 对象编辑器（新）
 │   │       │   ├── profile_page.dart
 │   │       │   ├── travel_page.dart
 │   │       │   ├── financial_page.dart
@@ -35,20 +43,42 @@ SoloSoul/
 │   │       │   ├── operation_log_page.dart
 │   │       │   ├── trash_page.dart
 │   │       │   └── splash_page.dart
-│   │       ├── providers/    # Riverpod providers
-│   │       └── widgets/      # 共享组件
-│   └── native/               # Rust 原生库 (FFI)
+│   │       ├── providers/      # Riverpod providers
+│   │       │   ├── unified_object_provider.dart  # 对象状态管理（新）
+│   │       │   └── ...
+│   │       └── widgets/        # 共享组件
+│   │           ├── app_sidebar.dart              # 常驻侧边栏（新）
+│   │           ├── scaffold_with_sidebar.dart    # 侧边栏布局（新）
+│   │           ├── icon_picker_sheet.dart        # 图标选择器（新）
+│   │           ├── lock_vault_dialog.dart        # 锁定确认对话框（新）
+│   │           ├── object_tile.dart              # 对象列表项（新）
+│   │           └── property_editor_factory.dart  # 属性编辑器（新）
+│   └── native/                 # Rust 原生库 (FFI)
 │       └── src/
-│           ├── crypto/       # Argon2id + AES-256-GCM
-│           ├── vault/        # 加密存储
-│           ├── account/      # 账户管理
-│           ├── sync/        # 同步引擎 (预留)
-│           └── plugin/      # 插件沙盒 (预留)
-├── cmd/                      # Go 后端服务
-│   ├── solosould/           # HTTP API 服务器
-│   └── solosoul/            # CLI 工具
-└── docs/                    # 文档
+│           ├── crypto/         # Argon2id + AES-256-GCM
+│           ├── vault/          # 加密存储
+│           ├── account/        # 账户管理
+│           ├── sync/           # 同步引擎 (预留)
+│           └── plugin/         # 插件沙盒 (预留)
+├── cmd/                        # Go 后端服务
+│   ├── solosould/              # HTTP API 服务器
+│   └── solosoul/               # CLI 工具
+└── docs/                       # 文档
 ```
+
+---
+
+## 已完成大功能
+
+### ✅ Unified Object Model（2026-04-27）
+- 核心模型：`UnifiedObject` + `UnifiedObjectData` + `PropertyValue` 体系
+- 树形结构：`parentId` / `childrenIds` 作为层级唯一真相来源
+- 内置类型：`page`, `collection`, `note`, `task`, `contact`（`ObjectTypeRegistry`）
+-  schemaVersion 已升级到 v3
+- 加密持久化：通过 `ProfileStorageService` → `RustVaultService` (AES-256-GCM)
+- 侧边栏树形展示：自定义 page 支持折叠/展开多级子页面
+- 对象工作区：page 类型显示卡片式 children，非 page 类型显示列表
+- 对象编辑器：通用创建/编辑页面，支持图标选择、parent 选择（仅限 page）
 
 ---
 

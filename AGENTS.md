@@ -13,11 +13,11 @@
 - **核心哲学**：「独奏生命数据，重塑数字原点」
 - **架构定位**：所有敏感数据仅本地存储，绝不上传云端；采用零知识架构（Zero-Knowledge），服务端/开发者无法解密用户数据。
 
-### 项目状态（截至 2026-04）
+### 项目状态（截至 2026-04-27）
 
 | 组件 | 状态 | 说明 |
 |------|------|------|
-| **Flutter 客户端** | ✅ 主项目，活跃开发 | macOS Release 已发布（DMG 安装包），iOS/Android/Windows 待适配 |
+| **Flutter 客户端** | ✅ 主项目，活跃开发 | macOS Release 已发布（DMG 安装包），Unified Object Model 已完成，iOS/Android/Windows 待适配 |
 | **Rust 原生核心** | ✅ 完整 | Argon2id + AES-256-GCM，通过 FFI 供 Flutter/Go 调用 |
 | **Go 后端** | ✅ 功能完整，维护模式 | HTTP API 服务器 + CLI 工具；最小依赖设计 |
 | **Web UI** | ⚠️ 遗留项目，维护模式 | Next.js 15 实现，无测试覆盖，无 CI 集成 |
@@ -59,14 +59,14 @@ SoloSoul/
 ├── flutter/                    # 主项目：Flutter 跨平台客户端
 │   ├── lib/
 │   │   ├── core/
-│   │   │   ├── services/       # 核心服务（17个）：native_crypto, rust_vault, profile_storage, keychain, biometric 等
+│   │   │   ├── services/       # 核心服务（18个）：native_crypto, rust_vault, profile_storage, unified_object, keychain, biometric 等
 │   │   │   ├── repositories/   # 数据仓库（Base + 各业务域）
-│   │   │   ├── models/         # 基础模型、字段历史配置
+│   │   │   ├── models/         # 基础模型、字段历史配置、UnifiedObject 模型
 │   │   │   └── utils/          # 全局错误处理等
 │   │   ├── presentation/
-│   │   │   ├── pages/          # 11个页面：login, home, profile, travel, financial, professional, settings, security_settings, sensitivity_settings, operation_log, trash, splash
-│   │   │   ├── providers/      # Riverpod Notifiers（auth, profile, sensitivity, account_style 等）
-│   │   │   ├── widgets/        # 共享 UI 组件（敏感数据遮罩、对话框等）
+│   │   │   ├── pages/          # 13个页面：login, home, object_workspace, object_editor, profile, travel, financial, professional, settings, security_settings, sensitivity_settings, operation_log, trash, splash
+│   │   │   ├── providers/      # Riverpod Notifiers（auth, profile, unified_object, sensitivity, account_style 等）
+│   │   │   ├── widgets/        # 共享 UI 组件（敏感数据遮罩、对话框、侧边栏、图标选择器等）
 │   │   │   └── theme/          # Material 3 主题配置
 │   │   ├── frb/                # flutter_rust_bridge 生成的绑定代码
 │   │   ├── data/               # Clean Architecture 脚手架（ lightly used ）
@@ -418,8 +418,14 @@ Web UI 的部分 Next.js API Routes 为存根（stub）或返回 mock 数据，�
 | Flutter 核心加密 FFI | `flutter/lib/core/services/native_crypto_service.dart` |
 | Flutter Vault 服务 | `flutter/lib/core/services/rust_vault_service.dart` |
 | Flutter Profile 存储/模型 | `flutter/lib/core/services/profile_storage_service.dart` |
+| Flutter UnifiedObject 模型 | `flutter/lib/core/models/unified_object_model.dart` |
+| Flutter UnifiedObject 服务 | `flutter/lib/core/services/unified_object_service.dart` |
 | Flutter Auth 状态（1000+ 行） | `flutter/lib/presentation/providers/auth_provider.dart` |
 | Flutter Profile 状态（2000+ 行） | `flutter/lib/presentation/providers/profile_provider.dart` |
+| Flutter 对象状态管理 | `flutter/lib/presentation/providers/unified_object_provider.dart` |
+| Flutter 对象工作区页面 | `flutter/lib/presentation/pages/object_workspace_page.dart` |
+| Flutter 对象编辑器页面 | `flutter/lib/presentation/pages/object_editor_page.dart` |
+| Flutter 常驻侧边栏 | `flutter/lib/presentation/widgets/app_sidebar.dart` |
 | Go HTTP API 服务器 | `core/api/server.go` |
 | Go Vault 文件存储 | `core/vault/file_store.go` |
 | Go 密码学（KDF 参数） | `core/crypto/kdf_common.go` |

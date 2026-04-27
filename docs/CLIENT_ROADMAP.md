@@ -1248,6 +1248,7 @@ class OfflineQueue {
 ### 7.6 Phase 6: 功能完善
 
 - [x] Profile CRUD (Identity/Travel/Financial/Professional/Preferences)
+- [x] **Unified Object Model** - 统一对象模型：page/collection/note/task/contact 树形结构，侧边栏折叠展开，对象工作区，对象编辑器
 - [ ] 文档上传与 OCR
 - [ ] Plugin 预留接口
 - [ ] 多语言支持 (i18n)
