@@ -86,39 +86,69 @@ const _$ObjectLayoutEnumMap = {
 TextProperty _$TextPropertyFromJson(Map<String, dynamic> json) => TextProperty(
   text: json['text'] as String,
   maxLength: (json['maxLength'] as num?)?.toInt(),
+  sensitivity:
+      $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+      SensitivityLevel.public,
 );
 
 Map<String, dynamic> _$TextPropertyToJson(TextProperty instance) =>
-    <String, dynamic>{'text': instance.text, 'maxLength': instance.maxLength};
+    <String, dynamic>{
+      'text': instance.text,
+      'maxLength': instance.maxLength,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
+    };
+
+const _$SensitivityLevelEnumMap = {
+  SensitivityLevel.public: 'public',
+  SensitivityLevel.internal: 'internal',
+  SensitivityLevel.sensitive: 'sensitive',
+  SensitivityLevel.critical: 'critical',
+};
 
 NumberProperty _$NumberPropertyFromJson(Map<String, dynamic> json) =>
     NumberProperty(
       value: (json['value'] as num?)?.toDouble(),
       decimalPlaces: (json['decimalPlaces'] as num?)?.toInt(),
+      sensitivity:
+          $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+          SensitivityLevel.public,
     );
 
 Map<String, dynamic> _$NumberPropertyToJson(NumberProperty instance) =>
     <String, dynamic>{
       'value': instance.value,
       'decimalPlaces': instance.decimalPlaces,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
     };
 
 DateProperty _$DatePropertyFromJson(Map<String, dynamic> json) => DateProperty(
   isoDate: json['isoDate'] as String?,
   includeTime: json['includeTime'] as bool? ?? false,
+  sensitivity:
+      $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+      SensitivityLevel.public,
 );
 
 Map<String, dynamic> _$DatePropertyToJson(DateProperty instance) =>
     <String, dynamic>{
       'isoDate': instance.isoDate,
       'includeTime': instance.includeTime,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
     };
 
 CheckboxProperty _$CheckboxPropertyFromJson(Map<String, dynamic> json) =>
-    CheckboxProperty(checked: json['checked'] as bool? ?? false);
+    CheckboxProperty(
+      checked: json['checked'] as bool? ?? false,
+      sensitivity:
+          $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+          SensitivityLevel.public,
+    );
 
 Map<String, dynamic> _$CheckboxPropertyToJson(CheckboxProperty instance) =>
-    <String, dynamic>{'checked': instance.checked};
+    <String, dynamic>{
+      'checked': instance.checked,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
+    };
 
 SelectProperty _$SelectPropertyFromJson(Map<String, dynamic> json) =>
     SelectProperty(
@@ -126,12 +156,16 @@ SelectProperty _$SelectPropertyFromJson(Map<String, dynamic> json) =>
           .map((e) => SelectOption.fromJson(e as Map<String, dynamic>))
           .toList(),
       selectedId: json['selectedId'] as String?,
+      sensitivity:
+          $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+          SensitivityLevel.public,
     );
 
 Map<String, dynamic> _$SelectPropertyToJson(SelectProperty instance) =>
     <String, dynamic>{
       'options': instance.options.map((e) => e.toJson()).toList(),
       'selectedId': instance.selectedId,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
     };
 
 MultiSelectProperty _$MultiSelectPropertyFromJson(Map<String, dynamic> json) =>
@@ -144,6 +178,9 @@ MultiSelectProperty _$MultiSelectPropertyFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      sensitivity:
+          $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+          SensitivityLevel.public,
     );
 
 Map<String, dynamic> _$MultiSelectPropertyToJson(
@@ -151,25 +188,37 @@ Map<String, dynamic> _$MultiSelectPropertyToJson(
 ) => <String, dynamic>{
   'options': instance.options.map((e) => e.toJson()).toList(),
   'selectedIds': instance.selectedIds,
+  'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
 };
 
 RelationProperty _$RelationPropertyFromJson(Map<String, dynamic> json) =>
     RelationProperty(
       targetTypeId: json['targetTypeId'] as String?,
       targetObjectId: json['targetObjectId'] as String?,
+      sensitivity:
+          $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+          SensitivityLevel.public,
     );
 
 Map<String, dynamic> _$RelationPropertyToJson(RelationProperty instance) =>
     <String, dynamic>{
       'targetTypeId': instance.targetTypeId,
       'targetObjectId': instance.targetObjectId,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
     };
 
-UrlProperty _$UrlPropertyFromJson(Map<String, dynamic> json) =>
-    UrlProperty(url: json['url'] as String?);
+UrlProperty _$UrlPropertyFromJson(Map<String, dynamic> json) => UrlProperty(
+  url: json['url'] as String?,
+  sensitivity:
+      $enumDecodeNullable(_$SensitivityLevelEnumMap, json['sensitivity']) ??
+      SensitivityLevel.public,
+);
 
 Map<String, dynamic> _$UrlPropertyToJson(UrlProperty instance) =>
-    <String, dynamic>{'url': instance.url};
+    <String, dynamic>{
+      'url': instance.url,
+      'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
+    };
 
 UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
     UnifiedObject(

@@ -29,27 +29,99 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   static const String _historyFieldId = 'unified';
   final Set<String> _expandedHistoryItemIds = {};
   String? _editingItemId;
+  bool _isAddingItem = false;
+  bool _isExpanded = false;
   final Map<String, TextEditingController> _editControllers = {};
 
-  @override
-  void dispose() {
+  void _disposeControllers() {
     for (final c in _editControllers.values) {
       c.dispose();
     }
+    _editControllers.clear();
+  }
+
+  @override
+  void dispose() {
+    _disposeControllers();
     super.dispose();
   }
 
-  Future<void> _addItem() async {
+  /// Get the display title for an item, looking up 'Title' then 'Item Name'.
+  String _itemDisplayTitle(UnifiedObject item) {
+    final titleProp = item.properties['Title'];
+    if (titleProp is TextProperty && titleProp.text.isNotEmpty) {
+      return titleProp.text;
+    }
+    final oldNameProp = item.properties['Item Name'];
+    if (oldNameProp is TextProperty && oldNameProp.text.isNotEmpty) {
+      return oldNameProp.text;
+    }
+    return item.name;
+  }
+
+  void _addItem() {
+    setState(() {
+      _isAddingItem = true;
+      _editingItemId = null;
+      _disposeControllers();
+
+      final template = widget.object.properties;
+      // Title defaults from template
+      final titleValue = template['Title'] is TextProperty
+          ? (template['Title'] as TextProperty).text
+          : 'Item Name';
+      _editControllers['__name__'] = TextEditingController(text: titleValue);
+
+      // Other fields start empty
+      for (final key in template.keys.skip(1)) {
+        _editControllers[key] = TextEditingController(text: '');
+      }
+    });
+  }
+
+  Future<void> _saveNewItem() async {
     final template = widget.object.properties;
-    final items = ref.read(childrenProvider(widget.object.id));
-    final itemName = 'Item ${items.where((o) => o.typeId == 'item').length + 1}';
+    final properties = Map<String, PropertyValue>.from(template);
+
+    final nameInput = _editControllers['__name__']?.text.trim() ?? '';
+    if (properties.containsKey('Title')) {
+      final oldTitle = properties['Title']!;
+      properties['Title'] = TextProperty(
+        text: nameInput.isNotEmpty ? nameInput : 'Item Name',
+        sensitivity: oldTitle.sensitivity,
+      );
+    }
+
+    for (final key in template.keys.skip(1)) {
+      final controller = _editControllers[key];
+      if (controller != null && properties.containsKey(key)) {
+        final oldValue = template[key]!;
+        properties[key] = _parsePropertyValue(oldValue, controller.text);
+      }
+    }
+
+    final name = (properties['Title'] is TextProperty)
+        ? (properties['Title'] as TextProperty).text
+        : 'Item';
 
     await ref.read(unifiedObjectProvider.notifier).createObject(
-      name: itemName,
+      name: name,
       typeId: 'item',
       parentId: widget.object.id,
-      properties: Map<String, PropertyValue>.from(template),
+      properties: properties,
     );
+
+    setState(() {
+      _isAddingItem = false;
+      _disposeControllers();
+    });
+  }
+
+  void _cancelAddItem() {
+    setState(() {
+      _isAddingItem = false;
+      _disposeControllers();
+    });
   }
 
   Future<void> _deleteItem(String itemId) async {
@@ -59,8 +131,9 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   void _startEditingItem(UnifiedObject item) {
     setState(() {
       _editingItemId = item.id;
-      _editControllers.clear();
-      _editControllers['__name__'] = TextEditingController(text: item.name);
+      _isAddingItem = false;
+      _disposeControllers();
+      _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
       for (final entry in item.properties.entries) {
         _editControllers[entry.key] = TextEditingController(
           text: _propertyValueToString(entry.value),
@@ -72,10 +145,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   void _cancelEditItem() {
     setState(() {
       _editingItemId = null;
-      for (final c in _editControllers.values) {
-        c.dispose();
-      }
-      _editControllers.clear();
+      _disposeControllers();
     });
   }
 
@@ -83,16 +153,35 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final item = ref.read(objectByIdProvider(itemId));
     if (item == null) return;
 
-    final name = _editControllers['__name__']?.text.trim() ?? item.name;
     final updatedProps = Map<String, PropertyValue>.from(item.properties);
 
+    // Sync __name__ input to Title property so title and property stay aligned
+    final nameInput = _editControllers['__name__']?.text.trim() ?? item.name;
+    if (updatedProps.containsKey('Title')) {
+      final oldTitle = updatedProps['Title']!;
+      updatedProps['Title'] = TextProperty(
+        text: nameInput,
+        sensitivity: oldTitle.sensitivity,
+      );
+    } else if (updatedProps.containsKey('Item Name')) {
+      final oldName = updatedProps['Item Name']!;
+      updatedProps['Item Name'] = TextProperty(
+        text: nameInput,
+        sensitivity: oldName.sensitivity,
+      );
+    }
+
     for (final key in item.properties.keys) {
+      if (key == 'Title' || key == 'Item Name') continue; // already handled above
       final controller = _editControllers[key];
       if (controller != null) {
         final oldValue = item.properties[key]!;
         updatedProps[key] = _parsePropertyValue(oldValue, controller.text);
       }
     }
+
+    // name is taken from Title/Item Name property if present
+    final name = _itemDisplayTitle(item.copyWith(properties: updatedProps, name: nameInput));
 
     // Record history before update
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
@@ -120,11 +209,12 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   PropertyValue _parsePropertyValue(PropertyValue oldValue, String newText) {
     return switch (oldValue) {
-      TextProperty() => TextProperty(text: newText),
-      NumberProperty() => NumberProperty(value: double.tryParse(newText)),
-      DateProperty() => DateProperty(isoDate: newText),
+      TextProperty() => TextProperty(text: newText, sensitivity: oldValue.sensitivity),
+      NumberProperty() => NumberProperty(value: double.tryParse(newText), sensitivity: oldValue.sensitivity),
+      DateProperty() => DateProperty(isoDate: newText, sensitivity: oldValue.sensitivity),
       CheckboxProperty() => CheckboxProperty(
           checked: newText.toLowerCase() == 'true' || newText == '1' || newText == 'yes',
+          sensitivity: oldValue.sensitivity,
         ),
       SelectProperty() => oldValue,
       MultiSelectProperty() => oldValue,
@@ -200,6 +290,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final items = ref.watch(childrenProvider(widget.object.id))
         .where((o) => o.typeId == 'item')
         .toList();
+    final shouldCollapse = items.length > 3;
+    final visibleItems = _isExpanded ? items : items.take(3).toList();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -260,7 +352,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
             const Divider(height: 24),
 
             // Items list
-            if (items.isEmpty)
+            if (items.isEmpty && !_isAddingItem)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -271,8 +363,40 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                   ),
                 ),
               )
-            else
-              ...items.map((item) => _buildItemTile(item)),
+            else ...[
+              if (_isAddingItem) _buildNewItemForm(),
+              ...visibleItems.map((item) => _buildItemTile(item)),
+              if (shouldCollapse && !_isAddingItem) ...[
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () => setState(() => _isExpanded = !_isExpanded),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          size: 20,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isExpanded
+                              ? 'Show less'
+                              : 'Show ${items.length - 3} more',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
 
 
           ],
@@ -299,6 +423,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   Widget _buildItemViewMode(UnifiedObject item) {
     final theme = Theme.of(context);
     final isHistoryExpanded = _expandedHistoryItemIds.contains(item.id);
+    final hasHistory = ref.watch(fieldHistoriesProvider).getHistory(item.id, _historyFieldId)?.entries.isNotEmpty == true;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -313,29 +438,28 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    SelectableText(
+                      _itemDisplayTitle(item),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    ...item.properties.entries.map((entry) {
+                    ...item.properties.entries.where((e) => e.key != 'Title').map((entry) {
                       return Padding(
                         padding: const EdgeInsets.only(left: 8, bottom: 2),
                         child: Row(
                           children: [
-                            Text(
+                            SelectableText(
                               '${entry.key}: ',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             Expanded(
-                              child: Text(
+                              child: SelectableText(
                                 _propertyValueToString(entry.value),
                                 style: theme.textTheme.bodySmall,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -361,15 +485,16 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                     onPressed: () => _startEditingItem(item),
                     visualDensity: VisualDensity.compact,
                   ),
-                  IconButton(
-                    icon: Icon(
-                      isHistoryExpanded ? Icons.history_toggle_off : Icons.history,
-                      size: 20,
+                  if (hasHistory)
+                    IconButton(
+                      icon: Icon(
+                        isHistoryExpanded ? Icons.history_toggle_off : Icons.history,
+                        size: 20,
+                      ),
+                      tooltip: 'History',
+                      onPressed: () => _toggleItemHistory(item.id),
+                      visualDensity: VisualDensity.compact,
                     ),
-                    tooltip: 'History',
-                    onPressed: () => _toggleItemHistory(item.id),
-                    visualDensity: VisualDensity.compact,
-                  ),
                   IconButton(
                     icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
                     tooltip: 'Delete',
@@ -401,49 +526,90 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     );
   }
 
-  Widget _buildItemEditMode(UnifiedObject item) {
-    final theme = Theme.of(context);
+  Widget _buildNewItemForm() {
+    final template = widget.object.properties;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name input + action buttons
+          // Title input
+          TextField(
+            controller: _editControllers['__name__'],
+            decoration: const InputDecoration(
+              labelText: 'Title',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Property inputs (skip the first fixed Title entry)
+          ...template.keys.skip(1).map((key) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildEditPropertyField(key, template[key]!),
+            );
+          }),
+          const SizedBox(height: 12),
+          // Action buttons
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _editControllers['__name__'],
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    border: OutlineInputBorder(),
-                  ),
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                ),
+              TextButton(
+                onPressed: _cancelAddItem,
+                child: const Text('Cancel'),
               ),
               const SizedBox(width: 8),
+              FilledButton(
+                onPressed: _saveNewItem,
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+          const Divider(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItemEditMode(UnifiedObject item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title input
+          TextField(
+            controller: _editControllers['__name__'],
+            decoration: const InputDecoration(
+              labelText: 'Title',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Property inputs (skip the first fixed Title entry — already shown above)
+          ...item.properties.keys.skip(1).map((key) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildEditPropertyField(key, item.properties[key]!),
+            );
+          }),
+          const SizedBox(height: 12),
+          // Action buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
               TextButton(
                 onPressed: _cancelEditItem,
                 child: const Text('Cancel'),
               ),
+              const SizedBox(width: 8),
               FilledButton(
                 onPressed: () => _saveEditItem(item.id),
                 child: const Text('Save'),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Property inputs
-          ...item.properties.keys.map((key) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _buildEditPropertyField(key, item.properties[key]!),
-            );
-          }),
           const Divider(height: 16),
         ],
       ),
@@ -451,50 +617,31 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Widget _buildEditPropertyField(String key, PropertyValue value) {
-    final theme = Theme.of(context);
     final controller = _editControllers[key];
 
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            key,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return switch (value) {
+      CheckboxProperty(:final checked) => Row(
+        children: [
+          Checkbox(
+            value: checked,
+            onChanged: (newValue) {
+              setState(() {
+                _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
+              });
+            },
           ),
+          Text(key),
+        ],
+      ),
+      _ => TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: key,
+          border: const OutlineInputBorder(),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 3,
-          child: switch (value) {
-            CheckboxProperty(:final checked) => Row(
-              children: [
-                Checkbox(
-                  value: checked,
-                  onChanged: (newValue) {
-                    setState(() {
-                      _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
-                    });
-                  },
-                ),
-              ],
-            ),
-            _ => TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                border: OutlineInputBorder(),
-              ),
-              style: theme.textTheme.bodySmall,
-              keyboardType: value is NumberProperty ? TextInputType.number : null,
-            ),
-          },
-        ),
-      ],
-    );
+        keyboardType: value is NumberProperty ? TextInputType.number : null,
+      ),
+    };
   }
 
   void _copyItem(UnifiedObject item) {

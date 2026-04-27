@@ -66,12 +66,20 @@ class ProfileNotifier extends AsyncNotifier<ProfileData?> {
 
   /// Save profile for the currently unlocked account (debounced)
   Future<bool> saveProfile(ProfileData profile, {bool immediate = false}) async {
-    return _persistence.saveProfile(profile, immediate: immediate);
+    final result = await _persistence.saveProfile(profile, immediate: immediate);
+    if (result) {
+      state = AsyncData(profile);
+    }
+    return result;
   }
 
   /// Force an immediate save (bypasses debounce)
   Future<bool> saveProfileImmediate(ProfileData profile) async {
-    return _persistence.saveProfileImmediate(profile);
+    final result = await _persistence.saveProfileImmediate(profile);
+    if (result) {
+      state = AsyncData(profile);
+    }
+    return result;
   }
 
   /// Update identity data

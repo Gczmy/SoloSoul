@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'base_models.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 part 'unified_object_model.g.dart';
 
@@ -174,6 +175,9 @@ class ObjectTypeDefinition {
 /// Base class for all property values.
 sealed class PropertyValue {
   const PropertyValue();
+
+  /// Sensitivity level for this property.
+  SensitivityLevel get sensitivity;
 }
 
 /// Text property.
@@ -181,10 +185,13 @@ sealed class PropertyValue {
 class TextProperty extends PropertyValue {
   final String text;
   final int? maxLength;
+  @override
+  final SensitivityLevel sensitivity;
 
   const TextProperty({
     required this.text,
     this.maxLength,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory TextProperty.fromJson(Map<String, dynamic> json) =>
@@ -195,10 +202,12 @@ class TextProperty extends PropertyValue {
   TextProperty copyWith({
     String? text,
     int? maxLength,
+    SensitivityLevel? sensitivity,
   }) {
     return TextProperty(
       text: text ?? this.text,
       maxLength: maxLength ?? this.maxLength,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -208,10 +217,13 @@ class TextProperty extends PropertyValue {
 class NumberProperty extends PropertyValue {
   final double? value;
   final int? decimalPlaces;
+  @override
+  final SensitivityLevel sensitivity;
 
   const NumberProperty({
     this.value,
     this.decimalPlaces,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory NumberProperty.fromJson(Map<String, dynamic> json) =>
@@ -222,10 +234,12 @@ class NumberProperty extends PropertyValue {
   NumberProperty copyWith({
     double? value,
     int? decimalPlaces,
+    SensitivityLevel? sensitivity,
   }) {
     return NumberProperty(
       value: value ?? this.value,
       decimalPlaces: decimalPlaces ?? this.decimalPlaces,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -235,10 +249,13 @@ class NumberProperty extends PropertyValue {
 class DateProperty extends PropertyValue {
   final String? isoDate; // yyyy-MM-dd or full ISO
   final bool includeTime;
+  @override
+  final SensitivityLevel sensitivity;
 
   const DateProperty({
     this.isoDate,
     this.includeTime = false,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory DateProperty.fromJson(Map<String, dynamic> json) =>
@@ -249,10 +266,12 @@ class DateProperty extends PropertyValue {
   DateProperty copyWith({
     String? isoDate,
     bool? includeTime,
+    SensitivityLevel? sensitivity,
   }) {
     return DateProperty(
       isoDate: isoDate ?? this.isoDate,
       includeTime: includeTime ?? this.includeTime,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -261,9 +280,12 @@ class DateProperty extends PropertyValue {
 @JsonSerializable(explicitToJson: true)
 class CheckboxProperty extends PropertyValue {
   final bool checked;
+  @override
+  final SensitivityLevel sensitivity;
 
   const CheckboxProperty({
     this.checked = false,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory CheckboxProperty.fromJson(Map<String, dynamic> json) =>
@@ -273,9 +295,11 @@ class CheckboxProperty extends PropertyValue {
 
   CheckboxProperty copyWith({
     bool? checked,
+    SensitivityLevel? sensitivity,
   }) {
     return CheckboxProperty(
       checked: checked ?? this.checked,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -285,10 +309,13 @@ class CheckboxProperty extends PropertyValue {
 class SelectProperty extends PropertyValue {
   final List<SelectOption> options;
   final String? selectedId;
+  @override
+  final SensitivityLevel sensitivity;
 
   const SelectProperty({
     required this.options,
     this.selectedId,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory SelectProperty.fromJson(Map<String, dynamic> json) =>
@@ -299,10 +326,12 @@ class SelectProperty extends PropertyValue {
   SelectProperty copyWith({
     List<SelectOption>? options,
     String? selectedId,
+    SensitivityLevel? sensitivity,
   }) {
     return SelectProperty(
       options: options ?? this.options,
       selectedId: selectedId ?? this.selectedId,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -312,10 +341,13 @@ class SelectProperty extends PropertyValue {
 class MultiSelectProperty extends PropertyValue {
   final List<SelectOption> options;
   final List<String> selectedIds;
+  @override
+  final SensitivityLevel sensitivity;
 
   const MultiSelectProperty({
     required this.options,
     this.selectedIds = const [],
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory MultiSelectProperty.fromJson(Map<String, dynamic> json) =>
@@ -326,10 +358,12 @@ class MultiSelectProperty extends PropertyValue {
   MultiSelectProperty copyWith({
     List<SelectOption>? options,
     List<String>? selectedIds,
+    SensitivityLevel? sensitivity,
   }) {
     return MultiSelectProperty(
       options: options ?? this.options,
       selectedIds: selectedIds ?? this.selectedIds,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -339,10 +373,13 @@ class MultiSelectProperty extends PropertyValue {
 class RelationProperty extends PropertyValue {
   final String? targetTypeId;
   final String? targetObjectId;
+  @override
+  final SensitivityLevel sensitivity;
 
   const RelationProperty({
     this.targetTypeId,
     this.targetObjectId,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory RelationProperty.fromJson(Map<String, dynamic> json) =>
@@ -353,10 +390,12 @@ class RelationProperty extends PropertyValue {
   RelationProperty copyWith({
     String? targetTypeId,
     String? targetObjectId,
+    SensitivityLevel? sensitivity,
   }) {
     return RelationProperty(
       targetTypeId: targetTypeId ?? this.targetTypeId,
       targetObjectId: targetObjectId ?? this.targetObjectId,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }
@@ -365,9 +404,12 @@ class RelationProperty extends PropertyValue {
 @JsonSerializable(explicitToJson: true)
 class UrlProperty extends PropertyValue {
   final String? url;
+  @override
+  final SensitivityLevel sensitivity;
 
   const UrlProperty({
     this.url,
+    this.sensitivity = SensitivityLevel.public,
   });
 
   factory UrlProperty.fromJson(Map<String, dynamic> json) =>
@@ -377,9 +419,11 @@ class UrlProperty extends PropertyValue {
 
   UrlProperty copyWith({
     String? url,
+    SensitivityLevel? sensitivity,
   }) {
     return UrlProperty(
       url: url ?? this.url,
+      sensitivity: sensitivity ?? this.sensitivity,
     );
   }
 }

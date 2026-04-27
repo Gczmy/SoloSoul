@@ -128,7 +128,7 @@ final class ChildrenProvider
   }
 }
 
-String _$childrenHash() => r'd732b84205c2e99e413837155af7ce99bc1019ed';
+String _$childrenHash() => r'ed0b4fd238530b9492ae2d23594cf8a34255c232';
 
 /// Direct children of a specific parent, in childrenIds order, active only.
 

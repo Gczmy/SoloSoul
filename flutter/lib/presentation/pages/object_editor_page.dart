@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -28,7 +30,16 @@ class ObjectEditorPage extends ConsumerStatefulWidget {
 class _PropertyField {
   String key;
   String type;
-  _PropertyField({required this.key, this.type = 'text'});
+  bool? isDefaultName;
+  SensitivityLevel sensitivity;
+  final TextEditingController controller;
+
+  _PropertyField({
+    this.key = '',
+    this.type = 'text',
+    this.isDefaultName = false,
+    this.sensitivity = SensitivityLevel.public,
+  }) : controller = TextEditingController(text: key);
 }
 
 class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
@@ -66,8 +77,31 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _selectedTypeId = object.typeId;
     _selectedParentId = object.parentId;
     _propertyFields.clear();
+    bool hasDefaultName = false;
     for (final entry in object.properties.entries) {
-      _propertyFields.add(_PropertyField(key: entry.key, type: 'text'));
+      final sensitivity = entry.value.sensitivity;
+      if (entry.key == 'Title' || entry.key == 'Item Name') {
+        _propertyFields.add(_PropertyField(
+          key: 'Title',
+          type: 'text',
+          isDefaultName: true,
+          sensitivity: sensitivity,
+        ));
+        hasDefaultName = true;
+      } else {
+        _propertyFields.add(_PropertyField(
+          key: entry.key,
+          type: 'text',
+          sensitivity: sensitivity,
+        ));
+      }
+    }
+    if (!hasDefaultName) {
+      _propertyFields.insert(0, _PropertyField(
+        key: 'Title',
+        type: 'text',
+        isDefaultName: true,
+      ));
     }
   }
 
@@ -76,8 +110,11 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     if (type == null) return;
 
     _propertyFields.clear();
+    _propertyFields.add(_PropertyField(key: 'Title', type: 'text', isDefaultName: true));
     for (final propDef in type.properties) {
-      _propertyFields.add(_PropertyField(key: propDef.id, type: 'text'));
+      if (propDef.id != 'Title' && propDef.id != 'Item Name') {
+        _propertyFields.add(_PropertyField(key: propDef.id, type: 'text'));
+      }
     }
   }
 
@@ -85,6 +122,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   void dispose() {
     _nameController.dispose();
     _iconController.dispose();
+    for (final field in _propertyFields) {
+      field.controller.dispose();
+    }
     super.dispose();
   }
 
@@ -96,97 +136,106 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Section' : 'New Section'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Icon + Name
-            Row(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24).copyWith(bottom: 96),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Icon + Name
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Icon', style: theme.textTheme.titleMedium),
+                    // Labels
+                    Row(
+                      children: [
+                        Text('Icon', style: theme.textTheme.titleMedium),
+                        const SizedBox(width: 16 + 56 + 16), // gap + icon width + gap
+                        Expanded(
+                          child: Text('Name', style: theme.textTheme.titleMedium),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    InkWell(
-                      onTap: () async {
-                        final result = await showModalBottomSheet<String>(
-                          context: context,
-                          builder: (ctx) => IconPickerSheet(
-                            currentIcon: _iconController.text.isEmpty
-                                ? 'folder'
-                                : _iconController.text,
-                          ),
-                        );
-                        if (result != null) {
-                          setState(() {
-                            _iconController.text = result;
-                          });
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    // Inputs
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            final result = await showModalBottomSheet<String>(
+                              context: context,
+                              builder: (ctx) => IconPickerSheet(
+                                currentIcon: _iconController.text.isEmpty
+                                    ? 'folder'
+                                    : _iconController.text,
+                              ),
+                            );
+                            if (result != null) {
+                              setState(() {
+                                _iconController.text = result;
+                              });
+                            }
+                          },
                           borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              UnifiedObjectService.getIconFromName(_iconController.text),
+                              color: theme.colorScheme.primary,
+                              size: 28,
+                            ),
+                          ),
                         ),
-                        child: Icon(
-                          UnifiedObjectService.getIconFromName(_iconController.text),
-                          color: theme.colorScheme.primary,
-                          size: 28,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: SizedBox(
+                            height: 56,
+                            child: TextField(
+                              controller: _nameController,
+                              expands: true,
+                              minLines: null,
+                              maxLines: null,
+                              textAlignVertical: TextAlignVertical.center,
+                              decoration: const InputDecoration(
+                                hintText: 'Enter section name',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Name', style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter section name',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 24),
+
+                // Type — only shown when creating a new object
+                if (!_isEditing) ...[
+                  Text('Type', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 12),
+                  _TypeDropdown(
+                    selectedTypeId: _selectedTypeId,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() {
+                        _selectedTypeId = value;
+                        _initPropertiesFromType(value);
+                      });
+                    },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                  const SizedBox(height: 24),
+                ],
 
-            // Type — only shown when creating a new object
-            if (!_isEditing) ...[
-              Text('Type', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 12),
-              _TypeDropdown(
-                selectedTypeId: _selectedTypeId,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    _selectedTypeId = value;
-                    _initPropertiesFromType(value);
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Item Properties
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+                // Item Properties
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -198,7 +247,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                           tooltip: 'Add Property',
                           onPressed: () {
                             setState(() {
-                              _propertyFields.add(_PropertyField(key: ''));
+                              _propertyFields.add(_PropertyField(key: '', type: 'text'));
                             });
                           },
                           visualDensity: VisualDensity.compact,
@@ -209,6 +258,64 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                     ..._propertyFields.asMap().entries.map((entry) {
                       final index = entry.key;
                       final field = entry.value;
+                      if (field.isDefaultName == true) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Container(
+                                  height: 40,
+                                  alignment: Alignment.centerLeft,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'Title',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                flex: 1,
+                                child: SizedBox(height: 40),
+                              ),
+                              const SizedBox(width: 8),
+                              PopupMenuButton<SensitivityLevel>(
+                                tooltip: 'Sensitivity',
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: SensitivityTag(level: field.sensitivity),
+                                ),
+                                itemBuilder: (context) => SensitivityLevel.values.map((level) {
+                                  return PopupMenuItem(
+                                    value: level,
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
+                                        const SizedBox(width: 8),
+                                        Text(level.label),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                onSelected: (level) {
+                                  setState(() {
+                                    field.sensitivity = level;
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 40),
+                            ],
+                          ),
+                        );
+                      }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Row(
@@ -216,7 +323,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                             Expanded(
                               flex: 2,
                               child: TextField(
-                                controller: TextEditingController(text: field.key),
+                                controller: field.controller,
                                 decoration: const InputDecoration(
                                   hintText: 'Key name',
                                   isDense: true,
@@ -255,7 +362,31 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 8),
+                            PopupMenuButton<SensitivityLevel>(
+                              tooltip: 'Sensitivity',
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: SensitivityTag(level: field.sensitivity),
+                              ),
+                              itemBuilder: (context) => SensitivityLevel.values.map((level) {
+                                return PopupMenuItem(
+                                  value: level,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
+                                      const SizedBox(width: 8),
+                                      Text(level.label),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                              onSelected: (level) {
+                                setState(() {
+                                  field.sensitivity = level;
+                                });
+                              },
+                            ),
                             IconButton(
                               icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
                               tooltip: 'Delete',
@@ -272,19 +403,28 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                     }),
                   ],
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 32),
-            Center(
-              child: OutlinedButton(
-                onPressed: _saveObject,
-                child: const Text('Save'),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+          // Save button — fixed at bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              color: theme.scaffoldBackgroundColor,
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: OutlinedButton(
+                  onPressed: _saveObject,
+                  child: const Text('Save'),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -326,11 +466,40 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       return;
     }
 
+    // Check for duplicate property keys
+    final keyCounts = <String, int>{};
+    for (final field in _propertyFields) {
+      final key = field.isDefaultName == true ? 'Title' : field.controller.text.trim();
+      if (key.isNotEmpty) {
+        keyCounts[key] = (keyCounts[key] ?? 0) + 1;
+      }
+    }
+    final duplicates = keyCounts.entries.where((e) => e.value > 1).map((e) => e.key).toList();
+    if (duplicates.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Duplicate property names: ${duplicates.join(', ')}')),
+      );
+      return;
+    }
+
     // Build properties from property fields
     final properties = <String, PropertyValue>{};
     for (final field in _propertyFields) {
-      if (field.key.trim().isNotEmpty) {
-        properties[field.key.trim()] = const TextProperty(text: '');
+      final key = field.isDefaultName == true && field.key.trim().isEmpty
+          ? 'Item Name'
+          : field.key.trim();
+      if (key.isNotEmpty) {
+        if (field.isDefaultName == true) {
+          properties['Title'] = TextProperty(
+            text: 'Item Name',
+            sensitivity: field.sensitivity,
+          );
+        } else {
+          properties[key] = TextProperty(
+            text: '',
+            sensitivity: field.sensitivity,
+          );
+        }
       }
     }
 

@@ -197,19 +197,6 @@ class _HistoryEntryTile extends ConsumerWidget {
                     final displayKey = e.key.contains('.')
                         ? e.key.substring(e.key.indexOf('.') + 1)
                         : e.key;
-                    // Convert camelCase to Title Case for display (e.g., "expiryDate" -> "Expiry Date", "title" -> "Title")
-                    String titleCaseKey = displayKey.replaceAllMapped(
-                      RegExp(r'([A-Z]|[0-9]+)'),
-                      (match) => match.group(0)!.isEmpty
-                          ? ''
-                          : (match.start == 0
-                              ? match.group(0)!
-                              : ' ${match.group(0)}'),
-                    );
-                    if (!displayKey.contains(RegExp(r'[A-Z]'))) {
-                      // No uppercase found (e.g., "title"), capitalize first letter
-                      titleCaseKey = titleCaseKey[0].toUpperCase() + titleCaseKey.substring(1);
-                    }
                     // Build full fieldId for sensitivity lookup
                     final fieldId = '$prefix.$displayKey';
                     final sensitivity = ref.watch(effectiveSensitivityProvider(fieldId));
@@ -221,7 +208,7 @@ class _HistoryEntryTile extends ConsumerWidget {
                           SizedBox(
                             width: 120,
                             child: Text(
-                              titleCaseKey,
+                              displayKey,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,

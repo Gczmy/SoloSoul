@@ -1,3 +1,5 @@
+import 'package:json_annotation/json_annotation.dart';
+
 /// Sensitivity levels for data classification.
 ///
 /// Levels are ordered from least restrictive to most restrictive.
@@ -5,19 +7,23 @@
 enum SensitivityLevel {
   /// Data that can be freely shared and displayed.
   /// Examples: public profile fields, general preferences.
+  @JsonValue('public')
   public,
 
   /// Data intended for internal use only.
   /// Not publicly visible but no special protection needed.
   /// Examples: internal notes, non-sensitive metadata.
+  @JsonValue('internal')
   internal,
 
   /// Sensitive personal information requiring protection.
   /// Examples: email addresses, phone numbers, physical addresses.
+  @JsonValue('sensitive')
   sensitive,
 
   /// Highly sensitive data requiring maximum protection.
   /// Examples: financial accounts, identity documents, master passwords.
+  @JsonValue('critical')
   critical,
 }
 
