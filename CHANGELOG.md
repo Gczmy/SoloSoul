@@ -5,6 +5,28 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-27
+
+### Added
+
+- **Unified Object Model** — Everything is a `UnifiedObject` with `parentId`/`childrenIds` tree structure
+- **Persistent Sidebar** — Drag-resizable sidebar with tree-structured custom pages (expand/collapse)
+- **Object Workspace** — Page-centric UI with inline property editing for children
+- **Object Editor** — Generic editor for creating/editing objects with icon picker
+- **Lock Vault Dialog** — Confirmation dialog before locking with tap-outside-to-dismiss
+- **Data Size Display** — Settings page shows total vault data size (B/KB/MB/GB)
+
+### Changed
+
+- **Schema Version** — Bumped to v3; `ProfileData` uses `unifiedObjects` field
+- **Home Page** — Simplified to main dashboard only
+
+### Fixed
+
+- **Data Persistence** — Objects now correctly load after login/unlock
+
+---
+
 ## [1.1.0] - 2026-04-24
 
 ### Added
