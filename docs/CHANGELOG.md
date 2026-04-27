@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-27
+
 ### Added
 - **Unified Object Model** - Everything is a `UnifiedObject` with `parentId`/`childrenIds` tree structure. Replaces legacy `FlexibleSection`/`FlexibleItem` models.
 - **Persistent Sidebar (`AppSidebar`)** - Drag-resizable (180–400px), collapse/expand, with tree-structured custom pages (expand/collapse for nested sub-pages)
@@ -155,7 +157,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0
 [1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
