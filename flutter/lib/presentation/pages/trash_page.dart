@@ -19,6 +19,9 @@ import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
@@ -216,6 +219,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }
 
     final deletedItems = ProfileStorageService.instance.getDeletedItems(profile);
+    final deletedUnifiedObjects = ref.watch(deletedObjectsProvider);
 
     // Pre-compute sensitivity levels by item type (once, not per-item)
     final sensitivityByItemType = <String, SensitivityLevel>{};
@@ -229,14 +233,23 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     _sensitivityByItemType = sensitivityByItemType;
 
     // Filter items based on search query
+    final query = _searchQuery.toLowerCase();
     final filteredItems = _searchQuery.isEmpty
         ? deletedItems
         : deletedItems.where((item) {
-            final query = _searchQuery.toLowerCase();
             return item.itemLabel.toLowerCase().contains(query) ||
                 item.section.toLowerCase().contains(query) ||
                 item.itemType.toLowerCase().contains(query);
           }).toList();
+
+    final filteredUnifiedObjects = _searchQuery.isEmpty
+        ? deletedUnifiedObjects
+        : deletedUnifiedObjects.where((obj) {
+            return obj.name.toLowerCase().contains(query) ||
+                (obj.typeId?.toLowerCase().contains(query) ?? false);
+          }).toList();
+
+    final totalCount = filteredItems.length + filteredUnifiedObjects.length;
 
     // Results count when searching
     if (_searchQuery.isNotEmpty) {
@@ -245,18 +258,18 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         child: Row(
           children: [
             Text(
-              filteredItems.isNotEmpty
-                  ? 'Found ${filteredItems.length} result(s)'
+              totalCount > 0
+                  ? 'Found $totalCount result(s)'
                   : 'No results found',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: filteredItems.isNotEmpty
+                    color: totalCount > 0
                         ? Theme.of(context).colorScheme.onSurfaceVariant
                         : Colors.orange,
                   ),
             ),
             const Spacer(),
             Text(
-              '${deletedItems.length} total items in trash',
+              '${deletedItems.length + deletedUnifiedObjects.length} total items in trash',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -269,7 +282,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }
 
     // Empty state
-    if (filteredItems.isEmpty) {
+    if (totalCount == 0) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -324,26 +337,62 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
         ),
         Expanded(
-          child: ListView.separated(
+          child: ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: filteredItems.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final item = filteredItems[index];
-              final hasHistory = _itemHasHistory(item);
-              return _TrashItemCard(
-                item: item,
-                hasHistory: hasHistory,
-                sensitivityLevel:
-                    _sensitivityByItemType[item.itemType] ??
-                        SensitivityLevel.public,
-                onRestore: (item) => _confirmRestore(item),
-                onPurge: (item) => _confirmPurge(context, item),
-                onDetail: () => _showDetail(context, item),
-                onHistory:
-                    hasHistory ? () => _showHistoryForItem(context, item) : null,
-              );
-            },
+            children: [
+              // Unified Objects section
+              if (filteredUnifiedObjects.isNotEmpty) ...[
+                Text(
+                  'Pages & Objects',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...filteredUnifiedObjects.map((obj) => _UnifiedObjectTrashCard(
+                  object: obj,
+                  onRestore: () => _confirmRestoreUnifiedObject(context, obj),
+                  onPurge: () => _confirmPurgeUnifiedObject(context, obj),
+                )),
+                if (filteredItems.isNotEmpty) const SizedBox(height: 24),
+              ],
+              // Legacy Items section
+              if (filteredItems.isNotEmpty) ...[
+                if (filteredUnifiedObjects.isNotEmpty)
+                  Text(
+                    'Legacy Items',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                if (filteredUnifiedObjects.isNotEmpty) const SizedBox(height: 8),
+                ...filteredItems.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final hasHistory = _itemHasHistory(item);
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index < filteredItems.length - 1 ? 8 : 0,
+                    ),
+                    child: _TrashItemCard(
+                      item: item,
+                      hasHistory: hasHistory,
+                      sensitivityLevel:
+                          _sensitivityByItemType[item.itemType] ??
+                              SensitivityLevel.public,
+                      onRestore: (item) => _confirmRestore(item),
+                      onPurge: (item) => _confirmPurge(context, item),
+                      onDetail: () => _showDetail(context, item),
+                      onHistory: hasHistory
+                          ? () => _showHistoryForItem(context, item)
+                          : null,
+                    ),
+                  );
+                }),
+              ],
+            ],
           ),
         ),
       ],
@@ -939,6 +988,132 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Unified Object Trash Actions
+  // ---------------------------------------------------------------------------
+
+  Future<void> _confirmRestoreUnifiedObject(
+    BuildContext context,
+    UnifiedObject object,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.restore, color: AppTheme.primaryColor),
+            SizedBox(width: 8),
+            Text('Confirm Restore'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to restore "${object.name}"?',
+          style: Theme.of(ctx).textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(unifiedObjectProvider.notifier).restoreObject(object.id);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Restored "${object.name}"')),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmPurgeUnifiedObject(
+    BuildContext context,
+    UnifiedObject object,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.orange.shade700),
+            const SizedBox(width: 8),
+            const Text('Confirm Permanent Delete'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to permanently delete "${object.name}"?',
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.red.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'This action cannot be undone. The item will be permanently removed.',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref
+          .read(unifiedObjectProvider.notifier)
+          .permanentlyDeleteObject(object.id);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Permanently deleted "${object.name}"')),
+        );
+      }
+    }
+  }
 }
 
 class _TrashItemCard extends StatefulWidget {
@@ -1156,6 +1331,157 @@ class _TrashItemCardState extends State<_TrashItemCard> {
                           )
                         : const Icon(Icons.delete_forever, size: 16),
                     label: Text(_isPurging ? 'Purging...' : 'Purge'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      foregroundColor: AppTheme.errorColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 300.ms);
+  }
+
+  String _formatTimeAgo(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inDays > 0) {
+      return '${diff.inDays}d ago';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+}
+
+// =============================================================================
+// Unified Object Trash Card
+// =============================================================================
+
+class _UnifiedObjectTrashCard extends StatelessWidget {
+  final UnifiedObject object;
+  final VoidCallback onRestore;
+  final VoidCallback onPurge;
+
+  const _UnifiedObjectTrashCard({
+    required this.object,
+    required this.onRestore,
+    required this.onPurge,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final deletedAt = object.deletedAt;
+    final daysRemaining = deletedAt != null
+        ? 30 - DateTime.now().difference(deletedAt).inDays
+        : 30;
+    final isExpiringSoon = daysRemaining <= 7;
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      UnifiedObjectService.getIconFromName(object.iconName),
+                      color: Colors.orange,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          object.name,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          object.typeId ?? 'object',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isExpiringSoon)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$daysRemaining days',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.orange.shade800,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.access_time,
+                    size: 14,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    deletedAt != null
+                        ? 'Deleted ${_formatTimeAgo(deletedAt)}'
+                        : 'Deleted recently',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: onRestore,
+                    icon: const Icon(Icons.restore, size: 16),
+                    label: const Text('Restore'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  TextButton.icon(
+                    onPressed: onPurge,
+                    icon: const Icon(Icons.delete_forever, size: 16),
+                    label: const Text('Purge'),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       minimumSize: Size.zero,

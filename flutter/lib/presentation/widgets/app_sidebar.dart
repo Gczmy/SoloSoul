@@ -172,16 +172,37 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         if (_expanded) const SizedBox(height: 8),
 
                         // Custom pages label
-                        if (_expanded && customPages.isNotEmpty)
+                        if (_expanded)
                           Padding(
-                            padding: const EdgeInsets.only(left: 12, bottom: 8),
-                            child: Text(
-                              'PAGES',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.8,
-                              ),
+                            padding: const EdgeInsets.only(
+                                left: 12, right: 4, bottom: 8),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'PAGES',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Tooltip(
+                                  message: 'Add Page',
+                                  child: InkWell(
+                                    onTap: () => setState(() => _isAddingPage = true),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 16,
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
 
@@ -210,14 +231,63 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                                   },
                                 )),
 
+                        // Root-level drop zone (drag pages here to unparent)
+                        if (_expanded)
+                          DragTarget<String>(
+                            onWillAcceptWithDetails: (_) => true,
+                            onAcceptWithDetails: (details) {
+                              ref
+                                  .read(unifiedObjectProvider.notifier)
+                                  .moveObject(details.data, null);
+                            },
+                            builder: (context, candidateData, rejectedData) {
+                              final isHovering = candidateData.isNotEmpty;
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                height: isHovering ? 36 : 4,
+                                margin: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: isHovering
+                                      ? theme.colorScheme.primary
+                                          .withValues(alpha: 0.08)
+                                      : null,
+                                  border: isHovering
+                                      ? Border.all(
+                                          color: theme.colorScheme.primary
+                                              .withValues(alpha: 0.3),
+                                          width: 1.5,
+                                        )
+                                      : null,
+                                ),
+                                child: isHovering
+                                    ? Center(
+                                        child: Text(
+                                          'Drop to make root page',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      )
+                                    : null,
+                              );
+                            },
+                          ),
+
                         // Add page input
                         if (_isAddingPage && _expanded)
                           TapRegion(
                             onTapOutside: (_) {
                               if (_isAddingPage && !_isPickingIcon) {
-                                _addPageController.clear();
-                                _newPageIconName = 'article';
-                                setState(() => _isAddingPage = false);
+                                if (_addPageController.text.trim().isNotEmpty) {
+                                  _confirmAddPage();
+                                } else {
+                                  _addPageController.clear();
+                                  _newPageIconName = 'article';
+                                  setState(() => _isAddingPage = false);
+                                }
                               }
                             },
                             child: _AddPageInput(
@@ -228,13 +298,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                             ),
                           ),
 
-                        const SizedBox(height: 8),
 
-                        // Add page button
-                        _AddPageButton(
-                          expanded: _expanded,
-                          onTap: () => setState(() => _isAddingPage = true),
-                        ),
                       ],
                     ),
                   ),
@@ -484,7 +548,7 @@ class _NavTile extends StatelessWidget {
 // Page Tree Tile — Expandable tree node for custom pages
 // =============================================================================
 
-class _PageTreeTile extends ConsumerWidget {
+class _PageTreeTile extends ConsumerStatefulWidget {
   final UnifiedObject page;
   final bool expanded;
   final int depth;
@@ -506,27 +570,83 @@ class _PageTreeTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PageTreeTile> createState() => _PageTreeTileState();
+}
+
+class _PageTreeTileState extends ConsumerState<_PageTreeTile> {
+  bool _isEditing = false;
+  late final TextEditingController _editController;
+
+  @override
+  void initState() {
+    super.initState();
+    _editController = TextEditingController(text: widget.page.name);
+  }
+
+  @override
+  void dispose() {
+    _editController.dispose();
+    super.dispose();
+  }
+
+  void _confirmRename() {
+    final name = _editController.text.trim();
+    if (name.isNotEmpty && name != widget.page.name) {
+      ref.read(unifiedObjectProvider.notifier).updateObject(
+            widget.page.id,
+            name: name,
+          );
+    }
+    setState(() => _isEditing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bgColor = isSelected
+    final bgColor = widget.isSelected
         ? theme.colorScheme.primary.withValues(alpha: 0.1)
         : Colors.transparent;
-    final fgColor = isSelected
+    final fgColor = widget.isSelected
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurface;
-    final isExpanded = expandedPageIds.contains(page.id);
+    final isExpanded = widget.expandedPageIds.contains(widget.page.id);
 
-    final childPages = expanded
-        ? ref.watch(childrenProvider(page.id))
+    final childPages = widget.expanded
+        ? ref.watch(childrenProvider(widget.page.id))
             .where((c) => c.typeId == 'page')
             .toList()
         : <UnifiedObject>[];
     final hasChildren = childPages.isNotEmpty;
 
+    final nameWidget = _isEditing && widget.expanded
+        ? TextField(
+            controller: _editController,
+            autofocus: true,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: fgColor,
+              fontWeight: widget.isSelected ? FontWeight.w600 : null,
+            ),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              border: InputBorder.none,
+            ),
+            onSubmitted: (_) => _confirmRename(),
+            onTapOutside: (_) => _confirmRename(),
+          )
+        : Text(
+            widget.page.name,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: fgColor,
+              fontWeight: widget.isSelected ? FontWeight.w600 : null,
+            ),
+            overflow: TextOverflow.ellipsis,
+          );
+
     final tile = Padding(
       padding: EdgeInsets.only(
-        left: expanded ? (depth * 16.0) : 8,
-        right: expanded ? 0 : 8,
+        left: widget.expanded ? (widget.depth * 16.0) : 8,
+        right: widget.expanded ? 0 : 8,
         top: 2,
         bottom: 2,
       ),
@@ -536,27 +656,33 @@ class _PageTreeTile extends ConsumerWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(8),
           child: InkWell(
-            onTap: onTap,
+            onTap: widget.onTap,
+            onDoubleTap: widget.expanded
+                ? () {
+                    _editController.text = widget.page.name;
+                    setState(() => _isEditing = true);
+                  }
+                : null,
             borderRadius: BorderRadius.circular(8),
             child: Container(
               height: 40,
-              alignment: expanded ? Alignment.centerLeft : Alignment.center,
-              padding: expanded
+              alignment: widget.expanded ? Alignment.centerLeft : Alignment.center,
+              padding: widget.expanded
                   ? const EdgeInsets.symmetric(horizontal: 12)
                   : const EdgeInsets.all(0),
-              child: expanded
+              child: widget.expanded
                   ? Row(
                       children: [
                         // Icon
-                        if (onIconTap != null)
+                        if (widget.onIconTap != null)
                           InkWell(
-                            onTap: onIconTap,
+                            onTap: widget.onIconTap,
                             borderRadius: BorderRadius.circular(6),
                             child: Padding(
                               padding: const EdgeInsets.all(4),
                               child: Icon(
                                 UnifiedObjectService.getIconFromName(
-                                    page.iconName),
+                                    widget.page.iconName),
                                 size: 20,
                                 color: fgColor,
                               ),
@@ -564,26 +690,17 @@ class _PageTreeTile extends ConsumerWidget {
                           )
                         else
                           Icon(
-                            UnifiedObjectService.getIconFromName(page.iconName),
+                            UnifiedObjectService.getIconFromName(
+                                widget.page.iconName),
                             size: 20,
                             color: fgColor,
                           ),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            page.name,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: fgColor,
-                              fontWeight:
-                                  isSelected ? FontWeight.w600 : null,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+                        Expanded(child: nameWidget),
                         // Expand/collapse chevron (only if has children)
-                        if (hasChildren)
+                        if (hasChildren && !_isEditing)
                           InkWell(
-                            onTap: () => onToggleExpand(page.id),
+                            onTap: () => widget.onToggleExpand(widget.page.id),
                             borderRadius: BorderRadius.circular(6),
                             child: SizedBox(
                               width: 24,
@@ -601,7 +718,8 @@ class _PageTreeTile extends ConsumerWidget {
                     )
                   : Center(
                       child: Icon(
-                        UnifiedObjectService.getIconFromName(page.iconName),
+                        UnifiedObjectService.getIconFromName(
+                            widget.page.iconName),
                         size: 22,
                         color: fgColor,
                       ),
@@ -612,32 +730,100 @@ class _PageTreeTile extends ConsumerWidget {
       ),
     );
 
-    final children = (expanded && isExpanded && hasChildren)
+    // Drag source + drop target wrapper
+    final draggableTile = Draggable<String>(
+      data: widget.page.id,
+      feedback: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 220,
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                UnifiedObjectService.getIconFromName(widget.page.iconName),
+                size: 20,
+                color: theme.colorScheme.onSurface,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.page.name,
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.35,
+        child: tile,
+      ),
+      child: DragTarget<String>(
+        onWillAcceptWithDetails: (details) {
+          final draggedId = details.data;
+          if (draggedId == widget.page.id) return false;
+          final allObjects = ref.read(unifiedObjectProvider).objects;
+          final descendants =
+              UnifiedObjectService.instance.getDescendantIds(allObjects, draggedId);
+          return !descendants.contains(widget.page.id);
+        },
+        onAcceptWithDetails: (details) {
+          ref.read(unifiedObjectProvider.notifier).moveObject(
+            details.data,
+            widget.page.id,
+          );
+        },
+        builder: (context, candidateData, rejectedData) {
+          final isHovering = candidateData.isNotEmpty;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: isHovering
+                  ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                  : null,
+            ),
+            child: tile,
+          );
+        },
+      ),
+    );
+
+    final children = (widget.expanded && isExpanded && hasChildren)
         ? childPages.map((child) {
             final childLocation =
                 '${AppRoutes.objects}/${child.id}';
             return _PageTreeTile(
               page: child,
-              expanded: expanded,
-              depth: depth + 1,
+              expanded: widget.expanded,
+              depth: widget.depth + 1,
               isSelected: GoRouterState.of(context).matchedLocation ==
                   childLocation,
               onTap: () => context.go(childLocation),
-              expandedPageIds: expandedPageIds,
-              onToggleExpand: onToggleExpand,
+              expandedPageIds: widget.expandedPageIds,
+              onToggleExpand: widget.onToggleExpand,
             );
           }).toList()
         : <Widget>[];
 
-    if (!expanded) {
-      return Tooltip(message: page.name, child: tile);
+    if (!widget.expanded) {
+      return Tooltip(message: widget.page.name, child: draggableTile);
     }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        tile,
+        draggableTile,
         ...children,
       ],
     );
@@ -718,163 +904,3 @@ class _AddPageInput extends StatelessWidget {
   }
 }
 
-// =============================================================================
-// Add Page Button
-// =============================================================================
-
-class _AddPageButton extends StatelessWidget {
-  final bool expanded;
-  final VoidCallback onTap;
-
-  const _AddPageButton({required this.expanded, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final button = Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: expanded ? 0 : 8,
-        vertical: 2,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: SizedBox(
-            height: 40,
-            child: DashedBorder(
-              color: theme.colorScheme.outline.withValues(alpha: 0.4),
-              borderRadius: 8,
-              child: expanded
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.add,
-                          size: 18,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: Text(
-                            'Add a page',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Center(
-                      child: Icon(
-                        Icons.add,
-                        size: 20,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    if (expanded) return button;
-    return Tooltip(message: 'Add a page', child: button);
-  }
-}
-
-
-
-// =============================================================================
-// Dashed Border Helper
-// =============================================================================
-
-class DashedBorder extends StatelessWidget {
-  final Widget child;
-  final Color color;
-  final double borderRadius;
-  final double strokeWidth;
-  final double dashWidth;
-  final double dashGap;
-
-  const DashedBorder({
-    super.key,
-    required this.child,
-    required this.color,
-    this.borderRadius = 8,
-    this.strokeWidth = 1,
-    this.dashWidth = 4,
-    this.dashGap = 4,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedBorderPainter(
-        color: color,
-        borderRadius: borderRadius,
-        strokeWidth: strokeWidth,
-        dashWidth: dashWidth,
-        dashGap: dashGap,
-      ),
-      child: child,
-    );
-  }
-}
-
-class _DashedBorderPainter extends CustomPainter {
-  final Color color;
-  final double borderRadius;
-  final double strokeWidth;
-  final double dashWidth;
-  final double dashGap;
-
-  _DashedBorderPainter({
-    required this.color,
-    required this.borderRadius,
-    required this.strokeWidth,
-    required this.dashWidth,
-    required this.dashGap,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Radius.circular(borderRadius),
-    );
-
-    final path = Path()..addRRect(rrect);
-    final dashedPath = _dashPath(path, dashWidth, dashGap);
-    canvas.drawPath(dashedPath, paint);
-  }
-
-  Path _dashPath(Path source, double dashWidth, double dashGap) {
-    final dashed = Path();
-    for (final metric in source.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final length = dashWidth;
-        dashed.addPath(
-          metric.extractPath(distance, distance + length),
-          Offset.zero,
-        );
-        distance += length + dashGap;
-      }
-    }
-    return dashed;
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

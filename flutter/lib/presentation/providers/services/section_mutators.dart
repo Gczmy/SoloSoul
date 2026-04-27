@@ -29,6 +29,7 @@ class SectionMutators {
       travel: current?.travel,
       financial: current?.financial,
       professional: current?.professional,
+      unifiedObjects: current?.unifiedObjects,
     );
 
     final result = await _persistence.saveProfile(newProfile);

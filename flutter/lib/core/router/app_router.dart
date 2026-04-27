@@ -15,6 +15,7 @@ import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/search_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_workspace_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart';
+import 'package:solosoul_flutter/presentation/pages/page_editor_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/scaffold_with_sidebar.dart';
 
@@ -36,6 +37,7 @@ class AppRoutes {
   static const String search = '/search';
   static const String objects = '/objects';
   static const String objectEditor = '/object_editor';
+  static const String pageEditor = '/page_editor';
 }
 
 /// Pages that don't require authentication
@@ -144,6 +146,17 @@ GoRouter createRouter(WidgetRef ref) {
               final objectId = state.uri.queryParameters['id'];
               final parentId = state.uri.queryParameters['parentId'];
               return ObjectEditorPage(
+                objectId: objectId,
+                parentId: parentId,
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.pageEditor,
+            builder: (context, state) {
+              final objectId = state.uri.queryParameters['id'];
+              final parentId = state.uri.queryParameters['parentId'];
+              return PageEditorPage(
                 objectId: objectId,
                 parentId: parentId,
               );

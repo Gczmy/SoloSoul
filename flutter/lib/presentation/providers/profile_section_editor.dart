@@ -73,6 +73,7 @@ class ProfileSectionEditor {
           ),
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -92,6 +93,7 @@ class ProfileSectionEditor {
           ),
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -112,6 +114,7 @@ class ProfileSectionEditor {
           ),
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -144,6 +147,7 @@ class ProfileSectionEditor {
             taxIds: financial.taxIds,
           ),
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -163,6 +167,7 @@ class ProfileSectionEditor {
             taxIds: financial.taxIds,
           ),
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -182,6 +187,7 @@ class ProfileSectionEditor {
             taxIds: updated,
           ),
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -214,6 +220,7 @@ class ProfileSectionEditor {
             skills: professional.skills,
             languages: professional.languages,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -235,6 +242,7 @@ class ProfileSectionEditor {
             skills: professional.skills,
             languages: professional.languages,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -255,6 +263,7 @@ class ProfileSectionEditor {
             skills: updated,
             languages: professional.languages,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -276,6 +285,7 @@ class ProfileSectionEditor {
             skills: professional.skills,
             languages: updated,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -316,6 +326,7 @@ class ProfileSectionEditor {
           travel: current.travel,
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -342,6 +353,7 @@ class ProfileSectionEditor {
           travel: current.travel,
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -368,6 +380,7 @@ class ProfileSectionEditor {
           travel: current.travel,
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -415,6 +428,7 @@ class ProfileSectionEditor {
           ),
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -434,6 +448,7 @@ class ProfileSectionEditor {
           ),
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -454,6 +469,7 @@ class ProfileSectionEditor {
           ),
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -485,6 +501,7 @@ class ProfileSectionEditor {
             taxIds: financial.taxIds,
           ),
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -504,6 +521,7 @@ class ProfileSectionEditor {
             taxIds: financial.taxIds,
           ),
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -523,6 +541,7 @@ class ProfileSectionEditor {
             taxIds: updated,
           ),
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -554,6 +573,7 @@ class ProfileSectionEditor {
             skills: professional.skills,
             languages: professional.languages,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -575,6 +595,7 @@ class ProfileSectionEditor {
             skills: professional.skills,
             languages: professional.languages,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -595,6 +616,7 @@ class ProfileSectionEditor {
             skills: updated,
             languages: professional.languages,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -616,6 +638,7 @@ class ProfileSectionEditor {
             skills: professional.skills,
             languages: updated,
           ),
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -654,6 +677,7 @@ class ProfileSectionEditor {
           travel: current.travel,
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -680,6 +704,7 @@ class ProfileSectionEditor {
           travel: current.travel,
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );
@@ -706,6 +731,7 @@ class ProfileSectionEditor {
           travel: current.travel,
           financial: current.financial,
           professional: current.professional,
+          unifiedObjects: current.unifiedObjects,
         ),
         true,
       );

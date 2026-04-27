@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
-import 'package:solosoul_flutter/presentation/widgets/property_editor_factory.dart';
+
 
 /// Generic editor for creating or editing any UnifiedObject.
 class ObjectEditorPage extends ConsumerStatefulWidget {
@@ -22,12 +24,19 @@ class ObjectEditorPage extends ConsumerStatefulWidget {
   ConsumerState<ObjectEditorPage> createState() => _ObjectEditorPageState();
 }
 
+/// Editable property row for Item Properties editor.
+class _PropertyField {
+  String key;
+  String type;
+  _PropertyField({required this.key, this.type = 'text'});
+}
+
 class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _iconController;
   String? _selectedTypeId;
   String? _selectedParentId;
-  Map<String, PropertyValue> _properties = {};
+  final List<_PropertyField> _propertyFields = [];
 
   bool get _isEditing => widget.objectId != null;
   UnifiedObject? _existingObject;
@@ -56,52 +65,20 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _iconController.text = object.iconName;
     _selectedTypeId = object.typeId;
     _selectedParentId = object.parentId;
-    _properties = Map.from(object.properties);
+    _propertyFields.clear();
+    for (final entry in object.properties.entries) {
+      _propertyFields.add(_PropertyField(key: entry.key, type: 'text'));
+    }
   }
 
   void _initPropertiesFromType(String typeId) {
     final type = ObjectTypeRegistry.getType(typeId);
     if (type == null) return;
 
-    final newProperties = <String, PropertyValue>{};
+    _propertyFields.clear();
     for (final propDef in type.properties) {
-      newProperties[propDef.id] = _defaultValueForType(propDef);
+      _propertyFields.add(_PropertyField(key: propDef.id, type: 'text'));
     }
-    _properties = newProperties;
-  }
-
-  PropertyValue _defaultValueForType(PropertyDefinition def) {
-    return switch (def.type) {
-      PropertyType.text => const TextProperty(text: ''),
-      PropertyType.number => const NumberProperty(),
-      PropertyType.date => const DateProperty(),
-      PropertyType.checkbox => const CheckboxProperty(),
-      PropertyType.select => SelectProperty(
-          options: _parseOptions(def.config),
-        ),
-      PropertyType.multiSelect => MultiSelectProperty(
-          options: _parseOptions(def.config),
-        ),
-      PropertyType.relation => const RelationProperty(),
-      PropertyType.url => const UrlProperty(),
-    };
-  }
-
-  List<SelectOption> _parseOptions(dynamic config) {
-    if (config is! Map) return [];
-    final optionsRaw = config['options'] as List<dynamic>? ?? [];
-    return optionsRaw.map((e) {
-      final m = e as Map<String, dynamic>;
-      return SelectOption(
-        id: m['id'] as String? ?? _generateTempId(),
-        label: m['label'] as String? ?? '',
-        order: (m['order'] as num?)?.toInt() ?? 0,
-      );
-    }).toList();
-  }
-
-  String _generateTempId() {
-    return DateTime.now().millisecondsSinceEpoch.toString();
   }
 
   @override
@@ -117,58 +94,73 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Page' : 'New Page'),
+        title: Text(_isEditing ? 'Edit Section' : 'New Section'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Name
-            Text('Name', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                hintText: 'Enter object name',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Icon
-            Text('Icon', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            InkWell(
-              onTap: () async {
-                final result = await showModalBottomSheet<String>(
-                  context: context,
-                  builder: (ctx) => IconPickerSheet(
-                    currentIcon: _iconController.text.isEmpty
-                        ? 'folder'
-                        : _iconController.text,
+            // Icon + Name
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Icon', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final result = await showModalBottomSheet<String>(
+                          context: context,
+                          builder: (ctx) => IconPickerSheet(
+                            currentIcon: _iconController.text.isEmpty
+                                ? 'folder'
+                                : _iconController.text,
+                          ),
+                        );
+                        if (result != null) {
+                          setState(() {
+                            _iconController.text = result;
+                          });
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          UnifiedObjectService.getIconFromName(_iconController.text),
+                          color: theme.colorScheme.primary,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Name', style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          hintText: 'Enter section name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
                   ),
-                );
-                if (result != null) {
-                  setState(() {
-                    _iconController.text = result;
-                  });
-                }
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  UnifiedObjectService.getIconFromName(_iconController.text),
-                  color: theme.colorScheme.primary,
-                  size: 28,
-                ),
-              ),
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -189,51 +181,99 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
               const SizedBox(height: 24),
             ],
 
-            // Parent
-            Text('Parent', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            _ParentDropdown(
-              selectedParentId: _selectedParentId,
-              objectId: widget.objectId,
-              onChanged: (value) {
-                setState(() {
-                  _selectedParentId = value;
-                });
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Properties
-            if (_properties.isNotEmpty) ...[
-              Text('Properties', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 12),
-              ..._properties.entries.map((entry) {
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            // Item Properties
+            Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          entry.key,
-                          style: theme.textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        PropertyEditorFactory.buildEditor(
-                          property: entry.value,
-                          onChanged: (updated) {
+                        Text('Item Properties', style: theme.textTheme.titleMedium),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.add, size: 20),
+                          tooltip: 'Add Property',
+                          onPressed: () {
                             setState(() {
-                              _properties[entry.key] = updated;
+                              _propertyFields.add(_PropertyField(key: ''));
                             });
                           },
-                        ) ?? const SizedBox(),
+                          visualDensity: VisualDensity.compact,
+                        ),
                       ],
                     ),
-                  ),
-                );
-              }),
-            ],
+                    const SizedBox(height: 12),
+                    ..._propertyFields.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final field = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextField(
+                                controller: TextEditingController(text: field.key),
+                                decoration: const InputDecoration(
+                                  hintText: 'Key name',
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (value) {
+                                  field.key = value;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 1,
+                              child: InputDecorator(
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                  border: OutlineInputBorder(),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    isDense: true,
+                                    value: field.type,
+                                    items: const [
+                                      DropdownMenuItem(value: 'text', child: Text('Text')),
+                                    ],
+                                    onChanged: (value) {
+                                      if (value != null) {
+                                        setState(() {
+                                          field.type = value;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
+                              tooltip: 'Delete',
+                              onPressed: () {
+                                setState(() {
+                                  _propertyFields.removeAt(index);
+                                });
+                              },
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
 
             const SizedBox(height: 32),
             Center(
@@ -249,6 +289,35 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     );
   }
 
+  String _propertyValueToString(PropertyValue value) {
+    return switch (value) {
+      TextProperty(:final text) => text,
+      NumberProperty(:final value) => value?.toString() ?? '',
+      DateProperty(:final isoDate) => isoDate ?? '',
+      CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+      SelectProperty(:final selectedId) => selectedId ?? '',
+      _ => '',
+    };
+  }
+
+  Future<void> _recordHistory() async {
+    if (_existingObject == null) return;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
+    final allFieldValues = <String, String>{};
+    for (final entry in _existingObject!.properties.entries) {
+      allFieldValues[entry.key] = _propertyValueToString(entry.value);
+    }
+
+    await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+      accountId: accountId,
+      itemId: _existingObject!.id,
+      fieldIdPrefix: 'unified',
+      allFieldValues: allFieldValues,
+    );
+  }
+
   void _saveObject() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -257,9 +326,20 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       return;
     }
 
+    // Build properties from property fields
+    final properties = <String, PropertyValue>{};
+    for (final field in _propertyFields) {
+      if (field.key.trim().isNotEmpty) {
+        properties[field.key.trim()] = const TextProperty(text: '');
+      }
+    }
+
     final notifier = ref.read(unifiedObjectProvider.notifier);
 
     if (_isEditing && _existingObject != null) {
+      // Record history before update
+      await _recordHistory();
+
       // Handle parent change: if parent changed, use moveObject
       final oldParentId = _existingObject!.parentId;
       final newParentId = _selectedParentId;
@@ -273,7 +353,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         name: _nameController.text.trim(),
         typeId: _selectedTypeId,
         iconName: _iconController.text.trim(),
-        properties: _properties,
+        properties: properties,
       );
     } else {
       await notifier.createObject(
@@ -281,7 +361,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         typeId: _selectedTypeId,
         parentId: _selectedParentId,
         iconName: _iconController.text.trim(),
-        properties: _properties,
+        properties: properties,
       );
     }
 
@@ -303,7 +383,9 @@ class _TypeDropdown extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allTypes = ObjectTypeRegistry.getAllTypes();
+    final allTypes = ObjectTypeRegistry.getAllTypes()
+        .where((t) => t.id != 'page' && t.id != 'item')
+        .toList();
     final effectiveTypeId = allTypes.any((t) => t.id == selectedTypeId)
         ? selectedTypeId
         : null;
@@ -340,12 +422,13 @@ class _TypeDropdown extends ConsumerWidget {
   }
 }
 
-class _ParentDropdown extends ConsumerWidget {
+class ObjectParentDropdown extends ConsumerWidget {
   final String? selectedParentId;
   final String? objectId;
   final ValueChanged<String?> onChanged;
 
-  const _ParentDropdown({
+  const ObjectParentDropdown({
+    super.key,
     required this.selectedParentId,
     this.objectId,
     required this.onChanged,

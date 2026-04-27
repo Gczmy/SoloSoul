@@ -1860,6 +1860,12 @@ class ProfileStorageService {
   /// Encrypts and stores via RustVaultService
   Future<bool> saveProfile(String accountId, ProfileData profile) async {
     try {
+      // Data protection: prevent accidental loss of unifiedObjects
+      final existing = await loadProfile(accountId);
+      if (existing?.unifiedObjects != null && profile.unifiedObjects == null) {
+        profile = profile.copyWith(unifiedObjects: existing!.unifiedObjects);
+      }
+
       final json = jsonEncode(profile.toJson());
 
       final result = await _rustVault.saveProfileEncrypted(accountId, json);

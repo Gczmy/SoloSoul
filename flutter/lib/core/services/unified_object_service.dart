@@ -108,6 +108,12 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
       ),
     ],
   ),
+  const ObjectTypeDefinition(
+    id: 'item',
+    name: 'Item',
+    iconName: 'list_item',
+    defaultLayout: ObjectLayout.collection,
+  ),
 ];
 
 // =============================================================================

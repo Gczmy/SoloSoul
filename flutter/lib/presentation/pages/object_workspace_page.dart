@@ -6,7 +6,7 @@ import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
-import 'package:solosoul_flutter/presentation/widgets/property_editor_factory.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
 
 /// Unified workspace for browsing objects and their children.
 ///
@@ -33,6 +33,17 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     final currentObject = widget.objectId != null
         ? ref.watch(objectByIdProvider(widget.objectId!))
         : null;
+
+    // Auto-navigate back if the current object has been deleted.
+    if (widget.objectId != null && currentObject == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.pop();
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final allChildren = widget.objectId != null
         ? ref.watch(childrenProvider(widget.objectId!))
         : ref.watch(rootObjectsProvider);
@@ -60,7 +71,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
                   padding: const EdgeInsets.all(16),
                   itemCount: children.length,
                   itemBuilder: (context, index) {
-                    return _ObjectCard(object: children[index]);
+                    return ObjectCard(object: children[index]);
                   },
                 )
               : _isReordering
@@ -90,7 +101,9 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
                         final child = children[index];
                         return ObjectTile(
                           object: child,
-                          onTap: () => context.push('/objects/${child.id}'),
+                          onTap: child.typeId == 'page'
+                              ? () => context.push('/objects/${child.id}')
+                              : null,
                           onEdit: () => _editObject(child),
                           onDelete: () => _deleteObject(child),
                         );
@@ -100,6 +113,15 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (currentObject != null) ...[
+            FloatingActionButton.small(
+              heroTag: 'delete_page',
+              onPressed: () => _deleteCurrentObject(currentObject),
+              tooltip: 'Delete',
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+              child: const Icon(Icons.delete_outline),
+            ),
+            const SizedBox(width: 8),
             FloatingActionButton.small(
               heroTag: 'edit_page',
               onPressed: () => _editObject(currentObject),
@@ -120,8 +142,8 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
           FloatingActionButton.small(
             heroTag: 'add',
             onPressed: () => isPage
-                ? _showAddObjectDialog()
-                : _createObject(),
+                ? _showPageAddMenu()
+                : _showAddSectionDialog(),
             tooltip: 'Add',
             child: const Icon(Icons.add),
           ),
@@ -144,19 +166,19 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
         );
   }
 
-  void _createObject() {
-    context.push('/object_editor?parentId=${widget.objectId}');
-  }
-
   void _editObject(UnifiedObject object) {
-    context.push('/object_editor?id=${object.id}');
+    if (object.typeId == 'page') {
+      context.push('/page_editor?id=${object.id}');
+    } else {
+      context.push('/object_editor?id=${object.id}');
+    }
   }
 
   void _deleteObject(UnifiedObject object) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Object'),
+        title: const Text('Delete Section'),
         content: Text(
           'Are you sure you want to delete "${object.name}"?',
         ),
@@ -178,16 +200,54 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(object.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Object deleted')),
+          const SnackBar(content: Text('Section deleted')),
         );
       }
     }
   }
 
-  Future<void> _showAddObjectDialog() async {
+  void _deleteCurrentObject(UnifiedObject object) async {
+    final descendantCount = UnifiedObjectService.instance
+        .getDescendantIds(ref.read(unifiedObjectProvider).objects, object.id)
+        .length;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(object.typeId == 'page' ? 'Delete Page' : 'Delete Section'),
+        content: Text(
+          'Are you sure you want to delete "${object.name}"?'
+          '${descendantCount > 0 ? '\n\nAll $descendantCount item(s) inside this ${object.typeId == 'page' ? 'page' : 'section'} will also be moved to trash.' : ''}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(unifiedObjectProvider.notifier).deleteObject(object.id);
+      if (mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('"${object.name}" moved to trash')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showAddSectionDialog() async {
     final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (ctx) => const _AddObjectDialog(),
+      builder: (ctx) => const _AddSectionDialog(),
     );
     if (result == null) return;
 
@@ -198,249 +258,50 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       iconName: result['icon']!,
     );
   }
-}
 
-// =============================================================================
-// Object Card — Card-style property management for Page children
-// =============================================================================
-
-class _ObjectCard extends ConsumerStatefulWidget {
-  final UnifiedObject object;
-
-  const _ObjectCard({required this.object});
-
-  @override
-  ConsumerState<_ObjectCard> createState() => _ObjectCardState();
-}
-
-class _ObjectCardState extends ConsumerState<_ObjectCard> {
-  bool _isAddingItem = false;
-  final _keyController = TextEditingController();
-  final _valueController = TextEditingController();
-
-  @override
-  void dispose() {
-    _keyController.dispose();
-    _valueController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveItem() async {
-    final key = _keyController.text.trim();
-    final value = _valueController.text.trim();
-    if (key.isEmpty || value.isEmpty) return;
-
-    final updatedProps = Map<String, PropertyValue>.from(widget.object.properties);
-    updatedProps[key] = TextProperty(text: value);
-
-    await ref.read(unifiedObjectProvider.notifier).updateObject(
-      widget.object.id,
-      properties: updatedProps,
-    );
-
-    _keyController.clear();
-    _valueController.clear();
-    setState(() => _isAddingItem = false);
-  }
-
-  Future<void> _deleteItem(String key) async {
-    final updatedProps = Map<String, PropertyValue>.from(widget.object.properties);
-    updatedProps.remove(key);
-
-    await ref.read(unifiedObjectProvider.notifier).updateObject(
-      widget.object.id,
-      properties: updatedProps,
-    );
-  }
-
-  Future<void> _changeIcon() async {
-    final result = await showModalBottomSheet<String>(
+  void _showPageAddMenu() async {
+    final choice = await showModalBottomSheet<String>(
       context: context,
-      builder: (ctx) => IconPickerSheet(currentIcon: widget.object.iconName),
-    );
-    if (result != null && result != widget.object.iconName) {
-      await ref.read(unifiedObjectProvider.notifier).updateObject(
-        widget.object.id,
-        iconName: result,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final icon = UnifiedObjectService.getIconFromName(widget.object.iconName);
-    final properties = widget.object.properties.entries.toList();
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      builder: (ctx) => SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header: icon + name + add button
-            Row(
-              children: [
-                InkWell(
-                  onTap: _changeIcon,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(icon, color: theme.colorScheme.primary, size: 20),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    widget.object.name,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, size: 20),
-                  onPressed: () => setState(() => _isAddingItem = true),
-                  tooltip: 'Add item',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                ),
-              ],
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('Add Sub-Page'),
+              onTap: () => Navigator.pop(ctx, 'page'),
             ),
-
-            const Divider(height: 24),
-
-            // Properties / Items list
-            if (properties.isEmpty && !_isAddingItem)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: TextButton.icon(
-                    onPressed: () => setState(() => _isAddingItem = true),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add item'),
-                  ),
-                ),
-              )
-            else
-              ...properties.map((entry) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            entry.key,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 3,
-                          child: PropertyEditorFactory.buildDisplay(entry.value),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed: () => _deleteItem(entry.key),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 28,
-                            minHeight: 28,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
-
-            // Inline input for adding new item
-            if (_isAddingItem) ...[
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextField(
-                      controller: _keyController,
-                      autofocus: true,
-                      decoration: const InputDecoration(
-                        hintText: 'Name',
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(),
-                      ),
-                      style: theme.textTheme.bodyMedium,
-                      textInputAction: TextInputAction.next,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: _valueController,
-                      decoration: const InputDecoration(
-                        hintText: 'Value',
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        border: OutlineInputBorder(),
-                      ),
-                      style: theme.textTheme.bodyMedium,
-                      onSubmitted: (_) => _saveItem(),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.check, size: 18),
-                    onPressed: _saveItem,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 28,
-                      minHeight: 28,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => setState(() => _isAddingItem = false),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 28,
-                      minHeight: 28,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ListTile(
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('Add Section'),
+              onTap: () => Navigator.pop(ctx, 'section'),
+            ),
           ],
         ),
       ),
     );
+    if (choice == 'page') {
+      if (!mounted) return;
+      await context.push('/page_editor?parentId=${widget.objectId}');
+    } else if (choice == 'section') {
+      await _showAddSectionDialog();
+    }
   }
 }
 
+
 // =============================================================================
-// Add Object Dialog — Simple name + icon picker for Page children
+// Add Section Dialog — Simple name + icon picker for Page children
 // =============================================================================
 
-class _AddObjectDialog extends StatefulWidget {
-  const _AddObjectDialog();
+class _AddSectionDialog extends StatefulWidget {
+  const _AddSectionDialog();
 
   @override
-  State<_AddObjectDialog> createState() => _AddObjectDialogState();
+  State<_AddSectionDialog> createState() => _AddSectionDialogState();
 }
 
-class _AddObjectDialogState extends State<_AddObjectDialog> {
+class _AddSectionDialogState extends State<_AddSectionDialog> {
   final _nameController = TextEditingController();
   String _iconName = 'folder';
 
@@ -455,7 +316,7 @@ class _AddObjectDialogState extends State<_AddObjectDialog> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('Add Object'),
+      title: const Text('Add Section'),
       constraints: const BoxConstraints(maxWidth: 320),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -466,7 +327,7 @@ class _AddObjectDialogState extends State<_AddObjectDialog> {
             autofocus: true,
             decoration: const InputDecoration(
               labelText: 'Name',
-              hintText: 'Enter object name',
+              hintText: 'Enter section name',
               border: OutlineInputBorder(),
             ),
           ),
@@ -526,14 +387,12 @@ class _AddObjectDialogState extends State<_AddObjectDialog> {
               'icon': _iconName,
             });
           },
-          child: const Text('Add'),
+          child: const Text('Add Section'),
         ),
       ],
     );
   }
 }
-
-
 
 // =============================================================================
 // Empty State

@@ -34,7 +34,9 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final profile = ref.read(profileNotifierProvider).value;
     if (profile == null) return;
 
-    final data = profile.unifiedObjects ?? const UnifiedObjectData();
+    final data = profile.unifiedObjects;
+    if (data == null) return; // Don't overwrite state if unifiedObjects is missing
+
     state = data;
   }
 
@@ -128,6 +130,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
   /// Soft delete an object by ID.
   /// Also removes it from its parent's childrenIds.
+  /// Recursively soft-deletes all descendants.
   Future<bool> deleteObject(String id) async {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
@@ -143,9 +146,17 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       );
     }
 
-    // Soft delete the object itself
-    final deleted = _service.deleteObject(object);
-    updatedObjects = _service.replaceObject(updatedObjects, deleted);
+    // Soft delete the object itself and all descendants
+    final descendantIds = _service.getDescendantIds(state.objects, id);
+    final idsToDelete = {id, ...descendantIds};
+
+    for (final deleteId in idsToDelete) {
+      final obj = _service.getObjectById(updatedObjects, deleteId);
+      if (obj != null && !obj.isDeleted) {
+        final deleted = _service.deleteObject(obj);
+        updatedObjects = _service.replaceObject(updatedObjects, deleted);
+      }
+    }
 
     state = state.copyWith(objects: updatedObjects);
     return _save();
@@ -244,10 +255,9 @@ List<UnifiedObject> rootObjects(Ref ref) {
 @riverpod
 List<UnifiedObject> children(Ref ref, String parentId) {
   final data = ref.watch(unifiedObjectProvider);
-  final parent = data.objects.firstWhere(
-    (o) => o.id == parentId,
-    orElse: () => throw StateError('Parent not found: $parentId'),
-  );
+  final parentIndex = data.objects.indexWhere((o) => o.id == parentId);
+  if (parentIndex == -1) return [];
+  final parent = data.objects[parentIndex];
   final map = {for (final o in data.objects) o.id: o};
   return parent.childrenIds
       .where((id) => map.containsKey(id))
