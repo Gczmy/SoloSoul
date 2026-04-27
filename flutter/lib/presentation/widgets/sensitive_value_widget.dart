@@ -17,12 +17,15 @@ class SensitiveValueWidget extends ConsumerStatefulWidget {
   final String fieldId;
   final String value;
   final Widget? child; // Optional custom display widget
+  /// Optional explicit sensitivity level. When provided, overrides provider lookup.
+  final SensitivityLevel? sensitivityLevel;
 
   const SensitiveValueWidget({
     super.key,
     required this.fieldId,
     required this.value,
     this.child,
+    this.sensitivityLevel,
   });
 
   @override
@@ -142,7 +145,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     // Watch sensitivity settings to rebuild when they change
     final settings = ref.watch(accountStyleProvider).value;
     final isPrivacyShieldEnabled = settings?.displayMode == SensitivityDisplayMode.hidePrivate;
-    final fieldLevel = ref.watch(effectiveSensitivityProvider(widget.fieldId));
+    final SensitivityLevel fieldLevel = widget.sensitivityLevel ?? ref.watch(effectiveSensitivityProvider(widget.fieldId));
 
     // Watch sensitive page access to detect recent verification
     final hasRecentVerification = ref.watch(isSensitiveAccessGrantedProvider);

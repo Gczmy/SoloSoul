@@ -7,8 +7,11 @@ import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 
 
 /// Card displaying a Section and its Items.
@@ -446,6 +449,9 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                     ),
                     const SizedBox(height: 4),
                     ...item.properties.entries.where((e) => e.key != 'Title').map((entry) {
+                      final sensitivity = entry.value.sensitivity;
+                      final isSensitive = sensitivity == SensitivityLevel.sensitive ||
+                                          sensitivity == SensitivityLevel.critical;
                       return Padding(
                         padding: const EdgeInsets.only(left: 8, bottom: 2),
                         child: Row(
@@ -456,12 +462,23 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            Expanded(
-                              child: SelectableText(
-                                _propertyValueToString(entry.value),
-                                style: theme.textTheme.bodySmall,
+                            if (isSensitive)
+                              Expanded(
+                                child: SensitiveValueWidget(
+                                  fieldId: 'item.${item.id}.${entry.key}',
+                                  value: _propertyValueToString(entry.value),
+                                  sensitivityLevel: sensitivity,
+                                ),
+                              )
+                            else
+                              Expanded(
+                                child: SelectableText(
+                                  _propertyValueToString(entry.value),
+                                  style: theme.textTheme.bodySmall,
+                                ),
                               ),
-                            ),
+                            const SizedBox(width: 6),
+                            SensitivityTag(level: sensitivity),
                           ],
                         ),
                       );
@@ -631,6 +648,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
             },
           ),
           Text(key),
+          const SizedBox(width: 8),
+          SensitivityTag(level: value.sensitivity),
         ],
       ),
       _ => TextField(
@@ -638,6 +657,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         decoration: InputDecoration(
           labelText: key,
           border: const OutlineInputBorder(),
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Align(
+              alignment: Alignment.centerRight,
+              widthFactor: 1,
+              child: SensitivityTag(level: value.sensitivity),
+            ),
+          ),
         ),
         keyboardType: value is NumberProperty ? TextInputType.number : null,
       ),
