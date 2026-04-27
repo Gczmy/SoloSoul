@@ -287,29 +287,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                 child: SizedBox(height: 40),
                               ),
                               const SizedBox(width: 8),
-                              PopupMenuButton<SensitivityLevel>(
-                                tooltip: 'Sensitivity',
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: SensitivityTag(level: field.sensitivity),
-                                ),
-                                itemBuilder: (context) => SensitivityLevel.values.map((level) {
-                                  return PopupMenuItem(
-                                    value: level,
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
-                                        const SizedBox(width: 8),
-                                        Text(level.label),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                                onSelected: (level) {
-                                  setState(() {
-                                    field.sensitivity = level;
-                                  });
-                                },
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: SensitivityTag(level: field.sensitivity),
                               ),
                               const SizedBox(width: 40),
                             ],
@@ -490,9 +470,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
           : field.key.trim();
       if (key.isNotEmpty) {
         if (field.isDefaultName == true) {
-          properties['Title'] = TextProperty(
+          properties['Title'] = const TextProperty(
             text: 'Item Name',
-            sensitivity: field.sensitivity,
+            sensitivity: SensitivityLevel.public,
           );
         } else {
           properties[key] = TextProperty(
