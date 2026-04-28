@@ -45,12 +45,38 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   bool _isAddingItem = false;
   bool _isExpanded = false;
   final Map<String, TextEditingController> _editControllers = {};
+  /// Tracks original values when entering edit/add mode for dirty-check.
+  final Map<String, String> _originalValues = {};
+  bool _hasChanges = false;
 
   void _disposeControllers() {
     for (final c in _editControllers.values) {
       c.dispose();
     }
     _editControllers.clear();
+    _originalValues.clear();
+    _hasChanges = false;
+  }
+
+  /// Compare current controller values with originals; update [_hasChanges].
+  void _checkForChanges() {
+    var changed = false;
+    for (final entry in _editControllers.entries) {
+      final original = _originalValues[entry.key] ?? '';
+      if (entry.value.text != original) {
+        changed = true;
+        break;
+      }
+    }
+    if (_hasChanges != changed) {
+      setState(() => _hasChanges = changed);
+    }
+  }
+
+  void _setupChangeDetection() {
+    for (final controller in _editControllers.values) {
+      controller.addListener(_checkForChanges);
+    }
   }
 
   @override
@@ -84,11 +110,16 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           ? (template['Title'] as TextProperty).text
           : 'Item Name';
       _editControllers['__name__'] = TextEditingController(text: titleValue);
+      _originalValues['__name__'] = titleValue;
 
       // Other fields start empty
       for (final key in template.keys.skip(1)) {
         _editControllers[key] = TextEditingController(text: '');
+        _originalValues[key] = '';
       }
+
+      _setupChangeDetection();
+      _hasChanges = false;
     });
   }
 
@@ -189,6 +220,29 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final item = ref.read(objectByIdProvider(itemId));
     if (item == null) return;
 
+    final itemName = _itemDisplayTitle(item);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          title: const Text('Delete Item'),
+          content: Text('Are you sure you want to delete "$itemName"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) return;
+
     final doDelete = () async {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
 
@@ -235,11 +289,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         _isAddingItem = false;
         _disposeControllers();
         _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
+        _originalValues['__name__'] = _itemDisplayTitle(item);
         for (final entry in item.properties.entries) {
-          _editControllers[entry.key] = TextEditingController(
-            text: _propertyValueToString(entry.value),
-          );
+          final textValue = _propertyValueToString(entry.value);
+          _editControllers[entry.key] = TextEditingController(text: textValue);
+          _originalValues[entry.key] = textValue;
         }
+        _setupChangeDetection();
+        _hasChanges = false;
       });
     };
 
@@ -581,31 +638,43 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                       final sensitivity = entry.value.sensitivity;
                       final isSensitive = sensitivity == SensitivityLevel.sensitive ||
                                           sensitivity == SensitivityLevel.critical;
+                      final valueStr = _propertyValueToString(entry.value);
+                      final isEmptyValue = valueStr.isEmpty;
                       return Padding(
                         padding: const EdgeInsets.only(left: 8, bottom: 2),
                         child: Row(
                           children: [
                             ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 100),
+                              constraints: const BoxConstraints(maxWidth: 160),
                               child: SelectableText(
-                                '${_wrapEveryNChars(entry.key, 6)}: ',
+                                _wrapEveryNChars(entry.key, 12),
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
-                            if (isSensitive)
+                            if (isEmptyValue)
+                              Expanded(
+                                child: Text(
+                                  '(empty)',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              )
+                            else if (isSensitive)
                               Expanded(
                                 child: SensitiveValueWidget(
                                   fieldId: 'item.${item.id}.${entry.key}',
-                                  value: _propertyValueToString(entry.value),
+                                  value: valueStr,
                                   sensitivityLevel: sensitivity,
                                 ),
                               )
                             else
                               Expanded(
                                 child: SelectableText(
-                                  _propertyValueToString(entry.value),
+                                  valueStr,
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ),
@@ -684,15 +753,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title input
-          TextField(
-            controller: _editControllers['__name__'],
-            maxLength: kMaxPropertyLength,
-            buildCounter: _buildCharacterCounter,
-            decoration: const InputDecoration(
-              labelText: 'Title',
-              border: OutlineInputBorder(),
-            ),
-          ),
+          _buildTitleField(),
           const SizedBox(height: 12),
           // Property inputs (skip the first fixed Title entry)
           ...template.keys.skip(1).map((key) {
@@ -712,7 +773,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               ),
               const SizedBox(width: 8),
               FilledButton(
-                onPressed: _saveNewItem,
+                onPressed: _hasChanges ? _saveNewItem : null,
                 child: const Text('Add'),
               ),
             ],
@@ -730,15 +791,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title input
-          TextField(
-            controller: _editControllers['__name__'],
-            maxLength: kMaxPropertyLength,
-            buildCounter: _buildCharacterCounter,
-            decoration: const InputDecoration(
-              labelText: 'Title',
-              border: OutlineInputBorder(),
-            ),
-          ),
+          _buildTitleField(),
           const SizedBox(height: 12),
           // Property inputs (skip the first fixed Title entry — already shown above)
           ...item.properties.keys.skip(1).map((key) {
@@ -758,7 +811,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               ),
               const SizedBox(width: 8),
               FilledButton(
-                onPressed: () => _saveEditItem(item.id),
+                onPressed: _hasChanges ? () => _saveEditItem(item.id) : null,
                 child: const Text('Save'),
               ),
             ],
@@ -788,54 +841,146 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           SensitivityTag(level: value.sensitivity),
         ],
       ),
-      _ => TextField(
-        controller: controller,
-        maxLength: kMaxPropertyLength,
-        buildCounter: _buildCharacterCounter,
-        decoration: InputDecoration(
-          labelText: key,
-          border: const OutlineInputBorder(),
-          suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Align(
-              alignment: Alignment.centerRight,
-              widthFactor: 1,
-              child: SensitivityTag(level: value.sensitivity),
+      _ => Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              maxLength: kMaxPropertyLength,
+              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+              decoration: InputDecoration(
+                labelText: key,
+                border: const OutlineInputBorder(),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    widthFactor: 1,
+                    child: SensitivityTag(level: value.sensitivity),
+                  ),
+                ),
+              ),
+              keyboardType: value is NumberProperty ? TextInputType.number : null,
             ),
           ),
-        ),
-        keyboardType: value is NumberProperty ? TextInputType.number : null,
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 64,
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller ?? TextEditingController(),
+              builder: (context, val, child) {
+                final len = val.text.length;
+                final max = kMaxPropertyLength;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 28,
+                      child: Text(
+                        '$len',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '/',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 28,
+                      child: Text(
+                        '$max',
+                        textAlign: TextAlign.left,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     };
   }
 
   String _wrapEveryNChars(String text, int n) {
-    if (text.length <= n) return text;
+    if (text.length <= n) return '$text: ';
     final buffer = StringBuffer();
     for (var i = 0; i < text.length; i += n) {
       if (i > 0) buffer.write('\n');
       buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
     }
+    buffer.write(': ');
     return buffer.toString();
   }
 
-  Widget? _buildCharacterCounter(
-    BuildContext context, {
-    required int currentLength,
-    required int? maxLength,
-    required bool isFocused,
-  }) {
-    if (maxLength == null) return null;
-    return Padding(
-      padding: const EdgeInsets.only(right: 12, bottom: 4),
-      child: Text(
-        '$currentLength/$maxLength',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: currentLength >= maxLength
-              ? Theme.of(context).colorScheme.error
-              : Theme.of(context).colorScheme.onSurfaceVariant,
+  Widget _buildTitleField() {
+    final controller = _editControllers['__name__'];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            maxLength: kMaxPropertyLength,
+            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+            decoration: const InputDecoration(
+              labelText: 'Title',
+              border: OutlineInputBorder(),
+            ),
+          ),
         ),
-      ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 64,
+          child: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller ?? TextEditingController(),
+            builder: (context, val, child) {
+              final len = val.text.length;
+              final max = kMaxPropertyLength;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 28,
+                    child: Text(
+                      '$len',
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '/',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 28,
+                    child: Text(
+                      '$max',
+                      textAlign: TextAlign.left,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

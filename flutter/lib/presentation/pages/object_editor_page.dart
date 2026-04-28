@@ -262,6 +262,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
                                 flex: 2,
@@ -282,14 +283,16 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              const SizedBox(width: 40),
+                              const SizedBox(width: 8),
                               const Expanded(
                                 flex: 1,
                                 child: SizedBox(height: 40),
                               ),
                               const SizedBox(width: 8),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                child: SensitivityTag(level: field.sensitivity),
+                              SizedBox(
+                                width: 72,
+                                child: Center(child: SensitivityTag(level: field.sensitivity)),
                               ),
                               const SizedBox(width: 40),
                             ],
@@ -299,13 +302,14 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
                               flex: 2,
                               child: TextField(
                                 controller: field.controller,
                                 maxLength: 24,
-                                buildCounter: _buildCharacterCounter,
+                                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
                                 decoration: const InputDecoration(
                                   hintText: 'Key name',
                                   isDense: true,
@@ -314,6 +318,47 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                 ),
                                 onChanged: (value) {
                                   field.key = value;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 40,
+                              child: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: field.controller,
+                                builder: (context, value, child) {
+                                  final len = value.text.length;
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 16,
+                                        child: Text(
+                                          '$len',
+                                          textAlign: TextAlign.right,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '/',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 16,
+                                        child: Text(
+                                          '24',
+                                          textAlign: TextAlign.left,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
                                 },
                               ),
                             ),
@@ -345,37 +390,57 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            PopupMenuButton<SensitivityLevel>(
-                              tooltip: 'Sensitivity',
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                child: SensitivityTag(level: field.sensitivity),
+                            SizedBox(
+                              width: 72,
+                              child: PopupMenuButton<SensitivityLevel>(
+                                tooltip: 'Sensitivity',
+                                child: Center(child: SensitivityTag(level: field.sensitivity)),
+                                itemBuilder: (context) => SensitivityLevel.values.map((level) {
+                                  return PopupMenuItem(
+                                    value: level,
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
+                                        const SizedBox(width: 8),
+                                        Text(level.label),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                onSelected: (level) {
+                                  setState(() {
+                                    field.sensitivity = level;
+                                  });
+                                },
                               ),
-                              itemBuilder: (context) => SensitivityLevel.values.map((level) {
-                                return PopupMenuItem(
-                                  value: level,
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
-                                      const SizedBox(width: 8),
-                                      Text(level.label),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                              onSelected: (level) {
-                                setState(() {
-                                  field.sensitivity = level;
-                                });
-                              },
                             ),
                             IconButton(
                               icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
                               tooltip: 'Delete',
-                              onPressed: () {
-                                setState(() {
-                                  _propertyFields.removeAt(index);
-                                });
+                              onPressed: () async {
+                                final keyName = field.key.trim().isNotEmpty ? field.key.trim() : 'this property';
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Delete Property'),
+                                    content: Text('Are you sure you want to delete "$keyName"?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmed == true) {
+                                  setState(() {
+                                    _propertyFields.removeAt(index);
+                                  });
+                                }
                               },
                               visualDensity: VisualDensity.compact,
                             ),

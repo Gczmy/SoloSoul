@@ -189,7 +189,13 @@ class OperationNotification {
       ),
     );
 
-    overlay.insert(_currentEntry!);
+    // Defer insertion to after the current frame to avoid layout/hitTest issues
+    // with FractionalTranslation (SlideTransition) during active gesture handling.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_currentEntry != null) {
+        overlay.insert(_currentEntry!);
+      }
+    });
   }
 
   /// Dismiss the current notification
@@ -239,7 +245,13 @@ class _NotificationWidgetState extends State<_NotificationWidget>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _controller.forward();
+    // Defer animation start until after the first layout to avoid
+    // hitTest accessing RenderFractionalTranslation before it's laid out.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
 
     // Auto dismiss after duration
     Future.delayed(widget.duration, () {
