@@ -265,14 +265,12 @@ List<UnifiedObject> rootObjects(Ref ref) {
 /// Direct children of a specific parent, in childrenIds order, active only.
 @riverpod
 List<UnifiedObject> children(Ref ref, String parentId) {
-  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
-  final parentIndex = objects.indexWhere((o) => o.id == parentId);
-  if (parentIndex == -1) return [];
-  final parent = objects[parentIndex];
-  final map = {for (final o in objects) o.id: o};
+  final data = ref.watch(unifiedObjectProvider);
+  final parent = data.objectMap[parentId];
+  if (parent == null) return [];
   return parent.childrenIds
-      .where((id) => map.containsKey(id))
-      .map((id) => map[id]!)
+      .where((id) => data.objectMap.containsKey(id))
+      .map((id) => data.objectMap[id]!)
       .where((o) => !o.isDeleted)
       .toList();
 }
@@ -280,12 +278,8 @@ List<UnifiedObject> children(Ref ref, String parentId) {
 /// Get a specific object by ID.
 @riverpod
 UnifiedObject? objectById(Ref ref, String id) {
-  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
-  try {
-    return objects.firstWhere((o) => o.id == id);
-  } on Object {
-    return null;
-  }
+  final data = ref.watch(unifiedObjectProvider);
+  return data.objectMap[id];
 }
 
 /// Get all active objects of a given type.
@@ -308,9 +302,11 @@ List<UnifiedObject> deletedObjects(Ref ref) {
 // Extensions
 // =============================================================================
 
+final _objectMapCache = Expando<Map<String, UnifiedObject>>();
+
 extension UnifiedObjectDataExtension on UnifiedObjectData {
-  /// Build a quick lookup map by object ID.
-  Map<String, UnifiedObject> toMap() => {
-        for (final o in objects) o.id: o,
-      };
+  /// Lazily-built lookup map by object ID. Cached per instance via Expando
+  /// to avoid rebuilding the map on every access.
+  Map<String, UnifiedObject> get objectMap =>
+      _objectMapCache[this] ??= {for (final o in objects) o.id: o};
 }
