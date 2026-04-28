@@ -304,7 +304,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                               flex: 2,
                               child: TextField(
                                 controller: field.controller,
-                                maxLength: 12,
+                                maxLength: 24,
                                 buildCounter: _buildCharacterCounter,
                                 decoration: const InputDecoration(
                                   hintText: 'Key name',

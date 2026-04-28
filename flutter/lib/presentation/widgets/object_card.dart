@@ -588,11 +588,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                             ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 100),
                               child: SelectableText(
-                                '${entry.key}: ',
+                                '${_wrapEveryNChars(entry.key, 6)}: ',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
-                                maxLines: 1,
                               ),
                             ),
                             if (isSensitive)
@@ -808,6 +807,16 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         keyboardType: value is NumberProperty ? TextInputType.number : null,
       ),
     };
+  }
+
+  String _wrapEveryNChars(String text, int n) {
+    if (text.length <= n) return text;
+    final buffer = StringBuffer();
+    for (var i = 0; i < text.length; i += n) {
+      if (i > 0) buffer.write('\n');
+      buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
+    }
+    return buffer.toString();
   }
 
   Widget? _buildCharacterCounter(
