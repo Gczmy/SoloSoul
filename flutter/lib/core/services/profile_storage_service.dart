@@ -8,7 +8,11 @@ import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 part 'profile_storage_service.g.dart';
 
@@ -1678,26 +1682,75 @@ class ProfileStorageService {
   }
 
   /// Current schema version for unified object model.
-  static const int kSchemaVersion = 3;
+  static const int kSchemaVersion = 4;
 
   /// Migrate profile to latest schema if needed.
   /// v3: Unified object model - everything is a UnifiedObject.
+  /// v4: Default pages (profile/travel/financial/professional) migrated to UnifiedObject tree.
   ProfileData _migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
-    final currentVersion = profile.schemaVersion ?? 0;
-    if (currentVersion >= kSchemaVersion) return profile;
-
+    var currentVersion = profile.schemaVersion ?? 0;
     var migrated = profile;
 
-    // v0/v1/v2 → v3: migrate any legacy data to UnifiedObjectData
-    if (migrated.unifiedObjects == null || migrated.unifiedObjects!.objects.isEmpty) {
-      final unifiedData = _migrateLegacyToUnified(rawJson);
-      migrated = migrated.copyWith(
-        unifiedObjects: unifiedData,
+    // Recovery guard: if unifiedObjects is empty/missing default pages but
+    // legacy fields still have data, re-run migration regardless of schemaVersion.
+    // This handles cases where unifiedObjects was accidentally wiped.
+    final unifiedObjects = migrated.unifiedObjects;
+    final hasDefaultPages = unifiedObjects?.objects.any(
+          (o) => o.id == DefaultPageIds.profile || o.id == DefaultPageIds.travel,
+        ) ?? false;
+    final hasLegacyData = migrated.identity != null ||
+        migrated.travel != null ||
+        migrated.financial != null ||
+        migrated.professional != null;
+
+    if (!hasDefaultPages && hasLegacyData) {
+      if (currentVersion < 3) {
+        if (unifiedObjects == null || unifiedObjects.objects.isEmpty) {
+          final unifiedData = _migrateLegacyToUnified(rawJson);
+          migrated = migrated.copyWith(unifiedObjects: unifiedData);
+        }
+        currentVersion = 3;
+      }
+      final existingData = migrated.unifiedObjects ?? const UnifiedObjectData();
+      final migratedObjects = _migrateProfileDataToUnified(migrated, existingData);
+      return migrated.copyWith(
+        unifiedObjects: migratedObjects,
         schemaVersion: kSchemaVersion,
       );
-    } else {
-      // Already has unifiedObjects but version not bumped
-      migrated = migrated.copyWith(schemaVersion: kSchemaVersion);
+    }
+
+    if (currentVersion >= kSchemaVersion) return profile;
+
+    // v0/v1/v2 → v3: migrate any legacy flexibleObjects/flexibleSections to UnifiedObjectData
+    if (currentVersion < 3) {
+      if (migrated.unifiedObjects == null || migrated.unifiedObjects!.objects.isEmpty) {
+        final unifiedData = _migrateLegacyToUnified(rawJson);
+        migrated = migrated.copyWith(
+          unifiedObjects: unifiedData,
+          schemaVersion: 3,
+        );
+      } else {
+        migrated = migrated.copyWith(schemaVersion: 3);
+      }
+      currentVersion = 3;
+    }
+
+    // v3 → v4: migrate default page data (identity/travel/financial/professional)
+    // into the UnifiedObject tree with predefined schemas.
+    if (currentVersion < 4) {
+      final existingData = migrated.unifiedObjects ?? const UnifiedObjectData();
+      final hasDefaultPages = existingData.objects.any(
+        (o) => o.id == DefaultPageIds.profile || o.id == DefaultPageIds.travel,
+      );
+      if (!hasDefaultPages) {
+        final migratedObjects = _migrateProfileDataToUnified(migrated, existingData);
+        migrated = migrated.copyWith(
+          unifiedObjects: migratedObjects,
+          schemaVersion: kSchemaVersion,
+        );
+      } else {
+        migrated = migrated.copyWith(schemaVersion: kSchemaVersion);
+      }
     }
 
     return migrated;
@@ -1835,23 +1888,642 @@ class ProfileStorageService {
     return const UnifiedObjectData();
   }
 
+  /// Migrate legacy profile data (identity/travel/financial/professional) to
+  /// the UnifiedObject tree. Creates default pages, sections, and items.
+  UnifiedObjectData _migrateProfileDataToUnified(
+    ProfileData profile,
+    UnifiedObjectData existingData,
+  ) {
+    final objects = List<UnifiedObject>.from(existingData.objects);
+    final timestamp = currentTimestamp();
+
+    TextProperty _prop(String? value, SensitivityLevel sensitivity) {
+      return TextProperty(text: value ?? '', sensitivity: sensitivity);
+    }
+
+    // Helper to look up sensitivity from FieldRegistry / FormFieldRegistry
+    SensitivityLevel _sens(String fieldId) {
+      // 1. Try runtime-registered FormFieldRegistry first (contact.* etc.)
+      final formField = FormFieldRegistry.getField(fieldId);
+      if (formField != null) return formField.level;
+      // 2. Fallback to static FieldRegistry defaults
+      try {
+        return FieldRegistry.defaultFields
+            .firstWhere((f) => f.fieldId == fieldId)
+            .level;
+      } catch (_) {
+        return SensitivityLevel.public;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Profile page
+    // -------------------------------------------------------------------------
+    final profileSectionChildren = <String>[];
+
+    // Identity section (single item)
+    if (profile.identity != null) {
+      final identity = profile.identity!;
+      final identityId = generateEntryId();
+      profileSectionChildren.add(identityId);
+      objects.add(UnifiedObject(
+        id: identityId,
+        typeId: 'profile_identity',
+        name: identity.fullName ?? 'Identity',
+        parentId: DefaultSectionIds.identity,
+        properties: {
+          'fullName': _prop(identity.fullName, _sens('identity.fullName')),
+          'givenName': _prop(identity.givenName, _sens('identity.givenName')),
+          'familyName': _prop(identity.familyName, _sens('identity.familyName')),
+          'dateOfBirth': _prop(identity.dateOfBirth, _sens('identity.dateOfBirth')),
+          'gender': _prop(identity.gender, _sens('identity.gender')),
+          'nationality': _prop(identity.nationality, _sens('identity.nationality')),
+        },
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      ));
+    }
+
+    // Contact items
+    final contactChildren = <String>[];
+    final contactEntries = profile.identity?.contact?.entries ?? [];
+    for (final entry in contactEntries) {
+      contactChildren.add(entry.id);
+      objects.add(UnifiedObject(
+        id: entry.id,
+        typeId: 'profile_contact',
+        name: entry.title.isNotEmpty ? entry.title : entry.value,
+        parentId: DefaultSectionIds.contact,
+        properties: {
+          'title': _prop(entry.title, _sens('contact.title')),
+          'type': _prop(entry.type, _sens('contact.type')),
+          'value': _prop(entry.value, _sens('contact.value')),
+        },
+        isDeleted: entry.isDeleted,
+        deletedAt: entry.deletedAt,
+        createdAt: timestamp,
+        updatedAt: entry.updatedAt,
+      ));
+    }
+
+    // ID Card items
+    final idCardChildren = <String>[];
+    final idCards = profile.identity?.idCards ?? [];
+    for (final card in idCards) {
+      idCardChildren.add(card.id);
+      objects.add(UnifiedObject(
+        id: card.id,
+        typeId: 'profile_id_card',
+        name: card.title ?? 'ID Card',
+        parentId: DefaultSectionIds.idCard,
+        properties: {
+          'title': _prop(card.title, _sens('idCard.title')),
+          'number': _prop(card.number, _sens('idCard.number')),
+          'issueDate': _prop(card.issueDate, _sens('idCard.issueDate')),
+          'expiryDate': _prop(card.expiryDate, _sens('idCard.expiryDate')),
+          'holderName': _prop(card.holderName, _sens('idCard.holderName')),
+          'country': _prop(card.country, _sens('idCard.country')),
+        },
+        isDeleted: card.isDeleted,
+        deletedAt: card.deletedAt,
+        createdAt: timestamp,
+        updatedAt: card.updatedAt,
+      ));
+    }
+
+    // Address items
+    final addressChildren = <String>[];
+    final addresses = profile.identity?.addresses ?? [];
+    for (final addr in addresses) {
+      addressChildren.add(addr.id);
+      objects.add(UnifiedObject(
+        id: addr.id,
+        typeId: 'profile_address',
+        name: addr.title ?? 'Address',
+        parentId: DefaultSectionIds.address,
+        properties: {
+          'title': _prop(addr.title, _sens('address.title')),
+          'street': _prop(addr.street, _sens('address.street')),
+          'city': _prop(addr.city, _sens('address.city')),
+          'state': _prop(addr.state, SensitivityLevel.public),
+          'postalCode': _prop(addr.postalCode, _sens('address.postalCode')),
+          'country': _prop(addr.country, _sens('address.country')),
+        },
+        isDeleted: addr.isDeleted,
+        deletedAt: addr.deletedAt,
+        createdAt: timestamp,
+        updatedAt: addr.updatedAt,
+      ));
+    }
+
+    // Build profile sections
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.identity,
+      typeId: 'collection',
+      name: 'Identity',
+      iconName: 'person',
+      parentId: DefaultPageIds.profile,
+      childrenIds: profile.identity != null ? [profileSectionChildren.first] : const [],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.contact,
+      typeId: 'collection',
+      name: 'Contact Information',
+      iconName: 'contact_mail',
+      parentId: DefaultPageIds.profile,
+      childrenIds: contactChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.idCard,
+      typeId: 'collection',
+      name: 'ID Cards',
+      iconName: 'badge',
+      parentId: DefaultPageIds.profile,
+      childrenIds: idCardChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.address,
+      typeId: 'collection',
+      name: 'Addresses',
+      iconName: 'home',
+      parentId: DefaultPageIds.profile,
+      childrenIds: addressChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultPageIds.profile,
+      typeId: 'page',
+      name: 'Profile',
+      iconName: 'person',
+      parentId: null,
+      childrenIds: const [
+        DefaultSectionIds.identity,
+        DefaultSectionIds.contact,
+        DefaultSectionIds.idCard,
+        DefaultSectionIds.address,
+      ],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+
+    // -------------------------------------------------------------------------
+    // Travel page
+    // -------------------------------------------------------------------------
+    final passports = profile.travel?.passports ?? [];
+    final passportChildren = <String>[];
+    for (final p in passports) {
+      passportChildren.add(p.id);
+      objects.add(UnifiedObject(
+        id: p.id,
+        typeId: 'travel_passport',
+        name: p.title ?? p.country ?? 'Passport',
+        parentId: DefaultSectionIds.passport,
+        properties: {
+          'title': _prop(p.title, _sens('passport.title')),
+          'country': _prop(p.country, _sens('passport.country')),
+          'countryCode': _prop(p.countryCode, _sens('passport.countryCode')),
+          'number': _prop(p.number, _sens('passport.number')),
+          'issueDate': _prop(p.issueDate, _sens('passport.issueDate')),
+          'placeOfIssue': _prop(p.placeOfIssue, _sens('passport.placeOfIssue')),
+          'expiryDate': _prop(p.expiryDate, _sens('passport.expiryDate')),
+          'holderName': _prop(p.holderName, _sens('passport.holderName')),
+          'dateOfBirth': _prop(p.dateOfBirth, _sens('passport.dateOfBirth')),
+          'placeOfBirth': _prop(p.placeOfBirth, _sens('passport.placeOfBirth')),
+          'sex': _prop(p.sex, _sens('passport.sex')),
+          'nationality': _prop(p.nationality, _sens('passport.nationality')),
+          'authority': _prop(p.authority, _sens('passport.authority')),
+        },
+        isDeleted: p.isDeleted,
+        deletedAt: p.deletedAt,
+        createdAt: timestamp,
+        updatedAt: p.updatedAt,
+      ));
+    }
+
+    final visas = profile.travel?.visas ?? [];
+    final visaChildren = <String>[];
+    for (final v in visas) {
+      visaChildren.add(v.id);
+      objects.add(UnifiedObject(
+        id: v.id,
+        typeId: 'travel_visa',
+        name: v.title ?? v.country ?? 'Visa',
+        parentId: DefaultSectionIds.visa,
+        properties: {
+          'title': _prop(v.title, _sens('visa.title')),
+          'country': _prop(v.country, _sens('visa.country')),
+          'visaType': _prop(v.visaType, _sens('visa.visaType')),
+          'number': _prop(v.number, _sens('visa.number')),
+          'issueDate': _prop(v.issueDate, _sens('visa.issueDate')),
+          'expiryDate': _prop(v.expiryDate, _sens('visa.expiryDate')),
+        },
+        isDeleted: v.isDeleted,
+        deletedAt: v.deletedAt,
+        createdAt: timestamp,
+        updatedAt: v.updatedAt,
+      ));
+    }
+
+    final histories = profile.travel?.travelHistory ?? [];
+    final historyChildren = <String>[];
+    for (final h in histories) {
+      historyChildren.add(h.id);
+      objects.add(UnifiedObject(
+        id: h.id,
+        typeId: 'travel_history',
+        name: h.destination,
+        parentId: DefaultSectionIds.travelHistory,
+        properties: {
+          'destination': _prop(h.destination, _sens('travel.destination')),
+          'travelType': _prop(h.travelType, _sens('travel.travelType')),
+          'date': _prop(h.date, _sens('travel.date')),
+          'departureCity': _prop(h.departureCity, _sens('travel.departureCity')),
+          'departureTime': _prop(h.departureTime, _sens('travel.departureTime')),
+          'arrivalTime': _prop(h.arrivalTime, _sens('travel.arrivalTime')),
+          'flightNumber': _prop(h.flightNumber, _sens('travel.flightNumber')),
+          'ticketPrice': _prop(h.ticketPrice, _sens('travel.ticketPrice')),
+          'airline': _prop(h.airline, _sens('travel.airline')),
+        },
+        isDeleted: h.isDeleted,
+        deletedAt: h.deletedAt,
+        createdAt: timestamp,
+        updatedAt: h.updatedAt,
+      ));
+    }
+
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.passport,
+      typeId: 'collection',
+      name: 'Passports',
+      iconName: 'book',
+      parentId: DefaultPageIds.travel,
+      childrenIds: passportChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.visa,
+      typeId: 'collection',
+      name: 'Visas',
+      iconName: 'assignment_ind',
+      parentId: DefaultPageIds.travel,
+      childrenIds: visaChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.travelHistory,
+      typeId: 'collection',
+      name: 'Travel History',
+      iconName: 'history',
+      parentId: DefaultPageIds.travel,
+      childrenIds: historyChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultPageIds.travel,
+      typeId: 'page',
+      name: 'Travel',
+      iconName: 'flight',
+      parentId: null,
+      childrenIds: const [
+        DefaultSectionIds.passport,
+        DefaultSectionIds.visa,
+        DefaultSectionIds.travelHistory,
+      ],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+
+    // -------------------------------------------------------------------------
+    // Financial page
+    // -------------------------------------------------------------------------
+    final bankAccounts = profile.financial?.bankAccounts ?? [];
+    final bankAccountChildren = <String>[];
+    for (final b in bankAccounts) {
+      bankAccountChildren.add(b.id);
+      objects.add(UnifiedObject(
+        id: b.id,
+        typeId: 'financial_bank_account',
+        name: b.title ?? b.bankName ?? 'Bank Account',
+        parentId: DefaultSectionIds.bankAccount,
+        properties: {
+          'title': _prop(b.title, _sens('bankAccount.title')),
+          'bankName': _prop(b.bankName, _sens('bankAccount.bankName')),
+          'accountNumber': _prop(b.accountNumber, _sens('bankAccount.accountNumber')),
+          'currency': _prop(b.currency, _sens('bankAccount.currency')),
+          'swiftBic': _prop(b.swiftBic, _sens('bankAccount.swiftBic')),
+          'sortCode': _prop(b.sortCode, _sens('bankAccount.sortCode')),
+        },
+        isDeleted: b.isDeleted,
+        deletedAt: b.deletedAt,
+        createdAt: timestamp,
+        updatedAt: b.updatedAt,
+      ));
+    }
+
+    final cards = profile.financial?.cards ?? [];
+    final cardChildren = <String>[];
+    for (final c in cards) {
+      cardChildren.add(c.id);
+      objects.add(UnifiedObject(
+        id: c.id,
+        typeId: 'financial_card',
+        name: c.title ?? c.cardType ?? 'Card',
+        parentId: DefaultSectionIds.card,
+        properties: {
+          'title': _prop(c.title, _sens('card.title')),
+          'cardNumber': _prop(c.cardNumber, _sens('card.cardNumber')),
+          'cardType': _prop(c.cardType, _sens('card.cardType')),
+          'expiryDate': _prop(c.expiryDate, _sens('card.expiryDate')),
+          'holderName': _prop(c.holderName, _sens('card.holderName')),
+          'cvv': _prop(c.cvv, _sens('card.cvv')),
+        },
+        isDeleted: c.isDeleted,
+        deletedAt: c.deletedAt,
+        createdAt: timestamp,
+        updatedAt: c.updatedAt,
+      ));
+    }
+
+    final taxIds = profile.financial?.taxIds ?? [];
+    final taxIdChildren = <String>[];
+    for (final t in taxIds) {
+      taxIdChildren.add(t.id);
+      objects.add(UnifiedObject(
+        id: t.id,
+        typeId: 'financial_tax_id',
+        name: t.title ?? 'Tax ID',
+        parentId: DefaultSectionIds.taxId,
+        properties: {
+          'title': _prop(t.title, _sens('taxId.title')),
+          'taxIdNumber': _prop(t.taxIdNumber, _sens('taxId.taxIdNumber')),
+          'taxIdType': _prop(t.taxIdType, _sens('taxId.taxIdType')),
+          'issuingAuthority': _prop(t.issuingAuthority, _sens('taxId.issuingAuthority')),
+          'country': _prop(t.country, _sens('taxId.country')),
+        },
+        isDeleted: t.isDeleted,
+        deletedAt: t.deletedAt,
+        createdAt: timestamp,
+        updatedAt: t.updatedAt,
+      ));
+    }
+
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.bankAccount,
+      typeId: 'collection',
+      name: 'Bank Accounts',
+      iconName: 'account_balance',
+      parentId: DefaultPageIds.financial,
+      childrenIds: bankAccountChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.card,
+      typeId: 'collection',
+      name: 'Cards',
+      iconName: 'credit_card',
+      parentId: DefaultPageIds.financial,
+      childrenIds: cardChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.taxId,
+      typeId: 'collection',
+      name: 'Tax IDs',
+      iconName: 'description',
+      parentId: DefaultPageIds.financial,
+      childrenIds: taxIdChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultPageIds.financial,
+      typeId: 'page',
+      name: 'Financial',
+      iconName: 'account_balance',
+      parentId: null,
+      childrenIds: const [
+        DefaultSectionIds.bankAccount,
+        DefaultSectionIds.card,
+        DefaultSectionIds.taxId,
+      ],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+
+    // -------------------------------------------------------------------------
+    // Professional page
+    // -------------------------------------------------------------------------
+    final educationList = profile.professional?.education ?? [];
+    final educationChildren = <String>[];
+    for (final e in educationList) {
+      educationChildren.add(e.id);
+      objects.add(UnifiedObject(
+        id: e.id,
+        typeId: 'professional_education',
+        name: e.institution ?? 'Education',
+        parentId: DefaultSectionIds.education,
+        properties: {
+          'institution': _prop(e.institution, _sens('education.institution')),
+          'degree': _prop(e.degree, _sens('education.degree')),
+          'degreeCustom': _prop(e.degreeCustom, _sens('education.degreeCustom')),
+          'field': _prop(e.field, _sens('education.field')),
+          'startDate': _prop(e.startDate, _sens('education.startDate')),
+          'endDate': _prop(e.endDate, _sens('education.endDate')),
+        },
+        isDeleted: e.isDeleted,
+        deletedAt: e.deletedAt,
+        createdAt: timestamp,
+        updatedAt: e.updatedAt,
+      ));
+    }
+
+    final employmentList = profile.professional?.employment ?? [];
+    final employmentChildren = <String>[];
+    for (final e in employmentList) {
+      employmentChildren.add(e.id);
+      objects.add(UnifiedObject(
+        id: e.id,
+        typeId: 'professional_employment',
+        name: e.company ?? 'Employment',
+        parentId: DefaultSectionIds.employment,
+        properties: {
+          'company': _prop(e.company, _sens('employment.company')),
+          'position': _prop(e.position, _sens('employment.position')),
+          'responsibilities': _prop(e.responsibilities, _sens('employment.responsibilities')),
+          'startDate': _prop(e.startDate, _sens('employment.startDate')),
+          'endDate': _prop(e.endDate, _sens('employment.endDate')),
+        },
+        isDeleted: e.isDeleted,
+        deletedAt: e.deletedAt,
+        createdAt: timestamp,
+        updatedAt: e.updatedAt,
+      ));
+    }
+
+    final skills = profile.professional?.skills ?? [];
+    final skillChildren = <String>[];
+    for (final s in skills) {
+      skillChildren.add(s.id);
+      objects.add(UnifiedObject(
+        id: s.id,
+        typeId: 'professional_skill',
+        name: s.name,
+        parentId: DefaultSectionIds.skill,
+        properties: {
+          'name': _prop(s.name, _sens('skill.name')),
+          'level': _prop(s.level, _sens('skill.level')),
+        },
+        isDeleted: s.isDeleted,
+        deletedAt: s.deletedAt,
+        createdAt: timestamp,
+        updatedAt: s.updatedAt,
+      ));
+    }
+
+    final languages = profile.professional?.languages ?? [];
+    final languageChildren = <String>[];
+    for (final l in languages) {
+      languageChildren.add(l.id);
+      objects.add(UnifiedObject(
+        id: l.id,
+        typeId: 'professional_language',
+        name: l.name,
+        parentId: DefaultSectionIds.language,
+        properties: {
+          'name': _prop(l.name, _sens('language.name')),
+          'proficiency': _prop(l.proficiency, _sens('language.proficiency')),
+        },
+        isDeleted: l.isDeleted,
+        deletedAt: l.deletedAt,
+        createdAt: timestamp,
+        updatedAt: l.updatedAt,
+      ));
+    }
+
+    final awards = profile.professional?.awards ?? [];
+    final awardChildren = <String>[];
+    for (final a in awards) {
+      awardChildren.add(a.id);
+      objects.add(UnifiedObject(
+        id: a.id,
+        typeId: 'professional_award',
+        name: a.title ?? 'Award',
+        parentId: DefaultSectionIds.award,
+        properties: {
+          'title': _prop(a.title, _sens('award.title')),
+          'issuer': _prop(a.issuer, _sens('award.issuer')),
+          'date': _prop(a.date, _sens('award.date')),
+          'description': _prop(a.description, _sens('award.description')),
+        },
+        isDeleted: a.isDeleted,
+        deletedAt: a.deletedAt,
+        createdAt: timestamp,
+        updatedAt: a.updatedAt,
+      ));
+    }
+
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.education,
+      typeId: 'collection',
+      name: 'Education',
+      iconName: 'school',
+      parentId: DefaultPageIds.professional,
+      childrenIds: educationChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.employment,
+      typeId: 'collection',
+      name: 'Employment',
+      iconName: 'work',
+      parentId: DefaultPageIds.professional,
+      childrenIds: employmentChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.skill,
+      typeId: 'collection',
+      name: 'Skills',
+      iconName: 'star',
+      parentId: DefaultPageIds.professional,
+      childrenIds: skillChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.language,
+      typeId: 'collection',
+      name: 'Languages',
+      iconName: 'language',
+      parentId: DefaultPageIds.professional,
+      childrenIds: languageChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultSectionIds.award,
+      typeId: 'collection',
+      name: 'Awards',
+      iconName: 'emoji_events',
+      parentId: DefaultPageIds.professional,
+      childrenIds: awardChildren,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+    objects.add(UnifiedObject(
+      id: DefaultPageIds.professional,
+      typeId: 'page',
+      name: 'Professional',
+      iconName: 'work',
+      parentId: null,
+      childrenIds: const [
+        DefaultSectionIds.education,
+        DefaultSectionIds.employment,
+        DefaultSectionIds.skill,
+        DefaultSectionIds.language,
+        DefaultSectionIds.award,
+      ],
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    ));
+
+    return UnifiedObjectData(
+      objects: objects,
+      customTypes: existingData.customTypes,
+    );
+  }
+
   /// Load profile data for an account
   /// Returns ProfileData with all fields decrypted, or null if not found
   Future<ProfileData?> loadProfile(String accountId) async {
-    // Try to load from Rust vault
-    final decrypted = await _rustVault.loadProfileDecrypted(accountId);
-    if (decrypted == null) {
-      return null;
-    }
-
     try {
+      // Try to load from Rust vault
+      final decrypted = await _rustVault.loadProfileDecrypted(accountId);
+      if (decrypted == null) {
+        return null;
+      }
+
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
       // Apply migration if needed
       final migratedProfile = _migrateIfNeeded(profile, json);
       return migratedProfile;
-    } on Exception catch (_) {
-      // TypeError from cast or other Error subclasses could occur here
+    } catch (e, st) {
+      DebugLogger.instance.logError('PROFILE', 'loadProfile failed: $e\n$st');
       return null;
     }
   }

@@ -45,8 +45,148 @@ class ObjectTypeRegistry {
   static ObjectTypeDefinition get defaultType => _builtins['note']!;
 }
 
+// =============================================================================
+// Default Page / Section Fixed IDs
+// =============================================================================
+
+/// Fixed IDs for default pages (Profile, Travel, Financial, Professional).
+/// These are used to identify the built-in pages in the unified object tree.
+class DefaultPageIds {
+  static const profile = '__page_profile';
+  static const travel = '__page_travel';
+  static const financial = '__page_financial';
+  static const professional = '__page_professional';
+}
+
+/// Fixed IDs for default sections under each page.
+class DefaultSectionIds {
+  // Profile page sections
+  static const identity = '__section_identity';
+  static const contact = '__section_contact';
+  static const idCard = '__section_id_card';
+  static const address = '__section_address';
+
+  // Travel page sections
+  static const passport = '__section_passport';
+  static const visa = '__section_visa';
+  static const travelHistory = '__section_travel_history';
+
+  // Financial page sections
+  static const bankAccount = '__section_bank_account';
+  static const card = '__section_card';
+  static const taxId = '__section_tax_id';
+
+  // Professional page sections
+  static const education = '__section_education';
+  static const employment = '__section_employment';
+  static const skill = '__section_skill';
+  static const language = '__section_language';
+  static const award = '__section_award';
+}
+
+/// Mapping from page ID to its section IDs.
+const Map<String, List<String>> _kDefaultPageSections = {
+  DefaultPageIds.profile: [
+    DefaultSectionIds.identity,
+    DefaultSectionIds.contact,
+    DefaultSectionIds.idCard,
+    DefaultSectionIds.address,
+  ],
+  DefaultPageIds.travel: [
+    DefaultSectionIds.passport,
+    DefaultSectionIds.visa,
+    DefaultSectionIds.travelHistory,
+  ],
+  DefaultPageIds.financial: [
+    DefaultSectionIds.bankAccount,
+    DefaultSectionIds.card,
+    DefaultSectionIds.taxId,
+  ],
+  DefaultPageIds.professional: [
+    DefaultSectionIds.education,
+    DefaultSectionIds.employment,
+    DefaultSectionIds.skill,
+    DefaultSectionIds.language,
+    DefaultSectionIds.award,
+  ],
+};
+
+/// Get the list of section IDs for a given default page ID.
+List<String> getDefaultSectionIds(String pageId) {
+  return _kDefaultPageSections[pageId] ?? const [];
+}
+
+/// Metadata for auto-creating a default section when it is missing.
+class _SectionMeta {
+  final String name;
+  final String iconName;
+  final String parentPageId;
+  const _SectionMeta(this.name, this.iconName, this.parentPageId);
+}
+
+const Map<String, _SectionMeta> _kSectionMeta = {
+  DefaultSectionIds.identity: _SectionMeta('Identity', 'person', DefaultPageIds.profile),
+  DefaultSectionIds.contact: _SectionMeta('Contact Information', 'contact_mail', DefaultPageIds.profile),
+  DefaultSectionIds.idCard: _SectionMeta('ID Cards', 'badge', DefaultPageIds.profile),
+  DefaultSectionIds.address: _SectionMeta('Addresses', 'home', DefaultPageIds.profile),
+  DefaultSectionIds.passport: _SectionMeta('Passports', 'flight', DefaultPageIds.travel),
+  DefaultSectionIds.visa: _SectionMeta('Visas', 'description', DefaultPageIds.travel),
+  DefaultSectionIds.travelHistory: _SectionMeta('Travel History', 'history', DefaultPageIds.travel),
+  DefaultSectionIds.bankAccount: _SectionMeta('Bank Accounts', 'account_balance', DefaultPageIds.financial),
+  DefaultSectionIds.card: _SectionMeta('Cards', 'credit_card', DefaultPageIds.financial),
+  DefaultSectionIds.taxId: _SectionMeta('Tax IDs', 'receipt', DefaultPageIds.financial),
+  DefaultSectionIds.education: _SectionMeta('Education', 'school', DefaultPageIds.professional),
+  DefaultSectionIds.employment: _SectionMeta('Employment', 'work', DefaultPageIds.professional),
+  DefaultSectionIds.skill: _SectionMeta('Skills', 'stars', DefaultPageIds.professional),
+  DefaultSectionIds.language: _SectionMeta('Languages', 'language', DefaultPageIds.professional),
+  DefaultSectionIds.award: _SectionMeta('Awards', 'emoji_events', DefaultPageIds.professional),
+};
+
+/// 根据 sectionId 获取其元数据，用于缺失时自动创建。
+_SectionMeta? getSectionMeta(String sectionId) => _kSectionMeta[sectionId];
+
+/// Mapping from section ID to its item type ID.
+/// Prefixes avoid collisions with generic built-in types (e.g. 'contact').
+const Map<String, String> _kSectionItemTypes = {
+  DefaultSectionIds.identity: 'profile_identity',
+  DefaultSectionIds.contact: 'profile_contact',
+  DefaultSectionIds.idCard: 'profile_id_card',
+  DefaultSectionIds.address: 'profile_address',
+  DefaultSectionIds.passport: 'travel_passport',
+  DefaultSectionIds.visa: 'travel_visa',
+  DefaultSectionIds.travelHistory: 'travel_history',
+  DefaultSectionIds.bankAccount: 'financial_bank_account',
+  DefaultSectionIds.card: 'financial_card',
+  DefaultSectionIds.taxId: 'financial_tax_id',
+  DefaultSectionIds.education: 'professional_education',
+  DefaultSectionIds.employment: 'professional_employment',
+  DefaultSectionIds.skill: 'professional_skill',
+  DefaultSectionIds.language: 'professional_language',
+  DefaultSectionIds.award: 'professional_award',
+};
+
+/// Get the item type ID for a given section ID.
+String? getDefaultItemTypeId(String sectionId) {
+  return _kSectionItemTypes[sectionId];
+}
+
+/// 根据 item type ID 反向查找对应的默认 section ID。
+String? getDefaultSectionIdForItemType(String itemTypeId) {
+  for (final entry in _kSectionItemTypes.entries) {
+    if (entry.value == itemTypeId) return entry.key;
+  }
+  return null;
+}
+
+// =============================================================================
+// Built-in Object Type Definitions
+// =============================================================================
+
 /// Built-in type definitions.
 final List<ObjectTypeDefinition> _kBuiltinTypes = [
+  // ---------------------------------------------------------------------------
+  // Generic types (existing)
+  // ---------------------------------------------------------------------------
   const ObjectTypeDefinition(
     id: 'page',
     name: 'Page',
@@ -113,6 +253,226 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     name: 'Item',
     iconName: 'list_item',
     defaultLayout: ObjectLayout.collection,
+  ),
+
+  // ---------------------------------------------------------------------------
+  // Default page item types (predefined schema — users cannot modify)
+  // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Default page item types (predefined schema — users cannot modify)
+  // Prefixes avoid collisions with generic built-in types.
+  // ---------------------------------------------------------------------------
+  // Profile
+  const ObjectTypeDefinition(
+    id: 'profile_identity',
+    name: 'Identity',
+    iconName: 'person',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'fullName', name: 'Full Name', type: PropertyType.text),
+      PropertyDefinition(id: 'givenName', name: 'Given Name', type: PropertyType.text),
+      PropertyDefinition(id: 'familyName', name: 'Family Name', type: PropertyType.text),
+      PropertyDefinition(id: 'dateOfBirth', name: 'Date of Birth', type: PropertyType.text),
+      PropertyDefinition(id: 'gender', name: 'Gender', type: PropertyType.text),
+      PropertyDefinition(id: 'nationality', name: 'Nationality', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'profile_contact',
+    name: 'Contact',
+    iconName: 'contact_mail',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'type', name: 'Type', type: PropertyType.text),
+      PropertyDefinition(id: 'value', name: 'Value', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'profile_id_card',
+    name: 'ID Card',
+    iconName: 'badge',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'number', name: 'ID Card Number', type: PropertyType.text),
+      PropertyDefinition(id: 'issueDate', name: 'Issue Date', type: PropertyType.text),
+      PropertyDefinition(id: 'expiryDate', name: 'Expiry Date', type: PropertyType.text),
+      PropertyDefinition(id: 'holderName', name: 'Holder Name', type: PropertyType.text),
+      PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'profile_address',
+    name: 'Address',
+    iconName: 'home',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'street', name: 'Street', type: PropertyType.text),
+      PropertyDefinition(id: 'city', name: 'City', type: PropertyType.text),
+      PropertyDefinition(id: 'state', name: 'State', type: PropertyType.text),
+      PropertyDefinition(id: 'postalCode', name: 'Postal Code', type: PropertyType.text),
+      PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
+    ],
+  ),
+
+  // Travel
+  const ObjectTypeDefinition(
+    id: 'travel_passport',
+    name: 'Passport',
+    iconName: 'book',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Type', type: PropertyType.text),
+      PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
+      PropertyDefinition(id: 'countryCode', name: 'Country Code', type: PropertyType.text),
+      PropertyDefinition(id: 'number', name: 'Passport Number', type: PropertyType.text),
+      PropertyDefinition(id: 'issueDate', name: 'Date of Issue', type: PropertyType.text),
+      PropertyDefinition(id: 'placeOfIssue', name: 'Place of Issue', type: PropertyType.text),
+      PropertyDefinition(id: 'expiryDate', name: 'Date of Expiry', type: PropertyType.text),
+      PropertyDefinition(id: 'holderName', name: 'Holder Name', type: PropertyType.text),
+      PropertyDefinition(id: 'dateOfBirth', name: 'Date of Birth', type: PropertyType.text),
+      PropertyDefinition(id: 'placeOfBirth', name: 'Place of Birth', type: PropertyType.text),
+      PropertyDefinition(id: 'sex', name: 'Sex', type: PropertyType.text),
+      PropertyDefinition(id: 'nationality', name: 'Nationality', type: PropertyType.text),
+      PropertyDefinition(id: 'authority', name: 'Authority', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'travel_visa',
+    name: 'Visa',
+    iconName: 'assignment_ind',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
+      PropertyDefinition(id: 'visaType', name: 'Visa Type', type: PropertyType.text),
+      PropertyDefinition(id: 'number', name: 'Visa Number', type: PropertyType.text),
+      PropertyDefinition(id: 'issueDate', name: 'Issue Date', type: PropertyType.text),
+      PropertyDefinition(id: 'expiryDate', name: 'Expiry Date', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'travel_history',
+    name: 'Travel History',
+    iconName: 'history',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'destination', name: 'Destination', type: PropertyType.text),
+      PropertyDefinition(id: 'travelType', name: 'Travel Type', type: PropertyType.text),
+      PropertyDefinition(id: 'date', name: 'Date', type: PropertyType.text),
+      PropertyDefinition(id: 'departureCity', name: 'Departure City', type: PropertyType.text),
+      PropertyDefinition(id: 'departureTime', name: 'Departure Time', type: PropertyType.text),
+      PropertyDefinition(id: 'arrivalTime', name: 'Arrival Time', type: PropertyType.text),
+      PropertyDefinition(id: 'flightNumber', name: 'Flight Number', type: PropertyType.text),
+      PropertyDefinition(id: 'ticketPrice', name: 'Ticket Price', type: PropertyType.text),
+      PropertyDefinition(id: 'airline', name: 'Airline', type: PropertyType.text),
+    ],
+  ),
+
+  // Financial
+  const ObjectTypeDefinition(
+    id: 'financial_bank_account',
+    name: 'Bank Account',
+    iconName: 'account_balance',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'bankName', name: 'Bank Name', type: PropertyType.text),
+      PropertyDefinition(id: 'accountNumber', name: 'Account Number', type: PropertyType.text),
+      PropertyDefinition(id: 'currency', name: 'Currency', type: PropertyType.text),
+      PropertyDefinition(id: 'swiftBic', name: 'SWIFT/BIC', type: PropertyType.text),
+      PropertyDefinition(id: 'sortCode', name: 'Sort Code', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'financial_card',
+    name: 'Card',
+    iconName: 'credit_card',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'cardNumber', name: 'Card Number', type: PropertyType.text),
+      PropertyDefinition(id: 'cardType', name: 'Card Type', type: PropertyType.text),
+      PropertyDefinition(id: 'expiryDate', name: 'Expiry Date', type: PropertyType.text),
+      PropertyDefinition(id: 'holderName', name: 'Holder Name', type: PropertyType.text),
+      PropertyDefinition(id: 'cvv', name: 'CVV', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'financial_tax_id',
+    name: 'Tax ID',
+    iconName: 'description',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'taxIdNumber', name: 'Tax ID Number', type: PropertyType.text),
+      PropertyDefinition(id: 'taxIdType', name: 'Tax ID Type', type: PropertyType.text),
+      PropertyDefinition(id: 'issuingAuthority', name: 'Issuing Authority', type: PropertyType.text),
+      PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
+    ],
+  ),
+
+  // Professional
+  const ObjectTypeDefinition(
+    id: 'professional_education',
+    name: 'Education',
+    iconName: 'school',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'institution', name: 'Institution', type: PropertyType.text),
+      PropertyDefinition(id: 'degree', name: 'Degree', type: PropertyType.text),
+      PropertyDefinition(id: 'degreeCustom', name: 'Custom Degree', type: PropertyType.text),
+      PropertyDefinition(id: 'field', name: 'Field of Study', type: PropertyType.text),
+      PropertyDefinition(id: 'startDate', name: 'Start Date', type: PropertyType.text),
+      PropertyDefinition(id: 'endDate', name: 'End Date', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'professional_employment',
+    name: 'Employment',
+    iconName: 'work',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'company', name: 'Company', type: PropertyType.text),
+      PropertyDefinition(id: 'position', name: 'Position', type: PropertyType.text),
+      PropertyDefinition(id: 'responsibilities', name: 'Responsibilities', type: PropertyType.text),
+      PropertyDefinition(id: 'startDate', name: 'Start Date', type: PropertyType.text),
+      PropertyDefinition(id: 'endDate', name: 'End Date', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'professional_skill',
+    name: 'Skill',
+    iconName: 'star',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'name', name: 'Skill Name', type: PropertyType.text),
+      PropertyDefinition(id: 'level', name: 'Proficiency Level', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'professional_language',
+    name: 'Language',
+    iconName: 'language',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'name', name: 'Language', type: PropertyType.text),
+      PropertyDefinition(id: 'proficiency', name: 'Proficiency Level', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'professional_award',
+    name: 'Award',
+    iconName: 'emoji_events',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'issuer', name: 'Issuer', type: PropertyType.text),
+      PropertyDefinition(id: 'date', name: 'Date', type: PropertyType.text),
+      PropertyDefinition(id: 'description', name: 'Description', type: PropertyType.text),
+    ],
   ),
 ];
 

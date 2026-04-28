@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
@@ -23,6 +24,12 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       }
     });
 
+    // 如果 profile 已经加载，立即同步，避免 ref.listen 因值未变化而错过
+    final profile = ref.read(profileNotifierProvider).value;
+    if (profile?.unifiedObjects != null) {
+      return profile!.unifiedObjects!;
+    }
+
     return const UnifiedObjectData(objects: [], customTypes: []);
   }
 
@@ -36,12 +43,105 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     if (profile == null) return;
 
     final data = profile.unifiedObjects;
-    if (data == null) return; // Don't overwrite state if unifiedObjects is missing
+    if (data == null) {
+      // 新账号或旧数据没有 unifiedObjects 时，重置 state 避免显示其他账号的数据
+      if (state.objects.isNotEmpty || state.customTypes.isNotEmpty) {
+        state = const UnifiedObjectData(objects: [], customTypes: []);
+      }
+      return;
+    }
 
     // 避免无意义的 state 覆盖（引用相等时跳过，防止级联重建）
     if (identical(state, data)) return;
 
-    state = data;
+    // 数据完整性修复：挂载孤儿 item 到默认 section
+    final repaired = _repairOrphanItems(data);
+
+    state = repaired;
+  }
+
+  /// 启动时数据完整性检查：将所有 parentId 指向不存在的 section 的 item
+  /// 自动挂载到对应的默认 section（section 不存在则自动创建）。
+  UnifiedObjectData _repairOrphanItems(UnifiedObjectData data) {
+    var objects = List<UnifiedObject>.from(data.objects);
+    final objectMap = {for (final o in objects) o.id: o};
+    var modified = false;
+
+    for (final obj in objects) {
+      // 只检查 item 级别对象（有 parentId 且不是 page/collection）
+      if (obj.parentId == null) continue;
+      if (obj.typeId == 'page' || obj.typeId == 'collection') continue;
+
+      final parent = objectMap[obj.parentId];
+      if (parent != null) continue; // parent 存在，不是孤儿
+
+      // 孤儿 item：尝试找到对应的默认 section
+      final itemTypeId = obj.typeId;
+      if (itemTypeId == null) continue;
+      final targetSectionId = getDefaultSectionIdForItemType(itemTypeId);
+      if (targetSectionId == null) continue;
+
+      // 确保 section 存在
+      final sectionExists = objectMap[targetSectionId] != null;
+      if (!sectionExists) {
+        final meta = getSectionMeta(targetSectionId);
+        if (meta == null) continue;
+
+        // 确保 page 存在（使用固定 ID）
+        final pageExists = objectMap[meta.parentPageId] != null;
+        if (!pageExists) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final page = UnifiedObject(
+            id: meta.parentPageId,
+            typeId: 'page',
+            name: _pageNameFromId(meta.parentPageId),
+            iconName: 'article',
+            parentId: null,
+            childrenIds: const [],
+            properties: const {},
+            isDeleted: false,
+            deletedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          );
+          objects = _service.addObject(objects, page);
+          objectMap[page.id] = page;
+        }
+
+        // 创建 section（使用固定 ID）
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final section = UnifiedObject(
+          id: targetSectionId,
+          typeId: 'collection',
+          name: meta.name,
+          iconName: meta.iconName,
+          parentId: meta.parentPageId,
+          childrenIds: const [],
+          properties: const {},
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        objects = _service.addObject(objects, section);
+        objects = _service.addChild(objects, meta.parentPageId, section.id);
+        objectMap[section.id] = section;
+        modified = true;
+      }
+
+      // 将孤儿 item 挂载到目标 section
+      objects = objects.map((o) {
+        if (o.id == obj.id) {
+          return o.copyWith(parentId: targetSectionId, updatedAt: DateTime.now().millisecondsSinceEpoch);
+        }
+        return o;
+      }).toList();
+      objects = _service.addChild(objects, targetSectionId, obj.id);
+      objectMap[obj.id] = objects.firstWhere((o) => o.id == obj.id);
+      modified = true;
+    }
+
+    return modified ? data.copyWith(objects: objects) : data;
   }
 
   /// Save current state back to profile.
@@ -51,6 +151,16 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return false;
+
+    // 防御：如果当前 state 为空且现有数据非空，拒绝覆盖（防止未加载完成时误写）
+    if (state.objects.isEmpty &&
+        state.customTypes.isEmpty &&
+        profile.unifiedObjects != null &&
+        (profile.unifiedObjects!.objects.isNotEmpty ||
+            profile.unifiedObjects!.customTypes.isNotEmpty)) {
+      // 可能处于未加载完成的空状态，禁止保存空数据覆盖已有数据
+      return false;
+    }
 
     final updatedProfile = profile.copyWith(unifiedObjects: state);
     final profileNotifier = ref.read(profileNotifierProvider.notifier);
@@ -138,6 +248,15 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   Future<bool> deleteObject(String id) async {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
+
+    // Protect default pages from deletion
+    if (id == DefaultPageIds.profile ||
+        id == DefaultPageIds.travel ||
+        id == DefaultPageIds.financial ||
+        id == DefaultPageIds.professional) {
+      DebugLogger.instance.logWarning('UNIFIED', 'Blocked deletion of default page: $id');
+      return false;
+    }
 
     var updatedObjects = List<UnifiedObject>.from(state.objects);
 
@@ -245,6 +364,164 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     state = state.copyWith(customTypes: updatedTypes);
     return _save();
   }
+
+  // ---------------------------------------------------------------------------
+  // Default Page Item Operations (predefined schema)
+  // ---------------------------------------------------------------------------
+
+  /// Create a new default-page item under a section.
+  /// The item's schema is predefined by its [typeId]; users can only edit values.
+  /// 如果目标 section 不存在，会自动创建（连带创建其所属 page）。
+  Future<bool> createDefaultItem({
+    required String sectionId,
+    required String typeId,
+    required String name,
+    required Map<String, String> values,
+  }) async {
+    var objects = state.objects;
+
+    // 防御：如果 section 不存在，自动创建（连带 page）
+    final sectionExists = _service.getObjectById(objects, sectionId) != null;
+    if (!sectionExists) {
+      final meta = getSectionMeta(sectionId);
+      if (meta != null) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        // 确保 page 存在（使用固定 ID）
+        final pageExists = _service.getObjectById(objects, meta.parentPageId) != null;
+        if (!pageExists) {
+          final page = UnifiedObject(
+            id: meta.parentPageId,
+            typeId: 'page',
+            name: _pageNameFromId(meta.parentPageId),
+            iconName: 'article',
+            parentId: null,
+            childrenIds: const [],
+            properties: const {},
+            isDeleted: false,
+            deletedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          );
+          objects = _service.addObject(objects, page);
+        }
+        // 创建 section（使用固定 ID）
+        final section = UnifiedObject(
+          id: sectionId,
+          typeId: 'collection',
+          name: meta.name,
+          iconName: meta.iconName,
+          parentId: meta.parentPageId,
+          childrenIds: const [],
+          properties: const {},
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        objects = _service.addObject(objects, section);
+        objects = _service.addChild(objects, meta.parentPageId, section.id);
+      }
+    }
+
+    final properties = <String, PropertyValue>{};
+    for (final entry in values.entries) {
+      properties[entry.key] = TextProperty(text: entry.value);
+    }
+
+    final object = _service.createObject(
+      name: name,
+      typeId: typeId,
+      parentId: sectionId,
+      properties: properties,
+    );
+
+    var updatedObjects = _service.addObject(objects, object);
+    updatedObjects = _service.addChild(updatedObjects, sectionId, object.id);
+
+    state = state.copyWith(objects: updatedObjects);
+    return _save();
+  }
+
+  String _pageNameFromId(String pageId) {
+    return switch (pageId) {
+      DefaultPageIds.profile => 'Profile',
+      DefaultPageIds.travel => 'Travel',
+      DefaultPageIds.financial => 'Financial',
+      DefaultPageIds.professional => 'Professional',
+      _ => 'Page',
+    };
+  }
+
+  /// Update an existing default-page item's name and property values.
+  Future<bool> updateDefaultItem(
+    String itemId, {
+    required String name,
+    required Map<String, String> values,
+  }) async {
+    final object = _service.getObjectById(state.objects, itemId);
+    if (object == null) return false;
+
+    final properties = <String, PropertyValue>{};
+    for (final entry in values.entries) {
+      properties[entry.key] = TextProperty(text: entry.value);
+    }
+
+    final updated = _service.updateObject(
+      object,
+      name: name,
+      properties: properties,
+    );
+
+    state = state.copyWith(
+      objects: _service.replaceObject(state.objects, updated),
+    );
+    return _save();
+  }
+
+  /// Soft-delete a default-page item. Removes it from its section's childrenIds.
+  Future<bool> deleteDefaultItem(String itemId) async {
+    final object = _service.getObjectById(state.objects, itemId);
+    if (object == null) return false;
+
+    var updatedObjects = List<UnifiedObject>.from(state.objects);
+
+    // Remove from section's childrenIds
+    if (object.parentId != null) {
+      updatedObjects = _service.removeChild(
+        updatedObjects,
+        object.parentId!,
+        itemId,
+      );
+    }
+
+    // Soft delete the object
+    final deleted = _service.deleteObject(object);
+    updatedObjects = _service.replaceObject(updatedObjects, deleted);
+
+    state = state.copyWith(objects: updatedObjects);
+    return _save();
+  }
+
+  /// Restore a soft-deleted default-page item. Re-adds it to its section.
+  Future<bool> restoreDefaultItem(String itemId) async {
+    final object = _service.getObjectById(state.objects, itemId);
+    if (object == null) return false;
+
+    var restored = _service.restoreObject(object);
+    var updatedObjects = _service.replaceObject(state.objects, restored);
+
+    // Re-add to section's childrenIds
+    if (restored.parentId != null) {
+      updatedObjects = _service.addChild(
+        updatedObjects,
+        restored.parentId!,
+        restored.id,
+      );
+    }
+
+    state = state.copyWith(objects: updatedObjects);
+    return _save();
+  }
 }
 
 /// Provider for unified object state management.
@@ -302,6 +579,46 @@ List<UnifiedObject> objectsByType(Ref ref, String typeId) {
 List<UnifiedObject> deletedObjects(Ref ref) {
   final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
   return objects.where((o) => o.isDeleted).toList();
+}
+
+// =============================================================================
+// Default Page Providers
+// =============================================================================
+
+/// Get a default page by its fixed ID.
+@riverpod
+UnifiedObject? defaultPage(Ref ref, String pageId) {
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  try {
+    return objects.firstWhere((o) => o.id == pageId && !o.isDeleted);
+  } on Object {
+    return null;
+  }
+}
+
+/// Get a default section by its fixed ID.
+@riverpod
+UnifiedObject? defaultSection(Ref ref, String sectionId) {
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  try {
+    return objects.firstWhere((o) => o.id == sectionId && !o.isDeleted);
+  } on Object {
+    return null;
+  }
+}
+
+/// Get active items under a default section, ordered by section's childrenIds.
+@riverpod
+List<UnifiedObject> defaultPageItems(Ref ref, String sectionId) {
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final map = {for (final o in objects) o.id: o};
+  final section = map[sectionId];
+  if (section == null) return [];
+  return section.childrenIds
+      .where((id) => map.containsKey(id))
+      .map((id) => map[id]!)
+      .where((o) => !o.isDeleted)
+      .toList();
 }
 
 // =============================================================================

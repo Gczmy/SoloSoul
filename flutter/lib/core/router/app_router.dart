@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/pages/travel_page.dart';
 import 'package:solosoul_flutter/presentation/pages/financial_page.dart';
 import 'package:solosoul_flutter/presentation/pages/professional_page.dart';
 import 'package:solosoul_flutter/presentation/pages/settings_page.dart';
+import 'package:solosoul_flutter/presentation/pages/data_management_page.dart';
 import 'package:solosoul_flutter/presentation/pages/security_settings_page.dart';
 import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/pages/sensitivity_settings_page.dart';
@@ -30,6 +31,7 @@ class AppRoutes {
   static const String financial = '/financial';
   static const String professional = '/professional';
   static const String settings = '/settings';
+  static const String dataManagement = '/settings/data-management';
   static const String securitySettings = '/security_settings';
   static const String operationLog = '/operation_log';
   static const String sensitivitySettings = '/sensitivity_settings';
@@ -108,6 +110,10 @@ GoRouter createRouter(WidgetRef ref) {
           GoRoute(
             path: AppRoutes.settings,
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.dataManagement,
+            builder: (context, state) => const DataManagementPage(),
           ),
           GoRoute(
             path: AppRoutes.securitySettings,

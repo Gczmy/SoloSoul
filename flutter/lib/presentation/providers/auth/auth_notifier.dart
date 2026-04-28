@@ -8,6 +8,8 @@ import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
+import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_services.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
@@ -276,7 +278,46 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncData(AuthState.unlocked);
     SoloLog.d('Auth', 'Vault unlocked successfully!');
 
+    // 自动备份：解锁成功后异步创建加密备份（不阻塞登录流程）
+    _autoBackupAfterUnlock();
+
+    // 升级保护备份：若检测到 App 版本变化，额外创建一份带版本号的备份
+    _upgradeBackupIfNeeded(accountId: _accountManager.selectedAccountId!);
+
     return true;
+  }
+
+  /// 解锁成功后自动创建加密备份（不阻塞 UI）
+  void _autoBackupAfterUnlock() {
+    final accountId = _accountManager.selectedAccountId;
+    if (accountId == null) return;
+    SoloLog.d('Auth', 'Auto-backup triggered after unlock for $accountId');
+    BackupService.instance.createBackup(accountId).then((fileName) {
+      if (fileName != null) {
+        SoloLog.d('Auth', 'Auto-backup created: $fileName');
+      } else {
+        SoloLog.w('Auth', 'Auto-backup failed (ignored)');
+      }
+    }).catchError((Object e, StackTrace st) {
+      SoloLog.w('Auth', 'Auto-backup error (ignored): $e');
+    });
+  }
+
+  /// 升级保护备份：若 App 版本变化，创建带版本号的备份
+  void _upgradeBackupIfNeeded({required String accountId}) {
+    if (!AppVersionTracker.instance.pendingUpgradeBackup) return;
+    final version = AppVersionTracker.instance.currentVersion;
+    SoloLog.d('Auth', 'Upgrade backup triggered (version: $version)');
+    BackupService.instance.createBackup(accountId, appVersion: version).then((fileName) {
+      if (fileName != null) {
+        SoloLog.d('Auth', 'Upgrade backup created: $fileName');
+      } else {
+        SoloLog.w('Auth', 'Upgrade backup failed (ignored)');
+      }
+      AppVersionTracker.instance.clearPendingBackup();
+    }).catchError((Object e, StackTrace st) {
+      SoloLog.w('Auth', 'Upgrade backup error (ignored): $e');
+    });
   }
 
   /// Verify password for sensitive data access

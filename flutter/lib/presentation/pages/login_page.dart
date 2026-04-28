@@ -14,6 +14,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -50,6 +51,67 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _passwordHintController = TextEditingController();
+
+  /// 若 Vault 数据为空但存在备份，提示用户恢复
+  Future<void> _promptRestoreIfEmpty(
+    BuildContext context,
+    WidgetRef ref,
+    String? accountId,
+  ) async {
+    if (accountId == null) return;
+    if (!context.mounted) return;
+
+    final unifiedData = ref.read(unifiedObjectProvider);
+    final hasData = unifiedData.objects.any((o) => !o.isDeleted);
+    if (hasData) return; // 数据非空，无需恢复
+
+    final backups = await BackupService.instance.listBackups(accountId);
+    if (backups.isEmpty) return; // 无备份，无需恢复
+
+    if (!context.mounted) return;
+
+    final latest = backups.first;
+    final shouldRestore = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Data Recovery'),
+        content: Text(
+          'Your vault appears to be empty, but a backup exists from ${latest.displayTime}. '
+          'Would you like to restore from this backup?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Skip'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Restore Backup'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldRestore == true) {
+      final success = await BackupService.instance.restoreBackup(
+        accountId,
+        latest.fileName,
+      );
+      if (success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Restore successful. Please restart the app.'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Restore failed')),
+        );
+      }
+    }
+  }
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
   String? _createError;
@@ -292,11 +354,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
       await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
 
+      // 首次启动/空数据检测：若 Vault 无数据但存在备份，提示恢复
+      final accountId = authNotifier.selectedAccountId;
+      await _promptRestoreIfEmpty(context, ref, accountId);
+
       // Pre-register all form fields for sensitivity settings
       ref.read(formFieldRegistryProvider.notifier).registerAllForms();
 
       // Record login metadata (lastLoginAt + device)
-      final accountId = authNotifier.selectedAccountId;
       if (accountId != null) {
         await SecureAccountStorage.instance.updateAccountMetadata(
           accountId,

@@ -4,23 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
-import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider;
-import 'package:solosoul_flutter/presentation/utils/list_utils.dart';
-import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
-import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show UnifiedFormSection, FormFieldDef, HistoryRecordingConfig;
+import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
-    show SensitivityTag;
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
+    show unifiedObjectProvider;
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
@@ -38,6 +34,10 @@ class _TravelPageState extends ConsumerState<TravelPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isPrivacyMode =
+        ref.read(accountStyleProvider).value?.displayMode ==
+        SensitivityDisplayMode.hidePrivate;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Travel'),
@@ -49,17 +49,163 @@ class _TravelPageState extends ConsumerState<TravelPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            _PassportSection()
+            PredefinedObjectSection(
+              sectionId: DefaultSectionIds.passport,
+              typeId: 'travel_passport',
+              title: 'Passports',
+              icon: Icons.flight_outlined,
+              maxVisibleItems: 3,
+              displayItemBuilder: (passport, itemMap) => EntryCardWidget<UnifiedObject>(
+                item: passport,
+                title: passport.name,
+                icon: Icons.book,
+                itemId: passport.id,
+                historyFieldId: 'passport',
+                isRestricted: true,
+                formatAllFields: (p) => 'Passport\n${p.toFormattedString()}',
+                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                fieldPrefix: 'passport',
+                excludeFields: const {'title'},
+              ),
+              onDidDelete: (item, index) {
+                OperationNotification.show(
+                  context,
+                  message: OperationLogger.createNotification(
+                    section: LogSection.travel,
+                    action: LogAction.delete,
+                    itemName: item.name,
+                    isPrivacyModeActive: isPrivacyMode,
+                  ),
+                  duration: const Duration(seconds: 5),
+                  onUndo: () async {
+                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
+                  },
+                );
+              },
+              onDeleteFailed: (item, index) {
+                showOverlaySnackBar(
+                  context,
+                  content: 'Failed to delete passport',
+                  type: SnackBarType.error,
+                );
+              },
+              onCopyAll: (item, text) async {
+                unawaited(Clipboard.setData(ClipboardData(text: text)));
+                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+            )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
-            _VisaSection()
+            PredefinedObjectSection(
+              sectionId: DefaultSectionIds.visa,
+              typeId: 'travel_visa',
+              title: 'Visas',
+              icon: Icons.assignment_ind_outlined,
+              maxVisibleItems: 3,
+              displayItemBuilder: (visa, itemMap) => EntryCardWidget<UnifiedObject>(
+                item: visa,
+                title: visa.name,
+                icon: Icons.article,
+                itemId: visa.id,
+                historyFieldId: 'visa',
+                isRestricted: true,
+                formatAllFields: (v) => 'Visa\n${v.toFormattedString()}',
+                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                fieldPrefix: 'visa',
+                excludeFields: const {'title'},
+              ),
+              onDidDelete: (item, index) {
+                OperationNotification.show(
+                  context,
+                  message: OperationLogger.createNotification(
+                    section: LogSection.travel,
+                    action: LogAction.delete,
+                    itemName: item.name,
+                    isPrivacyModeActive: isPrivacyMode,
+                  ),
+                  duration: const Duration(seconds: 5),
+                  onUndo: () async {
+                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
+                  },
+                );
+              },
+              onDeleteFailed: (item, index) {
+                showOverlaySnackBar(
+                  context,
+                  content: 'Failed to delete visa',
+                  type: SnackBarType.error,
+                );
+              },
+              onCopyAll: (item, text) async {
+                unawaited(Clipboard.setData(ClipboardData(text: text)));
+                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+            )
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
-            _TravelHistorySection()
+            PredefinedObjectSection(
+              sectionId: DefaultSectionIds.travelHistory,
+              typeId: 'travel_history',
+              title: 'Travel History',
+              icon: Icons.history_outlined,
+              maxVisibleItems: 3,
+              displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
+                item: item,
+                title: item.name,
+                icon: Icons.place,
+                itemId: item.id,
+                historyFieldId: 'travel',
+                formatAllFields: (t) => 'Travel History\n${t.toFormattedString()}',
+                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                fieldPrefix: 'travel',
+                excludeFields: const {'destination'},
+              ),
+              onDidDelete: (item, index) {
+                OperationNotification.show(
+                  context,
+                  message: OperationLogger.createNotification(
+                    section: LogSection.travel,
+                    action: LogAction.delete,
+                    itemName: item.name,
+                    isPrivacyModeActive: isPrivacyMode,
+                  ),
+                  duration: const Duration(seconds: 5),
+                  onUndo: () async {
+                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
+                  },
+                );
+              },
+              onDeleteFailed: (item, index) {
+                showOverlaySnackBar(
+                  context,
+                  content: 'Failed to delete travel history',
+                  type: SnackBarType.error,
+                );
+              },
+              onCopyAll: (item, text) async {
+                unawaited(Clipboard.setData(ClipboardData(text: text)));
+                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
+                showOverlaySnackBar(
+                  context,
+                  content: 'Copied to clipboard',
+                  type: SnackBarType.success,
+                );
+              },
+            )
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
@@ -68,1353 +214,5 @@ class _TravelPageState extends ConsumerState<TravelPage> {
       ),
     );
   }
-
 }
 
-// ============ Passport Section (using UnifiedFormSection) ============
-
-class _PassportSection extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_PassportSection> createState() => _PassportSectionState();
-}
-
-class _PassportSectionState
-    extends ConsumerState<_PassportSection> {
-  late List<PassportData> _passports;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  void _loadData() {
-    _passports = [...ref.read(passportItemsProvider)];
-  }
-
-  PassportData _createPassportFromValues(
-    Map<String, String> values, {
-    String? id,
-  }) {
-    final passportId = id ?? generateEntryId();
-    return PassportData(
-      id: passportId,
-      // Document Type
-      title: values['passport.title']?.isEmpty == true
-          ? null
-          : values['passport.title'],
-      // Issuing Country
-      country: values['passport.country']?.isEmpty == true
-          ? null
-          : values['passport.country'],
-      countryCode: values['passport.countryCode']?.isEmpty == true
-          ? null
-          : values['passport.countryCode'],
-      // Document Number
-      number: values['passport.number']?.isEmpty == true
-          ? null
-          : values['passport.number'],
-      // Validity Period
-      issueDate: values['passport.issueDate']?.isEmpty == true
-          ? null
-          : values['passport.issueDate'],
-      placeOfIssue: values['passport.placeOfIssue']?.isEmpty == true
-          ? null
-          : values['passport.placeOfIssue'],
-      expiryDate: values['passport.expiryDate']?.isEmpty == true
-          ? null
-          : values['passport.expiryDate'],
-      // Holder Information
-      holderName: values['passport.holderName']?.isEmpty == true
-          ? null
-          : values['passport.holderName'],
-      dateOfBirth: values['passport.dateOfBirth']?.isEmpty == true
-          ? null
-          : values['passport.dateOfBirth'],
-      placeOfBirth: values['passport.placeOfBirth']?.isEmpty == true
-          ? null
-          : values['passport.placeOfBirth'],
-      sex: values['passport.sex']?.isEmpty == true
-          ? null
-          : values['passport.sex'],
-      nationality: values['passport.nationality']?.isEmpty == true
-          ? null
-          : values['passport.nationality'],
-      // Issuing Authority
-      authority: values['passport.authority']?.isEmpty == true
-          ? null
-          : values['passport.authority'],
-    );
-  }
-
-  Widget _buildPassportItem(
-    PassportData passport,
-    Map<String, String> itemMap,
-  ) {
-    return EntryCardWidget<PassportData>(
-      item: passport,
-      title: passport.title ?? passport.country ?? 'Passport',
-      icon: Icons.book,
-      itemId: passport.id,
-      historyFieldId: 'passport',
-      isRestricted: true,
-      formatAllFields: (p) => '${p.entryType}\n${p.toFormattedString()}',
-      // Auto-build mode
-      itemData: itemMap,
-      fieldPrefix: 'passport',
-      excludeFields: const {'title'},
-    );
-  }
-
-  Future<void> _onPassportDelete(PassportData passport) async {
-    // Use ID-based lookup since PassportData has no == override (uses object identity)
-    final index = _passports.indexById(passport.id, (p) => p.id);
-    if (index == -1) return;
-
-    final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
-        SensitivityDisplayMode.hidePrivate;
-
-    final deletedId = passport.id;
-
-    setState(() {
-      _passports = List.from(_passports)..removeAt(index);
-    });
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'travel',
-            itemType: 'passport',
-            index: index,
-            deletedItem: passport,
-          );
-    } on Exception {
-      if (mounted) {
-        setState(() {
-          _passports = List.from(_passports)..insert(index, passport);
-        });
-      }
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete passport',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.travel,
-          action: LogAction.delete,
-          itemName: passport.country ?? 'Passport',
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'travel', itemType: 'passport', id: deletedId);
-          _loadData();
-          if (mounted) setState(() {});
-        },
-      );
-    }
-  }
-
-  Future<void> _onPassportSave(
-    PassportData? newItem,
-    Map<String, String> values,
-    PassportData? editingItem,
-  ) async {
-    // For adds: newItem is already created by itemFactory with correct ID
-    // For edits: create updated item via factory
-    final wasAdding = editingItem == null;
-    final PassportData passportToSave;
-    if (wasAdding) {
-      passportToSave = newItem!;
-    } else {
-      passportToSave = _createPassportFromValues(values, id: editingItem.id);
-    }
-    final itemName = passportToSave.country ?? 'Passport';
-
-    // Snapshot for rollback on failure
-    final originalPassports = List<PassportData>.from(_passports);
-
-    // Update local state optimistically
-    if (wasAdding) {
-      _passports = List.from(_passports)..add(passportToSave);
-    } else {
-      final index = _passports.indexById(editingItem.id, (p) => p.id);
-      if (index != -1) {
-        _passports = List.from(_passports)..[index] = passportToSave;
-      }
-    }
-
-    // Persist via provider with rollback on failure
-    try {
-      final travel = TravelData(
-        passports: _passports,
-        visas: ref.read(visaItemsProvider),
-        travelHistory: ref.read(travelHistoryItemsProvider),
-      );
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .updateTravelImmediate(travel);
-    } on Exception catch (e) {
-      // Rollback on failure
-      _passports = originalPassports;
-      if (mounted) {
-        showOverlaySnackBar(context, content: 'Failed to save passport: $e', type: SnackBarType.error);
-      }
-      return;
-    }
-
-    if (mounted) {
-      final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
-          SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.travel,
-          action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: itemName,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return UnifiedFormSection<PassportData>(
-      title: 'Passports',
-      icon: Icons.flight_outlined,
-      items: _passports,
-      maxVisibleItems: 3,
-      itemFactory: _createPassportFromValues,
-      fieldDefs: [
-        // Document Type
-        FormFieldDef(
-          fieldId: 'passport.title',
-          label: 'Type',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.title')),
-        ),
-        // Issuing Country
-        FormFieldDef(
-          fieldId: 'passport.country',
-          label: 'Country',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.country')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.countryCode',
-          label: 'Country Code',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.countryCode')),
-        ),
-        // Document Number
-        FormFieldDef(
-          fieldId: 'passport.number',
-          label: 'Passport Number',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.number')),
-        ),
-        // Validity Period
-        FormFieldDef(
-          fieldId: 'passport.issueDate',
-          label: 'Date of Issue',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.issueDate')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.placeOfIssue',
-          label: 'Place of Issue',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.placeOfIssue')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.expiryDate',
-          label: 'Date of Expiry',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.expiryDate')),
-        ),
-        // Holder Information
-        FormFieldDef(
-          fieldId: 'passport.holderName',
-          label: 'Holder Name',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.holderName')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.dateOfBirth',
-          label: 'Date of Birth',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.dateOfBirth')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.placeOfBirth',
-          label: 'Place of Birth',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.placeOfBirth')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.sex',
-          label: 'Sex',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.sex')),
-        ),
-        FormFieldDef(
-          fieldId: 'passport.nationality',
-          label: 'Nationality',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.nationality')),
-        ),
-        // Issuing Authority
-        FormFieldDef(
-          fieldId: 'passport.authority',
-          label: 'Authority',
-          sensitivity: ref.watch(effectiveSensitivityProvider('passport.authority')),
-        ),
-      ],
-      historyConfig: HistoryRecordingConfig<PassportData>(
-        itemIdExtractor: (p) => p.id,
-        fieldIdPrefix: 'passport',
-      ),
-      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
-        if (editingItem == null) return;
-        final accountId = ref
-            .read(authNotifierProvider.notifier)
-            .selectedAccountId;
-        if (accountId == null) return;
-        await ref
-            .read(fieldHistoriesProvider.notifier)
-            .recordSnapshot(
-              accountId: accountId,
-              itemId: editingItem.id,
-              fieldIdPrefix: 'passport',
-              allFieldValues: oldValues ?? {},
-            );
-      },
-      displayItemBuilder: _buildPassportItem,
-      onDelete: _onPassportDelete,
-      onSave: _onPassportSave,
-      itemToMap: (p) => {
-        'title': p.title ?? '',
-        'country': p.country ?? '',
-        'countryCode': p.countryCode ?? '',
-        'number': p.number ?? '',
-        'issueDate': p.issueDate ?? '',
-        'placeOfIssue': p.placeOfIssue ?? '',
-        'expiryDate': p.expiryDate ?? '',
-        'holderName': p.holderName ?? '',
-        'dateOfBirth': p.dateOfBirth ?? '',
-        'placeOfBirth': p.placeOfBirth ?? '',
-        'sex': p.sex ?? '',
-        'nationality': p.nationality ?? '',
-        'authority': p.authority ?? '',
-      },
-      onCopyAll: (passport, text) async {
-        unawaited(Clipboard.setData(ClipboardData(text: text)));
-        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-        showOverlaySnackBar(
-          context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
-      showHistoryExpansion: true,
-      historyFieldIdPrefix: 'passport',
-      itemIdExtractor: (p) => p.id,
-    );
-  }
-}
-
-// ============ Visa Section (using UnifiedFormSection) ============
-
-class _VisaSection extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_VisaSection> createState() => _VisaSectionState();
-}
-
-class _VisaSectionState
-    extends ConsumerState<_VisaSection> {
-  // No local state - uses ref.watch(visaItemsProvider) instead
-
-  VisaData _createVisaFromValues(Map<String, String> values, {String? id}) {
-    return VisaData(
-      id: id ?? generateEntryId(),
-      title: values['visa.title']?.isEmpty == true
-          ? null
-          : values['visa.title'],
-      country: values['visa.country']?.isEmpty == true
-          ? null
-          : values['visa.country'],
-      visaType: values['visa.visaType']?.isEmpty == true
-          ? null
-          : values['visa.visaType'],
-      number: values['visa.number']?.isEmpty == true
-          ? null
-          : values['visa.number'],
-      expiryDate: values['visa.expiryDate']?.isEmpty == true
-          ? null
-          : values['visa.expiryDate'],
-    );
-  }
-
-  Widget _buildVisaItem(VisaData visa, Map<String, String> itemMap) {
-    return EntryCardWidget<VisaData>(
-      item: visa,
-      title: visa.title ?? visa.country ?? 'Visa',
-      icon: Icons.article,
-      itemId: visa.id,
-      historyFieldId: 'visa',
-      isRestricted: true,
-      fieldPrefix: 'visa',
-      itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
-      excludeFields: const {'title'},
-      formatAllFields: (v) => '${v.entryType}\n${v.toFormattedString()}',
-    );
-  }
-
-  Future<void> _onVisaDelete(VisaData visa) async {
-    final visas = ref.read(visaItemsProvider);
-    // Use ID-based lookup since VisaData has no == override (uses object identity)
-    final index = visas.indexById(visa.id, (v) => v.id);
-    if (index == -1) return;
-
-    final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
-        SensitivityDisplayMode.hidePrivate;
-
-    final deletedId = visa.id;
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'travel',
-            itemType: 'visa',
-            index: index,
-            deletedItem: visa,
-          );
-    } on Exception {
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete visa',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.travel,
-          action: LogAction.delete,
-          itemName: visa.country ?? 'Visa',
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(section: 'travel', itemType: 'visa', id: deletedId);
-        },
-      );
-    }
-  }
-
-  Future<void> _onVisaSave(
-    VisaData? newItem,
-    Map<String, String> values,
-    VisaData? editingItem,
-  ) async {
-    final wasAdding = editingItem == null;
-    final VisaData visaToSave;
-    if (wasAdding) {
-      visaToSave = newItem!;
-    } else {
-      visaToSave = _createVisaFromValues(values, id: editingItem.id);
-    }
-    final itemName = visaToSave.country ?? 'Visa';
-
-    // Get current visas from provider
-    final currentVisas = ref.read(visaItemsProvider);
-
-    // Build updated visas list
-    final updatedVisas = <VisaData>[];
-    if (wasAdding) {
-      updatedVisas.addAll(currentVisas);
-      updatedVisas.add(visaToSave);
-    } else {
-      updatedVisas.addAll(currentVisas);
-      final index = updatedVisas.indexById(editingItem.id, (v) => v.id);
-      if (index != -1) {
-        updatedVisas[index] = visaToSave;
-      }
-    }
-
-    // Persist via provider
-    try {
-      final travel = TravelData(
-        passports: ref.read(passportItemsProvider),
-        visas: updatedVisas,
-        travelHistory: ref.read(travelHistoryItemsProvider),
-      );
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .updateTravelImmediate(travel);
-    } on Exception catch (e) {
-      if (mounted) {
-        showOverlaySnackBar(context, content: 'Failed to save visa: $e', type: SnackBarType.error);
-      }
-      return;
-    }
-
-    if (mounted) {
-      final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
-          SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.travel,
-          action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: itemName,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final visas = ref.watch(visaItemsProvider);
-    return UnifiedFormSection<VisaData>(
-      title: 'Visas',
-      icon: Icons.article_outlined,
-      items: visas,
-      maxVisibleItems: 3,
-      itemFactory: _createVisaFromValues,
-      fieldDefs: [
-        FormFieldDef(
-          fieldId: 'visa.title',
-          label: 'Title',
-          sensitivity: ref.watch(effectiveSensitivityProvider('visa.title')),
-        ),
-        FormFieldDef(
-          fieldId: 'visa.country',
-          label: 'Country',
-          sensitivity: ref.watch(effectiveSensitivityProvider('visa.country')),
-        ),
-        FormFieldDef(
-          fieldId: 'visa.visaType',
-          label: 'Visa Type',
-          sensitivity: ref.watch(effectiveSensitivityProvider('visa.visaType')),
-        ),
-        FormFieldDef(
-          fieldId: 'visa.number',
-          label: 'Visa Number',
-          sensitivity: ref.watch(effectiveSensitivityProvider('visa.number')),
-        ),
-        FormFieldDef(
-          fieldId: 'visa.expiryDate',
-          label: 'Expiry Date',
-          sensitivity: ref.watch(effectiveSensitivityProvider('visa.expiryDate')),
-        ),
-      ],
-      historyConfig: HistoryRecordingConfig<VisaData>(
-        itemIdExtractor: (v) => v.id,
-        fieldIdPrefix: 'visa',
-      ),
-      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
-        if (editingItem == null) return;
-        final accountId = ref
-            .read(authNotifierProvider.notifier)
-            .selectedAccountId;
-        if (accountId == null) return;
-        await ref
-            .read(fieldHistoriesProvider.notifier)
-            .recordSnapshot(
-              accountId: accountId,
-              itemId: editingItem.id,
-              fieldIdPrefix: 'visa',
-              allFieldValues: oldValues ?? {},
-            );
-      },
-      displayItemBuilder: _buildVisaItem,
-      onDelete: _onVisaDelete,
-      onSave: _onVisaSave,
-      itemToMap: (v) => {
-        'title': v.title ?? '',
-        'country': v.country ?? '',
-        'visaType': v.visaType ?? '',
-        'number': v.number ?? '',
-        'expiryDate': v.expiryDate ?? '',
-      },
-      onCopyAll: (visa, text) async {
-        unawaited(Clipboard.setData(ClipboardData(text: text)));
-        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-        showOverlaySnackBar(
-          context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
-      showHistoryExpansion: true,
-      historyFieldIdPrefix: 'visa',
-      itemIdExtractor: (v) => v.id,
-    );
-  }
-}
-
-// ============ Travel History Section (using UnifiedFormSection) ============
-
-class _TravelHistorySection extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_TravelHistorySection> createState() =>
-      _TravelHistorySectionState();
-}
-
-class _TravelHistorySectionState
-    extends ConsumerState<_TravelHistorySection> {
-  Widget _buildTravelHistoryItem(
-    TravelHistoryData item,
-    Map<String, String> itemMap,
-  ) {
-    return EntryCardWidget<TravelHistoryData>(
-      item: item,
-      title: item.destination,
-      icon: Icons.place,
-      itemId: item.id,
-      historyFieldId: 'travel',
-      formatAllFields: (t) => '${t.entryType}\n${t.toFormattedString()}',
-      // Auto-build mode
-      itemData: itemMap,
-      fieldPrefix: 'travel',
-      excludeFields: const {'destination'},
-    );
-  }
-
-  Future<void> _onHistoryDelete(TravelHistoryData item) async {
-    final history = ref.read(travelHistoryItemsProvider);
-    // Use ID-based lookup since TravelHistoryData has no == override (uses object identity)
-    final index = history.indexById(item.id, (h) => h.id);
-    if (index == -1) return;
-
-    final isPrivacyMode =
-        ref.read(accountStyleProvider).value?.displayMode ==
-        SensitivityDisplayMode.hidePrivate;
-
-    final deletedId = item.id;
-
-    try {
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .softDelete(
-            section: 'travel',
-            itemType: 'travel_history',
-            index: index,
-            deletedItem: item,
-          );
-    } on Exception {
-      if (mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'Failed to delete travel history',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.travel,
-          action: LogAction.delete,
-          itemName: item.destination,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref
-              .read(profileNotifierProvider.notifier)
-              .restore(
-                section: 'travel',
-                itemType: 'travel_history',
-                id: deletedId,
-              );
-        },
-      );
-    }
-  }
-
-  Future<void> _onHistorySave(
-    TravelHistoryData? newItem,
-    Map<String, String> values,
-    TravelHistoryData? editingItem,
-  ) async {
-    final dest = values['travel.destination']?.trim() ?? '';
-    if (dest.isEmpty) return;
-    final wasAdding = editingItem == null;
-
-    // For adds: use the item already created by itemFactory (with correct ID)
-    // For edits: create via inline factory
-    final TravelHistoryData itemToSave;
-    if (wasAdding) {
-      itemToSave = newItem!;
-    } else {
-      itemToSave = TravelHistoryData(
-        id: editingItem.id,
-        destination: dest,
-        date: values['travel.date']?.isEmpty == true
-            ? null
-            : values['travel.date'],
-        departureCity: values['travel.departureCity']?.isEmpty == true
-            ? null
-            : values['travel.departureCity'],
-        departureTime: values['travel.departureTime']?.isEmpty == true
-            ? null
-            : values['travel.departureTime'],
-        arrivalTime: values['travel.arrivalTime']?.isEmpty == true
-            ? null
-            : values['travel.arrivalTime'],
-        flightNumber: values['travel.flightNumber']?.isEmpty == true
-            ? null
-            : values['travel.flightNumber'],
-        ticketPrice: values['travel.ticketPrice']?.isEmpty == true
-            ? null
-            : values['travel.ticketPrice'],
-        airline: values['travel.airline']?.isEmpty == true
-            ? null
-            : values['travel.airline'],
-        travelType: values['travel.travelType']?.isEmpty == true
-            ? null
-            : values['travel.travelType'],
-      );
-    }
-
-    // Get current history from provider
-    final currentHistory = ref.read(travelHistoryItemsProvider);
-
-    // Build updated history list
-    final updatedHistory = <TravelHistoryData>[];
-    if (wasAdding) {
-      updatedHistory.addAll(currentHistory);
-      updatedHistory.add(itemToSave);
-    } else {
-      updatedHistory.addAll(currentHistory);
-      final index = updatedHistory.indexById(editingItem.id, (h) => h.id);
-      if (index != -1) {
-        updatedHistory[index] = itemToSave;
-      }
-    }
-
-    // Persist via provider
-    try {
-      final travel = TravelData(
-        passports: ref.read(passportItemsProvider),
-        visas: ref.read(visaItemsProvider),
-        travelHistory: updatedHistory,
-      );
-      await ref
-          .read(profileNotifierProvider.notifier)
-          .updateTravelImmediate(travel);
-    } on Exception catch (e) {
-      if (mounted) {
-        showOverlaySnackBar(context, content: 'Failed to save travel history: $e', type: SnackBarType.error);
-      }
-      return;
-    }
-
-    if (mounted) {
-      final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
-          SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotification(
-          section: LogSection.travel,
-          action: wasAdding ? LogAction.create : LogAction.update,
-          itemName: dest,
-          isPrivacyModeActive: isPrivacyMode,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final history = ref.watch(travelHistoryItemsProvider);
-    return UnifiedFormSection<TravelHistoryData>(
-      title: 'Travel History',
-      icon: Icons.history,
-      items: history,
-      maxVisibleItems: 3,
-      itemFactory: (values, {String? id}) => TravelHistoryData(
-        id: id ?? generateEntryId(),
-        destination: values['travel.destination']?.trim() ?? '',
-        date: values['travel.date']?.isEmpty == true
-            ? null
-            : values['travel.date'],
-        departureCity: values['travel.departureCity']?.isEmpty == true
-            ? null
-            : values['travel.departureCity'],
-        departureTime: values['travel.departureTime']?.isEmpty == true
-            ? null
-            : values['travel.departureTime'],
-        arrivalTime: values['travel.arrivalTime']?.isEmpty == true
-            ? null
-            : values['travel.arrivalTime'],
-        flightNumber: values['travel.flightNumber']?.isEmpty == true
-            ? null
-            : values['travel.flightNumber'],
-        ticketPrice: values['travel.ticketPrice']?.isEmpty == true
-            ? null
-            : values['travel.ticketPrice'],
-        airline: values['travel.airline']?.isEmpty == true
-            ? null
-            : values['travel.airline'],
-        travelType: values['travel.travelType']?.isEmpty == true
-            ? null
-            : values['travel.travelType'],
-      ),
-      historyConfig: HistoryRecordingConfig<TravelHistoryData>(
-        itemIdExtractor: (t) => t.id,
-        fieldIdPrefix: 'travel',
-      ),
-      historyAwareOnSave: (newItem, values, editingItem, [oldValues]) async {
-        if (editingItem == null) return;
-        final accountId = ref
-            .read(authNotifierProvider.notifier)
-            .selectedAccountId;
-        if (accountId == null) return;
-        await ref
-            .read(fieldHistoriesProvider.notifier)
-            .recordSnapshot(
-              accountId: accountId,
-              itemId: editingItem.id,
-              fieldIdPrefix: 'travel',
-              allFieldValues: oldValues ?? {},
-            );
-      },
-      fieldDefs: [
-        FormFieldDef(
-          fieldId: 'travel.destination',
-          label: 'Destination',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.destination')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.travelType',
-          label: 'Travel Type',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.travelType')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.date',
-          label: 'Date',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.date')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.departureCity',
-          label: 'Departure City',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.departureCity')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.departureTime',
-          label: 'Departure Time',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.arrivalTime',
-          label: 'Arrival Time',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.flightNumber',
-          label: 'Flight/Train/Bus Number',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.flightNumber')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.ticketPrice',
-          label: 'Ticket Price',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
-        ),
-        FormFieldDef(
-          fieldId: 'travel.airline',
-          label: 'Airline/Operator',
-          sensitivity: ref.watch(effectiveSensitivityProvider('travel.airline')),
-        ),
-      ],
-      customFormBuilder:
-          (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
-            final travelType = controllers['travel.travelType']?.text ?? '';
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  mode == 'adding'
-                      ? 'Add Travel History'
-                      : 'Edit Travel History',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Travel Type Dropdown
-                DropdownButtonFormField<String>(
-                  initialValue: travelType.isEmpty ? null : travelType,
-                  decoration: const InputDecoration(
-                    labelText: 'Travel Type',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Airplane',
-                      child: Text('Airplane'),
-                    ),
-                    DropdownMenuItem(value: 'Train', child: Text('Train')),
-                    DropdownMenuItem(value: 'Bus', child: Text('Bus')),
-                    DropdownMenuItem(value: 'Taxi', child: Text('Taxi')),
-                    DropdownMenuItem(value: 'Drive', child: Text('Drive')),
-                    DropdownMenuItem(value: 'Other', child: Text('Other')),
-                  ],
-                  onChanged: (value) {
-                    controllers['travel.travelType']?.text = value ?? '';
-                  },
-                ),
-                const SizedBox(height: 12),
-                // Destination (always shown)
-                TextField(
-                  controller: controllers['travel.destination'],
-                  maxLength: kMaxFieldLength,
-                  decoration: InputDecoration(
-                    labelText: 'Destination',
-                    border: const OutlineInputBorder(),
-                    counterText: '',
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.destination'))),
-                    ),
-                    suffixIconConstraints: const BoxConstraints(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Date (always shown)
-                TextField(
-                  controller: controllers['travel.date'],
-                  maxLength: kMaxFieldLength,
-                  decoration: InputDecoration(
-                    labelText: 'Date',
-                    border: const OutlineInputBorder(),
-                    counterText: '',
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: SensitivityTag(
-                        level: ref.watch(effectiveSensitivityProvider('travel.date')),
-                      ),
-                    ),
-                    suffixIconConstraints: const BoxConstraints(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Departure City
-                TextField(
-                  controller: controllers['travel.departureCity'],
-                  maxLength: kMaxFieldLength,
-                  decoration: InputDecoration(
-                    labelText: 'Departure City',
-                    border: const OutlineInputBorder(),
-                    counterText: '',
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: SensitivityTag(
-                        level: ref.watch(effectiveSensitivityProvider('travel.departureCity')),
-                      ),
-                    ),
-                    suffixIconConstraints: const BoxConstraints(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Conditional fields based on travel type
-                if (travelType == 'Airplane') ...[
-                  TextField(
-                    controller: controllers['travel.departureTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Departure Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.arrivalTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Arrival Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.airline'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Airline',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.airline'))),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.flightNumber'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Flight Number',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.ticketPrice'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Ticket Price',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                ] else if (travelType == 'Train') ...[
-                  TextField(
-                    controller: controllers['travel.departureTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Departure Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.arrivalTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Arrival Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.flightNumber'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Train Number',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.ticketPrice'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Ticket Price',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                ] else if (travelType == 'Bus') ...[
-                  TextField(
-                    controller: controllers['travel.departureTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Departure Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.arrivalTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Arrival Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.flightNumber'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Bus Number',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(level: ref.watch(effectiveSensitivityProvider('travel.flightNumber'))),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.ticketPrice'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Ticket Price',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                ] else if (travelType == 'Taxi') ...[
-                  TextField(
-                    controller: controllers['travel.departureTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Departure Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.arrivalTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Arrival Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.ticketPrice'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Price',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.ticketPrice')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                ] else if (travelType == 'Drive') ...[
-                  TextField(
-                    controller: controllers['travel.departureTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Departure Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.arrivalTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Arrival Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                ] else ...[
-                  // Other or no type selected
-                  TextField(
-                    controller: controllers['travel.departureTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Departure Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.departureTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controllers['travel.arrivalTime'],
-                    maxLength: kMaxFieldLength,
-                    decoration: InputDecoration(
-                      labelText: 'Arrival Time',
-                      border: const OutlineInputBorder(),
-                      counterText: '',
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: SensitivityTag(
-                          level: ref.watch(effectiveSensitivityProvider('travel.arrivalTime')),
-                        ),
-                      ),
-                      suffixIconConstraints: const BoxConstraints(),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: onCancel,
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: onSubmit,
-                      child: Text(mode == 'adding' ? 'Add' : 'Save'),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-      displayItemBuilder: _buildTravelHistoryItem,
-      onDelete: _onHistoryDelete,
-      onSave: _onHistorySave,
-      itemToMap: (item) => {
-        'destination': item.destination,
-        'travelType': item.travelType ?? '',
-        'date': item.date ?? '',
-        'departureCity': item.departureCity ?? '',
-        'departureTime': item.departureTime ?? '',
-        'arrivalTime': item.arrivalTime ?? '',
-        'flightNumber': item.flightNumber ?? '',
-        'ticketPrice': item.ticketPrice ?? '',
-        'airline': item.airline ?? '',
-      },
-      onCopyAll: (item, text) async {
-        unawaited(Clipboard.setData(ClipboardData(text: text)));
-        unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-        showOverlaySnackBar(
-          context,
-          content: 'Copied to clipboard',
-          type: SnackBarType.success,
-        );
-      },
-      showHistoryExpansion: true,
-      historyFieldIdPrefix: 'travel',
-      itemIdExtractor: (t) => t.id,
-    );
-  }
-}

@@ -159,7 +159,8 @@ class MaskedText extends StatelessWidget {
   });
 
   String _maskedValue(String val) {
-    if (val.length <= 8) {
+    // Short values (dates, short IDs, phone numbers ≤ 12 chars) are fully masked
+    if (val.length <= 12) {
       return '••••••••';
     }
     return '${val.substring(0, 4)}••••••••${val.substring(val.length - 4)}';

@@ -42,7 +42,12 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     // Auto-navigate back if the current object has been deleted.
     if (widget.objectId != null && currentObject == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.pop();
+        if (!mounted) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/objects');
+        }
       });
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -246,7 +251,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     if (confirmed == true) {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(object.id);
       if (mounted) {
-        context.pop();
+        // Navigation is handled by build()'s auto-navigate when currentObject becomes null
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('"${object.name}" moved to trash')),
         );

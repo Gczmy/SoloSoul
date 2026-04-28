@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -49,6 +51,9 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     // Load security settings at startup
     SecurityService.instance.loadSettings();
 
+    // 检测 App 版本变化，若升级则标记待备份
+    _checkAppVersion();
+
     // Create router after initState (needs ref)
     _router = createRouter(ref);
 
@@ -61,6 +66,15 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
           DebugLogger.instance.logError('MAIN', 'Lock callback error: $e');
         }
       });
+    }
+  }
+
+  Future<void> _checkAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      await AppVersionTracker.instance.checkVersion(info.version);
+    } on Exception catch (e) {
+      DebugLogger.instance.logError('MAIN', 'Version check failed: $e');
     }
   }
 

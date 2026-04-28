@@ -391,8 +391,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         const Divider(height: 1),
                         _SettingsTile(
                           icon: Icons.storage_outlined,
-                          title: 'Data Size',
+                          title: 'Data Management',
                           subtitle: _getVaultDataSize(),
+                          onTap: () => context.go(AppRoutes.dataManagement),
                         ),
                       ],
                     );
@@ -1853,6 +1854,7 @@ class _VersionInfoTile extends StatelessWidget {
     );
   }
 }
+
 
 class _SettingsTile extends StatelessWidget {
   final IconData icon;

@@ -251,8 +251,10 @@ class NativeVaultService {
     if (!_isSuccess(response)) {
       return null;
     }
-    final data = response!['data'] as Map<String, dynamic>;
-    final dataB64 = data['data'] as String;
+    final data = response!['data'] as Map<String, dynamic>?;
+    if (data == null) return null;
+    final dataB64 = data['data'] as String?;
+    if (dataB64 == null || dataB64.isEmpty) return null;
     final encryptedData = base64Decode(dataB64);
     final summary = Map<String, dynamic>.from(data);
     summary.remove('data');

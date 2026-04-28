@@ -227,7 +227,10 @@ class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState
 
   void _startAdding() {
     _clearControllers();
-    setState(() => _mode = 'adding');
+    setState(() {
+      _mode = 'adding';
+      _editingIndex = -1;
+    });
   }
 
   void _startEditing(int index) {
@@ -242,10 +245,7 @@ class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState
   void _cancelEdit() {
     setState(() {
       _mode = 'idle';
-      // Remove draft item if canceling from add mode
-      if (_editingIndex == -1 && _items.isNotEmpty) {
-        _items.removeAt(0);
-      }
+      _editingIndex = -1;
     });
   }
 
@@ -369,17 +369,13 @@ class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState
 
     // Update local state after successful persistence
     setState(() {
-      if (wasAdding) {
-        // Insert at position 0 instead of adding at end
-        if (createdItem != null) {
-          _items.insert(0, createdItem);
-        }
-      } else {
-        if (createdItem != null) {
-          _items[_editingIndex] = createdItem;
-        }
+      // 编辑模式：本地直接更新；添加模式：不本地插入，依赖 didUpdateWidget
+      // 从 provider 同步，避免插入空 ID 的 ghost item
+      if (!wasAdding && createdItem != null) {
+        _items[_editingIndex] = createdItem;
       }
       _mode = 'idle';
+      _editingIndex = -1;
     });
 
     // Record history if configured (only for edits, adds have no oldValues)
@@ -498,22 +494,7 @@ class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState
     final isEditing = _mode == 'adding' || _mode == 'editing';
     final theme = Theme.of(context);
 
-    // When adding mode, insert draft item at position 0 and show form inline
     final displayItems = <Widget>[];
-
-    if (isEditing) {
-      // Semi-transparent overlay over existing items
-      displayItems.add(
-        SizedBox(
-          height: 0,
-          child: IgnorePointer(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.05),
-            ),
-          ),
-        ),
-      );
-    }
 
     // Add form at top when editing (inline, not in footer)
     if (isEditing) {
@@ -575,7 +556,8 @@ class _UnifiedFormSectionState<T extends IdentifiableItem> extends ConsumerState
     return CollapsibleSectionCard(
       title: widget.title,
       icon: widget.icon,
-      maxVisibleItems: widget.maxVisibleItems,
+      // 编辑时不折叠，确保内联表单始终可见
+      maxVisibleItems: isEditing ? 999 : widget.maxVisibleItems,
       actionIcon: Icons.add,
       onAction: _startAdding,
       children: displayItems,

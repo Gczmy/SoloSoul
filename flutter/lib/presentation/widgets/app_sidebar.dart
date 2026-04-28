@@ -88,7 +88,14 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     final theme = Theme.of(context);
     final sidebarWidth = _expanded ? _expandedWidth : _collapsedWidth;
     final location = GoRouterState.of(context).matchedLocation;
-    final customPages = ref.watch(objectsByTypeProvider('page'));
+    final allPages = ref.watch(objectsByTypeProvider('page'));
+    // Filter out default pages (Profile, Travel, Financial, Professional)
+    // so they don't appear in the custom pages section.
+    final customPages = allPages.where((p) =>
+        p.id != DefaultPageIds.profile &&
+        p.id != DefaultPageIds.travel &&
+        p.id != DefaultPageIds.financial &&
+        p.id != DefaultPageIds.professional).toList();
 
     return SizedBox(
       width: sidebarWidth,

@@ -130,7 +130,8 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
   }
 
   String _maskedValue(String value) {
-    if (value.length <= 8) {
+    // Short values (dates, short IDs, phone numbers ≤ 12 chars) are fully masked
+    if (value.length <= 12) {
       return '••••••••';
     }
     // Partial masking: show first 4 and last 4 characters

@@ -127,6 +127,18 @@ class RustVaultService {
   }
 
   // ===========================================================================
+  // Public encryption helpers for external services (e.g. BackupService)
+  // ===========================================================================
+
+  /// Encrypt arbitrary bytes using the current encryption key.
+  /// Returns nonce(12B) + ciphertext combined, or null if key not set.
+  Uint8List? encryptBytes(Uint8List data) => _encryptData(data);
+
+  /// Decrypt bytes that were encrypted with [encryptBytes].
+  /// Expects nonce + ciphertext combined format.
+  Uint8List? decryptBytes(Uint8List combined) => _decryptData(combined);
+
+  // ===========================================================================
   // FFI Bridge calls via NativeVaultService (JSON Relay Pattern)
   // ===========================================================================
 

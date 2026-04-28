@@ -18,6 +18,7 @@ class OperationMessage {
   final String? itemName; // The name of the item (hidden in privacy mode)
   final String? fieldName; // The specific field that was modified
   final bool isPrivacyModeActive;
+  final String? customMessage; // Optional override for auto-generated message
 
   const OperationMessage({
     required this.type,
@@ -25,11 +26,14 @@ class OperationMessage {
     this.itemName,
     this.fieldName,
     this.isPrivacyModeActive = false,
+    this.customMessage,
   });
 
   /// Get the message text in English based on operation type
   /// Note: Privacy mode affects data display, not operation descriptions
   String get message {
+    if (customMessage != null) return customMessage!;
+
     final sectionLabel = _getSectionLabel();
 
     switch (type) {
