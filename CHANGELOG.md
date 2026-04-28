@@ -5,6 +5,30 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-29
+
+### Added
+
+- **Encrypted Backup System** — Full-screen Data Management page with encrypted backup/restore (AES-256-GCM)
+- **Special Backups** — Pin up to 5 named backups outside the auto-rotation cycle; rename and restore individually
+- **Promote to Special Backup** — Save any regular backup as a special backup with a custom name
+- **Auto-Backup on Unlock** — Automatic versioned backup created on every vault unlock
+- **Auto-Backup on Upgrade** — App version change triggers automatic backup before first unlock
+- **Backup Recovery Prompt** — If vault is empty but backups exist, login offers restore dialog
+- **Account Data Isolation** — Switching accounts now properly resets unified object state (no cross-account data leakage)
+- **Default Page Protection** — Built-in pages (Profile/Travel/Financial/Professional) are protected from deletion
+- **Default Page Sidebar Filtering** — Default pages no longer appear in the Custom Pages section
+
+### Fixed
+
+- **Restore Oldest Backup** — Protective backup creation no longer deletes the target backup being restored
+- **Date Masking** — Short values like dates (`1997-08-19`) are now fully masked instead of partially exposed
+- **Object Workspace Pop Crash** — Fixed `GoError: There is nothing to pop` when deleting objects
+- **Migration Crash** — Fixed `StateError` from `firstWhere` on missing `FormFieldRegistry` fields during v3→v4 migration
+- **Overlay Notifications** — Backup success/failure messages now use top-floating overlay instead of SnackBar
+
+---
+
 ## [1.2.0] - 2026-04-27
 
 ### Added
