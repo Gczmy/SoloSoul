@@ -263,6 +263,9 @@ class TrashManager {
         addresses:
             current.identity!.addresses?.where((a) => !a.isDeleted).toList(),
       ),
+      unifiedObjects: current.unifiedObjects?.copyWith(
+        objects: current.unifiedObjects!.objects.where((o) => !o.isDeleted).toList(),
+      ),
     );
   }
 
@@ -364,6 +367,15 @@ class TrashManager {
       for (var i = 0; i < profile.identity!.addresses!.length; i++) {
         if (profile.identity!.addresses![i].isDeleted) {
           _logItemDeletion(profile, 'profile', 'address', i);
+        }
+      }
+    }
+
+    // Unified Objects section
+    if (profile.unifiedObjects != null) {
+      for (final obj in profile.unifiedObjects!.objects) {
+        if (obj.isDeleted) {
+          _logPermanentDelete('unified_object', obj.typeId ?? 'object', obj.name);
         }
       }
     }

@@ -167,21 +167,32 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
 
-    final restored = _service.restoreObject(object);
-    state = state.copyWith(
-      objects: _service.replaceObject(state.objects, restored),
-    );
+    var restored = _service.restoreObject(object);
+    var updatedObjects = _service.replaceObject(state.objects, restored);
+
+    // Re-add to parent's childrenIds if parent exists
+    if (restored.parentId != null) {
+      updatedObjects = _service.addChild(updatedObjects, restored.parentId!, restored.id);
+    }
+
+    state = state.copyWith(objects: updatedObjects);
     return _save();
   }
 
   /// Permanently delete an object and all its descendants.
   Future<bool> permanentlyDeleteObject(String id) async {
+    final object = _service.getObjectById(state.objects, id);
     final descendantIds = _service.getDescendantIds(state.objects, id);
     final idsToRemove = {id, ...descendantIds};
 
-    final updatedObjects = state.objects
+    var updatedObjects = state.objects
         .where((o) => !idsToRemove.contains(o.id))
         .toList();
+
+    // Remove from parent's childrenIds
+    if (object?.parentId != null) {
+      updatedObjects = _service.removeChild(updatedObjects, object!.parentId!, id);
+    }
 
     state = state.copyWith(objects: updatedObjects);
     return _save();
