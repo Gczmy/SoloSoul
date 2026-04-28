@@ -36,6 +36,8 @@ class ObjectCard extends ConsumerStatefulWidget {
   ConsumerState<ObjectCard> createState() => _ObjectCardState();
 }
 
+const int kMaxPropertyLength = 128;
+
 class _ObjectCardState extends ConsumerState<ObjectCard> {
   static const String _historyFieldId = 'unified';
   final Set<String> _expandedHistoryItemIds = {};
@@ -681,6 +683,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           // Title input
           TextField(
             controller: _editControllers['__name__'],
+            maxLength: kMaxPropertyLength,
+            buildCounter: _buildCharacterCounter,
             decoration: const InputDecoration(
               labelText: 'Title',
               border: OutlineInputBorder(),
@@ -725,6 +729,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           // Title input
           TextField(
             controller: _editControllers['__name__'],
+            maxLength: kMaxPropertyLength,
+            buildCounter: _buildCharacterCounter,
             decoration: const InputDecoration(
               labelText: 'Title',
               border: OutlineInputBorder(),
@@ -781,6 +787,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       ),
       _ => TextField(
         controller: controller,
+        maxLength: kMaxPropertyLength,
+        buildCounter: _buildCharacterCounter,
         decoration: InputDecoration(
           labelText: key,
           border: const OutlineInputBorder(),
@@ -796,6 +804,26 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         keyboardType: value is NumberProperty ? TextInputType.number : null,
       ),
     };
+  }
+
+  Widget? _buildCharacterCounter(
+    BuildContext context, {
+    required int currentLength,
+    required int? maxLength,
+    required bool isFocused,
+  }) {
+    if (maxLength == null) return null;
+    return Padding(
+      padding: const EdgeInsets.only(right: 12, bottom: 4),
+      child: Text(
+        '$currentLength/$maxLength',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: currentLength >= maxLength
+              ? Theme.of(context).colorScheme.error
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 
   void _copyItem(UnifiedObject item) {
