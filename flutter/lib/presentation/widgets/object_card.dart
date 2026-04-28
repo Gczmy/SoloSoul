@@ -17,6 +17,7 @@ import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 
 
 /// Card displaying a Section and its Items.
@@ -155,53 +156,94 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     });
   }
 
+  bool _itemHasSensitiveProperties(UnifiedObject item) {
+    return item.properties.values.any(
+      (p) => p.sensitivity == SensitivityLevel.sensitive ||
+             p.sensitivity == SensitivityLevel.critical,
+    );
+  }
+
+  Future<void> _handleWithVerification(VoidCallback onSuccess) async {
+    if (ref.read(isSensitiveAccessGrantedProvider)) {
+      onSuccess();
+      return;
+    }
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
+    final password = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
+    );
+    if (password == null) return;
+    ref.read(sensitivePageAccessProvider.notifier).markVerified();
+    onSuccess();
+  }
+
   Future<void> _deleteItem(String itemId) async {
     final item = ref.read(objectByIdProvider(itemId));
     if (item == null) return;
 
-    await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
+    final doDelete = () async {
+      await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
 
-    OperationLogService.instance.addEntry(
-      OperationLogger.logCustomSection(
-        section: widget.object.name,
-        action: LogAction.delete,
-        description: 'Deleted item "${_itemDisplayTitle(item)}"',
-        fieldPath: itemId,
-      ),
-    );
-
-    if (mounted) {
-      final isPrivacyMode =
-          ref.read(accountStyleProvider).value?.displayMode ==
-              SensitivityDisplayMode.hidePrivate;
-      OperationNotification.show(
-        context,
-        message: OperationLogger.createNotificationForSection(
+      OperationLogService.instance.addEntry(
+        OperationLogger.logCustomSection(
           section: widget.object.name,
           action: LogAction.delete,
-          itemName: _itemDisplayTitle(item),
-          isPrivacyModeActive: isPrivacyMode,
+          description: 'Deleted item "${_itemDisplayTitle(item)}"',
+          fieldPath: itemId,
         ),
-        duration: const Duration(seconds: 5),
-        onUndo: () async {
-          await ref.read(unifiedObjectProvider.notifier).restoreObject(itemId);
-        },
       );
+
+      if (mounted) {
+        final isPrivacyMode =
+            ref.read(accountStyleProvider).value?.displayMode ==
+                SensitivityDisplayMode.hidePrivate;
+        OperationNotification.show(
+          context,
+          message: OperationLogger.createNotificationForSection(
+            section: widget.object.name,
+            action: LogAction.delete,
+            itemName: _itemDisplayTitle(item),
+            isPrivacyModeActive: isPrivacyMode,
+          ),
+          duration: const Duration(seconds: 5),
+          onUndo: () async {
+            await ref.read(unifiedObjectProvider.notifier).restoreObject(itemId);
+          },
+        );
+      }
+    };
+
+    if (_itemHasSensitiveProperties(item)) {
+      await _handleWithVerification(doDelete);
+    } else {
+      await doDelete();
     }
   }
 
   void _startEditingItem(UnifiedObject item) {
-    setState(() {
-      _editingItemId = item.id;
-      _isAddingItem = false;
-      _disposeControllers();
-      _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
-      for (final entry in item.properties.entries) {
-        _editControllers[entry.key] = TextEditingController(
-          text: _propertyValueToString(entry.value),
-        );
-      }
-    });
+    final doEdit = () {
+      setState(() {
+        _editingItemId = item.id;
+        _isAddingItem = false;
+        _disposeControllers();
+        _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
+        for (final entry in item.properties.entries) {
+          _editControllers[entry.key] = TextEditingController(
+            text: _propertyValueToString(entry.value),
+          );
+        }
+      });
+    };
+
+    if (_itemHasSensitiveProperties(item)) {
+      _handleWithVerification(doEdit);
+    } else {
+      doEdit();
+    }
   }
 
   void _cancelEditItem() {
@@ -755,19 +797,27 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   void _copyItem(UnifiedObject item) {
-    final buffer = StringBuffer();
-    buffer.writeln('${item.name}:');
-    for (final entry in item.properties.entries) {
-      buffer.writeln('  ${entry.key}: ${_propertyValueToString(entry.value)}');
+    final doCopy = () {
+      final buffer = StringBuffer();
+      buffer.writeln('${item.name}:');
+      for (final entry in item.properties.entries) {
+        buffer.writeln('  ${entry.key}: ${_propertyValueToString(entry.value)}');
+      }
+      Clipboard.setData(ClipboardData(text: buffer.toString()));
+      OperationNotification.show(
+        context,
+        message: OperationLogger.createNotificationForSection(
+          section: widget.object.name,
+          action: LogAction.create,
+          itemName: _itemDisplayTitle(item),
+        ),
+      );
+    };
+
+    if (_itemHasSensitiveProperties(item)) {
+      _handleWithVerification(doCopy);
+    } else {
+      doCopy();
     }
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
-    OperationNotification.show(
-      context,
-      message: OperationLogger.createNotificationForSection(
-        section: widget.object.name,
-        action: LogAction.create,
-        itemName: _itemDisplayTitle(item),
-      ),
-    );
   }
 }
