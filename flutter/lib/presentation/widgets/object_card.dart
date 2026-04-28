@@ -18,6 +18,8 @@ import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
+    show showOverlaySnackBar, SnackBarType;
 
 
 /// Card displaying a Section and its Items.
@@ -804,13 +806,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         buffer.writeln('  ${entry.key}: ${_propertyValueToString(entry.value)}');
       }
       Clipboard.setData(ClipboardData(text: buffer.toString()));
-      OperationNotification.show(
+      showOverlaySnackBar(
         context,
-        message: OperationLogger.createNotificationForSection(
-          section: widget.object.name,
-          action: LogAction.create,
-          itemName: _itemDisplayTitle(item),
-        ),
+        content: 'Copied to clipboard',
+        type: SnackBarType.success,
       );
     };
 
