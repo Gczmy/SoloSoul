@@ -304,6 +304,8 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                               flex: 2,
                               child: TextField(
                                 controller: field.controller,
+                                maxLength: 12,
+                                buildCounter: _buildCharacterCounter,
                                 decoration: const InputDecoration(
                                   hintText: 'Key name',
                                   isDense: true,
@@ -435,6 +437,26 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       itemId: _existingObject!.id,
       fieldIdPrefix: 'unified',
       allFieldValues: allFieldValues,
+    );
+  }
+
+  Widget? _buildCharacterCounter(
+    BuildContext context, {
+    required int currentLength,
+    required int? maxLength,
+    required bool isFocused,
+  }) {
+    if (maxLength == null) return null;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8, bottom: 2),
+      child: Text(
+        '$currentLength/$maxLength',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: currentLength >= maxLength
+              ? Theme.of(context).colorScheme.error
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 

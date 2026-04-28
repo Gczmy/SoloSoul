@@ -585,10 +585,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                         padding: const EdgeInsets.only(left: 8, bottom: 2),
                         child: Row(
                           children: [
-                            SelectableText(
-                              '${entry.key}: ',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 100),
+                              child: SelectableText(
+                                '${entry.key}: ',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
                               ),
                             ),
                             if (isSensitive)
