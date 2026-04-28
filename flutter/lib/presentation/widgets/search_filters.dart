@@ -14,6 +14,17 @@ class SearchFilters extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final unselectedBg = theme.colorScheme.surfaceContainerHighest;
+
+    ChipThemeData _chipTheme(bool selected) {
+      return ChipThemeData(
+        backgroundColor: selected ? null : unselectedBg,
+        side: selected ? null : BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Wrap(
@@ -21,45 +32,57 @@ class SearchFilters extends ConsumerWidget {
         runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          FilterChip(
-            label: const Text('Public'),
-            selected: searchState.searchPublic,
-            onSelected: (_) {
-              ref.read(searchProvider.notifier).togglePublic();
-            },
-            avatar: searchState.searchPublic
-                ? const Icon(Icons.check, size: 18)
-                : null,
+          ChipTheme(
+            data: _chipTheme(searchState.searchPublic),
+            child: FilterChip(
+              label: const Text('Public'),
+              selected: searchState.searchPublic,
+              onSelected: (_) {
+                ref.read(searchProvider.notifier).togglePublic();
+              },
+              avatar: searchState.searchPublic
+                  ? const Icon(Icons.check, size: 18)
+                  : null,
+            ),
           ),
-          FilterChip(
-            label: const Text('Internal'),
-            selected: searchState.searchInternal,
-            onSelected: (_) {
-              ref.read(searchProvider.notifier).toggleInternal();
-            },
-            avatar: searchState.searchInternal
-                ? const Icon(Icons.check, size: 18)
-                : null,
+          ChipTheme(
+            data: _chipTheme(searchState.searchInternal),
+            child: FilterChip(
+              label: const Text('Internal'),
+              selected: searchState.searchInternal,
+              onSelected: (_) {
+                ref.read(searchProvider.notifier).toggleInternal();
+              },
+              avatar: searchState.searchInternal
+                  ? const Icon(Icons.check, size: 18)
+                  : null,
+            ),
           ),
-          FilterChip(
-            label: const Text('Sensitive'),
-            selected: searchState.searchSensitive,
-            onSelected: (_) {
-              ref.read(searchProvider.notifier).toggleSensitive();
-            },
-            avatar: searchState.searchSensitive
-                ? const Icon(Icons.check, size: 18)
-                : null,
+          ChipTheme(
+            data: _chipTheme(searchState.searchSensitive),
+            child: FilterChip(
+              label: const Text('Sensitive'),
+              selected: searchState.searchSensitive,
+              onSelected: (_) {
+                ref.read(searchProvider.notifier).toggleSensitive();
+              },
+              avatar: searchState.searchSensitive
+                  ? const Icon(Icons.check, size: 18)
+                  : null,
+            ),
           ),
-          FilterChip(
-            label: const Text('Restricted'),
-            selected: searchState.searchRestricted,
-            onSelected: (_) {
-              ref.read(searchProvider.notifier).toggleRestricted();
-            },
-            avatar: searchState.searchRestricted
-                ? const Icon(Icons.check, size: 18)
-                : null,
+          ChipTheme(
+            data: _chipTheme(searchState.searchRestricted),
+            child: FilterChip(
+              label: const Text('Restricted'),
+              selected: searchState.searchRestricted,
+              onSelected: (_) {
+                ref.read(searchProvider.notifier).toggleRestricted();
+              },
+              avatar: searchState.searchRestricted
+                  ? const Icon(Icons.check, size: 18)
+                  : null,
+            ),
           ),
           if (searchState.searchRestricted)
             TextButton.icon(
