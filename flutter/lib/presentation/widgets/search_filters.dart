@@ -16,7 +16,10 @@ class SearchFilters extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           FilterChip(
             label: const Text('Public'),
@@ -28,7 +31,6 @@ class SearchFilters extends ConsumerWidget {
                 ? const Icon(Icons.check, size: 18)
                 : null,
           ),
-          const SizedBox(width: 8),
           FilterChip(
             label: const Text('Internal'),
             selected: searchState.searchInternal,
@@ -39,7 +41,6 @@ class SearchFilters extends ConsumerWidget {
                 ? const Icon(Icons.check, size: 18)
                 : null,
           ),
-          const SizedBox(width: 8),
           FilterChip(
             label: const Text('Sensitive'),
             selected: searchState.searchSensitive,
@@ -50,7 +51,6 @@ class SearchFilters extends ConsumerWidget {
                 ? const Icon(Icons.check, size: 18)
                 : null,
           ),
-          const SizedBox(width: 8),
           FilterChip(
             label: const Text('Restricted'),
             selected: searchState.searchRestricted,
@@ -61,7 +61,6 @@ class SearchFilters extends ConsumerWidget {
                 ? const Icon(Icons.check, size: 18)
                 : null,
           ),
-          const Spacer(),
           if (searchState.searchRestricted)
             TextButton.icon(
               icon: const Icon(Icons.lock_open, size: 18),
