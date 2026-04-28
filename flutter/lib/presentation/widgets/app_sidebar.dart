@@ -134,6 +134,24 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           onTap: () => context.go(AppRoutes.search),
                         ),
 
+                        // Scan (placeholder)
+                        _NavTile(
+                          icon: Icons.document_scanner_outlined,
+                          label: 'Scan',
+                          expanded: _expanded,
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => const AlertDialog(
+                                title: Text('OCR Scan'),
+                                content: Text(
+                                  'Document scanning will be available in a future update.',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
                         const SizedBox(height: 4),
                         const Divider(height: 1),
                         const SizedBox(height: 8),

@@ -48,19 +48,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // OCR Scan button at top
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showOCRUploadDialog(context),
-                icon: const Icon(Icons.document_scanner_outlined),
-                label: const Text('Scan Document with OCR'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
             _PassportSection()
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
@@ -81,23 +69,6 @@ class _TravelPageState extends ConsumerState<TravelPage> {
     );
   }
 
-  void _showOCRUploadDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('OCR Scan'),
-        content: const Text(
-          'OCR document scanning will be available after PaddleOCR integration.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ============ Passport Section (using UnifiedFormSection) ============
