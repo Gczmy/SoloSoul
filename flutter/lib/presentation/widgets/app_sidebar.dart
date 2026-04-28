@@ -228,6 +228,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         ...customPages
                             .where((p) => p.parentId == null)
                             .map((page) => _PageTreeTile(
+                                  key: ValueKey(page.id),
                                   page: page,
                                   expanded: _expanded,
                                   depth: 0,
@@ -577,6 +578,7 @@ class _PageTreeTile extends ConsumerStatefulWidget {
   final ValueChanged<String> onToggleExpand;
 
   const _PageTreeTile({
+    super.key,
     required this.page,
     required this.expanded,
     this.depth = 0,
@@ -821,6 +823,7 @@ class _PageTreeTileState extends ConsumerState<_PageTreeTile> {
             final childLocation =
                 '${AppRoutes.objects}/${child.id}';
             return _PageTreeTile(
+              key: ValueKey(child.id),
               page: child,
               expanded: widget.expanded,
               depth: widget.depth + 1,

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
+import 'package:solosoul_flutter/core/models/field_history_models.dart'
+    show FieldHistory;
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
@@ -29,8 +31,13 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 /// The Section's `properties` field defines the Item template.
 class ObjectCard extends ConsumerStatefulWidget {
   final UnifiedObject object;
+  final List<UnifiedObject> items;
 
-  const ObjectCard({super.key, required this.object});
+  const ObjectCard({
+    super.key,
+    required this.object,
+    required this.items,
+  });
 
   @override
   ConsumerState<ObjectCard> createState() => _ObjectCardState();
@@ -476,11 +483,12 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final icon = UnifiedObjectService.getIconFromName(widget.object.iconName);
-    final items = ref.watch(childrenProvider(widget.object.id))
-        .where((o) => o.typeId == 'item')
-        .toList();
+    final items = widget.items;
     final shouldCollapse = items.length > 3;
     final visibleItems = _isExpanded ? items : items.take(3).toList();
+
+    // 一次性读取 fieldHistories，避免每个 item 都创建独立 provider 订阅
+    final histories = ref.watch(fieldHistoriesProvider);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -554,7 +562,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               )
             else ...[
               if (_isAddingItem) _buildNewItemForm(),
-              ...visibleItems.map((item) => _buildItemTile(item)),
+              ...visibleItems.map((item) {
+                final history = histories.getHistory(item.id, _historyFieldId);
+                return _buildItemTile(item, history);
+              }),
               if (shouldCollapse && !_isAddingItem) ...[
                 const SizedBox(height: 8),
                 InkWell(
@@ -594,9 +605,11 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     );
   }
 
-  Widget _buildItemTile(UnifiedObject item) {
+  Widget _buildItemTile(UnifiedObject item, FieldHistory? history) {
     final isEditing = _editingItemId == item.id;
-    return isEditing ? _buildItemEditMode(item) : _buildItemViewMode(item);
+    return isEditing
+        ? _buildItemEditMode(item)
+        : _buildItemViewMode(item, history);
   }
 
   void _toggleItemHistory(String itemId) {
@@ -609,14 +622,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     });
   }
 
-  Widget _buildItemViewMode(UnifiedObject item) {
+  Widget _buildItemViewMode(UnifiedObject item, FieldHistory? history) {
     final theme = Theme.of(context);
     final isHistoryExpanded = _expandedHistoryItemIds.contains(item.id);
-    final hasHistory = ref.watch(
-      fieldHistoriesProvider.select(
-        (h) => h.getHistory(item.id, _historyFieldId)?.entries.isNotEmpty == true,
-      ),
-    );
+    final hasHistory = history?.entries.isNotEmpty == true;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -730,16 +739,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           // Item history
           if (isHistoryExpanded) ...[
             const SizedBox(height: 8),
-            Consumer(
-              builder: (context, ref, child) {
-                final histories = ref.watch(fieldHistoriesProvider);
-                final history = histories.getHistory(item.id, _historyFieldId);
-                return FieldHistoryView(
-                  fieldName: _historyFieldId,
-                  history: history,
-                  initiallyExpanded: true,
-                );
-              },
+            FieldHistoryView(
+              fieldName: _historyFieldId,
+              history: history,
+              initiallyExpanded: true,
             ),
           ],
           const Divider(height: 16),

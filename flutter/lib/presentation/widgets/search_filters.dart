@@ -40,9 +40,7 @@ class SearchFilters extends ConsumerWidget {
               onSelected: (_) {
                 ref.read(searchProvider.notifier).togglePublic();
               },
-              avatar: searchState.searchPublic
-                  ? const Icon(Icons.check, size: 18)
-                  : null,
+              showCheckmark: false,
             ),
           ),
           ChipTheme(
@@ -53,9 +51,7 @@ class SearchFilters extends ConsumerWidget {
               onSelected: (_) {
                 ref.read(searchProvider.notifier).toggleInternal();
               },
-              avatar: searchState.searchInternal
-                  ? const Icon(Icons.check, size: 18)
-                  : null,
+              showCheckmark: false,
             ),
           ),
           ChipTheme(
@@ -66,9 +62,7 @@ class SearchFilters extends ConsumerWidget {
               onSelected: (_) {
                 ref.read(searchProvider.notifier).toggleSensitive();
               },
-              avatar: searchState.searchSensitive
-                  ? const Icon(Icons.check, size: 18)
-                  : null,
+              showCheckmark: false,
             ),
           ),
           ChipTheme(
@@ -79,9 +73,7 @@ class SearchFilters extends ConsumerWidget {
               onSelected: (_) {
                 ref.read(searchProvider.notifier).toggleRestricted();
               },
-              avatar: searchState.searchRestricted
-                  ? const Icon(Icons.check, size: 18)
-                  : null,
+              showCheckmark: false,
             ),
           ),
           if (searchState.searchRestricted)

@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
-import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
+    show unifiedObjectProvider, unifiedObjectCacheProvider;
 import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
@@ -31,8 +32,11 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
 
   @override
   Widget build(BuildContext context) {
+    // 使用预计算缓存：数据变化时一次性重建索引，页面切换时直接 O(1) 读取
+    final cache = ref.watch(unifiedObjectCacheProvider);
+
     final currentObject = widget.objectId != null
-        ? ref.watch(objectByIdProvider(widget.objectId!))
+        ? cache.objectById[widget.objectId]
         : null;
 
     // Auto-navigate back if the current object has been deleted.
@@ -45,11 +49,9 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       );
     }
 
-    final allChildren = widget.objectId != null
-        ? ref.watch(childrenProvider(widget.objectId!))
-        : ref.watch(rootObjectsProvider);
-    // Page-type children are shown in the sidebar tree, not in the workspace.
-    final children = allChildren.where((c) => c.typeId != 'page').toList();
+    final children = widget.objectId != null
+        ? cache.workspaceChildren[widget.objectId] ?? []
+        : cache.rootObjects.where((o) => o.typeId != 'page').toList();
 
     final title = currentObject?.name ?? 'Objects';
     final isPage = currentObject?.typeId == 'page';
@@ -73,8 +75,12 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
                   padding: const EdgeInsets.all(16),
                   itemCount: children.length,
                   itemBuilder: (context, index) {
+                    final child = children[index];
                     return RepaintBoundary(
-                      child: ObjectCard(object: children[index]),
+                      child: ObjectCard(
+                        object: child,
+                        items: cache.itemChildren[child.id] ?? [],
+                      ),
                     );
                   },
                 )

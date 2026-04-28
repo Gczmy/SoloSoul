@@ -706,9 +706,23 @@ class SearchNotifier extends Notifier<SearchState> {
     // Build a lookup map for parent objects
     final objectMap = {for (final o in data.objects) o.id: o};
 
+    // Search page names
     for (final obj in data.objects) {
       if (obj.isDeleted) continue;
-      // Only index item-level objects (children of sections)
+      if (obj.typeId != 'page') continue;
+
+      addResult(
+        'page.${obj.id}.name',
+        'Page Name',
+        'page',
+        obj.name,
+        SensitivityLevel.public,
+      );
+    }
+
+    // Search item-level object properties
+    for (final obj in data.objects) {
+      if (obj.isDeleted) continue;
       if (obj.typeId != 'item') continue;
 
       final parent = obj.parentId != null ? objectMap[obj.parentId] : null;

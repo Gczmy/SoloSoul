@@ -683,6 +683,7 @@ class FieldRegistry {
       'skill': 'Skills',
       'language': 'Language',
       'award': 'Award',
+      'page': 'Page',
     };
     return names[section] ?? section;
   }

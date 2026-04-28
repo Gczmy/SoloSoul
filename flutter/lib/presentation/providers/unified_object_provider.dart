@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -36,6 +37,9 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     final data = profile.unifiedObjects;
     if (data == null) return; // Don't overwrite state if unifiedObjects is missing
+
+    // 避免无意义的 state 覆盖（引用相等时跳过，防止级联重建）
+    if (identical(state, data)) return;
 
     state = data;
   }
@@ -265,12 +269,13 @@ List<UnifiedObject> rootObjects(Ref ref) {
 /// Direct children of a specific parent, in childrenIds order, active only.
 @riverpod
 List<UnifiedObject> children(Ref ref, String parentId) {
-  final data = ref.watch(unifiedObjectProvider);
-  final parent = data.objectMap[parentId];
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final map = {for (final o in objects) o.id: o};
+  final parent = map[parentId];
   if (parent == null) return [];
   return parent.childrenIds
-      .where((id) => data.objectMap.containsKey(id))
-      .map((id) => data.objectMap[id]!)
+      .where((id) => map.containsKey(id))
+      .map((id) => map[id]!)
       .where((o) => !o.isDeleted)
       .toList();
 }
@@ -278,8 +283,9 @@ List<UnifiedObject> children(Ref ref, String parentId) {
 /// Get a specific object by ID.
 @riverpod
 UnifiedObject? objectById(Ref ref, String id) {
-  final data = ref.watch(unifiedObjectProvider);
-  return data.objectMap[id];
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final map = {for (final o in objects) o.id: o};
+  return map[id];
 }
 
 /// Get all active objects of a given type.
@@ -297,6 +303,67 @@ List<UnifiedObject> deletedObjects(Ref ref) {
   final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
   return objects.where((o) => o.isDeleted).toList();
 }
+
+// =============================================================================
+// Pre-computed Cache
+// =============================================================================
+
+/// 预计算缓存：所有对象的工作区内容一次性算好，点击页面时直接读取，无需现场遍历。
+@immutable
+class UnifiedObjectCache {
+  final Map<String, UnifiedObject> objectById;
+
+  /// parentId → 该 parent 下非 page 类型的子对象列表（workspace 显示用）
+  final Map<String, List<UnifiedObject>> workspaceChildren;
+
+  /// parentId → 该 parent 下 type=='item' 的子对象列表（ObjectCard 显示用）
+  final Map<String, List<UnifiedObject>> itemChildren;
+
+  /// 根级对象列表（parentId == null，未删除）
+  final List<UnifiedObject> rootObjects;
+
+  const UnifiedObjectCache({
+    required this.objectById,
+    required this.workspaceChildren,
+    required this.itemChildren,
+    required this.rootObjects,
+  });
+}
+
+/// 全局预计算缓存 Provider：只监听 objects 列表，数据变化时一次性重建全部索引。
+final unifiedObjectCacheProvider = Provider<UnifiedObjectCache>((ref) {
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final map = {for (final o in objects) o.id: o};
+
+  final objectById = <String, UnifiedObject>{};
+  final workspaceChildren = <String, List<UnifiedObject>>{};
+  final itemChildren = <String, List<UnifiedObject>>{};
+
+  for (final obj in objects) {
+    if (obj.isDeleted) continue;
+    objectById[obj.id] = obj;
+
+    final childList = obj.childrenIds
+        .where((id) => map.containsKey(id))
+        .map((id) => map[id]!)
+        .where((o) => !o.isDeleted)
+        .toList();
+
+    workspaceChildren[obj.id] = childList.where((c) => c.typeId != 'page').toList();
+    itemChildren[obj.id] = childList.where((c) => c.typeId == 'item').toList();
+  }
+
+  final rootObjects = objects
+      .where((o) => o.parentId == null && !o.isDeleted)
+      .toList();
+
+  return UnifiedObjectCache(
+    objectById: objectById,
+    workspaceChildren: workspaceChildren,
+    itemChildren: itemChildren,
+    rootObjects: rootObjects,
+  );
+});
 
 // =============================================================================
 // Extensions
