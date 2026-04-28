@@ -17,6 +17,7 @@ class OperationLogPage extends ConsumerStatefulWidget {
 
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   bool _filterExpanded = false;
+  bool _dialogShown = false;
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   }
 
   Future<void> _verifyPassword() async {
+    _dialogShown = true;
     // Use the shared password verification dialog with biometric support
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final selectedAccount = authNotifier.selectedAccount;
@@ -52,11 +54,9 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   @override
   Widget build(BuildContext context) {
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
-      // Trigger the password dialog on build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _verifyPassword();
+        if (!_dialogShown) _verifyPassword();
       });
-      // Return a loading screen while dialog is shown
       return Scaffold(
         appBar: AppBar(title: const Text('Operation Log')),
         body: Center(
@@ -73,12 +73,10 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                 'Password Required',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Verifying identity...',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _verifyPassword,
+                child: const Text('Verify'),
               ),
             ],
           ),

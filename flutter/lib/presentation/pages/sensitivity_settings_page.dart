@@ -21,6 +21,7 @@ class SensitivitySettingsPage extends ConsumerStatefulWidget {
 class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPage> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _dialogShown = false;
 
   @override
   void dispose() {
@@ -29,9 +30,10 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
   }
 
   Future<void> _verifyPassword() async {
+    _dialogShown = true;
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final selectedAccount = authNotifier.selectedAccount;
-    await showPasswordVerificationDialog(
+    final result = await showPasswordVerificationDialog(
       context: context,
       ref: ref,
       message: 'Enter your master password to access sensitivity settings.',
@@ -41,8 +43,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
 
     if (!mounted) return;
 
-    if (ref.read(isSensitiveAccessGrantedProvider)) {
-      // Mark as verified in shared sensitive page access
+    if (result != null) {
       ref.read(sensitivePageAccessProvider.notifier).markVerified();
     }
   }
@@ -50,11 +51,9 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
   @override
   Widget build(BuildContext context) {
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
-      // Trigger the password dialog on build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _verifyPassword();
+        if (!_dialogShown) _verifyPassword();
       });
-      // Return a loading screen while dialog is shown
       return Scaffold(
         appBar: AppBar(title: const Text('Sensitivity Settings')),
         body: Center(
@@ -71,12 +70,10 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                 'Password Required',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Verifying identity...',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _verifyPassword,
+                child: const Text('Verify'),
               ),
             ],
           ),
