@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 /// Unified workspace for browsing objects and their children.
 ///
@@ -56,6 +57,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
+        actions: const [HeaderActionButtons()],
       ),
       body: children.isEmpty
           ? _EmptyState(
