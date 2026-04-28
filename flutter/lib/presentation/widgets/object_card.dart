@@ -587,7 +587,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                           children: [
                             SelectableText(
                               '${entry.key}: ',
-                              style: theme.textTheme.bodySmall?.copyWith(
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
@@ -603,7 +603,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                               Expanded(
                                 child: SelectableText(
                                   _propertyValueToString(entry.value),
-                                  style: theme.textTheme.bodySmall,
+                                  style: theme.textTheme.bodyMedium,
                                 ),
                               ),
                             const SizedBox(width: 6),
