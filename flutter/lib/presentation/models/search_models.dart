@@ -34,9 +34,9 @@ class SearchState {
   const SearchState({
     this.query = '',
     this.searchPublic = true,
-    this.searchInternal = false,
-    this.searchSensitive = false,
-    this.searchRestricted = false,
+    this.searchInternal = true,
+    this.searchSensitive = true,
+    this.searchRestricted = true,
     this.results = const [],
     this.isSearching = false,
   });
