@@ -71,7 +71,9 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
                   padding: const EdgeInsets.all(16),
                   itemCount: children.length,
                   itemBuilder: (context, index) {
-                    return ObjectCard(object: children[index]);
+                    return RepaintBoundary(
+                      child: ObjectCard(object: children[index]),
+                    );
                   },
                 )
               : _isReordering

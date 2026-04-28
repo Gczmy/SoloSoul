@@ -612,7 +612,11 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   Widget _buildItemViewMode(UnifiedObject item) {
     final theme = Theme.of(context);
     final isHistoryExpanded = _expandedHistoryItemIds.contains(item.id);
-    final hasHistory = ref.watch(fieldHistoriesProvider).getHistory(item.id, _historyFieldId)?.entries.isNotEmpty == true;
+    final hasHistory = ref.watch(
+      fieldHistoriesProvider.select(
+        (h) => h.getHistory(item.id, _historyFieldId)?.entries.isNotEmpty == true,
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

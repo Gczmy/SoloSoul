@@ -256,8 +256,8 @@ final unifiedObjectProvider =
 /// All root-level objects (parentId == null), active only.
 @riverpod
 List<UnifiedObject> rootObjects(Ref ref) {
-  final data = ref.watch(unifiedObjectProvider);
-  return data.objects
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  return objects
       .where((o) => o.parentId == null && !o.isDeleted)
       .toList();
 }
@@ -265,11 +265,11 @@ List<UnifiedObject> rootObjects(Ref ref) {
 /// Direct children of a specific parent, in childrenIds order, active only.
 @riverpod
 List<UnifiedObject> children(Ref ref, String parentId) {
-  final data = ref.watch(unifiedObjectProvider);
-  final parentIndex = data.objects.indexWhere((o) => o.id == parentId);
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final parentIndex = objects.indexWhere((o) => o.id == parentId);
   if (parentIndex == -1) return [];
-  final parent = data.objects[parentIndex];
-  final map = {for (final o in data.objects) o.id: o};
+  final parent = objects[parentIndex];
+  final map = {for (final o in objects) o.id: o};
   return parent.childrenIds
       .where((id) => map.containsKey(id))
       .map((id) => map[id]!)
@@ -280,9 +280,9 @@ List<UnifiedObject> children(Ref ref, String parentId) {
 /// Get a specific object by ID.
 @riverpod
 UnifiedObject? objectById(Ref ref, String id) {
-  final data = ref.watch(unifiedObjectProvider);
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
   try {
-    return data.objects.firstWhere((o) => o.id == id);
+    return objects.firstWhere((o) => o.id == id);
   } on Object {
     return null;
   }
@@ -291,8 +291,8 @@ UnifiedObject? objectById(Ref ref, String id) {
 /// Get all active objects of a given type.
 @riverpod
 List<UnifiedObject> objectsByType(Ref ref, String typeId) {
-  final data = ref.watch(unifiedObjectProvider);
-  return data.objects
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  return objects
       .where((o) => o.typeId == typeId && !o.isDeleted)
       .toList();
 }
@@ -300,8 +300,8 @@ List<UnifiedObject> objectsByType(Ref ref, String typeId) {
 /// Get all soft-deleted objects.
 @riverpod
 List<UnifiedObject> deletedObjects(Ref ref) {
-  final data = ref.watch(unifiedObjectProvider);
-  return data.objects.where((o) => o.isDeleted).toList();
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  return objects.where((o) => o.isDeleted).toList();
 }
 
 // =============================================================================
