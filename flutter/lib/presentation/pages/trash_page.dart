@@ -37,6 +37,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   // Pre-computed sensitivity levels by item type
   Map<String, SensitivityLevel> _sensitivityByItemType = {};
 
+  /// Whether we have already shown the auto-prompt dialog on first build.
+  bool _hasPromptedForVerification = false;
+
   @override
   void initState() {
     super.initState();
@@ -77,11 +80,13 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   Widget build(BuildContext context) {
     // Show password verification dialog if not yet verified
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
-      // Trigger the password dialog on build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _verifyPassword();
-      });
-      // Return a loading screen while dialog is shown
+      // Auto-prompt only on first build; after cancellation show Verify button
+      if (!_hasPromptedForVerification) {
+        _hasPromptedForVerification = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _verifyPassword();
+        });
+      }
       return Scaffold(
         appBar: AppBar(title: const Text('Trash')),
         body: Center(
@@ -98,12 +103,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                 'Password Required',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Verifying identity...',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: _verifyPassword,
+                icon: const Icon(Icons.lock_open),
+                label: const Text('Verify'),
               ),
             ],
           ),
