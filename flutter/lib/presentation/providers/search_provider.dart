@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
@@ -179,6 +180,7 @@ class SearchNotifier extends Notifier<SearchState> {
     _searchTravel(profile, addResult);
     _searchFinancial(profile, addResult);
     _searchProfessional(profile, addResult);
+    _searchUnifiedObjects(profile, addResult);
 
     state = state.copyWith(results: results, isSearching: false);
   }
@@ -682,6 +684,56 @@ class SearchNotifier extends Notifier<SearchState> {
           'languages',
           lang.name,
           SensitivityLevel.public,
+        );
+      }
+    }
+  }
+
+  void _searchUnifiedObjects(
+    ProfileData profile,
+    void Function(
+      String fieldPath,
+      String fieldName,
+      String section,
+      String value,
+      SensitivityLevel level, {
+      bool isDeleted,
+    }) addResult,
+  ) {
+    final data = profile.unifiedObjects;
+    if (data == null) return;
+
+    // Build a lookup map for parent objects
+    final objectMap = {for (final o in data.objects) o.id: o};
+
+    for (final obj in data.objects) {
+      if (obj.isDeleted) continue;
+      // Only index item-level objects (children of sections)
+      if (obj.typeId != 'item') continue;
+
+      final parent = obj.parentId != null ? objectMap[obj.parentId] : null;
+      final sectionName = parent?.name ?? 'Custom';
+
+      for (final entry in obj.properties.entries) {
+        final prop = entry.value;
+        final valueStr = switch (prop) {
+          TextProperty(:final text) => text,
+          NumberProperty(:final value) => value?.toString() ?? '',
+          DateProperty(:final isoDate) => isoDate ?? '',
+          CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+          SelectProperty(:final selectedId) => selectedId ?? '',
+          MultiSelectProperty(:final selectedIds) => selectedIds.join(', '),
+          RelationProperty(:final targetObjectId) => targetObjectId ?? '',
+          UrlProperty(:final url) => url ?? '',
+        };
+        if (valueStr.isEmpty) continue;
+
+        addResult(
+          'unifiedObject.${obj.id}.${entry.key}',
+          entry.key,
+          sectionName,
+          valueStr,
+          prop.sensitivity,
         );
       }
     }
