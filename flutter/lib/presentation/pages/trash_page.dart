@@ -323,7 +323,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
             children: [
               TextButton.icon(
                 onPressed: () =>
-                    _confirmEmptyTrash(context, filteredItems.length),
+                    _confirmEmptyTrash(context, totalCount),
                 icon: const Icon(
                   Icons.delete_forever,
                   color: AppTheme.errorColor,
