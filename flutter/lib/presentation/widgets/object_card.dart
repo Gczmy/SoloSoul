@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
@@ -118,6 +119,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       properties: properties,
     );
 
+    OperationLogService.instance.addEntry(
+      OperationLogger.logCustomSection(
+        section: widget.object.name,
+        action: LogAction.create,
+        description: 'Created item "$name"',
+      ),
+    );
+
     if (mounted) {
       final isPrivacyMode =
           ref.read(accountStyleProvider).value?.displayMode ==
@@ -151,6 +160,15 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (item == null) return;
 
     await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
+
+    OperationLogService.instance.addEntry(
+      OperationLogger.logCustomSection(
+        section: widget.object.name,
+        action: LogAction.delete,
+        description: 'Deleted item "${_itemDisplayTitle(item)}"',
+        fieldPath: itemId,
+      ),
+    );
 
     if (mounted) {
       final isPrivacyMode =
@@ -246,6 +264,15 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       itemId,
       name: name,
       properties: updatedProps,
+    );
+
+    OperationLogService.instance.addEntry(
+      OperationLogger.logCustomSection(
+        section: widget.object.name,
+        action: LogAction.update,
+        description: 'Updated item "$name"',
+        fieldPath: itemId,
+      ),
     );
 
     if (mounted) {

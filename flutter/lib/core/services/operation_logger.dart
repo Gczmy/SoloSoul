@@ -294,6 +294,24 @@ class OperationLogger {
     );
   }
 
+  /// Log a custom section operation (for unified objects and dynamic sections).
+  static OperationEntry logCustomSection({
+    required String section,
+    required LogAction action,
+    required String description,
+    String? fieldPath,
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
+  }) {
+    return OperationEntry(
+      timestamp: DateTime.now(),
+      action: action.value,
+      section: section,
+      description: description,
+      fieldPath: fieldPath,
+      sensitivityLevel: sensitivityLevel,
+    );
+  }
+
   /// Auto-detect action by comparing old and new values
   /// Returns create if old was null, delete if new is null, otherwise update
   static LogAction detectAction<T>(T? oldValue, T? newValue) {
