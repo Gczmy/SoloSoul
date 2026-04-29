@@ -19,8 +19,13 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     // Auto-load unified objects when profile data is loaded from storage.
     ref.listen(profileNotifierProvider, (previous, next) {
-      if (next.hasValue && next.value != null) {
-        loadFromProfile();
+      if (next.hasValue) {
+        if (next.value != null) {
+          loadFromProfile();
+        } else {
+          // Profile cleared (e.g., on lock/account switch) - reset to empty
+          state = const UnifiedObjectData(objects: [], customTypes: []);
+        }
       }
     });
 
@@ -40,7 +45,11 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   /// Load unified objects from the current profile.
   Future<void> loadFromProfile() async {
     final profile = ref.read(profileNotifierProvider).value;
-    if (profile == null) return;
+    if (profile == null) {
+      // 新账号或旧数据没有 profile 时，重置 state 避免显示其他账号的数据
+      state = const UnifiedObjectData(objects: [], customTypes: []);
+      return;
+    }
 
     final data = profile.unifiedObjects;
     if (data == null) {
@@ -58,6 +67,11 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final repaired = _repairOrphanItems(data);
 
     state = repaired;
+  }
+
+  /// Reset state to empty (called on lock or account switch)
+  void reset() {
+    state = const UnifiedObjectData(objects: [], customTypes: []);
   }
 
   /// 启动时数据完整性检查：将所有 parentId 指向不存在的 section 的 item

@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -153,6 +154,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     if (mounted) {
       ref.read(profileNotifierProvider.notifier).clearProfile();
       ref.read(fieldHistoriesProvider.notifier).clearHistories();
+      ref.read(unifiedObjectProvider.notifier).reset();
     }
   }
 
@@ -160,10 +162,11 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
   Widget build(BuildContext context) {
     // Watch auth state to trigger redirect when it changes (e.g., after lockVault)
     ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (previous, next) {
-      final wasUnlocked = previous?.value == AuthState.unlocked;
-      final isUnlocked = next.value == AuthState.unlocked;
-      if (wasUnlocked && !isUnlocked) {
-        // Auth state changed from unlocked to locked - navigate to login
+      final wasLocked = previous?.value == AuthState.locked;
+      final isLocked = next.value == AuthState.locked;
+      if (!wasLocked && isLocked) {
+        // Auth state changed to locked - wipe all sensitive state and navigate to login
+        _wipeSensitiveState();
         _router.go(AppRoutes.login);
       }
     });
