@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-04-29
+
+### Added
+
+- **Startup Data Integrity Validation** — `ProfileStorageService.loadProfile()` now runs `_validateAndRepairProfile()` immediately after migration. Automatically repairs:
+  - Duplicate `UnifiedObject` IDs (keeps first occurrence)
+  - Invalid `childrenIds` references (removes IDs pointing to non-existent objects)
+  - Invalid `parentId` references (sets to `null` if parent no longer exists)
+  - Repairs are persisted automatically so they don't re-occur on next load
+- **Complete Trash Purge Coverage** — `purgeOldDeletedItemsIfNeeded()` and `purgeOldDeletedItems()` now cover all legacy sections:
+  - `travel.travelHistory`
+  - `professional.skills`, `professional.languages`, `professional.awards`
+  - `identity.idCards`, `identity.addresses`, `identity.contact.entries`
+  - `unifiedObjects.objects`
+- **Field History Orphan Cleanup** — `FieldHistoryService.cleanupOrphanHistories()` removes history entries for permanently deleted items. Wired into `ProfilePersistenceService.loadProfile()` to run automatically on startup.
+- **ProfileData.collectAllItemIds()** — Centralized method collecting all item IDs across legacy sections and unified objects, used for cross-section integrity checks.
+
+### Fixed
+
+- **`_calculateEmptyTrash()` completeness** — Now includes `professional.awards` and `unifiedObjects.objects` in permanent deletion.
+- **FormHistory unbounded growth** — History entries for deleted items no longer accumulate indefinitely.
+
+---
+
 ## [1.3.0] - 2026-04-29
 
 ### Added
@@ -186,7 +210,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.4.0
 [1.3.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.3.0
 [1.2.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.1.0
