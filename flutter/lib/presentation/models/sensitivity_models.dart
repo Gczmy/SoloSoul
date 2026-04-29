@@ -65,574 +65,33 @@ class FieldSensitivity {
 }
 
 /// All field definitions organized by section
+/// Identity Section fields
+const identityFields = [
+  FieldSensitivity(fieldId: 'identity.fullName', fieldName: 'Full Name', fieldSection: 'identity', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'identity.givenName', fieldName: 'Given Name', fieldSection: 'identity', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'identity.familyName', fieldName: 'Family Name', fieldSection: 'identity', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'identity.dateOfBirth', fieldName: 'Date of Birth', fieldSection: 'identity', level: SensitivityLevel.sensitive),
+  FieldSensitivity(fieldId: 'identity.gender', fieldName: 'Gender', fieldSection: 'identity', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'identity.nationality', fieldName: 'Nationality', fieldSection: 'identity', level: SensitivityLevel.sensitive),
+];
+
 class FieldRegistry {
   static const List<FieldSensitivity> defaultFields = [
-    // Identity Section
-    FieldSensitivity(
-      fieldId: 'identity.fullName',
-      fieldName: 'Full Name',
-      fieldSection: 'identity',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'identity.givenName',
-      fieldName: 'Given Name',
-      fieldSection: 'identity',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'identity.familyName',
-      fieldName: 'Family Name',
-      fieldSection: 'identity',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'identity.dateOfBirth',
-      fieldName: 'Date of Birth',
-      fieldSection: 'identity',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'identity.gender',
-      fieldName: 'Gender',
-      fieldSection: 'identity',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'identity.nationality',
-      fieldName: 'Nationality',
-      fieldSection: 'identity',
-      level: SensitivityLevel.sensitive,
-    ),
-
-    // Contact Section
-    // Note: contact.title, contact.type, contact.value are registered by ContactForm
-    // Legacy fields (contact.email, contact.phone, contact.mobile, contact.address)
-    // were removed - they don't exist in the actual form definitions
-
-    // ID Card Section
-    FieldSensitivity(
-      fieldId: 'idCard.title',
-      fieldName: 'Title',
-      fieldSection: 'idCard',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'idCard.number',
-      fieldName: 'ID Card Number',
-      fieldSection: 'idCard',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'idCard.holderName',
-      fieldName: 'Holder Name',
-      fieldSection: 'idCard',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'idCard.issueDate',
-      fieldName: 'Issue Date',
-      fieldSection: 'idCard',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'idCard.expiryDate',
-      fieldName: 'Expiry Date',
-      fieldSection: 'idCard',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'idCard.country',
-      fieldName: 'Country',
-      fieldSection: 'idCard',
-      level: SensitivityLevel.public,
-    ),
-
-    // Address Section
-    FieldSensitivity(
-      fieldId: 'address.street',
-      fieldName: 'Street',
-      fieldSection: 'address',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'address.city',
-      fieldName: 'City',
-      fieldSection: 'address',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'address.postalCode',
-      fieldName: 'Postal Code',
-      fieldSection: 'address',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'address.country',
-      fieldName: 'Country',
-      fieldSection: 'address',
-      level: SensitivityLevel.public,
-    ),
-
-    // Passport Section
-    FieldSensitivity(
-      fieldId: 'passport.title',
-      fieldName: 'Title',
-      fieldSection: 'passport',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.number',
-      fieldName: 'Passport Number',
-      fieldSection: 'passport',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.country',
-      fieldName: 'Country',
-      fieldSection: 'passport',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.countryCode',
-      fieldName: 'Country Code',
-      fieldSection: 'passport',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.issueDate',
-      fieldName: 'Issue Date',
-      fieldSection: 'passport',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.placeOfIssue',
-      fieldName: 'Place of Issue',
-      fieldSection: 'passport',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.expiryDate',
-      fieldName: 'Expiry Date',
-      fieldSection: 'passport',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.holderName',
-      fieldName: 'Holder Name',
-      fieldSection: 'passport',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.dateOfBirth',
-      fieldName: 'Date of Birth',
-      fieldSection: 'passport',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.placeOfBirth',
-      fieldName: 'Place of Birth',
-      fieldSection: 'passport',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.sex',
-      fieldName: 'Sex',
-      fieldSection: 'passport',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.nationality',
-      fieldName: 'Nationality',
-      fieldSection: 'passport',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'passport.authority',
-      fieldName: 'Authority',
-      fieldSection: 'passport',
-      level: SensitivityLevel.sensitive,
-    ),
-
-    // Visa Section
-    FieldSensitivity(
-      fieldId: 'visa.title',
-      fieldName: 'Title',
-      fieldSection: 'visa',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'visa.number',
-      fieldName: 'Visa Number',
-      fieldSection: 'visa',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'visa.country',
-      fieldName: 'Country',
-      fieldSection: 'visa',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'visa.visaType',
-      fieldName: 'Visa Type',
-      fieldSection: 'visa',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'visa.issueDate',
-      fieldName: 'Issue Date',
-      fieldSection: 'visa',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'visa.expiryDate',
-      fieldName: 'Expiry Date',
-      fieldSection: 'visa',
-      level: SensitivityLevel.internal,
-    ),
-
-    // Travel Section
-    FieldSensitivity(
-      fieldId: 'travel.destination',
-      fieldName: 'Destination',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.travelType',
-      fieldName: 'Travel Type',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.date',
-      fieldName: 'Date',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.departureCity',
-      fieldName: 'Departure City',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.arrivalCity',
-      fieldName: 'Arrival City',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.departureTime',
-      fieldName: 'Departure Time',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.arrivalTime',
-      fieldName: 'Arrival Time',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.flightNumber',
-      fieldName: 'Flight Number',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.ticketPrice',
-      fieldName: 'Ticket Price',
-      fieldSection: 'travel',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'travel.airline',
-      fieldName: 'Airline',
-      fieldSection: 'travel',
-      level: SensitivityLevel.public,
-    ),
-
-    // Bank Account Section
-    FieldSensitivity(
-      fieldId: 'bankAccount.accountNumber',
-      fieldName: 'Account Number',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'bankAccount.accountHolderName',
-      fieldName: 'Account Holder Name',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'bankAccount.routingNumber',
-      fieldName: 'Routing Number',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'bankAccount.bankName',
-      fieldName: 'Bank Name',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'bankAccount.swiftBic',
-      fieldName: 'SWIFT/BIC',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'bankAccount.sortCode',
-      fieldName: 'Sort Code',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'bankAccount.currency',
-      fieldName: 'Currency',
-      fieldSection: 'bankAccount',
-      level: SensitivityLevel.public,
-    ),
-
-    // Card Section
-    FieldSensitivity(
-      fieldId: 'card.cardNumber',
-      fieldName: 'Card Number',
-      fieldSection: 'card',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'card.cardType',
-      fieldName: 'Card Type',
-      fieldSection: 'card',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'card.title',
-      fieldName: 'Title',
-      fieldSection: 'card',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'card.expiryDate',
-      fieldName: 'Expiry Date',
-      fieldSection: 'card',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'card.holderName',
-      fieldName: 'Holder Name',
-      fieldSection: 'card',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'card.cvv',
-      fieldName: 'CVV',
-      fieldSection: 'card',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'card.billingAddress',
-      fieldName: 'Billing Address',
-      fieldSection: 'card',
-      level: SensitivityLevel.sensitive,
-    ),
-
-    // Tax ID Section
-    FieldSensitivity(
-      fieldId: 'taxId.title',
-      fieldName: 'Title',
-      fieldSection: 'taxId',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'taxId.taxIdNumber',
-      fieldName: 'Tax ID Number',
-      fieldSection: 'taxId',
-      level: SensitivityLevel.critical,
-    ),
-    FieldSensitivity(
-      fieldId: 'taxId.taxIdType',
-      fieldName: 'Tax ID Type',
-      fieldSection: 'taxId',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'taxId.issuingAuthority',
-      fieldName: 'Issuing Authority',
-      fieldSection: 'taxId',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'taxId.country',
-      fieldName: 'Country',
-      fieldSection: 'taxId',
-      level: SensitivityLevel.public,
-    ),
-
-    // Education Section
-    FieldSensitivity(
-      fieldId: 'education.institution',
-      fieldName: 'Institution',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.degree',
-      fieldName: 'Degree',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.degreeCustom',
-      fieldName: 'Custom Degree',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.field',
-      fieldName: 'Field of Study',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.fieldOfStudy',
-      fieldName: 'Field of Study',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.isCurrent',
-      fieldName: 'Currently Enrolled',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.gpa',
-      fieldName: 'GPA',
-      fieldSection: 'education',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.startDate',
-      fieldName: 'Start Date',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'education.endDate',
-      fieldName: 'End Date',
-      fieldSection: 'education',
-      level: SensitivityLevel.public,
-    ),
-
-    // Employment Section
-    FieldSensitivity(
-      fieldId: 'employment.company',
-      fieldName: 'Company',
-      fieldSection: 'employment',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.position',
-      fieldName: 'Position',
-      fieldSection: 'employment',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.responsibilities',
-      fieldName: 'Responsibilities',
-      fieldSection: 'employment',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.workAddress',
-      fieldName: 'Work Address',
-      fieldSection: 'employment',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.supervisorName',
-      fieldName: 'Supervisor Name',
-      fieldSection: 'employment',
-      level: SensitivityLevel.internal,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.monthlySalary',
-      fieldName: 'Monthly Salary',
-      fieldSection: 'employment',
-      level: SensitivityLevel.sensitive,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.startDate',
-      fieldName: 'Start Date',
-      fieldSection: 'employment',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'employment.endDate',
-      fieldName: 'End Date',
-      fieldSection: 'employment',
-      level: SensitivityLevel.public,
-    ),
-
-    // Skills Section
-    FieldSensitivity(
-      fieldId: 'skill.name',
-      fieldName: 'Skill Name',
-      fieldSection: 'skill',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'skill.level',
-      fieldName: 'Proficiency Level',
-      fieldSection: 'skill',
-      level: SensitivityLevel.public,
-    ),
-
-    // Language Section
-    FieldSensitivity(
-      fieldId: 'language.name',
-      fieldName: 'Language',
-      fieldSection: 'language',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'language.proficiency',
-      fieldName: 'Proficiency Level',
-      fieldSection: 'language',
-      level: SensitivityLevel.public,
-    ),
-
-    // Award Section
-    FieldSensitivity(
-      fieldId: 'award.title',
-      fieldName: 'Title',
-      fieldSection: 'award',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'award.issuer',
-      fieldName: 'Issuer',
-      fieldSection: 'award',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'award.date',
-      fieldName: 'Date',
-      fieldSection: 'award',
-      level: SensitivityLevel.public,
-    ),
-    FieldSensitivity(
-      fieldId: 'award.description',
-      fieldName: 'Description',
-      fieldSection: 'award',
-      level: SensitivityLevel.sensitive,
-    ),
+    ...identityFields,
+    ...contactFields,
+    ...idCardFields,
+    ...addressFields,
+    ...bankAccountFields,
+    ...cardFields,
+    ...taxIdFields,
+    ...passportFields,
+    ...visaFields,
+    ...travelFields,
+    ...educationFields,
+    ...employmentFields,
+    ...skillFields,
+    ...languageFields,
+    ...awardFields,
   ];
 
   static bool isFieldRestricted(String fieldId) {
@@ -751,14 +210,14 @@ class FormFieldRegistry {
 // =============================================================================
 
 /// Contact Section fields
-const _contactFields = [
+const contactFields = [
   FieldSensitivity(fieldId: 'contact.title', fieldName: 'Title', fieldSection: 'contact', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'contact.type', fieldName: 'Type', fieldSection: 'contact', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'contact.value', fieldName: 'Value', fieldSection: 'contact', level: SensitivityLevel.internal),
 ];
 
 /// ID Card Section fields
-const _idCardFields = [
+const idCardFields = [
   FieldSensitivity(fieldId: 'idCard.title', fieldName: 'Title', fieldSection: 'idCard', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'idCard.number', fieldName: 'ID Card Number', fieldSection: 'idCard', level: SensitivityLevel.critical),
   FieldSensitivity(fieldId: 'idCard.holderName', fieldName: 'Holder Name', fieldSection: 'idCard', level: SensitivityLevel.sensitive),
@@ -768,36 +227,39 @@ const _idCardFields = [
 ];
 
 /// Address Section fields
-const _addressFields = [
+const addressFields = [
   FieldSensitivity(fieldId: 'address.title', fieldName: 'Title', fieldSection: 'address', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'address.street', fieldName: 'Street', fieldSection: 'address', level: SensitivityLevel.sensitive),
-  FieldSensitivity(fieldId: 'address.city', fieldName: 'City', fieldSection: 'address', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'address.city', fieldName: 'City', fieldSection: 'address', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'address.postalCode', fieldName: 'Postal Code', fieldSection: 'address', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'address.country', fieldName: 'Country', fieldSection: 'address', level: SensitivityLevel.public),
 ];
 
 /// Bank Account Section fields
-const _bankAccountFields = [
+const bankAccountFields = [
   FieldSensitivity(fieldId: 'bankAccount.title', fieldName: 'Title', fieldSection: 'bankAccount', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'bankAccount.bankName', fieldName: 'Bank Name', fieldSection: 'bankAccount', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'bankAccount.accountNumber', fieldName: 'Account Number', fieldSection: 'bankAccount', level: SensitivityLevel.critical),
   FieldSensitivity(fieldId: 'bankAccount.currency', fieldName: 'Currency', fieldSection: 'bankAccount', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'bankAccount.swiftBic', fieldName: 'SWIFT/BIC', fieldSection: 'bankAccount', level: SensitivityLevel.critical),
   FieldSensitivity(fieldId: 'bankAccount.sortCode', fieldName: 'Sort Code', fieldSection: 'bankAccount', level: SensitivityLevel.critical),
+  FieldSensitivity(fieldId: 'bankAccount.accountHolderName', fieldName: 'Account Holder Name', fieldSection: 'bankAccount', level: SensitivityLevel.sensitive),
+  FieldSensitivity(fieldId: 'bankAccount.routingNumber', fieldName: 'Routing Number', fieldSection: 'bankAccount', level: SensitivityLevel.critical),
 ];
 
 /// Card Section fields
-const _cardFields = [
+const cardFields = [
   FieldSensitivity(fieldId: 'card.title', fieldName: 'Title', fieldSection: 'card', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'card.cardType', fieldName: 'Card Type', fieldSection: 'card', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'card.cardNumber', fieldName: 'Card Number', fieldSection: 'card', level: SensitivityLevel.critical),
   FieldSensitivity(fieldId: 'card.expiryDate', fieldName: 'Expiry Date', fieldSection: 'card', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'card.holderName', fieldName: 'Holder Name', fieldSection: 'card', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'card.cvv', fieldName: 'CVV', fieldSection: 'card', level: SensitivityLevel.critical),
+  FieldSensitivity(fieldId: 'card.billingAddress', fieldName: 'Billing Address', fieldSection: 'card', level: SensitivityLevel.sensitive),
 ];
 
 /// Tax ID Section fields
-const _taxIdFields = [
+const taxIdFields = [
   FieldSensitivity(fieldId: 'taxId.title', fieldName: 'Title', fieldSection: 'taxId', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'taxId.taxIdNumber', fieldName: 'Tax ID Number', fieldSection: 'taxId', level: SensitivityLevel.critical),
   FieldSensitivity(fieldId: 'taxId.taxIdType', fieldName: 'Tax ID Type', fieldSection: 'taxId', level: SensitivityLevel.sensitive),
@@ -806,7 +268,7 @@ const _taxIdFields = [
 ];
 
 /// Passport Section fields
-const _passportFields = [
+const passportFields = [
   FieldSensitivity(fieldId: 'passport.title', fieldName: 'Title', fieldSection: 'passport', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'passport.country', fieldName: 'Country', fieldSection: 'passport', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'passport.countryCode', fieldName: 'Country Code', fieldSection: 'passport', level: SensitivityLevel.public),
@@ -823,16 +285,17 @@ const _passportFields = [
 ];
 
 /// Visa Section fields
-const _visaFields = [
+const visaFields = [
   FieldSensitivity(fieldId: 'visa.title', fieldName: 'Title', fieldSection: 'visa', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'visa.country', fieldName: 'Country', fieldSection: 'visa', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'visa.visaType', fieldName: 'Visa Type', fieldSection: 'visa', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'visa.number', fieldName: 'Visa Number', fieldSection: 'visa', level: SensitivityLevel.critical),
   FieldSensitivity(fieldId: 'visa.expiryDate', fieldName: 'Expiry Date', fieldSection: 'visa', level: SensitivityLevel.sensitive),
+  FieldSensitivity(fieldId: 'visa.issueDate', fieldName: 'Issue Date', fieldSection: 'visa', level: SensitivityLevel.internal),
 ];
 
 /// Travel Section fields
-const _travelFields = [
+const travelFields = [
   FieldSensitivity(fieldId: 'travel.destination', fieldName: 'Destination', fieldSection: 'travel', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'travel.travelType', fieldName: 'Travel Type', fieldSection: 'travel', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'travel.date', fieldName: 'Date', fieldSection: 'travel', level: SensitivityLevel.public),
@@ -846,7 +309,7 @@ const _travelFields = [
 ];
 
 /// Education Section fields
-const _educationFields = [
+const educationFields = [
   FieldSensitivity(fieldId: 'education.institution', fieldName: 'Institution', fieldSection: 'education', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'education.degree', fieldName: 'Degree', fieldSection: 'education', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'education.degreeCustom', fieldName: 'Custom Degree', fieldSection: 'education', level: SensitivityLevel.public),
@@ -854,32 +317,36 @@ const _educationFields = [
   FieldSensitivity(fieldId: 'education.startDate', fieldName: 'Start Date', fieldSection: 'education', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'education.endDate', fieldName: 'End Date', fieldSection: 'education', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'education.isCurrent', fieldName: 'Currently Enrolled', fieldSection: 'education', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'education.gpa', fieldName: 'GPA', fieldSection: 'education', level: SensitivityLevel.internal),
 ];
 
 /// Employment Section fields
-const _employmentFields = [
+const employmentFields = [
   FieldSensitivity(fieldId: 'employment.company', fieldName: 'Company', fieldSection: 'employment', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'employment.position', fieldName: 'Position', fieldSection: 'employment', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'employment.responsibilities', fieldName: 'Responsibilities', fieldSection: 'employment', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'employment.startDate', fieldName: 'Start Date', fieldSection: 'employment', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'employment.endDate', fieldName: 'End Date', fieldSection: 'employment', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'employment.isCurrent', fieldName: 'Currently Working', fieldSection: 'employment', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'employment.monthlySalary', fieldName: 'Monthly Salary', fieldSection: 'employment', level: SensitivityLevel.sensitive),
+  FieldSensitivity(fieldId: 'employment.supervisorName', fieldName: 'Supervisor Name', fieldSection: 'employment', level: SensitivityLevel.internal),
+  FieldSensitivity(fieldId: 'employment.workAddress', fieldName: 'Work Address', fieldSection: 'employment', level: SensitivityLevel.internal),
 ];
 
 /// Skills Section fields
-const _skillFields = [
+const skillFields = [
   FieldSensitivity(fieldId: 'skill.name', fieldName: 'Skill Name', fieldSection: 'skill', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'skill.level', fieldName: 'Proficiency Level', fieldSection: 'skill', level: SensitivityLevel.public),
 ];
 
 /// Language Section fields
-const _languageFields = [
+const languageFields = [
   FieldSensitivity(fieldId: 'language.name', fieldName: 'Language', fieldSection: 'language', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'language.proficiency', fieldName: 'Proficiency Level', fieldSection: 'language', level: SensitivityLevel.public),
 ];
 
 /// Award Section fields
-const _awardFields = [
+const awardFields = [
   FieldSensitivity(fieldId: 'award.title', fieldName: 'Title', fieldSection: 'award', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'award.issuer', fieldName: 'Issuer', fieldSection: 'award', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'award.date', fieldName: 'Date', fieldSection: 'award', level: SensitivityLevel.public),
@@ -986,20 +453,20 @@ class FormFieldRegistryNotifier extends Notifier<Map<String, FieldSensitivity>> 
   /// Call this after first unlock to pre-populate the registry.
   void registerAllForms() {
     final allFieldLists = [
-      _contactFields,
-      _idCardFields,
-      _addressFields,
-      _bankAccountFields,
-      _cardFields,
-      _taxIdFields,
-      _passportFields,
-      _visaFields,
-      _travelFields,
-      _educationFields,
-      _employmentFields,
-      _skillFields,
-      _languageFields,
-      _awardFields,
+      contactFields,
+      idCardFields,
+      addressFields,
+      bankAccountFields,
+      cardFields,
+      taxIdFields,
+      passportFields,
+      visaFields,
+      travelFields,
+      educationFields,
+      employmentFields,
+      skillFields,
+      languageFields,
+      awardFields,
     ];
 
     final allFields = allFieldLists.expand((list) => list).toList();
