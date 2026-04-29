@@ -93,17 +93,9 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   /// Get the display title for an item, looking up 'Title' then 'Item Name'.
-  String _itemDisplayTitle(UnifiedObject item) {
-    final titleProp = item.properties['Title'];
-    if (titleProp is TextProperty && titleProp.text.isNotEmpty) {
-      return titleProp.text;
-    }
-    final oldNameProp = item.properties['Item Name'];
-    if (oldNameProp is TextProperty && oldNameProp.text.isNotEmpty) {
-      return oldNameProp.text;
-    }
-    return item.name;
-  }
+  String _itemDisplayTitle(UnifiedObject item) => _objectItemDisplayTitle(item);
+
+
 
   void _addItem() {
     setState(() {
@@ -475,9 +467,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final shouldCollapse = items.length > 3;
     final visibleItems = _isExpanded ? items : items.take(3).toList();
 
-    // 一次性读取 fieldHistories，避免每个 item 都创建独立 provider 订阅
-    final histories = ref.watch(fieldHistoriesProvider);
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -510,10 +499,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               )
             else ...[
               if (_isAddingItem) _buildNewItemForm(),
-              ...visibleItems.map((item) {
-                final history = histories.getHistory(item.id, _historyFieldId);
-                return _buildItemTile(item, history);
-              }),
+              ...visibleItems.map((item) => _buildItemTile(item)),
               if (shouldCollapse && !_isAddingItem) ...[
                 const SizedBox(height: 8),
                 InkWell(
@@ -553,11 +539,18 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     );
   }
 
-  Widget _buildItemTile(UnifiedObject item, FieldHistory? history) {
+  Widget _buildItemTile(UnifiedObject item) {
     final isEditing = _editingItemId == item.id;
     return isEditing
         ? _buildItemEditMode(item)
-        : _buildItemViewMode(item, history);
+        : _ObjectCardItemTile(
+            item: item,
+            isHistoryExpanded: _expandedHistoryItemIds.contains(item.id),
+            onToggleHistory: () => _toggleItemHistory(item.id),
+            onCopy: () => _copyItem(item),
+            onStartEdit: () => _startEditingItem(item),
+            onDelete: () => _deleteItem(item.id),
+          );
   }
 
   void _toggleItemHistory(String itemId) {
@@ -568,82 +561,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         _expandedHistoryItemIds.add(itemId);
       }
     });
-  }
-
-  Widget _buildItemViewMode(UnifiedObject item, FieldHistory? history) {
-    final theme = Theme.of(context);
-    final isHistoryExpanded = _expandedHistoryItemIds.contains(item.id);
-    final hasHistory = history?.entries.isNotEmpty == true;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Item header: name + actions
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      _itemDisplayTitle(item),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    _ObjectCardPropertiesList(item: item),
-                  ],
-                ),
-              ),
-              // Action buttons
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.copy_all, size: 20),
-                    tooltip: 'Copy',
-                    onPressed: () => _copyItem(item),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: () => _startEditingItem(item),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  if (hasHistory)
-                    IconButton(
-                      icon: Icon(
-                        isHistoryExpanded ? Icons.history_toggle_off : Icons.history,
-                        size: 20,
-                      ),
-                      tooltip: 'History',
-                      onPressed: () => _toggleItemHistory(item.id),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  IconButton(
-                    icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
-                    tooltip: 'Delete',
-                    onPressed: () => _deleteItem(item.id),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Item history
-          if (isHistoryExpanded) ...[
-            const SizedBox(height: 8),
-            _ObjectCardHistorySection(history: history),
-          ],
-          const Divider(height: 16),
-        ],
-      ),
-    );
   }
 
   Widget _buildNewItemForm() {
@@ -924,6 +841,19 @@ String _wrapEveryNChars(String text, int n) {
   return buffer.toString();
 }
 
+/// Get the display title for an item, looking up 'Title' then 'Item Name'.
+String _objectItemDisplayTitle(UnifiedObject item) {
+  final titleProp = item.properties['Title'];
+  if (titleProp is TextProperty && titleProp.text.isNotEmpty) {
+    return titleProp.text;
+  }
+  final oldNameProp = item.properties['Item Name'];
+  if (oldNameProp is TextProperty && oldNameProp.text.isNotEmpty) {
+    return oldNameProp.text;
+  }
+  return item.name;
+}
+
 // =============================================================================
 // _ObjectCardHeader — Card header with icon, name, and action buttons
 // =============================================================================
@@ -1084,6 +1014,113 @@ class _ObjectCardHistorySection extends StatelessWidget {
       fieldName: 'unified',
       history: history,
       initiallyExpanded: true,
+    );
+  }
+}
+
+// =============================================================================
+// _ObjectCardItemTile — Per-item tile with fine-grained fieldHistory select
+// =============================================================================
+
+class _ObjectCardItemTile extends ConsumerWidget {
+  final UnifiedObject item;
+  final bool isHistoryExpanded;
+  final VoidCallback onToggleHistory;
+  final VoidCallback onCopy;
+  final VoidCallback onStartEdit;
+  final VoidCallback onDelete;
+
+  const _ObjectCardItemTile({
+    required this.item,
+    required this.isHistoryExpanded,
+    required this.onToggleHistory,
+    required this.onCopy,
+    required this.onStartEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final history = ref.watch(
+      fieldHistoriesProvider.select((h) => h.getHistory(item.id, 'unified')),
+    );
+    final hasHistory = history?.entries.isNotEmpty == true;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Item header: name + actions
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SelectableText(
+                      _objectItemDisplayTitle(item),
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    _ObjectCardPropertiesList(item: item),
+                  ],
+                ),
+              ),
+              // Action buttons
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.copy_all, size: 20),
+                    tooltip: 'Copy',
+                    onPressed: onCopy,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Edit',
+                    onPressed: onStartEdit,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  if (hasHistory)
+                    IconButton(
+                      icon: Icon(
+                        isHistoryExpanded
+                            ? Icons.history_toggle_off
+                            : Icons.history,
+                        size: 20,
+                      ),
+                      tooltip: 'History',
+                      onPressed: onToggleHistory,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: theme.colorScheme.error,
+                    ),
+                    tooltip: 'Delete',
+                    onPressed: onDelete,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          // Item history
+          if (isHistoryExpanded) ...[
+            const SizedBox(height: 8),
+            _ObjectCardHistorySection(history: history),
+          ],
+          const Divider(height: 16),
+        ],
+      ),
     );
   }
 }

@@ -321,17 +321,21 @@ class OperationLogService extends ChangeNotifier {
   }
 }
 
-/// Provider for operation log - uses NotifierProvider to react to addEntry calls
-final operationLogProvider = NotifierProvider<OperationLogServiceNotifier, OperationLogService>(() {
+/// Provider that tracks [OperationLogService] mutation via a version counter.
+/// Each time the service calls [notifyListeners], the version increments,
+/// causing all watchers to rebuild.
+final operationLogProvider = NotifierProvider<OperationLogServiceNotifier, int>(() {
   return OperationLogServiceNotifier();
 });
 
-/// Notifier that wraps OperationLogService singleton
-/// Exposes the service instance and its state to Riverpod consumers
-class OperationLogServiceNotifier extends Notifier<OperationLogService> {
+class OperationLogServiceNotifier extends Notifier<int> {
   @override
-  OperationLogService build() {
-    return OperationLogService.instance;
+  int build() {
+    final service = OperationLogService.instance;
+    void onChanged() => state = state + 1;
+    service.addListener(onChanged);
+    ref.onDispose(() => service.removeListener(onChanged));
+    return 0;
   }
 }
 
