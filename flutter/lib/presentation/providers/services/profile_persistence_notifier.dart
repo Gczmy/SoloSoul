@@ -73,6 +73,13 @@ class ProfilePersistenceService {
       if (profile != null) {
         _lastSavedJson = jsonEncode(profile.toJson());
         unawaited(_ref.read(fieldHistoriesProvider.notifier).loadHistories(accountId));
+        // Cleanup field histories for items that no longer exist
+        unawaited(
+          FieldHistoryService.instance.cleanupOrphanHistories(
+            accountId: accountId,
+            validItemIds: profile.collectAllItemIds(),
+          ),
+        );
       }
       return profile;
     } finally {

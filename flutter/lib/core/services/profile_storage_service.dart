@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -84,6 +85,79 @@ class ProfileData {
     'unified_objects': unifiedObjects?.toJson(),
     'schema_version': schemaVersion,
   };
+
+  /// Collect all item IDs across legacy sections and unified objects.
+  /// Used for orphan history cleanup and integrity validation.
+  Set<String> collectAllItemIds() {
+    final ids = <String>{};
+
+    // UnifiedObject IDs
+    if (unifiedObjects != null) {
+      for (final obj in unifiedObjects!.objects) {
+        ids.add(obj.id);
+      }
+    }
+
+    // Identity section
+    if (identity != null) {
+      for (final card in identity!.idCards ?? []) {
+        ids.add(card.id);
+      }
+      for (final addr in identity!.addresses ?? []) {
+        ids.add(addr.id);
+      }
+      for (final entry in identity!.contact?.entries ?? []) {
+        ids.add(entry.id);
+      }
+    }
+
+    // Travel section
+    if (travel != null) {
+      for (final p in travel!.passports) {
+        ids.add(p.id);
+      }
+      for (final v in travel!.visas) {
+        ids.add(v.id);
+      }
+      for (final t in travel!.travelHistory) {
+        ids.add(t.id);
+      }
+    }
+
+    // Financial section
+    if (financial != null) {
+      for (final b in financial!.bankAccounts) {
+        ids.add(b.id);
+      }
+      for (final c in financial!.cards) {
+        ids.add(c.id);
+      }
+      for (final t in financial!.taxIds) {
+        ids.add(t.id);
+      }
+    }
+
+    // Professional section
+    if (professional != null) {
+      for (final e in professional!.education) {
+        ids.add(e.id);
+      }
+      for (final emp in professional!.employment) {
+        ids.add(emp.id);
+      }
+      for (final s in professional!.skills) {
+        ids.add(s.id);
+      }
+      for (final l in professional!.languages) {
+        ids.add(l.id);
+      }
+      for (final a in professional!.awards) {
+        ids.add(a.id);
+      }
+    }
+
+    return ids;
+  }
 
   ProfileData copyWith({
     IdentityData? identity,
@@ -1756,6 +1830,75 @@ class ProfileStorageService {
     return migrated;
   }
 
+  /// Validate and repair data integrity after migration.
+  ///
+  /// Checks performed:
+  /// - Duplicate UnifiedObject IDs (keep first occurrence)
+  /// - Invalid [childrenIds] references (remove IDs pointing to non-existent objects)
+  /// - Invalid [parentId] references (set to null if parent no longer exists)
+  ///
+  /// Returns a repaired copy if fixes were applied, or the original if valid.
+  ProfileData _validateAndRepairProfile(ProfileData profile) {
+    var repaired = profile;
+    var wasRepaired = false;
+
+    final unifiedObjects = repaired.unifiedObjects;
+    if (unifiedObjects != null && unifiedObjects.objects.isNotEmpty) {
+      final objectMap = <String, UnifiedObject>{};
+      final seenIds = <String>{};
+
+      // Pass 1: deduplicate by ID (keep first occurrence)
+      for (final obj in unifiedObjects.objects) {
+        if (seenIds.contains(obj.id)) {
+          wasRepaired = true;
+          continue;
+        }
+        seenIds.add(obj.id);
+        objectMap[obj.id] = obj;
+      }
+
+      final validIds = objectMap.keys.toSet();
+      final repairedObjects = <UnifiedObject>[];
+
+      // Pass 2: repair references
+      for (final obj in objectMap.values) {
+        final validChildrenIds =
+            obj.childrenIds.where(validIds.contains).toList();
+        final fixedParentId =
+            (obj.parentId != null && validIds.contains(obj.parentId))
+                ? obj.parentId
+                : null;
+
+        if (validChildrenIds.length != obj.childrenIds.length ||
+            fixedParentId != obj.parentId) {
+          wasRepaired = true;
+          repairedObjects.add(
+            obj.copyWith(
+              childrenIds: validChildrenIds,
+              parentId: fixedParentId,
+            ),
+          );
+        } else {
+          repairedObjects.add(obj);
+        }
+      }
+
+      if (wasRepaired) {
+        repaired = repaired.copyWith(
+          unifiedObjects: unifiedObjects.copyWith(objects: repairedObjects),
+        );
+      }
+    }
+
+    if (wasRepaired) {
+      DebugLogger.instance.logInfo(
+        'PROFILE',
+        'Data integrity repairs applied during load',
+      );
+    }
+    return repaired;
+  }
+
   /// Migrate legacy flexibleSections / flexibleObjects to UnifiedObjectData.
   /// Operates on raw JSON maps because old type definitions have been removed.
   UnifiedObjectData _migrateLegacyToUnified(Map<String, dynamic> rawJson) {
@@ -2521,7 +2664,13 @@ class ProfileStorageService {
       final profile = ProfileData.fromJson(json);
       // Apply migration if needed
       final migratedProfile = _migrateIfNeeded(profile, json);
-      return migratedProfile;
+      // Validate and repair data integrity after migration
+      final repairedProfile = _validateAndRepairProfile(migratedProfile);
+      // Persist repairs so they don't need to be re-applied next load
+      if (repairedProfile != migratedProfile) {
+        unawaited(saveProfile(accountId, repairedProfile));
+      }
+      return repairedProfile;
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('PROFILE', 'loadProfile failed: $e\n$st');
       return null;
@@ -3132,6 +3281,10 @@ class ProfileStorageService {
         (v) =>
             v.isDeleted && v.deletedAt != null && v.deletedAt!.isBefore(cutoff),
       );
+      profile.travel!.travelHistory.removeWhere(
+        (t) =>
+            t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
+      );
     }
 
     // Financial section
@@ -3161,6 +3314,42 @@ class ProfileStorageService {
             emp.isDeleted &&
             emp.deletedAt != null &&
             emp.deletedAt!.isBefore(cutoff),
+      );
+      profile.professional!.skills.removeWhere(
+        (s) =>
+            s.isDeleted && s.deletedAt != null && s.deletedAt!.isBefore(cutoff),
+      );
+      profile.professional!.languages.removeWhere(
+        (l) =>
+            l.isDeleted && l.deletedAt != null && l.deletedAt!.isBefore(cutoff),
+      );
+      profile.professional!.awards.removeWhere(
+        (a) =>
+            a.isDeleted && a.deletedAt != null && a.deletedAt!.isBefore(cutoff),
+      );
+    }
+
+    // Identity section
+    if (profile.identity != null) {
+      profile.identity!.idCards?.removeWhere(
+        (c) =>
+            c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
+      );
+      profile.identity!.addresses?.removeWhere(
+        (a) =>
+            a.isDeleted && a.deletedAt != null && a.deletedAt!.isBefore(cutoff),
+      );
+      profile.identity!.contact?.entries.removeWhere(
+        (e) =>
+            e.isDeleted && e.deletedAt != null && e.deletedAt!.isBefore(cutoff),
+      );
+    }
+
+    // UnifiedObject section
+    if (profile.unifiedObjects != null) {
+      profile.unifiedObjects!.objects.removeWhere(
+        (o) =>
+            o.isDeleted && o.deletedAt != null && o.deletedAt!.isBefore(cutoff),
       );
     }
 
@@ -3196,6 +3385,12 @@ class ProfileStorageService {
                 v.isDeleted &&
                 v.deletedAt != null &&
                 v.deletedAt!.isBefore(cutoff),
+          ) ||
+          profile.travel!.travelHistory.any(
+            (t) =>
+                t.isDeleted &&
+                t.deletedAt != null &&
+                t.deletedAt!.isBefore(cutoff),
           );
     }
     if (profile.financial != null) {
@@ -3234,6 +3429,59 @@ class ProfileStorageService {
                 emp.isDeleted &&
                 emp.deletedAt != null &&
                 emp.deletedAt!.isBefore(cutoff),
+          ) ||
+          profile.professional!.skills.any(
+            (s) =>
+                s.isDeleted &&
+                s.deletedAt != null &&
+                s.deletedAt!.isBefore(cutoff),
+          ) ||
+          profile.professional!.languages.any(
+            (l) =>
+                l.isDeleted &&
+                l.deletedAt != null &&
+                l.deletedAt!.isBefore(cutoff),
+          ) ||
+          profile.professional!.awards.any(
+            (a) =>
+                a.isDeleted &&
+                a.deletedAt != null &&
+                a.deletedAt!.isBefore(cutoff),
+          );
+    }
+    if (profile.identity != null) {
+      hasOldItems =
+          hasOldItems ||
+          (profile.identity!.idCards?.any(
+                (c) =>
+                    c.isDeleted &&
+                    c.deletedAt != null &&
+                    c.deletedAt!.isBefore(cutoff),
+              ) ??
+              false) ||
+          (profile.identity!.addresses?.any(
+                (a) =>
+                    a.isDeleted &&
+                    a.deletedAt != null &&
+                    a.deletedAt!.isBefore(cutoff),
+              ) ??
+              false) ||
+          (profile.identity!.contact?.entries.any(
+                (e) =>
+                    e.isDeleted &&
+                    e.deletedAt != null &&
+                    e.deletedAt!.isBefore(cutoff),
+              ) ??
+              false);
+    }
+    if (profile.unifiedObjects != null) {
+      hasOldItems =
+          hasOldItems ||
+          profile.unifiedObjects!.objects.any(
+            (o) =>
+                o.isDeleted &&
+                o.deletedAt != null &&
+                o.deletedAt!.isBefore(cutoff),
           );
     }
 
@@ -3270,6 +3518,7 @@ class ProfileStorageService {
       employment: current.professional!.employment.where((emp) => !emp.isDeleted).toList(),
       skills: current.professional!.skills.where((s) => !s.isDeleted).toList(),
       languages: current.professional!.languages.where((l) => !l.isDeleted).toList(),
+      awards: current.professional!.awards.where((a) => !a.isDeleted).toList(),
     );
 
     // Identity section
@@ -3281,11 +3530,17 @@ class ProfileStorageService {
       ),
     );
 
+    // UnifiedObject section
+    final newUnifiedObjects = current.unifiedObjects?.copyWith(
+      objects: current.unifiedObjects!.objects.where((o) => !o.isDeleted).toList(),
+    );
+
     return current.copyWith(
       travel: newTravel,
       financial: newFinancial,
       professional: newProfessional,
       identity: newIdentity,
+      unifiedObjects: newUnifiedObjects,
     );
   }
 }

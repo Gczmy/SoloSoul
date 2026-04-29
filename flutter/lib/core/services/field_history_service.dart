@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
@@ -36,6 +37,37 @@ class FieldHistoryService {
   Future<bool> saveHistories(String accountId, FormHistories histories) async {
     final jsonData = jsonEncode(histories.toJson());
     return await _rustVault.saveFieldHistoriesEncrypted(accountId, jsonData);
+  }
+
+  /// Remove history entries for items that no longer exist in the profile.
+  ///
+  /// [validItemIds] is the set of all item IDs currently present in the profile,
+  /// including both legacy section items and unified objects.
+  Future<FormHistories> cleanupOrphanHistories({
+    required String accountId,
+    required Set<String> validItemIds,
+    FormHistories? existingHistories,
+  }) async {
+    final histories = existingHistories ?? await loadHistories(accountId);
+    final originalCount = histories.histories.length;
+
+    final cleaned = Map<String, Map<String, FieldHistory>>.from(
+      histories.histories,
+    );
+    cleaned.removeWhere((itemId, _) => !validItemIds.contains(itemId));
+
+    if (cleaned.length != originalCount) {
+      final removedCount = originalCount - cleaned.length;
+      final result = FormHistories(histories: cleaned);
+      await saveHistories(accountId, result);
+      DebugLogger.instance.logInfo(
+        'HISTORY',
+        'Cleaned up $removedCount orphan history entries',
+      );
+      return result;
+    }
+
+    return histories;
   }
 
   /// Add field history (single field mode).
