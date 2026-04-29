@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -123,7 +124,7 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  void _performSearch() {
+  Future<void> _performSearch() async {
     if (state.query.isEmpty) {
       state = state.copyWith(results: []);
       return;
@@ -138,8 +139,29 @@ class SearchNotifier extends Notifier<SearchState> {
       return;
     }
 
+    final results = await Isolate.run(() => _executeSearch(
+      profile,
+      state.query,
+      state.searchPublic,
+      state.searchInternal,
+      state.searchSensitive,
+      state.searchRestricted,
+    ));
+
+    state = state.copyWith(results: results, isSearching: false);
+  }
+
+  /// Pure search function — runs in a background isolate.
+  static List<SearchResultItem> _executeSearch(
+    ProfileData profile,
+    String query,
+    bool searchPublic,
+    bool searchInternal,
+    bool searchSensitive,
+    bool searchRestricted,
+  ) {
     final results = <SearchResultItem>[];
-    final query = state.query.toLowerCase();
+    final lowerQuery = query.toLowerCase();
 
     void addResult(
       String fieldPath,
@@ -149,23 +171,23 @@ class SearchNotifier extends Notifier<SearchState> {
       SensitivityLevel level, {
       bool isDeleted = false,
     }) {
-      if (!value.toLowerCase().contains(query) &&
-          !fieldName.toLowerCase().contains(query)) {
+      if (!value.toLowerCase().contains(lowerQuery) &&
+          !fieldName.toLowerCase().contains(lowerQuery)) {
         return;
       }
 
       switch (level) {
         case SensitivityLevel.public:
-          if (!state.searchPublic) return;
+          if (!searchPublic) return;
           break;
         case SensitivityLevel.internal:
-          if (!state.searchInternal) return;
+          if (!searchInternal) return;
           break;
         case SensitivityLevel.sensitive:
-          if (!state.searchSensitive) return;
+          if (!searchSensitive) return;
           break;
         case SensitivityLevel.critical:
-          if (!state.searchRestricted) return;
+          if (!searchRestricted) return;
           break;
       }
 
@@ -188,10 +210,10 @@ class SearchNotifier extends Notifier<SearchState> {
     _searchProfessional(profile, addResult);
     _searchUnifiedObjects(profile, addResult);
 
-    state = state.copyWith(results: results, isSearching: false);
+    return results;
   }
 
-  void _searchIdentity(
+  static void _searchIdentity(
     ProfileData profile,
     void Function(
       String fieldPath,
@@ -379,7 +401,7 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  void _searchTravel(
+  static void _searchTravel(
     ProfileData profile,
     void Function(
       String fieldPath,
@@ -476,7 +498,7 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  void _searchFinancial(
+  static void _searchFinancial(
     ProfileData profile,
     void Function(
       String fieldPath,
@@ -596,7 +618,7 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  void _searchProfessional(
+  static void _searchProfessional(
     ProfileData profile,
     void Function(
       String fieldPath,
@@ -695,7 +717,7 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  void _searchUnifiedObjects(
+  static void _searchUnifiedObjects(
     ProfileData profile,
     void Function(
       String fieldPath,

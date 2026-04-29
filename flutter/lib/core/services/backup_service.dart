@@ -15,6 +15,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
@@ -136,8 +137,10 @@ class BackupService {
 
       report(0.3);
       DebugLogger.instance.logInfo('BACKUP', 'Step 2/5: jsonEncode start');
-      final jsonString = jsonEncode(profileData.toJson());
-      final plainBytes = Uint8List.fromList(utf8.encode(jsonString));
+      final plainBytes = await Isolate.run(() {
+        final jsonString = jsonEncode(profileData.toJson());
+        return Uint8List.fromList(utf8.encode(jsonString));
+      });
       DebugLogger.instance.logInfo('BACKUP', 'Step 2/5: jsonEncode done, size=${plainBytes.length} bytes');
 
       report(0.5);
@@ -216,9 +219,11 @@ class BackupService {
       final decrypted = RustVaultService.instance.decryptBytes(encrypted);
       if (decrypted == null) return false;
 
-      final jsonString = utf8.decode(decrypted);
-      final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      final profile = ProfileData.fromJson(json);
+      final profile = await Isolate.run(() {
+        final jsonString = utf8.decode(decrypted);
+        final json = jsonDecode(jsonString) as Map<String, dynamic>;
+        return ProfileData.fromJson(json);
+      });
 
       // 2. 创建保护性备份（覆盖数据前）
       await createBackup(accountId);
@@ -290,8 +295,10 @@ class BackupService {
       if (profileData == null) return null;
 
       report(0.3);
-      final jsonString = jsonEncode(profileData.toJson());
-      final plainBytes = Uint8List.fromList(utf8.encode(jsonString));
+      final plainBytes = await Isolate.run(() {
+        final jsonString = jsonEncode(profileData.toJson());
+        return Uint8List.fromList(utf8.encode(jsonString));
+      });
 
       report(0.5);
       final encrypted = RustVaultService.instance.encryptBytes(plainBytes);

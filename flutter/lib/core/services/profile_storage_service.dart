@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -2660,8 +2661,11 @@ class ProfileStorageService {
         return null;
       }
 
-      final json = jsonDecode(decrypted) as Map<String, dynamic>;
-      final profile = ProfileData.fromJson(json);
+      final (json, profile) = await Isolate.run(() {
+        final json = jsonDecode(decrypted) as Map<String, dynamic>;
+        final profile = ProfileData.fromJson(json);
+        return (json, profile);
+      });
       // Apply migration if needed
       final migratedProfile = _migrateIfNeeded(profile, json);
       // Validate and repair data integrity after migration
@@ -2687,7 +2691,7 @@ class ProfileStorageService {
         profile = profile.copyWith(unifiedObjects: existing!.unifiedObjects);
       }
 
-      final json = jsonEncode(profile.toJson());
+      final json = await Isolate.run(() => jsonEncode(profile.toJson()));
 
       final result = await _rustVault.saveProfileEncrypted(accountId, json);
 
