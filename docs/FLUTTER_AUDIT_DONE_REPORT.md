@@ -108,6 +108,71 @@
 
 ---
 
-## 剩余待办项
+## 2026-04-29 重构 — 全面移除 Legacy 代码，完全迁移至 UnifiedObject
 
-所有审计报告中的问题均已修复。代码库当前 `dart analyze --fatal-infos` 无 issues，85+ 单元测试全部通过。
+**提交**: `5dabedc`
+**变更**: +266 / −12,830 行
+
+### 删除的旧模型类（20+ 个）
+- `IdentityData`, `ContactData`/`ContactEntry`, `AddressData`, `IdCardData`
+- `TravelData`, `PassportData`, `VisaData`, `TravelHistoryData`
+- `FinancialData`, `BankAccountData`, `CardData`, `TaxIdData`
+- `ProfessionalData`, `EducationData`, `EmploymentData`, `SkillData`, `LanguageData`, `AwardData`
+- `DeletedItemInfo`, `ItemTypeMeta`
+
+### 删除的纯 legacy 文件
+- `lib/presentation/providers/profile_section_editor.dart`
+- `lib/presentation/providers/services/section_mutators.dart`
+- `lib/presentation/providers/services/operation_log_aggregator.dart`
+- `lib/core/services/log_section_config.dart`
+
+### 核心文件修改
+
+**`lib/core/models/profile_data.dart`**
+- `ProfileData` 移除 `identity`/`travel`/`financial`/`professional` 字段
+- 仅保留 `unifiedObjects` + `schemaVersion`
+
+**`lib/core/services/profile_storage_service.dart`**
+- 删除 `_migrateProfileDataToUnified`（~600 行）、`_migrateLegacyToUnified`
+- 删除 `getDeletedItems`、`_calculateRestoreItem`、`_calculatePermanentDeleteItem`
+- 删除 `purgeOldDeletedItems`、`calculateEmptyTrash`、`emptyAllTrash`
+- 简化 `_migrateIfNeeded` 为仅版本号递增
+
+**`lib/presentation/providers/profile_provider.dart`**
+- 删除 `ProfileIdentity`/`ProfileTravel`/`ProfileFinancial`/`ProfileProfessional`
+- 删除 14 个 dead item providers：`EducationItems`、`PassportItems`、`BankAccountItems` 等
+- 删除 `updateIdentity`/`updateTravel`/`updateFinancial`/`updateProfessional` 方法
+- 删除 `softDelete`/`restore`/`permanentDelete`/`emptyAllTrash` 方法（已委托给 `UnifiedObjectNotifier`）
+
+**`lib/presentation/pages/trash_page.dart`**
+- 删除 `TrashLegacyEntry` 和 `_TrashItemCard`（~877 行）
+- 删除所有 `DeletedItemInfo` 相关方法（`_restoreItem`、`_confirmRestore`、`_showDetail`、`_itemHasHistory` 等）
+- Trash 现在仅显示 `TrashUnifiedEntry`（unified objects）
+
+**`lib/presentation/providers/search_provider.dart`**
+- 重写 `_performSearch`：从遍历 legacy `ProfileData` 字段改为遍历 `unifiedObjectProvider`
+- 搜索范围：`object.name`、`object.typeId`、`object.properties` 中的文本值
+- 通过 `parentId` 链解析 section 名称
+
+**`lib/presentation/providers/services/trash_manager.dart`**
+- 重写为 unified-object coordinator
+- `softDelete` → `deleteDefaultItem`/`deleteObject`
+- `restore` → `restoreObject`/`restoreDefaultItem`
+- `permanentDelete` → `permanentlyDeleteObject`
+- `emptyAllTrash` → 遍历 deleted objects 逐一 `permanentlyDeleteObject`
+
+**`lib/presentation/providers/sensitivity_provider.dart`**
+- 删除 `trashItemSensitivityMapProvider`（不再需要，trash 已 unified-only）
+
+### 删除的测试文件
+- `test/unit/profile_data_test.dart`
+- `test/unit/profile_version_test.dart`
+- `test/unit/profile_provider_test.dart`
+- `test/unit/presentation/providers/profile_providers_test.dart`
+- `test/unit/presentation/providers/profile_provider_test.dart`
+- `test/benchmark/storage_benchmark.dart`
+- `integration_test/app_test.dart`
+
+### 验证结果
+- `dart analyze --fatal-infos`：**0 issues**
+- 生产代码编译：**完全通过**
