@@ -157,7 +157,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       properties: properties,
     );
 
-    OperationLogService.instance.addEntry(
+    await OperationLogService.instance.addEntry(
       OperationLogger.logCustomSection(
         section: widget.object.name,
         action: LogAction.create,
@@ -248,7 +248,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     Future<void> doDelete() async {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
 
-      OperationLogService.instance.addEntry(
+      await OperationLogService.instance.addEntry(
         OperationLogger.logCustomSection(
           section: widget.object.name,
           action: LogAction.delete,
@@ -371,7 +371,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       properties: updatedProps,
     );
 
-    OperationLogService.instance.addEntry(
+    await OperationLogService.instance.addEntry(
       OperationLogger.logCustomSection(
         section: widget.object.name,
         action: LogAction.update,
