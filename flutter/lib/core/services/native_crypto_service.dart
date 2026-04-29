@@ -83,7 +83,7 @@ class NativeCryptoService {
           .lookup<NativeFunction<Int32 Function(Pointer<Uint8>, IntPtr)>>(
               'argon2_generate_salt')
           .asFunction();
-    } catch (e, st) {
+    } on Exception catch (e) {
       DebugLogger.instance.logWarning('NATIVE_CRYPTO',
           'FFI argon2_generate_salt not available, falling back to Dart: $e');
       _isAndroid = true; // Force Dart fallback
@@ -107,7 +107,7 @@ class NativeCryptoService {
                       IntPtr,
                   )>>('argon2_derive_key')
           .asFunction();
-    } catch (e, st) {
+    } on Exception catch (e) {
       DebugLogger.instance.logWarning('NATIVE_CRYPTO',
           'FFI argon2_derive_key not available, falling back to Dart: $e');
       _isAndroid = true; // Force Dart fallback
@@ -128,7 +128,7 @@ class NativeCryptoService {
                       Pointer<IntPtr>,
                   )>>('aes_256_gcm_encrypt')
           .asFunction();
-    } catch (e, st) {
+    } on Exception catch (e) {
       DebugLogger.instance.logWarning('NATIVE_CRYPTO',
           'FFI aes_256_gcm_encrypt not available, falling back to Dart: $e');
       _isAndroid = true; // Force Dart fallback
@@ -149,7 +149,7 @@ class NativeCryptoService {
                       Pointer<IntPtr>,
                   )>>('aes_256_gcm_decrypt')
           .asFunction();
-    } catch (e, st) {
+    } on Exception catch (e) {
       DebugLogger.instance.logWarning('NATIVE_CRYPTO',
           'FFI aes_256_gcm_decrypt not available, falling back to Dart: $e');
       _isAndroid = true; // Force Dart fallback
