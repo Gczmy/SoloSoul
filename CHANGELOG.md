@@ -5,6 +5,21 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-29
+
+### Added
+
+- **Startup Data Integrity Check** — Automatic repair of UnifiedObject tree corruption (duplicate IDs, broken parent/child references)
+- **Complete Trash Cleanup** — 30-day auto-purge now covers all sections including travel history, skills, languages, awards, identity cards, addresses, contacts, and unified objects
+- **Field History Cleanup** — Automatically removes history entries for permanently deleted items
+
+### Fixed
+
+- Trash emptying now correctly removes awards and unified objects
+- Form history no longer grows indefinitely when items are deleted
+
+---
+
 ## [1.3.0] - 2026-04-29
 
 ### Added
@@ -147,7 +162,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.4.0
+[1.3.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.3.0
+[1.2.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0
 [1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
