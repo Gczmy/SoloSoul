@@ -2,6 +2,7 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
@@ -170,10 +171,13 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Enable biometric unlock and save password
+      // Enable biometric unlock and save credential
       final securityService = SecurityService.instance;
+      final accountId = authNotifier.selectedAccountId;
       await securityService.setBiometricsEnabled(true);
-      await securityService.saveBiometricPassword(password);
+      if (accountId != null) {
+        await BiometricCredentialService.instance.saveBiometricCredential(accountId, password);
+      }
       if (!mounted) return;
       setState(() {
         _biometricEnabled = true;
@@ -198,7 +202,11 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
       unawaited(SecurityService.instance.setBiometricsEnabled(false));
-      unawaited(SecurityService.instance.clearBiometricPassword());
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final accountId = authNotifier.selectedAccountId;
+      if (accountId != null) {
+        unawaited(BiometricCredentialService.instance.clearBiometricCredential(accountId));
+      }
     }
   }
 
@@ -258,10 +266,13 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         return;
       }
 
-      // Enable Face ID unlock and save password
+      // Enable Face ID unlock and save credential
       final securityService = SecurityService.instance;
+      final accountId = authNotifier.selectedAccountId;
       await securityService.setFaceIdEnabled(true);
-      await securityService.saveBiometricPassword(password);
+      if (accountId != null) {
+        await BiometricCredentialService.instance.saveBiometricCredential(accountId, password);
+      }
       if (!mounted) return;
       setState(() {
         _faceIdEnabled = true;
@@ -286,7 +297,11 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         );
       }
       unawaited(SecurityService.instance.setFaceIdEnabled(false));
-      unawaited(SecurityService.instance.clearBiometricPassword());
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final accountId = authNotifier.selectedAccountId;
+      if (accountId != null) {
+        unawaited(BiometricCredentialService.instance.clearBiometricCredential(accountId));
+      }
     }
   }
 

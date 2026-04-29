@@ -81,6 +81,13 @@ pub struct UnlockVaultPayload {
     pub password: String,
 }
 
+/// Payload for unlock_vault_with_key action
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UnlockVaultWithKeyPayload {
+    pub account_id: String,
+    pub session_key: String, // base64-encoded [u8; 32]
+}
+
 /// Payload for create_account action
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateAccountPayload {
@@ -138,6 +145,7 @@ pub fn handle_vault_request(
         "get_vault_stats" => handle_vault_stats(account_manager),
         "is_unlocked" => handle_is_unlocked(account_manager),
         "unlock_vault" => handle_unlock_vault(request.payload, account_manager),
+        "unlock_vault_with_key" => handle_unlock_vault_with_key(request.payload, account_manager),
         "lock_vault" => handle_lock_vault(account_manager),
         "create_account" => handle_create_account(request.payload, account_manager),
         "change_password" => handle_change_password(request.payload, account_manager),
@@ -408,6 +416,33 @@ fn handle_unlock_vault(payload: Option<serde_json::Value>, manager: &AccountMana
     log_to_file(&format!("[PROCESSOR] Calling manager.unlock for account_id: {}", payload.account_id));
     let result = manager.unlock(&payload.account_id, &payload.password);
     log_to_file(&format!("[PROCESSOR] manager.unlock returned, success={}", result.success));
+
+    VaultResponse::success(serde_json::json!({
+        "success": result.success,
+        "error": result.error,
+        "crypto_version": result.crypto_version,
+    }))
+}
+
+fn handle_unlock_vault_with_key(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    log_to_file("[PROCESSOR] handle_unlock_vault_with_key called");
+    let payload: UnlockVaultWithKeyPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => {
+                log_to_file(&format!("[PROCESSOR] Payload parse error: {}", e));
+                return VaultResponse::error(format!("Invalid payload: {}", e));
+            }
+        },
+        None => {
+            log_to_file("[PROCESSOR] Missing payload");
+            return VaultResponse::error("Missing payload".to_string());
+        }
+    };
+
+    log_to_file(&format!("[PROCESSOR] Calling manager.unlock_with_key for account_id: {}", payload.account_id));
+    let result = manager.unlock_with_key(&payload.account_id, &payload.session_key);
+    log_to_file(&format!("[PROCESSOR] manager.unlock_with_key returned, success={}", result.success));
 
     VaultResponse::success(serde_json::json!({
         "success": result.success,

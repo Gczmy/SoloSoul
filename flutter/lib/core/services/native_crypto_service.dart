@@ -84,7 +84,10 @@ class NativeCryptoService {
               'argon2_generate_salt')
           .asFunction();
     } catch (e, st) {
-      throw Exception('Failed to bind argon2_generate_salt: $e\nStack: $st');
+      DebugLogger.instance.logWarning('NATIVE_CRYPTO',
+          'FFI argon2_generate_salt not available, falling back to Dart: $e');
+      _isAndroid = true; // Force Dart fallback
+      return;
     }
 
     // Bind argon2_derive_key
@@ -105,7 +108,10 @@ class NativeCryptoService {
                   )>>('argon2_derive_key')
           .asFunction();
     } catch (e, st) {
-      throw Exception('Failed to bind argon2_derive_key: $e\nStack: $st');
+      DebugLogger.instance.logWarning('NATIVE_CRYPTO',
+          'FFI argon2_derive_key not available, falling back to Dart: $e');
+      _isAndroid = true; // Force Dart fallback
+      return;
     }
 
     // Bind aes_256_gcm_encrypt
@@ -123,7 +129,10 @@ class NativeCryptoService {
                   )>>('aes_256_gcm_encrypt')
           .asFunction();
     } catch (e, st) {
-      throw Exception('Failed to bind aes_256_gcm_encrypt: $e\nStack: $st');
+      DebugLogger.instance.logWarning('NATIVE_CRYPTO',
+          'FFI aes_256_gcm_encrypt not available, falling back to Dart: $e');
+      _isAndroid = true; // Force Dart fallback
+      return;
     }
 
     // Bind aes_256_gcm_decrypt
@@ -141,7 +150,10 @@ class NativeCryptoService {
                   )>>('aes_256_gcm_decrypt')
           .asFunction();
     } catch (e, st) {
-      throw Exception('Failed to bind aes_256_gcm_decrypt: $e\nStack: $st');
+      DebugLogger.instance.logWarning('NATIVE_CRYPTO',
+          'FFI aes_256_gcm_decrypt not available, falling back to Dart: $e');
+      _isAndroid = true; // Force Dart fallback
+      return;
     }
   }
 

@@ -226,6 +226,35 @@ class RustVaultService {
     return result ?? (success: false, error: 'Failed to unlock vault', cryptoVersion: null);
   }
 
+  /// Unlock the vault with a pre-derived session key (for biometric unlock)
+  /// This opens the encrypted SQLCipher database without password derivation
+  ({bool success, String? error, int? cryptoVersion}) unlockVaultWithKey({
+    required String accountId,
+    required Uint8List sessionKey,
+  }) {
+    final payload = {
+      'account_id': accountId,
+      'session_key': base64Encode(sessionKey),
+    };
+    final response = NativeVaultService.instance.request(
+      NativeVaultService.actionUnlockVaultWithKey,
+      payload,
+    );
+    if (response == null || response['success'] != true) {
+      return (
+        success: false,
+        error: response?['error'] as String? ?? 'Failed to unlock vault with key',
+        cryptoVersion: null,
+      );
+    }
+    final data = response['data'] as Map<String, dynamic>?;
+    return (
+      success: data?['success'] == true,
+      error: data?['error'] as String?,
+      cryptoVersion: data?['crypto_version'] as int?,
+    );
+  }
+
   /// Lock the vault - clears session key and closes database connection
   void lockVault() {
     clearEncryptionKey();

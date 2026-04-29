@@ -15,6 +15,7 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
     show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -174,8 +175,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final available = await biometric.isAvailable();
     final settings = SecurityService.instance.settings;
     final availableBiometrics = await biometric.getAvailableBiometrics();
-    final storedPassword = await SecurityService.instance.getBiometricPassword();
-    final hasStoredPassword = storedPassword != null && storedPassword.isNotEmpty;
+
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final accountId = authNotifier.selectedAccountId;
+    final hasCredential = accountId != null &&
+        await BiometricCredentialService.instance.hasBiometricCredential(accountId) &&
+        await BiometricCredentialService.instance.isDeviceKeyAvailable();
 
     String biometricType = 'Biometric';
     if (availableBiometrics.isNotEmpty) {
@@ -191,7 +196,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
 
     setState(() {
-      _biometricsEnabled = (settings.biometricsEnabled || settings.faceIdEnabled) && available && hasStoredPassword;
+      _biometricsEnabled = (settings.biometricsEnabled || settings.faceIdEnabled) && available && hasCredential;
       _biometricType = biometricType;
     });
   }
@@ -221,22 +226,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       if (!mounted) return;
 
-      // Retrieve stored password for biometric unlock
-      final storedPassword = await SecurityService.instance.getBiometricPassword();
-      if (storedPassword == null || storedPassword.isEmpty) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          showOverlaySnackBar(
-            context,
-            content: 'Biometric unlock is not fully configured. Please unlock with your master password first and enable biometric unlock in settings.',
-            type: SnackBarType.error,
-          );
-        }
-        return;
-      }
-
-      // Unlock vault with stored password
-      final unlockSuccess = await authNotifier.unlockVault(storedPassword);
+      // Unlock vault with biometric credential (session key)
+      final unlockSuccess = await authNotifier.unlockVaultWithBiometric();
       if (!unlockSuccess) {
         if (mounted) {
           setState(() => _isLoading = false);

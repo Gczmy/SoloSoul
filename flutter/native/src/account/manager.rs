@@ -602,6 +602,182 @@ impl AccountManager {
         }
     }
 
+    /// Unlock account with a pre-derived session key (for biometric unlock)
+    pub fn unlock_with_key(&self, account_id: &str, session_key_b64: &str) -> VerifyResult {
+        log_to_file(&format!("[MANAGER] unlock_with_key called for account_id: {}", account_id));
+
+        // Decode session key from base64
+        let session_key_bytes = match base64_decode(session_key_b64) {
+            Ok(b) => b,
+            Err(_) => return VerifyResult {
+                success: false,
+                error: Some("Invalid session key encoding".to_string()),
+                crypto_version: 0,
+            },
+        };
+        let session_key_arr: [u8; 32] = match session_key_bytes.as_slice().try_into() {
+            Ok(a) => a,
+            Err(_) => return VerifyResult {
+                success: false,
+                error: Some("Invalid session key length".to_string()),
+                crypto_version: 0,
+            },
+        };
+
+        // Check if account directory exists
+        let account_dir = self.account_dir(account_id);
+        if !account_dir.exists() {
+            return VerifyResult {
+                success: false,
+                error: Some("Account not found".to_string()),
+                crypto_version: 0,
+            };
+        }
+
+        // Load config
+        let config_path = account_dir.join("config.json");
+        let config_content = match fs::read_to_string(&config_path) {
+            Ok(c) => c,
+            Err(e) => return VerifyResult {
+                success: false,
+                error: Some(format!("Failed to read config: {}", e)),
+                crypto_version: 0,
+            },
+        };
+        let config: AccountConfig = match serde_json::from_str(&config_content) {
+            Ok(c) => c,
+            Err(e) => return VerifyResult {
+                success: false,
+                error: Some(format!("Failed to parse config: {}", e)),
+                crypto_version: 0,
+            },
+        };
+
+        // Verify the session key by computing the same verify hash
+        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
+        let verify_key = match derive_key(
+            &hex::encode(session_key_arr.as_slice()),
+            verify_data,
+            8192,
+            1,
+            1,
+        ) {
+            Ok(k) => k,
+            Err(_) => return VerifyResult {
+                success: false,
+                error: Some("Verification failed".to_string()),
+                crypto_version: 0,
+            },
+        };
+        let computed_hash = hex::encode(verify_key.as_slice());
+
+        if computed_hash != config.verify_hash {
+            return VerifyResult {
+                success: false,
+                error: Some("Invalid session key".to_string()),
+                crypto_version: config.crypto_version,
+            };
+        }
+
+        // Update last accessed
+        {
+            let mut cache = match self.accounts_cache.write() {
+                Ok(guard) => guard,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                }
+            };
+            if let Some(account) = cache.get_mut(account_id) {
+                account.last_accessed = Some(Utc::now());
+            }
+        }
+        self.save_accounts_cache().ok();
+
+        // Store session key
+        let key_copy = session_key_arr;
+        {
+            let mut session = match self.session_key.write() {
+                Ok(guard) => guard,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                }
+            };
+            *session = Some(Zeroizing::new(key_copy));
+        }
+        {
+            let mut unlocked = match self.unlocked_account.write() {
+                Ok(guard) => guard,
+                Err(e) => {
+                    log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                }
+            };
+            *unlocked = Some(account_id.to_string());
+        }
+
+        // Derive SQLCipher key and open vault
+        log_to_file("[MANAGER] Deriving SQLCipher key from session key...");
+        let sqlcipher_key = self.derive_sqlcipher_key(&key_copy);
+        let vault_config = VaultConfig {
+            path: self.account_dir(account_id),
+            account_id: account_id.to_string(),
+            sqlcipher_key: Some(sqlcipher_key),
+        };
+        log_to_file(&format!("[MANAGER] Opening vault at: {:?}", vault_config.path));
+        match VaultStore::open(vault_config) {
+            Ok(vault) => {
+                log_to_file("[MANAGER] Vault opened successfully with session key");
+                let mut vault_store = match self.vault_store.write() {
+                    Ok(guard) => guard,
+                    Err(e) => {
+                        log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                        return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                    }
+                };
+                *vault_store = Some(vault);
+                VerifyResult {
+                    success: true,
+                    error: None,
+                    crypto_version: config.crypto_version,
+                }
+            }
+            Err(e) => {
+                log_to_file(&format!("[MANAGER] Vault open failed: {}", e));
+                // Clear partial unlock state
+                {
+                    let mut session = match self.session_key.write() {
+                        Ok(guard) => guard,
+                        Err(e) => {
+                            log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                        }
+                    };
+                    if let Some(ref mut key) = *session {
+                        key.zeroize();
+                    }
+                    session.take();
+                }
+                {
+                    let mut unlocked = match self.unlocked_account.write() {
+                        Ok(guard) => guard,
+                        Err(e) => {
+                            log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
+                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                        }
+                    };
+                    unlocked.take();
+                }
+                VerifyResult {
+                    success: false,
+                    error: Some(format!("Failed to open vault: {}", e)),
+                    crypto_version: config.crypto_version,
+                }
+            }
+        }
+    }
+
     /// Lock the vault
     pub fn lock(&self) {
         // Lock vault to clear SQLCipher key
@@ -982,6 +1158,42 @@ mod tests {
         let result = manager.unlock("nonexistent_id", "password123");
         assert!(!result.success);
         assert!(result.error.is_some());
+    }
+
+    #[test]
+    fn test_unlock_with_key() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("unlock_key_test", "password123").unwrap();
+        assert!(manager.is_unlocked());
+
+        // Get the session key
+        let session_key = manager.get_session_key().unwrap();
+        let session_key_b64 = base64_encode(session_key.as_slice());
+
+        // Lock and re-unlock with session key
+        manager.lock();
+        assert!(!manager.is_unlocked());
+
+        let result = manager.unlock_with_key(&created.id, &session_key_b64);
+        assert!(result.success, "Failed to unlock with key: {:?}", result.error);
+        assert!(manager.is_unlocked());
+    }
+
+    #[test]
+    fn test_unlock_with_key_wrong_key() {
+        let (manager, _temp_dir) = create_test_account_manager();
+
+        let created = manager.create_account("unlock_key_wrong_test", "password123").unwrap();
+        manager.lock();
+
+        let wrong_key = [0u8; 32];
+        let wrong_key_b64 = base64_encode(&wrong_key);
+
+        let result = manager.unlock_with_key(&created.id, &wrong_key_b64);
+        assert!(!result.success);
+        assert!(result.error.is_some());
+        assert!(!manager.is_unlocked());
     }
 
     #[test]

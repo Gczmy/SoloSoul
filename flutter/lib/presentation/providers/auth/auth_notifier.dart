@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_services.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
@@ -285,6 +286,96 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _upgradeBackupIfNeeded(accountId: _accountManager.selectedAccountId!);
 
     return true;
+  }
+
+  /// Unlock vault with biometric authentication
+  /// Uses pre-derived session key from BiometricCredentialService.
+  Future<bool> unlockVaultWithBiometric() async {
+    SoloLog.d('Auth', 'unlockVaultWithBiometric start, selectedAccountId=${_accountManager.selectedAccountId}');
+
+    if (_accountManager.selectedAccountId == null) {
+      SoloLog.w('Auth', '_selectedAccountId is null, returning false');
+      return false;
+    }
+
+    state = const AsyncLoading();
+
+    // Step 1: Retrieve session key from biometric credential
+    final timer1 = SoloLog.startTimer('Auth', 'BiometricCredentialService.unlockWithBiometric');
+    final sessionKey = await BiometricCredentialService.instance.unlockWithBiometric(
+      _accountManager.selectedAccountId!,
+    );
+    SoloLog.endTimer(timer1);
+
+    if (sessionKey == null || sessionKey.length != 32) {
+      SoloLog.e('Auth', 'Failed to retrieve session key from biometric credential');
+      state = const AsyncData(AuthState.locked);
+      return false;
+    }
+
+    // Step 2: Unlock vault with session key
+    final timer2 = SoloLog.startTimer('Auth', 'VaultUnlockService.unlockVaultWithKey');
+    final vaultResult = await _vaultUnlockService.unlockVaultWithKey(
+      accountId: _accountManager.selectedAccountId!,
+      sessionKey: sessionKey,
+    );
+    SoloLog.endTimer(timer2);
+    SoloLog.d('Auth', 'Biometric unlock result: success=${vaultResult.success}, error=${vaultResult.error}, cryptoVersion=${vaultResult.cryptoVersion}');
+
+    if (!vaultResult.success) {
+      SoloLog.e('Auth', 'Biometric vault unlock failed: ${vaultResult.error}');
+      _secureWipe(sessionKey);
+      state = const AsyncData(AuthState.locked);
+      return false;
+    }
+
+    SoloLog.d('Auth', 'Biometric unlock succeeded, checking Keychain...');
+
+    // Step 3: Check for migrations needed (Rust→Keychain only, no V2 migration)
+    final timer3 = SoloLog.startTimer('Auth', 'Keychain.getAccountData');
+    try {
+      final accountData = await _storage
+          .getAccountData(_accountManager.selectedAccountId!)
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => throw TimeoutException('getAccountData timed out'),
+          );
+      SoloLog.endTimer(timer3);
+
+      if (accountData == null) {
+        SoloLog.d('Auth', 'Account not in Keychain, migrating from Rust...');
+        await _migrationService.migrateAccountFromRust(
+          accountId: _accountManager.selectedAccountId!,
+          cryptoVersion: vaultResult.cryptoVersion ?? 2,
+        );
+      } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
+        // V2 migration requires password re-derivation; biometric credential
+        // should only exist after at least one password unlock. Log warning.
+        SoloLog.w('Auth', 'V1 account detected but biometric unlock cannot perform V2 migration without password. Consider unlocking with password once.');
+      }
+    } on Object catch (e, st) {
+      SoloLog.e('Auth', 'Migration error during biometric unlock', e, st);
+    }
+
+    // Step 4: Set profile encryption key
+    SoloLog.d('Auth', 'Setting profile encryption key from biometric session key...');
+    _profileStorage.setEncryptionKey(sessionKey);
+    _secureWipe(sessionKey);
+
+    state = const AsyncData(AuthState.unlocked);
+    SoloLog.d('Auth', 'Vault unlocked with biometric successfully!');
+
+    _autoBackupAfterUnlock();
+    _upgradeBackupIfNeeded(accountId: _accountManager.selectedAccountId!);
+
+    return true;
+  }
+
+  /// Best-effort secure wipe of a byte buffer.
+  void _secureWipe(Uint8List buffer) {
+    for (var i = 0; i < buffer.length; i++) {
+      buffer[i] = 0;
+    }
   }
 
   /// 解锁成功后自动创建加密备份（不阻塞 UI）

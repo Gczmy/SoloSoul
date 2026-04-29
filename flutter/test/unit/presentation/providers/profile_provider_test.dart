@@ -63,11 +63,9 @@ class FakeProfileStorageService implements ProfileStorageService {
   }
 
   @override
-  Future<void> purgeOldDeletedItems(
-    ProfileData profile,
-    String accountId,
-  ) async {
+  ProfileData purgeOldDeletedItems(ProfileData profile) {
     // noop for tests
+    return profile;
   }
 
   @override

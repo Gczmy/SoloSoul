@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 class SecuritySettingsPage extends ConsumerStatefulWidget {
@@ -103,8 +105,11 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                               unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: true)));
                               setState(() => _biometricsEnabled = true);
                               if (mounted) {
-                                final hasPassword = await SecurityService.instance.getBiometricPassword();
-                                if (hasPassword == null || hasPassword.isEmpty) {
+                                final authNotifier = ref.read(authNotifierProvider.notifier);
+                                final accountId = authNotifier.selectedAccountId;
+                                final hasCredential = accountId != null &&
+                                    await BiometricCredentialService.instance.hasBiometricCredential(accountId);
+                                if (!hasCredential) {
                                   scaffoldMessenger.showSnackBar(
                                     const SnackBar(
                                       content: Row(
@@ -157,7 +162,11 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                           } else {
                             unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: false)));
                             setState(() => _biometricsEnabled = false);
-                            unawaited(SecurityService.instance.clearBiometricPassword());
+                            final authNotifier = ref.read(authNotifierProvider.notifier);
+                            final accountId = authNotifier.selectedAccountId;
+                            if (accountId != null) {
+                              unawaited(BiometricCredentialService.instance.clearBiometricCredential(accountId));
+                            }
                           }
                         },
                       ),

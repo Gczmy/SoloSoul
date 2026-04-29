@@ -12,6 +12,8 @@ import 'package:pointycastle/export.dart';
 import 'debug_logger.dart';
 import 'fallback_secure_storage.dart';
 import 'native_crypto_service.dart';
+import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart'
+    show bytesToHex;
 
 /// FFI bindings to Rust vault implementation (iOS/macOS only)
 /// Uses pure Dart implementation on Android and Windows with JSON file storage
@@ -157,6 +159,7 @@ class NativeVaultService {
   static const String actionGetVaultStats = 'get_vault_stats';
   static const String actionIsUnlocked = 'is_unlocked';
   static const String actionUnlockVault = 'unlock_vault';
+  static const String actionUnlockVaultWithKey = 'unlock_vault_with_key';
   static const String actionLockVault = 'lock_vault';
   static const String actionCreateAccount = 'create_account';
   static const String actionDeleteAccount = 'delete_account';
@@ -627,6 +630,53 @@ class NativeVaultService {
     return (success: true, error: null, cryptoVersion: 1);
   }
 
+  /// Async version of unlockVault with a pre-derived session key (for biometric unlock).
+  ///
+  /// On Android/Windows, this is a Dart-side fallback that verifies the session key
+  /// against stored credentials. Unlike macOS/iOS which delegates to Rust/SQLCipher,
+  /// the Android/Windows fallback uses JSON file storage and manages unlock state
+  /// directly. When Android/Windows gets a native SQLCipher implementation, this
+  /// should be updated to delegate to the native layer.
+  Future<({bool success, String? error, int? cryptoVersion})>
+      unlockVaultWithKeyAsync({
+    required String accountId,
+    required Uint8List sessionKey,
+  }) async {
+    // Retrieve stored salt and verify_hash for this account
+    final saltStr =
+        await _fallbackSecureStorage!.read(key: '${accountId}_salt');
+    final verifyHashB64 =
+        await _fallbackSecureStorage!.read(key: '${accountId}_verify_hash');
+
+    if (saltStr == null || verifyHashB64 == null) {
+      return (success: false, error: 'Account not found', cryptoVersion: null);
+    }
+
+    // Verify session key by computing verify hash (same as Rust)
+    final masterKeyHex = bytesToHex(sessionKey);
+    const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
+    final verifyKey = NativeCryptoService.instance.deriveKey(
+      password: masterKeyHex,
+      salt: Uint8List.fromList(utf8.encode(verifyData)),
+      memoryKib: 8192,
+      iterations: 1,
+      parallelism: 1,
+    );
+
+    if (verifyKey == null) {
+      return (success: false, error: 'Key verification failed', cryptoVersion: null);
+    }
+
+    final derivedHashHex = bytesToHex(verifyKey);
+    if (derivedHashHex != verifyHashB64) {
+      return (success: false, error: 'Invalid session key', cryptoVersion: null);
+    }
+
+    _currentAccountId = accountId;
+    _isUnlocked = true;
+    return (success: true, error: null, cryptoVersion: 1);
+  }
+
   /// Async version of deleteAccount for Android
   Future<bool> deleteAccountAsync({required String accountId}) async {
     try {
@@ -782,6 +832,10 @@ class NativeVaultService {
       case actionUnlockVault:
         // unlockVault is async on Android/Windows - return error to prompt use of async version
         return {'success': false, 'error': 'Use unlockVaultAsync on Android/Windows'};
+
+      case actionUnlockVaultWithKey:
+        // unlockVaultWithKey is async on Android/Windows - return error to prompt use of async version
+        return {'success': false, 'error': 'Use unlockVaultWithKeyAsync on Android/Windows'};
 
       case actionLockVault:
         _androidLockVault();

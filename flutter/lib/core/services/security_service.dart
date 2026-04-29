@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 
 /// Security settings for the app including auto-lock and clipboard behavior.
@@ -89,7 +90,6 @@ class SecurityService {
   );
 
   static const _keySettings = 'security_settings';
-  static const _keyBiometricPassword = 'biometric_unlock_password';
 
   final FallbackSecureStorage _fallbackStorage = FallbackSecureStorage();
 
@@ -168,21 +168,6 @@ class SecurityService {
   Future<void> resetToDefaults() async {
     _settings = const SecuritySettings();
     await saveSettings();
-    await clearBiometricPassword();
-  }
-
-  /// Save password for biometric unlock.
-  Future<void> saveBiometricPassword(String password) async {
-    await _fallbackStorage.write(key: _keyBiometricPassword, value: password);
-  }
-
-  /// Get password for biometric unlock.
-  Future<String?> getBiometricPassword() async {
-    return _fallbackStorage.read(key: _keyBiometricPassword);
-  }
-
-  /// Clear password for biometric unlock.
-  Future<void> clearBiometricPassword() async {
-    await _fallbackStorage.delete(key: _keyBiometricPassword);
+    await BiometricCredentialService.instance.clearAllBiometricCredentials();
   }
 }

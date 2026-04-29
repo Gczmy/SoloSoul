@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
@@ -26,6 +28,24 @@ class VaultUnlockService {
     return RustVaultService.instance.unlockVault(
       accountId: accountId,
       password: password,
+    );
+  }
+
+  /// Unlock vault with a pre-derived session key (for biometric unlock)
+  Future<({bool success, String? error, int? cryptoVersion})> unlockVaultWithKey({
+    required String accountId,
+    required Uint8List sessionKey,
+  }) async {
+    if (Platform.isMacOS || Platform.isIOS) {
+      return RustVaultService.instance.unlockVaultWithKey(
+        accountId: accountId,
+        sessionKey: sessionKey,
+      );
+    }
+    // Android/Windows fallback
+    return NativeVaultService.instance.unlockVaultWithKeyAsync(
+      accountId: accountId,
+      sessionKey: sessionKey,
     );
   }
 
@@ -289,7 +309,11 @@ class PasswordService {
       await profileStorage.saveProfile(accountId, currentProfile);
     }
 
-    // Step 7: Update password hint if provided
+    // Step 7: Clear biometric credential — old session key is no longer valid
+    await BiometricCredentialService.instance.clearBiometricCredential(accountId);
+    SoloLog.d('PasswordService', 'Biometric credential cleared for $accountId after password change');
+
+    // Step 8: Update password hint if provided
     if (newPasswordHint != null) {
       await _storage.updatePasswordHint(accountId, newPasswordHint);
     }
