@@ -613,11 +613,11 @@ void main() {
       });
 
       test('returns identity data from profile', () {
-        const identity = IdentityData(fullName: 'Test User');
+        final identity = IdentityData(fullName: 'Test User');
         final container = ProviderContainer(
           overrides: [
             profileNotifierProvider.overrideWith(
-              () => _FakeProfileNotifier(const ProfileData(identity: identity)),
+              () => _FakeProfileNotifier(ProfileData(identity: identity)),
             ),
           ],
         );

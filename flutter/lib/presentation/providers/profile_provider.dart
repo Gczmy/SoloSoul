@@ -291,30 +291,20 @@ int _degreeSortOrder(EducationData e, List<String> degreeOrder) {
 class EducationItems extends _$EducationItems {
   @override
   List<EducationData> build() {
-    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
-    if (professional == null) return [];
+    final education = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.professional?.activeEducation),
+    );
+    if (education == null || education.isEmpty) return const [];
 
-    final items = professional.activeEducation.map((e) => EducationData(
-      id: e.id,
-      institution: e.institution,
-      degree: e.degree,
-      degreeCustom: e.degreeCustom,
-      field: e.field,
-      startDate: e.startDate,
-      endDate: e.endDate,
-      updatedAt: e.updatedAt,
-      isDeleted: e.isDeleted,
-      deletedAt: e.deletedAt,
-    )).toList();
-
+    final sorted = [...education];
     const degreeOrder = ['PhD', 'Master', 'Bachelor', 'Senior High', 'Junior High', 'Elementary'];
-    items.sort((a, b) {
+    sorted.sort((a, b) {
       final aOrder = _degreeSortOrder(a, degreeOrder);
       final bOrder = _degreeSortOrder(b, degreeOrder);
       return aOrder.compareTo(bOrder);
     });
 
-    return items;
+    return sorted;
   }
 }
 
@@ -323,21 +313,10 @@ class EducationItems extends _$EducationItems {
 class BankAccountItems extends _$BankAccountItems {
   @override
   List<BankAccountData> build() {
-    final financial = ref.watch(profileNotifierProvider.select((p) => p.value?.financial));
-    if (financial == null) return [];
-
-    return financial.activeBankAccounts.map((b) => BankAccountData(
-      id: b.id,
-      title: b.title,
-      bankName: b.bankName,
-      accountNumber: b.accountNumber,
-      currency: b.currency,
-      swiftBic: b.swiftBic,
-      sortCode: b.sortCode,
-      updatedAt: b.updatedAt,
-      isDeleted: b.isDeleted,
-      deletedAt: b.deletedAt,
-    )).toList();
+    final accounts = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.financial?.activeBankAccounts),
+    );
+    return accounts ?? const [];
   }
 }
 
@@ -346,20 +325,10 @@ class BankAccountItems extends _$BankAccountItems {
 class EmploymentItems extends _$EmploymentItems {
   @override
   List<EmploymentData> build() {
-    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
-    if (professional == null) return [];
-
-    return professional.activeEmployment.map((e) => EmploymentData(
-      id: e.id,
-      company: e.company,
-      position: e.position,
-      responsibilities: e.responsibilities,
-      startDate: e.startDate,
-      endDate: e.endDate,
-      updatedAt: e.updatedAt,
-      isDeleted: e.isDeleted,
-      deletedAt: e.deletedAt,
-    )).toList();
+    final employment = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.professional?.activeEmployment),
+    );
+    return employment ?? const [];
   }
 }
 
@@ -368,17 +337,10 @@ class EmploymentItems extends _$EmploymentItems {
 class SkillItems extends _$SkillItems {
   @override
   List<SkillData> build() {
-    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
-    if (professional == null) return [];
-
-    return professional.activeSkills.map((s) => SkillData(
-      id: s.id,
-      name: s.name,
-      level: s.level,
-      updatedAt: s.updatedAt,
-      isDeleted: s.isDeleted,
-      deletedAt: s.deletedAt,
-    )).toList();
+    final skills = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.professional?.activeSkills),
+    );
+    return skills ?? const [];
   }
 }
 
@@ -387,20 +349,10 @@ class SkillItems extends _$SkillItems {
 class TaxIdItems extends _$TaxIdItems {
   @override
   List<TaxIdData> build() {
-    final financial = ref.watch(profileNotifierProvider.select((p) => p.value?.financial));
-    if (financial == null) return [];
-
-    return financial.activeTaxIds.map((t) => TaxIdData(
-      id: t.id,
-      title: t.title,
-      taxIdNumber: t.taxIdNumber,
-      taxIdType: t.taxIdType,
-      issuingAuthority: t.issuingAuthority,
-      country: t.country,
-      updatedAt: t.updatedAt,
-      isDeleted: t.isDeleted,
-      deletedAt: t.deletedAt,
-    )).toList();
+    final taxIds = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.financial?.activeTaxIds),
+    );
+    return taxIds ?? const [];
   }
 }
 
@@ -409,28 +361,10 @@ class TaxIdItems extends _$TaxIdItems {
 class PassportItems extends _$PassportItems {
   @override
   List<PassportData> build() {
-    final travel = ref.watch(profileNotifierProvider.select((p) => p.value?.travel));
-    if (travel == null) return [];
-
-    return travel.activePassports.map((p) => PassportData(
-      id: p.id,
-      title: p.title,
-      number: p.number,
-      country: p.country,
-      countryCode: p.countryCode,
-      issueDate: p.issueDate,
-      placeOfIssue: p.placeOfIssue,
-      expiryDate: p.expiryDate,
-      dateOfBirth: p.dateOfBirth,
-      placeOfBirth: p.placeOfBirth,
-      sex: p.sex,
-      nationality: p.nationality,
-      authority: p.authority,
-      holderName: p.holderName,
-      updatedAt: p.updatedAt,
-      isDeleted: p.isDeleted,
-      deletedAt: p.deletedAt,
-    )).toList();
+    final passports = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.travel?.activePassports),
+    );
+    return passports ?? const [];
   }
 }
 
@@ -439,21 +373,10 @@ class PassportItems extends _$PassportItems {
 class VisaItems extends _$VisaItems {
   @override
   List<VisaData> build() {
-    final travel = ref.watch(profileNotifierProvider.select((p) => p.value?.travel));
-    if (travel == null) return [];
-
-    return travel.activeVisas.map((v) => VisaData(
-      id: v.id,
-      title: v.title,
-      country: v.country,
-      visaType: v.visaType,
-      number: v.number,
-      issueDate: v.issueDate,
-      expiryDate: v.expiryDate,
-      updatedAt: v.updatedAt,
-      isDeleted: v.isDeleted,
-      deletedAt: v.deletedAt,
-    )).toList();
+    final visas = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.travel?.activeVisas),
+    );
+    return visas ?? const [];
   }
 }
 
@@ -462,24 +385,10 @@ class VisaItems extends _$VisaItems {
 class TravelHistoryItems extends _$TravelHistoryItems {
   @override
   List<TravelHistoryData> build() {
-    final travel = ref.watch(profileNotifierProvider.select((p) => p.value?.travel));
-    if (travel == null) return [];
-
-    return travel.activeTravelHistory.map((t) => TravelHistoryData(
-      id: t.id,
-      destination: t.destination,
-      date: t.date,
-      departureCity: t.departureCity,
-      departureTime: t.departureTime,
-      arrivalTime: t.arrivalTime,
-      flightNumber: t.flightNumber,
-      ticketPrice: t.ticketPrice,
-      airline: t.airline,
-      travelType: t.travelType,
-      updatedAt: t.updatedAt,
-      isDeleted: t.isDeleted,
-      deletedAt: t.deletedAt,
-    )).toList();
+    final history = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.travel?.activeTravelHistory),
+    );
+    return history ?? const [];
   }
 }
 
@@ -488,21 +397,10 @@ class TravelHistoryItems extends _$TravelHistoryItems {
 class CardItems extends _$CardItems {
   @override
   List<CardData> build() {
-    final financial = ref.watch(profileNotifierProvider.select((p) => p.value?.financial));
-    if (financial == null) return [];
-
-    return financial.activeCards.map((c) => CardData(
-      id: c.id,
-      title: c.title,
-      cardNumber: c.cardNumber,
-      cardType: c.cardType,
-      expiryDate: c.expiryDate,
-      holderName: c.holderName,
-      cvv: c.cvv,
-      updatedAt: c.updatedAt,
-      isDeleted: c.isDeleted,
-      deletedAt: c.deletedAt,
-    )).toList();
+    final cards = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.financial?.activeCards),
+    );
+    return cards ?? const [];
   }
 }
 
@@ -511,18 +409,10 @@ class CardItems extends _$CardItems {
 class ContactItems extends _$ContactItems {
   @override
   List<ContactEntry> build() {
-    final contact = ref.watch(profileNotifierProvider.select((p) => p.value?.identity?.contact));
-    if (contact == null) return [];
-
-    return contact.activeEntries.map((e) => ContactEntry(
-      id: e.id,
-      title: e.title,
-      type: e.type,
-      value: e.value,
-      updatedAt: e.updatedAt,
-      isDeleted: e.isDeleted,
-      deletedAt: e.deletedAt,
-    )).toList();
+    final entries = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.identity?.contact?.activeEntries),
+    );
+    return entries ?? const [];
   }
 }
 
@@ -531,9 +421,10 @@ class ContactItems extends _$ContactItems {
 class LanguageItems extends _$LanguageItems {
   @override
   List<LanguageData> build() {
-    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
-    if (professional == null) return [];
-    return professional.activeLanguages.toList();
+    final languages = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.professional?.activeLanguages),
+    );
+    return languages ?? const [];
   }
 }
 
@@ -542,9 +433,10 @@ class LanguageItems extends _$LanguageItems {
 class AwardItems extends _$AwardItems {
   @override
   List<AwardData> build() {
-    final professional = ref.watch(profileNotifierProvider.select((p) => p.value?.professional));
-    if (professional == null) return [];
-    return professional.activeAwards.toList();
+    final awards = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.professional?.activeAwards),
+    );
+    return awards ?? const [];
   }
 }
 
@@ -553,9 +445,10 @@ class AwardItems extends _$AwardItems {
 class IdCardItems extends _$IdCardItems {
   @override
   List<IdCardData> build() {
-    final identity = ref.watch(profileNotifierProvider.select((p) => p.value?.identity));
-    if (identity == null) return [];
-    return identity.activeIdCards.toList();
+    final idCards = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.identity?.activeIdCards),
+    );
+    return idCards ?? const [];
   }
 }
 
@@ -564,8 +457,9 @@ class IdCardItems extends _$IdCardItems {
 class AddressItems extends _$AddressItems {
   @override
   List<AddressData> build() {
-    final identity = ref.watch(profileNotifierProvider.select((p) => p.value?.identity));
-    if (identity == null) return [];
-    return identity.activeAddresses.toList();
+    final addresses = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.identity?.activeAddresses),
+    );
+    return addresses ?? const [];
   }
 }

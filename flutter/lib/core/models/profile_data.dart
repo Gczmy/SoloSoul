@@ -152,7 +152,7 @@ class IdentityData {
   final ContactData? contact;
   final List<AddressData>? addresses;
 
-  const IdentityData({
+  IdentityData({
     this.fullName,
     this.givenName,
     this.familyName,
@@ -162,12 +162,20 @@ class IdentityData {
     this.idCards,
     this.contact,
     this.addresses,
-  });
+    // 内部缓存字段 —— copyWith 重置用
+    List<IdCardData>? $cachedActiveIdCards,
+    List<AddressData>? $cachedActiveAddresses,
+  })  : _cachedActiveIdCards = $cachedActiveIdCards,
+        _cachedActiveAddresses = $cachedActiveAddresses;
 
   factory IdentityData.fromJson(Map<String, dynamic> json) =>
       _$IdentityDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$IdentityDataToJson(this);
+
+  // Cached active lists
+  List<IdCardData>? _cachedActiveIdCards;
+  List<AddressData>? _cachedActiveAddresses;
 
   IdentityData copyWith({
     String? fullName,
@@ -190,15 +198,28 @@ class IdentityData {
       idCards: idCards ?? this.idCards,
       contact: contact ?? this.contact,
       addresses: addresses ?? this.addresses,
+      // 强制重置缓存 —— 修改字段后缓存立即失效
+      $cachedActiveIdCards: null,
+      $cachedActiveAddresses: null,
     );
   }
 
   /// Filter out soft-deleted items
-  List<IdCardData> get activeIdCards =>
-      idCards?.where((c) => !c.isDeleted).toList() ?? [];
+  List<IdCardData> get activeIdCards {
+    if (_cachedActiveIdCards != null) return _cachedActiveIdCards!;
+    if (idCards == null || idCards!.isEmpty) {
+      return _cachedActiveIdCards = const <IdCardData>[];
+    }
+    return _cachedActiveIdCards = idCards!.where((c) => !c.isDeleted).toList();
+  }
 
-  List<AddressData> get activeAddresses =>
-      addresses?.where((a) => !a.isDeleted).toList() ?? [];
+  List<AddressData> get activeAddresses {
+    if (_cachedActiveAddresses != null) return _cachedActiveAddresses!;
+    if (addresses == null || addresses!.isEmpty) {
+      return _cachedActiveAddresses = const <AddressData>[];
+    }
+    return _cachedActiveAddresses = addresses!.where((a) => !a.isDeleted).toList();
+  }
 }
 
 @JsonSerializable()
@@ -270,7 +291,8 @@ class ContactEntry with FormattableEntry implements IdentifiableItem {
 class ContactData {
   final List<ContactEntry> entries;
 
-  ContactData({this.entries = const []});
+  ContactData({this.entries = const [], List<ContactEntry>? $cachedActiveEntries})
+      : _cachedActiveEntries = $cachedActiveEntries;
 
   /// Deprecated: using generated fromJson
   @Deprecated('Use the generated fromJson instead')
@@ -281,13 +303,23 @@ class ContactData {
   @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$ContactDataToJson(this);
 
+  // Cached active lists
+  List<ContactEntry>? _cachedActiveEntries;
+
   ContactData copyWith({List<ContactEntry>? entries}) {
-    return ContactData(entries: entries ?? this.entries);
+    return ContactData(
+      entries: entries ?? this.entries,
+      // 强制重置缓存
+      $cachedActiveEntries: null,
+    );
   }
 
   /// Filter out soft-deleted entries
-  List<ContactEntry> get activeEntries =>
-      entries.where((e) => !e.isDeleted).toList();
+  List<ContactEntry> get activeEntries {
+    if (_cachedActiveEntries != null) return _cachedActiveEntries!;
+    if (entries.isEmpty) return _cachedActiveEntries = const <ContactEntry>[];
+    return _cachedActiveEntries = entries.where((e) => !e.isDeleted).toList();
+  }
 }
 
 @JsonSerializable()
@@ -558,25 +590,65 @@ class TravelData {
     this.passports = const [],
     this.visas = const [],
     this.travelHistory = const [],
-  });
+    // 内部缓存字段 —— copyWith 重置用
+    List<PassportData>? $cachedActivePassports,
+    List<VisaData>? $cachedActiveVisas,
+    List<TravelHistoryData>? $cachedActiveTravelHistory,
+    List<PassportData>? $cachedDeletedPassports,
+    List<VisaData>? $cachedDeletedVisas,
+    List<TravelHistoryData>? $cachedDeletedTravelHistory,
+  })  : _cachedActivePassports = $cachedActivePassports,
+        _cachedActiveVisas = $cachedActiveVisas,
+        _cachedActiveTravelHistory = $cachedActiveTravelHistory,
+        _cachedDeletedPassports = $cachedDeletedPassports,
+        _cachedDeletedVisas = $cachedDeletedVisas,
+        _cachedDeletedTravelHistory = $cachedDeletedTravelHistory;
+
+  // Cached active / deleted lists
+  List<PassportData>? _cachedActivePassports;
+  List<VisaData>? _cachedActiveVisas;
+  List<TravelHistoryData>? _cachedActiveTravelHistory;
+  List<PassportData>? _cachedDeletedPassports;
+  List<VisaData>? _cachedDeletedVisas;
+  List<TravelHistoryData>? _cachedDeletedTravelHistory;
 
   /// Filter out soft-deleted items
-  List<PassportData> get activePassports =>
-      passports.where((p) => !p.isDeleted).toList();
+  List<PassportData> get activePassports {
+    if (_cachedActivePassports != null) return _cachedActivePassports!;
+    if (passports.isEmpty) return _cachedActivePassports = const <PassportData>[];
+    return _cachedActivePassports = passports.where((p) => !p.isDeleted).toList();
+  }
 
-  List<VisaData> get activeVisas => visas.where((v) => !v.isDeleted).toList();
+  List<VisaData> get activeVisas {
+    if (_cachedActiveVisas != null) return _cachedActiveVisas!;
+    if (visas.isEmpty) return _cachedActiveVisas = const <VisaData>[];
+    return _cachedActiveVisas = visas.where((v) => !v.isDeleted).toList();
+  }
 
-  List<TravelHistoryData> get activeTravelHistory =>
-      travelHistory.where((t) => !t.isDeleted).toList();
+  List<TravelHistoryData> get activeTravelHistory {
+    if (_cachedActiveTravelHistory != null) return _cachedActiveTravelHistory!;
+    if (travelHistory.isEmpty) return _cachedActiveTravelHistory = const <TravelHistoryData>[];
+    return _cachedActiveTravelHistory = travelHistory.where((t) => !t.isDeleted).toList();
+  }
 
   /// Get soft-deleted items only
-  List<PassportData> get deletedPassports =>
-      passports.where((p) => p.isDeleted).toList();
+  List<PassportData> get deletedPassports {
+    if (_cachedDeletedPassports != null) return _cachedDeletedPassports!;
+    if (passports.isEmpty) return _cachedDeletedPassports = const <PassportData>[];
+    return _cachedDeletedPassports = passports.where((p) => p.isDeleted).toList();
+  }
 
-  List<VisaData> get deletedVisas => visas.where((v) => v.isDeleted).toList();
+  List<VisaData> get deletedVisas {
+    if (_cachedDeletedVisas != null) return _cachedDeletedVisas!;
+    if (visas.isEmpty) return _cachedDeletedVisas = const <VisaData>[];
+    return _cachedDeletedVisas = visas.where((v) => v.isDeleted).toList();
+  }
 
-  List<TravelHistoryData> get deletedTravelHistory =>
-      travelHistory.where((t) => t.isDeleted).toList();
+  List<TravelHistoryData> get deletedTravelHistory {
+    if (_cachedDeletedTravelHistory != null) return _cachedDeletedTravelHistory!;
+    if (travelHistory.isEmpty) return _cachedDeletedTravelHistory = const <TravelHistoryData>[];
+    return _cachedDeletedTravelHistory = travelHistory.where((t) => t.isDeleted).toList();
+  }
 
   /// Deprecated: using generated fromJson
   @Deprecated('Use the generated fromJson instead')
@@ -596,6 +668,13 @@ class TravelData {
       passports: passports ?? this.passports,
       visas: visas ?? this.visas,
       travelHistory: travelHistory ?? this.travelHistory,
+      // 强制重置缓存
+      $cachedActivePassports: null,
+      $cachedActiveVisas: null,
+      $cachedActiveTravelHistory: null,
+      $cachedDeletedPassports: null,
+      $cachedDeletedVisas: null,
+      $cachedDeletedTravelHistory: null,
     );
   }
 }
@@ -804,25 +883,65 @@ class FinancialData {
     this.bankAccounts = const [],
     this.cards = const [],
     this.taxIds = const [],
-  });
+    // 内部缓存字段 —— copyWith 重置用
+    List<BankAccountData>? $cachedActiveBankAccounts,
+    List<CardData>? $cachedActiveCards,
+    List<TaxIdData>? $cachedActiveTaxIds,
+    List<BankAccountData>? $cachedDeletedBankAccounts,
+    List<CardData>? $cachedDeletedCards,
+    List<TaxIdData>? $cachedDeletedTaxIds,
+  })  : _cachedActiveBankAccounts = $cachedActiveBankAccounts,
+        _cachedActiveCards = $cachedActiveCards,
+        _cachedActiveTaxIds = $cachedActiveTaxIds,
+        _cachedDeletedBankAccounts = $cachedDeletedBankAccounts,
+        _cachedDeletedCards = $cachedDeletedCards,
+        _cachedDeletedTaxIds = $cachedDeletedTaxIds;
+
+  // Cached active / deleted lists
+  List<BankAccountData>? _cachedActiveBankAccounts;
+  List<CardData>? _cachedActiveCards;
+  List<TaxIdData>? _cachedActiveTaxIds;
+  List<BankAccountData>? _cachedDeletedBankAccounts;
+  List<CardData>? _cachedDeletedCards;
+  List<TaxIdData>? _cachedDeletedTaxIds;
 
   /// Filter out soft-deleted items
-  List<BankAccountData> get activeBankAccounts =>
-      bankAccounts.where((b) => !b.isDeleted).toList();
+  List<BankAccountData> get activeBankAccounts {
+    if (_cachedActiveBankAccounts != null) return _cachedActiveBankAccounts!;
+    if (bankAccounts.isEmpty) return _cachedActiveBankAccounts = const <BankAccountData>[];
+    return _cachedActiveBankAccounts = bankAccounts.where((b) => !b.isDeleted).toList();
+  }
 
-  List<CardData> get activeCards => cards.where((c) => !c.isDeleted).toList();
+  List<CardData> get activeCards {
+    if (_cachedActiveCards != null) return _cachedActiveCards!;
+    if (cards.isEmpty) return _cachedActiveCards = const <CardData>[];
+    return _cachedActiveCards = cards.where((c) => !c.isDeleted).toList();
+  }
 
-  List<TaxIdData> get activeTaxIds =>
-      taxIds.where((t) => !t.isDeleted).toList();
+  List<TaxIdData> get activeTaxIds {
+    if (_cachedActiveTaxIds != null) return _cachedActiveTaxIds!;
+    if (taxIds.isEmpty) return _cachedActiveTaxIds = const <TaxIdData>[];
+    return _cachedActiveTaxIds = taxIds.where((t) => !t.isDeleted).toList();
+  }
 
   /// Get soft-deleted items only
-  List<BankAccountData> get deletedBankAccounts =>
-      bankAccounts.where((b) => b.isDeleted).toList();
+  List<BankAccountData> get deletedBankAccounts {
+    if (_cachedDeletedBankAccounts != null) return _cachedDeletedBankAccounts!;
+    if (bankAccounts.isEmpty) return _cachedDeletedBankAccounts = const <BankAccountData>[];
+    return _cachedDeletedBankAccounts = bankAccounts.where((b) => b.isDeleted).toList();
+  }
 
-  List<CardData> get deletedCards => cards.where((c) => c.isDeleted).toList();
+  List<CardData> get deletedCards {
+    if (_cachedDeletedCards != null) return _cachedDeletedCards!;
+    if (cards.isEmpty) return _cachedDeletedCards = const <CardData>[];
+    return _cachedDeletedCards = cards.where((c) => c.isDeleted).toList();
+  }
 
-  List<TaxIdData> get deletedTaxIds =>
-      taxIds.where((t) => t.isDeleted).toList();
+  List<TaxIdData> get deletedTaxIds {
+    if (_cachedDeletedTaxIds != null) return _cachedDeletedTaxIds!;
+    if (taxIds.isEmpty) return _cachedDeletedTaxIds = const <TaxIdData>[];
+    return _cachedDeletedTaxIds = taxIds.where((t) => t.isDeleted).toList();
+  }
 
   /// Deprecated: using generated fromJson
   @Deprecated('Use the generated fromJson instead')
@@ -842,6 +961,13 @@ class FinancialData {
       bankAccounts: bankAccounts ?? this.bankAccounts,
       cards: cards ?? this.cards,
       taxIds: taxIds ?? this.taxIds,
+      // 强制重置缓存
+      $cachedActiveBankAccounts: null,
+      $cachedActiveCards: null,
+      $cachedActiveTaxIds: null,
+      $cachedDeletedBankAccounts: null,
+      $cachedDeletedCards: null,
+      $cachedDeletedTaxIds: null,
     );
   }
 }
@@ -1278,39 +1404,101 @@ class ProfessionalData {
     this.skills = const [],
     this.languages = const [],
     this.awards = const [],
-  });
+    // 内部缓存字段 —— copyWith 重置用
+    List<EducationData>? $cachedActiveEducation,
+    List<EmploymentData>? $cachedActiveEmployment,
+    List<SkillData>? $cachedActiveSkills,
+    List<LanguageData>? $cachedActiveLanguages,
+    List<AwardData>? $cachedActiveAwards,
+    List<EducationData>? $cachedDeletedEducation,
+    List<EmploymentData>? $cachedDeletedEmployment,
+    List<SkillData>? $cachedDeletedSkills,
+    List<LanguageData>? $cachedDeletedLanguages,
+    List<AwardData>? $cachedDeletedAwards,
+  })  : _cachedActiveEducation = $cachedActiveEducation,
+        _cachedActiveEmployment = $cachedActiveEmployment,
+        _cachedActiveSkills = $cachedActiveSkills,
+        _cachedActiveLanguages = $cachedActiveLanguages,
+        _cachedActiveAwards = $cachedActiveAwards,
+        _cachedDeletedEducation = $cachedDeletedEducation,
+        _cachedDeletedEmployment = $cachedDeletedEmployment,
+        _cachedDeletedSkills = $cachedDeletedSkills,
+        _cachedDeletedLanguages = $cachedDeletedLanguages,
+        _cachedDeletedAwards = $cachedDeletedAwards;
+
+  // Cached active / deleted lists
+  List<EducationData>? _cachedActiveEducation;
+  List<EmploymentData>? _cachedActiveEmployment;
+  List<SkillData>? _cachedActiveSkills;
+  List<LanguageData>? _cachedActiveLanguages;
+  List<AwardData>? _cachedActiveAwards;
+  List<EducationData>? _cachedDeletedEducation;
+  List<EmploymentData>? _cachedDeletedEmployment;
+  List<SkillData>? _cachedDeletedSkills;
+  List<LanguageData>? _cachedDeletedLanguages;
+  List<AwardData>? _cachedDeletedAwards;
 
   /// Filter out soft-deleted items
-  List<EducationData> get activeEducation =>
-      education.where((e) => !e.isDeleted).toList();
+  List<EducationData> get activeEducation {
+    if (_cachedActiveEducation != null) return _cachedActiveEducation!;
+    if (education.isEmpty) return _cachedActiveEducation = const <EducationData>[];
+    return _cachedActiveEducation = education.where((e) => !e.isDeleted).toList();
+  }
 
-  List<EmploymentData> get activeEmployment =>
-      employment.where((e) => !e.isDeleted).toList();
+  List<EmploymentData> get activeEmployment {
+    if (_cachedActiveEmployment != null) return _cachedActiveEmployment!;
+    if (employment.isEmpty) return _cachedActiveEmployment = const <EmploymentData>[];
+    return _cachedActiveEmployment = employment.where((e) => !e.isDeleted).toList();
+  }
 
-  List<SkillData> get activeSkills =>
-      skills.where((s) => !s.isDeleted).toList();
+  List<SkillData> get activeSkills {
+    if (_cachedActiveSkills != null) return _cachedActiveSkills!;
+    if (skills.isEmpty) return _cachedActiveSkills = const <SkillData>[];
+    return _cachedActiveSkills = skills.where((s) => !s.isDeleted).toList();
+  }
 
-  List<LanguageData> get activeLanguages =>
-      languages.where((l) => !l.isDeleted).toList();
+  List<LanguageData> get activeLanguages {
+    if (_cachedActiveLanguages != null) return _cachedActiveLanguages!;
+    if (languages.isEmpty) return _cachedActiveLanguages = const <LanguageData>[];
+    return _cachedActiveLanguages = languages.where((l) => !l.isDeleted).toList();
+  }
 
-  List<AwardData> get activeAwards =>
-      awards.where((a) => !a.isDeleted).toList();
+  List<AwardData> get activeAwards {
+    if (_cachedActiveAwards != null) return _cachedActiveAwards!;
+    if (awards.isEmpty) return _cachedActiveAwards = const <AwardData>[];
+    return _cachedActiveAwards = awards.where((a) => !a.isDeleted).toList();
+  }
 
   /// Get soft-deleted items only
-  List<EducationData> get deletedEducation =>
-      education.where((e) => e.isDeleted).toList();
+  List<EducationData> get deletedEducation {
+    if (_cachedDeletedEducation != null) return _cachedDeletedEducation!;
+    if (education.isEmpty) return _cachedDeletedEducation = const <EducationData>[];
+    return _cachedDeletedEducation = education.where((e) => e.isDeleted).toList();
+  }
 
-  List<EmploymentData> get deletedEmployment =>
-      employment.where((e) => e.isDeleted).toList();
+  List<EmploymentData> get deletedEmployment {
+    if (_cachedDeletedEmployment != null) return _cachedDeletedEmployment!;
+    if (employment.isEmpty) return _cachedDeletedEmployment = const <EmploymentData>[];
+    return _cachedDeletedEmployment = employment.where((e) => e.isDeleted).toList();
+  }
 
-  List<SkillData> get deletedSkills =>
-      skills.where((s) => s.isDeleted).toList();
+  List<SkillData> get deletedSkills {
+    if (_cachedDeletedSkills != null) return _cachedDeletedSkills!;
+    if (skills.isEmpty) return _cachedDeletedSkills = const <SkillData>[];
+    return _cachedDeletedSkills = skills.where((s) => s.isDeleted).toList();
+  }
 
-  List<LanguageData> get deletedLanguages =>
-      languages.where((l) => l.isDeleted).toList();
+  List<LanguageData> get deletedLanguages {
+    if (_cachedDeletedLanguages != null) return _cachedDeletedLanguages!;
+    if (languages.isEmpty) return _cachedDeletedLanguages = const <LanguageData>[];
+    return _cachedDeletedLanguages = languages.where((l) => l.isDeleted).toList();
+  }
 
-  List<AwardData> get deletedAwards =>
-      awards.where((a) => a.isDeleted).toList();
+  List<AwardData> get deletedAwards {
+    if (_cachedDeletedAwards != null) return _cachedDeletedAwards!;
+    if (awards.isEmpty) return _cachedDeletedAwards = const <AwardData>[];
+    return _cachedDeletedAwards = awards.where((a) => a.isDeleted).toList();
+  }
 
   /// Deprecated: using generated fromJson
   @Deprecated('Use the generated fromJson instead')
@@ -1334,6 +1522,17 @@ class ProfessionalData {
       skills: skills ?? this.skills,
       languages: languages ?? this.languages,
       awards: awards ?? this.awards,
+      // 强制重置缓存 —— 修改字段后缓存立即失效
+      $cachedActiveEducation: null,
+      $cachedActiveEmployment: null,
+      $cachedActiveSkills: null,
+      $cachedActiveLanguages: null,
+      $cachedActiveAwards: null,
+      $cachedDeletedEducation: null,
+      $cachedDeletedEmployment: null,
+      $cachedDeletedSkills: null,
+      $cachedDeletedLanguages: null,
+      $cachedDeletedAwards: null,
     );
   }
 }
