@@ -26,7 +26,7 @@ final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(() {
 class AccountsVersion extends _$AccountsVersion {
   @override
   int build() {
-    ref.watch(authNotifierProvider);
+    ref.watch(authNotifierProvider.select((a) => a.value));
     return ref.read(authNotifierProvider.notifier).accountsVersion;
   }
 }

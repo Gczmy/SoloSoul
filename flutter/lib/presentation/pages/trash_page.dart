@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_declarations
-
 import 'package:flutter/material.dart';
 
 // ignore_for_file: use_build_context_synchronously
@@ -676,12 +674,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           FilledButton(
             onPressed: () async {
               final snackBarContext = context;
-              final overlaySnackBar = showOverlaySnackBar;
               Navigator.pop(snackBarContext);
               await ref.read(profileNotifierProvider.notifier).emptyAllTrash();
               if (mounted) {
-                
-                overlaySnackBar(
+                showOverlaySnackBar(
                   snackBarContext,
                   content: 'All $itemCount items permanently deleted',
                   type: SnackBarType.error,

@@ -654,7 +654,7 @@ class ObjectParentDropdown extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allObjects = ref.watch(unifiedObjectProvider).objects;
+    final allObjects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
     final validParentIds = <String?>[null];
     for (final o in allObjects) {
       if (!o.isDeleted && o.id != objectId && o.typeId == 'page') {

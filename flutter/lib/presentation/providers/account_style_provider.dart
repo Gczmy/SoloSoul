@@ -210,6 +210,10 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
 
   @override
   Future<AccountStyle> build() async {
+    ref.onDispose(() {
+      _autoSaveTimer?.cancel();
+    });
+
     final accId = _accountId;
     if (accId == null) return const AccountStyle();
 

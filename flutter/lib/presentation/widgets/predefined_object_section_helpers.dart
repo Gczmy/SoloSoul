@@ -3,7 +3,6 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
@@ -76,10 +75,4 @@ Future<void> Function(UnifiedObject item, String text) buildOnCopyAll(
   };
 }
 
-/// Wraps a [PredefinedObjectSection] with the standard fade-in + slide animation.
-Widget animatedSection(Widget child, {required int delayMs}) {
-  return child
-      .animate()
-      .fadeIn(delay: delayMs.ms, duration: 400.ms)
-      .slideX(begin: 0.05, end: 0);
-}
+

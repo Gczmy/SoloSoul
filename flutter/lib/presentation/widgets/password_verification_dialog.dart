@@ -388,7 +388,9 @@ class _BiometricPasswordDialogContentState
     setState(() {});
   }
 
-  void _onFocusChanged() {}
+  void _onFocusChanged() {
+    // Intentional no-op: focus changes are handled by the widget tree.
+  }
 
   Future<void> _tryBiometric() async {
     if (_isBiometricVerified || _isVerifying) return;

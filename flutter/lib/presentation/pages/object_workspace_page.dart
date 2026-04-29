@@ -105,7 +105,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
                           object: child,
                           showDragHandle: true,
                           dragIndex: index,
-                          onTap: () {},
+                          onTap: null,
                         );
                       },
                     )

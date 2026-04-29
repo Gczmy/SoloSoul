@@ -346,7 +346,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authState = ref.watch(authNotifierProvider).value;
+    final authState = ref.watch(authNotifierProvider.select((a) => a.value));
 
     return SingleChildScrollView(
       padding: AppTheme.kPagePadding,

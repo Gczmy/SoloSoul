@@ -387,7 +387,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 : 'Flutter Device',
             lastUsed: DateTime.now(),
           ).toJson(),
-        ).timeout(const Duration(seconds: 5), onTimeout: () {});
+        ).timeout(const Duration(seconds: 5), onTimeout: () {
+          DebugLogger.instance.logWarning('LOGIN', 'updateAccountMetadata timed out');
+        });
         // Reload selected account info so Settings page shows updated data
         await authNotifier.selectAccount(accountId);
       }

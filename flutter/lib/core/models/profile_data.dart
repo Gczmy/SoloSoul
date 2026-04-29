@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
-import 'package:solosoul_flutter/core/models/field_history_models.dart';
 
 part 'profile_data.g.dart';
 
 // Re-export for backward compatibility
-typedef ProfileFieldHistories = FormHistories;
-
 /// Maximum character limits for form fields
 const int kMaxFieldLength = 32;
 const int kMaxNameLength = 16;

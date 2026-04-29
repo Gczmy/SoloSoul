@@ -278,7 +278,8 @@ class ProfileProfessional extends _$ProfileProfessional {
 
 int _degreeSortOrder(EducationData e, List<String> degreeOrder) {
   final degree = e.degree ?? '';
-  if (e.degreeCustom != null && e.degreeCustom!.isNotEmpty && !degreeOrder.contains(degree)) {
+  final degreeCustom = e.degreeCustom;
+  if (degreeCustom != null && degreeCustom.isNotEmpty && !degreeOrder.contains(degree)) {
     return -1;
   }
   final index = degreeOrder.indexOf(degree);

@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
+import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 void main() async {
@@ -100,6 +101,8 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
         _checkAutoLock();
         break;
       case AppLifecycleState.detached:
+        ClipboardMonitorService.instance.dispose();
+        break;
       case AppLifecycleState.hidden:
         break;
     }
