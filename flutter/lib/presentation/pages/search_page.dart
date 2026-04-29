@@ -126,44 +126,83 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       groupedResults[result.sectionDisplayName]!.add(result);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: groupedResults.length,
-      itemBuilder: (context, index) {
-        final sectionName = groupedResults.keys.elementAt(index);
-        final sectionResults = groupedResults[sectionName]!;
+    // 按 section 名称排序，确保 UI 顺序稳定
+    final sortedKeys = groupedResults.keys.toList()..sort();
+    final headerStyle = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: FontWeight.bold,
+    );
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                sectionName,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            ...sectionResults.map(
-              (result) => SearchResultTile(
-                result: result,
-                onReveal: () {
-                  ref
-                      .read(searchProvider.notifier)
-                      .revealFieldWithContext(
-                        context,
-                        ref,
-                        result.sensitivityLevel,
-                        result.fieldPath,
-                      );
+    return CustomScrollView(
+      slivers: [
+        for (final sectionName in sortedKeys) ...[
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SearchHeaderDelegate(sectionName, style: headerStyle),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final result = groupedResults[sectionName]![index];
+                  return SearchResultTile(
+                    result: result,
+                    onReveal: () {
+                      ref
+                          .read(searchProvider.notifier)
+                          .revealFieldWithContext(
+                            context,
+                            ref,
+                            result.sensitivityLevel,
+                            result.fieldPath,
+                          );
+                    },
+                  );
                 },
+                childCount: groupedResults[sectionName]!.length,
               ),
             ),
-            const SizedBox(height: 8),
-          ],
-        );
-      },
+          ),
+        ],
+      ],
     );
   }
+}
+
+// =============================================================================
+// Sticky section header for search results
+// =============================================================================
+
+class _SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String title;
+  final TextStyle? style;
+
+  _SearchHeaderDelegate(this.title, {this.style});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: style ??
+            theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 40;
+
+  @override
+  double get minExtent => 40;
+
+  @override
+  bool shouldRebuild(covariant _SearchHeaderDelegate oldDelegate) =>
+      oldDelegate.title != title || oldDelegate.style != style;
 }
