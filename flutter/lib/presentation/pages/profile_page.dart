@@ -10,64 +10,16 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show SensitivityLevel, SensitivityDisplayMode, effectiveSensitivityProvider;
-import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+    show SensitivityLevel, SensitivityDisplayMode;
 import 'package:solosoul_flutter/core/models/profile_data.dart'
     show kMaxFieldLength;
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
-import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show
-        authNotifierProvider,
-        sensitivePageAccessProvider,
-        isSensitiveAccessGrantedProvider;
+
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
-
-/// Standalone helper to verify password for restricted fields.
-/// Returns true if field is not restricted OR if verification succeeded.
-Future<bool> verifyPasswordForRestrictedField({
-  required BuildContext context,
-  required WidgetRef ref,
-  required String fieldId,
-  bool Function()? isMounted,
-}) async {
-  final level = ref.watch(effectiveSensitivityProvider(fieldId));
-
-  // If not restricted, allow without verification
-  if (level != SensitivityLevel.critical) {
-    return true;
-  }
-
-  // Check if user was verified within the valid duration (password cache)
-  if (ref.read(isSensitiveAccessGrantedProvider)) {
-    return true;
-  }
-
-  // Show password dialog
-  final authNotifier = ref.read(authNotifierProvider.notifier);
-  final selectedAccount = authNotifier.selectedAccount;
-  final password = await showPasswordVerificationDialog(
-    context: context,
-    ref: ref,
-    passwordHint: selectedAccount?.passwordHint,
-    onVerify: authNotifier.verifyPasswordForSensitiveData,
-  );
-  if (password == null) {
-    return false;
-  }
-
-  // Check mounted before accessing state after await
-  if (isMounted != null && !isMounted()) {
-    return false;
-  }
-
-  // Mark as verified in shared sensitive page access
-  ref.read(sensitivePageAccessProvider.notifier).markVerified();
-  return true;
-}
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});

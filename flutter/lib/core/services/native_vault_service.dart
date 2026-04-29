@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/export.dart';
 
+import 'debug_logger.dart';
 import 'fallback_secure_storage.dart';
 import 'native_crypto_service.dart';
 
@@ -641,7 +642,9 @@ class NativeVaultService {
             if (data['account_id'] == accountId) {
               file.deleteSync();
             }
-          } on Exception catch (_) {}
+          } on Exception catch (e, st) {
+            DebugLogger.instance.logError('NATIVE_VAULT', 'Failed to delete profile file: $e\n$st');
+          }
         }
       }
 
@@ -832,7 +835,9 @@ class NativeVaultService {
             'created_at': data['created_at'],
             'updated_at': data['updated_at'],
           });
-        } on Exception catch (_) {}
+        } on Exception catch (e, st) {
+          DebugLogger.instance.logError('NATIVE_VAULT', 'Failed to read profile file: $e\n$st');
+        }
       }
       return {'success': true, 'data': profiles};
     } on Exception catch (e) {

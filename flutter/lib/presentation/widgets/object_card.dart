@@ -33,6 +33,9 @@ class ObjectCard extends ConsumerStatefulWidget {
   final UnifiedObject object;
   final List<UnifiedObject> items;
 
+  /// Static dummy controller to avoid creating a new TextEditingController on every build.
+  static final _dummyController = TextEditingController();
+
   const ObjectCard({
     super.key,
     required this.object,
@@ -687,7 +690,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           SizedBox(
             width: 64,
             child: ValueListenableBuilder<TextEditingValue>(
-              valueListenable: controller ?? TextEditingController(),
+              valueListenable: controller ?? ObjectCard._dummyController,
               builder: (context, val, child) {
                 final len = val.text.length;
                 const max = kMaxPropertyLength;

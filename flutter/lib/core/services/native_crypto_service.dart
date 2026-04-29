@@ -8,6 +8,8 @@ import 'package:encrypt/encrypt.dart' as enc;
 import 'package:ffi/ffi.dart';
 import 'package:pointycastle/export.dart';
 
+import 'debug_logger.dart';
+
 /// FFI bindings to Rust Argon2id implementation (iOS/macOS only)
 /// Uses pure Dart implementation on Android/Windows
 class NativeCryptoService {
@@ -268,7 +270,8 @@ class NativeCryptoService {
       final derivedKey = pbkdf2.process(passwordBytes);
 
       return Uint8List.fromList(derivedKey);
-    } on Exception catch (_) {
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('NATIVE_CRYPTO', 'PBKDF2 derivation failed: $e\n$st');
       return null;
     }
   }
@@ -360,7 +363,8 @@ class NativeCryptoService {
 
       // encrypt package already includes the GCM tag in the ciphertext
       return Uint8List.fromList(encrypted.bytes);
-    } on Exception catch (_) {
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('NATIVE_CRYPTO', 'PBKDF2 derivation failed: $e\n$st');
       return null;
     }
   }
@@ -456,7 +460,8 @@ class NativeCryptoService {
       final decrypted = encrypter.decryptBytes(encryptedObj, iv: ivObj);
 
       return Uint8List.fromList(decrypted);
-    } on Exception catch (_) {
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('NATIVE_CRYPTO', 'PBKDF2 derivation failed: $e\n$st');
       return null;
     }
   }

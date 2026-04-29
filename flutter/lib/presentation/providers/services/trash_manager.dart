@@ -252,6 +252,8 @@ class TrashManager {
         languages: current.professional!.languages
             .where((l) => !l.isDeleted)
             .toList(),
+        awards:
+            current.professional!.awards.where((a) => !a.isDeleted).toList(),
       ),
       identity: current.identity?.copyWith(
         contact: current.identity!.contact?.copyWith(

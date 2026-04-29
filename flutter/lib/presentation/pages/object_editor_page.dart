@@ -439,7 +439,8 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                 );
                                 if (confirmed == true) {
                                   setState(() {
-                                    _propertyFields.removeAt(index);
+                                    final removed = _propertyFields.removeAt(index);
+                                    removed.controller.dispose();
                                   });
                                 }
                               },

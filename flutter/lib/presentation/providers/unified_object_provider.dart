@@ -565,8 +565,8 @@ List<UnifiedObject> children(Ref ref, String parentId) {
   final parent = map[parentId];
   if (parent == null) return [];
   return parent.childrenIds
-      .where((id) => map.containsKey(id))
-      .map((id) => map[id]!)
+      .map((id) => map[id])
+      .whereType<UnifiedObject>()
       .where((o) => !o.isDeleted)
       .toList();
 }
@@ -629,8 +629,8 @@ List<UnifiedObject> defaultPageItems(Ref ref, String sectionId) {
   final section = map[sectionId];
   if (section == null) return [];
   return section.childrenIds
-      .where((id) => map.containsKey(id))
-      .map((id) => map[id]!)
+      .map((id) => map[id])
+      .whereType<UnifiedObject>()
       .where((o) => !o.isDeleted)
       .toList();
 }
@@ -675,8 +675,8 @@ final unifiedObjectCacheProvider = Provider<UnifiedObjectCache>((ref) {
     objectById[obj.id] = obj;
 
     final childList = obj.childrenIds
-        .where((id) => map.containsKey(id))
-        .map((id) => map[id]!)
+        .map((id) => map[id])
+        .whereType<UnifiedObject>()
         .where((o) => !o.isDeleted)
         .toList();
 
@@ -700,11 +700,3 @@ final unifiedObjectCacheProvider = Provider<UnifiedObjectCache>((ref) {
 // Extensions
 // =============================================================================
 
-final _objectMapCache = Expando<Map<String, UnifiedObject>>();
-
-extension UnifiedObjectDataExtension on UnifiedObjectData {
-  /// Lazily-built lookup map by object ID. Cached per instance via Expando
-  /// to avoid rebuilding the map on every access.
-  Map<String, UnifiedObject> get objectMap =>
-      _objectMapCache[this] ??= {for (final o in objects) o.id: o};
-}
