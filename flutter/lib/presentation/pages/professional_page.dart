@@ -1,24 +1,16 @@
-import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show AppTheme, showOverlaySnackBar, SnackBarType;
+    show AppTheme;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
-import 'package:solosoul_flutter/core/services/operation_notification.dart';
-import 'package:solosoul_flutter/core/services/operation_logger.dart';
-import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
-    show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
-import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
-    show unifiedObjectProvider;
-import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
+import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
 
 class ProfessionalPage extends ConsumerStatefulWidget {
   const ProfessionalPage({super.key});
@@ -79,37 +71,17 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 fieldPrefix: 'education',
                 excludeFields: const {'institution'},
               ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.professional,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete education',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.professional,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'education',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
@@ -132,37 +104,17 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 fieldPrefix: 'employment',
                 excludeFields: const {'company'},
               ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.professional,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete employment',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.professional,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'employment',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
@@ -185,37 +137,17 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 fieldPrefix: 'award',
                 excludeFields: const {'title'},
               ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.professional,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete award',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.professional,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'award',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)
@@ -238,37 +170,17 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 fieldPrefix: 'skill',
                 excludeFields: const {'name'},
               ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.professional,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete skill',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.professional,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'skill',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 400.ms, duration: 400.ms)
@@ -291,37 +203,17 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 fieldPrefix: 'language',
                 excludeFields: const {'name'},
               ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.professional,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete language',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.professional,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'language',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 500.ms, duration: 400.ms)

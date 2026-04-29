@@ -1,14 +1,12 @@
-import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart'
     show DefaultSectionIds;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show AppTheme, SnackBarType, showOverlaySnackBar;
+    show AppTheme;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
@@ -16,14 +14,10 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/models/profile_data.dart'
     show kMaxFieldLength;
-import 'package:solosoul_flutter/core/services/operation_notification.dart';
-import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
-import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
-import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
-    show LogSection, LogAction;
+import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show
         authNotifierProvider,
@@ -31,8 +25,6 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
         isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
-import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
-    show unifiedObjectProvider;
 
 /// Standalone helper to verify password for restricted fields.
 /// Returns true if field is not restricted OR if verification succeeded.
@@ -125,41 +117,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     fieldPrefix: 'identity',
                     excludeFields: const {'fullName'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.identity,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete identity',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.identity,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'identity',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(duration: 400.ms)
@@ -288,41 +256,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     fieldPrefix: 'contact',
                     excludeFields: const {'title'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.contactInformation,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete contact',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.contactInformation,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'contact',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
@@ -353,41 +297,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     fieldPrefix: 'idCard',
                     excludeFields: const {'title'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.idCard,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete ID card',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.idCard,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'ID card',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
@@ -416,41 +336,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     fieldPrefix: 'address',
                     excludeFields: const {'title'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.address,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete address',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.address,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'address',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)

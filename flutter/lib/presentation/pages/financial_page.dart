@@ -1,7 +1,4 @@
-import 'dart:async' show unawaited;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -9,15 +6,10 @@ import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/core/services/operation_notification.dart';
-import 'package:solosoul_flutter/core/services/operation_logger.dart';
-import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
-    show unifiedObjectProvider;
-import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
+import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
   const FinancialPage({super.key});
@@ -68,41 +60,17 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     fieldPrefix: 'bankAccount',
                     excludeFields: const {'title'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.financial,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete bank account',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.financial,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'bank account',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(duration: 400.ms)
@@ -127,41 +95,17 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     fieldPrefix: 'card',
                     excludeFields: const {'title'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.financial,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete card',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.financial,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'card',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
@@ -186,41 +130,17 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     fieldPrefix: 'taxId',
                     excludeFields: const {'title'},
                   ),
-              onDidDelete: (item, index) {
-                OperationNotification.show(
-                  context,
-                  message: OperationLogger.createNotification(
-                    section: LogSection.financial,
-                    action: LogAction.delete,
-                    itemName: item.name,
-                    isPrivacyModeActive: isPrivacyMode,
-                  ),
-                  duration: AppTheme.kNotificationDuration,
-                  onUndo: () async {
-                    await ref
-                        .read(unifiedObjectProvider.notifier)
-                        .restoreDefaultItem(item.id);
-                  },
-                );
-              },
-              onDeleteFailed: (item, index) {
-                showOverlaySnackBar(
-                  context,
-                  content: 'Failed to delete tax ID',
-                  type: SnackBarType.error,
-                );
-              },
-              onCopyAll: (item, text) async {
-                unawaited(Clipboard.setData(ClipboardData(text: text)));
-                unawaited(
-                  ClipboardMonitorService.instance.notifySensitiveCopied(),
-                );
-                showOverlaySnackBar(
-                  context,
-                  content: 'Copied to clipboard',
-                  type: SnackBarType.success,
-                );
-              },
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.financial,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'tax ID',
+              ),
+              onCopyAll: buildOnCopyAll(context),
             )
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
