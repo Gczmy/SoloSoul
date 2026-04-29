@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
@@ -21,7 +19,7 @@ void main() {
 
     // Mock path_provider
     const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
-    pathProviderChannel.setMockMethodCallHandler((call) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(pathProviderChannel, (call) async {
       if (call.method == 'getApplicationSupportDirectory') {
         return tempDir.path;
       }
@@ -32,7 +30,7 @@ void main() {
     const secureStorageChannel = MethodChannel(
       'plugins.it_nomads.com/flutter_secure_storage',
     );
-    secureStorageChannel.setMockMethodCallHandler((call) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(secureStorageChannel, (call) async {
       final args = call.arguments as Map<dynamic, dynamic>?;
       final key = args?['key'] as String?;
       switch (call.method) {
@@ -59,11 +57,11 @@ void main() {
   tearDownAll(() async {
     await tempDir.delete(recursive: true);
     const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
-    pathProviderChannel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(pathProviderChannel, null);
     const secureStorageChannel = MethodChannel(
       'plugins.it_nomads.com/flutter_secure_storage',
     );
-    secureStorageChannel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(secureStorageChannel, null);
   });
   group('BiometricCredentialService', () {
     const testAccountId = 'test_account_123';

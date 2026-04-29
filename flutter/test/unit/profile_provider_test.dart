@@ -4,7 +4,7 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 void main() {
   group('ProfileData', () {
     test('creates with null sections', () {
-      final profile = ProfileData();
+      const profile = ProfileData();
 
       expect(profile.identity, isNull);
       expect(profile.travel, isNull);

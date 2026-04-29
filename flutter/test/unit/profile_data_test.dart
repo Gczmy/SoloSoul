@@ -606,7 +606,7 @@ void main() {
     });
 
     test('handles null sections gracefully', () {
-      final profile = ProfileData();
+      const profile = ProfileData();
 
       final json = jsonEncode(profile.toJson());
       final restored = ProfileData.fromJson(jsonDecode(json) as Map<String, dynamic>);
@@ -665,7 +665,7 @@ void main() {
 
     test('null sections remain null after roundtrip', () {
       // When sections are null (not provided), they stay null after serialization
-      final profile = ProfileData(); // All sections null
+      const profile = ProfileData(); // All sections null
 
       final json = jsonEncode(profile.toJson());
       final restored = ProfileData.fromJson(jsonDecode(json) as Map<String, dynamic>);
