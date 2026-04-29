@@ -23,6 +23,76 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
   String _searchQuery = '';
   bool _dialogShown = false;
 
+  // Cached field computations to avoid re-sorting/filtering on every rebuild
+  List<FieldSensitivity> _cachedEffectiveFields = const [];
+  int _lastRegistryHash = 0;
+  int _lastAccountStyleHash = 0;
+
+  Map<SensitivityLevel, List<FieldSensitivity>> _cachedSections = const {};
+  String _cachedSearchQuery = '';
+
+  List<FieldSensitivity> _getEffectiveFields(
+    Map<String, FieldSensitivity> registry,
+    Map<String, SensitivityLevel> accountStyle,
+  ) {
+    final registryHash = registry.hashCode;
+    final styleHash = accountStyle.hashCode;
+    if (_cachedEffectiveFields.isNotEmpty &&
+        _lastRegistryHash == registryHash &&
+        _lastAccountStyleHash == styleHash) {
+      return _cachedEffectiveFields;
+    }
+
+    final allFields = registry.values.toList();
+    allFields.sort((a, b) {
+      final sec = a.fieldSection.compareTo(b.fieldSection);
+      return sec != 0 ? sec : a.fieldName.compareTo(b.fieldName);
+    });
+
+    _cachedEffectiveFields = allFields.map((field) {
+      final overrideLevel = accountStyle[field.fieldId];
+      return overrideLevel != null
+          ? field.copyWith(level: overrideLevel)
+          : field;
+    }).toList();
+    _lastRegistryHash = registryHash;
+    _lastAccountStyleHash = styleHash;
+    _cachedSections = const {}; // invalidate filtered cache
+    return _cachedEffectiveFields;
+  }
+
+  Map<SensitivityLevel, List<FieldSensitivity>> _getFilteredSections(
+    List<FieldSensitivity> effectiveFields,
+    String searchQuery,
+  ) {
+    if (_cachedSections.isNotEmpty && _cachedSearchQuery == searchQuery) {
+      return _cachedSections;
+    }
+
+    List<FieldSensitivity> filter(List<FieldSensitivity> fields) {
+      if (searchQuery.isEmpty) return fields;
+      final query = searchQuery.toLowerCase();
+      return fields.where((f) {
+        return f.fieldName.toLowerCase().contains(query) ||
+            FieldRegistry.getSectionDisplayName(f.fieldSection).toLowerCase().contains(query);
+      }).toList();
+    }
+
+    final public = filter(effectiveFields.where((f) => f.level == SensitivityLevel.public).toList());
+    final internal = filter(effectiveFields.where((f) => f.level == SensitivityLevel.internal).toList());
+    final sensitive = filter(effectiveFields.where((f) => f.level == SensitivityLevel.sensitive).toList());
+    final critical = filter(effectiveFields.where((f) => f.level == SensitivityLevel.critical).toList());
+
+    _cachedSearchQuery = searchQuery;
+    _cachedSections = {
+      SensitivityLevel.public: public,
+      SensitivityLevel.internal: internal,
+      SensitivityLevel.sensitive: sensitive,
+      SensitivityLevel.critical: critical,
+    };
+    return _cachedSections;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -90,38 +160,12 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     final accountStyle = ref.watch(accountStyleProvider).value?.fieldSettings ?? {};
     final notifier = ref.read(accountStyleProvider.notifier);
 
-    // Build effective field list by combining formFieldRegistryProvider with account style overrides
-    List<FieldSensitivity> buildEffectiveFields() {
-      // Get all registered fields from the reactive provider
-      final allFields = registry.values.toSet().toList();
-      allFields.sort((a, b) {
-        final sec = a.fieldSection.compareTo(b.fieldSection);
-        return sec != 0 ? sec : a.fieldName.compareTo(b.fieldName);
-      });
-
-      return allFields.map((field) {
-        final overrideLevel = accountStyle[field.fieldId];
-        return overrideLevel != null
-            ? field.copyWith(level: overrideLevel)
-            : field;
-      }).toList();
-    }
-
-    // Filter fields based on search query
-    List<FieldSensitivity> filterFields(List<FieldSensitivity> fields) {
-      if (_searchQuery.isEmpty) return fields;
-      final query = _searchQuery.toLowerCase();
-      return fields.where((f) {
-        return f.fieldName.toLowerCase().contains(query) ||
-            FieldRegistry.getSectionDisplayName(f.fieldSection).toLowerCase().contains(query);
-      }).toList();
-    }
-
-    final effectiveFields = buildEffectiveFields();
-    final publicFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.public).toList());
-    final internalFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.internal).toList());
-    final sensitiveFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.sensitive).toList());
-    final criticalFields = filterFields(effectiveFields.where((f) => f.level == SensitivityLevel.critical).toList());
+    final effectiveFields = _getEffectiveFields(registry, accountStyle);
+    final sections = _getFilteredSections(effectiveFields, _searchQuery);
+    final publicFields = sections[SensitivityLevel.public]!;
+    final internalFields = sections[SensitivityLevel.internal]!;
+    final sensitiveFields = sections[SensitivityLevel.sensitive]!;
+    final criticalFields = sections[SensitivityLevel.critical]!;
 
     final hasResults = publicFields.isNotEmpty || internalFields.isNotEmpty || sensitiveFields.isNotEmpty || criticalFields.isNotEmpty;
     final totalFields = effectiveFields.length;

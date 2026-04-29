@@ -17,6 +17,8 @@ import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show trashItemSensitivityMapProvider;
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
@@ -60,8 +62,51 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   // Pre-computed sensitivity levels by item type
   Map<String, SensitivityLevel> _sensitivityByItemType = {};
 
+  // Cached filter results to avoid re-computing on every rebuild
+  List<DeletedItemInfo> _cachedFilteredItems = const [];
+  List<UnifiedObject> _cachedFilteredUnifiedObjects = const [];
+  String _cachedTrashSearchQuery = '';
+  List<DeletedItemInfo> _cachedDeletedItemsSource = const [];
+  List<UnifiedObject> _cachedDeletedUnifiedObjectsSource = const [];
+
   /// Whether we have already shown the auto-prompt dialog on first build.
   bool _hasPromptedForVerification = false;
+
+  (List<DeletedItemInfo>, List<UnifiedObject>) _getFilteredTrash(
+    List<DeletedItemInfo> deletedItems,
+    List<UnifiedObject> deletedUnifiedObjects,
+    String query,
+  ) {
+    if (_cachedDeletedItemsSource == deletedItems &&
+        _cachedDeletedUnifiedObjectsSource == deletedUnifiedObjects &&
+        _cachedTrashSearchQuery == query &&
+        _cachedFilteredItems.isNotEmpty) {
+      return (_cachedFilteredItems, _cachedFilteredUnifiedObjects);
+    }
+
+    final lowerQuery = query.toLowerCase();
+    final filteredItems = query.isEmpty
+        ? deletedItems
+        : deletedItems.where((item) {
+            return item.itemLabel.toLowerCase().contains(lowerQuery) ||
+                item.section.toLowerCase().contains(lowerQuery) ||
+                item.itemType.toLowerCase().contains(lowerQuery);
+          }).toList();
+
+    final filteredUnifiedObjects = query.isEmpty
+        ? deletedUnifiedObjects
+        : deletedUnifiedObjects.where((obj) {
+            return obj.name.toLowerCase().contains(lowerQuery) ||
+                (obj.typeId?.toLowerCase().contains(lowerQuery) ?? false);
+          }).toList();
+
+    _cachedDeletedItemsSource = deletedItems;
+    _cachedDeletedUnifiedObjectsSource = deletedUnifiedObjects;
+    _cachedTrashSearchQuery = query;
+    _cachedFilteredItems = filteredItems;
+    _cachedFilteredUnifiedObjects = filteredUnifiedObjects;
+    return (filteredItems, filteredUnifiedObjects);
+  }
 
   @override
   void initState() {
@@ -248,33 +293,16 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     final deletedItems = ProfileStorageService.instance.getDeletedItems(profile);
     final deletedUnifiedObjects = ref.watch(deletedObjectsProvider);
 
-    // Pre-compute sensitivity levels by item type (once, not per-item)
-    final sensitivityByItemType = <String, SensitivityLevel>{};
-    for (final type in DeletedItemInfo.itemTypes) {
-      final fieldId = _getFieldIdForItem(type);
-      if (fieldId != null) {
-        sensitivityByItemType[type] =
-            ref.watch(effectiveSensitivityProvider(fieldId));
-      }
-    }
+    // Aggregate sensitivity map via single provider watch (replaces 12 individual watches)
+    final sensitivityByItemType = ref.watch(trashItemSensitivityMapProvider);
     _sensitivityByItemType = sensitivityByItemType;
 
-    // Filter items based on search query
-    final query = _searchQuery.toLowerCase();
-    final filteredItems = _searchQuery.isEmpty
-        ? deletedItems
-        : deletedItems.where((item) {
-            return item.itemLabel.toLowerCase().contains(query) ||
-                item.section.toLowerCase().contains(query) ||
-                item.itemType.toLowerCase().contains(query);
-          }).toList();
-
-    final filteredUnifiedObjects = _searchQuery.isEmpty
-        ? deletedUnifiedObjects
-        : deletedUnifiedObjects.where((obj) {
-            return obj.name.toLowerCase().contains(query) ||
-                (obj.typeId?.toLowerCase().contains(query) ?? false);
-          }).toList();
+    // Filter items based on search query (cached on State to avoid rebuild re-computation)
+    final (filteredItems, filteredUnifiedObjects) = _getFilteredTrash(
+      deletedItems,
+      deletedUnifiedObjects,
+      _searchQuery,
+    );
 
     final totalCount = filteredItems.length + filteredUnifiedObjects.length;
 
@@ -976,10 +1004,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  String? _getFieldIdForItem(String itemType) {
-    // Get sensitivity field ID from meta configuration
-    return DeletedItemInfo.metaFor(itemType)?.sensitivityFieldId;
-  }
+
 
   void _showHistoryForItem(BuildContext context, DeletedItemInfo item) {
     final fieldIdPrefix = item.meta?.fieldIdPrefix;

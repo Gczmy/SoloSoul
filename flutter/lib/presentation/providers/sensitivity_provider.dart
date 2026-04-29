@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/models/profile_data.dart' show DeletedItemInfo;
 
 // Re-export SensitivityLevel from sensitivity_enums for backward compatibility
 export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
@@ -84,5 +85,20 @@ FieldSensitivity? fieldMetadata(Ref ref, String fieldId) {
   return ref.watch(
     formFieldRegistryProvider.select((s) => s[fieldId]),
   );
+}
+
+/// Aggregated sensitivity map for all trash item types.
+/// Replaces per-item-type ref.watch loops in trash_page.dart with a single provider watch.
+@riverpod
+Map<String, SensitivityLevel> trashItemSensitivityMap(Ref ref) {
+  final result = <String, SensitivityLevel>{};
+  for (final type in DeletedItemInfo.itemTypes) {
+    final meta = DeletedItemInfo.metaFor(type);
+    final fieldId = meta?.sensitivityFieldId;
+    if (fieldId != null) {
+      result[type] = ref.watch(effectiveSensitivityProvider(fieldId));
+    }
+  }
+  return result;
 }
 

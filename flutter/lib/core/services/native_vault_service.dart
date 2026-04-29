@@ -28,6 +28,7 @@ class NativeVaultService {
   Directory? _profilesDir;
   bool _isUnlocked = false;
   String? _currentAccountId;
+  Future<void>? _initFuture;
 
   /// Write debug log using dart:developer (debug build only)
   void _log(String msg) {
@@ -78,13 +79,13 @@ class NativeVaultService {
 
     if (_isAndroid) {
       // Android: Initialize fallback storage asynchronously
-      _initializeAndroid();
+      _initFuture = _initializeAndroid();
       return;
     }
 
     if (_isWindows) {
       // Windows: Initialize fallback storage asynchronously
-      _initializeWindows();
+      _initFuture = _initializeWindows();
       return;
     }
 
@@ -137,6 +138,14 @@ class NativeVaultService {
       return result == 0;
     } finally {
       calloc.free(pathPtr);
+    }
+  }
+
+  /// Ensure async initialization is complete before using Android/Windows fallback.
+  Future<void> _ensureInitialized() async {
+    if (_initFuture != null) {
+      await _initFuture;
+      _initFuture = null;
     }
   }
 
@@ -477,6 +486,7 @@ class NativeVaultService {
     String? verifyHash,
   })>
       createAccountAsync({required String name, required String password}) async {
+    await _ensureInitialized();
     if (!_isUnlocked) {
       // Generate account ID
       final accountId = 'acc_${DateTime.now().millisecondsSinceEpoch}';
@@ -583,6 +593,7 @@ class NativeVaultService {
     required String accountId,
     required String password,
   }) async {
+    await _ensureInitialized();
     // Retrieve stored salt and verify_hash for this account
     final saltStr =
         await _fallbackSecureStorage!.read(key: '${accountId}_salt');
@@ -642,6 +653,7 @@ class NativeVaultService {
     required String accountId,
     required Uint8List sessionKey,
   }) async {
+    await _ensureInitialized();
     // Retrieve stored salt and verify_hash for this account
     final saltStr =
         await _fallbackSecureStorage!.read(key: '${accountId}_salt');
@@ -679,6 +691,7 @@ class NativeVaultService {
 
   /// Async version of deleteAccount for Android
   Future<bool> deleteAccountAsync({required String accountId}) async {
+    await _ensureInitialized();
     try {
       // Delete account files
       if (_profilesDir != null) {
@@ -726,6 +739,7 @@ class NativeVaultService {
 
   /// Async version of listAccounts for Android
   Future<List<Map<String, dynamic>>?> listAccountsAsync() async {
+    await _ensureInitialized();
     try {
       final accounts = <Map<String, dynamic>>[];
 
@@ -763,6 +777,7 @@ class NativeVaultService {
     String? verifyHash,
     int? cryptoVersion,
   })?> getAccountConfigAsync({required String accountId}) async {
+    await _ensureInitialized();
     try {
       final name =
           await _fallbackSecureStorage!.read(key: '${accountId}_name');
@@ -798,6 +813,9 @@ class NativeVaultService {
     String action,
     Map<String, dynamic>? payload,
   ) {
+    if (_fallbackSecureStorage == null || _profilesDir == null) {
+      return {'success': false, 'error': 'Vault not initialized'};
+    }
     switch (action) {
       case 'ping':
         return {'success': true, 'data': {'pong': true}};

@@ -14,7 +14,7 @@ import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
 /// - Loads the schema from [ObjectTypeRegistry] (fixed properties)
 /// - Only allows users to add/delete/edit item *values*
 /// - Does not expose any UI for adding/removing/modifying property keys
-class PredefinedObjectSection extends ConsumerWidget {
+class PredefinedObjectSection extends ConsumerStatefulWidget {
   final String sectionId;
   final String typeId;
   final String title;
@@ -63,11 +63,38 @@ class PredefinedObjectSection extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PredefinedObjectSection> createState() => _PredefinedObjectSectionState();
+}
+
+class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSection> {
+  // Cache field definitions since they only depend on typeId (immutable widget property)
+  List<FormFieldDef>? _cachedFieldDefs;
+  ObjectTypeDefinition? _cachedTypeDef;
+
+  List<FormFieldDef> _getFieldDefs(ObjectTypeDefinition typeDef) {
+    if (_cachedFieldDefs != null && _cachedTypeDef == typeDef) {
+      return _cachedFieldDefs!;
+    }
+    final prefix = _fieldPrefix(widget.typeId);
+    _cachedFieldDefs = typeDef.properties.map((prop) {
+      final fieldId = '$prefix.${prop.id}';
+      final sensitivity = _lookupSensitivity(fieldId);
+      return FormFieldDef(
+        fieldId: prop.id,
+        label: prop.name,
+        sensitivity: sensitivity,
+      );
+    }).toList();
+    _cachedTypeDef = typeDef;
+    return _cachedFieldDefs!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Query from unified object state directly (avoid generated provider dependency)
     final allObjects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
     final objectMap = {for (final o in allObjects) o.id: o};
-    final section = objectMap[sectionId];
+    final section = objectMap[widget.sectionId];
     final items = section?.childrenIds
             .where((id) => objectMap.containsKey(id))
             .map((id) => objectMap[id]!)
@@ -76,28 +103,19 @@ class PredefinedObjectSection extends ConsumerWidget {
         [];
 
     // Load predefined schema from registry
-    final typeDef = ObjectTypeRegistry.getType(typeId);
+    final typeDef = ObjectTypeRegistry.getType(widget.typeId);
     if (typeDef == null) {
-      return _buildError('Unknown type: $typeId');
+      return _buildError('Unknown type: ${widget.typeId}');
     }
 
-    // Build field definitions from schema + FieldRegistry sensitivity
-    final fieldDefs = typeDef.properties.map((prop) {
-      // FieldRegistry uses lowercase section prefix (e.g. 'passport.title')
-      final fieldId = '${_fieldPrefix(typeId)}.${prop.id}';
-      final sensitivity = _lookupSensitivity(fieldId);
-      return FormFieldDef(
-        fieldId: prop.id, // Use short key for controllers
-        label: prop.name,
-        sensitivity: sensitivity,
-      );
-    }).toList();
+    // Build field definitions from schema + FieldRegistry sensitivity (cached)
+    final fieldDefs = _getFieldDefs(typeDef);
 
     return UnifiedFormSection<UnifiedObject>(
-      title: title,
-      icon: icon,
+      title: widget.title,
+      icon: widget.icon,
       items: items,
-      maxVisibleItems: maxVisibleItems,
+      maxVisibleItems: widget.maxVisibleItems,
       fieldDefs: fieldDefs,
       itemFactory: (values, {String? id}) {
         // Compute a display name from the first property that looks like a title
@@ -110,9 +128,9 @@ class PredefinedObjectSection extends ConsumerWidget {
         }
         return UnifiedObject(
           id: id ?? '', // ID will be assigned by createObject in onSave
-          typeId: typeId,
+          typeId: widget.typeId,
           name: name,
-          parentId: sectionId,
+          parentId: widget.sectionId,
           properties: {
             for (final entry in values.entries)
               entry.key: TextProperty(text: entry.value),
@@ -132,7 +150,7 @@ class PredefinedObjectSection extends ConsumerWidget {
         }
         return map;
       },
-      displayItemBuilder: displayItemBuilder ?? _defaultDisplayBuilder,
+      displayItemBuilder: widget.displayItemBuilder ?? _defaultDisplayBuilder,
       onDelete: (item) async {
         await ref
             .read(unifiedObjectProvider.notifier)
@@ -150,8 +168,8 @@ class PredefinedObjectSection extends ConsumerWidget {
             }
           }
           await notifier.createDefaultItem(
-            sectionId: sectionId,
-            typeId: typeId,
+            sectionId: widget.sectionId,
+            typeId: widget.typeId,
             name: name,
             values: values,
           );
@@ -171,9 +189,9 @@ class PredefinedObjectSection extends ConsumerWidget {
           );
         }
       },
-      customFormBuilder: customFormBuilder != null
+      customFormBuilder: widget.customFormBuilder != null
           ? (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
-              return customFormBuilder!(
+              return widget.customFormBuilder!(
                 context,
                 theme,
                 controllers,
@@ -184,14 +202,14 @@ class PredefinedObjectSection extends ConsumerWidget {
               );
             }
           : null,
-      onDidDelete: onDidDelete != null
-          ? (item, index) => onDidDelete!(item, index)
+      onDidDelete: widget.onDidDelete != null
+          ? (item, index) => widget.onDidDelete!(item, index)
           : null,
-      onDeleteFailed: onDeleteFailed != null
-          ? (item, index) => onDeleteFailed!(item, index)
+      onDeleteFailed: widget.onDeleteFailed != null
+          ? (item, index) => widget.onDeleteFailed!(item, index)
           : null,
-      onCopyAll: onCopyAll != null
-          ? (item, text) => onCopyAll!(item, text)
+      onCopyAll: widget.onCopyAll != null
+          ? (item, text) => widget.onCopyAll!(item, text)
           : null,
       itemIdExtractor: (item) => item.id,
     );

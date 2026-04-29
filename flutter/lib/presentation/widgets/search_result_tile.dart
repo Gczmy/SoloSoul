@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/models/search_models.dart' show SearchResultItem;
-import 'package:solosoul_flutter/presentation/providers/search_provider.dart';
 
 /// Search result tile widget displaying a single search result with sensitivity handling.
 class SearchResultTile extends ConsumerWidget {
@@ -20,11 +20,13 @@ class SearchResultTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    // Watch accountStyleProvider so rebuild happens when fields are revealed
-    ref.watch(accountStyleProvider.select((s) => s.value?.displayMode));
-    final isRevealed = ref
-        .read(searchProvider.notifier)
-        .isFieldRevealed(result.fieldPath, result.sensitivityLevel);
+    // Watch revealed fields and sensitive access so rebuild happens when fields are revealed
+    final revealedFields = ref.watch(
+      accountStyleProvider.select((s) => s.value?.revealedFields ?? const {}),
+    );
+    final isSensitiveGranted = ref.watch(isSensitiveAccessGrantedProvider);
+    final isRevealed = revealedFields.contains(result.fieldPath) &&
+        (result.sensitivityLevel != SensitivityLevel.critical || isSensitiveGranted);
     final showMasked =
         result.sensitivityLevel != SensitivityLevel.public && !isRevealed;
 
