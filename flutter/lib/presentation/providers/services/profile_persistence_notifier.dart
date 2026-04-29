@@ -65,7 +65,6 @@ class ProfilePersistenceService {
       if (authStateBeforeLoad != AuthState.unlocked) return null;
 
       final profile = await _storage.loadProfile(accountId);
-      await _storage.purgeOldDeletedItemsIfNeeded(accountId, existingProfile: profile);
 
       final authStateAfterLoad = _ref.read(authNotifierProvider).value;
       if (authStateAfterLoad != AuthState.unlocked) return null;
