@@ -77,7 +77,7 @@ class ProfileStorageService {
   /// Migrate profile to latest schema if needed.
   /// v3: Unified object model - everything is a UnifiedObject.
   /// v4: Default pages (profile/travel/financial/professional) migrated to UnifiedObject tree.
-  ProfileData _migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
+  static ProfileData _migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
     var currentVersion = profile.schemaVersion ?? 0;
     var migrated = profile;
 
@@ -154,7 +154,7 @@ class ProfileStorageService {
   /// - Invalid [parentId] references (set to null if parent no longer exists)
   ///
   /// Returns a repaired copy if fixes were applied, or the original if valid.
-  ProfileData _validateAndRepairProfile(ProfileData profile) {
+  static (ProfileData, bool) _validateAndRepairProfile(ProfileData profile) {
     var repaired = profile;
     var wasRepaired = false;
 
@@ -206,18 +206,12 @@ class ProfileStorageService {
       }
     }
 
-    if (wasRepaired) {
-      DebugLogger.instance.logInfo(
-        'PROFILE',
-        'Data integrity repairs applied during load',
-      );
-    }
-    return repaired;
+    return (repaired, wasRepaired);
   }
 
   /// Migrate legacy flexibleSections / flexibleObjects to UnifiedObjectData.
   /// Operates on raw JSON maps because old type definitions have been removed.
-  UnifiedObjectData _migrateLegacyToUnified(Map<String, dynamic> rawJson) {
+  static UnifiedObjectData _migrateLegacyToUnified(Map<String, dynamic> rawJson) {
     final objects = <UnifiedObject>[];
     final timestamp = currentTimestamp();
 
@@ -349,7 +343,7 @@ class ProfileStorageService {
 
   /// Migrate legacy profile data (identity/travel/financial/professional) to
   /// the UnifiedObject tree. Creates default pages, sections, and items.
-  UnifiedObjectData _migrateProfileDataToUnified(
+  static UnifiedObjectData _migrateProfileDataToUnified(
     ProfileData profile,
     UnifiedObjectData existingData,
   ) {
@@ -976,20 +970,34 @@ class ProfileStorageService {
         return null;
       }
 
-      final (json, profile) = await Isolate.run(() {
+      final (profile, needsSave, logs) = await Isolate.run(() {
         final json = jsonDecode(decrypted) as Map<String, dynamic>;
         final profile = ProfileData.fromJson(json);
-        return (json, profile);
+        final migratedProfile = ProfileStorageService._migrateIfNeeded(profile, json);
+        final (repairedProfile, wasRepaired) = ProfileStorageService._validateAndRepairProfile(migratedProfile);
+        final logs = <String>[];
+        if (wasRepaired) {
+          logs.add('Data integrity repairs applied during load');
+        }
+        return (repairedProfile, wasRepaired, logs);
       });
-      // Apply migration if needed
-      final migratedProfile = _migrateIfNeeded(profile, json);
-      // Validate and repair data integrity after migration
-      final repairedProfile = _validateAndRepairProfile(migratedProfile);
-      // Persist repairs so they don't need to be re-applied next load
-      if (repairedProfile != migratedProfile) {
-        unawaited(saveProfile(accountId, repairedProfile));
+
+      // Replay isolate logs on main thread
+      for (final msg in logs) {
+        DebugLogger.instance.logInfo('PROFILE', msg);
       }
-      return repairedProfile;
+
+      // Persist repairs so they don't need to be re-applied next load
+      if (needsSave) {
+        unawaited(saveProfile(accountId, profile));
+      }
+      return profile;
+    } on RemoteError catch (e) {
+      DebugLogger.instance.logError(
+        'PROFILE',
+        'Profile load failed in isolate: ${e.toString()}',
+      );
+      return null;
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('PROFILE', 'loadProfile failed: $e\n$st');
       return null;
