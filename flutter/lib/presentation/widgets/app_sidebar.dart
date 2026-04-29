@@ -83,6 +83,215 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     super.dispose();
   }
 
+  /// Build the list of sidebar items for ListView.builder.
+  List<Widget> _buildSidebarItems(
+    BuildContext context,
+    String location,
+    List<UnifiedObject> customPages,
+    ThemeData theme,
+  ) {
+    final items = <Widget>[
+      // Home
+      _NavTile(
+        icon: Icons.home_outlined,
+        label: 'Home',
+        expanded: _expanded,
+        selected: location == AppRoutes.home,
+        onTap: () => context.go(AppRoutes.home),
+      ),
+      // Search
+      _NavTile(
+        icon: Icons.search,
+        label: 'Search',
+        expanded: _expanded,
+        selected: location == AppRoutes.search,
+        onTap: () => context.go(AppRoutes.search),
+      ),
+      // Scan (placeholder)
+      _NavTile(
+        icon: Icons.document_scanner_outlined,
+        label: 'Scan',
+        expanded: _expanded,
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (ctx) => const AlertDialog(
+              title: Text('OCR Scan'),
+              content: Text(
+                'Document scanning will be available in a future update.',
+              ),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 4),
+      const Divider(height: 1),
+      const SizedBox(height: 8),
+      // Default pages
+      _NavTile(
+        icon: Icons.person_outline,
+        label: 'Profile',
+        expanded: _expanded,
+        selected: location == AppRoutes.profile,
+        onTap: () => context.go(AppRoutes.profile),
+      ),
+      _NavTile(
+        icon: Icons.flight_outlined,
+        label: 'Travel',
+        expanded: _expanded,
+        selected: location == AppRoutes.travel,
+        onTap: () => context.go(AppRoutes.travel),
+      ),
+      _NavTile(
+        icon: Icons.account_balance_outlined,
+        label: 'Financial',
+        expanded: _expanded,
+        selected: location == AppRoutes.financial,
+        onTap: () => context.go(AppRoutes.financial),
+      ),
+      _NavTile(
+        icon: Icons.work_outline,
+        label: 'Professional',
+        expanded: _expanded,
+        selected: location == AppRoutes.professional,
+        onTap: () => context.go(AppRoutes.professional),
+      ),
+      const SizedBox(height: 16),
+    ];
+
+    if (_expanded) {
+      items.addAll([
+        const Divider(height: 1),
+        const SizedBox(height: 8),
+        // Custom pages label
+        Padding(
+          padding: const EdgeInsets.only(left: 12, right: 4, bottom: 8),
+          child: Row(
+            children: [
+              Text(
+                'PAGES',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const Spacer(),
+              Tooltip(
+                message: 'Add Page',
+                child: InkWell(
+                  onTap: () => setState(() => _isAddingPage = true),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.add,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ]);
+
+      // Custom pages tree (root-level only)
+      for (final page in customPages.where((p) => p.parentId == null)) {
+        items.add(
+          _PageTreeTile(
+            key: ValueKey(page.id),
+            page: page,
+            expanded: _expanded,
+            depth: 0,
+            isSelected: location == '${AppRoutes.objects}/${page.id}',
+            onTap: () => context.go('${AppRoutes.objects}/${page.id}'),
+            onIconTap: () => _changePageIcon(page.id, page.iconName),
+            expandedPageIds: _expandedPageIds,
+            onToggleExpand: (id) {
+              setState(() {
+                if (_expandedPageIds.contains(id)) {
+                  _expandedPageIds.remove(id);
+                } else {
+                  _expandedPageIds.add(id);
+                }
+              });
+            },
+          ),
+        );
+      }
+
+      // Root-level drop zone
+      items.add(
+        DragTarget<String>(
+          onWillAcceptWithDetails: (_) => true,
+          onAcceptWithDetails: (details) {
+            ref.read(unifiedObjectProvider.notifier).moveObject(details.data, null);
+          },
+          builder: (context, candidateData, rejectedData) {
+            final isHovering = candidateData.isNotEmpty;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              height: isHovering ? 36 : 4,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: isHovering
+                    ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                    : null,
+                border: isHovering
+                    ? Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        width: 1.5,
+                      )
+                    : null,
+              ),
+              child: isHovering
+                  ? Center(
+                      child: Text(
+                        'Drop to make root page',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                  : null,
+            );
+          },
+        ),
+      );
+
+      // Add page input
+      if (_isAddingPage) {
+        items.add(
+          TapRegion(
+            onTapOutside: (_) {
+              if (_isAddingPage && !_isPickingIcon) {
+                if (_addPageController.text.trim().isNotEmpty) {
+                  _confirmAddPage();
+                } else {
+                  _addPageController.clear();
+                  _newPageIconName = 'article';
+                  setState(() => _isAddingPage = false);
+                }
+              }
+            },
+            child: _AddPageInput(
+              controller: _addPageController,
+              iconName: _newPageIconName,
+              onIconTap: _pickNewPageIcon,
+              onConfirm: _confirmAddPage,
+            ),
+          ),
+        );
+      }
+    }
+
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -117,215 +326,20 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
 
                   // Nav items + custom pages
                   Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: _expanded ? 12 : 0,
-                        vertical: 8,
-                      ),
-                      children: [
-                        // Home
-                        _NavTile(
-                          icon: Icons.home_outlined,
-                          label: 'Home',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.home,
-                          onTap: () => context.go(AppRoutes.home),
-                        ),
-
-                        // Search
-                        _NavTile(
-                          icon: Icons.search,
-                          label: 'Search',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.search,
-                          onTap: () => context.go(AppRoutes.search),
-                        ),
-
-                        // Scan (placeholder)
-                        _NavTile(
-                          icon: Icons.document_scanner_outlined,
-                          label: 'Scan',
-                          expanded: _expanded,
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => const AlertDialog(
-                                title: Text('OCR Scan'),
-                                content: Text(
-                                  'Document scanning will be available in a future update.',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 4),
-                        const Divider(height: 1),
-                        const SizedBox(height: 8),
-
-                        // Default pages
-                        _NavTile(
-                          icon: Icons.person_outline,
-                          label: 'Profile',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.profile,
-                          onTap: () => context.go(AppRoutes.profile),
-                        ),
-                        _NavTile(
-                          icon: Icons.flight_outlined,
-                          label: 'Travel',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.travel,
-                          onTap: () => context.go(AppRoutes.travel),
-                        ),
-                        _NavTile(
-                          icon: Icons.account_balance_outlined,
-                          label: 'Financial',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.financial,
-                          onTap: () => context.go(AppRoutes.financial),
-                        ),
-                        _NavTile(
-                          icon: Icons.work_outline,
-                          label: 'Professional',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.professional,
-                          onTap: () => context.go(AppRoutes.professional),
-                        ),
-                        const SizedBox(height: 16),
-                        if (_expanded) const Divider(height: 1),
-                        if (_expanded) const SizedBox(height: 8),
-
-                        // Custom pages label
-                        if (_expanded)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 12, right: 4, bottom: 8),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'PAGES',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Tooltip(
-                                  message: 'Add Page',
-                                  child: InkWell(
-                                    onTap: () => setState(() => _isAddingPage = true),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(
-                                        Icons.add,
-                                        size: 16,
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                    child: Builder(
+                      builder: (context) {
+                        final sidebarItems = _buildSidebarItems(
+                          context, location, customPages, theme,
+                        );
+                        return ListView.builder(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: _expanded ? 12 : 0,
+                            vertical: 8,
                           ),
-
-                        // Custom pages tree (root-level only)
-                        ...customPages
-                            .where((p) => p.parentId == null)
-                            .map((page) => _PageTreeTile(
-                                  key: ValueKey(page.id),
-                                  page: page,
-                                  expanded: _expanded,
-                                  depth: 0,
-                                  isSelected: location ==
-                                      '${AppRoutes.objects}/${page.id}',
-                                  onTap: () => context.go(
-                                      '${AppRoutes.objects}/${page.id}'),
-                                  onIconTap: () => _changePageIcon(
-                                      page.id, page.iconName),
-                                  expandedPageIds: _expandedPageIds,
-                                  onToggleExpand: (id) {
-                                    setState(() {
-                                      if (_expandedPageIds.contains(id)) {
-                                        _expandedPageIds.remove(id);
-                                      } else {
-                                        _expandedPageIds.add(id);
-                                      }
-                                    });
-                                  },
-                                )),
-
-                        // Root-level drop zone (drag pages here to unparent)
-                        if (_expanded)
-                          DragTarget<String>(
-                            onWillAcceptWithDetails: (_) => true,
-                            onAcceptWithDetails: (details) {
-                              ref
-                                  .read(unifiedObjectProvider.notifier)
-                                  .moveObject(details.data, null);
-                            },
-                            builder: (context, candidateData, rejectedData) {
-                              final isHovering = candidateData.isNotEmpty;
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                height: isHovering ? 36 : 4,
-                                margin: const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: isHovering
-                                      ? theme.colorScheme.primary
-                                          .withValues(alpha: 0.08)
-                                      : null,
-                                  border: isHovering
-                                      ? Border.all(
-                                          color: theme.colorScheme.primary
-                                              .withValues(alpha: 0.3),
-                                          width: 1.5,
-                                        )
-                                      : null,
-                                ),
-                                child: isHovering
-                                    ? Center(
-                                        child: Text(
-                                          'Drop to make root page',
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                            color: theme.colorScheme.primary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      )
-                                    : null,
-                              );
-                            },
-                          ),
-
-                        // Add page input
-                        if (_isAddingPage && _expanded)
-                          TapRegion(
-                            onTapOutside: (_) {
-                              if (_isAddingPage && !_isPickingIcon) {
-                                if (_addPageController.text.trim().isNotEmpty) {
-                                  _confirmAddPage();
-                                } else {
-                                  _addPageController.clear();
-                                  _newPageIconName = 'article';
-                                  setState(() => _isAddingPage = false);
-                                }
-                              }
-                            },
-                            child: _AddPageInput(
-                              controller: _addPageController,
-                              iconName: _newPageIconName,
-                              onIconTap: _pickNewPageIcon,
-                              onConfirm: _confirmAddPage,
-                            ),
-                          ),
-
-
-                      ],
+                          itemCount: sidebarItems.length,
+                          itemBuilder: (context, index) => sidebarItems[index],
+                        );
+                      },
                     ),
                   ),
 

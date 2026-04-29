@@ -298,7 +298,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
         _originalValues['__name__'] = _itemDisplayTitle(item);
         for (final entry in item.properties.entries) {
-          final textValue = _propertyValueToString(entry.value);
+          final textValue = _propValueToString(entry.value);
           _editControllers[entry.key] = TextEditingController(text: textValue);
           _originalValues[entry.key] = textValue;
         }
@@ -360,7 +360,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (accountId != null) {
       final oldValues = <String, String>{};
       for (final entry in item.properties.entries) {
-        oldValues[entry.key] = _propertyValueToString(entry.value);
+        oldValues[entry.key] = _propValueToString(entry.value);
       }
       await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
         accountId: accountId,
@@ -468,21 +468,9 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     }
   }
 
-  String _propertyValueToString(PropertyValue value) {
-    return switch (value) {
-      TextProperty(:final text) => text,
-      NumberProperty(:final value) => value?.toString() ?? '',
-      DateProperty(:final isoDate) => isoDate ?? '',
-      CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
-      SelectProperty(:final selectedId) => selectedId ?? '',
-      _ => '',
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final icon = UnifiedObjectService.getIconFromName(widget.object.iconName);
     final items = widget.items;
     final shouldCollapse = items.length > 3;
     final visibleItems = _isExpanded ? items : items.take(3).toList();
@@ -498,52 +486,12 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header: icon + name + action buttons
-            Row(
-              children: [
-                InkWell(
-                  onTap: _changeIcon,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(icon, color: theme.colorScheme.primary, size: 20),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.object.name,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  onPressed: _editObject,
-                  tooltip: 'Edit',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                  visualDensity: VisualDensity.compact,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  onPressed: _deleteObject,
-                  tooltip: 'Delete',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                  visualDensity: VisualDensity.compact,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, size: 18),
-                  onPressed: _addItem,
-                  tooltip: 'Add Item',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
+            _ObjectCardHeader(
+              object: widget.object,
+              onChangeIcon: _changeIcon,
+              onEdit: _editObject,
+              onDelete: _deleteObject,
+              onAddItem: _addItem,
             ),
 
             const Divider(height: 24),
@@ -647,56 +595,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    ...item.properties.entries.where((e) => e.key != 'Title').map((entry) {
-                      final sensitivity = entry.value.sensitivity;
-                      final isSensitive = sensitivity == SensitivityLevel.sensitive ||
-                                          sensitivity == SensitivityLevel.critical;
-                      final valueStr = _propertyValueToString(entry.value);
-                      final isEmptyValue = valueStr.isEmpty;
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 8, bottom: 2),
-                        child: Row(
-                          children: [
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 160),
-                              child: SelectableText(
-                                _wrapEveryNChars(entry.key, 12),
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                            if (isEmptyValue)
-                              Expanded(
-                                child: Text(
-                                  '(empty)',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              )
-                            else if (isSensitive)
-                              Expanded(
-                                child: SensitiveValueWidget(
-                                  fieldId: 'item.${item.id}.${entry.key}',
-                                  value: valueStr,
-                                  sensitivityLevel: sensitivity,
-                                ),
-                              )
-                            else
-                              Expanded(
-                                child: SelectableText(
-                                  valueStr,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ),
-                            const SizedBox(width: 6),
-                            SensitivityTag(level: sensitivity),
-                          ],
-                        ),
-                      );
-                    }),
+                    _ObjectCardPropertiesList(item: item),
                   ],
                 ),
               ),
@@ -739,11 +638,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           // Item history
           if (isHistoryExpanded) ...[
             const SizedBox(height: 8),
-            FieldHistoryView(
-              fieldName: _historyFieldId,
-              history: history,
-              initiallyExpanded: true,
-            ),
+            _ObjectCardHistorySection(history: history),
           ],
           const Divider(height: 16),
         ],
@@ -918,17 +813,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     };
   }
 
-  String _wrapEveryNChars(String text, int n) {
-    if (text.length <= n) return '$text: ';
-    final buffer = StringBuffer();
-    for (var i = 0; i < text.length; i += n) {
-      if (i > 0) buffer.write('\n');
-      buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
-    }
-    buffer.write(': ');
-    return buffer.toString();
-  }
-
   Widget _buildTitleField() {
     final controller = _editControllers['__name__'];
     return Row(
@@ -996,7 +880,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       final buffer = StringBuffer();
       buffer.writeln('${item.name}:');
       for (final entry in item.properties.entries) {
-        buffer.writeln('  ${entry.key}: ${_propertyValueToString(entry.value)}');
+        buffer.writeln('  ${entry.key}: ${_propValueToString(entry.value)}');
       }
       Clipboard.setData(ClipboardData(text: buffer.toString()));
       showOverlaySnackBar(
@@ -1011,5 +895,195 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     } else {
       doCopy();
     }
+  }
+}
+
+// =============================================================================
+// File-level helpers (used by sub-widgets)
+// =============================================================================
+
+String _propValueToString(PropertyValue value) {
+  return switch (value) {
+    TextProperty(:final text) => text,
+    NumberProperty(:final value) => value?.toString() ?? '',
+    DateProperty(:final isoDate) => isoDate ?? '',
+    CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+    SelectProperty(:final selectedId) => selectedId ?? '',
+    _ => '',
+  };
+}
+
+String _wrapEveryNChars(String text, int n) {
+  if (text.length <= n) return '$text: ';
+  final buffer = StringBuffer();
+  for (var i = 0; i < text.length; i += n) {
+    if (i > 0) buffer.write('\n');
+    buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
+  }
+  buffer.write(': ');
+  return buffer.toString();
+}
+
+// =============================================================================
+// _ObjectCardHeader — Card header with icon, name, and action buttons
+// =============================================================================
+
+class _ObjectCardHeader extends StatelessWidget {
+  final UnifiedObject object;
+  final VoidCallback onChangeIcon;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onAddItem;
+
+  const _ObjectCardHeader({
+    required this.object,
+    required this.onChangeIcon,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onAddItem,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final icon = UnifiedObjectService.getIconFromName(object.iconName);
+
+    return Row(
+      children: [
+        InkWell(
+          onTap: onChangeIcon,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 20),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            object.name,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit_outlined, size: 18),
+          onPressed: onEdit,
+          tooltip: 'Edit',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          visualDensity: VisualDensity.compact,
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete_outline, size: 18),
+          onPressed: onDelete,
+          tooltip: 'Delete',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          visualDensity: VisualDensity.compact,
+        ),
+        IconButton(
+          icon: const Icon(Icons.add, size: 18),
+          onPressed: onAddItem,
+          tooltip: 'Add Item',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+    );
+  }
+}
+
+// =============================================================================
+// _ObjectCardPropertiesList — Renders an item's property rows
+// =============================================================================
+
+class _ObjectCardPropertiesList extends StatelessWidget {
+  final UnifiedObject item;
+
+  const _ObjectCardPropertiesList({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: item.properties.entries
+          .where((e) => e.key != 'Title')
+          .map((entry) {
+        final sensitivity = entry.value.sensitivity;
+        final isSensitive = sensitivity == SensitivityLevel.sensitive ||
+            sensitivity == SensitivityLevel.critical;
+        final valueStr = _propValueToString(entry.value);
+        final isEmptyValue = valueStr.isEmpty;
+
+        return Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 2),
+          child: Row(
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 160),
+                child: SelectableText(
+                  _wrapEveryNChars(entry.key, 12),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (isEmptyValue)
+                Expanded(
+                  child: Text(
+                    '(empty)',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              else if (isSensitive)
+                Expanded(
+                  child: SensitiveValueWidget(
+                    fieldId: 'item.${item.id}.${entry.key}',
+                    value: valueStr,
+                    sensitivityLevel: sensitivity,
+                  ),
+                )
+              else
+                Expanded(
+                  child: SelectableText(
+                    valueStr,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              const SizedBox(width: 6),
+              SensitivityTag(level: sensitivity),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// =============================================================================
+// _ObjectCardHistorySection — Renders field history for an item
+// =============================================================================
+
+class _ObjectCardHistorySection extends StatelessWidget {
+  final FieldHistory? history;
+
+  const _ObjectCardHistorySection({this.history});
+
+  @override
+  Widget build(BuildContext context) {
+    return FieldHistoryView(
+      fieldName: 'unified',
+      history: history,
+      initiallyExpanded: true,
+    );
   }
 }

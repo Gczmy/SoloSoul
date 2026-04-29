@@ -23,6 +23,31 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
+// =============================================================================
+// Unified abstraction for trash list items (enables ListView.builder)
+// =============================================================================
+
+@immutable
+sealed class TrashEntry {
+  const TrashEntry();
+}
+
+final class TrashSectionHeader extends TrashEntry {
+  final String title;
+  const TrashSectionHeader(this.title);
+}
+
+final class TrashUnifiedEntry extends TrashEntry {
+  final UnifiedObject object;
+  const TrashUnifiedEntry(this.object);
+}
+
+final class TrashLegacyEntry extends TrashEntry {
+  final DeletedItemInfo item;
+  final SensitivityLevel sensitivityLevel;
+  const TrashLegacyEntry(this.item, this.sensitivityLevel);
+}
+
 class TrashPage extends ConsumerStatefulWidget {
   const TrashPage({super.key});
 
@@ -341,62 +366,78 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Unified Objects section
-              if (filteredUnifiedObjects.isNotEmpty) ...[
-                Text(
-                  'Pages & Objects',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...filteredUnifiedObjects.map((obj) => _UnifiedObjectTrashCard(
-                  object: obj,
-                  onRestore: () => _confirmRestoreUnifiedObject(context, obj),
-                  onPurge: () => _confirmPurgeUnifiedObject(context, obj),
-                )),
-                if (filteredItems.isNotEmpty) const SizedBox(height: 24),
-              ],
-              // Legacy Items section
-              if (filteredItems.isNotEmpty) ...[
-                if (filteredUnifiedObjects.isNotEmpty)
-                  Text(
-                    'Legacy Items',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurfaceVariant,
+          child: Builder(
+            builder: (context) {
+              final entries = <TrashEntry>[];
+              if (filteredUnifiedObjects.isNotEmpty) {
+                entries.add(const TrashSectionHeader('Pages & Objects'));
+                entries.addAll(
+                  filteredUnifiedObjects.map((o) => TrashUnifiedEntry(o)),
+                );
+              }
+              if (filteredItems.isNotEmpty) {
+                if (filteredUnifiedObjects.isNotEmpty) {
+                  entries.add(const TrashSectionHeader('Legacy Items'));
+                }
+                entries.addAll(
+                  filteredItems.map(
+                    (i) => TrashLegacyEntry(
+                      i,
+                      _sensitivityByItemType[i.itemType] ??
+                          SensitivityLevel.public,
                     ),
                   ),
-                if (filteredUnifiedObjects.isNotEmpty) const SizedBox(height: 8),
-                ...filteredItems.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  final hasHistory = _itemHasHistory(item);
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: index < filteredItems.length - 1 ? 8 : 0,
-                    ),
-                    child: _TrashItemCard(
-                      item: item,
-                      hasHistory: hasHistory,
-                      sensitivityLevel:
-                          _sensitivityByItemType[item.itemType] ??
-                              SensitivityLevel.public,
-                      onRestore: (item) => _confirmRestore(item),
-                      onPurge: (item) => _confirmPurge(context, item),
-                      onDetail: () => _showDetail(context, item),
-                      onHistory: hasHistory
-                          ? () => _showHistoryForItem(context, item)
-                          : null,
-                    ),
-                  );
-                }),
-              ],
-            ],
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return switch (entry) {
+                    TrashSectionHeader(:final title) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    TrashUnifiedEntry(:final object) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _UnifiedObjectTrashCard(
+                          object: object,
+                          onRestore: () =>
+                              _confirmRestoreUnifiedObject(context, object),
+                          onPurge: () =>
+                              _confirmPurgeUnifiedObject(context, object),
+                        ),
+                      ),
+                    TrashLegacyEntry(
+                      :final item,
+                      :final sensitivityLevel
+                    ) =>
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _TrashItemCard(
+                          item: item,
+                          hasHistory: _itemHasHistory(item),
+                          sensitivityLevel: sensitivityLevel,
+                          onRestore: (i) => _confirmRestore(i),
+                          onPurge: (i) => _confirmPurge(context, i),
+                          onDetail: () => _showDetail(context, item),
+                          onHistory: _itemHasHistory(item)
+                              ? () => _showHistoryForItem(context, item)
+                              : null,
+                        ),
+                      ),
+                  };
+                },
+              );
+            },
           ),
         ),
       ],
