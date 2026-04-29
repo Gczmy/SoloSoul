@@ -202,7 +202,9 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   List<LabelValueField> _autoBuildFields() {
     final fields = <LabelValueField>[];
     final exclude = widget.excludeFields ?? {};
-    widget.itemData!.forEach((key, value) {
+    final itemData = widget.itemData;
+    if (itemData == null) return fields;
+    itemData.forEach((key, value) {
       if (value == null || (value is String && value.isEmpty)) return;
       if (exclude.contains(key)) return;
       // Always add prefix since itemToMap returns unprefixed keys.

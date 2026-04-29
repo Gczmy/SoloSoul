@@ -989,7 +989,15 @@ class ProfileStorageService {
 
       // Persist repairs so they don't need to be re-applied next load
       if (needsSave) {
-        unawaited(saveProfile(accountId, profile));
+        unawaited(
+          saveProfile(accountId, profile).catchError((e) {
+            DebugLogger.instance.logError(
+              'PROFILE',
+              'Failed to persist repaired profile: $e',
+            );
+            return false;
+          }),
+        );
       }
       return profile;
     } on RemoteError catch (e) {

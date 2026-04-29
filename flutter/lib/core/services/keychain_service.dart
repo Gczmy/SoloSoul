@@ -24,8 +24,8 @@ class KeychainService {
       try {
         final result = await _channel.invokeMethod('authenticateWithBiometrics');
         return Map<String, dynamic>.from(result);
-      } on PlatformException catch (e) {
-        return {'success': false, 'error': e.message};
+      } on Exception catch (e) {
+        return {'success': false, 'error': e.toString()};
       }
     }
 
@@ -62,8 +62,8 @@ class KeychainService {
         'success': didAuthenticate,
         'biometryType': biometryTypeStr,
       };
-    } on PlatformException catch (e) {
-      return {'success': false, 'error': e.message};
+    } on Exception catch (e) {
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -76,8 +76,8 @@ class KeychainService {
           'value': value,
         });
         return Map<String, dynamic>.from(result);
-      } on PlatformException catch (e) {
-        return {'success': false, 'error': e.message};
+      } on Exception catch (e) {
+        return {'success': false, 'error': e.toString()};
       }
     }
 
@@ -85,8 +85,8 @@ class KeychainService {
     try {
       await _secureStorage.write(key: key, value: value);
       return {'success': true};
-    } on PlatformException catch (e) {
-      return {'success': false, 'error': e.message};
+    } on Exception catch (e) {
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -98,8 +98,8 @@ class KeychainService {
           'key': key,
         });
         return Map<String, dynamic>.from(result);
-      } on PlatformException catch (e) {
-        return {'success': false, 'error': e.message};
+      } on Exception catch (e) {
+        return {'success': false, 'error': e.toString()};
       }
     }
 
@@ -111,8 +111,8 @@ class KeychainService {
       } else {
         return {'success': false, 'error': 'Key not found'};
       }
-    } on PlatformException catch (e) {
-      return {'success': false, 'error': e.message};
+    } on Exception catch (e) {
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -124,8 +124,8 @@ class KeychainService {
           'key': key,
         });
         return Map<String, dynamic>.from(result);
-      } on PlatformException catch (e) {
-        return {'success': false, 'error': e.message};
+      } on Exception catch (e) {
+        return {'success': false, 'error': e.toString()};
       }
     }
 
@@ -133,8 +133,8 @@ class KeychainService {
     try {
       await _secureStorage.delete(key: key);
       return {'success': true};
-    } on PlatformException catch (e) {
-      return {'success': false, 'error': e.message};
+    } on Exception catch (e) {
+      return {'success': false, 'error': e.toString()};
     }
   }
 

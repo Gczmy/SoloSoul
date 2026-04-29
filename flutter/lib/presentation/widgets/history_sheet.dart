@@ -4,20 +4,6 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/history_change_tile.dart';
 
-/// History change item data class.
-class HistoryChangeItem {
-  final String itemId;
-  final String fieldId;
-  final Map<String, String> values;
-  final DateTime timestamp;
-
-  const HistoryChangeItem({
-    required this.itemId,
-    required this.fieldId,
-    required this.values,
-    required this.timestamp,
-  });
-}
 
 /// Bottom sheet displaying field change history.
 class HistorySheet extends StatelessWidget {
@@ -77,30 +63,8 @@ class HistorySheet extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final histories = ref.watch(fieldHistoriesProvider);
-                final allChanges = <HistoryChangeItem>[];
-
-                // Collect all changes from all histories
-                for (final itemEntry in histories.histories.entries) {
-                  final itemId = itemEntry.key;
-                  for (final fieldEntry in itemEntry.value.entries) {
-                    final fieldId = fieldEntry.key;
-                    final history = fieldEntry.value;
-                    for (final entry in history.entries) {
-                      allChanges.add(
-                        HistoryChangeItem(
-                          itemId: itemId,
-                          fieldId: fieldId,
-                          values: entry.values,
-                          timestamp: entry.timestamp,
-                        ),
-                      );
-                    }
-                  }
-                }
-
-                // Sort by timestamp (newest first)
-                allChanges.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+                final notifier = ref.read(fieldHistoriesProvider.notifier);
+                final allChanges = notifier.allChangesSorted;
 
                 if (allChanges.isEmpty) {
                   return Center(

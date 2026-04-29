@@ -2,6 +2,21 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'field_history_models.g.dart';
 
+/// Flat history change item for UI consumption.
+class HistoryChangeItem {
+  final String itemId;
+  final String fieldId;
+  final Map<String, String> values;
+  final DateTime timestamp;
+
+  const HistoryChangeItem({
+    required this.itemId,
+    required this.fieldId,
+    required this.values,
+    required this.timestamp,
+  });
+}
+
 /// Single historical value entry for a field.
 /// Stores all field values at a point in time.
 @JsonSerializable(explicitToJson: true)

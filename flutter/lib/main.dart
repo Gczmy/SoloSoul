@@ -19,6 +19,26 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Configure error widget builder for release resilience
+  ErrorWidget.builder = (details) {
+    DebugLogger.instance.logError(
+      'ERROR_WIDGET',
+      '${details.exception}\n${details.stack}',
+    );
+    return Material(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Something went wrong. Please restart the app.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+        ),
+      ),
+    );
+  };
+
   // Initialize native channel service (for macOS menu bar callbacks)
   if (Platform.isMacOS) {
     NativeChannelService.initialize();

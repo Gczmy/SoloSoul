@@ -21,7 +21,7 @@ class SearchResultTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     // Watch accountStyleProvider so rebuild happens when fields are revealed
-    ref.watch(accountStyleProvider);
+    ref.watch(accountStyleProvider.select((s) => s.value?.displayMode));
     final isRevealed = ref
         .read(searchProvider.notifier)
         .isFieldRevealed(result.fieldPath, result.sensitivityLevel);

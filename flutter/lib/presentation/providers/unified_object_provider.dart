@@ -31,8 +31,9 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     // 如果 profile 已经加载，立即同步，避免 ref.listen 因值未变化而错过
     final profile = ref.read(profileNotifierProvider).value;
-    if (profile?.unifiedObjects != null) {
-      return profile!.unifiedObjects!;
+    final unifiedObjects = profile?.unifiedObjects;
+    if (unifiedObjects != null) {
+      return unifiedObjects;
     }
 
     return const UnifiedObjectData(objects: [], customTypes: []);
@@ -327,8 +328,9 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         .toList();
 
     // Remove from parent's childrenIds
-    if (object?.parentId != null) {
-      updatedObjects = _service.removeChild(updatedObjects, object!.parentId!, id);
+    final parentId = object?.parentId;
+    if (parentId != null) {
+      updatedObjects = _service.removeChild(updatedObjects, parentId, id);
     }
 
     state = state.copyWith(objects: updatedObjects);

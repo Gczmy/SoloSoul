@@ -139,7 +139,9 @@ class _SensitivityBasedVisibilityWidgetState
     final style = theme.textTheme.bodyMedium;
 
     // Check recent verification for auto-reveal
-    final hasRecentVerification = ref.watch(isSensitiveAccessGrantedProvider);
+    final hasRecentVerification = ref.watch(
+      isSensitiveAccessGrantedProvider.select((v) => v),
+    );
 
     switch (widget.sensitivityLevel) {
       case SensitivityLevel.public:

@@ -169,6 +169,31 @@ class FieldHistoriesNotifier extends Notifier<FormHistories> {
     state = await FieldHistoryService.instance.loadHistories(accountId);
   }
 
+  /// Get all changes as a flat list sorted by timestamp (newest first).
+  /// Computed on-demand but should be cached by callers (e.g. stored in a local
+  /// variable inside build rather than recomputed per item).
+  List<HistoryChangeItem> get allChangesSorted {
+    final allChanges = <HistoryChangeItem>[];
+    for (final itemEntry in state.histories.entries) {
+      final itemId = itemEntry.key;
+      for (final fieldEntry in itemEntry.value.entries) {
+        final fieldId = fieldEntry.key;
+        for (final entry in fieldEntry.value.entries) {
+          allChanges.add(
+            HistoryChangeItem(
+              itemId: itemId,
+              fieldId: fieldId,
+              values: entry.values,
+              timestamp: entry.timestamp,
+            ),
+          );
+        }
+      }
+    }
+    allChanges.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return allChanges;
+  }
+
   /// Record a field change.
   Future<void> recordFieldChange({
     required String accountId,

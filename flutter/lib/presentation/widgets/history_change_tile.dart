@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/presentation/utils/format_relative_time.dart';
-import 'package:solosoul_flutter/presentation/widgets/history_sheet.dart' show HistoryChangeItem;
+import 'package:solosoul_flutter/core/models/field_history_models.dart' show HistoryChangeItem;
 
 /// Widget displaying a single history change entry.
 class HistoryChangeTile extends StatelessWidget {

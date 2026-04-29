@@ -33,7 +33,16 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
   @override
   Widget build(BuildContext context) {
     // 使用预计算缓存：数据变化时一次性重建索引，页面切换时直接 O(1) 读取
-    final cache = ref.watch(unifiedObjectCacheProvider);
+    final cache = ref.watch(
+      unifiedObjectCacheProvider.select(
+        (c) => (
+          objectById: c.objectById,
+          itemChildren: c.itemChildren,
+          workspaceChildren: c.workspaceChildren,
+          rootObjects: c.rootObjects,
+        ),
+      ),
+    );
 
     final currentObject = widget.objectId != null
         ? cache.objectById[widget.objectId]

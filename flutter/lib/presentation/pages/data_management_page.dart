@@ -251,10 +251,10 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       return;
     }
 
+    final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) {
-        final controller = TextEditingController();
         return AlertDialog(
           title: const Text('Name Special Backup'),
           content: TextField(
@@ -282,6 +282,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         );
       },
     );
+    controller.dispose();
 
     if (name == null || name.isEmpty) return;
 
@@ -343,10 +344,10 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       return;
     }
 
+    final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) {
-        final controller = TextEditingController();
         return AlertDialog(
           title: const Text('Name Special Backup'),
           content: TextField(
@@ -374,6 +375,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         );
       },
     );
+    controller.dispose();
 
     if (name == null || name.isEmpty) return;
 
@@ -417,10 +419,10 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
   Future<void> _renameSpecialBackup(BackupEntry entry) async {
     final currentName = entry.fileName.replaceAll('.backup', '');
+    final controller = TextEditingController(text: currentName);
     final newName = await showDialog<String>(
       context: context,
       builder: (ctx) {
-        final controller = TextEditingController(text: currentName);
         return AlertDialog(
           title: const Text('Rename Special Backup'),
           content: TextField(
@@ -447,6 +449,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         );
       },
     );
+    controller.dispose();
 
     if (newName == null || newName.isEmpty) return;
 

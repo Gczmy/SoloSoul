@@ -56,9 +56,10 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
 
   Future<String?> _showPasswordDialog(String message, {String? passwordHint}) async {
     final controller = TextEditingController();
-    bool obscure = true;
-    String? hint = passwordHint;
-    return showDialog<String>(
+    try {
+      bool obscure = true;
+      String? hint = passwordHint;
+      return await showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
@@ -122,6 +123,9 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         ),
       ),
     );
+    } finally {
+      controller.dispose();
+    }
   }
 
   Future<void> _toggleBiometric(bool enable) async {

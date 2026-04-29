@@ -138,7 +138,12 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                     icon: Icons.phone_android,
                     title: 'Platform',
                     value:
-                        Platform.isMacOS ? 'macOS' : Platform.operatingSystem[0].toUpperCase() + Platform.operatingSystem.substring(1),
+                        Platform.isMacOS
+                            ? 'macOS'
+                            : (Platform.operatingSystem.isNotEmpty
+                                ? Platform.operatingSystem[0].toUpperCase() +
+                                    Platform.operatingSystem.substring(1)
+                                : 'Unknown'),
                   ),
                 ],
               ),
