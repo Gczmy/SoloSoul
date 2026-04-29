@@ -5,6 +5,20 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-04-29
+
+### Fixed
+
+- **Vault Initialization Race** — Fixed a race condition where Android/Windows fallback vault could be accessed before async initialization completed
+- **Memory Leaks** — Fixed TextEditingController leaks in property editors (text, number, relation, URL)
+- **Build-Time Crashes** — Fixed fire-and-forget async exceptions in object editor save flow; added mounted checks after all async operations
+
+### Performance
+
+- **Faster Sensitivity Settings** — Field list sorting and filtering is now cached, eliminating redundant computation on every UI rebuild
+- **Faster Trash** — Replaced 12 individual provider watches with a single aggregated sensitivity map; trash filtering results are cached
+- **Reduced Rebuilds** — Search result tiles now watch only revealed field state instead of the entire account style; object workspace and predefined sections use more precise provider watching
+
 ## [1.4.2] - 2026-04-29
 
 ### Fixed
