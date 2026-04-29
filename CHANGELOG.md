@@ -5,6 +5,12 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-04-29
+
+### Fixed
+
+- **Critical Privacy Fix** — Fixed cross-account data leakage when creating a new account after locking a previous one. All sensitive in-memory state is now properly cleared on lock, including unified objects.
+
 ## [1.4.0] - 2026-04-29
 
 ### Added
