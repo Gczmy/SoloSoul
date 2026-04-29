@@ -1,7 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unused_element
 
-part of 'profile_storage_service.dart';
+part of 'profile_data.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -20,12 +19,12 @@ ProfileData _$ProfileDataFromJson(Map<String, dynamic> json) => ProfileData(
   professional: json['professional'] == null
       ? null
       : ProfessionalData.fromJson(json['professional'] as Map<String, dynamic>),
-  unifiedObjects: json['unifiedObjects'] == null
+  unifiedObjects: json['unified_objects'] == null
       ? null
       : UnifiedObjectData.fromJson(
-          json['unifiedObjects'] as Map<String, dynamic>,
+          json['unified_objects'] as Map<String, dynamic>,
         ),
-  schemaVersion: (json['schemaVersion'] as num?)?.toInt(),
+  schemaVersion: (json['schema_version'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$ProfileDataToJson(ProfileData instance) =>
@@ -34,8 +33,39 @@ Map<String, dynamic> _$ProfileDataToJson(ProfileData instance) =>
       'travel': instance.travel?.toJson(),
       'financial': instance.financial?.toJson(),
       'professional': instance.professional?.toJson(),
-      'unifiedObjects': instance.unifiedObjects?.toJson(),
-      'schemaVersion': instance.schemaVersion,
+      'unified_objects': instance.unifiedObjects?.toJson(),
+      'schema_version': instance.schemaVersion,
+    };
+
+IdentityData _$IdentityDataFromJson(Map<String, dynamic> json) => IdentityData(
+  fullName: json['full_name'] as String?,
+  givenName: json['given_name'] as String?,
+  familyName: json['family_name'] as String?,
+  dateOfBirth: json['date_of_birth'] as String?,
+  gender: json['gender'] as String?,
+  nationality: json['nationality'] as String?,
+  idCards: (json['id_cards'] as List<dynamic>?)
+      ?.map((e) => IdCardData.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  contact: json['contact'] == null
+      ? null
+      : ContactData.fromJson(json['contact'] as Map<String, dynamic>),
+  addresses: (json['addresses'] as List<dynamic>?)
+      ?.map((e) => AddressData.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
+
+Map<String, dynamic> _$IdentityDataToJson(IdentityData instance) =>
+    <String, dynamic>{
+      'full_name': instance.fullName,
+      'given_name': instance.givenName,
+      'family_name': instance.familyName,
+      'date_of_birth': instance.dateOfBirth,
+      'gender': instance.gender,
+      'nationality': instance.nationality,
+      'id_cards': instance.idCards?.map((e) => e.toJson()).toList(),
+      'contact': instance.contact?.toJson(),
+      'addresses': instance.addresses?.map((e) => e.toJson()).toList(),
     };
 
 ContactEntry _$ContactEntryFromJson(Map<String, dynamic> json) => ContactEntry(

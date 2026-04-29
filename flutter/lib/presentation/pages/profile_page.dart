@@ -14,7 +14,7 @@ import 'package:solosoul_flutter/presentation/providers/account_style_provider.d
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show SensitivityLevel, SensitivityDisplayMode, effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
-import 'package:solosoul_flutter/core/services/profile_storage_service.dart'
+import 'package:solosoul_flutter/core/models/profile_data.dart'
     show kMaxFieldLength;
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
