@@ -1187,6 +1187,20 @@ class ProfileStorageService {
           );
         }
       }
+      for (var i = 0; i < profile.professional!.awards.length; i++) {
+        final a = profile.professional!.awards[i];
+        if (a.isDeleted) {
+          items.add(
+            DeletedItemInfo(
+              section: 'professional',
+              itemType: 'award',
+              id: a.id,
+              itemLabel: a.title ?? 'Award',
+              deletedAt: a.deletedAt ?? DateTime.now(),
+            ),
+          );
+        }
+      }
     }
 
     // Profile/Identity section - contact entries
@@ -1583,96 +1597,42 @@ class ProfileStorageService {
     await saveProfile(accountId, updatedProfile);
   }
 
-  /// Permanently delete items older than 30 days
-  Future<void> purgeOldDeletedItems(
-    ProfileData profile,
-    String accountId,
-  ) async {
+  /// Permanently delete items older than 30 days.
+  /// Returns a new [ProfileData] with old deleted items removed (immutable).
+  ProfileData purgeOldDeletedItems(ProfileData profile) {
     final cutoff = DateTime.now().subtract(const Duration(days: 30));
+    bool isOld(dynamic item) =>
+        item.isDeleted && item.deletedAt != null && item.deletedAt!.isBefore(cutoff);
 
-    // Travel section
-    if (profile.travel != null) {
-      profile.travel!.passports.removeWhere(
-        (p) =>
-            p.isDeleted && p.deletedAt != null && p.deletedAt!.isBefore(cutoff),
-      );
-      profile.travel!.visas.removeWhere(
-        (v) =>
-            v.isDeleted && v.deletedAt != null && v.deletedAt!.isBefore(cutoff),
-      );
-      profile.travel!.travelHistory.removeWhere(
-        (t) =>
-            t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
-      );
-    }
-
-    // Financial section
-    if (profile.financial != null) {
-      profile.financial!.bankAccounts.removeWhere(
-        (b) =>
-            b.isDeleted && b.deletedAt != null && b.deletedAt!.isBefore(cutoff),
-      );
-      profile.financial!.cards.removeWhere(
-        (c) =>
-            c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
-      );
-      profile.financial!.taxIds.removeWhere(
-        (t) =>
-            t.isDeleted && t.deletedAt != null && t.deletedAt!.isBefore(cutoff),
-      );
-    }
-
-    // Professional section
-    if (profile.professional != null) {
-      profile.professional!.education.removeWhere(
-        (e) =>
-            e.isDeleted && e.deletedAt != null && e.deletedAt!.isBefore(cutoff),
-      );
-      profile.professional!.employment.removeWhere(
-        (emp) =>
-            emp.isDeleted &&
-            emp.deletedAt != null &&
-            emp.deletedAt!.isBefore(cutoff),
-      );
-      profile.professional!.skills.removeWhere(
-        (s) =>
-            s.isDeleted && s.deletedAt != null && s.deletedAt!.isBefore(cutoff),
-      );
-      profile.professional!.languages.removeWhere(
-        (l) =>
-            l.isDeleted && l.deletedAt != null && l.deletedAt!.isBefore(cutoff),
-      );
-      profile.professional!.awards.removeWhere(
-        (a) =>
-            a.isDeleted && a.deletedAt != null && a.deletedAt!.isBefore(cutoff),
-      );
-    }
-
-    // Identity section
-    if (profile.identity != null) {
-      profile.identity!.idCards?.removeWhere(
-        (c) =>
-            c.isDeleted && c.deletedAt != null && c.deletedAt!.isBefore(cutoff),
-      );
-      profile.identity!.addresses?.removeWhere(
-        (a) =>
-            a.isDeleted && a.deletedAt != null && a.deletedAt!.isBefore(cutoff),
-      );
-      profile.identity!.contact?.entries.removeWhere(
-        (e) =>
-            e.isDeleted && e.deletedAt != null && e.deletedAt!.isBefore(cutoff),
-      );
-    }
-
-    // UnifiedObject section
-    if (profile.unifiedObjects != null) {
-      profile.unifiedObjects!.objects.removeWhere(
-        (o) =>
-            o.isDeleted && o.deletedAt != null && o.deletedAt!.isBefore(cutoff),
-      );
-    }
-
-    await saveProfile(accountId, profile);
+    return profile.copyWith(
+      travel: profile.travel?.copyWith(
+        passports: profile.travel!.passports.where((p) => !isOld(p)).toList(),
+        visas: profile.travel!.visas.where((v) => !isOld(v)).toList(),
+        travelHistory: profile.travel!.travelHistory.where((t) => !isOld(t)).toList(),
+      ),
+      financial: profile.financial?.copyWith(
+        bankAccounts: profile.financial!.bankAccounts.where((b) => !isOld(b)).toList(),
+        cards: profile.financial!.cards.where((c) => !isOld(c)).toList(),
+        taxIds: profile.financial!.taxIds.where((t) => !isOld(t)).toList(),
+      ),
+      professional: profile.professional?.copyWith(
+        education: profile.professional!.education.where((e) => !isOld(e)).toList(),
+        employment: profile.professional!.employment.where((emp) => !isOld(emp)).toList(),
+        skills: profile.professional!.skills.where((s) => !isOld(s)).toList(),
+        languages: profile.professional!.languages.where((l) => !isOld(l)).toList(),
+        awards: profile.professional!.awards.where((a) => !isOld(a)).toList(),
+      ),
+      identity: profile.identity?.copyWith(
+        idCards: profile.identity!.idCards?.where((c) => !isOld(c)).toList(),
+        addresses: profile.identity!.addresses?.where((a) => !isOld(a)).toList(),
+        contact: profile.identity!.contact?.copyWith(
+          entries: profile.identity!.contact!.entries.where((e) => !isOld(e)).toList(),
+        ),
+      ),
+      unifiedObjects: profile.unifiedObjects?.copyWith(
+        objects: profile.unifiedObjects!.objects.where((o) => !isOld(o)).toList(),
+      ),
+    );
   }
 
   /// Check and purge old deleted items (called on app startup)
@@ -1805,7 +1765,8 @@ class ProfileStorageService {
     }
 
     if (hasOldItems) {
-      await purgeOldDeletedItems(profile, accountId);
+      final newProfile = purgeOldDeletedItems(profile);
+      await saveProfile(accountId, newProfile);
     }
   }
 
