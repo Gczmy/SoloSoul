@@ -109,7 +109,7 @@ class PropertyEditorFactory {
 // Internal Editors
 // =============================================================================
 
-class _TextEditor extends StatelessWidget {
+class _TextEditor extends StatefulWidget {
   final String text;
   final int? maxLength;
   final ValueChanged<String> onChanged;
@@ -123,21 +123,40 @@ class _TextEditor extends StatelessWidget {
   });
 
   @override
+  State<_TextEditor> createState() => _TextEditorState();
+}
+
+class _TextEditorState extends State<_TextEditor> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.text)
+      ..selection = TextSelection.collapsed(offset: widget.text.length);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: TextEditingController(text: text)
-        ..selection = TextSelection.collapsed(offset: text.length),
+      controller: _controller,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
       ),
-      maxLength: maxLength,
-      readOnly: readOnly,
-      onChanged: onChanged,
+      maxLength: widget.maxLength,
+      readOnly: widget.readOnly,
+      onChanged: widget.onChanged,
     );
   }
 }
 
-class _NumberEditor extends StatelessWidget {
+class _NumberEditor extends StatefulWidget {
   final double? value;
   final ValueChanged<double?> onChanged;
   final bool readOnly;
@@ -149,18 +168,38 @@ class _NumberEditor extends StatelessWidget {
   });
 
   @override
+  State<_NumberEditor> createState() => _NumberEditorState();
+}
+
+class _NumberEditorState extends State<_NumberEditor> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final text = widget.value?.toString() ?? '';
+    _controller = TextEditingController(text: text)
+      ..selection = TextSelection.collapsed(offset: text.length);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: TextEditingController(text: value?.toString() ?? '')
-        ..selection = TextSelection.collapsed(offset: value?.toString().length ?? 0),
+      controller: _controller,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      readOnly: readOnly,
+      readOnly: widget.readOnly,
       onChanged: (v) {
         final parsed = double.tryParse(v);
-        onChanged(parsed);
+        widget.onChanged(parsed);
       },
     );
   }
@@ -305,7 +344,7 @@ class _MultiSelectEditor extends StatelessWidget {
   }
 }
 
-class _RelationEditor extends StatelessWidget {
+class _RelationEditor extends StatefulWidget {
   final String? targetObjectId;
   final ValueChanged<String?> onChanged;
   final bool readOnly;
@@ -317,22 +356,42 @@ class _RelationEditor extends StatelessWidget {
   });
 
   @override
+  State<_RelationEditor> createState() => _RelationEditorState();
+}
+
+class _RelationEditorState extends State<_RelationEditor> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final text = widget.targetObjectId ?? '';
+    _controller = TextEditingController(text: text)
+      ..selection = TextSelection.collapsed(offset: text.length);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // MVP: relation picker is a simple text field for the target ID
     return TextField(
-      controller: TextEditingController(text: targetObjectId ?? '')
-        ..selection = TextSelection.collapsed(offset: targetObjectId?.length ?? 0),
+      controller: _controller,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
         hintText: 'Target object ID',
       ),
-      readOnly: readOnly,
-      onChanged: (v) => onChanged(v.isEmpty ? null : v),
+      readOnly: widget.readOnly,
+      onChanged: (v) => widget.onChanged(v.isEmpty ? null : v),
     );
   }
 }
 
-class _UrlEditor extends StatelessWidget {
+class _UrlEditor extends StatefulWidget {
   final String? url;
   final ValueChanged<String?> onChanged;
   final bool readOnly;
@@ -344,17 +403,37 @@ class _UrlEditor extends StatelessWidget {
   });
 
   @override
+  State<_UrlEditor> createState() => _UrlEditorState();
+}
+
+class _UrlEditorState extends State<_UrlEditor> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final text = widget.url ?? '';
+    _controller = TextEditingController(text: text)
+      ..selection = TextSelection.collapsed(offset: text.length);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: TextEditingController(text: url ?? '')
-        ..selection = TextSelection.collapsed(offset: url?.length ?? 0),
+      controller: _controller,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
         hintText: 'https://...',
       ),
       keyboardType: TextInputType.url,
-      readOnly: readOnly,
-      onChanged: (v) => onChanged(v.isEmpty ? null : v),
+      readOnly: widget.readOnly,
+      onChanged: (v) => widget.onChanged(v.isEmpty ? null : v),
     );
   }
 }

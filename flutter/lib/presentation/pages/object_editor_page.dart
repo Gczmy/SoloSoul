@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -173,7 +174,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                     : _iconController.text,
                               ),
                             );
-                            if (result != null) {
+                            if (result != null && mounted) {
                               setState(() {
                                 _iconController.text = result;
                               });
@@ -437,7 +438,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                                     ],
                                   ),
                                 );
-                                if (confirmed == true) {
+                                if (confirmed == true && mounted) {
                                   setState(() {
                                     final removed = _propertyFields.removeAt(index);
                                     removed.controller.dispose();
@@ -508,10 +509,13 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   }
 
   void _saveObject() async {
+    try {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name is required')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Name is required')),
+        );
+      }
       return;
     }
 
@@ -585,6 +589,14 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
     if (mounted) {
       context.pop();
+    }
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('OBJECT_EDITOR', 'Failed to save object: $e\n$st');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: $e')),
+        );
+      }
     }
   }
 }
