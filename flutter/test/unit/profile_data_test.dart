@@ -539,7 +539,6 @@ void main() {
     });
 
     test('serializes and deserializes complete profile with all section types', () {
-      final now = DateTime.now();
       final profile = ProfileData(
         identity: IdentityData(
           fullName: 'Complete Test',

@@ -4,6 +4,7 @@ import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/utils/format_relative_time.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -45,24 +46,7 @@ class FieldHistoryDialog extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final diff = now.difference(timestamp);
-
-    if (diff.inDays > 365) {
-      return '${(diff.inDays / 365).floor()} year(s) ago';
-    } else if (diff.inDays > 30) {
-      return '${(diff.inDays / 30).floor()} month(s) ago';
-    } else if (diff.inDays > 0) {
-      return '${diff.inDays} day(s) ago';
-    } else if (diff.inHours > 0) {
-      return '${diff.inHours} hour(s) ago';
-    } else if (diff.inMinutes > 0) {
-      return '${diff.inMinutes} minute(s) ago';
-    } else {
-      return 'Just now';
-    }
-  }
+  String _formatTimestamp(DateTime timestamp) => formatRelativeTime(timestamp);
 
   String _formatFullTimestamp(DateTime timestamp) {
     return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} '

@@ -65,7 +65,9 @@ class DebugMode extends _$DebugMode {
       try {
         final storage = FallbackSecureStorage();
         await storage.write(key: _key, value: 'true');
-      } on Exception {}
+      } on Exception catch (e) {
+        DebugLogger.instance.logError('Settings', 'Failed to enable debug mode: $e');
+      }
     }
     state = true;
     DebugLogger.instance.activate();
@@ -76,7 +78,9 @@ class DebugMode extends _$DebugMode {
     try {
       final storage = FallbackSecureStorage();
       await storage.write(key: _key, value: 'false');
-    } on Exception {}
+    } on Exception catch (e) {
+      DebugLogger.instance.logError('Settings', 'Failed to disable debug mode: $e');
+    }
     state = false;
   }
 }
@@ -120,7 +124,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         securityService.settings.faceIdEnabled;
     final canUseBiometric = isBiometricAvailable && isBiometricEnabled;
 
-    Future<void> _tryBiometric() async {
+    Future<void> tryBiometric() async {
       if (isBiometricVerified) return;
       final success = await biometricService.authenticate(
         reason: 'Verify your identity to enable debug mode',
@@ -133,6 +137,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       }
     }
 
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -159,7 +164,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: _tryBiometric,
+                      onPressed: tryBiometric,
                       icon: Icon(
                         securityService.settings.faceIdEnabled
                             ? Icons.face_outlined
@@ -301,7 +306,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Row(
               children: [
                 Icon(Icons.error_outline, color: Colors.white),
@@ -309,7 +314,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 Text('Invalid password'),
               ],
             ),
-            backgroundColor: Colors.red.shade700,
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -330,7 +335,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1631,7 +1636,7 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
                       icon: const Icon(Icons.copy),
                       onPressed: () async {
                         await _copyToClipboard();
-                        if (mounted) Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                       },
                       tooltip: 'Copy to clipboard',
                     ),
@@ -1639,7 +1644,7 @@ class _DebugLogSheetState extends State<_DebugLogSheet> {
                       icon: const Icon(Icons.power_settings_new),
                       onPressed: () async {
                         await widget.onDisableDebugMode();
-                        if (mounted) Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                       },
                       tooltip: 'Disable debug mode',
                       color: Colors.red,
@@ -1764,9 +1769,9 @@ class _VersionSheetState extends ConsumerState<_VersionSheet> {
                                 color: AppTheme.primaryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Text(
+                              child: const Text(
                                 '/5',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,

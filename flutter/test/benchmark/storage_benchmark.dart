@@ -1,4 +1,5 @@
 import 'dart:convert';
+// ignore_for_file: avoid_print
 
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 

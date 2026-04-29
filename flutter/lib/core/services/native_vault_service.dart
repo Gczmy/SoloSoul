@@ -25,8 +25,6 @@ class NativeVaultService {
   Directory? _profilesDir;
   bool _isUnlocked = false;
   String? _currentAccountId;
-  String? _derivedKeyB64;
-  bool _androidInitialized = false;
 
   /// Write debug log using dart:developer (debug build only)
   void _log(String msg) {
@@ -55,7 +53,6 @@ class NativeVaultService {
     if (!await _profilesDir!.exists()) {
       await _profilesDir!.create(recursive: true);
     }
-    _androidInitialized = true;
     _log('Android fallback vault initialized at: ${_profilesDir!.path}');
   }
 
@@ -624,7 +621,6 @@ class NativeVaultService {
       }
     }
 
-    _derivedKeyB64 = base64Encode(derivedKey);
     _currentAccountId = accountId;
     _isUnlocked = true;
     return (success: true, error: null, cryptoVersion: 1);
@@ -645,7 +641,7 @@ class NativeVaultService {
             if (data['account_id'] == accountId) {
               file.deleteSync();
             }
-          } catch (_) {}
+          } on Exception catch (_) {}
         }
       }
 
@@ -669,7 +665,7 @@ class NativeVaultService {
       }
 
       return true;
-    } catch (e) {
+    } on Exception catch (e) {
       _log('deleteAccountAsync error: $e');
       return false;
     }
@@ -700,7 +696,7 @@ class NativeVaultService {
       }
 
       return accounts;
-    } catch (e) {
+    } on Exception catch (e) {
       _log('listAccountsAsync error: $e');
       return null;
     }
@@ -734,7 +730,7 @@ class NativeVaultService {
         verifyHash: verifyHashB64,
         cryptoVersion: 1,
       );
-    } catch (e) {
+    } on Exception catch (e) {
       _log('getAccountConfigAsync error: $e');
       return null;
     }
@@ -836,10 +832,10 @@ class NativeVaultService {
             'created_at': data['created_at'],
             'updated_at': data['updated_at'],
           });
-        } catch (_) {}
+        } on Exception catch (_) {}
       }
       return {'success': true, 'data': profiles};
-    } catch (e) {
+    } on Exception catch (e) {
       return {'success': false, 'error': 'Failed to list profiles: $e'};
     }
   }
@@ -848,7 +844,7 @@ class NativeVaultService {
     if (!_isUnlocked) {
       return {'success': false, 'error': 'Vault is locked'};
     }
-    if (name == null || dataB64 == null) {
+    if (dataB64 == null) {
       return {'success': false, 'error': 'Missing name or data'};
     }
     try {
@@ -861,7 +857,7 @@ class NativeVaultService {
               final content = f.readAsStringSync();
               final data = jsonDecode(content) as Map<String, dynamic>;
               return data['name'] == name;
-            } catch (_) {
+            } on Exception catch (_) {
               return false;
             }
           }).toList();
@@ -897,7 +893,7 @@ class NativeVaultService {
           'updated_at': profileData['updated_at'],
         },
       };
-    } catch (e) {
+    } on Exception catch (e) {
       return {'success': false, 'error': 'Failed to save profile: $e'};
     }
   }
@@ -931,7 +927,7 @@ class NativeVaultService {
           'updated_at': data['updated_at'],
         },
       };
-    } catch (e) {
+    } on Exception catch (e) {
       return {'success': false, 'error': 'Failed to load profile: $e'};
     }
   }
@@ -949,7 +945,7 @@ class NativeVaultService {
         file.deleteSync();
       }
       return {'success': true};
-    } catch (e) {
+    } on Exception catch (e) {
       return {'success': false, 'error': 'Failed to delete profile: $e'};
     }
   }
@@ -969,14 +965,13 @@ class NativeVaultService {
           'account_id': _currentAccountId,
         },
       };
-    } catch (e) {
+    } on Exception catch (e) {
       return {'success': false, 'error': 'Failed to get vault stats: $e'};
     }
   }
 
   void _androidLockVault() {
     _isUnlocked = false;
-    _derivedKeyB64 = null;
     _currentAccountId = null;
   }
 

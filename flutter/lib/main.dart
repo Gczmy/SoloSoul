@@ -24,7 +24,7 @@ void main() async {
 
   runApp(
     ProviderScope(
-      child: SoloSoulApp(),
+      child: const SoloSoulApp(),
       retry: (retryCount, error) => null,
     ),
   );

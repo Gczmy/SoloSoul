@@ -44,7 +44,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
         actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -64,7 +64,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     isRestricted: true,
                     formatAllFields:
                         (a) => 'Bank Account\n${a.toFormattedString()}',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'bankAccount',
                     excludeFields: const {'title'},
                   ),
@@ -77,7 +77,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)
@@ -123,7 +123,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     historyFieldId: 'card',
                     isRestricted: true,
                     formatAllFields: (c) => 'Card\n${c.toFormattedString()}',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'card',
                     excludeFields: const {'title'},
                   ),
@@ -136,7 +136,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)
@@ -182,7 +182,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     historyFieldId: 'taxId',
                     isRestricted: true,
                     formatAllFields: (t) => 'Tax ID\n${t.toFormattedString()}',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'taxId',
                     excludeFields: const {'title'},
                   ),
@@ -195,7 +195,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)

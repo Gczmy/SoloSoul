@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+// ignore_for_file: avoid_print
 // Cleanup orphaned Rust account data
 //
 // This script finds and removes residual account data from the Rust vault

@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 
 /// Data Management page — full-screen backup & restore UI.
 class DataManagementPage extends ConsumerStatefulWidget {
@@ -103,47 +104,40 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           if (mounted) setState(() => _backupProgress = p);
         },
       );
-      if (mounted) {
-        setState(() => _isCreating = false);
-        if (fileName != null) {
-          await _loadBackups();
-          if (context.mounted) {
-            OperationNotification.show(
-              context,
-              message: const OperationMessage(
-                type: OperationType.create,
-                section: 'backup',
-                customMessage: 'Backup created successfully',
-              ),
-            );
-          }
-        } else {
-          if (context.mounted) {
-            OperationNotification.show(
-              context,
-              message: const OperationMessage(
-                type: OperationType.delete,
-                section: 'backup',
-                customMessage: 'Backup failed',
-              ),
-            );
-          }
-        }
+      if (!mounted) return;
+      setState(() => _isCreating = false);
+      if (fileName != null) {
+        await _loadBackups();
+        if (!mounted) return;
+        OperationNotification.show(
+          context,
+          message: const OperationMessage(
+            type: OperationType.create,
+            section: 'backup',
+            customMessage: 'Backup created successfully',
+          ),
+        );
+      } else {
+        OperationNotification.show(
+          context,
+          message: const OperationMessage(
+            type: OperationType.delete,
+            section: 'backup',
+            customMessage: 'Backup failed',
+          ),
+        );
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isCreating = false);
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: OperationMessage(
-              type: OperationType.purge,
-              section: 'backup',
-              customMessage: 'Backup error: $e',
-            ),
-          );
-        }
-      }
+    } on Exception catch (e) {
+      if (!mounted) return;
+      setState(() => _isCreating = false);
+      OperationNotification.show(
+        context,
+        message: OperationMessage(
+          type: OperationType.purge,
+          section: 'backup',
+          customMessage: 'Backup error: $e',
+        ),
+      );
     }
   }
 
@@ -176,33 +170,29 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       _accountId!,
       entry.fileName,
     );
-    if (mounted) {
-      setState(() => _isRestoring = false);
-      if (success) {
-        await _loadAllBackups();
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: const OperationMessage(
-              type: OperationType.restore,
-              section: 'backup',
-              customMessage: 'Restore successful. Please restart the app.',
-            ),
-            duration: const Duration(seconds: 4),
-          );
-        }
-      } else {
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: const OperationMessage(
-              type: OperationType.purge,
-              section: 'backup',
-              customMessage: 'Restore failed',
-            ),
-          );
-        }
-      }
+    if (!mounted) return;
+    setState(() => _isRestoring = false);
+    if (success) {
+      await _loadAllBackups();
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.restore,
+          section: 'backup',
+          customMessage: 'Restore successful. Please restart the app.',
+        ),
+        duration: AppTheme.kPasswordHintDelay,
+      );
+    } else {
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.purge,
+          section: 'backup',
+          customMessage: 'Restore failed',
+        ),
+      );
     }
   }
 
@@ -245,7 +235,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Special Backup Limit Reached'),
-            content: Text(
+            content: const Text(
               'You can keep up to ${BackupService.maxSpecialBackupCount} special backups. '
               'Please delete an existing one before promoting.',
             ),
@@ -301,29 +291,28 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       name,
     );
 
-    if (result != null && mounted) {
+    if (result != null) {
+      if (!mounted) return;
       await _loadSpecialBackups();
-      if (context.mounted) {
-        OperationNotification.show(
-          context,
-          message: OperationMessage(
-            type: OperationType.create,
-            section: 'backup',
-            customMessage: 'Saved as special backup "$name"',
-          ),
-        );
-      }
-    } else if (mounted) {
-      if (context.mounted) {
-        OperationNotification.show(
-          context,
-          message: const OperationMessage(
-            type: OperationType.delete,
-            section: 'backup',
-            customMessage: 'Failed to save as special backup',
-          ),
-        );
-      }
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: OperationMessage(
+          type: OperationType.create,
+          section: 'backup',
+          customMessage: 'Saved as special backup "$name"',
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.delete,
+          section: 'backup',
+          customMessage: 'Failed to save as special backup',
+        ),
+      );
     }
   }
 
@@ -338,7 +327,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Special Backup Limit Reached'),
-            content: Text(
+            content: const Text(
               'You can keep up to ${BackupService.maxSpecialBackupCount} special backups. '
               'Please delete an existing one before creating a new special backup.',
             ),
@@ -401,32 +390,28 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       },
     );
 
-    if (mounted) {
-      setState(() => _isCreatingSpecial = false);
-      if (fileName != null) {
-        await _loadSpecialBackups();
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: OperationMessage(
-              type: OperationType.create,
-              section: 'backup',
-              customMessage: 'Special backup "$name" created',
-            ),
-          );
-        }
-      } else {
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: const OperationMessage(
-              type: OperationType.delete,
-              section: 'backup',
-              customMessage: 'Special backup failed',
-            ),
-          );
-        }
-      }
+    if (!mounted) return;
+    setState(() => _isCreatingSpecial = false);
+    if (fileName != null) {
+      await _loadSpecialBackups();
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: OperationMessage(
+          type: OperationType.create,
+          section: 'backup',
+          customMessage: 'Special backup "$name" created',
+        ),
+      );
+    } else {
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.delete,
+          section: 'backup',
+          customMessage: 'Special backup failed',
+        ),
+      );
     }
   }
 
@@ -471,18 +456,18 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       newName,
     );
 
-    if (result != null && mounted) {
+    if (result != null) {
+      if (!mounted) return;
       await _loadSpecialBackups();
-      if (context.mounted) {
-        OperationNotification.show(
-          context,
-          message: OperationMessage(
-            type: OperationType.update,
-            section: 'backup',
-            customMessage: 'Renamed to "$newName"',
-          ),
-        );
-      }
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: OperationMessage(
+          type: OperationType.update,
+          section: 'backup',
+          customMessage: 'Renamed to "$newName"',
+        ),
+      );
     }
   }
 
@@ -514,33 +499,29 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       _accountId!,
       entry.fileName,
     );
-    if (mounted) {
-      setState(() => _isRestoring = false);
-      if (success) {
-        await _loadAllBackups();
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: const OperationMessage(
-              type: OperationType.restore,
-              section: 'backup',
-              customMessage: 'Special backup restored. Please restart the app.',
-            ),
-            duration: const Duration(seconds: 4),
-          );
-        }
-      } else {
-        if (context.mounted) {
-          OperationNotification.show(
-            context,
-            message: const OperationMessage(
-              type: OperationType.purge,
-              section: 'backup',
-              customMessage: 'Restore failed',
-            ),
-          );
-        }
-      }
+    if (!mounted) return;
+    setState(() => _isRestoring = false);
+    if (success) {
+      await _loadAllBackups();
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.restore,
+          section: 'backup',
+          customMessage: 'Special backup restored. Please restart the app.',
+        ),
+        duration: AppTheme.kPasswordHintDelay,
+      );
+    } else {
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.purge,
+          section: 'backup',
+          customMessage: 'Restore failed',
+        ),
+      );
     }
   }
 
@@ -754,7 +735,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                           ),
                           title: Text(entry.displayTime),
                           subtitle: Text(
-                            '${_formatBytes(entry.sizeBytes)}',
+                            _formatBytes(entry.sizeBytes),
                             style: theme.textTheme.bodySmall,
                           ),
                           trailing: Row(

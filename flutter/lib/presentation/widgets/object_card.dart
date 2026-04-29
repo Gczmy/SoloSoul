@@ -250,7 +250,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     );
     if (confirmed != true) return;
 
-    final doDelete = () async {
+    Future<void> doDelete() async {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
 
       OperationLogService.instance.addEntry(
@@ -280,7 +280,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           },
         );
       }
-    };
+    }
 
     if (_itemHasSensitiveProperties(item)) {
       await _handleWithVerification(doDelete);
@@ -290,7 +290,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   void _startEditingItem(UnifiedObject item) {
-    final doEdit = () {
+    void doEdit() {
       setState(() {
         _editingItemId = item.id;
         _isAddingItem = false;
@@ -305,7 +305,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         _setupChangeDetection();
         _hasChanges = false;
       });
-    };
+    }
 
     if (_itemHasSensitiveProperties(item)) {
       _handleWithVerification(doEdit);
@@ -878,7 +878,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               valueListenable: controller ?? TextEditingController(),
               builder: (context, val, child) {
                 final len = val.text.length;
-                final max = kMaxPropertyLength;
+                const max = kMaxPropertyLength;
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -952,7 +952,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
             valueListenable: controller ?? TextEditingController(),
             builder: (context, val, child) {
               final len = val.text.length;
-              final max = kMaxPropertyLength;
+              const max = kMaxPropertyLength;
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -992,7 +992,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   void _copyItem(UnifiedObject item) {
-    final doCopy = () {
+    void doCopy() {
       final buffer = StringBuffer();
       buffer.writeln('${item.name}:');
       for (final entry in item.properties.entries) {
@@ -1004,7 +1004,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         content: 'Copied to clipboard',
         type: SnackBarType.success,
       );
-    };
+    }
 
     if (_itemHasSensitiveProperties(item)) {
       _handleWithVerification(doCopy);

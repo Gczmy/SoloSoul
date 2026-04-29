@@ -409,8 +409,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         .restore(section: item.section, itemType: item.itemType, id: item.id);
 
     if (mounted) {
-      // Trigger rebuild to remove item from list immediately
-      setState(() {});
+      // Rebuild triggered by provider state change
+      
 
       OperationNotification.show(
         context,
@@ -568,8 +568,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         );
 
     if (mounted) {
-      // Trigger rebuild to remove item from list immediately
-      setState(() {});
+      // Rebuild triggered by provider state change
+      
       showOverlaySnackBar(
         context,
         content: '${item.itemLabel} permanently deleted',
@@ -639,7 +639,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               Navigator.pop(snackBarContext);
               await ref.read(profileNotifierProvider.notifier).emptyAllTrash();
               if (mounted) {
-                setState(() {});
+                
                 overlaySnackBar(
                   snackBarContext,
                   content: 'All $itemCount items permanently deleted',
@@ -1030,7 +1030,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     if (confirmed == true) {
       await ref.read(unifiedObjectProvider.notifier).restoreObject(object.id);
       if (mounted) {
-        setState(() {});
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Restored "${object.name}"')),
         );
@@ -1111,7 +1111,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           .read(unifiedObjectProvider.notifier)
           .permanentlyDeleteObject(object.id);
       if (mounted) {
-        setState(() {});
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Permanently deleted "${object.name}"')),
         );

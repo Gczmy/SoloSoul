@@ -12,7 +12,7 @@ class KeychainService {
   static final _localAuth = LocalAuthentication();
 
   // flutter_secure_storage instance for non-macOS platforms
-  static final _secureStorage = FlutterSecureStorage(
+  static const _secureStorage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     wOptions: WindowsOptions(),

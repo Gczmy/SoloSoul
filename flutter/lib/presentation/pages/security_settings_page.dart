@@ -58,7 +58,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: AppTheme.kPagePadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -120,7 +120,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                                       ),
                                       behavior: SnackBarBehavior.floating,
                                       backgroundColor: AppTheme.primaryColor,
-                                      duration: Duration(seconds: 5),
+                                      duration: AppTheme.kNotificationDuration,
                                     ),
                                   );
                                 } else {

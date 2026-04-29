@@ -18,8 +18,9 @@ void showOverlaySnackBar(
   Duration duration = const Duration(seconds: 2),
   SnackBarType type = SnackBarType.info,
 }) {
+  if (!context.mounted) return;
   final overlay = Overlay.of(context);
-  late OverlayEntry entry;
+  OverlayEntry? entry;
 
   // Color and icon based on type
   final (bgColor, icon, iconColor) = switch (type) {
@@ -96,7 +97,8 @@ void showOverlaySnackBar(
 
   overlay.insert(entry);
   Future.delayed(duration, () {
-    entry.remove();
+    entry?.remove();
+    entry = null;
   });
 }
 
@@ -122,6 +124,14 @@ class AppTheme {
   static const Color darkSurface = Color(0xFF1E293B);
   static const Color darkOnSurface = Color(0xFFF1F5F9);
   static const Color darkOnSurfaceVariant = Color(0xFF94A3B8);
+
+  // UI constants
+  static const Duration kNotificationDuration = Duration(seconds: 5);
+  static const Duration kOverlayDuration = Duration(seconds: 2);
+  static const Duration kPasswordHintDelay = Duration(seconds: 4);
+  static const EdgeInsets kPagePadding = EdgeInsets.all(24);
+  static const double kDefaultBorderRadius = 12.0;
+  static const int kDefaultMaxVisibleItems = 3;
 
   /// Light theme
   static ThemeData get lightTheme {

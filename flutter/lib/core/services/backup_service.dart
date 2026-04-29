@@ -167,7 +167,7 @@ class BackupService {
     } on TimeoutException {
       report(0);
       return null;
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       DebugLogger.instance.logError('BACKUP', 'createBackup failed: $e\n$st');
       report(0);
       return null;
@@ -311,7 +311,7 @@ class BackupService {
     } on TimeoutException {
       report(0);
       return null;
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       DebugLogger.instance.logError('BACKUP', 'createSpecialBackup failed: $e\n$st');
       report(0);
       return null;
@@ -443,7 +443,7 @@ class BackupService {
 
       await regularFile.copy(specialFile.path);
       return newFileName;
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       DebugLogger.instance.logError(
           'BACKUP', 'promoteBackupToSpecial failed: $e\n$st');
       return null;

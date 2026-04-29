@@ -7,7 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show showOverlaySnackBar, SnackBarType;
+    show AppTheme, showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
@@ -45,7 +45,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
         actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,7 +75,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 itemId: item.id,
                 historyFieldId: 'education',
                 formatAllFields: (e) => 'Education\n${e.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'education',
                 excludeFields: const {'institution'},
               ),
@@ -88,7 +88,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },
@@ -128,7 +128,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 itemId: item.id,
                 historyFieldId: 'employment',
                 formatAllFields: (e) => 'Employment\n${e.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'employment',
                 excludeFields: const {'company'},
               ),
@@ -141,7 +141,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },
@@ -181,7 +181,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 itemId: item.id,
                 historyFieldId: 'award',
                 formatAllFields: (e) => 'Award\n${e.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'award',
                 excludeFields: const {'title'},
               ),
@@ -194,7 +194,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },
@@ -234,7 +234,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 itemId: item.id,
                 historyFieldId: 'skill',
                 formatAllFields: (e) => 'Skill\n${e.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'skill',
                 excludeFields: const {'name'},
               ),
@@ -247,7 +247,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },
@@ -287,7 +287,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 itemId: item.id,
                 historyFieldId: 'language',
                 formatAllFields: (e) => 'Language\n${e.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'language',
                 excludeFields: const {'name'},
               ),
@@ -300,7 +300,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },

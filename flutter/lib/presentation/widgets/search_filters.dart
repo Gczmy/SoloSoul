@@ -17,7 +17,7 @@ class SearchFilters extends ConsumerWidget {
     final theme = Theme.of(context);
     final unselectedBg = theme.colorScheme.surfaceContainerHighest;
 
-    ChipThemeData _chipTheme(bool selected) {
+    ChipThemeData chipTheme(bool selected) {
       return ChipThemeData(
         backgroundColor: selected ? null : unselectedBg,
         side: selected ? null : BorderSide.none,
@@ -33,7 +33,7 @@ class SearchFilters extends ConsumerWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           ChipTheme(
-            data: _chipTheme(searchState.searchPublic),
+            data: chipTheme(searchState.searchPublic),
             child: FilterChip(
               label: const Text('Public'),
               selected: searchState.searchPublic,
@@ -44,7 +44,7 @@ class SearchFilters extends ConsumerWidget {
             ),
           ),
           ChipTheme(
-            data: _chipTheme(searchState.searchInternal),
+            data: chipTheme(searchState.searchInternal),
             child: FilterChip(
               label: const Text('Internal'),
               selected: searchState.searchInternal,
@@ -55,7 +55,7 @@ class SearchFilters extends ConsumerWidget {
             ),
           ),
           ChipTheme(
-            data: _chipTheme(searchState.searchSensitive),
+            data: chipTheme(searchState.searchSensitive),
             child: FilterChip(
               label: const Text('Sensitive'),
               selected: searchState.searchSensitive,
@@ -66,7 +66,7 @@ class SearchFilters extends ConsumerWidget {
             ),
           ),
           ChipTheme(
-            data: _chipTheme(searchState.searchRestricted),
+            data: chipTheme(searchState.searchRestricted),
             child: FilterChip(
               label: const Text('Restricted'),
               selected: searchState.searchRestricted,

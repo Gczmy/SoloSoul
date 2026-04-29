@@ -44,7 +44,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
         actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -63,7 +63,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 historyFieldId: 'passport',
                 isRestricted: true,
                 formatAllFields: (p) => 'Passport\n${p.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'passport',
                 excludeFields: const {'title'},
               ),
@@ -76,7 +76,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },
@@ -117,7 +117,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 historyFieldId: 'visa',
                 isRestricted: true,
                 formatAllFields: (v) => 'Visa\n${v.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'visa',
                 excludeFields: const {'title'},
               ),
@@ -130,7 +130,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },
@@ -170,7 +170,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 itemId: item.id,
                 historyFieldId: 'travel',
                 formatAllFields: (t) => 'Travel History\n${t.toFormattedString()}',
-                itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                itemData: itemMap,
                 fieldPrefix: 'travel',
                 excludeFields: const {'destination'},
               ),
@@ -183,7 +183,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref.read(unifiedObjectProvider.notifier).restoreDefaultItem(item.id);
                   },

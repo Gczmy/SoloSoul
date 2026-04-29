@@ -1897,12 +1897,12 @@ class ProfileStorageService {
     final objects = List<UnifiedObject>.from(existingData.objects);
     final timestamp = currentTimestamp();
 
-    TextProperty _prop(String? value, SensitivityLevel sensitivity) {
+    TextProperty prop(String? value, SensitivityLevel sensitivity) {
       return TextProperty(text: value ?? '', sensitivity: sensitivity);
     }
 
     // Helper to look up sensitivity from FieldRegistry / FormFieldRegistry
-    SensitivityLevel _sens(String fieldId) {
+    SensitivityLevel sens(String fieldId) {
       // 1. Try runtime-registered FormFieldRegistry first (contact.* etc.)
       final formField = FormFieldRegistry.getField(fieldId);
       if (formField != null) return formField.level;
@@ -1911,7 +1911,7 @@ class ProfileStorageService {
         return FieldRegistry.defaultFields
             .firstWhere((f) => f.fieldId == fieldId)
             .level;
-      } catch (_) {
+      } on Exception catch (_) {
         return SensitivityLevel.public;
       }
     }
@@ -1932,12 +1932,12 @@ class ProfileStorageService {
         name: identity.fullName ?? 'Identity',
         parentId: DefaultSectionIds.identity,
         properties: {
-          'fullName': _prop(identity.fullName, _sens('identity.fullName')),
-          'givenName': _prop(identity.givenName, _sens('identity.givenName')),
-          'familyName': _prop(identity.familyName, _sens('identity.familyName')),
-          'dateOfBirth': _prop(identity.dateOfBirth, _sens('identity.dateOfBirth')),
-          'gender': _prop(identity.gender, _sens('identity.gender')),
-          'nationality': _prop(identity.nationality, _sens('identity.nationality')),
+          'fullName': prop(identity.fullName, sens('identity.fullName')),
+          'givenName': prop(identity.givenName, sens('identity.givenName')),
+          'familyName': prop(identity.familyName, sens('identity.familyName')),
+          'dateOfBirth': prop(identity.dateOfBirth, sens('identity.dateOfBirth')),
+          'gender': prop(identity.gender, sens('identity.gender')),
+          'nationality': prop(identity.nationality, sens('identity.nationality')),
         },
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1955,9 +1955,9 @@ class ProfileStorageService {
         name: entry.title.isNotEmpty ? entry.title : entry.value,
         parentId: DefaultSectionIds.contact,
         properties: {
-          'title': _prop(entry.title, _sens('contact.title')),
-          'type': _prop(entry.type, _sens('contact.type')),
-          'value': _prop(entry.value, _sens('contact.value')),
+          'title': prop(entry.title, sens('contact.title')),
+          'type': prop(entry.type, sens('contact.type')),
+          'value': prop(entry.value, sens('contact.value')),
         },
         isDeleted: entry.isDeleted,
         deletedAt: entry.deletedAt,
@@ -1977,12 +1977,12 @@ class ProfileStorageService {
         name: card.title ?? 'ID Card',
         parentId: DefaultSectionIds.idCard,
         properties: {
-          'title': _prop(card.title, _sens('idCard.title')),
-          'number': _prop(card.number, _sens('idCard.number')),
-          'issueDate': _prop(card.issueDate, _sens('idCard.issueDate')),
-          'expiryDate': _prop(card.expiryDate, _sens('idCard.expiryDate')),
-          'holderName': _prop(card.holderName, _sens('idCard.holderName')),
-          'country': _prop(card.country, _sens('idCard.country')),
+          'title': prop(card.title, sens('idCard.title')),
+          'number': prop(card.number, sens('idCard.number')),
+          'issueDate': prop(card.issueDate, sens('idCard.issueDate')),
+          'expiryDate': prop(card.expiryDate, sens('idCard.expiryDate')),
+          'holderName': prop(card.holderName, sens('idCard.holderName')),
+          'country': prop(card.country, sens('idCard.country')),
         },
         isDeleted: card.isDeleted,
         deletedAt: card.deletedAt,
@@ -2002,12 +2002,12 @@ class ProfileStorageService {
         name: addr.title ?? 'Address',
         parentId: DefaultSectionIds.address,
         properties: {
-          'title': _prop(addr.title, _sens('address.title')),
-          'street': _prop(addr.street, _sens('address.street')),
-          'city': _prop(addr.city, _sens('address.city')),
-          'state': _prop(addr.state, SensitivityLevel.public),
-          'postalCode': _prop(addr.postalCode, _sens('address.postalCode')),
-          'country': _prop(addr.country, _sens('address.country')),
+          'title': prop(addr.title, sens('address.title')),
+          'street': prop(addr.street, sens('address.street')),
+          'city': prop(addr.city, sens('address.city')),
+          'state': prop(addr.state, SensitivityLevel.public),
+          'postalCode': prop(addr.postalCode, sens('address.postalCode')),
+          'country': prop(addr.country, sens('address.country')),
         },
         isDeleted: addr.isDeleted,
         deletedAt: addr.deletedAt,
@@ -2086,19 +2086,19 @@ class ProfileStorageService {
         name: p.title ?? p.country ?? 'Passport',
         parentId: DefaultSectionIds.passport,
         properties: {
-          'title': _prop(p.title, _sens('passport.title')),
-          'country': _prop(p.country, _sens('passport.country')),
-          'countryCode': _prop(p.countryCode, _sens('passport.countryCode')),
-          'number': _prop(p.number, _sens('passport.number')),
-          'issueDate': _prop(p.issueDate, _sens('passport.issueDate')),
-          'placeOfIssue': _prop(p.placeOfIssue, _sens('passport.placeOfIssue')),
-          'expiryDate': _prop(p.expiryDate, _sens('passport.expiryDate')),
-          'holderName': _prop(p.holderName, _sens('passport.holderName')),
-          'dateOfBirth': _prop(p.dateOfBirth, _sens('passport.dateOfBirth')),
-          'placeOfBirth': _prop(p.placeOfBirth, _sens('passport.placeOfBirth')),
-          'sex': _prop(p.sex, _sens('passport.sex')),
-          'nationality': _prop(p.nationality, _sens('passport.nationality')),
-          'authority': _prop(p.authority, _sens('passport.authority')),
+          'title': prop(p.title, sens('passport.title')),
+          'country': prop(p.country, sens('passport.country')),
+          'countryCode': prop(p.countryCode, sens('passport.countryCode')),
+          'number': prop(p.number, sens('passport.number')),
+          'issueDate': prop(p.issueDate, sens('passport.issueDate')),
+          'placeOfIssue': prop(p.placeOfIssue, sens('passport.placeOfIssue')),
+          'expiryDate': prop(p.expiryDate, sens('passport.expiryDate')),
+          'holderName': prop(p.holderName, sens('passport.holderName')),
+          'dateOfBirth': prop(p.dateOfBirth, sens('passport.dateOfBirth')),
+          'placeOfBirth': prop(p.placeOfBirth, sens('passport.placeOfBirth')),
+          'sex': prop(p.sex, sens('passport.sex')),
+          'nationality': prop(p.nationality, sens('passport.nationality')),
+          'authority': prop(p.authority, sens('passport.authority')),
         },
         isDeleted: p.isDeleted,
         deletedAt: p.deletedAt,
@@ -2117,12 +2117,12 @@ class ProfileStorageService {
         name: v.title ?? v.country ?? 'Visa',
         parentId: DefaultSectionIds.visa,
         properties: {
-          'title': _prop(v.title, _sens('visa.title')),
-          'country': _prop(v.country, _sens('visa.country')),
-          'visaType': _prop(v.visaType, _sens('visa.visaType')),
-          'number': _prop(v.number, _sens('visa.number')),
-          'issueDate': _prop(v.issueDate, _sens('visa.issueDate')),
-          'expiryDate': _prop(v.expiryDate, _sens('visa.expiryDate')),
+          'title': prop(v.title, sens('visa.title')),
+          'country': prop(v.country, sens('visa.country')),
+          'visaType': prop(v.visaType, sens('visa.visaType')),
+          'number': prop(v.number, sens('visa.number')),
+          'issueDate': prop(v.issueDate, sens('visa.issueDate')),
+          'expiryDate': prop(v.expiryDate, sens('visa.expiryDate')),
         },
         isDeleted: v.isDeleted,
         deletedAt: v.deletedAt,
@@ -2141,15 +2141,15 @@ class ProfileStorageService {
         name: h.destination,
         parentId: DefaultSectionIds.travelHistory,
         properties: {
-          'destination': _prop(h.destination, _sens('travel.destination')),
-          'travelType': _prop(h.travelType, _sens('travel.travelType')),
-          'date': _prop(h.date, _sens('travel.date')),
-          'departureCity': _prop(h.departureCity, _sens('travel.departureCity')),
-          'departureTime': _prop(h.departureTime, _sens('travel.departureTime')),
-          'arrivalTime': _prop(h.arrivalTime, _sens('travel.arrivalTime')),
-          'flightNumber': _prop(h.flightNumber, _sens('travel.flightNumber')),
-          'ticketPrice': _prop(h.ticketPrice, _sens('travel.ticketPrice')),
-          'airline': _prop(h.airline, _sens('travel.airline')),
+          'destination': prop(h.destination, sens('travel.destination')),
+          'travelType': prop(h.travelType, sens('travel.travelType')),
+          'date': prop(h.date, sens('travel.date')),
+          'departureCity': prop(h.departureCity, sens('travel.departureCity')),
+          'departureTime': prop(h.departureTime, sens('travel.departureTime')),
+          'arrivalTime': prop(h.arrivalTime, sens('travel.arrivalTime')),
+          'flightNumber': prop(h.flightNumber, sens('travel.flightNumber')),
+          'ticketPrice': prop(h.ticketPrice, sens('travel.ticketPrice')),
+          'airline': prop(h.airline, sens('travel.airline')),
         },
         isDeleted: h.isDeleted,
         deletedAt: h.deletedAt,
@@ -2216,12 +2216,12 @@ class ProfileStorageService {
         name: b.title ?? b.bankName ?? 'Bank Account',
         parentId: DefaultSectionIds.bankAccount,
         properties: {
-          'title': _prop(b.title, _sens('bankAccount.title')),
-          'bankName': _prop(b.bankName, _sens('bankAccount.bankName')),
-          'accountNumber': _prop(b.accountNumber, _sens('bankAccount.accountNumber')),
-          'currency': _prop(b.currency, _sens('bankAccount.currency')),
-          'swiftBic': _prop(b.swiftBic, _sens('bankAccount.swiftBic')),
-          'sortCode': _prop(b.sortCode, _sens('bankAccount.sortCode')),
+          'title': prop(b.title, sens('bankAccount.title')),
+          'bankName': prop(b.bankName, sens('bankAccount.bankName')),
+          'accountNumber': prop(b.accountNumber, sens('bankAccount.accountNumber')),
+          'currency': prop(b.currency, sens('bankAccount.currency')),
+          'swiftBic': prop(b.swiftBic, sens('bankAccount.swiftBic')),
+          'sortCode': prop(b.sortCode, sens('bankAccount.sortCode')),
         },
         isDeleted: b.isDeleted,
         deletedAt: b.deletedAt,
@@ -2240,12 +2240,12 @@ class ProfileStorageService {
         name: c.title ?? c.cardType ?? 'Card',
         parentId: DefaultSectionIds.card,
         properties: {
-          'title': _prop(c.title, _sens('card.title')),
-          'cardNumber': _prop(c.cardNumber, _sens('card.cardNumber')),
-          'cardType': _prop(c.cardType, _sens('card.cardType')),
-          'expiryDate': _prop(c.expiryDate, _sens('card.expiryDate')),
-          'holderName': _prop(c.holderName, _sens('card.holderName')),
-          'cvv': _prop(c.cvv, _sens('card.cvv')),
+          'title': prop(c.title, sens('card.title')),
+          'cardNumber': prop(c.cardNumber, sens('card.cardNumber')),
+          'cardType': prop(c.cardType, sens('card.cardType')),
+          'expiryDate': prop(c.expiryDate, sens('card.expiryDate')),
+          'holderName': prop(c.holderName, sens('card.holderName')),
+          'cvv': prop(c.cvv, sens('card.cvv')),
         },
         isDeleted: c.isDeleted,
         deletedAt: c.deletedAt,
@@ -2264,11 +2264,11 @@ class ProfileStorageService {
         name: t.title ?? 'Tax ID',
         parentId: DefaultSectionIds.taxId,
         properties: {
-          'title': _prop(t.title, _sens('taxId.title')),
-          'taxIdNumber': _prop(t.taxIdNumber, _sens('taxId.taxIdNumber')),
-          'taxIdType': _prop(t.taxIdType, _sens('taxId.taxIdType')),
-          'issuingAuthority': _prop(t.issuingAuthority, _sens('taxId.issuingAuthority')),
-          'country': _prop(t.country, _sens('taxId.country')),
+          'title': prop(t.title, sens('taxId.title')),
+          'taxIdNumber': prop(t.taxIdNumber, sens('taxId.taxIdNumber')),
+          'taxIdType': prop(t.taxIdType, sens('taxId.taxIdType')),
+          'issuingAuthority': prop(t.issuingAuthority, sens('taxId.issuingAuthority')),
+          'country': prop(t.country, sens('taxId.country')),
         },
         isDeleted: t.isDeleted,
         deletedAt: t.deletedAt,
@@ -2335,12 +2335,12 @@ class ProfileStorageService {
         name: e.institution ?? 'Education',
         parentId: DefaultSectionIds.education,
         properties: {
-          'institution': _prop(e.institution, _sens('education.institution')),
-          'degree': _prop(e.degree, _sens('education.degree')),
-          'degreeCustom': _prop(e.degreeCustom, _sens('education.degreeCustom')),
-          'field': _prop(e.field, _sens('education.field')),
-          'startDate': _prop(e.startDate, _sens('education.startDate')),
-          'endDate': _prop(e.endDate, _sens('education.endDate')),
+          'institution': prop(e.institution, sens('education.institution')),
+          'degree': prop(e.degree, sens('education.degree')),
+          'degreeCustom': prop(e.degreeCustom, sens('education.degreeCustom')),
+          'field': prop(e.field, sens('education.field')),
+          'startDate': prop(e.startDate, sens('education.startDate')),
+          'endDate': prop(e.endDate, sens('education.endDate')),
         },
         isDeleted: e.isDeleted,
         deletedAt: e.deletedAt,
@@ -2359,11 +2359,11 @@ class ProfileStorageService {
         name: e.company ?? 'Employment',
         parentId: DefaultSectionIds.employment,
         properties: {
-          'company': _prop(e.company, _sens('employment.company')),
-          'position': _prop(e.position, _sens('employment.position')),
-          'responsibilities': _prop(e.responsibilities, _sens('employment.responsibilities')),
-          'startDate': _prop(e.startDate, _sens('employment.startDate')),
-          'endDate': _prop(e.endDate, _sens('employment.endDate')),
+          'company': prop(e.company, sens('employment.company')),
+          'position': prop(e.position, sens('employment.position')),
+          'responsibilities': prop(e.responsibilities, sens('employment.responsibilities')),
+          'startDate': prop(e.startDate, sens('employment.startDate')),
+          'endDate': prop(e.endDate, sens('employment.endDate')),
         },
         isDeleted: e.isDeleted,
         deletedAt: e.deletedAt,
@@ -2382,8 +2382,8 @@ class ProfileStorageService {
         name: s.name,
         parentId: DefaultSectionIds.skill,
         properties: {
-          'name': _prop(s.name, _sens('skill.name')),
-          'level': _prop(s.level, _sens('skill.level')),
+          'name': prop(s.name, sens('skill.name')),
+          'level': prop(s.level, sens('skill.level')),
         },
         isDeleted: s.isDeleted,
         deletedAt: s.deletedAt,
@@ -2402,8 +2402,8 @@ class ProfileStorageService {
         name: l.name,
         parentId: DefaultSectionIds.language,
         properties: {
-          'name': _prop(l.name, _sens('language.name')),
-          'proficiency': _prop(l.proficiency, _sens('language.proficiency')),
+          'name': prop(l.name, sens('language.name')),
+          'proficiency': prop(l.proficiency, sens('language.proficiency')),
         },
         isDeleted: l.isDeleted,
         deletedAt: l.deletedAt,
@@ -2422,10 +2422,10 @@ class ProfileStorageService {
         name: a.title ?? 'Award',
         parentId: DefaultSectionIds.award,
         properties: {
-          'title': _prop(a.title, _sens('award.title')),
-          'issuer': _prop(a.issuer, _sens('award.issuer')),
-          'date': _prop(a.date, _sens('award.date')),
-          'description': _prop(a.description, _sens('award.description')),
+          'title': prop(a.title, sens('award.title')),
+          'issuer': prop(a.issuer, sens('award.issuer')),
+          'date': prop(a.date, sens('award.date')),
+          'description': prop(a.description, sens('award.description')),
         },
         isDeleted: a.isDeleted,
         deletedAt: a.deletedAt,
@@ -2522,7 +2522,7 @@ class ProfileStorageService {
       // Apply migration if needed
       final migratedProfile = _migrateIfNeeded(profile, json);
       return migratedProfile;
-    } catch (e, st) {
+    } on Exception catch (e, st) {
       DebugLogger.instance.logError('PROFILE', 'loadProfile failed: $e\n$st');
       return null;
     }

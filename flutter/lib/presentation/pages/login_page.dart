@@ -102,7 +102,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Restore successful. Please restart the app.'),
-            duration: Duration(seconds: 4),
+            duration: AppTheme.kPasswordHintDelay,
           ),
         );
       } else if (context.mounted) {
@@ -356,6 +356,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       // 首次启动/空数据检测：若 Vault 无数据但存在备份，提示恢复
       final accountId = authNotifier.selectedAccountId;
+      if (!mounted) return;
       await _promptRestoreIfEmpty(context, ref, accountId);
 
       // Pre-register all form fields for sensitivity settings
@@ -563,7 +564,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     overlay.insert(_passwordHintOverlayEntry!);
     // Use explicit Timer so it persists across navigation (not tied to widget lifecycle)
-    _passwordHintTimer = Timer(const Duration(seconds: 4), () {
+    _passwordHintTimer = Timer(AppTheme.kPasswordHintDelay, () {
       _passwordHintOverlayEntry?.remove();
       _passwordHintOverlayEntry = null;
     });
@@ -1276,7 +1277,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ],
         ] else ...[
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: AppTheme.kPagePadding,
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),

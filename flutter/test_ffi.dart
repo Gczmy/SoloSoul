@@ -1,4 +1,5 @@
 // Standalone FFI test - run with: dart test_ffi.dart
+// ignore_for_file: avoid_print, unused_catch_clause
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';

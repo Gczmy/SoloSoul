@@ -125,7 +125,6 @@ class FakeAuthNotifier extends AuthNotifier {
 
 class TestableProfileNotifier extends ProfileNotifier {
   final FakeProfileStorageService _fakeStorage;
-  final FakeAuthNotifier _fakeAuth;
   final ProfileData? _initialProfile;
 
   TestableProfileNotifier({
@@ -133,7 +132,6 @@ class TestableProfileNotifier extends ProfileNotifier {
     required FakeProfileStorageService fakeStorage,
     required FakeAuthNotifier fakeAuth,
   })  : _fakeStorage = fakeStorage,
-        _fakeAuth = fakeAuth,
         _initialProfile = initialProfile;
 
   /// Simulate build() with controlled profile
@@ -424,7 +422,7 @@ void main() {
 
     test('AsyncLoading -> AsyncError when load fails', () async {
       final container = createTestContainer();
-      final notifier = container.read(profileNotifierProvider.notifier)
+      container.read(profileNotifierProvider.notifier)
           as TestableProfileNotifier;
 
       // Force load failure

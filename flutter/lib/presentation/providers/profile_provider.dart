@@ -229,8 +229,10 @@ final profileNotifierProvider = AsyncNotifierProvider<ProfileNotifier, ProfileDa
 class ProfileIdentity extends _$ProfileIdentity {
   @override
   IdentityData? build() {
-    final profile = ref.watch(profileNotifierProvider);
-    return profile.value?.identity;
+    final identity = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.identity),
+    );
+    return identity;
   }
 }
 
@@ -239,8 +241,10 @@ class ProfileIdentity extends _$ProfileIdentity {
 class ProfileTravel extends _$ProfileTravel {
   @override
   TravelData? build() {
-    final profile = ref.watch(profileNotifierProvider);
-    return profile.value?.travel;
+    final travel = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.travel),
+    );
+    return travel;
   }
 }
 
@@ -249,8 +253,10 @@ class ProfileTravel extends _$ProfileTravel {
 class ProfileFinancial extends _$ProfileFinancial {
   @override
   FinancialData? build() {
-    final profile = ref.watch(profileNotifierProvider);
-    return profile.value?.financial;
+    final financial = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.financial),
+    );
+    return financial;
   }
 }
 
@@ -259,8 +265,10 @@ class ProfileFinancial extends _$ProfileFinancial {
 class ProfileProfessional extends _$ProfileProfessional {
   @override
   ProfessionalData? build() {
-    final profile = ref.watch(profileNotifierProvider);
-    return profile.value?.professional;
+    final professional = ref.watch(
+      profileNotifierProvider.select((p) => p.value?.professional),
+    );
+    return professional;
   }
 }
 

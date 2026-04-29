@@ -15,7 +15,13 @@ class SearchNotifier extends Notifier<SearchState> {
   Timer? _debounceTimer;
 
   @override
-  SearchState build() => const SearchState();
+  SearchState build() {
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+      _debounceTimer = null;
+    });
+    return const SearchState();
+  }
 
   void setQuery(String query) {
     state = state.copyWith(query: query);

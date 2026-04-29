@@ -64,6 +64,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   late List<_QuickAction> _actions;
   bool _isEditing = false;
   late AnimationController _wobbleController;
+  OverlayEntry? _topOverlayEntry;
 
   @override
   void initState() {
@@ -123,6 +124,8 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
   @override
   void dispose() {
+    _topOverlayEntry?.remove();
+    _topOverlayEntry = null;
     _wobbleController.dispose();
     super.dispose();
   }
@@ -204,6 +207,9 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   }
 
   void _showTopOverlay(String message) {
+    _topOverlayEntry?.remove();
+    _topOverlayEntry = null;
+
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(
       builder: (ctx) => Positioned(
@@ -236,10 +242,14 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
         ),
       ),
     );
+    _topOverlayEntry = entry;
 
     overlay.insert(entry);
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(AppTheme.kOverlayDuration, () {
       entry.remove();
+      if (_topOverlayEntry == entry) {
+        _topOverlayEntry = null;
+      }
     });
   }
 
@@ -336,7 +346,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     final authState = ref.watch(authNotifierProvider).value;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: AppTheme.kPagePadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -821,7 +831,7 @@ class _PageEditorState extends ConsumerState<_PageEditor> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

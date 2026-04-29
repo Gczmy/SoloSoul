@@ -16,7 +16,6 @@ import 'package:solosoul_flutter/core/services/debug_logger.dart';
 /// than Keychain but functional when Keychain is unavailable.
 class FallbackSecureStorage {
   static const _fallbackDirName = 'solosoul_fallback_storage';
-  static const _metaKey = '__fallback_meta__';
 
   final FlutterSecureStorage _secureStorage;
   Directory? _fallbackDir;

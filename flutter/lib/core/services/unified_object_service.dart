@@ -117,33 +117,33 @@ List<String> getDefaultSectionIds(String pageId) {
 }
 
 /// Metadata for auto-creating a default section when it is missing.
-class _SectionMeta {
+class SectionMeta {
   final String name;
   final String iconName;
   final String parentPageId;
-  const _SectionMeta(this.name, this.iconName, this.parentPageId);
+  const SectionMeta(this.name, this.iconName, this.parentPageId);
 }
 
-const Map<String, _SectionMeta> _kSectionMeta = {
-  DefaultSectionIds.identity: _SectionMeta('Identity', 'person', DefaultPageIds.profile),
-  DefaultSectionIds.contact: _SectionMeta('Contact Information', 'contact_mail', DefaultPageIds.profile),
-  DefaultSectionIds.idCard: _SectionMeta('ID Cards', 'badge', DefaultPageIds.profile),
-  DefaultSectionIds.address: _SectionMeta('Addresses', 'home', DefaultPageIds.profile),
-  DefaultSectionIds.passport: _SectionMeta('Passports', 'flight', DefaultPageIds.travel),
-  DefaultSectionIds.visa: _SectionMeta('Visas', 'description', DefaultPageIds.travel),
-  DefaultSectionIds.travelHistory: _SectionMeta('Travel History', 'history', DefaultPageIds.travel),
-  DefaultSectionIds.bankAccount: _SectionMeta('Bank Accounts', 'account_balance', DefaultPageIds.financial),
-  DefaultSectionIds.card: _SectionMeta('Cards', 'credit_card', DefaultPageIds.financial),
-  DefaultSectionIds.taxId: _SectionMeta('Tax IDs', 'receipt', DefaultPageIds.financial),
-  DefaultSectionIds.education: _SectionMeta('Education', 'school', DefaultPageIds.professional),
-  DefaultSectionIds.employment: _SectionMeta('Employment', 'work', DefaultPageIds.professional),
-  DefaultSectionIds.skill: _SectionMeta('Skills', 'stars', DefaultPageIds.professional),
-  DefaultSectionIds.language: _SectionMeta('Languages', 'language', DefaultPageIds.professional),
-  DefaultSectionIds.award: _SectionMeta('Awards', 'emoji_events', DefaultPageIds.professional),
+const Map<String, SectionMeta> _kSectionMeta = {
+  DefaultSectionIds.identity: SectionMeta('Identity', 'person', DefaultPageIds.profile),
+  DefaultSectionIds.contact: SectionMeta('Contact Information', 'contact_mail', DefaultPageIds.profile),
+  DefaultSectionIds.idCard: SectionMeta('ID Cards', 'badge', DefaultPageIds.profile),
+  DefaultSectionIds.address: SectionMeta('Addresses', 'home', DefaultPageIds.profile),
+  DefaultSectionIds.passport: SectionMeta('Passports', 'flight', DefaultPageIds.travel),
+  DefaultSectionIds.visa: SectionMeta('Visas', 'description', DefaultPageIds.travel),
+  DefaultSectionIds.travelHistory: SectionMeta('Travel History', 'history', DefaultPageIds.travel),
+  DefaultSectionIds.bankAccount: SectionMeta('Bank Accounts', 'account_balance', DefaultPageIds.financial),
+  DefaultSectionIds.card: SectionMeta('Cards', 'credit_card', DefaultPageIds.financial),
+  DefaultSectionIds.taxId: SectionMeta('Tax IDs', 'receipt', DefaultPageIds.financial),
+  DefaultSectionIds.education: SectionMeta('Education', 'school', DefaultPageIds.professional),
+  DefaultSectionIds.employment: SectionMeta('Employment', 'work', DefaultPageIds.professional),
+  DefaultSectionIds.skill: SectionMeta('Skills', 'stars', DefaultPageIds.professional),
+  DefaultSectionIds.language: SectionMeta('Languages', 'language', DefaultPageIds.professional),
+  DefaultSectionIds.award: SectionMeta('Awards', 'emoji_events', DefaultPageIds.professional),
 };
 
 /// 根据 sectionId 获取其元数据，用于缺失时自动创建。
-_SectionMeta? getSectionMeta(String sectionId) => _kSectionMeta[sectionId];
+SectionMeta? getSectionMeta(String sectionId) => _kSectionMeta[sectionId];
 
 /// Mapping from section ID to its item type ID.
 /// Prefixes avoid collisions with generic built-in types (e.g. 'contact').

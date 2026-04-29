@@ -209,12 +209,11 @@ class PredefinedObjectSection extends ConsumerWidget {
 
   Widget _defaultDisplayBuilder(UnifiedObject item, Map<String, String> map) {
     // Default fallback: show a simple card with the item name
+    final subtitle = map.values.where((v) => v.isNotEmpty).take(2).join(', ');
     return Card(
       child: ListTile(
         title: Text(item.name),
-        subtitle: map.values.where((v) => v.isNotEmpty).take(2).join(', ').isNotEmpty
-            ? Text(map.values.where((v) => v.isNotEmpty).take(2).join(', '))
-            : null,
+        subtitle: subtitle.isNotEmpty ? Text(subtitle) : null,
       ),
     );
   }

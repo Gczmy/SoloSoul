@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart'
     show ObjectParentDropdown;
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 
 /// Editor specifically for Page-type UnifiedObjects.
 class PageEditorPage extends ConsumerStatefulWidget {
@@ -107,7 +108,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
         title: Text(_isEditing ? 'Edit Page' : 'New Page'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -17,12 +17,16 @@ class OperationLogPage extends ConsumerStatefulWidget {
 
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   bool _filterExpanded = false;
-  bool _dialogShown = false;
 
   @override
   void initState() {
     super.initState();
     _refreshLogs();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !ref.read(isSensitiveAccessGrantedProvider)) {
+        _verifyPassword();
+      }
+    });
   }
 
   Future<void> _refreshLogs() async {
@@ -31,7 +35,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   }
 
   Future<void> _verifyPassword() async {
-    _dialogShown = true;
     // Use the shared password verification dialog with biometric support
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final selectedAccount = authNotifier.selectedAccount;
@@ -54,9 +57,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   @override
   Widget build(BuildContext context) {
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_dialogShown) _verifyPassword();
-      });
       return Scaffold(
         appBar: AppBar(title: const Text('Operation Log')),
         body: Center(

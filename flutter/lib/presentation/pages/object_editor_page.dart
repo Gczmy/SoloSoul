@@ -9,6 +9,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -139,7 +140,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.all(24).copyWith(bottom: 96),
+            padding: AppTheme.kPagePadding.copyWith(bottom: 96),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -462,7 +463,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             bottom: 0,
             child: Container(
               color: theme.scaffoldBackgroundColor,
-              padding: const EdgeInsets.all(24),
+              padding: AppTheme.kPagePadding,
               child: Center(
                 child: OutlinedButton(
                   onPressed: _saveObject,
@@ -502,26 +503,6 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       itemId: _existingObject!.id,
       fieldIdPrefix: 'unified',
       allFieldValues: allFieldValues,
-    );
-  }
-
-  Widget? _buildCharacterCounter(
-    BuildContext context, {
-    required int currentLength,
-    required int? maxLength,
-    required bool isFocused,
-  }) {
-    if (maxLength == null) return null;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8, bottom: 2),
-      child: Text(
-        '$currentLength/$maxLength',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: currentLength >= maxLength
-              ? Theme.of(context).colorScheme.error
-              : Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
     );
   }
 

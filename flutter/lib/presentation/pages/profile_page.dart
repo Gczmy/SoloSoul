@@ -98,7 +98,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: AppTheme.kPagePadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -121,7 +121,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     historyFieldId: 'identity',
                     formatAllFields:
                         (i) => 'Identity\n${i.toFormattedString()}',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'identity',
                     excludeFields: const {'fullName'},
                   ),
@@ -134,7 +134,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)
@@ -284,7 +284,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     formatAllFields:
                         (c) =>
                             '${itemMap['type'] ?? 'contact'}: ${itemMap['value'] ?? ''}',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'contact',
                     excludeFields: const {'title'},
                   ),
@@ -297,7 +297,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)
@@ -349,7 +349,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     historyFieldId: 'idCard',
                     formatAllFields:
                         (c) => 'ID Card\n${c.toFormattedString()}',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'idCard',
                     excludeFields: const {'title'},
                   ),
@@ -362,7 +362,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)
@@ -412,7 +412,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     icon: Icons.home_outlined,
                     itemId: item.id,
                     historyFieldId: 'address',
-                    itemData: itemMap.map((k, v) => MapEntry(k, v as dynamic)),
+                    itemData: itemMap,
                     fieldPrefix: 'address',
                     excludeFields: const {'title'},
                   ),
@@ -425,7 +425,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     itemName: item.name,
                     isPrivacyModeActive: isPrivacyMode,
                   ),
-                  duration: const Duration(seconds: 5),
+                  duration: AppTheme.kNotificationDuration,
                   onUndo: () async {
                     await ref
                         .read(unifiedObjectProvider.notifier)
