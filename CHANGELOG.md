@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Critical Privacy Fix** — Fixed cross-account data leakage when creating a new account after locking a previous one. All sensitive in-memory state is now properly cleared on lock, including unified objects.
+- **Operation Log Live Updates** — Operation log page now correctly reflects new entries in real time
+
+### Performance
+
+- **Smoother Search** — Global search now runs on a background thread, eliminating UI freeze on large vaults
+- **Faster Data Operations** — Profile load/save and backup create/restore now run JSON processing on background threads
+- **Smoother Lists** — Sidebar, trash, and object cards now use lazy list rendering for better scrolling performance
 
 ## [1.4.0] - 2026-04-29
 
