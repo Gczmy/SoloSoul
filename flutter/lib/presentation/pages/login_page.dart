@@ -340,7 +340,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     setState(() => _isLoading = true);
 
     DebugLogger.instance.logInfo('LOGIN', 'Starting unlockVault for account: ${authNotifier.selectedAccountId}');
-    final success = await authNotifier.unlockVault(_passwordController.text);
+    bool success;
+    try {
+      success = await authNotifier.unlockVault(_passwordController.text);
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('LOGIN', 'unlockVault exception: $e\n$st');
+      success = false;
+    }
     DebugLogger.instance.logInfo('LOGIN', 'unlockVault completed, success: $success');
 
     if (success && mounted) {
@@ -914,7 +920,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     radius: 14,
                     backgroundColor: AppTheme.primaryColor,
                     child: Text(
-                      selectedAccount.name[0].toUpperCase(),
+                      selectedAccount.name.isNotEmpty
+                          ? selectedAccount.name[0].toUpperCase()
+                          : '?',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,

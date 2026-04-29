@@ -246,7 +246,7 @@ class OperationLogService extends ChangeNotifier {
     await _saveToDisk();
   }
 
-  void addEntry(OperationEntry entry) {
+  Future<void> addEntry(OperationEntry entry) async {
     // Automatically capture current device platform
     final devicePlatform = _getCurrentDevice();
     final entryWithDevice = devicePlatform != entry.device
@@ -263,7 +263,7 @@ class OperationLogService extends ChangeNotifier {
 
     _entries.insert(0, entryWithDevice); // Most recent first
     _applyTTL(); // Ensure TTL limits before saving
-    _saveToDisk();
+    await _saveToDisk();
     notifyListeners(); // Notify Riverpod providers to refresh
   }
 

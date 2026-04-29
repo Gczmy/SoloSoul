@@ -311,22 +311,8 @@ class ProfileSectionEditor {
         deletedAt: deletedAt,
       );
       return (
-        ProfileData(
-          identity: IdentityData(
-            fullName: identity.fullName,
-            givenName: identity.givenName,
-            familyName: identity.familyName,
-            dateOfBirth: identity.dateOfBirth,
-            gender: identity.gender,
-            nationality: identity.nationality,
-            idCards: identity.idCards,
-            contact: ContactData(entries: entries),
-            addresses: identity.addresses,
-          ),
-          travel: current.travel,
-          financial: current.financial,
-          professional: current.professional,
-          unifiedObjects: current.unifiedObjects,
+        current.copyWith(
+          identity: identity.copyWith(contact: ContactData(entries: entries)),
         ),
         true,
       );
@@ -662,22 +648,8 @@ class ProfileSectionEditor {
         deletedAt: null,
       );
       return (
-        ProfileData(
-          identity: IdentityData(
-            fullName: identity.fullName,
-            givenName: identity.givenName,
-            familyName: identity.familyName,
-            dateOfBirth: identity.dateOfBirth,
-            gender: identity.gender,
-            nationality: identity.nationality,
-            idCards: identity.idCards,
-            contact: ContactData(entries: entries),
-            addresses: identity.addresses,
-          ),
-          travel: current.travel,
-          financial: current.financial,
-          professional: current.professional,
-          unifiedObjects: current.unifiedObjects,
+        current.copyWith(
+          identity: identity.copyWith(contact: ContactData(entries: entries)),
         ),
         true,
       );

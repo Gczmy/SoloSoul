@@ -1811,12 +1811,12 @@ class ProfileStorageService {
 
   /// Manually empty all trash (permanent delete all soft-deleted items)
   Future<void> emptyAllTrash(ProfileData profile, String accountId) async {
-    final newProfile = _calculateEmptyTrash(profile);
+    final newProfile = calculateEmptyTrash(profile);
     await saveProfile(accountId, newProfile);
   }
 
   /// Pure function: returns a new ProfileData with all soft-deleted items removed
-  ProfileData _calculateEmptyTrash(ProfileData current) {
+  static ProfileData calculateEmptyTrash(ProfileData current) {
     // Travel section
     final newTravel = current.travel?.copyWith(
       passports: current.travel!.passports.where((p) => !p.isDeleted).toList(),
