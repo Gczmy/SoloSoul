@@ -64,14 +64,50 @@
 
 ---
 
-## 剩余待办项（本轮未修复）
+## 2026-04-29 修复批次 — Round 3（缓存优化 + 竞态修复）
 
-| 编号 | 严重度 | 文件 | 描述 | 原因 |
-|------|--------|------|------|------|
-| C-2 | 🔴 Critical | property_editor_factory.dart | 4 处 controller 泄漏 | 需将 StatelessWidget 转为 StatefulWidget，改动较大 |
-| C-3 | 🔴 Critical | object_editor_page.dart | fire-and-forget + setState 无 mounted | 涉及方法签名变更和多处回调修改，影响面广 |
-| C-4 | 🔴 Critical | native_vault_service.dart | Android/Windows 初始化 race | 已知 P0-2 问题，当前 stub 实现，需架构级修复 |
-| H-4 | 🟠 High | sensitivity_settings_page.dart | build 中 4 次过滤排序 | 需引入缓存机制或重构为派生 provider，非 trivial |
-| H-6 | 🟠 High | trash_page.dart | for 循环内动态 ref.watch | 需重构为派生 provider，涉及灵敏度映射预计算 |
-| L-1 | 🔵 Low | test/ | const ProfileData info | 仅 info，非阻塞 |
-| L-2 | 🔵 Low | biometric_credential_service_test.dart | deprecated setMockMethodCallHandler | 仅 info，非阻塞 |
+### C-2: property_editor_factory.dart — 4 处 controller 泄漏
+- **修复**: `_TextEditor`, `_NumberEditor`, `_RelationEditor`, `_UrlEditor` 从 `StatelessWidget` 转为 `StatefulWidget`，在 `dispose()` 中释放 `TextEditingController`
+- **提交**: `1fe50a2`
+
+### C-3: object_editor_page.dart — fire-and-forget + setState 无 mounted
+- **修复**: `_saveObject()` 改为 `Future<void>` 并包 `try/catch`；所有 `await` 后 `setState` 前添加 `if (mounted)` 检查
+- **提交**: `1fe50a2`
+
+### C-4: native_vault_service.dart — Android/Windows 初始化 race
+- **修复**: 添加 `_initFuture` 跟踪异步初始化状态；所有 Android/Windows async 公共方法开头 `await _ensureInitialized()`；`_androidRequest` 添加 null guard 防止未初始化访问
+- **提交**: `bfc7ea1`
+
+### H-4: sensitivity_settings_page.dart — build 中 4 次过滤排序
+- **修复**: 在 State 中添加 `_cachedEffectiveFields` 和 `_cachedSections`，通过 `_getEffectiveFields()` / `_getFilteredSections()` 缓存计算结果，只在 registry/accountStyle/searchQuery 变化时重新计算
+- **提交**: `bfc7ea1`
+
+### H-6: trash_page.dart — for 循环内动态 ref.watch
+- **修复**: 在 `sensitivity_provider.dart` 中新增 `trashItemSensitivityMapProvider` 聚合所有 item type 的灵敏度；`trash_page.dart` 改为 watch 单个 provider；同时添加 `_getFilteredTrash()` 缓存过滤结果
+- **提交**: `bfc7ea1`
+
+### H-2 (revisited): search_result_tile.dart — 精确 watch revealedFields
+- **修复**: 将 `ref.watch(accountStyleProvider.select((s) => s.value?.displayMode))` 改为 watch `revealedFields` 和 `isSensitiveAccessGrantedProvider`，确保 tile 在字段 reveal/hide 时正确重建
+- **提交**: `bfc7ea1`
+
+### M-7 (revisited): predefined_object_section.dart — 缓存 fieldDefs
+- **修复**: 将 `ConsumerWidget` 转为 `ConsumerStatefulWidget`，添加 `_cachedFieldDefs` 缓存 schema 解析结果（只依赖 immutable 的 `typeId`）
+- **提交**: `bfc7ea1`
+
+### M-6 (revisited): sensitivity_based_visibility_widget.dart — effectiveFieldLevelProvider select
+- **修复**: `effectiveFieldLevelProvider` 中 `ref.watch(accountStyleProvider).value` → `ref.watch(accountStyleProvider.select((s) => s.value))`
+- **提交**: `bfc7ea1`
+
+### L-1: test/ — const ProfileData info
+- **修复**: `ProfileData()` → `const ProfileData()` 在 `profile_data_test.dart` 和 `profile_provider_test.dart`
+- **提交**: `9d531af`
+
+### L-2: biometric_credential_service_test.dart — deprecated setMockMethodCallHandler
+- **修复**: 替换为 `TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler`
+- **提交**: `9d531af`
+
+---
+
+## 剩余待办项
+
+所有审计报告中的问题均已修复。代码库当前 `dart analyze --fatal-infos` 无 issues，85+ 单元测试全部通过。

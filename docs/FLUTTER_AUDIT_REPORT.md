@@ -142,24 +142,24 @@
 
 | 编号 | 严重度 | 文件 | 描述 | 状态 |
 |------|--------|------|------|------|
-| C-1 | 🔴 Critical | login_page.dart | 空名字索引崩溃 | ⬜ 待办 |
-| C-2 | 🔴 Critical | property_editor_factory.dart | 4 处 controller 泄漏 | ⬜ 待办 |
-| C-3 | 🔴 Critical | object_editor_page.dart | fire-and-forget + setState 无 mounted | ⬜ 待办 |
-| C-4 | 🔴 Critical | native_vault_service.dart | Android/Windows 初始化 race | ⬜ 待办 |
-| H-1 | 🟠 High | main.dart | 缺少 ErrorWidget.builder | ⬜ 待办 |
-| H-2 | 🟠 High | search_result_tile.dart | 全量 watch accountStyleProvider | ⬜ 待办 |
-| H-3 | 🟠 High | history_sheet.dart | flatten+sort 重复计算 | ⬜ 待办 |
-| H-4 | 🟠 High | sensitivity_settings_page.dart | build 中 4 次过滤排序 | ⬜ 待办 |
-| H-5 | 🟠 High | data_management_page.dart | 3 处 dialog controller 泄漏 | ⬜ 待办 |
-| H-6 | 🟠 High | trash_page.dart | for 循环内动态 ref.watch | ⬜ 待办 |
-| H-7 | 🟠 High | keychain_service.dart | 异常捕获过窄 | ⬜ 待办 |
-| M-1 | 🟡 Medium | unified_object_provider.dart | 双重 bang | ⬜ 待办 |
-| M-2 | 🟡 Medium | entry_card_widget.dart | itemData 无 null 检查 | ⬜ 待办 |
-| M-3 | 🟡 Medium | version_sheet.dart | 字符串索引无 guard | ⬜ 待办 |
-| M-4 | 🟡 Medium | biometric_settings_widget.dart | dialog controller 泄漏 | ⬜ 待办 |
-| M-5 | 🟡 Medium | sensitive_value_widget.dart | 3 个 provider watch | ⬜ 待办 |
-| M-6 | 🟡 Medium | sensitivity_based_visibility_widget.dart | 全局验证状态 watch | ⬜ 待办 |
-| M-7 | 🟡 Medium | object_workspace_page.dart | 全量 watch cache | ⬜ 待办 |
-| L-1 | 🔵 Low | test/ | const ProfileData info | ⬜ 待办 |
-| L-2 | 🔵 Low | biometric_credential_service_test.dart | deprecated setMockMethodCallHandler | ⬜ 待办 |
-| L-3 | 🔵 Low | profile_storage_service.dart | unawaited saveProfile 错误丢失 | ⬜ 待办 |
+| C-1 | 🔴 Critical | login_page.dart | 空名字索引崩溃 | ✅ 已修复 |
+| C-2 | 🔴 Critical | property_editor_factory.dart | 4 处 controller 泄漏 | ✅ 已修复 |
+| C-3 | 🔴 Critical | object_editor_page.dart | fire-and-forget + setState 无 mounted | ✅ 已修复 |
+| C-4 | 🔴 Critical | native_vault_service.dart | Android/Windows 初始化 race | ✅ 已修复 |
+| H-1 | 🟠 High | main.dart | 缺少 ErrorWidget.builder | ✅ 已修复 |
+| H-2 | 🟠 High | search_result_tile.dart | 全量 watch accountStyleProvider | ✅ 已修复 |
+| H-3 | 🟠 High | history_sheet.dart | flatten+sort 重复计算 | ✅ 已修复 |
+| H-4 | 🟠 High | sensitivity_settings_page.dart | build 中 4 次过滤排序 | ✅ 已修复 |
+| H-5 | 🟠 High | data_management_page.dart | 3 处 dialog controller 泄漏 | ✅ 已修复 |
+| H-6 | 🟠 High | trash_page.dart | for 循环内动态 ref.watch | ✅ 已修复 |
+| H-7 | 🟠 High | keychain_service.dart | 异常捕获过窄 | ✅ 已修复 |
+| M-1 | 🟡 Medium | unified_object_provider.dart | 双重 bang | ✅ 已修复 |
+| M-2 | 🟡 Medium | entry_card_widget.dart | itemData 无 null 检查 | ✅ 已修复 |
+| M-3 | 🟡 Medium | version_sheet.dart | 字符串索引无 guard | ✅ 已修复 |
+| M-4 | 🟡 Medium | biometric_settings_widget.dart | dialog controller 泄漏 | ✅ 已修复 |
+| M-5 | 🟡 Medium | sensitive_value_widget.dart | 3 个 provider watch | ✅ 已修复 |
+| M-6 | 🟡 Medium | sensitivity_based_visibility_widget.dart | 全局验证状态 watch | ✅ 已修复 |
+| M-7 | 🟡 Medium | object_workspace_page.dart | 全量 watch cache | ✅ 已修复 |
+| L-1 | 🔵 Low | test/ | const ProfileData info | ✅ 已修复 |
+| L-2 | 🔵 Low | biometric_credential_service_test.dart | deprecated setMockMethodCallHandler | ✅ 已修复 |
+| L-3 | 🔵 Low | profile_storage_service.dart | unawaited saveProfile 错误丢失 | ✅ 已修复 |
