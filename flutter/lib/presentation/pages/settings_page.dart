@@ -1,3 +1,6 @@
+import 'dart:convert' show jsonDecode, utf8;
+import 'dart:io' show HttpClient;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +33,37 @@ part 'settings_page.g.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
+});
+
+/// Fetch the latest release version from GitHub API.
+/// Returns the version tag (e.g. '1.4.3'), or null on failure.
+final latestVersionProvider = FutureProvider<String?>((ref) async {
+  final client = HttpClient();
+  try {
+    final request = await client.getUrl(
+      Uri.parse('https://api.github.com/repos/Gczmy/SoloSoul_code/releases/latest'),
+    );
+    request.headers.set('Accept', 'application/vnd.github.v3+json');
+    request.headers.set('User-Agent', 'SoloSoul-App');
+    final response = await request.close();
+    if (response.statusCode == 200) {
+      final body = await response.transform(utf8.decoder).join();
+      final json = jsonDecode(body) as Map<String, dynamic>;
+      final tagName = json['tag_name'] as String?;
+      if (tagName != null) {
+        return tagName.startsWith('v') ? tagName.substring(1) : tagName;
+      }
+    }
+    DebugLogger.instance.logWarning(
+      'VERSION',
+      'Failed to fetch latest version: HTTP ${response.statusCode}',
+    );
+  } on Exception catch (e) {
+    DebugLogger.instance.logWarning('VERSION', 'Error fetching latest version: $e');
+  } finally {
+    client.close();
+  }
+  return null;
 });
 
 // Debug mode provider

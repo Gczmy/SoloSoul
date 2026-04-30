@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/pages/settings_page.dart'
+    show latestVersionProvider;
 import 'settings_common.dart';
 
 /// Version info bottom sheet with hidden debug mode activation.
@@ -43,7 +45,12 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const latestVersion = '1.0.0';
+    final latestVersionAsync = ref.watch(latestVersionProvider);
+    final latestVersion = latestVersionAsync.when(
+      data: (v) => v ?? 'Unavailable',
+      loading: () => '...',
+      error: (_, __) => 'Unavailable',
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -122,16 +129,30 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                     ),
                   ),
                   const Divider(height: 1),
-                  const VersionInfoTile(
+                  VersionInfoTile(
                     icon: Icons.cloud_download_outlined,
                     title: 'Latest Version',
                     value: latestVersion,
                   ),
                   const Divider(height: 1),
-                  const VersionInfoTile(
-                    icon: Icons.check_circle_outline,
-                    title: 'Update Status',
-                    value: 'Up to date',
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final currentVersion = widget.packageInfo.when(
+                        data: (info) => info.version,
+                        loading: () => '...',
+                        error: (_, __) => '1.0.0',
+                      );
+                      final isUpToDate = latestVersion != '...' &&
+                          latestVersion != 'Unavailable' &&
+                          currentVersion == latestVersion;
+                      return VersionInfoTile(
+                        icon: isUpToDate
+                            ? Icons.check_circle_outline
+                            : Icons.update_outlined,
+                        title: 'Update Status',
+                        value: isUpToDate ? 'Up to date' : 'Update available',
+                      );
+                    },
                   ),
                   const Divider(height: 1),
                   VersionInfoTile(
