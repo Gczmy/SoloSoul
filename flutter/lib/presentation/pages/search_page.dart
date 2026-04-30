@@ -6,9 +6,6 @@ import 'package:solosoul_flutter/presentation/providers/search_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/search_filters.dart';
 import 'package:solosoul_flutter/presentation/widgets/search_result_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/search_empty_state.dart';
-import 'package:solosoul_flutter/presentation/widgets/history_sheet.dart'
-    show HistorySheet;
-
 /// Search Page
 class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
@@ -36,25 +33,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     super.dispose();
   }
 
-  void _showHistorySheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) {
-          return HistorySheet(
-            scrollController: scrollController,
-            ref: ref,
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchProvider);
@@ -63,13 +41,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: 'Field History',
-            onPressed: () => _showHistorySheet(context),
-          ),
-        ],
       ),
       body: Column(
         children: [
