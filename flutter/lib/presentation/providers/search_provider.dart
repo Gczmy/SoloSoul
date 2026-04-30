@@ -133,16 +133,36 @@ class SearchNotifier extends Notifier<SearchState> {
 
     final objects = ref.read(unifiedObjectProvider.select((d) => d.objects));
 
-    final results = await Isolate.run(() => _executeSearch(
-      objects,
-      state.query,
-      state.searchPublic,
-      state.searchInternal,
-      state.searchSensitive,
-      state.searchRestricted,
-    ));
+    final results = await _executeSearchInIsolate(
+      objects: objects,
+      query: state.query,
+      searchPublic: state.searchPublic,
+      searchInternal: state.searchInternal,
+      searchSensitive: state.searchSensitive,
+      searchRestricted: state.searchRestricted,
+    );
 
     state = state.copyWith(results: results, isSearching: false);
+  }
+
+  /// Wraps [_executeSearch] in an isolate.
+  /// Must be static so the closure sent to [Isolate.run] does not capture `this`.
+  static Future<List<SearchResultItem>> _executeSearchInIsolate({
+    required List<UnifiedObject> objects,
+    required String query,
+    required bool searchPublic,
+    required bool searchInternal,
+    required bool searchSensitive,
+    required bool searchRestricted,
+  }) {
+    return Isolate.run(() => _executeSearch(
+      objects,
+      query,
+      searchPublic,
+      searchInternal,
+      searchSensitive,
+      searchRestricted,
+    ));
   }
 
   /// Pure search function — runs in a background isolate.
