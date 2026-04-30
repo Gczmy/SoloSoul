@@ -155,105 +155,118 @@ class _EntryItemWidgetState<T> extends ConsumerState<EntryItemWidget<T>> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left icon
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  widget.icon,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Content: title, subtitle, fields
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    SelectableText(
-                      widget.title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+        Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left icon
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(
+                      widget.icon,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    // Subtitle if present
-                    if (widget.subtitle != null && widget.subtitle!.isNotEmpty)
-                      SelectableText(
-                        widget.subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 12),
+                  // Content: title, subtitle, fields (full width)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        SelectableText(
+                          widget.title,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    // Custom fields
-                    if (widget.fields.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      ResponsiveLabelField(
-                        fields: widget.fields,
-                        labelValueSpacing: 4,
-                        layoutAxis: Axis.vertical,
-                      ),
-                    ],
-                  ],
-                ),
+                        // Subtitle if present
+                        if (widget.subtitle != null && widget.subtitle!.isNotEmpty)
+                          SelectableText(
+                            widget.subtitle!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        // Custom fields
+                        if (widget.fields.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          ResponsiveLabelField(
+                            fields: widget.fields,
+                            labelValueSpacing: 4,
+                            layoutAxis: Axis.vertical,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              // Action buttons
-              if (widget.actionsConfig.showCopy)
-                IconButton(
-                  icon: const Icon(Icons.copy_all, size: 20),
-                  tooltip: 'Copy All',
-                  onPressed: extOnCopy != null
-                      ? () => extOnCopy(widget.formatAllFields(widget.item))
-                      : _handleCopyAllWithVerification,
-                  visualDensity: VisualDensity.compact,
-                ),
-              if (widget.actionsConfig.showEdit)
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  tooltip: 'Edit',
-                  onPressed: () async {
-                    // Check if any field is restricted - if so, verify password first
-                    final hasRestricted = widget.fields.any((f) => f.isSensitive);
-                    if (hasRestricted) {
-                      final verified = await _verifyPasswordForRestrictedFields();
-                      if (!verified) return;
-                    }
-                    if (!mounted) return;
-                    if (extOnEdit != null) {
-                      extOnEdit();
-                    } else {
-                      widget.onEdit();
-                    }
-                  },
-                  visualDensity: VisualDensity.compact,
-                ),
-              if (widget.actionsConfig.showDelete)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  tooltip: 'Delete',
-                  onPressed: () async {
-                    // Check if any field is restricted - if so, verify password first
-                    final hasRestricted = widget.fields.any((f) => f.isSensitive);
-                    if (hasRestricted) {
-                      final verified = await _verifyPasswordForRestrictedFields();
-                      if (!verified) return;
-                    }
-                    if (!mounted) return;
-                    if (extOnDelete != null) {
-                      extOnDelete();
-                    } else {
-                      widget.onDelete();
-                    }
-                  },
-                  visualDensity: VisualDensity.compact,
-                ),
-            ],
-          ),
+            ),
+            // Action buttons float in top-right, freeing content to use full width
+            Positioned(
+              top: 8,
+              right: 0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.actionsConfig.showCopy)
+                    IconButton(
+                      icon: const Icon(Icons.copy_all, size: 20),
+                      tooltip: 'Copy All',
+                      onPressed: extOnCopy != null
+                          ? () => extOnCopy(widget.formatAllFields(widget.item))
+                          : _handleCopyAllWithVerification,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  if (widget.actionsConfig.showEdit)
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      tooltip: 'Edit',
+                      onPressed: () async {
+                        // Check if any field is restricted - if so, verify password first
+                        final hasRestricted = widget.fields.any((f) => f.isSensitive);
+                        if (hasRestricted) {
+                          final verified = await _verifyPasswordForRestrictedFields();
+                          if (!verified) return;
+                        }
+                        if (!mounted) return;
+                        if (extOnEdit != null) {
+                          extOnEdit();
+                        } else {
+                          widget.onEdit();
+                        }
+                      },
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  if (widget.actionsConfig.showDelete)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      tooltip: 'Delete',
+                      onPressed: () async {
+                        // Check if any field is restricted - if so, verify password first
+                        final hasRestricted = widget.fields.any((f) => f.isSensitive);
+                        if (hasRestricted) {
+                          final verified = await _verifyPasswordForRestrictedFields();
+                          if (!verified) return;
+                        }
+                        if (!mounted) return;
+                        if (extOnDelete != null) {
+                          extOnDelete();
+                        } else {
+                          widget.onDelete();
+                        }
+                      },
+                      visualDensity: VisualDensity.compact,
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
         // History button (always shown below entry when enabled)
         if (widget.actionsConfig.showHistory)

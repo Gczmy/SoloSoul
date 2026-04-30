@@ -103,7 +103,7 @@ class _FieldRow extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Label with colon suffix — flexible so it can shrink when space is tight
+        // Label with colon suffix
         Flexible(
           child: SelectableText(
             '${field.label}: ',
@@ -113,16 +113,16 @@ class _FieldRow extends ConsumerWidget {
           ),
         ),
         SizedBox(width: labelValueSpacing),
-        // Value (sensitive or plain) — expanded to force tight fit and prevent overflow
+        // Value (sensitive or plain)
         if (isSensitive)
-          Expanded(
+          Flexible(
             child: SensitiveValueWidget(
               fieldId: effectiveFieldId,
               value: field.value,
             ),
           )
         else
-          Expanded(
+          Flexible(
             child: SelectableText(
               field.value,
               style: theme.textTheme.bodyMedium,

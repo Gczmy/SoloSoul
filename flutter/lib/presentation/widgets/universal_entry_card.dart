@@ -25,35 +25,43 @@ class UniversalEntryCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left icon
-              if (leading != null) ...[
-                Padding(padding: const EdgeInsets.only(top: 2), child: leading),
-                const SizedBox(width: 12),
-              ],
-              // Content: title, subtitle, children
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    title,
-                    if (subtitle != null) subtitle!,
-                    if (children.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      ...children,
-                    ],
+        Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left icon
+                  if (leading != null) ...[
+                    Padding(padding: const EdgeInsets.only(top: 2), child: leading),
+                    const SizedBox(width: 12),
                   ],
-                ),
+                  // Content: title, subtitle, children (full width)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        title,
+                        if (subtitle != null) subtitle!,
+                        if (children.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          ...children,
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              // Action buttons
-              if (actions.isNotEmpty)
-                Row(mainAxisSize: MainAxisSize.min, children: actions),
-            ],
-          ),
+            ),
+            // Action buttons float in top-right, freeing content to use full width
+            if (actions.isNotEmpty)
+              Positioned(
+                top: 8,
+                right: 0,
+                child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+              ),
+          ],
         ),
         // Bottom actions (e.g., history button)
         if (bottomActions.isNotEmpty) ...bottomActions,
