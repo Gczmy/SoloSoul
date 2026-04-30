@@ -15,6 +15,7 @@ import 'package:solosoul_flutter/presentation/providers/account_style_provider.d
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
+import 'package:solosoul_flutter/presentation/widgets/entry_actions_context.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -656,7 +657,13 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       return _buildItemEditMode(item);
     }
     if (widget.displayItemBuilder != null) {
-      return widget.displayItemBuilder!(context, item, isEditing: false);
+      return EntryActionsContext(
+        onEdit: () => _startEditingItem(item),
+        onDelete: () => _deleteItem(item.id),
+        onCopy: (_) async => _copyItem(item),
+        onToggleHistory: () => _toggleItemHistory(item.id),
+        child: widget.displayItemBuilder!(context, item, isEditing: false),
+      );
     }
     return _ObjectCardItemTile(
       item: item,
