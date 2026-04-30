@@ -18,6 +18,7 @@ class FieldHistoryDialog extends StatelessWidget {
   final IconData icon;
   final List<FormFieldDef> fieldDefs;
   final FieldHistory? history;
+  final String? fieldPrefix;
 
   const FieldHistoryDialog({
     super.key,
@@ -25,6 +26,7 @@ class FieldHistoryDialog extends StatelessWidget {
     required this.icon,
     required this.fieldDefs,
     this.history,
+    this.fieldPrefix,
   });
 
   /// Shows the history dialog.
@@ -34,6 +36,7 @@ class FieldHistoryDialog extends StatelessWidget {
     required IconData icon,
     required List<FormFieldDef> fieldDefs,
     required FieldHistory? history,
+    String? fieldPrefix,
   }) {
     return showDialog(
       context: context,
@@ -42,6 +45,7 @@ class FieldHistoryDialog extends StatelessWidget {
         icon: icon,
         fieldDefs: fieldDefs,
         history: history,
+        fieldPrefix: fieldPrefix,
       ),
     );
   }
@@ -127,6 +131,7 @@ class FieldHistoryDialog extends StatelessWidget {
                     formatTimestamp: _formatTimestamp,
                     formatFullTimestamp: _formatFullTimestamp,
                     title: title,
+                    fieldPrefix: fieldPrefix,
                   );
                 },
               ),
@@ -150,6 +155,7 @@ class _HistoryEntryTile extends ConsumerWidget {
   final String Function(DateTime) formatTimestamp;
   final String Function(DateTime) formatFullTimestamp;
   final String title;
+  final String? fieldPrefix;
 
   const _HistoryEntryTile({
     required this.entry,
@@ -160,13 +166,14 @@ class _HistoryEntryTile extends ConsumerWidget {
     required this.formatTimestamp,
     required this.formatFullTimestamp,
     required this.title,
+    this.fieldPrefix,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    // Get the prefix from title (e.g., "contact" from "Contact Information")
-    final prefix = title.toLowerCase().replaceAll(' ', '');
+    // Use provided fieldPrefix or fallback to deriving from title
+    final prefix = fieldPrefix ?? title.toLowerCase().replaceAll(' ', '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

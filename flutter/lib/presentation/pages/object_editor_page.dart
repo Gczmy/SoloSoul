@@ -396,7 +396,20 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                               width: 72,
                               child: PopupMenuButton<SensitivityLevel>(
                                 tooltip: 'Sensitivity',
-                                child: Center(child: SensitivityTag(level: field.sensitivity)),
+                                child: Center(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SensitivityTag(level: field.sensitivity),
+                                      const SizedBox(width: 2),
+                                      Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 12,
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 itemBuilder: (context) => SensitivityLevel.values.map((level) {
                                   return PopupMenuItem(
                                     value: level,

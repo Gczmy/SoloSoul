@@ -10,6 +10,11 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider;
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
+    show LogSection, LogAction;
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
+    show OperationLogService;
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
 
 /// A section widget for default pages that uses predefined UnifiedObject schemas.
@@ -124,7 +129,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       itemFactory: (values, {String? id}) {
         // Compute a display name from the first property that looks like a title
         String name = 'Untitled';
-        for (final key in ['title', 'name', 'destination', 'institution', 'company']) {
+        for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
           if (values[key]?.isNotEmpty == true) {
             name = values[key]!;
             break;
@@ -162,15 +167,15 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       },
       onSave: (newItem, values, editingItem) async {
         final notifier = ref.read(unifiedObjectProvider.notifier);
-        if (editingItem == null) {
-          // Adding
-          String name = 'Untitled';
-          for (final key in ['title', 'name', 'destination', 'institution', 'company']) {
-            if (values[key]?.isNotEmpty == true) {
-              name = values[key]!;
-              break;
-            }
+        final bool isCreating = editingItem == null;
+        String name = isCreating ? 'Untitled' : editingItem.name;
+        for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
+          if (values[key]?.isNotEmpty == true) {
+            name = values[key]!;
+            break;
           }
+        }
+        if (isCreating) {
           await notifier.createDefaultItem(
             sectionId: widget.sectionId,
             typeId: widget.typeId,
@@ -178,19 +183,23 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
             values: values,
           );
         } else {
-          // Editing
-          String name = editingItem.name;
-          for (final key in ['title', 'name', 'destination', 'institution', 'company']) {
-            if (values[key]?.isNotEmpty == true) {
-              name = values[key]!;
-              break;
-            }
-          }
           await notifier.updateDefaultItem(
             editingItem.id,
             name: name,
             values: values,
           );
+        }
+
+        // Record operation log
+        final logSection = _logSectionForTypeId(widget.typeId);
+        if (logSection != null) {
+          final action = isCreating ? LogAction.create : LogAction.update;
+          final entry = OperationLogger.logCustomSection(
+            section: logSection.value,
+            action: action,
+            description: '${action == LogAction.create ? 'Added' : 'Updated'} ${widget.title}: $name',
+          );
+          await OperationLogService.instance.addEntry(entry);
         }
       },
       customFormBuilder: widget.customFormBuilder != null
@@ -206,9 +215,18 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
               );
             }
           : null,
-      onDidDelete: widget.onDidDelete != null
-          ? (item, index) => widget.onDidDelete!(item, index)
-          : null,
+      onDidDelete: (item, index) async {
+        final logSection = _logSectionForTypeId(widget.typeId);
+        if (logSection != null) {
+          final entry = OperationLogger.logCustomSection(
+            section: logSection.value,
+            action: LogAction.delete,
+            description: 'Deleted ${widget.title}: ${item.name}',
+          );
+          await OperationLogService.instance.addEntry(entry);
+        }
+        widget.onDidDelete?.call(item, index);
+      },
       onDeleteFailed: widget.onDeleteFailed != null
           ? (item, index) => widget.onDeleteFailed!(item, index)
           : null,
@@ -283,6 +301,28 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       'professional_language' => 'language',
       'professional_award' => 'award',
       _ => typeId,
+    };
+  }
+
+  /// Map typeId to LogSection for operation logging.
+  LogSection? _logSectionForTypeId(String typeId) {
+    return switch (typeId) {
+      'profile_identity' => LogSection.identity,
+      'profile_contact' => LogSection.contactInformation,
+      'profile_id_card' => LogSection.idCard,
+      'profile_address' => LogSection.address,
+      'travel_passport' => LogSection.passport,
+      'travel_visa' => LogSection.visa,
+      'travel_history' => LogSection.travelHistory,
+      'financial_bank_account' => LogSection.bankAccount,
+      'financial_card' => LogSection.card,
+      'financial_tax_id' => LogSection.financial,
+      'professional_education' => LogSection.education,
+      'professional_employment' => LogSection.employment,
+      'professional_skill' => LogSection.skill,
+      'professional_language' => LogSection.language,
+      'professional_award' => LogSection.professional,
+      _ => null,
     };
   }
 

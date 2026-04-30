@@ -9,7 +9,20 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
+    show LogSection, LogAction;
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
+    show OperationLogService;
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/field_history_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
+    show effectiveSensitivityProvider;
+import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
+    show FormFieldDef;
 
 // =============================================================================
 // Unified abstraction for trash list items (enables ListView.builder)
@@ -410,6 +423,15 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               final notifier = ref.read(unifiedObjectProvider.notifier);
               for (final obj in deletedObjects) {
                 await notifier.permanentlyDeleteObject(obj.id);
+                final logSection = _logSectionForTypeId(obj.typeId ?? '');
+                if (logSection != null) {
+                  final entry = OperationLogger.logCustomSection(
+                    section: logSection.value,
+                    action: LogAction.purge,
+                    description: 'Permanently deleted ${obj.name}',
+                  );
+                  await OperationLogService.instance.addEntry(entry);
+                }
               }
 
               if (mounted) {
@@ -432,6 +454,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     BuildContext context,
     UnifiedObject object,
   ) async {
+    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -460,8 +483,17 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     );
     if (confirmed == true) {
       await ref.read(unifiedObjectProvider.notifier).restoreObject(object.id);
+      final logSection = _logSectionForTypeId(object.typeId ?? '');
+      if (logSection != null) {
+        final entry = OperationLogger.logCustomSection(
+          section: logSection.value,
+          action: LogAction.restore,
+          description: 'Restored ${object.name}',
+        );
+        await OperationLogService.instance.addEntry(entry);
+      }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('Restored "${object.name}"')),
         );
       }
@@ -472,6 +504,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     BuildContext context,
     UnifiedObject object,
   ) async {
+    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -540,12 +573,43 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       await ref
           .read(unifiedObjectProvider.notifier)
           .permanentlyDeleteObject(object.id);
+      final logSection = _logSectionForTypeId(object.typeId ?? '');
+      if (logSection != null) {
+        final entry = OperationLogger.logCustomSection(
+          section: logSection.value,
+          action: LogAction.purge,
+          description: 'Permanently deleted ${object.name}',
+        );
+        await OperationLogService.instance.addEntry(entry);
+      }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('Permanently deleted "${object.name}"')),
         );
       }
     }
+  }
+
+  /// Map typeId to LogSection for operation logging.
+  LogSection? _logSectionForTypeId(String typeId) {
+    return switch (typeId) {
+      'profile_identity' => LogSection.identity,
+      'profile_contact' => LogSection.contactInformation,
+      'profile_id_card' => LogSection.idCard,
+      'profile_address' => LogSection.address,
+      'travel_passport' => LogSection.passport,
+      'travel_visa' => LogSection.visa,
+      'travel_history' => LogSection.travelHistory,
+      'financial_bank_account' => LogSection.bankAccount,
+      'financial_card' => LogSection.card,
+      'financial_tax_id' => LogSection.financial,
+      'professional_education' => LogSection.education,
+      'professional_employment' => LogSection.employment,
+      'professional_skill' => LogSection.skill,
+      'professional_language' => LogSection.language,
+      'professional_award' => LogSection.professional,
+      _ => null,
+    };
   }
 }
 
@@ -553,7 +617,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 // Unified Object Trash Card
 // =============================================================================
 
-class _UnifiedObjectTrashCard extends StatelessWidget {
+class _UnifiedObjectTrashCard extends ConsumerWidget {
   final UnifiedObject object;
   final VoidCallback onRestore;
   final VoidCallback onPurge;
@@ -565,13 +629,28 @@ class _UnifiedObjectTrashCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final deletedAt = object.deletedAt;
     final daysRemaining = deletedAt != null
         ? 30 - DateTime.now().difference(deletedAt).inDays
         : 30;
     final isExpiringSoon = daysRemaining <= 7;
+
+    // History lookup
+    final fieldPrefix = _fieldPrefixForTypeId(object.typeId ?? '');
+    final history = fieldPrefix.isNotEmpty
+        ? ref.watch(fieldHistoriesProvider.select((h) => h.getHistory(object.id, fieldPrefix)))
+        : null;
+
+    // Field defs for history dialog
+    final typeDef = ObjectTypeRegistry.getType(object.typeId ?? '');
+    final fieldDefs = typeDef?.properties.map((prop) {
+      return FormFieldDef(
+        fieldId: prop.id,
+        label: prop.name,
+      );
+    }).toList() ?? [];
 
     return Card(
       child: InkWell(
@@ -640,50 +719,287 @@ class _UnifiedObjectTrashCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time,
-                    size: 14,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    deletedAt != null
-                        ? 'Deleted ${_formatTimeAgo(deletedAt)}'
-                        : 'Deleted recently',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: onRestore,
-                    icon: const Icon(Icons.restore, size: 16),
-                    label: const Text('Restore'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: Size.zero,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  TextButton.icon(
-                    onPressed: onPurge,
-                    icon: const Icon(Icons.delete_forever, size: 16),
-                    label: const Text('Purge'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: Size.zero,
-                      foregroundColor: AppTheme.errorColor,
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final narrow = constraints.maxWidth < 420;
+                  return Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          deletedAt != null
+                              ? 'Deleted ${_formatTimeAgo(deletedAt)}'
+                              : 'Deleted recently',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      _buildActionButton(
+                        narrow: narrow,
+                        icon: Icons.info_outline,
+                        label: 'Details',
+                        onPressed: () => _showDetailDialog(context, ref),
+                      ),
+                      const SizedBox(width: 4),
+                      _buildHistoryButton(
+                        context: context,
+                        narrow: narrow,
+                        count: history?.entries.length ?? 0,
+                        onShowHistory: () => FieldHistoryDialog.show(
+                          context: context,
+                          title: object.name,
+                          icon: UnifiedObjectService.getIconFromName(object.iconName),
+                          fieldDefs: fieldDefs,
+                          history: history,
+                          fieldPrefix: fieldPrefix,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      _buildActionButton(
+                        narrow: narrow,
+                        icon: Icons.restore_from_trash,
+                        label: 'Restore',
+                        onPressed: onRestore,
+                      ),
+                      const SizedBox(width: 4),
+                      _buildActionButton(
+                        narrow: narrow,
+                        icon: Icons.delete_forever,
+                        label: 'Purge',
+                        onPressed: onPurge,
+                        color: AppTheme.errorColor,
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
         ),
       ),
     ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildHistoryButton({
+    required BuildContext context,
+    required bool narrow,
+    required int count,
+    required VoidCallback onShowHistory,
+  }) {
+    final hasHist = count > 0;
+    final iconColor = hasHist
+        ? null
+        : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
+    final icon = Icon(Icons.history, size: narrow ? 18 : 16, color: iconColor);
+
+    final stackIcon = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        Positioned(
+          right: -6,
+          top: -6,
+          child: Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 10,
+              color: iconColor,
+              fontWeight: FontWeight.w500,
+              height: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (narrow) {
+      return IconButton(
+        icon: stackIcon,
+        onPressed: hasHist
+            ? onShowHistory
+            : () => showOverlaySnackBar(
+                  context,
+                  content: 'No history available',
+                  type: SnackBarType.info,
+                ),
+        padding: const EdgeInsets.all(2),
+        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        tooltip: hasHist ? 'History ($count)' : 'No history yet',
+      );
+    }
+
+    return TextButton.icon(
+      onPressed: hasHist
+          ? onShowHistory
+          : () => showOverlaySnackBar(
+                context,
+                content: 'No history available',
+                type: SnackBarType.info,
+              ),
+      icon: stackIcon,
+      label: const Text('History'),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        minimumSize: Size.zero,
+        foregroundColor: iconColor,
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required bool narrow,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    Color? color,
+  }) {
+    if (narrow) {
+      return IconButton(
+        icon: Icon(icon, size: 18, color: color),
+        onPressed: onPressed,
+        padding: const EdgeInsets.all(2),
+        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        tooltip: label,
+      );
+    }
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        minimumSize: Size.zero,
+        foregroundColor: color,
+      ),
+    );
+  }
+
+  void _showDetailDialog(BuildContext context, WidgetRef ref) {
+    final fieldPrefix = _fieldPrefixForTypeId(object.typeId ?? '');
+    final deletedAt = object.deletedAt;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(object.name),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Deleted time info
+              if (deletedAt != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(ctx).colorScheme.errorContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            size: 16,
+                            color: Theme.of(ctx).colorScheme.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Deleted ${_formatTimeAgo(deletedAt)}',
+                            style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(ctx).colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatFullTimestamp(deletedAt),
+                        style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              // Properties with sensitivity tags
+              ...object.properties.entries.map((e) {
+                final value = e.value;
+                final text = switch (value) {
+                  TextProperty() => value.text,
+                  _ => '',
+                };
+                final fieldId = fieldPrefix.isNotEmpty ? '$fieldPrefix.${e.key}' : e.key;
+                final sensitivity = ref.read(effectiveSensitivityProvider(fieldId));
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _formatLabel(e.key),
+                              style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              text.isEmpty ? '(empty)' : text,
+                              style: Theme.of(ctx).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SensitivityTag(level: sensitivity),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatLabel(String key) {
+    final spaced = key.replaceAllMapped(
+      RegExp(r'([a-z])([A-Z])'),
+      (m) => '${m[1]} ${m[2]}',
+    );
+    return spaced.replaceAll('_', ' ').split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  String _formatFullTimestamp(DateTime dt) {
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
   String _formatTimeAgo(DateTime date) {
@@ -698,4 +1014,26 @@ class _UnifiedObjectTrashCard extends StatelessWidget {
       return 'Just now';
     }
   }
+}
+
+/// Map typeId to field-prefix used by FieldRegistry.
+String _fieldPrefixForTypeId(String typeId) {
+  return switch (typeId) {
+    'profile_identity' => 'identity',
+    'profile_contact' => 'contact',
+    'profile_id_card' => 'idCard',
+    'profile_address' => 'address',
+    'travel_passport' => 'passport',
+    'travel_visa' => 'visa',
+    'travel_history' => 'travel',
+    'financial_bank_account' => 'bankAccount',
+    'financial_card' => 'card',
+    'financial_tax_id' => 'taxId',
+    'professional_education' => 'education',
+    'professional_employment' => 'employment',
+    'professional_skill' => 'skill',
+    'professional_language' => 'language',
+    'professional_award' => 'award',
+    _ => typeId,
+  };
 }

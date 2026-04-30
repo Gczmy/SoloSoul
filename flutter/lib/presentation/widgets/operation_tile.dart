@@ -132,13 +132,13 @@ class OperationTile extends StatelessWidget {
   Color _sensitivityColor(SensitivityLevel level) {
     switch (level) {
       case SensitivityLevel.critical:
-        return Colors.red;
+        return Colors.red.shade900;
       case SensitivityLevel.sensitive:
         return Colors.orange;
       case SensitivityLevel.internal:
-        return Colors.green;
-      case SensitivityLevel.public:
         return Colors.blue;
+      case SensitivityLevel.public:
+        return Colors.green;
     }
   }
 

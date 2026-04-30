@@ -8,6 +8,8 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
+    show OperationLogService;
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 export 'package:solosoul_flutter/presentation/models/operation_log_models.dart' show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
@@ -37,6 +39,12 @@ void Function(UnifiedObject item, int index) buildOnDidDelete(
         await ref
             .read(unifiedObjectProvider.notifier)
             .restoreDefaultItem(item.id);
+        final entry = OperationLogger.logCustomSection(
+          section: logSection.value,
+          action: LogAction.restore,
+          description: 'Restored ${item.name}',
+        );
+        await OperationLogService.instance.addEntry(entry);
       },
     );
   };
