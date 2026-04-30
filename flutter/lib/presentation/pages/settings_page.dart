@@ -542,14 +542,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       onTap: () =>
                           context.push(AppRoutes.operationLog),
                     ),
-                    const Divider(height: 1),
-                    _SettingsTile(
-                      icon: Icons.folder_outlined,
-                      title: 'Manage Objects',
-                      subtitle: 'Browse and organize all objects',
-                      onTap: () =>
-                          context.push(AppRoutes.objects),
-                    ),
+                    // TODO: Manage Objects page is not ready yet, hide for now
                   ],
                 )
                 .animate()
