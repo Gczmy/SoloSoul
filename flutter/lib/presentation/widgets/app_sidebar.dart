@@ -400,9 +400,14 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 behavior: HitTestBehavior.translucent,
                 onHorizontalDragUpdate: (details) {
                   setState(() {
-                    _expandedWidth = (_expandedWidth + details.delta.dx)
-                        .clamp(_minWidth, _maxWidth);
-                    _expanded = true;
+                    final newWidth = _expandedWidth + details.delta.dx;
+                    if (newWidth < _minWidth) {
+                      // Collapse when dragged below minimum width
+                      _expanded = false;
+                    } else {
+                      _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
+                      _expanded = true;
+                    }
                   });
                 },
                 child: Container(
