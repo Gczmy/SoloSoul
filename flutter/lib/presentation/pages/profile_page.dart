@@ -100,6 +100,89 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     final selectedType = controllers['type']?.text ?? 'email';
                     final valueSensitivity =
                         sensitivities['value'] ?? SensitivityLevel.public;
+
+                    Widget buildCountedField({
+                      required TextEditingController? controller,
+                      required String label,
+                      String? hint,
+                      int? maxLength,
+                      Widget? suffixIcon,
+                      TextInputType? keyboardType,
+                    }) {
+                      maxLength ??= kMaxFieldLength;
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: controller,
+                              maxLength: maxLength,
+                              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                              decoration: InputDecoration(
+                                labelText: label,
+                                hintText: hint,
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                suffixIcon: suffixIcon,
+                              ),
+                              keyboardType: keyboardType,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 64,
+                            child: ValueListenableBuilder<TextEditingValue>(
+                              valueListenable: controller ?? TextEditingController(),
+                              builder: (context, val, child) {
+                                final len = val.text.length;
+                                final max = maxLength!;
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 28,
+                                      child: Text(
+                                        '$len',
+                                        textAlign: TextAlign.right,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: len >= max
+                                              ? theme.colorScheme.error
+                                              : theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '/',
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: len >= max
+                                            ? theme.colorScheme.error
+                                            : theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 28,
+                                      child: Text(
+                                        '$max',
+                                        textAlign: TextAlign.left,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: len >= max
+                                              ? theme.colorScheme.error
+                                              : theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -110,19 +193,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        TextField(
+                        buildCountedField(
                           controller: controllers['title'],
-                          maxLength: kMaxFieldLength,
-                          decoration: const InputDecoration(
-                            labelText: 'Title',
-                            hintText: 'e.g., Gmail, Work',
-                            counterText: '',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
+                          label: 'Title',
+                          hint: 'e.g., Gmail, Work',
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
@@ -151,15 +225,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        TextField(
+                        buildCountedField(
                           controller: controllers['value'],
-                          maxLength: kMaxFieldLength,
-                          decoration: InputDecoration(
-                            labelText: 'Value',
-                            counterText: '',
-                            border: const OutlineInputBorder(),
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 8),
+                          label: 'Value',
+                          suffixIcon: Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              widthFactor: 1,
                               child: SensitivityTag(level: valueSensitivity),
                             ),
                           ),
