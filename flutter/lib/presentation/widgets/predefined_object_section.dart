@@ -6,6 +6,10 @@ import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
+    show authNotifierProvider;
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
+    show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
 
 /// A section widget for default pages that uses predefined UnifiedObject schemas.
@@ -211,7 +215,31 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       onCopyAll: widget.onCopyAll != null
           ? (item, text) => widget.onCopyAll!(item, text)
           : null,
+      showHistoryExpansion: true,
+      historyFieldIdPrefix: _fieldPrefix(widget.typeId),
+      historyConfig: HistoryRecordingConfig<UnifiedObject>(
+        itemIdExtractor: (item) => item.id,
+        fieldIdPrefix: _fieldPrefix(widget.typeId),
+      ),
+      historyAwareOnSave: _recordHistory,
       itemIdExtractor: (item) => item.id,
+    );
+  }
+
+  Future<void> _recordHistory(
+    UnifiedObject? newItem,
+    Map<String, String> values,
+    UnifiedObject? editingItem, [
+    Map<String, String>? oldValues,
+  ]) async {
+    if (editingItem == null || oldValues == null) return;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+    await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
+      accountId: accountId,
+      itemId: editingItem.id,
+      fieldIdPrefix: _fieldPrefix(widget.typeId),
+      allFieldValues: oldValues,
     );
   }
 

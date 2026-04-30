@@ -17,6 +17,7 @@ class EntryActionBuilder {
     required VoidCallback onDelete,
     EntryActionsConfig config = const EntryActionsConfig(),
     bool isSensitive = false,
+    Widget? historyAction,
   }) {
     final actions = <Widget>[];
 
@@ -50,6 +51,11 @@ class EntryActionBuilder {
               : onEdit,
         ),
       );
+    }
+
+    if (historyAction != null) {
+      actions.add(historyAction);
+      actions.add(const SizedBox(width: 8));
     }
 
     if (config.showDelete) {

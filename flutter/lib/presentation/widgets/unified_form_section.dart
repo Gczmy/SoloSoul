@@ -643,6 +643,7 @@ class EntryActionsContext extends InheritedWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final Future<void> Function(String)? onCopy;
+  final VoidCallback? onToggleHistory;
 
   const EntryActionsContext({
     super.key,
@@ -650,6 +651,7 @@ class EntryActionsContext extends InheritedWidget {
     this.onEdit,
     this.onDelete,
     this.onCopy,
+    this.onToggleHistory,
   });
 
   static EntryActionsContext? of(BuildContext context) {
@@ -660,7 +662,8 @@ class EntryActionsContext extends InheritedWidget {
   bool updateShouldNotify(EntryActionsContext old) {
     return onEdit != old.onEdit ||
         onDelete != old.onDelete ||
-        onCopy != old.onCopy;
+        onCopy != old.onCopy ||
+        onToggleHistory != old.onToggleHistory;
   }
 }
 
@@ -735,6 +738,7 @@ class _ItemWithHistory<T extends IdentifiableItem> extends ConsumerWidget {
       onEdit: onEdit,
       onDelete: onDelete,
       onCopy: onCopyAllPressed != null ? (text) async => onCopyAllPressed!() : null,
+      onToggleHistory: showHistoryExpansion ? () => _handleHistoryPress(context, ref) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -750,19 +754,6 @@ class _ItemWithHistory<T extends IdentifiableItem> extends ConsumerWidget {
               ),
             ),
           ),
-          // History button row
-          if (showHistoryExpansion)
-            Padding(
-              padding: const EdgeInsets.only(left: 32, bottom: 4),
-              child: TextButton.icon(
-                icon: Icon(
-                  historyExpanded ? Icons.expand_less : Icons.history,
-                  size: 16,
-                ),
-                label: Text('History(${history?.entries.length ?? 0})'),
-                onPressed: () => _handleHistoryPress(context, ref),
-              ),
-            ),
           // Expanded history view
           if (showHistoryExpansion && historyExpanded && history != null)
             Padding(

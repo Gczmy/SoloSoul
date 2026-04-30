@@ -263,6 +263,78 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     // Get EntryActionsContext for use inside UnifiedFormSection
     final actionsContext = EntryActionsContext.of(context);
 
+    // History button in action row when inside UnifiedFormSection
+    Widget? historyAction;
+    if (inFormSection && actionsContext?.onToggleHistory != null) {
+      final count = history?.entries.length ?? 0;
+      final hasHist = count > 0;
+      final iconData = isExpanded ? Icons.history_toggle_off : Icons.history;
+      final iconColor = hasHist
+          ? Theme.of(context).colorScheme.onSurfaceVariant
+          : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
+      final icon = Icon(iconData, size: 20, color: iconColor);
+
+      historyAction = IconButton(
+        icon: hasHist
+            ? Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  icon,
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: iconColor,
+                        fontWeight: FontWeight.w500,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  icon,
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Text(
+                      '0',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: iconColor,
+                        fontWeight: FontWeight.w500,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+        tooltip: hasHist ? 'History ($count)' : 'No history yet',
+        onPressed: hasHist
+            ? actionsContext!.onToggleHistory
+            : () {
+                showOverlaySnackBar(
+                  context,
+                  content: 'No history available',
+                  type: SnackBarType.info,
+                );
+              },
+        visualDensity: VisualDensity.compact,
+      );
+    }
+
+    final actions = _buildActions(
+      context,
+      actionsContext,
+      isSensitive,
+      historyAction: historyAction,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,7 +358,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
             size: 20,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          actions: _buildActions(context, actionsContext, isSensitive),
+          actions: actions,
           bottomActions: inFormSection
               ? []
               : [
@@ -322,7 +394,12 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     );
   }
 
-  List<Widget> _buildActions(BuildContext context, EntryActionsContext? ctx, bool isSensitive) {
+  List<Widget> _buildActions(
+    BuildContext context,
+    EntryActionsContext? ctx,
+    bool isSensitive, {
+    Widget? historyAction,
+  }) {
     final editAction = ctx != null && ctx.onEdit != null
         ? ctx.onEdit!
         : widget.onEdit != null
@@ -351,6 +428,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
         showDelete: true,
       ),
       isSensitive: isSensitive,
+      historyAction: historyAction,
     );
   }
 }

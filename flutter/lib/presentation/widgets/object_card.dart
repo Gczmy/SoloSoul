@@ -1048,7 +1048,49 @@ class _ObjectCardItemTile extends ConsumerWidget {
     final history = ref.watch(
       fieldHistoriesProvider.select((h) => h.getHistory(item.id, 'unified')),
     );
-    final hasHistory = history?.entries.isNotEmpty == true;
+    final count = history?.entries.length ?? 0;
+    final hasHist = count > 0;
+
+    // Check if any property requires sensitive verification for history
+    final requiresVerification = item.properties.values.any(
+      (p) => p.sensitivity == SensitivityLevel.sensitive ||
+             p.sensitivity == SensitivityLevel.critical,
+    );
+
+    final iconData = isHistoryExpanded ? Icons.history_toggle_off : Icons.history;
+    final iconColor = hasHist
+        ? theme.colorScheme.onSurfaceVariant
+        : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
+    final historyIcon = Icon(iconData, size: 20, color: iconColor);
+
+    Future<void> handleHistoryPress() async {
+      if (hasHist) {
+        if (requiresVerification) {
+          final isGranted = ref.read(isSensitiveAccessGrantedProvider);
+          if (!isGranted) {
+            final authNotifier = ref.read(authNotifierProvider.notifier);
+            final selectedAccount = authNotifier.selectedAccount;
+            final password = await showPasswordVerificationDialog(
+              context: context,
+              ref: ref,
+              passwordHint: selectedAccount?.passwordHint,
+              onVerify: authNotifier.verifyPasswordForSensitiveData,
+            );
+            if (password == null) return;
+            ref.read(sensitivePageAccessProvider.notifier).markVerified();
+          }
+        }
+        onToggleHistory();
+      } else {
+        if (context.mounted) {
+          showOverlaySnackBar(
+            context,
+            content: 'No history available',
+            type: SnackBarType.info,
+          );
+        }
+      }
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1074,7 +1116,7 @@ class _ObjectCardItemTile extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Action buttons
+              // Action buttons: Copy | Edit | History | Delete
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1090,23 +1132,55 @@ class _ObjectCardItemTile extends ConsumerWidget {
                     onPressed: onStartEdit,
                     visualDensity: VisualDensity.compact,
                   ),
-                  if (hasHistory)
-                    IconButton(
-                      icon: Icon(
-                        isHistoryExpanded
-                            ? Icons.history_toggle_off
-                            : Icons.history,
-                        size: 20,
-                      ),
-                      tooltip: 'History',
-                      onPressed: onToggleHistory,
-                      visualDensity: VisualDensity.compact,
-                    ),
                   IconButton(
-                    icon: Icon(
+                    icon: hasHist
+                        ? Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              historyIcon,
+                              Positioned(
+                                right: -6,
+                                top: -6,
+                                child: Text(
+                                  '$count',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: iconColor,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              historyIcon,
+                              Positioned(
+                                right: -6,
+                                top: -6,
+                                child: Text(
+                                  '0',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: iconColor,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                    tooltip: hasHist ? 'History ($count)' : 'No history yet',
+                    onPressed: handleHistoryPress,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(
                       Icons.delete_outline,
                       size: 20,
-                      color: theme.colorScheme.error,
                     ),
                     tooltip: 'Delete',
                     onPressed: onDelete,

@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 
 /// Data Management page — full-screen backup & restore UI.
@@ -198,6 +199,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
   Future<void> _deleteBackup(BackupEntry entry) async {
     if (_accountId == null) return;
+
+    // Step 1: Confirm deletion
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -216,12 +219,36 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       ),
     );
     if (confirmed != true) return;
+    if (!mounted) return;
+
+    // Step 2: Verify password before destructive action
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final selectedAccount = authNotifier.selectedAccount;
+    final password = await showPasswordVerificationDialog(
+      context: context,
+      ref: ref,
+      message: 'Enter your master password to confirm backup deletion.',
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
+    );
+    if (password == null) return; // User cancelled verification
 
     final success = await BackupService.instance.deleteBackup(
       _accountId!,
       entry.fileName,
     );
-    if (success && mounted) await _loadBackups();
+    if (success && mounted) {
+      await _loadBackups();
+      if (!mounted) return;
+      OperationNotification.show(
+        context,
+        message: const OperationMessage(
+          type: OperationType.purge,
+          section: 'backup',
+          customMessage: 'Backup deleted',
+        ),
+      );
+    }
   }
 
   // -------------------------------------------------------------------------

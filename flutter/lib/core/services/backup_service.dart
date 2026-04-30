@@ -108,6 +108,36 @@ class BackupService {
   static String _two(int n) => n.toString().padLeft(2, '0');
 
   // -------------------------------------------------------------------------
+  // Isolate helpers — 必须与 UI 回调隔离，避免 Dart closure context 共享
+  // 导致 "object is unsendable" 错误。
+  //
+  // Dart 在同一作用域内定义的多个闭包会共享 context 对象。若 Isolate.run
+  // 的闭包与捕获 Widget state 的 onProgress 回调定义在同一方法中，
+  // 即使闭包本身未直接引用 onProgress，整个 context 也会被序列化到 isolate，
+  // 从而触发 Illegal argument in isolate message。
+  //
+  // 安全做法：将 Isolate.run 调用封装到独立的 static 方法中，使其 closure
+  // context 与 UI 回调完全隔离。
+  // -------------------------------------------------------------------------
+  static Uint8List _encodeProfileToBytes(Map<String, dynamic> json) {
+    final jsonString = jsonEncode(json);
+    return Uint8List.fromList(utf8.encode(jsonString));
+  }
+
+  static Future<Uint8List> _encodeProfileInIsolate(Map<String, dynamic> json) {
+    return Isolate.run(() => _encodeProfileToBytes(json));
+  }
+
+  static ProfileData _decodeProfileFromString(String jsonString) {
+    final json = jsonDecode(jsonString) as Map<String, dynamic>;
+    return ProfileData.fromJson(json);
+  }
+
+  static Future<ProfileData> _decodeProfileInIsolate(String jsonString) {
+    return Isolate.run(() => _decodeProfileFromString(jsonString));
+  }
+
+  // -------------------------------------------------------------------------
   // 核心：常规备份 / 恢复 / 列表 / 删除
   // -------------------------------------------------------------------------
 
@@ -137,10 +167,7 @@ class BackupService {
 
       report(0.3);
       DebugLogger.instance.logInfo('BACKUP', 'Step 2/5: jsonEncode start');
-      final plainBytes = await Isolate.run(() {
-        final jsonString = jsonEncode(profileData.toJson());
-        return Uint8List.fromList(utf8.encode(jsonString));
-      });
+      final plainBytes = await _encodeProfileInIsolate(profileData.toJson());
       DebugLogger.instance.logInfo('BACKUP', 'Step 2/5: jsonEncode done, size=${plainBytes.length} bytes');
 
       report(0.5);
@@ -219,11 +246,8 @@ class BackupService {
       final decrypted = RustVaultService.instance.decryptBytes(encrypted);
       if (decrypted == null) return false;
 
-      final profile = await Isolate.run(() {
-        final jsonString = utf8.decode(decrypted);
-        final json = jsonDecode(jsonString) as Map<String, dynamic>;
-        return ProfileData.fromJson(json);
-      });
+      final jsonString = utf8.decode(decrypted);
+      final profile = await _decodeProfileInIsolate(jsonString);
 
       // 2. 创建保护性备份（覆盖数据前）
       await createBackup(accountId);
@@ -295,10 +319,7 @@ class BackupService {
       if (profileData == null) return null;
 
       report(0.3);
-      final plainBytes = await Isolate.run(() {
-        final jsonString = jsonEncode(profileData.toJson());
-        return Uint8List.fromList(utf8.encode(jsonString));
-      });
+      final plainBytes = await _encodeProfileInIsolate(profileData.toJson());
 
       report(0.5);
       final encrypted = RustVaultService.instance.encryptBytes(plainBytes);
