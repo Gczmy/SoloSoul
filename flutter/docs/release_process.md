@@ -2,5 +2,6 @@
 2.重新编译最新的dmg文件，编译脚本使用flutter/build_dmg.sh。
 3.把最新编译的dmg文件移动至/Users/zzc/PycharmProjects/SoloSoul/
 4.把最新编译的dmg文件release到公开库https://github.com/Gczmy/SoloSoul.git，版本号使用https://semver.org/lang/zh-CN/定义的规则，延续之前已发布的版本号加一。
+注意：通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件（如 DMG 文件），这些附件不存储在 git 仓库中。
 5.更新公开库的changelog（简洁版本）。
 6.更新私有库的changelog（详细版本）。

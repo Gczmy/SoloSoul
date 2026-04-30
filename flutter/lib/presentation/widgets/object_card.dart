@@ -26,12 +26,62 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 
 /// Card displaying a Section and its Items.
 ///
-/// A Section contains multiple Items (UnifiedObject with typeId='item').
-/// Each Item has its own properties (key-value pairs).
-/// The Section's `properties` field defines the Item template.
+/// A Section contains multiple Items. Each Item has its own properties (key-value pairs).
+/// The Section's `properties` field defines the Item template by default,
+/// but can be overridden via [itemTemplate] for preset pages.
 class ObjectCard extends ConsumerStatefulWidget {
   final UnifiedObject object;
   final List<UnifiedObject> items;
+
+  /// Override for the item type ID. Defaults to `'item'`.
+  final String itemTypeId;
+
+  /// Optional template that defines the schema for new/edited items.
+  /// When null, uses [object.properties] as the template.
+  final Map<String, PropertyValue>? itemTemplate;
+
+  /// Prefix for field history recording. Defaults to `'unified'`.
+  final String historyFieldIdPrefix;
+
+  /// Optional callback to derive display name from property values.
+  /// When null, falls back to Title/Item Name lookup.
+  final String Function(Map<String, String>)? nameExtractor;
+
+  /// Whether to show the "Add Item" button in the header. Defaults to `true`.
+  final bool showAddButton;
+
+  /// Whether to show edit/delete/change-icon buttons in the header. Defaults to `true`.
+  final bool showEditActions;
+
+  /// Optional override for save logic. Returns the item ID (new or existing).
+  final Future<String> Function({
+    required String? itemId,
+    required String name,
+    required Map<String, PropertyValue> properties,
+  })? onSaveItem;
+
+  /// Optional override for delete logic. Returns `true` on success.
+  final Future<bool> Function(String itemId)? onDeleteItem;
+
+  /// Optional custom form builder. When provided, replaces the default field list
+  /// in both add and edit modes. Signature matches [UnifiedFormSection.customFormBuilder].
+  final Widget Function(
+    BuildContext context,
+    ThemeData theme,
+    Map<String, TextEditingController> controllers,
+    String mode,
+    VoidCallback onSubmit,
+    VoidCallback onCancel,
+    Map<String, SensitivityLevel> fieldSensitivities,
+  )? customFormBuilder;
+
+  /// Optional custom item tile renderer. When non-null, replaces [_ObjectCardItemTile].
+  final Widget Function(BuildContext context, UnifiedObject item, {required bool isEditing})?
+      displayItemBuilder;
+
+  /// Optional callback for copying all fields of an item.
+  /// Receives the item and a pre-formatted text string.
+  final Future<void> Function(UnifiedObject item, String formattedText)? onCopyAll;
 
   /// Static dummy controller to avoid creating a new TextEditingController on every build.
   static final _dummyController = TextEditingController();
@@ -40,6 +90,17 @@ class ObjectCard extends ConsumerStatefulWidget {
     super.key,
     required this.object,
     required this.items,
+    this.itemTypeId = 'item',
+    this.itemTemplate,
+    this.historyFieldIdPrefix = 'unified',
+    this.nameExtractor,
+    this.showAddButton = true,
+    this.showEditActions = true,
+    this.onSaveItem,
+    this.onDeleteItem,
+    this.customFormBuilder,
+    this.displayItemBuilder,
+    this.onCopyAll,
   });
 
   @override
@@ -49,7 +110,6 @@ class ObjectCard extends ConsumerStatefulWidget {
 const int kMaxPropertyLength = 128;
 
 class _ObjectCardState extends ConsumerState<ObjectCard> {
-  static const String _historyFieldId = 'unified';
   final Set<String> _expandedHistoryItemIds = {};
   String? _editingItemId;
   bool _isAddingItem = false;
@@ -58,6 +118,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   /// Tracks original values when entering edit/add mode for dirty-check.
   final Map<String, String> _originalValues = {};
   bool _hasChanges = false;
+
+  /// Resolved template: [itemTemplate] takes precedence over [object.properties].
+  Map<String, PropertyValue> get _template =>
+      widget.itemTemplate ?? widget.object.properties;
 
   void _disposeControllers() {
     for (final c in _editControllers.values) {
@@ -96,7 +160,16 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   /// Get the display title for an item, looking up 'Title' then 'Item Name'.
-  String _itemDisplayTitle(UnifiedObject item) => _objectItemDisplayTitle(item);
+  String _itemDisplayTitle(UnifiedObject item) {
+    if (widget.nameExtractor != null) {
+      final props = <String, String>{
+        for (final entry in item.properties.entries)
+          entry.key: _propValueToString(entry.value),
+      };
+      return widget.nameExtractor!(props);
+    }
+    return _objectItemDisplayTitle(item);
+  }
 
 
 
@@ -106,7 +179,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       _editingItemId = null;
       _disposeControllers();
 
-      final template = widget.object.properties;
+      final template = _template;
       // Title defaults from template
       final titleValue = template['Title'] is TextProperty
           ? (template['Title'] as TextProperty).text
@@ -126,7 +199,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Future<void> _saveNewItem() async {
-    final template = widget.object.properties;
+    final template = _template;
     final properties = Map<String, PropertyValue>.from(template);
 
     final nameInput = _editControllers['__name__']?.text.trim() ?? '';
@@ -150,12 +223,20 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         ? (properties['Title'] as TextProperty).text
         : 'Item';
 
-    await ref.read(unifiedObjectProvider.notifier).createObject(
-      name: name,
-      typeId: 'item',
-      parentId: widget.object.id,
-      properties: properties,
-    );
+    if (widget.onSaveItem != null) {
+      await widget.onSaveItem!(
+        itemId: null,
+        name: name,
+        properties: properties,
+      );
+    } else {
+      await ref.read(unifiedObjectProvider.notifier).createObject(
+        name: name,
+        typeId: widget.itemTypeId,
+        parentId: widget.object.id,
+        properties: properties,
+      );
+    }
 
     await OperationLogService.instance.addEntry(
       OperationLogger.logCustomSection(
@@ -246,7 +327,15 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (confirmed != true) return;
 
     Future<void> doDelete() async {
-      await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
+      final bool success;
+      if (widget.onDeleteItem != null) {
+        success = await widget.onDeleteItem!(itemId);
+      } else {
+        await ref.read(unifiedObjectProvider.notifier).deleteObject(itemId);
+        success = true;
+      }
+
+      if (!success) return;
 
       await OperationLogService.instance.addEntry(
         OperationLogger.logCustomSection(
@@ -292,10 +381,19 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         _disposeControllers();
         _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
         _originalValues['__name__'] = _itemDisplayTitle(item);
-        for (final entry in item.properties.entries) {
-          final textValue = _propValueToString(entry.value);
-          _editControllers[entry.key] = TextEditingController(text: textValue);
-          _originalValues[entry.key] = textValue;
+
+        // Merge template keys with actual item properties so template-defined
+        // fields that the item lacks still appear in edit mode.
+        final allKeys = {..._template, ...item.properties}.keys;
+        for (final key in allKeys) {
+          final value = item.properties[key];
+          final textValue = value != null
+              ? _propValueToString(value)
+              : _template[key] != null
+                  ? _propValueToString(_template[key]!)
+                  : '';
+          _editControllers[key] = TextEditingController(text: textValue);
+          _originalValues[key] = textValue;
         }
         _setupChangeDetection();
         _hasChanges = false;
@@ -360,16 +458,24 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
         accountId: accountId,
         itemId: itemId,
-        fieldIdPrefix: _historyFieldId,
+        fieldIdPrefix: widget.historyFieldIdPrefix,
         allFieldValues: oldValues,
       );
     }
 
-    await ref.read(unifiedObjectProvider.notifier).updateObject(
-      itemId,
-      name: name,
-      properties: updatedProps,
-    );
+    if (widget.onSaveItem != null) {
+      await widget.onSaveItem!(
+        itemId: itemId,
+        name: name,
+        properties: updatedProps,
+      );
+    } else {
+      await ref.read(unifiedObjectProvider.notifier).updateObject(
+        itemId,
+        name: name,
+        properties: updatedProps,
+      );
+    }
 
     await OperationLogService.instance.addEntry(
       OperationLogger.logCustomSection(
@@ -484,6 +590,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               onEdit: _editObject,
               onDelete: _deleteObject,
               onAddItem: _addItem,
+              showEditActions: widget.showEditActions,
+              showAddButton: widget.showAddButton,
             ),
 
             const Divider(height: 24),
@@ -544,16 +652,21 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   Widget _buildItemTile(UnifiedObject item) {
     final isEditing = _editingItemId == item.id;
-    return isEditing
-        ? _buildItemEditMode(item)
-        : _ObjectCardItemTile(
-            item: item,
-            isHistoryExpanded: _expandedHistoryItemIds.contains(item.id),
-            onToggleHistory: () => _toggleItemHistory(item.id),
-            onCopy: () => _copyItem(item),
-            onStartEdit: () => _startEditingItem(item),
-            onDelete: () => _deleteItem(item.id),
-          );
+    if (isEditing) {
+      return _buildItemEditMode(item);
+    }
+    if (widget.displayItemBuilder != null) {
+      return widget.displayItemBuilder!(context, item, isEditing: false);
+    }
+    return _ObjectCardItemTile(
+      item: item,
+      isHistoryExpanded: _expandedHistoryItemIds.contains(item.id),
+      onToggleHistory: () => _toggleItemHistory(item.id),
+      onCopy: () => _copyItem(item),
+      onStartEdit: () => _startEditingItem(item),
+      onDelete: () => _deleteItem(item.id),
+      historyFieldIdPrefix: widget.historyFieldIdPrefix,
+    );
   }
 
   void _toggleItemHistory(String itemId) {
@@ -567,7 +680,24 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Widget _buildNewItemForm() {
-    final template = widget.object.properties;
+    final template = _template;
+    final theme = Theme.of(context);
+
+    if (widget.customFormBuilder != null) {
+      final sensitivities = <String, SensitivityLevel>{
+        for (final entry in template.entries)
+          entry.key: entry.value.sensitivity,
+      };
+      return widget.customFormBuilder!(
+        context,
+        theme,
+        _editControllers,
+        'add',
+        _saveNewItem,
+        _cancelAddItem,
+        sensitivities,
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -607,6 +737,25 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Widget _buildItemEditMode(UnifiedObject item) {
+    final template = _template;
+    final theme = Theme.of(context);
+
+    if (widget.customFormBuilder != null) {
+      final sensitivities = <String, SensitivityLevel>{
+        for (final entry in template.entries)
+          entry.key: entry.value.sensitivity,
+      };
+      return widget.customFormBuilder!(
+        context,
+        theme,
+        _editControllers,
+        'edit',
+        () => _saveEditItem(item.id),
+        _cancelEditItem,
+        sensitivities,
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -802,12 +951,18 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       for (final entry in item.properties.entries) {
         buffer.writeln('  ${entry.key}: ${_propValueToString(entry.value)}');
       }
-      Clipboard.setData(ClipboardData(text: buffer.toString()));
-      showOverlaySnackBar(
-        context,
-        content: 'Copied to clipboard',
-        type: SnackBarType.success,
-      );
+      final text = buffer.toString();
+
+      if (widget.onCopyAll != null) {
+        widget.onCopyAll!(item, text);
+      } else {
+        Clipboard.setData(ClipboardData(text: text));
+        showOverlaySnackBar(
+          context,
+          content: 'Copied to clipboard',
+          type: SnackBarType.success,
+        );
+      }
     }
 
     if (_itemHasSensitiveProperties(item)) {
@@ -867,6 +1022,8 @@ class _ObjectCardHeader extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onAddItem;
+  final bool showEditActions;
+  final bool showAddButton;
 
   const _ObjectCardHeader({
     required this.object,
@@ -874,6 +1031,8 @@ class _ObjectCardHeader extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onAddItem,
+    required this.showEditActions,
+    required this.showAddButton,
   });
 
   @override
@@ -901,32 +1060,35 @@ class _ObjectCardHeader extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.edit_outlined, size: 18),
-          onPressed: onEdit,
-          tooltip: 'Edit',
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          visualDensity: VisualDensity.compact,
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.delete_outline, size: 18),
-          onPressed: onDelete,
-          tooltip: 'Delete',
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          visualDensity: VisualDensity.compact,
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.add, size: 18),
-          onPressed: onAddItem,
-          tooltip: 'Add Item',
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          visualDensity: VisualDensity.compact,
-        ),
+        if (showEditActions) ...[
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            onPressed: onEdit,
+            tooltip: 'Edit',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 18),
+            onPressed: onDelete,
+            tooltip: 'Delete',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
+          ),
+          const SizedBox(width: 8),
+        ],
+        if (showAddButton)
+          IconButton(
+            icon: const Icon(Icons.add, size: 18),
+            onPressed: onAddItem,
+            tooltip: 'Add Item',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
+          ),
       ],
     );
   }
@@ -1034,6 +1196,7 @@ class _ObjectCardItemTile extends ConsumerWidget {
   final VoidCallback onCopy;
   final VoidCallback onStartEdit;
   final VoidCallback onDelete;
+  final String historyFieldIdPrefix;
 
   const _ObjectCardItemTile({
     required this.item,
@@ -1042,13 +1205,14 @@ class _ObjectCardItemTile extends ConsumerWidget {
     required this.onCopy,
     required this.onStartEdit,
     required this.onDelete,
+    required this.historyFieldIdPrefix,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final history = ref.watch(
-      fieldHistoriesProvider.select((h) => h.getHistory(item.id, 'unified')),
+      fieldHistoriesProvider.select((h) => h.getHistory(item.id, historyFieldIdPrefix)),
     );
     final count = history?.entries.length ?? 0;
     final hasHist = count > 0;

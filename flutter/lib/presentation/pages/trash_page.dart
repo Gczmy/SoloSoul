@@ -21,8 +21,7 @@ import 'package:solosoul_flutter/presentation/widgets/field_history_dialog.dart'
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show effectiveSensitivityProvider;
-import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show FormFieldDef;
+import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 
 // =============================================================================
 // Unified abstraction for trash list items (enables ListView.builder)

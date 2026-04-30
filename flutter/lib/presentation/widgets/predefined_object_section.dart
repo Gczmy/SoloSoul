@@ -6,16 +6,12 @@ import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider;
-import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
-    show authNotifierProvider;
-import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
-    show fieldHistoriesProvider;
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
     show OperationLogService;
-import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
 
 /// A section widget for default pages that uses predefined UnifiedObject schemas.
 ///
@@ -76,28 +72,6 @@ class PredefinedObjectSection extends ConsumerStatefulWidget {
 }
 
 class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSection> {
-  // Cache field definitions since they only depend on typeId (immutable widget property)
-  List<FormFieldDef>? _cachedFieldDefs;
-  ObjectTypeDefinition? _cachedTypeDef;
-
-  List<FormFieldDef> _getFieldDefs(ObjectTypeDefinition typeDef) {
-    if (_cachedFieldDefs != null && _cachedTypeDef == typeDef) {
-      return _cachedFieldDefs!;
-    }
-    final prefix = _fieldPrefix(widget.typeId);
-    _cachedFieldDefs = typeDef.properties.map((prop) {
-      final fieldId = '$prefix.${prop.id}';
-      final sensitivity = _lookupSensitivity(fieldId);
-      return FormFieldDef(
-        fieldId: prop.id,
-        label: prop.name,
-        sensitivity: sensitivity,
-      );
-    }).toList();
-    _cachedTypeDef = typeDef;
-    return _cachedFieldDefs!;
-  }
-
   @override
   Widget build(BuildContext context) {
     // Query from unified object state directly (avoid generated provider dependency)
@@ -117,147 +91,124 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       return _buildError('Unknown type: ${widget.typeId}');
     }
 
-    // Build field definitions from schema + FieldRegistry sensitivity (cached)
-    final fieldDefs = _getFieldDefs(typeDef);
+    // Build template from schema + FieldRegistry sensitivity
+    final prefix = _fieldPrefix(widget.typeId);
+    final template = <String, PropertyValue>{
+      for (final prop in typeDef.properties)
+        prop.id: TextProperty(
+          text: '',
+          sensitivity: _lookupSensitivity('$prefix.${prop.id}'),
+        ),
+    };
 
-    return UnifiedFormSection<UnifiedObject>(
-      title: widget.title,
-      icon: widget.icon,
-      items: items,
-      maxVisibleItems: widget.maxVisibleItems,
-      fieldDefs: fieldDefs,
-      itemFactory: (values, {String? id}) {
-        // Compute a display name from the first property that looks like a title
-        String name = 'Untitled';
-        for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
-          if (values[key]?.isNotEmpty == true) {
-            name = values[key]!;
-            break;
-          }
-        }
-        return UnifiedObject(
-          id: id ?? '', // ID will be assigned by createObject in onSave
+    // Fallback section object when not yet created (shouldn't happen for preset pages)
+    final sectionObject = section ??
+        UnifiedObject(
+          id: widget.sectionId,
           typeId: widget.typeId,
-          name: name,
-          parentId: widget.sectionId,
-          properties: {
-            for (final entry in values.entries)
-              entry.key: TextProperty(text: entry.value),
-          },
+          name: widget.title,
+          properties: const {},
           createdAt: DateTime.now().millisecondsSinceEpoch,
           updatedAt: DateTime.now().millisecondsSinceEpoch,
         );
-      },
-      itemToMap: (item) {
-        final map = <String, String>{};
-        for (final prop in typeDef.properties) {
-          final value = item.properties[prop.id];
-          map[prop.id] = switch (value) {
-            TextProperty() => value.text,
-            _ => '',
-          };
-        }
-        return map;
-      },
-      displayItemBuilder: widget.displayItemBuilder ?? _defaultDisplayBuilder,
-      onDelete: (item) async {
-        await ref
-            .read(unifiedObjectProvider.notifier)
-            .deleteDefaultItem(item.id);
-      },
-      onSave: (newItem, values, editingItem) async {
-        final notifier = ref.read(unifiedObjectProvider.notifier);
-        final bool isCreating = editingItem == null;
-        String name = isCreating ? 'Untitled' : editingItem.name;
+
+    return ObjectCard(
+      object: sectionObject,
+      items: items,
+      itemTypeId: widget.typeId,
+      itemTemplate: template,
+      historyFieldIdPrefix: prefix,
+      nameExtractor: (props) {
         for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
-          if (values[key]?.isNotEmpty == true) {
-            name = values[key]!;
-            break;
-          }
+          if (props[key]?.isNotEmpty == true) return props[key]!;
         }
-        if (isCreating) {
+        return 'Untitled';
+      },
+      showEditActions: false,
+      showAddButton: true,
+      customFormBuilder: widget.customFormBuilder,
+      displayItemBuilder: widget.displayItemBuilder != null
+          ? (context, item, {required isEditing}) {
+              final map = <String, String>{};
+              for (final prop in typeDef.properties) {
+                final value = item.properties[prop.id];
+                map[prop.id] = switch (value) {
+                  TextProperty() => value.text,
+                  _ => '',
+                };
+              }
+              return widget.displayItemBuilder!(item, map);
+            }
+          : null,
+      onSaveItem: ({required itemId, required name, required properties}) async {
+        final notifier = ref.read(unifiedObjectProvider.notifier);
+        final values = <String, String>{
+          for (final entry in properties.entries)
+            entry.key: switch (entry.value) {
+              TextProperty(:final text) => text,
+              _ => '',
+            },
+        };
+        if (itemId == null) {
           await notifier.createDefaultItem(
             sectionId: widget.sectionId,
             typeId: widget.typeId,
             name: name,
             values: values,
           );
+          final newItem = ref.read(unifiedObjectProvider).objects
+              .lastWhere((o) => o.parentId == widget.sectionId && o.typeId == widget.typeId);
+          return newItem.id;
         } else {
-          await notifier.updateDefaultItem(
-            editingItem.id,
-            name: name,
-            values: values,
-          );
-        }
-
-        // Record operation log
-        final logSection = _logSectionForTypeId(widget.typeId);
-        if (logSection != null) {
-          final action = isCreating ? LogAction.create : LogAction.update;
-          final entry = OperationLogger.logCustomSection(
-            section: logSection.value,
-            action: action,
-            description: '${action == LogAction.create ? 'Added' : 'Updated'} ${widget.title}: $name',
-          );
-          await OperationLogService.instance.addEntry(entry);
+          await notifier.updateDefaultItem(itemId, name: name, values: values);
+          return itemId;
         }
       },
-      customFormBuilder: widget.customFormBuilder != null
-          ? (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
-              return widget.customFormBuilder!(
-                context,
-                theme,
-                controllers,
-                mode,
-                onSubmit,
-                onCancel,
-                sensitivities,
-              );
-            }
-          : null,
-      onDidDelete: (item, index) async {
+      onDeleteItem: (itemId) async {
+        final item = objectMap[itemId];
+        final index = items.indexWhere((i) => i.id == itemId);
+        try {
+          await ref.read(unifiedObjectProvider.notifier).deleteDefaultItem(itemId);
+        } on Exception catch (_) {
+          widget.onDeleteFailed?.call(
+            item ?? UnifiedObject(
+              id: itemId,
+              typeId: widget.typeId,
+              name: '',
+              properties: const {},
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              updatedAt: DateTime.now().millisecondsSinceEpoch,
+            ),
+            index,
+          );
+          return false;
+        }
+        // Record operation log
         final logSection = _logSectionForTypeId(widget.typeId);
         if (logSection != null) {
           final entry = OperationLogger.logCustomSection(
             section: logSection.value,
             action: LogAction.delete,
-            description: 'Deleted ${widget.title}: ${item.name}',
+            description: 'Deleted ${widget.title}: ${item?.name ?? ''}',
           );
           await OperationLogService.instance.addEntry(entry);
         }
-        widget.onDidDelete?.call(item, index);
+        widget.onDidDelete?.call(
+          item ?? UnifiedObject(
+            id: itemId,
+            typeId: widget.typeId,
+            name: '',
+            properties: const {},
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+            updatedAt: DateTime.now().millisecondsSinceEpoch,
+          ),
+          index,
+        );
+        return true;
       },
-      onDeleteFailed: widget.onDeleteFailed != null
-          ? (item, index) => widget.onDeleteFailed!(item, index)
-          : null,
       onCopyAll: widget.onCopyAll != null
           ? (item, text) => widget.onCopyAll!(item, text)
           : null,
-      showHistoryExpansion: true,
-      historyFieldIdPrefix: _fieldPrefix(widget.typeId),
-      historyConfig: HistoryRecordingConfig<UnifiedObject>(
-        itemIdExtractor: (item) => item.id,
-        fieldIdPrefix: _fieldPrefix(widget.typeId),
-      ),
-      historyAwareOnSave: _recordHistory,
-      itemIdExtractor: (item) => item.id,
-    );
-  }
-
-  Future<void> _recordHistory(
-    UnifiedObject? newItem,
-    Map<String, String> values,
-    UnifiedObject? editingItem, [
-    Map<String, String>? oldValues,
-  ]) async {
-    if (editingItem == null || oldValues == null) return;
-    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (accountId == null) return;
-    await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
-      accountId: accountId,
-      itemId: editingItem.id,
-      fieldIdPrefix: _fieldPrefix(widget.typeId),
-      allFieldValues: oldValues,
     );
   }
 
@@ -267,17 +218,6 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       child: Text(
         'Error: $message',
         style: const TextStyle(color: Colors.red),
-      ),
-    );
-  }
-
-  Widget _defaultDisplayBuilder(UnifiedObject item, Map<String, String> map) {
-    // Default fallback: show a simple card with the item name
-    final subtitle = map.values.where((v) => v.isNotEmpty).take(2).join(', ');
-    return Card(
-      child: ListTile(
-        title: Text(item.name),
-        subtitle: subtitle.isNotEmpty ? Text(subtitle) : null,
       ),
     );
   }

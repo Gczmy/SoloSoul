@@ -13,8 +13,7 @@ import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
-import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show EntryActionsContext;
+import 'package:solosoul_flutter/presentation/widgets/entry_actions_context.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'

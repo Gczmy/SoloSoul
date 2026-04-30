@@ -11,8 +11,7 @@ import 'package:solosoul_flutter/presentation/widgets/password_verification_dial
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/responsive_label_field.dart'
     show ResponsiveLabelField, LabelValueField;
-import 'package:solosoul_flutter/presentation/widgets/unified_form_section.dart'
-    show EntryActionsContext;
+import 'package:solosoul_flutter/presentation/widgets/entry_actions_context.dart';
 
 /// A reusable template widget for displaying profile/professional entry items.
 /// Standardizes:
