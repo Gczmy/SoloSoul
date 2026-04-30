@@ -200,7 +200,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         // Eye button toggles visibility (for all masked fields)
         if (_isVerifying)
           const SizedBox(
@@ -213,7 +213,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
             onTap: _handleTap,
             borderRadius: BorderRadius.circular(4),
             child: Padding(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(2),
               child: Icon(
                 icon,
                 size: 16,
@@ -221,7 +221,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
               ),
             ),
           ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 2),
         // Copy button only visible when revealed
         if (revealed)
           InkWell(
@@ -237,7 +237,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
             },
             borderRadius: BorderRadius.circular(4),
             child: Padding(
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(2),
               child: Icon(
                 Icons.copy,
                 size: 16,
