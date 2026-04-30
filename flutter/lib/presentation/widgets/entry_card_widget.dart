@@ -381,7 +381,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                 ]
               : [],
         ),
-        if (hasHistory && isExpanded && !inFormSection)
+        if (hasHistory && isExpanded)
           Padding(
             padding: const EdgeInsets.only(left: 32, bottom: 8),
             child: FieldHistoryView(
