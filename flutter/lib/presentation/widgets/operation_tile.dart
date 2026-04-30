@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import '../models/operation_log_models.dart';
 
 class OperationTile extends StatelessWidget {
@@ -9,6 +10,8 @@ class OperationTile extends StatelessWidget {
   const OperationTile({super.key, required this.entry});
 
   void _showDetailDialog(BuildContext context) {
+    final hasProperties = entry.properties != null && entry.properties!.isNotEmpty;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -19,30 +22,89 @@ class OperationTile extends StatelessWidget {
             const Expanded(child: Text('Operation Details')),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _DetailRow(label: 'Timestamp', value: _formatFullTimestamp(entry.timestamp)),
-            const SizedBox(height: 12),
-            _DetailRow(label: 'Action', value: _actionLabel),
-            const SizedBox(height: 12),
-            _DetailRow(label: 'Section', value: entry.section.toUpperCase()),
-            if (entry.fieldPath != null) ...[
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _DetailRow(label: 'Timestamp', value: _formatFullTimestamp(entry.timestamp)),
               const SizedBox(height: 12),
-              _DetailRow(label: 'Field Path', value: entry.fieldPath!),
+              _DetailRow(label: 'Action', value: _actionLabel),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Section', value: entry.section.toUpperCase()),
+              if (entry.fieldPath != null) ...[
+                const SizedBox(height: 12),
+                _DetailRow(label: 'Field Path', value: entry.fieldPath!),
+              ],
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Description', value: entry.description),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Device', value: _getDeviceLabel(entry.device)),
+              if (hasProperties) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                Text(
+                  'Property Snapshot',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...entry.properties!.entries.map((e) {
+                  final levelName = entry.propertyLevels?[e.key];
+                  final level = levelName != null
+                      ? SensitivityLevel.values.firstWhere(
+                          (l) => l.name == levelName,
+                          orElse: () => SensitivityLevel.public,
+                        )
+                      : SensitivityLevel.public;
+                  final levelColor = _sensitivityColor(level);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            formatFieldLabel(e.key),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            e.value.isEmpty ? '(empty)' : e.value,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: levelColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: levelColor.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            level.label,
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: levelColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ],
-            const SizedBox(height: 12),
-            _DetailRow(label: 'Description', value: entry.description),
-            const SizedBox(height: 12),
-            _DetailRow(label: 'Device', value: _getDeviceLabel(entry.device)),
-            const SizedBox(height: 12),
-            _DetailRow(
-              label: 'Sensitivity Level',
-              value: entry.sensitivityLevel.label,
-              valueColor: _sensitivityColor(entry.sensitivityLevel),
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
@@ -142,19 +204,6 @@ class OperationTile extends StatelessWidget {
     }
   }
 
-  IconData _sensitivityIcon(SensitivityLevel level) {
-    switch (level) {
-      case SensitivityLevel.critical:
-        return Icons.lock;
-      case SensitivityLevel.sensitive:
-        return Icons.visibility_off;
-      case SensitivityLevel.internal:
-        return Icons.folder;
-      case SensitivityLevel.public:
-        return Icons.public;
-    }
-  }
-
   String _formatTime(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
@@ -187,7 +236,6 @@ class OperationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final sensitivityColor = _sensitivityColor(entry.sensitivityLevel);
 
     return Card(
       child: Padding(
@@ -249,12 +297,11 @@ class OperationTile extends StatelessWidget {
                   // Second row: description
                   Text(entry.description, style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 8),
-                  // Third row: tags
+                  // Third row: device tag only
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      // Device tag
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -286,38 +333,6 @@ class OperationTile extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Sensitivity tag
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: sensitivityColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: sensitivityColor.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _sensitivityIcon(entry.sensitivityLevel),
-                              size: 12,
-                              color: sensitivityColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              entry.sensitivityLevel.label,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: sensitivityColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ],
@@ -339,12 +354,10 @@ class OperationTile extends StatelessWidget {
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final Color? valueColor;
 
   const _DetailRow({
     required this.label,
     required this.value,
-    this.valueColor,
   });
 
   @override
@@ -362,9 +375,7 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: valueColor,
-          ),
+          style: theme.textTheme.bodyMedium,
         ),
       ],
     );

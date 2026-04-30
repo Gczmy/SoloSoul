@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/utils/format_relative_time.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show effectiveSensitivityProvider;
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -196,7 +197,7 @@ class _HistoryEntryTile extends ConsumerWidget {
                           SizedBox(
                             width: 120,
                             child: Text(
-                              displayKey,
+                              formatFieldLabel(displayKey),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,
