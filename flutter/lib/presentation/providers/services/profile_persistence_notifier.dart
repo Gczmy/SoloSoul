@@ -41,33 +41,56 @@ class ProfilePersistenceService {
 
   /// Load profile for the currently unlocked account
   Future<ProfileData?> loadProfile() async {
-    if (_isLoading) return null;
+    if (_isLoading) {
+      DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: already loading');
+      return null;
+    }
     _isLoading = true;
 
     try {
       final authState = _ref.read(authNotifierProvider).value;
-      if (authState != AuthState.unlocked) return null;
+      if (authState != AuthState.unlocked) {
+        DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: authState=$authState');
+        return null;
+      }
 
       final authNotifier = _ref.read(authNotifierProvider.notifier);
       final accountId = authNotifier.selectedAccountId;
-      if (accountId == null) return null;
+      if (accountId == null) {
+        DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: no selectedAccountId');
+        return null;
+      }
 
       final encryptionKey = _storage.encryptionKey;
       if (encryptionKey != null) {
         OperationLogService.instance.setEncryptionKey(encryptionKey);
       } else {
+        DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: encryptionKey is null');
         return null;
       }
 
       await OperationLogService.instance.initializeForAccount(accountId);
 
       final authStateBeforeLoad = _ref.read(authNotifierProvider).value;
-      if (authStateBeforeLoad != AuthState.unlocked) return null;
+      if (authStateBeforeLoad != AuthState.unlocked) {
+        DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: auth changed before load');
+        return null;
+      }
 
+      DebugLogger.instance.logInfo('PROFILE', 'loadProfile: loading from storage for account=$accountId');
       final profile = await _storage.loadProfile(accountId);
+      DebugLogger.instance.logInfo(
+        'PROFILE',
+        'loadProfile: profile=${profile != null}, '
+        'unifiedObjects=${profile?.unifiedObjects != null}, '
+        'objectCount=${profile?.unifiedObjects?.objects.length ?? 0}',
+      );
 
       final authStateAfterLoad = _ref.read(authNotifierProvider).value;
-      if (authStateAfterLoad != AuthState.unlocked) return null;
+      if (authStateAfterLoad != AuthState.unlocked) {
+        DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: auth changed after load');
+        return null;
+      }
 
       if (profile != null) {
         _lastSavedJson = jsonEncode(profile.toJson());

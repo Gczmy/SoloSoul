@@ -594,6 +594,16 @@ class UnifiedObjectData {
 
   Map<String, dynamic> toJson() => _$UnifiedObjectDataToJson(this);
 
+  /// Fixes the mismatch between generated fromJson (expects 'custom_types')
+  /// and toJson (outputs 'customTypes') by normalizing the key.
+  factory UnifiedObjectData.fromJsonCompat(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+    if (normalized.containsKey('customTypes') && !normalized.containsKey('custom_types')) {
+      normalized['custom_types'] = normalized.remove('customTypes');
+    }
+    return _$UnifiedObjectDataFromJson(normalized);
+  }
+
   UnifiedObjectData copyWith({
     List<UnifiedObject>? objects,
     List<ObjectTypeDefinition>? customTypes,

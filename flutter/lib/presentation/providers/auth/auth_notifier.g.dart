@@ -44,7 +44,7 @@ final class AccountsVersionProvider
   }
 }
 
-String _$accountsVersionHash() => r'7537c353a8ed6b38596d0289ccb8ca55732d294d';
+String _$accountsVersionHash() => r'673536db557e37cf0c88b3b41a22d7c9d7f27221';
 
 /// Provider that watches accountsVersion from AuthNotifier
 

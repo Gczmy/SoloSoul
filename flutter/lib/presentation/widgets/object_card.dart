@@ -84,6 +84,11 @@ class ObjectCard extends ConsumerStatefulWidget {
   /// Receives the item and a pre-formatted text string.
   final Future<void> Function(UnifiedObject item, String formattedText)? onCopyAll;
 
+  /// The property key that maps to the title/name input field.
+  /// Defaults to `'Title'`. Set to a different key (e.g. `'title'`, `'fullName'`)
+  /// for preset pages whose schema uses a different title property.
+  final String titlePropertyKey;
+
   /// Static dummy controller to avoid creating a new TextEditingController on every build.
   static final _dummyController = TextEditingController();
 
@@ -102,6 +107,7 @@ class ObjectCard extends ConsumerStatefulWidget {
     this.customFormBuilder,
     this.displayItemBuilder,
     this.onCopyAll,
+    this.titlePropertyKey = 'Title',
   });
 
   @override
@@ -181,15 +187,16 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       _disposeControllers();
 
       final template = _template;
+      final titleKey = widget.titlePropertyKey;
       // Title defaults from template
-      final titleValue = template['Title'] is TextProperty
-          ? (template['Title'] as TextProperty).text
-          : 'Item Name';
+      final titleValue = template[titleKey] is TextProperty
+          ? (template[titleKey] as TextProperty).text
+          : '';
       _editControllers['__name__'] = TextEditingController(text: titleValue);
       _originalValues['__name__'] = titleValue;
 
       // Other fields start empty
-      for (final key in template.keys.skip(1)) {
+      for (final key in template.keys.where((k) => k != titleKey)) {
         _editControllers[key] = TextEditingController(text: '');
         _originalValues[key] = '';
       }
@@ -203,16 +210,17 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final template = _template;
     final properties = Map<String, PropertyValue>.from(template);
 
+    final titleKey = widget.titlePropertyKey;
     final nameInput = _editControllers['__name__']?.text.trim() ?? '';
-    if (properties.containsKey('Title')) {
-      final oldTitle = properties['Title']!;
-      properties['Title'] = TextProperty(
-        text: nameInput.isNotEmpty ? nameInput : 'Item Name',
+    if (properties.containsKey(titleKey)) {
+      final oldTitle = properties[titleKey]!;
+      properties[titleKey] = TextProperty(
+        text: nameInput,
         sensitivity: oldTitle.sensitivity,
       );
     }
 
-    for (final key in template.keys.skip(1)) {
+    for (final key in template.keys.where((k) => k != titleKey)) {
       final controller = _editControllers[key];
       if (controller != null && properties.containsKey(key)) {
         final oldValue = template[key]!;
@@ -220,9 +228,19 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       }
     }
 
-    final name = (properties['Title'] is TextProperty)
-        ? (properties['Title'] as TextProperty).text
-        : 'Item';
+    // Compute display name using extractor or title property
+    final String name;
+    if (widget.nameExtractor != null) {
+      final props = <String, String>{
+        for (final entry in properties.entries)
+          entry.key: _propValueToString(entry.value),
+      };
+      name = widget.nameExtractor!(props);
+    } else {
+      name = (properties[titleKey] is TextProperty)
+          ? (properties[titleKey] as TextProperty).text
+          : nameInput;
+    }
 
     if (widget.onSaveItem != null) {
       await widget.onSaveItem!(
@@ -421,24 +439,19 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
     final updatedProps = Map<String, PropertyValue>.from(item.properties);
 
-    // Sync __name__ input to Title property so title and property stay aligned
+    // Sync __name__ input to the title property so title and property stay aligned
+    final titleKey = widget.titlePropertyKey;
     final nameInput = _editControllers['__name__']?.text.trim() ?? item.name;
-    if (updatedProps.containsKey('Title')) {
-      final oldTitle = updatedProps['Title']!;
-      updatedProps['Title'] = TextProperty(
+    if (updatedProps.containsKey(titleKey)) {
+      final oldTitle = updatedProps[titleKey]!;
+      updatedProps[titleKey] = TextProperty(
         text: nameInput,
         sensitivity: oldTitle.sensitivity,
-      );
-    } else if (updatedProps.containsKey('Item Name')) {
-      final oldName = updatedProps['Item Name']!;
-      updatedProps['Item Name'] = TextProperty(
-        text: nameInput,
-        sensitivity: oldName.sensitivity,
       );
     }
 
     for (final key in item.properties.keys) {
-      if (key == 'Title' || key == 'Item Name') continue; // already handled above
+      if (key == titleKey) continue; // already handled above
       final controller = _editControllers[key];
       if (controller != null) {
         final oldValue = item.properties[key]!;
@@ -446,8 +459,17 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       }
     }
 
-    // name is taken from Title/Item Name property if present
-    final name = _itemDisplayTitle(item.copyWith(properties: updatedProps, name: nameInput));
+    // Compute display name using extractor or title property
+    final String name;
+    if (widget.nameExtractor != null) {
+      final props = <String, String>{
+        for (final entry in updatedProps.entries)
+          entry.key: _propValueToString(entry.value),
+      };
+      name = widget.nameExtractor!(props);
+    } else {
+      name = _itemDisplayTitle(item.copyWith(properties: updatedProps, name: nameInput));
+    }
 
     // Record history before update
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
@@ -593,6 +615,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               onAddItem: _addItem,
               showEditActions: widget.showEditActions,
               showAddButton: widget.showAddButton,
+              showEditSection: widget.itemTemplate == null && widget.object.properties.isEmpty,
             ),
 
             const Divider(height: 24),
@@ -603,9 +626,20 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: TextButton.icon(
-                    onPressed: _addItem,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add Item'),
+                    onPressed: widget.itemTemplate == null && widget.object.properties.isEmpty
+                        ? _editObject
+                        : _addItem,
+                    icon: Icon(
+                      widget.itemTemplate == null && widget.object.properties.isEmpty
+                          ? Icons.edit_note
+                          : Icons.add,
+                      size: 18,
+                    ),
+                    label: Text(
+                      widget.itemTemplate == null && widget.object.properties.isEmpty
+                          ? 'Edit Section'
+                          : 'Add Item',
+                    ),
                   ),
                 ),
               )
@@ -673,6 +707,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       onStartEdit: () => _startEditingItem(item),
       onDelete: () => _deleteItem(item.id),
       historyFieldIdPrefix: widget.historyFieldIdPrefix,
+      nameExtractor: widget.nameExtractor,
+      titlePropertyKey: widget.titlePropertyKey,
     );
   }
 
@@ -706,16 +742,19 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       );
     }
 
+    final hasTitleField = template.containsKey(widget.titlePropertyKey);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title input
-          _buildTitleField(),
-          const SizedBox(height: 12),
-          // Property inputs (skip the first fixed Title entry)
-          ...template.keys.skip(1).map((key) {
+          // Title input (only when template defines a title property)
+          if (hasTitleField) ...[
+            _buildTitleField(),
+            const SizedBox(height: 12),
+          ],
+          // Property inputs (skip the title property — already shown above)
+          ...template.keys.where((k) => k != widget.titlePropertyKey).map((key) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: _buildEditPropertyField(key, template[key]!),
@@ -763,16 +802,19 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       );
     }
 
+    final hasTitleField = item.properties.containsKey(widget.titlePropertyKey);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title input
-          _buildTitleField(),
-          const SizedBox(height: 12),
-          // Property inputs (skip the first fixed Title entry — already shown above)
-          ...item.properties.keys.skip(1).map((key) {
+          // Title input (only when item has a title property)
+          if (hasTitleField) ...[
+            _buildTitleField(),
+            const SizedBox(height: 12),
+          ],
+          // Property inputs (skip the title property — already shown above)
+          ...item.properties.keys.where((k) => k != widget.titlePropertyKey).map((key) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: _buildEditPropertyField(key, item.properties[key]!),
@@ -814,7 +856,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               });
             },
           ),
-          Text(key),
+          Text(_formatLabel(key)),
           const SizedBox(width: 8),
           SensitivityTag(level: value.sensitivity),
         ],
@@ -828,7 +870,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               maxLength: kMaxPropertyLength,
               buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
               decoration: InputDecoration(
-                labelText: key,
+                labelText: _formatLabel(key),
                 border: const OutlineInputBorder(),
                 suffixIcon: Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -995,6 +1037,18 @@ String _propValueToString(PropertyValue value) {
   };
 }
 
+/// camelCase / snake_case → Title Case (e.g. "givenName" → "Given Name", "visa_type" → "Visa Type")
+String _formatLabel(String key) {
+  final spaced = key.replaceAllMapped(
+    RegExp(r'([a-z])([A-Z])'),
+    (m) => '${m[1]} ${m[2]}',
+  );
+  return spaced.replaceAll('_', ' ').split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
+}
+
 String _wrapEveryNChars(String text, int n) {
   if (text.length <= n) return '$text: ';
   final buffer = StringBuffer();
@@ -1006,12 +1060,29 @@ String _wrapEveryNChars(String text, int n) {
   return buffer.toString();
 }
 
-/// Get the display title for an item, looking up 'Title' then 'Item Name'.
-String _objectItemDisplayTitle(UnifiedObject item) {
-  final titleProp = item.properties['Title'];
+/// Get the display title for an item.
+/// Uses [nameExtractor] if provided, otherwise falls back to [titlePropertyKey]
+/// and finally [item.name].
+String _objectItemDisplayTitle(
+  UnifiedObject item, {
+  String Function(Map<String, String>)? nameExtractor,
+  String titlePropertyKey = 'Title',
+}) {
+  if (nameExtractor != null) {
+    final props = <String, String>{
+      for (final entry in item.properties.entries)
+        entry.key: _propValueToString(entry.value),
+    };
+    final extracted = nameExtractor(props);
+    if (extracted.isNotEmpty && extracted != 'Untitled') {
+      return extracted;
+    }
+  }
+  final titleProp = item.properties[titlePropertyKey];
   if (titleProp is TextProperty && titleProp.text.isNotEmpty) {
     return titleProp.text;
   }
+  // Legacy fallback for old 'Item Name' property
   final oldNameProp = item.properties['Item Name'];
   if (oldNameProp is TextProperty && oldNameProp.text.isNotEmpty) {
     return oldNameProp.text;
@@ -1031,6 +1102,7 @@ class _ObjectCardHeader extends StatelessWidget {
   final VoidCallback onAddItem;
   final bool showEditActions;
   final bool showAddButton;
+  final bool showEditSection;
 
   const _ObjectCardHeader({
     required this.object,
@@ -1040,6 +1112,7 @@ class _ObjectCardHeader extends StatelessWidget {
     required this.onAddItem,
     required this.showEditActions,
     required this.showAddButton,
+    this.showEditSection = false,
   });
 
   @override
@@ -1068,15 +1141,18 @@ class _ObjectCardHeader extends StatelessWidget {
           ),
         ),
         if (showEditActions) ...[
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            onPressed: onEdit,
-            tooltip: 'Edit',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            visualDensity: VisualDensity.compact,
-          ),
-          const SizedBox(width: 8),
+          // When showEditSection is true, the Add button slot becomes Edit Section,
+          // so hide the redundant Edit button here to avoid two edit icons.
+          if (!showEditSection)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              onPressed: onEdit,
+              tooltip: 'Edit',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              visualDensity: VisualDensity.compact,
+            ),
+          if (!showEditSection) const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.delete_outline, size: 18),
             onPressed: onDelete,
@@ -1088,14 +1164,24 @@ class _ObjectCardHeader extends StatelessWidget {
           const SizedBox(width: 8),
         ],
         if (showAddButton)
-          IconButton(
-            icon: const Icon(Icons.add, size: 18),
-            onPressed: onAddItem,
-            tooltip: 'Add Item',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            visualDensity: VisualDensity.compact,
-          ),
+          if (showEditSection)
+            IconButton(
+              icon: const Icon(Icons.edit_note, size: 18),
+              onPressed: onEdit,
+              tooltip: 'Edit Section',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              visualDensity: VisualDensity.compact,
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.add, size: 18),
+              onPressed: onAddItem,
+              tooltip: 'Add Item',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              visualDensity: VisualDensity.compact,
+            ),
       ],
     );
   }
@@ -1107,8 +1193,12 @@ class _ObjectCardHeader extends StatelessWidget {
 
 class _ObjectCardPropertiesList extends StatelessWidget {
   final UnifiedObject item;
+  final String titlePropertyKey;
 
-  const _ObjectCardPropertiesList({required this.item});
+  const _ObjectCardPropertiesList({
+    required this.item,
+    this.titlePropertyKey = 'Title',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1117,7 +1207,7 @@ class _ObjectCardPropertiesList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: item.properties.entries
-          .where((e) => e.key != 'Title')
+          .where((e) => e.key != titlePropertyKey)
           .map((entry) {
         final sensitivity = entry.value.sensitivity;
         final isSensitive = sensitivity == SensitivityLevel.sensitive ||
@@ -1132,7 +1222,7 @@ class _ObjectCardPropertiesList extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 160),
                 child: SelectableText(
-                  _wrapEveryNChars(entry.key, 12),
+                  _wrapEveryNChars(_formatLabel(entry.key), 12),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -1204,6 +1294,8 @@ class _ObjectCardItemTile extends ConsumerWidget {
   final VoidCallback onStartEdit;
   final VoidCallback onDelete;
   final String historyFieldIdPrefix;
+  final String Function(Map<String, String>)? nameExtractor;
+  final String titlePropertyKey;
 
   const _ObjectCardItemTile({
     required this.item,
@@ -1213,6 +1305,8 @@ class _ObjectCardItemTile extends ConsumerWidget {
     required this.onStartEdit,
     required this.onDelete,
     required this.historyFieldIdPrefix,
+    this.nameExtractor,
+    this.titlePropertyKey = 'Title',
   });
 
   @override
@@ -1279,13 +1373,20 @@ class _ObjectCardItemTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SelectableText(
-                      _objectItemDisplayTitle(item),
+                      _objectItemDisplayTitle(
+                        item,
+                        nameExtractor: nameExtractor,
+                        titlePropertyKey: titlePropertyKey,
+                      ),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    _ObjectCardPropertiesList(item: item),
+                    _ObjectCardPropertiesList(
+                      item: item,
+                      titlePropertyKey: titlePropertyKey,
+                    ),
                   ],
                 ),
               ),

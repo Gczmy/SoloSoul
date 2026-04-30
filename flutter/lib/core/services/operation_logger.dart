@@ -301,6 +301,8 @@ class OperationLogger {
     required String description,
     String? fieldPath,
     SensitivityLevel sensitivityLevel = SensitivityLevel.public,
+    Map<String, String>? properties,
+    Map<String, String>? propertyLevels,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -309,6 +311,8 @@ class OperationLogger {
       description: description,
       fieldPath: fieldPath,
       sensitivityLevel: sensitivityLevel,
+      properties: properties,
+      propertyLevels: propertyLevels,
     );
   }
 

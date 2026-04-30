@@ -23,7 +23,10 @@ class ProfileNotifier extends AsyncNotifier<ProfileData?> {
       _persistence.dispose();
     });
 
-    return await _loadFromStorage();
+    // Do NOT auto-load here. Profile is only meaningful after vault unlock,
+    // and lazy build() race against login_page's explicit loadProfile() call
+    // causes "already loading" skip. Leave loading to loadProfile().
+    return null;
   }
 
   Future<ProfileData?> _loadFromStorage() async {

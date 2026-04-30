@@ -422,10 +422,20 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                 await notifier.permanentlyDeleteObject(obj.id);
                 final logSection = _logSectionForTypeId(obj.typeId ?? '');
                 if (logSection != null) {
+                  final properties = <String, String>{
+                    for (final entry in obj.properties.entries)
+                      entry.key: _propValueToString(entry.value),
+                  };
+                  final propertyLevels = <String, String>{
+                    for (final entry in obj.properties.entries)
+                      entry.key: entry.value.sensitivity.name,
+                  };
                   final entry = OperationLogger.logCustomSection(
                     section: logSection.value,
                     action: LogAction.purge,
                     description: 'Permanently deleted ${obj.name}',
+                    properties: properties,
+                    propertyLevels: propertyLevels,
                   );
                   await OperationLogService.instance.addEntry(entry);
                 }
@@ -566,10 +576,20 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           .permanentlyDeleteObject(object.id);
       final logSection = _logSectionForTypeId(object.typeId ?? '');
       if (logSection != null) {
+        final properties = <String, String>{
+          for (final entry in object.properties.entries)
+            entry.key: _propValueToString(entry.value),
+        };
+        final propertyLevels = <String, String>{
+          for (final entry in object.properties.entries)
+            entry.key: entry.value.sensitivity.name,
+        };
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.purge,
           description: 'Permanently deleted ${object.name}',
+          properties: properties,
+          propertyLevels: propertyLevels,
         );
         await OperationLogService.instance.addEntry(entry);
       }
@@ -581,6 +601,20 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         );
       }
     }
+  }
+
+  /// Convert a PropertyValue to its string representation.
+  String _propValueToString(PropertyValue value) {
+    return switch (value) {
+      TextProperty(:final text) => text,
+      NumberProperty(:final value) => value?.toString() ?? '',
+      DateProperty(:final isoDate) => isoDate ?? '',
+      CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+      SelectProperty(:final selectedId) => selectedId ?? '',
+      MultiSelectProperty(:final selectedIds) => selectedIds.join(', '),
+      RelationProperty(:final targetObjectId) => targetObjectId ?? '',
+      UrlProperty(:final url) => url ?? '',
+    };
   }
 
   /// Map typeId to LogSection for operation logging.

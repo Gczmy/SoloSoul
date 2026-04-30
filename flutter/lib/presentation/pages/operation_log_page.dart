@@ -17,6 +17,14 @@ class OperationLogPage extends ConsumerStatefulWidget {
 
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   bool _filterExpanded = false;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -90,6 +98,16 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     final theme = Theme.of(context);
     final entries = ref.watch(operationLogFilteredEntriesProvider);
 
+    // Apply search filter on top of action/device filters
+    final filteredEntries = _searchQuery.isEmpty
+        ? entries
+        : entries.where((entry) {
+            final lowerQuery = _searchQuery.toLowerCase();
+            return entry.description.toLowerCase().contains(lowerQuery) ||
+                entry.section.toLowerCase().contains(lowerQuery) ||
+                entry.action.toLowerCase().contains(lowerQuery);
+          }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Operation Log'),
@@ -105,32 +123,70 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
       ),
       body: Column(
         children: [
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
+                hintText: 'Search logs...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+          ),
           _buildFilterHeader(),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _filterExpanded ? _buildFilterSection() : const SizedBox.shrink(),
           ),
+          if (_searchQuery.isNotEmpty && filteredEntries.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Found ${filteredEntries.length} result${filteredEntries.length == 1 ? '' : 's'}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
           Expanded(
-            child: entries.isEmpty
+            child: filteredEntries.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.filter_list_off,
+                          _searchQuery.isNotEmpty ? Icons.search_off : Icons.filter_list_off,
                           size: 64,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No matching entries',
+                          _searchQuery.isNotEmpty ? 'No matching entries' : 'No matching entries',
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Try adjusting your filters',
+                          _searchQuery.isNotEmpty
+                              ? 'Try a different search term'
+                              : 'Try adjusting your filters',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -140,10 +196,10 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: entries.length,
+                    itemCount: filteredEntries.length,
                     separatorBuilder: (_, a) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
-                      final entry = entries[index];
+                      final entry = filteredEntries[index];
                       return OperationTile(entry: entry);
                     },
                   ),
@@ -157,9 +213,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     final theme = Theme.of(context);
     final actionFilters = ref.watch(logActionFilterProvider);
     final deviceFilters = ref.watch(logDeviceFilterProvider);
-    final sensitivityFilters = ref.watch(logSensitivityFilterProvider);
-    final hasActiveFilters =
-        actionFilters.isNotEmpty || deviceFilters.isNotEmpty || sensitivityFilters.isNotEmpty;
+    final hasActiveFilters = actionFilters.isNotEmpty || deviceFilters.isNotEmpty;
 
     return InkWell(
       onTap: () => setState(() => _filterExpanded = !_filterExpanded),
@@ -198,7 +252,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${actionFilters.length + deviceFilters.length + sensitivityFilters.length}',
+                  '${actionFilters.length + deviceFilters.length}',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -225,7 +279,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     final theme = Theme.of(context);
     final actionFilters = ref.watch(logActionFilterProvider);
     final deviceFilters = ref.watch(logDeviceFilterProvider);
-    final sensitivityFilters = ref.watch(logSensitivityFilterProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -347,59 +400,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'Privacy:',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      OperationFilterChip(
-                        label: 'Critical',
-                        icon: Icons.lock,
-                        isSelected: sensitivityFilters.contains(SensitivityLevel.critical),
-                        color: Colors.red.shade900,
-                        onSelected: (_) => _toggleFilter(sensitivityFilters, SensitivityLevel.critical, logSensitivityFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Sensitive',
-                        icon: Icons.visibility_off,
-                        isSelected: sensitivityFilters.contains(SensitivityLevel.sensitive),
-                        color: Colors.orange,
-                        onSelected: (_) => _toggleFilter(sensitivityFilters, SensitivityLevel.sensitive, logSensitivityFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Internal',
-                        icon: Icons.folder,
-                        isSelected: sensitivityFilters.contains(SensitivityLevel.internal),
-                        color: Colors.blue,
-                        onSelected: (_) => _toggleFilter(sensitivityFilters, SensitivityLevel.internal, logSensitivityFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Public',
-                        icon: Icons.public,
-                        isSelected: sensitivityFilters.contains(SensitivityLevel.public),
-                        color: Colors.green,
-                        onSelected: (_) => _toggleFilter(sensitivityFilters, SensitivityLevel.public, logSensitivityFilterProvider),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (actionFilters.isNotEmpty || deviceFilters.isNotEmpty || sensitivityFilters.isNotEmpty)
+              if (actionFilters.isNotEmpty || deviceFilters.isNotEmpty)
                 TextButton.icon(
                   onPressed: _clearAllFilters,
                   icon: const Icon(Icons.clear_all, size: 16),
@@ -434,7 +435,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   void _clearAllFilters() {
     ref.read(logActionFilterProvider.notifier).clear();
     ref.read(logDeviceFilterProvider.notifier).clear();
-    ref.read(logSensitivityFilterProvider.notifier).clear();
   }
 
   void _confirmClearLog(BuildContext context) {

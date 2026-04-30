@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 
 part 'operation_log_provider.g.dart';
@@ -35,9 +34,10 @@ class OperationLogService extends ChangeNotifier {
   static const int _maxEntries = 500;
   static const int _ttlDays = 90;
 
-  /// Set encryption key (called after vault unlock)
+  /// Set encryption key (called after vault unlock).
+  /// Makes a defensive copy so callers can safely wipe their original buffer.
   void setEncryptionKey(Uint8List key) {
-    _encryptionKey = key;
+    _encryptionKey = Uint8List.fromList(key);
   }
 
   /// Initialize with account ID and load persisted (encrypted) logs
@@ -277,11 +277,10 @@ class OperationLogService extends ChangeNotifier {
 
   List<OperationEntry> getEntries() => List.unmodifiable(_entries);
 
-  /// Filter entries by action, device, and sensitivity level
+  /// Filter entries by action and device.
   List<OperationEntry> getFilteredEntries({
     Set<String>? actionFilters,
     Set<String>? deviceFilters,
-    Set<SensitivityLevel>? sensitivityFilters,
   }) {
     return _entries.where((entry) {
       // Action filter
@@ -291,10 +290,6 @@ class OperationLogService extends ChangeNotifier {
       // Device filter
       if (deviceFilters != null && deviceFilters.isNotEmpty) {
         if (!deviceFilters.contains(entry.device)) return false;
-      }
-      // Sensitivity filter
-      if (sensitivityFilters != null && sensitivityFilters.isNotEmpty) {
-        if (!sensitivityFilters.contains(entry.sensitivityLevel)) return false;
       }
       return true;
     }).toList();
@@ -368,15 +363,6 @@ class LogDeviceFilter extends _$LogDeviceFilter {
   void clear() => state = {};
 }
 
-@riverpod
-class LogSensitivityFilter extends _$LogSensitivityFilter {
-  @override
-  Set<SensitivityLevel> build() => {};
-
-  void setFilters(Set<SensitivityLevel> filters) => state = filters;
-  void clear() => state = {};
-}
-
 // Filtered entries provider
 @riverpod
 class OperationLogFilteredEntries extends _$OperationLogFilteredEntries {
@@ -385,12 +371,10 @@ class OperationLogFilteredEntries extends _$OperationLogFilteredEntries {
     ref.watch(operationLogProvider);
     final actionFilters = ref.watch(logActionFilterProvider);
     final deviceFilters = ref.watch(logDeviceFilterProvider);
-    final sensitivityFilters = ref.watch(logSensitivityFilterProvider);
 
     return OperationLogService.instance.getFilteredEntries(
       actionFilters: actionFilters.isEmpty ? null : actionFilters,
       deviceFilters: deviceFilters.isEmpty ? null : deviceFilters,
-      sensitivityFilters: sensitivityFilters.isEmpty ? null : sensitivityFilters,
     );
   }
 }

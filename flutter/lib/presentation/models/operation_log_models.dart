@@ -85,6 +85,14 @@ class OperationEntry {
   final String device; // Platform: 'macos', 'ios', 'android', etc.
   final SensitivityLevel sensitivityLevel;
 
+  /// Snapshot of property values at the time of the operation (e.g. for purge).
+  /// Key: property name, Value: property value string.
+  final Map<String, String>? properties;
+
+  /// Snapshot of property sensitivity levels at the time of the operation.
+  /// Key: property name, Value: sensitivity level name.
+  final Map<String, String>? propertyLevels;
+
   const OperationEntry({
     required this.timestamp,
     required this.action,
@@ -93,6 +101,8 @@ class OperationEntry {
     this.fieldPath,
     this.device = 'unknown',
     this.sensitivityLevel = SensitivityLevel.public,
+    this.properties,
+    this.propertyLevels,
   });
 
   factory OperationEntry.fromJson(Map<String, dynamic> json) {
@@ -107,6 +117,8 @@ class OperationEntry {
         (e) => e.name == json['sensitivityLevel'],
         orElse: () => SensitivityLevel.public,
       ),
+      properties: (json['properties'] as Map<String, dynamic>?)?.cast<String, String>(),
+      propertyLevels: (json['propertyLevels'] as Map<String, dynamic>?)?.cast<String, String>(),
     );
   }
 
@@ -118,5 +130,7 @@ class OperationEntry {
         if (fieldPath != null) 'fieldPath': fieldPath,
         'device': device,
         'sensitivityLevel': sensitivityLevel.name,
+        if (properties != null && properties!.isNotEmpty) 'properties': properties,
+        if (propertyLevels != null && propertyLevels!.isNotEmpty) 'propertyLevels': propertyLevels,
       };
 }

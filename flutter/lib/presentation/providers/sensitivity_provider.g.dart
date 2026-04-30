@@ -196,4 +196,3 @@ final class FieldMetadataFamily extends $Family
   @override
   String toString() => r'fieldMetadataProvider';
 }
-

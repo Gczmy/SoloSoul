@@ -371,13 +371,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (success && mounted) {
       // Pre-load profile before navigating to home
       // Use timeout to prevent hanging if OperationLogService initialization is slow
+      DebugLogger.instance.logInfo('LOGIN', 'Unlock success, loading profile...');
       await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
           DebugLogger.instance.logError('LOGIN', 'loadProfile timed out');
         },
       );
+      DebugLogger.instance.logInfo('LOGIN', 'Profile loaded, calling loadFromProfile...');
       await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
+      final unifiedData = ref.read(unifiedObjectProvider);
+      DebugLogger.instance.logInfo(
+        'LOGIN',
+        'After loadFromProfile: objects=${unifiedData.objects.length}, customTypes=${unifiedData.customTypes.length}',
+      );
 
       // 首次启动/空数据检测：若 Vault 无数据但存在备份，提示恢复
       final accountId = authNotifier.selectedAccountId;

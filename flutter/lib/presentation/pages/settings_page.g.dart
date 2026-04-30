@@ -40,7 +40,7 @@ final class DebugModeProvider extends $NotifierProvider<DebugMode, bool> {
   }
 }
 
-String _$debugModeHash() => r'8afc5ba5cc5914fca6ba7ad13bd84d165d2b7d4d';
+String _$debugModeHash() => r'85c81a1e4961c3dd722908743dd3a8e0441f078e';
 
 abstract class _$DebugMode extends $Notifier<bool> {
   bool build();

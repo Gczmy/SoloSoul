@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart' show immutable;
+import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
@@ -46,8 +47,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   /// Load unified objects from the current profile.
   Future<void> loadFromProfile() async {
     final profile = ref.read(profileNotifierProvider).value;
+    DebugLogger.instance.logInfo(
+      'UNIFIED_OBJECT',
+      'loadFromProfile: profile=${profile != null}, '
+      'currentStateObjects=${state.objects.length}, customTypes=${state.customTypes.length}',
+    );
     if (profile == null) {
       // 新账号或旧数据没有 profile 时，重置 state 避免显示其他账号的数据
+      DebugLogger.instance.logWarning('UNIFIED_OBJECT', 'loadFromProfile: profile is null, resetting');
       state = const UnifiedObjectData(objects: [], customTypes: []);
       return;
     }
@@ -55,6 +62,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final data = profile.unifiedObjects;
     if (data == null) {
       // 新账号或旧数据没有 unifiedObjects 时，重置 state 避免显示其他账号的数据
+      DebugLogger.instance.logWarning('UNIFIED_OBJECT', 'loadFromProfile: unifiedObjects is null');
       if (state.objects.isNotEmpty || state.customTypes.isNotEmpty) {
         state = const UnifiedObjectData(objects: [], customTypes: []);
       }
@@ -62,10 +70,17 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     // 避免无意义的 state 覆盖（引用相等时跳过，防止级联重建）
-    if (identical(state, data)) return;
+    if (identical(state, data)) {
+      DebugLogger.instance.logInfo('UNIFIED_OBJECT', 'loadFromProfile: state identical to data, skipping');
+      return;
+    }
 
     // 数据完整性修复：挂载孤儿 item 到默认 section
     final repaired = _repairOrphanItems(data);
+    DebugLogger.instance.logInfo(
+      'UNIFIED_OBJECT',
+      'loadFromProfile: loaded ${repaired.objects.length} objects, ${repaired.customTypes.length} customTypes',
+    );
 
     state = repaired;
   }
@@ -161,23 +176,27 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
   /// Save current state back to profile.
   Future<bool> _save() async {
-    final profile = ref.read(profileNotifierProvider).value;
-    if (profile == null) return false;
-
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return false;
+
+    final profile = ref.read(profileNotifierProvider).value;
 
     // 防御：如果当前 state 为空且现有数据非空，拒绝覆盖（防止未加载完成时误写）
     if (state.objects.isEmpty &&
         state.customTypes.isEmpty &&
-        profile.unifiedObjects != null &&
-        (profile.unifiedObjects!.objects.isNotEmpty ||
+        profile?.unifiedObjects != null &&
+        (profile!.unifiedObjects!.objects.isNotEmpty ||
             profile.unifiedObjects!.customTypes.isNotEmpty)) {
       // 可能处于未加载完成的空状态，禁止保存空数据覆盖已有数据
       return false;
     }
 
-    final updatedProfile = profile.copyWith(unifiedObjects: state);
+    // 如果 profile 为 null（新账号或首次使用），创建一个新的 ProfileData
+    final updatedProfile = profile?.copyWith(unifiedObjects: state) ??
+        ProfileData(
+          unifiedObjects: state,
+          schemaVersion: ProfileStorageService.kSchemaVersion,
+        );
     final profileNotifier = ref.read(profileNotifierProvider.notifier);
     return profileNotifier.saveProfileImmediate(updatedProfile);
   }
@@ -392,7 +411,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     required String sectionId,
     required String typeId,
     required String name,
-    required Map<String, String> values,
+    required Map<String, PropertyValue> properties,
   }) async {
     var objects = state.objects;
 
@@ -439,11 +458,6 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       }
     }
 
-    final properties = <String, PropertyValue>{};
-    for (final entry in values.entries) {
-      properties[entry.key] = TextProperty(text: entry.value);
-    }
-
     final object = _service.createObject(
       name: name,
       typeId: typeId,
@@ -472,15 +486,10 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   Future<bool> updateDefaultItem(
     String itemId, {
     required String name,
-    required Map<String, String> values,
+    required Map<String, PropertyValue> properties,
   }) async {
     final object = _service.getObjectById(state.objects, itemId);
     if (object == null) return false;
-
-    final properties = <String, PropertyValue>{};
-    for (final entry in values.entries) {
-      properties[entry.key] = TextProperty(text: entry.value);
-    }
 
     final updated = _service.updateObject(
       object,

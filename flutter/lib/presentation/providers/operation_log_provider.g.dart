@@ -169,60 +169,6 @@ abstract class _$LogDeviceFilter extends $Notifier<Set<String>> {
   }
 }
 
-@ProviderFor(LogSensitivityFilter)
-const logSensitivityFilterProvider = LogSensitivityFilterProvider._();
-
-final class LogSensitivityFilterProvider
-    extends $NotifierProvider<LogSensitivityFilter, Set<SensitivityLevel>> {
-  const LogSensitivityFilterProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'logSensitivityFilterProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$logSensitivityFilterHash();
-
-  @$internal
-  @override
-  LogSensitivityFilter create() => LogSensitivityFilter();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Set<SensitivityLevel> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Set<SensitivityLevel>>(value),
-    );
-  }
-}
-
-String _$logSensitivityFilterHash() =>
-    r'755ea84831ffba79c18191659137fedd08b1ebef';
-
-abstract class _$LogSensitivityFilter extends $Notifier<Set<SensitivityLevel>> {
-  Set<SensitivityLevel> build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final created = build();
-    final ref = this.ref as $Ref<Set<SensitivityLevel>, Set<SensitivityLevel>>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<Set<SensitivityLevel>, Set<SensitivityLevel>>,
-              Set<SensitivityLevel>,
-              Object?,
-              Object?
-            >;
-    element.handleValue(ref, created);
-  }
-}
-
 @ProviderFor(OperationLogFilteredEntries)
 const operationLogFilteredEntriesProvider =
     OperationLogFilteredEntriesProvider._();
@@ -258,7 +204,7 @@ final class OperationLogFilteredEntriesProvider
 }
 
 String _$operationLogFilteredEntriesHash() =>
-    r'ce3000ce5f848218a7554a5417f03b5eaf11abb6';
+    r'bfd793a2b82534ca01e259892c8539ab0c294c27';
 
 abstract class _$OperationLogFilteredEntries
     extends $Notifier<List<OperationEntry>> {

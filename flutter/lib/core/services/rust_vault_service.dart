@@ -51,9 +51,10 @@ class RustVaultService {
   /// Encryption key derived from master password (set after unlock)
   Uint8List? _encryptionKey;
 
-  /// Set the encryption key (derived from master password via Argon2id)
+  /// Set the encryption key (derived from master password via Argon2id).
+  /// Makes a defensive copy so callers can safely wipe their original buffer.
   void setEncryptionKey(Uint8List key) {
-    _encryptionKey = key;
+    _encryptionKey = Uint8List.fromList(key);
   }
 
   /// Get the encryption key
@@ -313,7 +314,6 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadProfileDecrypted(String id) async {
-
     final encryptedData = await loadProfile(id);
     if (encryptedData == null) {
       return null;

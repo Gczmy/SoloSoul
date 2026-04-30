@@ -557,7 +557,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       if (key.isNotEmpty) {
         if (field.isDefaultName == true) {
           properties['Title'] = const TextProperty(
-            text: 'Item Name',
+            text: '',
             sensitivity: SensitivityLevel.public,
           );
         } else {

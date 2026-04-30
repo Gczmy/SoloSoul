@@ -101,12 +101,13 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
         ),
     };
 
-    // Fallback section object when not yet created (shouldn't happen for preset pages)
+    // Fallback section object when not yet created (new account)
     final sectionObject = section ??
         UnifiedObject(
           id: widget.sectionId,
           typeId: widget.typeId,
           name: widget.title,
+          iconName: getSectionMeta(widget.sectionId)?.iconName ?? 'folder',
           properties: const {},
           createdAt: DateTime.now().millisecondsSinceEpoch,
           updatedAt: DateTime.now().millisecondsSinceEpoch,
@@ -142,25 +143,18 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
           : null,
       onSaveItem: ({required itemId, required name, required properties}) async {
         final notifier = ref.read(unifiedObjectProvider.notifier);
-        final values = <String, String>{
-          for (final entry in properties.entries)
-            entry.key: switch (entry.value) {
-              TextProperty(:final text) => text,
-              _ => '',
-            },
-        };
         if (itemId == null) {
           await notifier.createDefaultItem(
             sectionId: widget.sectionId,
             typeId: widget.typeId,
             name: name,
-            values: values,
+            properties: properties,
           );
           final newItem = ref.read(unifiedObjectProvider).objects
               .lastWhere((o) => o.parentId == widget.sectionId && o.typeId == widget.typeId);
           return newItem.id;
         } else {
-          await notifier.updateDefaultItem(itemId, name: name, values: values);
+          await notifier.updateDefaultItem(itemId, name: name, properties: properties);
           return itemId;
         }
       },
