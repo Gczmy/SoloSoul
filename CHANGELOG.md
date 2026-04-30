@@ -5,6 +5,15 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2026-04-30
+
+### Fixed
+
+- **Trash Purge/Restore Notifications** — Fixed missing snackbar notification after purge by using State-level context instead of item builder context, which gets unmounted when the item is permanently deleted
+- **Trash UI Polish** — Added detail/history dialogs, responsive action buttons (icon-only on narrow screens), and proper operation logging for purge/restore/empty actions
+- **Operation Log Consistency** — Sensitivity tag colors now match across filter chips, list tiles, and detail dialogs
+- **Layout Stability** — Fixed button overflow in trash cards and removed problematic fade-in animation that caused hit-test crashes
+
 ## [1.4.3] - 2026-04-29
 
 ### Fixed
