@@ -36,7 +36,14 @@ class FieldHistoryService {
   /// Save histories for an account.
   Future<bool> saveHistories(String accountId, FormHistories histories) async {
     final jsonData = jsonEncode(histories.toJson());
-    return await _rustVault.saveFieldHistoriesEncrypted(accountId, jsonData);
+    final ok = await _rustVault.saveFieldHistoriesEncrypted(accountId, jsonData);
+    if (!ok) {
+      DebugLogger.instance.logError(
+        'HISTORY',
+        'Failed to save field histories for $accountId',
+      );
+    }
+    return ok;
   }
 
   /// Remove history entries for items that no longer exist in the profile.
@@ -88,7 +95,13 @@ class FieldHistoryService {
       updated = histories.addEntry(itemId, fieldId, value ?? '');
     }
 
-    await saveHistories(accountId, updated);
+    final saved = await saveHistories(accountId, updated);
+    if (!saved) {
+      DebugLogger.instance.logError(
+        'HISTORY',
+        'Save failed for item $itemId field $fieldId — keeping in-memory state only',
+      );
+    }
     return updated;
   }
 
