@@ -28,6 +28,7 @@ import 'package:solosoul_flutter/presentation/widgets/settings/debug_log_sheet.d
 import 'package:solosoul_flutter/presentation/widgets/settings/version_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/current_account_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/all_accounts_sheet.dart';
+import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 
 part 'settings_page.g.dart';
 
@@ -524,7 +525,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       icon: Icons.lock_clock_outlined,
                       title: 'Auto-Lock & Privacy',
                       subtitle: 'Configure timeout and privacy settings',
-                      onTap: () => context.push(AppRoutes.securitySettings),
+                      onTap: () async {
+                        final authNotifier = ref.read(authNotifierProvider.notifier);
+                        final selectedAccount = authNotifier.selectedAccount;
+                        final result = await showPasswordVerificationDialog(
+                          context: context,
+                          ref: ref,
+                          message: 'Enter your master password to access security settings.',
+                          passwordHint: selectedAccount?.passwordHint,
+                          onVerify: authNotifier.verifyPasswordForSensitiveData,
+                        );
+                        if (!mounted) return;
+                        if (result != null) {
+                          ref.read(sensitivePageAccessProvider.notifier).markVerified();
+                          if (context.mounted) {
+                            await context.push(AppRoutes.securitySettings);
+                          }
+                        }
+                      },
                     ),
                     const Divider(height: 1),
                     _SettingsTile(
