@@ -26,6 +26,12 @@ APP_PATH="$RELEASE_DIR/$APP_NAME.app"
 DMG_STAGING_DIR="build/macos/dmg_staging"
 DMG_OUTPUT="build/macos/${DMG_NAME}.dmg"
 
+# 清理之前的编译产物，避免 hdiutil convert 因文件已存在而失败
+echo -e "${YELLOW}Cleaning previous build artifacts...${NC}"
+rm -f "build/macos/${DMG_NAME}.dmg"
+rm -f build/macos/rw.*."${DMG_NAME}.dmg"
+rm -rf "${DMG_STAGING_DIR}"
+
 echo -e "${YELLOW}Building Flutter app...${NC}"
 flutter build macos --release
 
