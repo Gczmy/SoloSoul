@@ -103,34 +103,33 @@ class _FieldRow extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Label with colon suffix
-        SelectableText(
-          '${field.label}: ',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        // Label with colon suffix — flexible so it can shrink when space is tight
+        Flexible(
+          child: SelectableText(
+            '${field.label}: ',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         SizedBox(width: labelValueSpacing),
-        // Value (sensitive or plain)
+        // Value (sensitive or plain) — expanded to force tight fit and prevent overflow
         if (isSensitive)
-          Flexible(
+          Expanded(
             child: SensitiveValueWidget(
               fieldId: effectiveFieldId,
               value: field.value,
             ),
           )
         else
-          Flexible(
+          Expanded(
             child: SelectableText(
               field.value,
               style: theme.textTheme.bodyMedium,
             ),
           ),
-        // Sensitivity level tag (always show)
-        ...[
-          const SizedBox(width: 6),
-          SensitivityTag(level: sensitivityLevel),
-        ],
+        const SizedBox(width: 6),
+        SensitivityTag(level: sensitivityLevel),
       ],
     );
   }
