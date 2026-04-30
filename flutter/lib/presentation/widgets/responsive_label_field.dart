@@ -101,7 +101,6 @@ class _FieldRow extends ConsumerWidget {
         sensitivityLevel == SensitivityLevel.critical;
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Label with colon suffix
