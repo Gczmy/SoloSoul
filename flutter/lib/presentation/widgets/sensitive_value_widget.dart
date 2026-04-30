@@ -187,65 +187,76 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
         : (revealed ? Icons.visibility : Icons.visibility_off);
 
     // Separate text (selectable, no toggle) from icon button (toggles visibility)
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Text is selectable and does NOT toggle visibility
-        Flexible(
-          child: SelectableText(
-            displayText,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontFamily: isMasked ? 'monospace' : null,
-              letterSpacing: isMasked ? 2 : null,
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        // Eye button toggles visibility (for all masked fields)
-        if (_isVerifying)
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          )
-        else
-          InkWell(
-            onTap: _handleTap,
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Icon(
-                icon,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasRoomForIcons = constraints.maxWidth >= 22;
+        final hasRoomForText = constraints.maxWidth >= 50;
+
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Text is selectable and does NOT toggle visibility
+            if (hasRoomForText)
+              Flexible(
+                child: SelectableText(
+                  displayText,
+                  maxLines: 1,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontFamily: isMasked ? 'monospace' : null,
+                    letterSpacing: isMasked ? 2 : null,
+                  ),
+                ),
               ),
-            ),
-          ),
-        const SizedBox(width: 2),
-        // Copy button only visible when revealed
-        if (revealed)
-          InkWell(
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: widget.value));
-              ClipboardMonitorService.instance.notifySensitiveCopied();
-              showOverlaySnackBar(
-                context,
-                content: 'Copied to clipboard',
-                type: SnackBarType.success,
-                duration: const Duration(seconds: 1),
-              );
-            },
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Icon(
-                Icons.copy,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant,
+            if (hasRoomForText && hasRoomForIcons) const SizedBox(width: 4),
+            // Eye button toggles visibility (for all masked fields)
+            if (hasRoomForIcons)
+              if (_isVerifying)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                InkWell(
+                  onTap: _handleTap,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      icon,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+            if (hasRoomForIcons && revealed) ...[
+              const SizedBox(width: 2),
+              // Copy button only visible when revealed
+              InkWell(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: widget.value));
+                  ClipboardMonitorService.instance.notifySensitiveCopied();
+                  showOverlaySnackBar(
+                    context,
+                    content: 'Copied to clipboard',
+                    type: SnackBarType.success,
+                    duration: const Duration(seconds: 1),
+                  );
+                },
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(
+                    Icons.copy,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
-            ),
-          ),
-      ],
+            ],
+          ],
+        );
+      },
     );
   }
 }
