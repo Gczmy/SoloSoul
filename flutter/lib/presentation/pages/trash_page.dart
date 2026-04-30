@@ -343,10 +343,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _UnifiedObjectTrashCard(
                           object: object,
-                          onRestore: () =>
-                              _confirmRestoreUnifiedObject(context, object),
-                          onPurge: () =>
-                              _confirmPurgeUnifiedObject(context, object),
+                          onRestore: () => _confirmRestoreUnifiedObject(object),
+                          onPurge: () => _confirmPurgeUnifiedObject(object),
                         ),
                       ),
                   };
@@ -450,11 +448,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     );
   }
 
-  Future<void> _confirmRestoreUnifiedObject(
-    BuildContext context,
-    UnifiedObject object,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
+  Future<void> _confirmRestoreUnifiedObject(UnifiedObject object) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -493,18 +487,16 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         await OperationLogService.instance.addEntry(entry);
       }
       if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text('Restored "${object.name}"')),
+        showOverlaySnackBar(
+          context,
+          content: 'Restored "${object.name}"',
+          type: SnackBarType.success,
         );
       }
     }
   }
 
-  Future<void> _confirmPurgeUnifiedObject(
-    BuildContext context,
-    UnifiedObject object,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
+  Future<void> _confirmPurgeUnifiedObject(UnifiedObject object) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -583,8 +575,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         await OperationLogService.instance.addEntry(entry);
       }
       if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text('Permanently deleted "${object.name}"')),
+        showOverlaySnackBar(
+          context,
+          content: 'Permanently deleted "${object.name}"',
+          type: SnackBarType.error,
         );
       }
     }
@@ -785,7 +779,7 @@ class _UnifiedObjectTrashCard extends ConsumerWidget {
           ),
         ),
       ),
-    ).animate().fadeIn(duration: 300.ms);
+    );
   }
 
   Widget _buildHistoryButton({
