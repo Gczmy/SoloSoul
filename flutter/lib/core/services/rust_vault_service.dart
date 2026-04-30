@@ -467,12 +467,18 @@ class RustVaultService {
       return null;
     }
 
-    final data = result!['data'];
+    // Rust returns: {"success": true, "data": {"data": "base64..."}}
+    // Need to unwrap one layer like loadProfile does.
+    final responseData = result!['data'] as Map<String, dynamic>?;
+    if (responseData == null) {
+      return null;
+    }
+
+    final data = responseData['data'];
     if (data == null) {
       return null;
     }
 
-    // Handle both encrypted (base64 string) and already-decrypted (Map) formats
     if (data is String) {
       // data is base64 encoded encrypted data
       final encryptedBytes = base64Decode(data);
@@ -481,9 +487,6 @@ class RustVaultService {
         return null;
       }
       return utf8.decode(decrypted);
-    } else if (data is Map) {
-      // data is already decrypted JSON
-      return jsonEncode(data);
     }
 
     return null;
