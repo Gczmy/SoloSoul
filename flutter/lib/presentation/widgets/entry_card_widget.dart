@@ -315,7 +315,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
               ),
         tooltip: hasHist ? 'History ($count)' : 'No history yet',
         onPressed: hasHist
-            ? actionsContext!.onToggleHistory
+            ? () => _handleHistoryPress(isSensitive)
             : () {
                 showOverlaySnackBar(
                   context,
