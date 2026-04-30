@@ -171,6 +171,7 @@ class OperationMessage {
 /// Avoids bottom tab bar and provides privacy-aware messages
 class OperationNotification {
   static OverlayEntry? _currentEntry;
+  static bool _isInserted = false;
 
   /// Show a top-floating notification for operation feedback
   static void show(
@@ -183,6 +184,7 @@ class OperationNotification {
     dismiss();
 
     final overlay = Overlay.of(context);
+    _isInserted = false;
 
     _currentEntry = OverlayEntry(
       builder: (context) => _NotificationWidget(
@@ -198,14 +200,18 @@ class OperationNotification {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_currentEntry != null) {
         overlay.insert(_currentEntry!);
+        _isInserted = true;
       }
     });
   }
 
   /// Dismiss the current notification
   static void dismiss() {
-    _currentEntry?.remove();
+    if (_currentEntry != null && _isInserted) {
+      _currentEntry!.remove();
+    }
     _currentEntry = null;
+    _isInserted = false;
   }
 }
 
