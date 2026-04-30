@@ -186,7 +186,7 @@ class OperationNotification {
     final overlay = Overlay.of(context);
     _isInserted = false;
 
-    _currentEntry = OverlayEntry(
+    final entry = OverlayEntry(
       builder: (context) => _NotificationWidget(
         message: message,
         onDismiss: dismiss,
@@ -194,14 +194,17 @@ class OperationNotification {
         duration: duration,
       ),
     );
+    _currentEntry = entry;
 
     // Defer insertion to after the current frame to avoid layout/hitTest issues
     // with FractionalTranslation (SlideTransition) during active gesture handling.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_currentEntry != null) {
-        overlay.insert(_currentEntry!);
-        _isInserted = true;
-      }
+      // Guard against multiple insert attempts when show() is called twice
+      // in the same frame (the second call overwrites _currentEntry).
+      if (_currentEntry != entry) return;
+      if (_isInserted) return;
+      overlay.insert(entry);
+      _isInserted = true;
     });
   }
 
