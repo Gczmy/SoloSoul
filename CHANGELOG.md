@@ -5,6 +5,18 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.5] - 2026-04-30
+
+### Added
+
+- **Operation Log Search** — Search bar filters logs by description, section, or action with live result count
+- **Trash Audit Trail** — Permanent deletion now captures a snapshot of all property values and sensitivity levels
+- **Schema-Aware Title Fields** — Object cards can now use custom title property keys (e.g., `fullName`) instead of always defaulting to `Title`
+
+### Fixed
+
+- **Label Formatting Consistency** — History records and operation logs now display human-readable labels like "Given Name" instead of raw field keys like "givenName"
+
 ## [1.4.4] - 2026-04-30
 
 ### Fixed
