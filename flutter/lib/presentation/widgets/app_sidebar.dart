@@ -34,6 +34,10 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
   static const double _collapsedWidth = 72;
   static const double _minWidth = 180;
   static const double _maxWidth = 400;
+  /// Hysteresis buffer to prevent flickering when dragging near [_minWidth].
+  /// Once collapsed, the sidebar will not re-expand until dragged past
+  /// [_minWidth] + this value in the same drag gesture.
+  static const double _collapseHysteresis = 20;
 
   void _toggle() => setState(() => _expanded = !_expanded);
 
@@ -401,12 +405,20 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                 onHorizontalDragUpdate: (details) {
                   setState(() {
                     final newWidth = _expandedWidth + details.delta.dx;
-                    if (newWidth < _minWidth) {
+                    if (_expanded) {
                       // Collapse when dragged below minimum width
-                      _expanded = false;
+                      if (newWidth < _minWidth) {
+                        _expanded = false;
+                      } else {
+                        _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
+                      }
                     } else {
-                      _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
-                      _expanded = true;
+                      // Re-expand only when dragged past minWidth + hysteresis
+                      // to prevent flickering from hand jitter near the threshold.
+                      if (newWidth > _minWidth + _collapseHysteresis) {
+                        _expanded = true;
+                        _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
+                      }
                     }
                   });
                 },
