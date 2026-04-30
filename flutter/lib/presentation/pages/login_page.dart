@@ -62,9 +62,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (accountId == null) return;
     if (!context.mounted) return;
 
+    final profile = ref.read(profileNotifierProvider).value;
     final unifiedData = ref.read(unifiedObjectProvider);
-    final hasData = unifiedData.objects.any((o) => !o.isDeleted);
-    if (hasData) return; // 数据非空，无需恢复
+    final objectCount = unifiedData.objects.length;
+    final activeCount = unifiedData.objects.where((o) => !o.isDeleted).length;
+
+    DebugLogger.instance.logInfo(
+      'LOGIN',
+      '_promptRestoreIfEmpty: profile=${profile != null}, '
+      'unifiedObjects=${profile?.unifiedObjects != null}, '
+      'objects=$objectCount, active=$activeCount',
+    );
+
+    // 保守策略：只要 Vault 中有 profile 数据（包括旧格式），就不提示恢复
+    // 避免旧账号因迁移时序或格式问题导致误报
+    if (profile != null) {
+      if (profile.unifiedObjects != null && activeCount > 0) {
+        return; // 有有效数据，无需恢复
+      }
+      if (profile.unifiedObjects != null && activeCount == 0) {
+        // unifiedObjects 存在但为空（可能是新账号或空 section），继续检查备份
+      }
+      if (profile.unifiedObjects == null) {
+        // 旧格式数据（无 unified_objects 字段），profile 存在但无法通过新模型读取
+        // 为避免误报，不提示恢复（legacy migration 已移除，旧数据无法自动恢复）
+        DebugLogger.instance.logWarning(
+          'LOGIN',
+          'Legacy profile detected without unified_objects, skipping restore prompt',
+        );
+        return;
+      }
+    }
 
     final backups = await BackupService.instance.listBackups(accountId);
     if (backups.isEmpty) return; // 无备份，无需恢复
