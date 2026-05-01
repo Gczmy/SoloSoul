@@ -306,109 +306,21 @@ class SecureAccountStorage {
     return (success: true, error: null, sessionKey: masterKey);
   }
 
+  /// Verify password against Rust AccountManager.
+  /// Phase 2: delegates entirely to Rust — no more Dart-side Argon2id.
   Future<bool> verifyPassword(String accountId, String password) async {
     SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId');
     final timer = SoloLog.startTimer('AuthStorage', 'verifyPassword');
     try {
-      final accountData = await getAccountData(accountId);
-
-      String saltStr;
-      String storedHash;
-      String source = 'unknown';
-
-      if (accountData == null) {
-        // Keychain has no data (migration may have failed) - fall back to Rust
-        SoloLog.w('AuthStorage', 'Keychain has no data, falling back to Rust');
-        final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-        if (rustConfig == null || rustConfig.salt == null || rustConfig.verifyHash == null) {
-          SoloLog.w('AuthStorage', 'Rust also has no data for this account');
-          SoloLog.endTimer(timer);
-          return false;
-        }
-        saltStr = rustConfig.salt!;
-        storedHash = rustConfig.verifyHash!;
-        source = 'Rust';
-        SoloLog.d('AuthStorage', 'Using Rust storage: salt len=${saltStr.length}, hash len=${storedHash.length}');
-      } else {
-        saltStr = accountData['salt'] as String;
-        storedHash = accountData['verify_hash'] as String;
-        source = 'Keychain';
-        // If Keychain salt is corrupted (wrong length), fall back to Rust
-        try {
-          final decoded = base64Decode(saltStr);
-          if (decoded.length != 32) {
-            SoloLog.w('AuthStorage', 'Keychain salt length=${decoded.length} invalid, falling back to Rust');
-            final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-            if (rustConfig?.salt != null && rustConfig?.verifyHash != null) {
-              saltStr = rustConfig!.salt!;
-              storedHash = rustConfig.verifyHash!;
-              source = 'Rust (corrupted Keychain)';
-            }
-          }
-        } on Exception catch (e, st) {
-          SoloLog.w('AuthStorage', 'Keychain salt decode failed, falling back to Rust', e);
-          final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-          if (rustConfig?.salt != null && rustConfig?.verifyHash != null) {
-            saltStr = rustConfig!.salt!;
-            storedHash = rustConfig.verifyHash!;
-            source = 'Rust (decode error)';
-          } else {
-            SoloLog.e('AuthStorage', 'Both Keychain and Rust failed', e, st);
-            SoloLog.endTimer(timer);
-            return false;
-          }
-        }
-      }
-
-      final salt = base64Decode(saltStr);
-      if (salt.length != 32) {
-        SoloLog.e('AuthStorage', 'Invalid salt length ${salt.length}, expected 32');
-        SoloLog.endTimer(timer);
-        return false;
-      }
-
-      SoloLog.d('AuthStorage', 'Source: $source, storedHash len=${storedHash.length}');
-
-      // Step 1: Derive master_key from password (same as Rust)
-      SoloLog.d('AuthStorage', 'Deriving master_key...');
-      final masterKey = NativeCryptoService.instance.deriveKey(
-        password: password,
-        salt: Uint8List.fromList(salt),
-        memoryKib: 16384,
-        iterations: 1,
-        parallelism: 4,
+      final result = NativeVaultService.instance.request(
+        'verify_password',
+        {'account_id': accountId, 'password': password},
       );
-      if (masterKey == null) {
-        SoloLog.e('AuthStorage', 'Key derivation failed - masterKey is null');
-        SoloLog.endTimer(timer);
-        return false;
-      }
-
-      // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
-      final masterKeyHex = bytesToHex(masterKey);
-      SoloLog.d('AuthStorage', 'masterKey derived, hex length=${masterKeyHex.length}');
-      const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-      final verifyKey = NativeCryptoService.instance.deriveKey(
-        password: masterKeyHex,
-        salt: Uint8List.fromList(utf8.encode(verifyData)),
-        memoryKib: 8192,
-        iterations: 1,
-        parallelism: 1,
-      );
-      if (verifyKey == null) {
-        SoloLog.e('AuthStorage', 'Verify key derivation failed');
-        SoloLog.endTimer(timer);
-        return false;
-      }
-
-      // Step 3: Hex-encode verify_key and compare (same as Rust)
-      final derivedHashHex = bytesToHex(verifyKey);
-      final result = constantTimeEquals(derivedHashHex, storedHash);
-      SoloLog.d('AuthStorage', 'Password verification complete');
+      final success = result?['data']?['success'] == true;
+      SoloLog.d('AuthStorage', 'verifyPassword result: $success');
       SoloLog.endTimer(timer);
-      return result;
+      return success;
     } on Object catch (e, st) {
-      // Catch both Exception and Error (e.g., ArgumentError from deriveKey)
       SoloLog.e('AuthStorage', 'verifyPassword unexpected error', e, st);
       SoloLog.endTimer(timer);
       return false;
@@ -451,47 +363,29 @@ class SecureAccountStorage {
     return true;
   }
 
+  /// Update last operation — delegates to Rust.
   Future<void> updateAccountOperation(
       String accountId, String operationDesc) async {
-    final accounts = await listAccounts();
-    final idx = accounts.indexWhere((a) => a.id == accountId);
-    if (idx >= 0) {
-      final existing = accounts[idx];
-      accounts[idx] = AccountInfo(
-        id: existing.id,
-        name: existing.name,
-        passwordHint: existing.passwordHint,
-        lastAccessed: existing.lastAccessed,
-        createdAt: existing.createdAt,
-        lastLoginAt: existing.lastLoginAt,
-        lastOperationAt: DateTime.now(),
-        lastOperationDesc: operationDesc,
-        recentDevices: existing.recentDevices,
-      );
-      await _saveAccounts(accounts);
-    }
+    NativeVaultService.instance.request(
+      'update_account_metadata',
+      {
+        'account_id': accountId,
+        'last_operation_at': DateTime.now().toUtc().toIso8601String(),
+        'last_operation_desc': operationDesc,
+      },
+    );
   }
 
+  /// Update password hint — delegates to Rust.
   Future<void> updatePasswordHint(String accountId, String hint) async {
-    final accounts = await listAccounts();
-    final idx = accounts.indexWhere((a) => a.id == accountId);
-    if (idx >= 0) {
-      final existing = accounts[idx];
-      accounts[idx] = AccountInfo(
-        id: existing.id,
-        name: existing.name,
-        passwordHint: hint,
-        lastAccessed: existing.lastAccessed,
-        createdAt: existing.createdAt,
-        lastLoginAt: existing.lastLoginAt,
-        lastOperationAt: existing.lastOperationAt,
-        lastOperationDesc: existing.lastOperationDesc,
-        recentDevices: existing.recentDevices,
-      );
-      await _saveAccounts(accounts);
-    }
+    NativeVaultService.instance.request(
+      'update_account_metadata',
+      {'account_id': accountId, 'password_hint': hint},
+    );
   }
 
+  /// Update account metadata — delegates to Rust `update_account_metadata`.
+  /// Phase 2: Rust is the single source of truth for account metadata.
   Future<void> updateAccountMetadata(
     String accountId, {
     DateTime? lastLoginAt,
@@ -499,44 +393,16 @@ class SecureAccountStorage {
     String? lastOperationDesc,
     Map<String, dynamic>? device,
   }) async {
-    final accounts = await listAccounts();
-    final idx = accounts.indexWhere((a) => a.id == accountId);
-    if (idx < 0) return;
-
-    final existing = accounts[idx];
-    final recentDevices = List<DeviceInfo>.from(existing.recentDevices);
-
-    if (device != null) {
-      final existingIdx =
-          recentDevices.indexWhere((d) => d.deviceName == device['device_name']);
-      if (existingIdx >= 0) {
-        recentDevices[existingIdx] = DeviceInfo(
-          deviceName: device['device_name'] as String,
-          lastUsed: DateTime.parse(device['last_used'] as String),
-        );
-      } else {
-        if (recentDevices.length >= 5) {
-          recentDevices.removeAt(0);
-        }
-        recentDevices.add(DeviceInfo(
-          deviceName: device['device_name'] as String,
-          lastUsed: DateTime.parse(device['last_used'] as String),
-        ));
-      }
-    }
-
-    accounts[idx] = AccountInfo(
-      id: existing.id,
-      name: existing.name,
-      passwordHint: existing.passwordHint,
-      lastAccessed: lastLoginAt ?? existing.lastAccessed,
-      createdAt: existing.createdAt,
-      lastLoginAt: lastLoginAt ?? existing.lastLoginAt,
-      lastOperationAt: lastOperationAt ?? existing.lastOperationAt,
-      lastOperationDesc: lastOperationDesc ?? existing.lastOperationDesc,
-      recentDevices: recentDevices,
+    NativeVaultService.instance.request(
+      'update_account_metadata',
+      {
+        'account_id': accountId,
+        if (lastLoginAt != null) 'last_login_at': lastLoginAt.toUtc().toIso8601String(),
+        if (lastOperationAt != null) 'last_operation_at': lastOperationAt.toUtc().toIso8601String(),
+        if (lastOperationDesc != null) 'last_operation_desc': lastOperationDesc,
+        if (device != null) 'add_device': device,
+      },
     );
-    await _saveAccounts(accounts);
   }
 
   static bool _hasSufficientComplexity(String password) {

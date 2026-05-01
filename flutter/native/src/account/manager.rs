@@ -40,6 +40,13 @@ pub struct AccountMetadata {
     pub last_accessed: Option<DateTime<Utc>>,
 }
 
+/// Device entry for recent devices tracking
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceEntry {
+    pub device_name: String,
+    pub last_used: DateTime<Utc>,
+}
+
 /// Per-account config (stored in {account_id}/config.json)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountConfig {
@@ -49,6 +56,21 @@ pub struct AccountConfig {
     pub verify_hash: String,     // Hex encoded: Argon2id(master_key_hex, verify_data)
     pub created_at: DateTime<Utc>,
     pub crypto_version: u32,     // Version of crypto algorithm (2 = current)
+    // Phase 2: metadata fields (migrated from Keychain)
+    #[serde(default)]
+    pub password_hint: Option<String>,
+    #[serde(default)]
+    pub last_login_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub last_operation_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub last_operation_desc: Option<String>,
+    #[serde(default)]
+    pub recent_devices: Vec<DeviceEntry>,
+    #[serde(default)]
+    pub biometric_enabled: bool,
+    #[serde(default)]
+    pub biometric_session_key_hash: Option<String>,
 }
 
 /// Account info returned to Flutter
@@ -60,6 +82,19 @@ pub struct AccountInfo {
     pub verify_hash: String,    // Hex encoded verify hash (for Dart to store)
     pub crypto_version: u32,    // Version of crypto algorithm (2 = current)
     pub last_accessed: Option<DateTime<Utc>>,
+    // Phase 2: metadata fields
+    #[serde(default)]
+    pub password_hint: Option<String>,
+    #[serde(default)]
+    pub last_login_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub last_operation_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub last_operation_desc: Option<String>,
+    #[serde(default)]
+    pub recent_devices: Vec<DeviceEntry>,
+    #[serde(default)]
+    pub biometric_enabled: bool,
 }
 
 /// Verification result
@@ -159,6 +194,12 @@ impl AccountManager {
                 verify_hash: String::new(),
                 crypto_version: 2,
                 last_accessed: m.last_accessed,
+                password_hint: None,
+                last_login_at: None,
+                last_operation_at: None,
+                last_operation_desc: None,
+                recent_devices: Vec::new(),
+                biometric_enabled: false,
             })
             .collect()
     }
@@ -241,6 +282,13 @@ impl AccountManager {
             verify_hash: verify_hash.clone(),
             created_at: Utc::now(),
             crypto_version: 2, // Version 2: two-step derivation (master_key + verify_hash)
+            password_hint: None,
+            last_login_at: None,
+            last_operation_at: None,
+            last_operation_desc: None,
+            recent_devices: Vec::new(),
+            biometric_enabled: false,
+            biometric_session_key_hash: None,
         };
 
         let config_path = account_dir.join("config.json");
@@ -311,6 +359,12 @@ impl AccountManager {
             verify_hash: verify_hash.clone(),
             crypto_version: 2,
             last_accessed: Some(Utc::now()),
+            password_hint: None,
+            last_login_at: Some(Utc::now()),
+            last_operation_at: None,
+            last_operation_desc: None,
+            recent_devices: Vec::new(),
+            biometric_enabled: false,
         })
     }
 
@@ -911,6 +965,13 @@ impl AccountManager {
             verify_hash: new_verify_hash.clone(),
             created_at: config.created_at,
             crypto_version: 2,
+            password_hint: config.password_hint.clone(),
+            last_login_at: config.last_login_at,
+            last_operation_at: config.last_operation_at,
+            last_operation_desc: config.last_operation_desc.clone(),
+            recent_devices: config.recent_devices.clone(),
+            biometric_enabled: config.biometric_enabled,
+            biometric_session_key_hash: None, // cleared on password change
         };
 
         let new_config_content = serde_json::to_string_pretty(&new_config)
@@ -932,6 +993,12 @@ impl AccountManager {
             verify_hash: new_verify_hash,
             crypto_version: 2,
             last_accessed: Some(chrono::Utc::now()),
+            password_hint: config.password_hint,
+            last_login_at: config.last_login_at,
+            last_operation_at: config.last_operation_at,
+            last_operation_desc: config.last_operation_desc,
+            recent_devices: config.recent_devices,
+            biometric_enabled: config.biometric_enabled,
         })
     }
 
@@ -1011,7 +1078,58 @@ impl AccountManager {
             verify_hash: config.verify_hash,
             crypto_version: config.crypto_version,
             last_accessed: None,
+            password_hint: config.password_hint,
+            last_login_at: config.last_login_at,
+            last_operation_at: config.last_operation_at,
+            last_operation_desc: config.last_operation_desc,
+            recent_devices: config.recent_devices,
+            biometric_enabled: config.biometric_enabled,
         })
+    }
+
+    /// Update account metadata fields in config.json.
+    /// Only non-None fields are updated; existing values are preserved.
+    pub fn update_account_metadata(
+        &self,
+        account_id: &str,
+        password_hint: Option<String>,
+        last_login_at: Option<DateTime<Utc>>,
+        last_operation_at: Option<DateTime<Utc>>,
+        last_operation_desc: Option<String>,
+        recent_devices: Option<Vec<DeviceEntry>>,
+        biometric_enabled: Option<bool>,
+    ) -> Result<(), String> {
+        let config_path = self.account_dir(account_id).join("config.json");
+        let config_content = fs::read_to_string(&config_path)
+            .map_err(|e| format!("Failed to read config: {}", e))?;
+        let mut config: AccountConfig = serde_json::from_str(&config_content)
+            .map_err(|e| format!("Failed to parse config: {}", e))?;
+
+        if let Some(hint) = password_hint {
+            config.password_hint = Some(hint);
+        }
+        if let Some(login) = last_login_at {
+            config.last_login_at = Some(login);
+        }
+        if let Some(op_at) = last_operation_at {
+            config.last_operation_at = Some(op_at);
+        }
+        if let Some(op_desc) = last_operation_desc {
+            config.last_operation_desc = Some(op_desc);
+        }
+        if let Some(devices) = recent_devices {
+            config.recent_devices = devices;
+        }
+        if let Some(enabled) = biometric_enabled {
+            config.biometric_enabled = enabled;
+        }
+
+        let new_content = serde_json::to_string_pretty(&config)
+            .map_err(|e| format!("Serialize config failed: {}", e))?;
+        fs::write(&config_path, new_content)
+            .map_err(|e| format!("Write config failed: {}", e))?;
+
+        Ok(())
     }
 
     /// Delete an account and all its data

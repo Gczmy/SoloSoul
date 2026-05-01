@@ -169,6 +169,7 @@ pub fn handle_vault_request(
         "decrypt_data" => handle_decrypt_data(request.payload, account_manager),
         "verify_password" => handle_verify_password(request.payload, account_manager),
         "migrate_encryption" => handle_migrate_encryption(request.payload, account_manager),
+        "update_account_metadata" => handle_update_account_metadata(request.payload, account_manager),
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
 }
@@ -534,6 +535,15 @@ fn handle_get_account_config(payload: Option<serde_json::Value>, manager: &Accou
             "salt": info.salt,
             "verify_hash": info.verify_hash,
             "crypto_version": info.crypto_version,
+            "password_hint": info.password_hint,
+            "last_login_at": info.last_login_at.map(|d| d.to_rfc3339()),
+            "last_operation_at": info.last_operation_at.map(|d| d.to_rfc3339()),
+            "last_operation_desc": info.last_operation_desc,
+            "recent_devices": info.recent_devices.iter().map(|d| serde_json::json!({
+                "device_name": d.device_name,
+                "last_used": d.last_used.to_rfc3339(),
+            })).collect::<Vec<_>>(),
+            "biometric_enabled": info.biometric_enabled,
         })),
         None => VaultResponse::error("Account not found".to_string()),
     }
@@ -916,6 +926,94 @@ fn handle_migrate_encryption(payload: Option<serde_json::Value>, manager: &Accou
             "migrated": true,
         })),
         Err(e) => VaultResponse::error(format!("Migration failed: {}", e)),
+    }
+}
+
+fn handle_update_account_metadata(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    #[derive(Deserialize)]
+    struct MetadataPayload {
+        account_id: String,
+        #[serde(default)]
+        password_hint: Option<String>,
+        #[serde(default)]
+        last_login_at: Option<String>,
+        #[serde(default)]
+        last_operation_at: Option<String>,
+        #[serde(default)]
+        last_operation_desc: Option<String>,
+        #[serde(default)]
+        recent_devices: Option<Vec<serde_json::Value>>,
+        /// Append a single device to the list (upsert by device_name)
+        #[serde(default)]
+        add_device: Option<serde_json::Value>,
+        #[serde(default)]
+        biometric_enabled: Option<bool>,
+    }
+
+    let payload: MetadataPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let last_login_at = payload.last_login_at.and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok().map(|d| d.with_timezone(&chrono::Utc)));
+    let last_operation_at = payload.last_operation_at.and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok().map(|d| d.with_timezone(&chrono::Utc)));
+
+    // Handle add_device (append/upsert) vs recent_devices (overwrite)
+    let recent_devices = if let Some(device) = payload.add_device {
+        // Read current config to get existing devices
+        let config_path = manager.base_path().join(&payload.account_id).join("config.json");
+        let existing_devices = if let Ok(content) = std::fs::read_to_string(&config_path) {
+            if let Ok(config) = serde_json::from_str::<crate::account::AccountConfig>(&content) {
+                config.recent_devices
+            } else {
+                Vec::new()
+            }
+        } else {
+            Vec::new()
+        };
+
+        let device_name = device.get("device_name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let last_used = device.get("last_used").and_then(|v| v.as_str())
+            .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+            .map(|d| d.with_timezone(&chrono::Utc))
+            .unwrap_or_else(chrono::Utc::now);
+
+        let mut devices = existing_devices;
+        if let Some(idx) = devices.iter().position(|d| d.device_name == device_name) {
+            devices[idx] = crate::account::DeviceEntry { device_name, last_used };
+        } else {
+            if devices.len() >= 5 {
+                devices.remove(0);
+            }
+            devices.push(crate::account::DeviceEntry { device_name, last_used });
+        }
+        Some(devices)
+    } else {
+        payload.recent_devices.map(|devices| {
+            devices.into_iter().filter_map(|d| {
+                Some(crate::account::DeviceEntry {
+                    device_name: d.get("device_name")?.as_str()?.to_string(),
+                    last_used: chrono::DateTime::parse_from_rfc3339(d.get("last_used")?.as_str()?)
+                        .ok()?.with_timezone(&chrono::Utc),
+                })
+            }).collect::<Vec<_>>()
+        })
+    };
+
+    match manager.update_account_metadata(
+        &payload.account_id,
+        payload.password_hint,
+        last_login_at,
+        last_operation_at,
+        payload.last_operation_desc,
+        recent_devices,
+        payload.biometric_enabled,
+    ) {
+        Ok(()) => VaultResponse::success(serde_json::json!({"updated": true})),
+        Err(e) => VaultResponse::error(format!("Failed to update metadata: {}", e)),
     }
 }
 
