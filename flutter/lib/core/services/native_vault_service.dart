@@ -980,12 +980,16 @@ class NativeVaultService {
     return _androidSaveProfile(name, dataB64);
   }
 
+  static final _validIdPattern = RegExp(r'^[a-zA-Z0-9_]+$');
+
+  bool _isValidProfileId(String id) => _validIdPattern.hasMatch(id);
+
   Map<String, dynamic>? _androidLoadProfile(String? id) {
     if (!_isUnlocked) {
       return {'success': false, 'error': 'Vault is locked'};
     }
-    if (id == null) {
-      return {'success': false, 'error': 'Missing profile id'};
+    if (id == null || !_isValidProfileId(id)) {
+      return {'success': false, 'error': 'Missing or invalid profile id'};
     }
     try {
       final file = File('${_profilesDir!.path}/$id.json');
@@ -1013,8 +1017,8 @@ class NativeVaultService {
     if (!_isUnlocked) {
       return {'success': false, 'error': 'Vault is locked'};
     }
-    if (id == null) {
-      return {'success': false, 'error': 'Missing profile id'};
+    if (id == null || !_isValidProfileId(id)) {
+      return {'success': false, 'error': 'Missing or invalid profile id'};
     }
     try {
       final file = File('${_profilesDir!.path}/$id.json');
