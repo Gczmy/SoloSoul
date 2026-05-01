@@ -8,8 +8,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'api.freezed.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `AccountInfo`, `ChangePasswordResult`, `CreateAccountResult`, `ProfileSummary`, `UnlockVaultResult`, `VaultStats`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DeriveKeyResult`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 /// Test function — validates FRB can generate a simple function
 Future<String> frbPing() => RustLib.instance.api.crateApiFrbPing();
@@ -21,6 +21,127 @@ Future<PropertyValue> frbTestPropertyValue() =>
 /// Test function — validates FRB handles nested HashMap
 Future<FormHistories> frbTestFormHistories() =>
     RustLib.instance.api.crateApiFrbTestFormHistories();
+
+/// Encrypt arbitrary bytes using the vault's session key.
+/// Returns the encrypted SOLO blob bytes.
+/// Vault must be unlocked.
+Future<Uint8List> frbEncryptBytes({required List<int> data}) =>
+    RustLib.instance.api.crateApiFrbEncryptBytes(data: data);
+
+/// Decrypt SOLO blob (or legacy Dart format) bytes using the vault's session key.
+/// Returns the plaintext bytes.
+/// Vault must be unlocked.
+Future<Uint8List> frbDecryptBytes({required List<int> data}) =>
+    RustLib.instance.api.crateApiFrbDecryptBytes(data: data);
+
+/// Save a profile (create or update) with raw encrypted bytes.
+/// Returns the profile summary on success.
+/// Vault must be unlocked.
+Future<ProfileSummary> frbSaveProfile({
+  required String name,
+  required List<int> data,
+}) => RustLib.instance.api.crateApiFrbSaveProfile(name: name, data: data);
+
+/// Load a profile by ID, returning raw encrypted bytes.
+/// Vault must be unlocked.
+Future<LoadedProfile?> frbLoadProfile({required String id}) =>
+    RustLib.instance.api.crateApiFrbLoadProfile(id: id);
+
+/// Create a new account. Returns account info including salt and verify_hash.
+Future<CreateAccountResult> frbCreateAccount({
+  required String name,
+  required String password,
+}) => RustLib.instance.api.crateApiFrbCreateAccount(
+  name: name,
+  password: password,
+);
+
+/// Unlock the vault with account_id and password.
+/// Returns success status and crypto_version.
+Future<UnlockVaultResult> frbUnlockVault({
+  required String accountId,
+  required String password,
+}) => RustLib.instance.api.crateApiFrbUnlockVault(
+  accountId: accountId,
+  password: password,
+);
+
+/// Lock the vault — clears session key and closes database connection.
+Future<bool> frbLockVault() => RustLib.instance.api.crateApiFrbLockVault();
+
+/// List all accounts.
+Future<List<AccountInfo>> frbListAccounts() =>
+    RustLib.instance.api.crateApiFrbListAccounts();
+
+/// Delete an account and all its data.
+Future<bool> frbDeleteAccount({required String accountId}) =>
+    RustLib.instance.api.crateApiFrbDeleteAccount(accountId: accountId);
+
+/// Get vault statistics.
+Future<VaultStats> frbGetVaultStats() =>
+    RustLib.instance.api.crateApiFrbGetVaultStats();
+
+/// Change account password.
+Future<ChangePasswordResult> frbChangePassword({
+  required String accountId,
+  required String oldPassword,
+  required String newPassword,
+}) => RustLib.instance.api.crateApiFrbChangePassword(
+  accountId: accountId,
+  oldPassword: oldPassword,
+  newPassword: newPassword,
+);
+
+/// Derive a key from password and salt using Argon2id.
+/// This is a standalone function that doesn't require vault to be unlocked.
+/// Used by Dart auth flow for biometric credential verification, etc.
+Future<Uint8List> frbDeriveKey({
+  required String password,
+  required String saltHex,
+  required FrbKdfPreset preset,
+}) => RustLib.instance.api.crateApiFrbDeriveKey(
+  password: password,
+  saltHex: saltHex,
+  preset: preset,
+);
+
+/// Account info from Rust vault
+@freezed
+sealed class AccountInfo with _$AccountInfo {
+  const factory AccountInfo({
+    required String id,
+    required String name,
+    String? lastAccessed,
+    String? passwordHint,
+    String? lastLoginAt,
+    String? lastOperationAt,
+    String? lastOperationDesc,
+  }) = _AccountInfo;
+}
+
+/// Result of password change
+@freezed
+sealed class ChangePasswordResult with _$ChangePasswordResult {
+  const factory ChangePasswordResult({
+    required bool success,
+    String? error,
+    String? salt,
+    String? verifyHash,
+  }) = _ChangePasswordResult;
+}
+
+/// Result of account creation
+@freezed
+sealed class CreateAccountResult with _$CreateAccountResult {
+  const factory CreateAccountResult({
+    required bool success,
+    String? error,
+    String? accountId,
+    String? name,
+    String? salt,
+    String? verifyHash,
+  }) = _CreateAccountResult;
+}
 
 /// A field history entry
 @freezed
@@ -38,6 +159,41 @@ sealed class FormHistories with _$FormHistories {
   const factory FormHistories({
     required Map<String, Map<String, List<FieldHistoryEntry>>> histories,
   }) = _FormHistories;
+}
+
+/// KDF parameter presets (re-exported for FRB codegen)
+enum FrbKdfPreset {
+  /// 8 MiB, 2 iterations — low-end devices
+  fast,
+
+  /// 16 MiB, 3 iterations — default
+  balanced,
+
+  /// 64 MiB, 3 iterations — high security
+  secure,
+}
+
+/// Loaded profile data returned from Rust
+@freezed
+sealed class LoadedProfile with _$LoadedProfile {
+  const factory LoadedProfile({
+    required String id,
+    required String name,
+    required Uint8List data,
+    required int version,
+  }) = _LoadedProfile;
+}
+
+/// Profile summary from Rust vault
+@freezed
+sealed class ProfileSummary with _$ProfileSummary {
+  const factory ProfileSummary({
+    required String id,
+    required String name,
+    required String createdAt,
+    required String updatedAt,
+    required int version,
+  }) = _ProfileSummary;
 }
 
 @freezed
@@ -60,3 +216,24 @@ sealed class PropertyValue with _$PropertyValue {
 
 /// Sensitivity level for profile fields
 enum SensitivityLevel { public, private, restricted }
+
+/// Result of vault unlock
+@freezed
+sealed class UnlockVaultResult with _$UnlockVaultResult {
+  const factory UnlockVaultResult({
+    required bool success,
+    String? error,
+    int? cryptoVersion,
+  }) = _UnlockVaultResult;
+}
+
+/// Vault statistics returned from Rust
+@freezed
+sealed class VaultStats with _$VaultStats {
+  const factory VaultStats({
+    required BigInt profileCount,
+    required BigInt totalSizeBytes,
+    String? lastModified,
+    String? accountId,
+  }) = _VaultStats;
+}

@@ -32,7 +32,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  AccountInfo dco_decode_account_info(dynamic raw);
+
+  @protected
   bool dco_decode_bool(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_i_32(dynamic raw);
+
+  @protected
+  LoadedProfile dco_decode_box_autoadd_loaded_profile(dynamic raw);
+
+  @protected
+  ChangePasswordResult dco_decode_change_password_result(dynamic raw);
+
+  @protected
+  CreateAccountResult dco_decode_create_account_result(dynamic raw);
 
   @protected
   double dco_decode_f_64(dynamic raw);
@@ -44,10 +59,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FormHistories dco_decode_form_histories(dynamic raw);
 
   @protected
+  FrbKdfPreset dco_decode_frb_kdf_preset(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  List<AccountInfo> dco_decode_list_account_info(dynamic raw);
+
+  @protected
   List<FieldHistoryEntry> dco_decode_list_field_history_entry(dynamic raw);
+
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -63,7 +87,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LoadedProfile dco_decode_loaded_profile(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
+
+  @protected
+  LoadedProfile? dco_decode_opt_box_autoadd_loaded_profile(dynamic raw);
+
+  @protected
+  ProfileSummary dco_decode_profile_summary(dynamic raw);
 
   @protected
   PropertyValue dco_decode_property_value(dynamic raw);
@@ -82,10 +118,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SensitivityLevel dco_decode_sensitivity_level(dynamic raw);
 
   @protected
+  int dco_decode_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
+
+  @protected
   int dco_decode_u_8(dynamic raw);
 
   @protected
   void dco_decode_unit(dynamic raw);
+
+  @protected
+  UnlockVaultResult dco_decode_unlock_vault_result(dynamic raw);
+
+  @protected
+  BigInt dco_decode_usize(dynamic raw);
+
+  @protected
+  VaultStats dco_decode_vault_stats(dynamic raw);
 
   @protected
   Map<String, Map<String, List<FieldHistoryEntry>>>
@@ -103,7 +154,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  AccountInfo sse_decode_account_info(SseDeserializer deserializer);
+
+  @protected
   bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
+
+  @protected
+  LoadedProfile sse_decode_box_autoadd_loaded_profile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ChangePasswordResult sse_decode_change_password_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CreateAccountResult sse_decode_create_account_result(
+    SseDeserializer deserializer,
+  );
 
   @protected
   double sse_decode_f_64(SseDeserializer deserializer);
@@ -117,12 +189,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FormHistories sse_decode_form_histories(SseDeserializer deserializer);
 
   @protected
+  FrbKdfPreset sse_decode_frb_kdf_preset(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
+  List<AccountInfo> sse_decode_list_account_info(SseDeserializer deserializer);
 
   @protected
   List<FieldHistoryEntry> sse_decode_list_field_history_entry(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -140,7 +221,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LoadedProfile sse_decode_loaded_profile(SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
+
+  @protected
+  LoadedProfile? sse_decode_opt_box_autoadd_loaded_profile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ProfileSummary sse_decode_profile_summary(SseDeserializer deserializer);
 
   @protected
   PropertyValue sse_decode_property_value(SseDeserializer deserializer);
@@ -161,10 +256,27 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SensitivityLevel sse_decode_sensitivity_level(SseDeserializer deserializer);
 
   @protected
+  int sse_decode_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer);
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
+
+  @protected
+  UnlockVaultResult sse_decode_unlock_vault_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer);
+
+  @protected
+  VaultStats sse_decode_vault_stats(SseDeserializer deserializer);
 
   @protected
   void sse_encode_Map_String_Map_String_list_field_history_entry_None_None(
@@ -182,7 +294,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_account_info(AccountInfo self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_loaded_profile(
+    LoadedProfile self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_change_password_result(
+    ChangePasswordResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_create_account_result(
+    CreateAccountResult self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
@@ -197,13 +333,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_form_histories(FormHistories self, SseSerializer serializer);
 
   @protected
+  void sse_encode_frb_kdf_preset(FrbKdfPreset self, SseSerializer serializer);
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_account_info(
+    List<AccountInfo> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_field_history_entry(
     List<FieldHistoryEntry> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -224,7 +372,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_loaded_profile(LoadedProfile self, SseSerializer serializer);
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_loaded_profile(
+    LoadedProfile? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_profile_summary(
+    ProfileSummary self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_property_value(PropertyValue self, SseSerializer serializer);
@@ -248,10 +414,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_unlock_vault_result(
+    UnlockVaultResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_vault_stats(VaultStats self, SseSerializer serializer);
 }
 
 // Section: wire_class
