@@ -25,7 +25,7 @@
 | P015 | P1 | 重复代码 | `trash_page.dart:621`, `predefined_object_section.dart:242` | `_logSectionForTypeId()` 在 2 处完全重复 | `[x]` 已修复 |
 | P016 | P1 | 重复代码 | `settings/all_accounts_sheet.dart:24`, `settings/current_account_sheet.dart:18` | `_getDeviceIcon()` 在 2 处完全重复 | `[x]` 已修复 |
 | P017 | P2 | 漏洞 | `core/services/native_crypto_service.dart:379,476` | 加解密错误日志误标为 "PBKDF2 derivation failed" | `[x]` 已修复 |
-| P018 | P2 | 性能 | `presentation/pages/login_page.dart:518` | 空 `setState(() {})` 触发无意义重建 | `[x]` 已修复 |
+| P018 | P2 | 性能 | `presentation/pages/login_page.dart:518` | `setState(() {})` 触发无意义重建 | `[x]` 误报 — build() 使用 ref.read 需要 setState 触发重建 |
 | P019 | P2 | 性能 | `presentation/pages/operation_log_page.dart:42,457` | 空 `setState(() {})` 与 Riverpod 重建冲突 | `[x]` 已修复 |
 | P020 | P2 | 性能 | `core/services/field_history_service.dart:188-208` | `allChangesSorted` getter 每次调用重新计算+排序 | `[x]` 已修复 |
 | P021 | P2 | 性能 | `core/services/backup_service.dart:485-499` | 清理备份循环内重复解析目录路径 | `[x]` 已修复 |
