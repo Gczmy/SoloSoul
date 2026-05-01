@@ -12,6 +12,7 @@ pub mod api;
 pub mod crypto;
 pub mod vault;
 pub mod sync;
+pub mod discovery;
 #[cfg(feature = "sandbox")]
 pub mod plugin;
 pub mod account;

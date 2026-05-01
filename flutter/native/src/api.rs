@@ -6,9 +6,6 @@
 use flutter_rust_bridge::frb;
 use std::collections::HashMap;
 
-use crate::account::AccountManager;
-use crate::vault::processor::{VaultRequest, VaultResponse};
-
 // ============================================================================
 // Prototype: Complex types for FRB validation
 // ============================================================================
