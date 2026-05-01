@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 /// FFI bindings to Rust vault implementation
 /// All platforms use the Rust core engine via FFI JSON relay
@@ -368,4 +369,153 @@ class NativeVaultService {
     return accounts.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
+  // ==========================================================================
+  // FRB typed methods — async, type-safe replacements for JSON relay
+  // ==========================================================================
+
+  /// Encrypt bytes using the vault's session key (FRB).
+  /// Returns SOLO blob bytes. Vault must be unlocked.
+  Future<Uint8List?> encryptBytesFrb(Uint8List data) async {
+    try {
+      return await frb.frbEncryptBytes(data: data);
+    } on Exception catch (e) {
+      _log('FRB encryptBytes failed: $e');
+      return null;
+    }
+  }
+
+  /// Decrypt SOLO blob bytes using the vault's session key (FRB).
+  /// Returns plaintext bytes. Vault must be unlocked.
+  Future<Uint8List?> decryptBytesFrb(Uint8List data) async {
+    try {
+      return await frb.frbDecryptBytes(data: data);
+    } on Exception catch (e) {
+      _log('FRB decryptBytes failed: $e');
+      return null;
+    }
+  }
+
+  /// Save a profile with raw encrypted bytes (FRB).
+  /// Returns profile summary on success.
+  Future<frb.ProfileSummary?> saveProfileFrb(String name, Uint8List data) async {
+    try {
+      return await frb.frbSaveProfile(name: name, data: data);
+    } on Exception catch (e) {
+      _log('FRB saveProfile failed: $e');
+      return null;
+    }
+  }
+
+  /// Load a profile by ID, returning raw encrypted bytes (FRB).
+  Future<frb.LoadedProfile?> loadProfileFrb(String id) async {
+    try {
+      return await frb.frbLoadProfile(id: id);
+    } on Exception catch (e) {
+      _log('FRB loadProfile failed: $e');
+      return null;
+    }
+  }
+
+  /// Create a new account (FRB).
+  Future<frb.CreateAccountResult?> createAccountFrb({
+    required String name,
+    required String password,
+  }) async {
+    try {
+      return await frb.frbCreateAccount(name: name, password: password);
+    } on Exception catch (e) {
+      _log('FRB createAccount failed: $e');
+      return null;
+    }
+  }
+
+  /// Unlock the vault (FRB).
+  Future<frb.UnlockVaultResult?> unlockVaultFrb({
+    required String accountId,
+    required String password,
+  }) async {
+    try {
+      return await frb.frbUnlockVault(accountId: accountId, password: password);
+    } on Exception catch (e) {
+      _log('FRB unlockVault failed: $e');
+      return null;
+    }
+  }
+
+  /// Lock the vault (FRB).
+  Future<bool> lockVaultFrb() async {
+    try {
+      return await frb.frbLockVault();
+    } on Exception catch (e) {
+      _log('FRB lockVault failed: $e');
+      return false;
+    }
+  }
+
+  /// List all accounts (FRB).
+  Future<List<frb.AccountInfo>?> listAccountsFrb() async {
+    try {
+      return await frb.frbListAccounts();
+    } on Exception catch (e) {
+      _log('FRB listAccounts failed: $e');
+      return null;
+    }
+  }
+
+  /// Delete an account (FRB).
+  Future<bool> deleteAccountFrb(String accountId) async {
+    try {
+      return await frb.frbDeleteAccount(accountId: accountId);
+    } on Exception catch (e) {
+      _log('FRB deleteAccount failed: $e');
+      return false;
+    }
+  }
+
+  /// Get vault statistics (FRB).
+  Future<frb.VaultStats?> getVaultStatsFrb() async {
+    try {
+      return await frb.frbGetVaultStats();
+    } on Exception catch (e) {
+      _log('FRB getVaultStats failed: $e');
+      return null;
+    }
+  }
+
+  /// Change account password (FRB).
+  Future<frb.ChangePasswordResult?> changePasswordFrb({
+    required String accountId,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      return await frb.frbChangePassword(
+        accountId: accountId,
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+    } on Exception catch (e) {
+      _log('FRB changePassword failed: $e');
+      return null;
+    }
+  }
+
+  /// Derive a key from password and salt (FRB).
+  /// Standalone — doesn't require vault to be unlocked.
+  Future<Uint8List?> deriveKeyFrb({
+    required String password,
+    required String saltHex,
+    required frb.FrbKdfPreset preset,
+  }) async {
+    try {
+      return await frb.frbDeriveKey(
+        password: password,
+        saltHex: saltHex,
+        preset: preset,
+      );
+    } on Exception catch (e) {
+      _log('FRB deriveKey failed: $e');
+      return null;
+    }
+  }
 }
