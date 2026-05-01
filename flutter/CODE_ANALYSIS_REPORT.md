@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-01
+> 最后更新：2026-05-01 12:00:00
 > 当前分支：`master`
 > 修复轮次：1（初始分析）
 
@@ -8,29 +8,29 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |------|--------|------|----------|------|------|
-| P001 | P0 | 漏洞 | `core/services/native_crypto_service.dart:268-289` | PBKDF2 仅 1 次迭代（Android/Windows），密钥可被暴力破解 | `[ ]` 待修复 |
-| P002 | P0 | 漏洞 | `core/services/native_vault_service.dart:991,1020` | 路径穿越：Android profile 文件操作未验证 ID，可读写任意文件 | `[ ]` 待修复 |
+| P001 | P0 | 漏洞 | `core/services/native_crypto_service.dart:268-289` | PBKDF2 仅 1 次迭代（Android/Windows），密钥可被暴力破解 | `[x]` 已修复 |
+| P002 | P0 | 漏洞 | `core/services/native_vault_service.dart:991,1020` | 路径穿越：Android profile 文件操作未验证 ID，可读写任意文件 | `[x]` 已修复 |
 | P003 | P0 | 漏洞 | `core/services/fallback_secure_storage.dart:54-71` | Keychain 不可用时，敏感数据明文写入文件系统 | `[ ]` 待修复 |
-| P004 | P1 | 死代码 | 10 个文件（见详情） | 10 个未被任何文件引用的死文件 | `[ ]` 待修复 |
-| P005 | P1 | 死代码 | `sensitivity_settings_page.dart:4-6`, `entry_card_widget.dart:21,26` | 2 处重复 import | `[ ]` 待修复 |
-| P006 | P1 | 漏洞 | `core/router/app_router.dart:55` | `debugLogDiagnostics: true` 硬编码，生产环境泄露路由信息 | `[ ]` 待修复 |
-| P007 | P1 | 漏洞 | `presentation/providers/auth/auth_storage.dart:359,396` | 日志记录 salt 片段和密码验证结果 | `[ ]` 待修复 |
+| P004 | P1 | 死代码 | 10 个文件（见详情） | 10 个未被任何文件引用的死文件 | `[x]` 已修复 |
+| P005 | P1 | 死代码 | `sensitivity_settings_page.dart:4-6`, `entry_card_widget.dart:21,26` | 2 处重复 import | `[x]` 已修复 |
+| P006 | P1 | 漏洞 | `core/router/app_router.dart:55` | `debugLogDiagnostics: true` 硬编码，生产环境泄露路由信息 | `[x]` 已修复 |
+| P007 | P1 | 漏洞 | `presentation/providers/auth/auth_storage.dart:359,396` | 日志记录 salt 片段和密码验证结果 | `[x]` 已修复 |
 | P008 | P1 | 漏洞 | `presentation/providers/auth/auth_storage.dart:134` | 账户 ID 基于时间戳生成，可预测 | `[ ]` 待修复 |
 | P009 | P1 | 漏洞 | `presentation/providers/auth/auth_storage.dart:114-121` | 密码策略仅检查长度>=8，无复杂度要求 | `[ ]` 待修复 |
 | P010 | P1 | 性能 | `core/services/native_vault_service.dart:891-1030` | Android 平台同步文件 I/O 阻塞主线程（listSync/readAsStringSync 等） | `[ ]` 待修复 |
 | P011 | P1 | 性能 | `core/services/native_vault_service.dart:693-738` | deleteAccountAsync() async 方法内使用同步文件操作 | `[ ]` 待修复 |
 | P012 | P1 | 性能 | `core/services/native_vault_service.dart:928-940` | _androidSaveProfile() 读取全部文件检查名称冲突，O(N) | `[ ]` 待修复 |
-| P013 | P1 | 重复代码 | `trash_page.dart:1016`, `entry_card_widget.dart:189`, `object_card.dart:1041` | `_formatLabel()` 在 3 处完全重复 | `[ ]` 待修复 |
+| P013 | P1 | 重复代码 | `trash_page.dart:1016`, `entry_card_widget.dart:189`, `object_card.dart:1041` | `_formatLabel()` 在 3 处完全重复 | `[x]` 已修复 |
 | P014 | P1 | 重复代码 | `operation_log_page.dart:45`, `trash_page.dart:65` | `_verifyPassword()` 在 2 处完全重复 | `[ ]` 待修复 |
 | P015 | P1 | 重复代码 | `trash_page.dart:621`, `predefined_object_section.dart:242` | `_logSectionForTypeId()` 在 2 处完全重复 | `[ ]` 待修复 |
-| P016 | P1 | 重复代码 | `settings/all_accounts_sheet.dart:24`, `settings/current_account_sheet.dart:18` | `_getDeviceIcon()` 在 2 处完全重复 | `[ ]` 待修复 |
-| P017 | P2 | 漏洞 | `core/services/native_crypto_service.dart:379,476` | 加解密错误日志误标为 "PBKDF2 derivation failed" | `[ ]` 待修复 |
-| P018 | P2 | 性能 | `presentation/pages/login_page.dart:518` | 空 `setState(() {})` 触发无意义重建 | `[ ]` 待修复 |
-| P019 | P2 | 性能 | `presentation/pages/operation_log_page.dart:42,457` | 空 `setState(() {})` 与 Riverpod 重建冲突 | `[ ]` 待修复 |
+| P016 | P1 | 重复代码 | `settings/all_accounts_sheet.dart:24`, `settings/current_account_sheet.dart:18` | `_getDeviceIcon()` 在 2 处完全重复 | `[x]` 已修复 |
+| P017 | P2 | 漏洞 | `core/services/native_crypto_service.dart:379,476` | 加解密错误日志误标为 "PBKDF2 derivation failed" | `[x]` 已修复 |
+| P018 | P2 | 性能 | `presentation/pages/login_page.dart:518` | 空 `setState(() {})` 触发无意义重建 | `[x]` 已修复 |
+| P019 | P2 | 性能 | `presentation/pages/operation_log_page.dart:42,457` | 空 `setState(() {})` 与 Riverpod 重建冲突 | `[x]` 已修复 |
 | P020 | P2 | 性能 | `core/services/field_history_service.dart:188-208` | `allChangesSorted` getter 每次调用重新计算+排序 | `[ ]` 待修复 |
 | P021 | P2 | 性能 | `core/services/backup_service.dart:485-499` | 清理备份循环内重复解析目录路径 | `[ ]` 待修复 |
 | P022 | P2 | 性能 | `core/services/profile_storage_service.dart:189-210` | saveProfile() 每次保存前重新加载完整 profile 作为防御检查 | `[ ]` 待修复 |
-| P023 | P2 | 内存 | `core/services/operation_notification.dart:284` | 反向动画完成回调未检查 mounted 状态 | `[ ]` 待修复 |
+| P023 | P2 | 内存 | `core/services/operation_notification.dart:284` | 反向动画完成回调未检查 mounted 状态 | `[x]` 已修复 |
 | P024 | P2 | 内存 | `presentation/pages/home_page.dart:248-256` | _topOverlayEntry 延迟移除可能在 dispose 后执行 | `[ ]` 待修复 |
 | P025 | P2 | 代码质量 | `presentation/providers/unified_object_provider.dart:100-170` | 孤儿修复算法嵌套深度达 9 层 | `[ ]` 待修复 |
 | P026 | P2 | 代码质量 | 24 个文件 | 24 个文件超过 400 行代码，7 个超过 800 行 | `[ ]` 待修复 |
@@ -38,7 +38,7 @@
 
 ## 修复进度
 
-- 已完成：0 / 27
+- 已完成：12 / 27
 - 当前处理：无
 
 ## 详细问题描述与修复指引
