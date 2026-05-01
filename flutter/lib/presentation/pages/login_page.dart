@@ -515,7 +515,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _selectAccount(String accountId) async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     await authNotifier.selectAccount(accountId);
-    setState(() {});
   }
 
   Future<void> _backToAccountList() async {

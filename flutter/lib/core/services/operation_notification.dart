@@ -282,7 +282,9 @@ class _NotificationWidgetState extends State<_NotificationWidget>
 
   void _dismiss() {
     _controller.reverse().then((_) {
-      widget.onDismiss();
+      if (mounted) {
+        widget.onDismiss();
+      }
     });
   }
 

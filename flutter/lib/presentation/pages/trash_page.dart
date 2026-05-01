@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 // ignore_for_file: use_build_context_synchronously
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
@@ -1013,16 +1014,7 @@ class _UnifiedObjectTrashCard extends ConsumerWidget {
     );
   }
 
-  String _formatLabel(String key) {
-    final spaced = key.replaceAllMapped(
-      RegExp(r'([a-z])([A-Z])'),
-      (m) => '${m[1]} ${m[2]}',
-    );
-    return spaced.replaceAll('_', ' ').split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-  }
+  String _formatLabel(String key) => formatFieldLabel(key);
 
   String _formatFullTimestamp(DateTime dt) {
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '

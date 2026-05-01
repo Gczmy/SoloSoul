@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
@@ -184,17 +185,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     return ref.watch(effectiveSensitivityProvider(fieldId));
   }
 
-  String _formatLabel(String key) {
-    // camelCase → Title Case (i18n-ready)
-    final spaced = key.replaceAllMapped(
-      RegExp(r'([a-z])([A-Z])'),
-      (m) => '${m[1]} ${m[2]}',
-    );
-    return spaced.replaceAll('_', ' ').split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-  }
+  String _formatLabel(String key) => formatFieldLabel(key);
 
   List<LabelValueField> _autoBuildFields() {
     final fields = <LabelValueField>[];

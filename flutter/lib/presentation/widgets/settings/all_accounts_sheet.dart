@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
+import 'package:solosoul_flutter/presentation/utils/device_utils.dart';
 
 
 /// All accounts selection bottom sheet.
@@ -21,20 +22,7 @@ class AllAccountsSheet extends StatelessWidget {
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
-  IconData _getDeviceIcon(String deviceName) {
-    final lower = deviceName.toLowerCase();
-    if (lower.contains('iphone') || lower.contains('ios')) {
-      return Icons.phone_iphone;
-    }
-    if (lower.contains('android')) return Icons.phone_android;
-    if (lower.contains('mac') || lower.contains('darwin')) {
-      return Icons.laptop_mac;
-    }
-    if (lower.contains('windows')) return Icons.desktop_windows;
-    if (lower.contains('linux')) return Icons.computer;
-    if (lower.contains('web') || lower.contains('browser')) return Icons.web;
-    return Icons.devices;
-  }
+  IconData _getDeviceIcon(String deviceName) => getDeviceIcon(deviceName);
 
   @override
   Widget build(BuildContext context) {
