@@ -487,9 +487,9 @@ class BackupService {
     if (list.length <= maxBackupCount) return;
 
     final toDelete = list.sublist(maxBackupCount);
+    final dir = await _accountBackupDir(accountId);
     for (final entry in toDelete) {
       try {
-        final dir = await _accountBackupDir(accountId);
         final file = File('${dir.path}/${entry.fileName}');
         if (await file.exists()) await file.delete();
       } on Exception catch (_) {

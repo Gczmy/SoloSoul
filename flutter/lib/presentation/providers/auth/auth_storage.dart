@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
@@ -119,6 +120,16 @@ class SecureAccountStorage {
         sessionKey: null
       );
     }
+    if (password.length < 12 &&
+        !_hasSufficientComplexity(password)) {
+      return (
+        success: false,
+        error: 'Password must be at least 12 characters, '
+            'or 8+ with uppercase, lowercase, and digits',
+        account: null,
+        sessionKey: null
+      );
+    }
 
     final accounts = await listAccounts();
     if (accounts.any((a) => a.name.toLowerCase() == name.toLowerCase())) {
@@ -131,7 +142,7 @@ class SecureAccountStorage {
     }
 
     final effectiveAccountId =
-        accountId ?? 'acc_${DateTime.now().millisecondsSinceEpoch}';
+        accountId ?? 'acc_${const Uuid().v4()}';
 
     String saltToStore;
     String hashToStore;
@@ -526,5 +537,12 @@ class SecureAccountStorage {
       recentDevices: recentDevices,
     );
     await _saveAccounts(accounts);
+  }
+
+  static bool _hasSufficientComplexity(String password) {
+    final hasUpper = password.contains(RegExp(r'[A-Z]'));
+    final hasLower = password.contains(RegExp(r'[a-z]'));
+    final hasDigit = password.contains(RegExp(r'[0-9]'));
+    return hasUpper && hasLower && hasDigit;
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,6 +69,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   bool _isEditing = false;
   late AnimationController _wobbleController;
   OverlayEntry? _topOverlayEntry;
+  Timer? _topOverlayTimer;
 
   @override
   void initState() {
@@ -127,6 +129,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
   @override
   void dispose() {
+    _topOverlayTimer?.cancel();
     _topOverlayEntry?.remove();
     _topOverlayEntry = null;
     _wobbleController.dispose();
@@ -248,7 +251,8 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     _topOverlayEntry = entry;
 
     overlay.insert(entry);
-    Future.delayed(AppTheme.kOverlayDuration, () {
+    _topOverlayTimer?.cancel();
+    _topOverlayTimer = Timer(AppTheme.kOverlayDuration, () {
       entry.remove();
       if (_topOverlayEntry == entry) {
         _topOverlayEntry = null;
