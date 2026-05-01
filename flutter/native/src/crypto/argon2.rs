@@ -21,6 +21,97 @@ pub const DEFAULT_MEMORY_KIB: u32 = 16384;  // 16MB for faster testing
 pub const DEFAULT_ITERATIONS: u32 = 1;      // 1 iteration for faster testing
 pub const DEFAULT_PARALLELISM: u32 = 4;
 
+/// KDF algorithm selection
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum KdfAlgorithm {
+    /// Argon2id — memory-hard, recommended for password hashing
+    #[serde(rename = "argon2id")]
+    Argon2id,
+    /// PBKDF2-SHA256 — compatible with legacy data
+    #[serde(rename = "pbkdf2")]
+    Pbkdf2,
+}
+
+impl Default for KdfAlgorithm {
+    fn default() -> Self {
+        Self::Argon2id
+    }
+}
+
+/// KDF parameter presets (exposed to users in SecuritySettings)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum KdfPreset {
+    /// 8 MiB, 2 iterations — low-end devices
+    Fast,
+    /// 16 MiB, 3 iterations — default
+    Balanced,
+    /// 64 MiB, 3 iterations — high security
+    Secure,
+}
+
+impl Default for KdfPreset {
+    fn default() -> Self {
+        Self::Balanced
+    }
+}
+
+impl KdfPreset {
+    /// Get the KdfParams for this preset
+    pub fn params(&self) -> KdfParams {
+        match self {
+            Self::Fast => KdfParams {
+                algorithm: KdfAlgorithm::Argon2id,
+                memory_kib: 8192,       // 8 MiB
+                iterations: 2,
+                parallelism: 4,
+            },
+            Self::Balanced => KdfParams {
+                algorithm: KdfAlgorithm::Argon2id,
+                memory_kib: 16384,      // 16 MiB
+                iterations: 3,
+                parallelism: 4,
+            },
+            Self::Secure => KdfParams {
+                algorithm: KdfAlgorithm::Argon2id,
+                memory_kib: 65536,      // 64 MiB
+                iterations: 3,
+                parallelism: 4,
+            },
+        }
+    }
+}
+
+/// Key derivation function parameters (stored in account config.json)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct KdfParams {
+    /// KDF algorithm (Argon2id or PBKDF2)
+    pub algorithm: KdfAlgorithm,
+    /// Memory in KiB (Argon2id: e.g., 65536 for 64 MiB)
+    pub memory_kib: u32,
+    /// Number of iterations (Argon2id: 3, PBKDF2: 600000)
+    pub iterations: u32,
+    /// Degree of parallelism (Argon2id: 4)
+    pub parallelism: u32,
+}
+
+impl Default for KdfParams {
+    fn default() -> Self {
+        KdfPreset::Balanced.params()
+    }
+}
+
+impl KdfParams {
+    /// Create params for a specific preset
+    pub fn from_preset(preset: KdfPreset) -> Self {
+        preset.params()
+    }
+
+    /// Extract (memory_kib, iterations, parallelism) tuple for use with `derive_key`
+    pub fn as_tuple(&self) -> (u32, u32, u32) {
+        (self.memory_kib, self.iterations, self.parallelism)
+    }
+}
+
 /// Generate a cryptographically secure random salt
 ///
 /// # Safety
@@ -390,6 +481,68 @@ mod tests {
         assert_eq!(DEFAULT_MEMORY_KIB, 16384, "Default memory should be 16MB");
         assert_eq!(DEFAULT_ITERATIONS, 1, "Default iterations should be 1");
         assert_eq!(DEFAULT_PARALLELISM, 4, "Default parallelism should be 4");
+    }
+
+    #[test]
+    fn test_kdf_preset_fast() {
+        let params = KdfPreset::Fast.params();
+        assert_eq!(params.algorithm, KdfAlgorithm::Argon2id);
+        assert_eq!(params.memory_kib, 8192);
+        assert_eq!(params.iterations, 2);
+        assert_eq!(params.parallelism, 4);
+    }
+
+    #[test]
+    fn test_kdf_preset_balanced() {
+        let params = KdfPreset::Balanced.params();
+        assert_eq!(params.memory_kib, 16384);
+        assert_eq!(params.iterations, 3);
+        assert_eq!(params.parallelism, 4);
+    }
+
+    #[test]
+    fn test_kdf_preset_secure() {
+        let params = KdfPreset::Secure.params();
+        assert_eq!(params.memory_kib, 65536);
+        assert_eq!(params.iterations, 3);
+        assert_eq!(params.parallelism, 4);
+    }
+
+    #[test]
+    fn test_kdf_params_default_is_balanced() {
+        let params = KdfParams::default();
+        assert_eq!(params.memory_kib, 16384);
+        assert_eq!(params.iterations, 3);
+    }
+
+    #[test]
+    fn test_kdf_params_as_tuple() {
+        let params = KdfPreset::Secure.params();
+        assert_eq!(params.as_tuple(), (65536, 3, 4));
+    }
+
+    #[test]
+    fn test_kdf_preset_serde_roundtrip() {
+        let preset = KdfPreset::Secure;
+        let json = serde_json::to_string(&preset).unwrap();
+        let deserialized: KdfPreset = serde_json::from_str(&json).unwrap();
+        assert_eq!(preset, deserialized);
+    }
+
+    #[test]
+    fn test_kdf_params_serde_roundtrip() {
+        let params = KdfPreset::Fast.params();
+        let json = serde_json::to_string(&params).unwrap();
+        let deserialized: KdfParams = serde_json::from_str(&json).unwrap();
+        assert_eq!(params.algorithm, deserialized.algorithm);
+        assert_eq!(params.memory_kib, deserialized.memory_kib);
+        assert_eq!(params.iterations, deserialized.iterations);
+        assert_eq!(params.parallelism, deserialized.parallelism);
+    }
+
+    #[test]
+    fn test_kdf_algorithm_default_is_argon2id() {
+        assert_eq!(KdfAlgorithm::default(), KdfAlgorithm::Argon2id);
     }
 
     #[test]

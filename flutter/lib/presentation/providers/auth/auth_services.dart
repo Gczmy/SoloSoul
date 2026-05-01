@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -36,14 +35,7 @@ class VaultUnlockService {
     required String accountId,
     required Uint8List sessionKey,
   }) async {
-    if (Platform.isMacOS || Platform.isIOS) {
-      return RustVaultService.instance.unlockVaultWithKey(
-        accountId: accountId,
-        sessionKey: sessionKey,
-      );
-    }
-    // Android/Windows fallback
-    return NativeVaultService.instance.unlockVaultWithKeyAsync(
+    return RustVaultService.instance.unlockVaultWithKey(
       accountId: accountId,
       sessionKey: sessionKey,
     );
