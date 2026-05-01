@@ -1,3 +1,4 @@
-rust_input: crate::lib
+rust_input: crate::api
 rust_root: native
-dart_output: /Users/zzc/PycharmProjects/SoloSoul/flutter/lib/frb/
+dart_output: lib/frb/
+dart_enums_style: true

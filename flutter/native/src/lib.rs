@@ -8,6 +8,7 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 // - E2EE cloud sync engine
 // - Wasm plugin sandbox
 
+pub mod api;
 pub mod crypto;
 pub mod vault;
 pub mod sync;
