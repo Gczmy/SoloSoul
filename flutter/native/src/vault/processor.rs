@@ -104,6 +104,12 @@ pub struct ChangePasswordPayload {
     pub new_password: String,
 }
 
+/// Payload for encrypt_data / decrypt_data actions
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CryptoPayload {
+    pub data: String,  // Base64 encoded plaintext (encrypt) or ciphertext (decrypt)
+}
+
 /// Profile summary for JSON serialization
 #[derive(Debug, Serialize)]
 pub struct JsonProfileSummary {
@@ -159,6 +165,10 @@ pub fn handle_vault_request(
         "load_setting" => handle_load_setting(request.payload, account_manager),
         "delete_setting" => handle_delete_setting(request.payload, account_manager),
         "list_accounts" => handle_list_accounts(account_manager),
+        "encrypt_data" => handle_encrypt_data(request.payload, account_manager),
+        "decrypt_data" => handle_decrypt_data(request.payload, account_manager),
+        "verify_password" => handle_verify_password(request.payload, account_manager),
+        "migrate_encryption" => handle_migrate_encryption(request.payload, account_manager),
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
 }
@@ -774,6 +784,138 @@ fn handle_delete_setting(payload: Option<serde_json::Value>, manager: &AccountMa
     match vault.delete_setting(&account_id) {
         Ok(()) => VaultResponse::success(serde_json::json!({"deleted": true})),
         Err(e) => VaultResponse::error(format!("Failed to delete setting: {}", e)),
+    }
+}
+
+// =============================================================================
+// Phase 1: Unified encryption layer — encrypt/decrypt via Rust
+// =============================================================================
+
+fn handle_encrypt_data(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let session_key = match manager.get_session_key() {
+        Some(k) => k,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let payload: CryptoPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let plaintext = match base64_decode(&payload.data) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    let key: [u8; 32] = match session_key.as_slice().try_into() {
+        Ok(k) => k,
+        Err(_) => return VaultResponse::error("Invalid session key length".to_string()),
+    };
+
+    match crate::crypto::encrypt_profile_data(&key, &plaintext) {
+        Ok(blob) => VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&blob),
+        })),
+        Err(e) => VaultResponse::error(format!("Encryption failed: {}", e)),
+    }
+}
+
+fn handle_decrypt_data(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let session_key = match manager.get_session_key() {
+        Some(k) => k,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let payload: CryptoPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let ciphertext = match base64_decode(&payload.data) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    let key: [u8; 32] = match session_key.as_slice().try_into() {
+        Ok(k) => k,
+        Err(_) => return VaultResponse::error("Invalid session key length".to_string()),
+    };
+
+    match crate::crypto::decrypt_profile_data(&key, &ciphertext) {
+        Ok(plaintext) => VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&plaintext),
+        })),
+        Err(e) => VaultResponse::error(format!("Decryption failed: {}", e)),
+    }
+}
+
+fn handle_verify_password(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    #[derive(Deserialize)]
+    struct VerifyPayload {
+        account_id: String,
+        password: String,
+    }
+
+    let payload: VerifyPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let result = manager.unlock(&payload.account_id, &payload.password);
+    VaultResponse::success(serde_json::json!({
+        "success": result.success,
+        "error": result.error,
+        "crypto_version": result.crypto_version,
+    }))
+}
+
+fn handle_migrate_encryption(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+    let session_key = match manager.get_session_key() {
+        Some(k) => k,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let payload: CryptoPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let legacy_data = match base64_decode(&payload.data) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    let key: [u8; 32] = match session_key.as_slice().try_into() {
+        Ok(k) => k,
+        Err(_) => return VaultResponse::error("Invalid session key length".to_string()),
+    };
+
+    // Check if already SOLO format — return as-is
+    if legacy_data.len() >= 33 && &legacy_data[0..4] == b"SOLO" {
+        return VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&legacy_data),
+            "migrated": false,
+        }));
+    }
+
+    match crate::crypto::migrate_to_solo_format(&key, &legacy_data) {
+        Ok(solo_blob) => VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&solo_blob),
+            "migrated": true,
+        })),
+        Err(e) => VaultResponse::error(format!("Migration failed: {}", e)),
     }
 }
 

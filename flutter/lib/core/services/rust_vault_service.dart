@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 
 part 'rust_vault_service.g.dart';
@@ -48,16 +47,21 @@ class RustVaultService {
     return _instance!;
   }
 
-  /// Encryption key derived from master password (set after unlock)
+  /// Encryption key derived from master password (set after unlock).
+  /// Phase 1: kept for backward compatibility during migration.
+  /// The key now lives in Rust's AccountManager session — Dart only holds
+  /// a copy for the transition period. Will be removed in Phase 3.
   Uint8List? _encryptionKey;
 
   /// Set the encryption key (derived from master password via Argon2id).
   /// Makes a defensive copy so callers can safely wipe their original buffer.
+  /// DEPRECATED: Key is now managed by Rust. This will be removed in Phase 3.
   void setEncryptionKey(Uint8List key) {
     _encryptionKey = Uint8List.fromList(key);
   }
 
   /// Get the encryption key
+  /// DEPRECATED: Key is now managed by Rust. This will be removed in Phase 3.
   Uint8List? get encryptionKey => _encryptionKey;
 
   /// Clear the encryption key (on lock) - securely zero the buffer
@@ -70,61 +74,42 @@ class RustVaultService {
     _encryptionKey = null;
   }
 
-  /// Encrypt profile data using AES-256-GCM
-  ///
-  /// Returns nonce + ciphertext combined, or null on failure
-  Uint8List? _encryptData(Uint8List data) {
-    if (_encryptionKey == null) {
-      return null;
-    }
-
-    final nonce = NativeCryptoService.instance.generateSalt();
-    if (nonce == null) {
-      return null;
-    }
-
-    // Use first 12 bytes of 32-byte salt as nonce
-    final nonce12 = Uint8List.fromList(nonce.sublist(0, 12));
-
-    final encrypted = NativeCryptoService.instance.encrypt(
-      data: data,
-      key: _encryptionKey!,
-      nonce: nonce12,
+  /// Encrypt data via Rust FFI (AES-256-GCM, SOLO blob format).
+  /// Returns base64-encoded SOLO blob, or null on failure.
+  String? _encryptViaRust(Uint8List data) {
+    final result = NativeVaultService.instance.request(
+      'encrypt_data',
+      {'data': base64Encode(data)},
     );
-    if (encrypted == null) {
-      return null;
-    }
-
-    // Combine nonce + ciphertext
-    final combined = Uint8List(12 + encrypted.length);
-    combined.setRange(0, 12, nonce12);
-    combined.setRange(12, combined.length, encrypted);
-    return combined;
+    if (result?['success'] != true) return null;
+    return result!['data']?['data'] as String?;
   }
 
-  /// Decrypt profile data using AES-256-GCM
-  ///
-  /// Expects nonce + ciphertext combined format
-  Uint8List? _decryptData(Uint8List combined) {
-    if (_encryptionKey == null) {
-      return null;
-    }
-    if (combined.length < 13) {
-      return null;
-    }
-
-    final nonce = combined.sublist(0, 12);
-    final encryptedData = combined.sublist(12);
-
-    final result = NativeCryptoService.instance.decrypt(
-      encrypted: encryptedData,
-      key: _encryptionKey!,
-      nonce: Uint8List.fromList(nonce),
+  /// Decrypt data via Rust FFI (auto-detects SOLO blob or legacy format).
+  /// Returns raw bytes, or null on failure.
+  Uint8List? _decryptViaRust(Uint8List combined) {
+    final result = NativeVaultService.instance.request(
+      'decrypt_data',
+      {'data': base64Encode(combined)},
     );
-    if (result == null) {
-      return null;
-    }
-    return result;
+    if (result?['success'] != true) return null;
+    final dataB64 = result!['data']?['data'] as String?;
+    if (dataB64 == null) return null;
+    return base64Decode(dataB64);
+  }
+
+  /// Encrypt profile data — delegates to Rust.
+  /// Returns encrypted bytes (SOLO blob format), or null on failure.
+  Uint8List? _encryptData(Uint8List data) {
+    final b64 = _encryptViaRust(data);
+    if (b64 == null) return null;
+    return base64Decode(b64);
+  }
+
+  /// Decrypt profile data — delegates to Rust (auto-detects format).
+  /// Returns raw plaintext bytes, or null on failure.
+  Uint8List? _decryptData(Uint8List combined) {
+    return _decryptViaRust(combined);
   }
 
   // ===========================================================================
