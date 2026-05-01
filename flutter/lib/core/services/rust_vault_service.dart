@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 part 'rust_vault_service.g.dart';
 
@@ -277,20 +278,22 @@ class RustVaultService {
     String name,
     String jsonData,
   ) async {
-
-    if (_encryptionKey == null) {
-      return null;
-    }
-
+    // Use FRB: encrypt via Rust, then save to vault
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
 
-    final encryptedData = _encryptData(jsonBytes);
-    if (encryptedData == null) {
+    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
+    if (encryptedData.isEmpty) {
       return null;
     }
 
-    final result = await saveProfile(name, encryptedData);
-    return result;
+    final summary = await frb.frbSaveProfile(name: name, data: encryptedData);
+    return BridgeProfileSummary(
+      id: summary.id,
+      name: summary.name,
+      createdAt: summary.createdAt,
+      updatedAt: summary.updatedAt,
+      version: summary.version,
+    );
   }
 
   /// Load and decrypt a profile by ID
@@ -299,18 +302,14 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadProfileDecrypted(String id) async {
-    final encryptedData = await loadProfile(id);
-    if (encryptedData == null) {
+    // Use FRB: load from vault, then decrypt via Rust
+    final loaded = await frb.frbLoadProfile(id: id);
+    if (loaded == null) {
       return null;
     }
 
-    final decrypted = _decryptData(encryptedData);
-    if (decrypted == null) {
-      return null;
-    }
-
-    final result = utf8.decode(decrypted);
-    return result;
+    final decrypted = await frb.frbDecryptBytes(data: loaded.data);
+    return utf8.decode(decrypted);
   }
 
   // ===========================================================================
