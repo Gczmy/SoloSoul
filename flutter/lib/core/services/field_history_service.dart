@@ -182,10 +182,15 @@ class FieldHistoriesNotifier extends Notifier<FormHistories> {
     state = await FieldHistoryService.instance.loadHistories(accountId);
   }
 
+  List<HistoryChangeItem>? _cachedAllChanges;
+  FormHistories? _cacheSource;
+
   /// Get all changes as a flat list sorted by timestamp (newest first).
-  /// Computed on-demand but should be cached by callers (e.g. stored in a local
-  /// variable inside build rather than recomputed per item).
+  /// Cached internally; invalidated when state changes.
   List<HistoryChangeItem> get allChangesSorted {
+    if (_cachedAllChanges != null && identical(_cacheSource, state)) {
+      return _cachedAllChanges!;
+    }
     final allChanges = <HistoryChangeItem>[];
     for (final itemEntry in state.histories.entries) {
       final itemId = itemEntry.key;
@@ -204,6 +209,8 @@ class FieldHistoriesNotifier extends Notifier<FormHistories> {
       }
     }
     allChanges.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    _cachedAllChanges = allChanges;
+    _cacheSource = state;
     return allChanges;
   }
 

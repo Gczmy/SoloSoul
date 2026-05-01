@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // ignore_for_file: use_build_context_synchronously
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/presentation/utils/log_section_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
@@ -619,26 +620,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   /// Map typeId to LogSection for operation logging.
-  LogSection? _logSectionForTypeId(String typeId) {
-    return switch (typeId) {
-      'profile_identity' => LogSection.identity,
-      'profile_contact' => LogSection.contactInformation,
-      'profile_id_card' => LogSection.idCard,
-      'profile_address' => LogSection.address,
-      'travel_passport' => LogSection.passport,
-      'travel_visa' => LogSection.visa,
-      'travel_history' => LogSection.travelHistory,
-      'financial_bank_account' => LogSection.bankAccount,
-      'financial_card' => LogSection.card,
-      'financial_tax_id' => LogSection.financial,
-      'professional_education' => LogSection.education,
-      'professional_employment' => LogSection.employment,
-      'professional_skill' => LogSection.skill,
-      'professional_language' => LogSection.language,
-      'professional_award' => LogSection.professional,
-      _ => null,
-    };
-  }
+  LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
 }
 
 // =============================================================================

@@ -29,6 +29,9 @@ class ProfileStorageService {
   // Reference to Rust vault service
   final RustVaultService _rustVault = RustVaultService.instance;
 
+  // In-memory cache of last loaded profile per account
+  final Map<String, ProfileData> _profileCache = {};
+
   ProfileStorageService._();
 
   static ProfileStorageService get instance {
@@ -171,6 +174,7 @@ class ProfileStorageService {
           }),
         );
       }
+      _profileCache[accountId] = profile;
       return profile;
     } on RemoteError catch (e) {
       DebugLogger.instance.logError(
@@ -189,7 +193,7 @@ class ProfileStorageService {
   Future<bool> saveProfile(String accountId, ProfileData profile) async {
     try {
       // Data protection: prevent accidental loss of unifiedObjects
-      final existing = await loadProfile(accountId);
+      final existing = _profileCache[accountId];
       if (existing?.unifiedObjects != null && profile.unifiedObjects == null) {
         profile = profile.copyWith(unifiedObjects: existing!.unifiedObjects);
       }
@@ -202,6 +206,7 @@ class ProfileStorageService {
         return false;
       }
 
+      _profileCache[accountId] = profile;
       return true;
     } on Exception catch (_) {
       // IOException or other Error subclasses could occur here
