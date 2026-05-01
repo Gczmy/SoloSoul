@@ -262,9 +262,10 @@ class NativeCryptoService {
   }
 
   /// Dart implementation of key derivation using PBKDF2-HMAC-SHA256
-  /// Note: This is a fallback for Android. For production, use Argon2id.
-  // TODO: [P1] Android uses PBKDF2 instead of Argon2id - less secure on Android
-  // Argon2id provides better protection against GPU/ASIC attacks
+  /// Note: This is a fallback for Android/Windows. For iOS/macOS, use Argon2id.
+  /// OWASP 2023 recommends >= 600,000 iterations for PBKDF2-HMAC-SHA256.
+  static const _kMinPbkdf2Iterations = 600000;
+
   Uint8List? _deriveKeyDart(
     String password,
     Uint8List salt,
@@ -273,10 +274,10 @@ class NativeCryptoService {
     int parallelism,
   ) {
     try {
-      // Using PBKDF2 with HMAC-SHA256 as a fallback
-      // memoryKib is approximated via iteration count
+      final effectiveIterations =
+          iterations < _kMinPbkdf2Iterations ? _kMinPbkdf2Iterations : iterations;
       final pbkdf2 = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64));
-      pbkdf2.init(Pbkdf2Parameters(salt, iterations, 32));
+      pbkdf2.init(Pbkdf2Parameters(salt, effectiveIterations, 32));
 
       final passwordBytes = Uint8List.fromList(utf8.encode(password));
       final derivedKey = pbkdf2.process(passwordBytes);
@@ -376,7 +377,7 @@ class NativeCryptoService {
       // encrypt package already includes the GCM tag in the ciphertext
       return Uint8List.fromList(encrypted.bytes);
     } on Exception catch (e, st) {
-      DebugLogger.instance.logError('NATIVE_CRYPTO', 'PBKDF2 derivation failed: $e\n$st');
+      DebugLogger.instance.logError('NATIVE_CRYPTO', 'AES-256-GCM encryption failed: $e\n$st');
       return null;
     }
   }
@@ -473,7 +474,7 @@ class NativeCryptoService {
 
       return Uint8List.fromList(decrypted);
     } on Exception catch (e, st) {
-      DebugLogger.instance.logError('NATIVE_CRYPTO', 'PBKDF2 derivation failed: $e\n$st');
+      DebugLogger.instance.logError('NATIVE_CRYPTO', 'AES-256-GCM decryption failed: $e\n$st');
       return null;
     }
   }
