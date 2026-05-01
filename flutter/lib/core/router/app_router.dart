@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/presentation/pages/splash_page.dart';
@@ -52,7 +53,7 @@ const _publicRoutes = {
 GoRouter createRouter(WidgetRef ref) {
   return GoRouter(
     initialLocation: '/', // Must start at / to run SplashPage which initializes account manager
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
       final authAsync = ref.read(authNotifierProvider);
       if (authAsync.isLoading) return null;

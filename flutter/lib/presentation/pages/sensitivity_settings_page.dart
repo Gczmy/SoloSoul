@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    hide SensitivityLevel, showOverlaySnackBar, SnackBarType;
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show showOverlaySnackBar, SnackBarType;
+    hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel, formFieldRegistryProvider;

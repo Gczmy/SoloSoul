@@ -356,7 +356,7 @@ class SecureAccountStorage {
         return false;
       }
 
-      SoloLog.d('AuthStorage', 'Source: $source, salt: ${base64Encode(salt).substring(0, 20)}..., storedHash len=${storedHash.length}');
+      SoloLog.d('AuthStorage', 'Source: $source, storedHash len=${storedHash.length}');
 
       // Step 1: Derive master_key from password (same as Rust)
       SoloLog.d('AuthStorage', 'Deriving master_key...');
@@ -393,7 +393,7 @@ class SecureAccountStorage {
       // Step 3: Hex-encode verify_key and compare (same as Rust)
       final derivedHashHex = bytesToHex(verifyKey);
       final result = constantTimeEquals(derivedHashHex, storedHash);
-      SoloLog.d('AuthStorage', 'Password verification result: $result');
+      SoloLog.d('AuthStorage', 'Password verification complete');
       SoloLog.endTimer(timer);
       return result;
     } on Object catch (e, st) {
