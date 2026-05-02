@@ -1,10 +1,10 @@
 //! Wasm sandbox - Isolated plugin execution environment
 
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::Arc;
-use wasmtime::{Engine, Module, Store, Linker, Config};
+use wasmtime::{Config, Engine, Linker, Module, Store};
 use wasmtime_wasi::WasiCtxBuilder;
-use sha2::{Sha256, Digest};
 
 use super::host::SoloHostFunctions;
 use super::manifest::PluginManifest;
@@ -34,11 +34,9 @@ impl WasmSandbox {
         config.consume_fuel(true);
         config.wasm_multi_memory(true);
 
-        let engine = Engine::new(&config)
-            .map_err(|e| format!("Failed to create engine: {}", e))?;
+        let engine = Engine::new(&config).map_err(|e| format!("Failed to create engine: {}", e))?;
 
-        let wasi_ctx = WasiCtxBuilder::new()
-            .build();
+        let wasi_ctx = WasiCtxBuilder::new().build();
 
         Ok(Self {
             engine,

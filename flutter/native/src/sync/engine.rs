@@ -181,7 +181,11 @@ impl SyncEngine {
         let local_sv_copy = local_sv.clone();
         let diff = if local_sv != remote_sv {
             let d = self.crdt.encode_diff(&remote_sv)?;
-            if d.len() > 2 { Some(d) } else { None }
+            if d.len() > 2 {
+                Some(d)
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -271,10 +275,7 @@ impl MockTransport {
     pub fn pair() -> (Self, Self) {
         let (tx_a, rx_a) = std::sync::mpsc::channel();
         let (tx_b, rx_b) = std::sync::mpsc::channel();
-        (
-            Self { tx: tx_a, rx: rx_b },
-            Self { tx: tx_b, rx: rx_a },
-        )
+        (Self { tx: tx_a, rx: rx_b }, Self { tx: tx_b, rx: rx_a })
     }
 }
 
@@ -286,9 +287,7 @@ impl Transport for MockTransport {
     }
 
     fn recv(&mut self) -> Result<Vec<u8>, String> {
-        self.rx
-            .recv()
-            .map_err(|e| format!("recv failed: {}", e))
+        self.rx.recv().map_err(|e| format!("recv failed: {}", e))
     }
 }
 
@@ -376,8 +375,14 @@ mod tests {
         let (_, profile_a, _, profile_b) = run_sync(engine_a, engine_b);
 
         assert!(profile_a.identity.is_some(), "A should have identity");
-        assert!(profile_a.travel.is_some(), "A should have travel after sync");
-        assert!(profile_b.identity.is_some(), "B should have identity after sync");
+        assert!(
+            profile_a.travel.is_some(),
+            "A should have travel after sync"
+        );
+        assert!(
+            profile_b.identity.is_some(),
+            "B should have identity after sync"
+        );
         assert!(profile_b.travel.is_some(), "B should have travel");
     }
 
@@ -427,7 +432,10 @@ mod tests {
 
         let (_, _, _, profile_b) = run_sync(engine_a, engine_b);
 
-        assert!(profile_b.identity.is_some(), "B should have identity after sync");
+        assert!(
+            profile_b.identity.is_some(),
+            "B should have identity after sync"
+        );
         assert_eq!(
             profile_b.identity.unwrap().full_name,
             Some("Alice Smith".to_string())

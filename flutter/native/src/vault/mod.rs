@@ -5,15 +5,15 @@
 //! - Profile management
 //! - Secure memory handling with mlock/zeroize
 
-mod store;
-mod profile;
 pub mod migration;
-pub mod processor;
 #[cfg(test)]
 mod migration_tests;
+pub mod processor;
+mod profile;
+mod store;
 
-pub use store::*;
 pub use profile::*;
+pub use store::*;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

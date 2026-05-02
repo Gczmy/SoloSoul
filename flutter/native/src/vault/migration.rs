@@ -2,8 +2,8 @@
 //!
 //! Implements atomic schema migrations with version tracking.
 
-use rusqlite::{Connection, params};
 use chrono::Utc;
+use rusqlite::{params, Connection};
 
 /// Current schema version
 pub const CURRENT_SCHEMA_VERSION: u32 = 3;
@@ -41,7 +41,9 @@ pub fn apply_migration(
     sql: &str,
     description: &str,
 ) -> Result<(), String> {
-    let tx = conn.transaction().map_err(|e| format!("Failed to begin transaction: {}", e))?;
+    let tx = conn
+        .transaction()
+        .map_err(|e| format!("Failed to begin transaction: {}", e))?;
 
     // Execute the migration SQL
     tx.execute_batch(sql)
@@ -113,11 +115,8 @@ pub fn migrate_v2_to_v3(conn: &mut Connection) -> Result<(), String> {
 
         // If column doesn't exist, add it
         if !has_updated_at {
-            conn.execute(
-                "ALTER TABLE metadata ADD COLUMN updated_at TEXT",
-                [],
-            )
-            .map_err(|e| format!("Failed to add updated_at column: {}", e))?;
+            conn.execute("ALTER TABLE metadata ADD COLUMN updated_at TEXT", [])
+                .map_err(|e| format!("Failed to add updated_at column: {}", e))?;
         }
     }
 
@@ -153,7 +152,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
 
     let final_version = get_schema_version(conn)?;
     if final_version != current_version {
-        println!("Schema migrated from {} to {}", current_version, final_version);
+        println!(
+            "Schema migrated from {} to {}",
+            current_version, final_version
+        );
     }
 
     Ok(())
@@ -166,8 +168,8 @@ mod tests {
     use uuid::Uuid;
 
     fn create_test_db() -> (Connection, PathBuf) {
-        let temp_dir = std::env::temp_dir()
-            .join(format!("solosoul_migration_test_{}", Uuid::new_v4()));
+        let temp_dir =
+            std::env::temp_dir().join(format!("solosoul_migration_test_{}", Uuid::new_v4()));
         std::fs::create_dir_all(&temp_dir).ok();
         let db_path = temp_dir.join("test.db");
         let conn = Connection::open(&db_path).unwrap();

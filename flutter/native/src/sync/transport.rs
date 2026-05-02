@@ -39,7 +39,9 @@ impl TcpTransport {
 
     /// Get the local address of the socket.
     pub fn local_addr(&self) -> std::net::SocketAddr {
-        self.stream.local_addr().unwrap_or_else(|_| "0.0.0.0:0".parse().unwrap())
+        self.stream
+            .local_addr()
+            .unwrap_or_else(|_| "0.0.0.0:0".parse().unwrap())
     }
 }
 

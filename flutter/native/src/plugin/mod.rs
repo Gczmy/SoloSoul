@@ -6,15 +6,15 @@
 //! - Plugin handshake verification
 
 #[cfg(feature = "sandbox")]
-mod sandbox;
-#[cfg(feature = "sandbox")]
 mod host;
 #[cfg(feature = "sandbox")]
 mod manifest;
-
 #[cfg(feature = "sandbox")]
-pub use sandbox::*;
+mod sandbox;
+
 #[cfg(feature = "sandbox")]
 pub use host::*;
 #[cfg(feature = "sandbox")]
 pub use manifest::*;
+#[cfg(feature = "sandbox")]
+pub use sandbox::*;

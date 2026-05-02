@@ -50,15 +50,22 @@ impl PluginManifest {
             return Err("version is required".to_string());
         }
         if self.required_fields.is_empty() && self.optional_fields.is_empty() {
-            return Err("at least one of required_fields or optional_fields must be specified".to_string());
+            return Err(
+                "at least one of required_fields or optional_fields must be specified".to_string(),
+            );
         }
         Ok(())
     }
 
     /// Check if a field is requested
     pub fn is_field_requested(&self, field: &str) -> bool {
-        self.required_fields.iter().any(|f| Self::field_matches(f, field))
-            || self.optional_fields.iter().any(|f| Self::field_matches(f, field))
+        self.required_fields
+            .iter()
+            .any(|f| Self::field_matches(f, field))
+            || self
+                .optional_fields
+                .iter()
+                .any(|f| Self::field_matches(f, field))
     }
 
     /// Check if field pattern matches

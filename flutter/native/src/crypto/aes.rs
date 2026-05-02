@@ -34,18 +34,16 @@ const BLOB_VERSION: u8 = 0x02;
 /// Returns: Magic (4) + Version (1) + Nonce (12) + Ciphertext (*) + Tag (16)
 pub fn encrypt_blob(key: &[u8; 32], plaintext: &[u8]) -> Result<Zeroizing<Vec<u8>>, String> {
     // Create cipher
-    let cipher = Aes256Gcm::new_from_slice(key)
-        .map_err(|e| format!("Invalid key: {}", e))?;
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| format!("Invalid key: {}", e))?;
 
     // Generate random nonce
     let mut nonce_bytes = [0u8; NONCE_SIZE];
     OsRng.fill_bytes(&mut nonce_bytes);
 
     // Encrypt
-    let ciphertext = cipher.encrypt(
-        Nonce::from_slice(&nonce_bytes),
-        plaintext,
-    ).map_err(|e| format!("Encryption failed: {}", e))?;
+    let ciphertext = cipher
+        .encrypt(Nonce::from_slice(&nonce_bytes), plaintext)
+        .map_err(|e| format!("Encryption failed: {}", e))?;
 
     // Build blob: Magic + Version + Nonce + Ciphertext + Tag
     let mut blob = Vec::with_capacity(4 + 1 + NONCE_SIZE + ciphertext.len());
@@ -82,14 +80,12 @@ pub fn decrypt_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec<u8>>, S
     let ciphertext = &blob[17..];
 
     // Create cipher
-    let cipher = Aes256Gcm::new_from_slice(key)
-        .map_err(|e| format!("Invalid key: {}", e))?;
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| format!("Invalid key: {}", e))?;
 
     // Decrypt
-    let plaintext = cipher.decrypt(
-        Nonce::from_slice(nonce),
-        ciphertext,
-    ).map_err(|e| format!("Decryption failed: {}", e))?;
+    let plaintext = cipher
+        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
 
     Ok(Zeroizing::new(plaintext))
 }
@@ -108,8 +104,12 @@ pub unsafe extern "C" fn aes_256_gcm_encrypt(
     ciphertext_len: *mut usize,
 ) -> i32 {
     // Validate pointers
-    if key.is_null() || plaintext.is_null() || nonce.is_null() ||
-       ciphertext.is_null() || ciphertext_len.is_null() {
+    if key.is_null()
+        || plaintext.is_null()
+        || nonce.is_null()
+        || ciphertext.is_null()
+        || ciphertext_len.is_null()
+    {
         return -1;
     }
 
@@ -125,10 +125,7 @@ pub unsafe extern "C" fn aes_256_gcm_encrypt(
     let nonce_bytes = std::slice::from_raw_parts(nonce, NONCE_SIZE);
 
     // Encrypt
-    let ciphertext_output = match cipher.encrypt(
-        Nonce::from_slice(nonce_bytes),
-        plaintext_slice,
-    ) {
+    let ciphertext_output = match cipher.encrypt(Nonce::from_slice(nonce_bytes), plaintext_slice) {
         Ok(c) => c,
         Err(_) => return -4,
     };
@@ -157,8 +154,12 @@ pub unsafe extern "C" fn aes_256_gcm_decrypt(
     plaintext_len: *mut usize,
 ) -> i32 {
     // Validate pointers
-    if key.is_null() || ciphertext.is_null() || nonce.is_null() ||
-       plaintext.is_null() || plaintext_len.is_null() {
+    if key.is_null()
+        || ciphertext.is_null()
+        || nonce.is_null()
+        || plaintext.is_null()
+        || plaintext_len.is_null()
+    {
         return -1;
     }
 
@@ -171,10 +172,7 @@ pub unsafe extern "C" fn aes_256_gcm_decrypt(
         Err(_) => return -3,
     };
 
-    let plaintext_output = match cipher.decrypt(
-        Nonce::from_slice(nonce_slice),
-        ciphertext_slice,
-    ) {
+    let plaintext_output = match cipher.decrypt(Nonce::from_slice(nonce_slice), ciphertext_slice) {
         Ok(p) => p,
         Err(_) => return -4,
     };
@@ -220,7 +218,10 @@ mod tests {
         let plaintext = b"";
 
         let blob = encrypt_blob(&key, plaintext).expect("Encryption failed");
-        assert!(blob.len() > 17, "Blob should contain magic, version, nonce, and tag");
+        assert!(
+            blob.len() > 17,
+            "Blob should contain magic, version, nonce, and tag"
+        );
         let decrypted = decrypt_blob(&key, &blob).expect("Decryption failed");
         assert_eq!(plaintext.as_slice(), decrypted.as_slice());
     }
@@ -246,7 +247,10 @@ mod tests {
         // Extract nonces (bytes 5-17 for version 2)
         let nonce1 = &blob1[5..17];
         let nonce2 = &blob2[5..17];
-        assert_ne!(nonce1, nonce2, "Each encryption should produce a unique nonce");
+        assert_ne!(
+            nonce1, nonce2,
+            "Each encryption should produce a unique nonce"
+        );
     }
 
     #[test]
@@ -324,7 +328,10 @@ mod tests {
         // Verify structure: Magic (4) + Version (1) + Nonce (12) + Ciphertext + Tag (16)
         assert_eq!(&blob[0..4], &BLOB_MAGIC, "Magic bytes should be SOLO");
         assert_eq!(blob[4], BLOB_VERSION, "Version should be 2");
-        assert!(blob.len() >= 4 + 1 + NONCE_SIZE + 16, "Blob should have minimum structure");
+        assert!(
+            blob.len() >= 4 + 1 + NONCE_SIZE + 16,
+            "Blob should have minimum structure"
+        );
     }
 
     #[test]

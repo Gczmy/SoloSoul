@@ -63,18 +63,16 @@ impl SecureChannel {
         initiator_key: &Keypair,
         responder_key: &Keypair,
     ) -> Result<(Self, Self), String> {
-        let mut initiator: HandshakeState =
-            Builder::new(NOISE_PATTERN.parse().unwrap())
-                .local_private_key(&initiator_key.private)
-                .remote_public_key(&responder_key.public)
-                .build_initiator()
-                .map_err(|e| format!("Initiator build: {}", e))?;
+        let mut initiator: HandshakeState = Builder::new(NOISE_PATTERN.parse().unwrap())
+            .local_private_key(&initiator_key.private)
+            .remote_public_key(&responder_key.public)
+            .build_initiator()
+            .map_err(|e| format!("Initiator build: {}", e))?;
 
-        let mut responder: HandshakeState =
-            Builder::new(NOISE_PATTERN.parse().unwrap())
-                .local_private_key(&responder_key.private)
-                .build_responder()
-                .map_err(|e| format!("Responder build: {}", e))?;
+        let mut responder: HandshakeState = Builder::new(NOISE_PATTERN.parse().unwrap())
+            .local_private_key(&responder_key.private)
+            .build_responder()
+            .map_err(|e| format!("Responder build: {}", e))?;
 
         let mut buf = vec![0u8; 65535];
 
@@ -102,8 +100,12 @@ impl SecureChannel {
             .map_err(|e| format!("Responder transport: {}", e))?;
 
         Ok((
-            Self { transport: transport_i },
-            Self { transport: transport_r },
+            Self {
+                transport: transport_i,
+            },
+            Self {
+                transport: transport_r,
+            },
         ))
     }
 
@@ -123,9 +125,7 @@ impl SecureChannel {
     }
 
     /// Build the responder side of a Noise_IK handshake.
-    pub fn build_responder(
-        local_private: &[u8; 32],
-    ) -> Result<HandshakeState, String> {
+    pub fn build_responder(local_private: &[u8; 32]) -> Result<HandshakeState, String> {
         Builder::new(NOISE_PATTERN.parse().unwrap())
             .local_private_key(local_private)
             .build_responder()
@@ -142,23 +142,20 @@ impl SecureChannel {
     pub fn handshake(pairing_key: &[u8]) -> Result<(Self, Self), String> {
         let private_key = Self::derive_private_key(pairing_key);
 
-        let xx_pattern: snow::params::NoiseParams = "Noise_XX_25519_ChaChaPoly_BLAKE2s"
-            .parse()
-            .unwrap();
+        let xx_pattern: snow::params::NoiseParams =
+            "Noise_XX_25519_ChaChaPoly_BLAKE2s".parse().unwrap();
 
-        let mut initiator: HandshakeState =
-            Builder::new(xx_pattern.clone())
-                .local_private_key(&private_key)
-                .prologue(pairing_key)
-                .build_initiator()
-                .map_err(|e| format!("Initiator build: {}", e))?;
+        let mut initiator: HandshakeState = Builder::new(xx_pattern.clone())
+            .local_private_key(&private_key)
+            .prologue(pairing_key)
+            .build_initiator()
+            .map_err(|e| format!("Initiator build: {}", e))?;
 
-        let mut responder: HandshakeState =
-            Builder::new(xx_pattern)
-                .local_private_key(&private_key)
-                .prologue(pairing_key)
-                .build_responder()
-                .map_err(|e| format!("Responder build: {}", e))?;
+        let mut responder: HandshakeState = Builder::new(xx_pattern)
+            .local_private_key(&private_key)
+            .prologue(pairing_key)
+            .build_responder()
+            .map_err(|e| format!("Responder build: {}", e))?;
 
         let mut buf = vec![0u8; 65535];
 
@@ -194,8 +191,12 @@ impl SecureChannel {
             .map_err(|e| format!("Responder transport: {}", e))?;
 
         Ok((
-            Self { transport: transport_i },
-            Self { transport: transport_r },
+            Self {
+                transport: transport_i,
+            },
+            Self {
+                transport: transport_r,
+            },
         ))
     }
 
@@ -265,7 +266,10 @@ mod tests {
         if !encrypted.is_empty() {
             encrypted[0] ^= 0xFF;
         }
-        assert!(bob.decrypt(&encrypted).is_err(), "tampered ciphertext should fail");
+        assert!(
+            bob.decrypt(&encrypted).is_err(),
+            "tampered ciphertext should fail"
+        );
     }
 
     #[test]
@@ -354,7 +358,10 @@ mod tests {
         if !encrypted.is_empty() {
             encrypted[0] ^= 0xFF;
         }
-        assert!(bob.decrypt(&encrypted).is_err(), "tampered ciphertext should fail");
+        assert!(
+            bob.decrypt(&encrypted).is_err(),
+            "tampered ciphertext should fail"
+        );
     }
 
     #[test]
@@ -370,7 +377,8 @@ mod tests {
         let mut initiator = SecureChannel::build_initiator(
             &initiator_kp.private,
             &wrong_responder_kp.public, // wrong key!
-        ).unwrap();
+        )
+        .unwrap();
         let mut responder = SecureChannel::build_responder(&responder_kp.private).unwrap();
 
         let mut buf = vec![0u8; 65535];
@@ -378,7 +386,10 @@ mod tests {
         // Message 1: initiator → responder (encrypted to wrong key)
         let len1 = initiator.write_message(&[], &mut buf).unwrap();
         let result = responder.read_message(&buf[..len1], &mut vec![0u8; 65535]);
-        assert!(result.is_err(), "wrong remote public key should fail at message 1");
+        assert!(
+            result.is_err(),
+            "wrong remote public key should fail at message 1"
+        );
     }
 
     #[test]
@@ -399,8 +410,14 @@ mod tests {
         let kp_a = SecureChannel::derive_keypair(pairing_key, b"device-a");
         let kp_b = SecureChannel::derive_keypair(pairing_key, b"device-b");
 
-        assert_ne!(kp_a.private, kp_b.private, "different salts should produce different keys");
-        assert_ne!(kp_a.public, kp_b.public, "different salts should produce different public keys");
+        assert_ne!(
+            kp_a.private, kp_b.private,
+            "different salts should produce different keys"
+        );
+        assert_ne!(
+            kp_a.public, kp_b.public,
+            "different salts should produce different public keys"
+        );
     }
 }
 

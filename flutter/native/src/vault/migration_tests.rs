@@ -7,7 +7,7 @@
 
 #[cfg(test)]
 mod tests {
-    use rusqlite::{Connection, params};
+    use rusqlite::{params, Connection};
     use tempfile::tempdir;
 
     /// Test that migration v1_to_v2 correctly adds extra_data column
@@ -56,7 +56,10 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap_or(false);
-        assert!(!has_extra_before, "extra_data should not exist before migration");
+        assert!(
+            !has_extra_before,
+            "extra_data should not exist before migration"
+        );
 
         // Apply v1_to_v2 migration
         let migration_sql = r#"
@@ -91,7 +94,10 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(recorded_version, 2, "Migration version 2 should be recorded");
+        assert_eq!(
+            recorded_version, 2,
+            "Migration version 2 should be recorded"
+        );
     }
 
     /// Test that migrations are recorded in schema_migrations table
@@ -124,7 +130,9 @@ mod tests {
 
         // Verify migration was recorded
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| row.get(0))
+            .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| {
+                row.get(0)
+            })
             .unwrap();
         assert_eq!(count, 1, "Should have exactly 1 migration recorded");
 
@@ -136,7 +144,10 @@ mod tests {
             )
             .unwrap();
         assert_eq!(version, 1, "Migration version should be 1");
-        assert_eq!(description, "Initial schema", "Migration description should match");
+        assert_eq!(
+            description, "Initial schema",
+            "Migration description should match"
+        );
     }
 
     /// Test that running the same migration twice is idempotent
@@ -185,7 +196,10 @@ mod tests {
                 |row| row.get(0),
             )
             .unwrap();
-        assert!(check_exists, "Version 1 migration should already be recorded");
+        assert!(
+            check_exists,
+            "Version 1 migration should already be recorded"
+        );
 
         // Try to insert duplicate (should fail due to PRIMARY KEY)
         {
@@ -203,7 +217,9 @@ mod tests {
 
         // Verify only one migration exists
         let count: i64 = conn
-            .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| row.get(0))
+            .query_row("SELECT COUNT(*) FROM schema_migrations", [], |row| {
+                row.get(0)
+            })
             .unwrap();
         assert_eq!(count, 1, "Should still have exactly 1 migration recorded");
     }

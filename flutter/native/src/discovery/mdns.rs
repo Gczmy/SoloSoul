@@ -29,8 +29,8 @@ pub struct MdnsDiscovery {
 impl MdnsDiscovery {
     /// Create a new mDNS discovery instance.
     pub fn new() -> Result<Self, String> {
-        let daemon = ServiceDaemon::new()
-            .map_err(|e| format!("mDNS daemon creation failed: {}", e))?;
+        let daemon =
+            ServiceDaemon::new().map_err(|e| format!("mDNS daemon creation failed: {}", e))?;
         Ok(Self {
             daemon,
             registered: false,
@@ -90,7 +90,7 @@ impl MdnsDiscovery {
                         });
                     }
                 }
-                Ok(_) => {} // Other events (Discovered, Removed, etc.)
+                Ok(_) => {}      // Other events (Discovered, Removed, etc.)
                 Err(_) => break, // Timeout or disconnected
             }
         }

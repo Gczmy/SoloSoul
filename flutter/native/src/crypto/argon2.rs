@@ -2,10 +2,7 @@
 //!
 //! FFI-accessible Argon2id implementation optimized for Apple Silicon
 
-use argon2::{
-    password_hash::rand_core::OsRng,
-    Argon2, Params, Version, Algorithm,
-};
+use argon2::{password_hash::rand_core::OsRng, Algorithm, Argon2, Params, Version};
 use rand::RngCore;
 use zeroize::Zeroizing;
 
@@ -17,8 +14,8 @@ const RESULT_INVALID_PARAMS: i32 = -3;
 const RESULT_HASH_FAILED: i32 = -4;
 
 /// Default Argon2id parameters (64MB memory, 3 iterations, 4 parallelism)
-pub const DEFAULT_MEMORY_KIB: u32 = 16384;  // 16MB for faster testing
-pub const DEFAULT_ITERATIONS: u32 = 1;      // 1 iteration for faster testing
+pub const DEFAULT_MEMORY_KIB: u32 = 16384; // 16MB for faster testing
+pub const DEFAULT_ITERATIONS: u32 = 1; // 1 iteration for faster testing
 pub const DEFAULT_PARALLELISM: u32 = 4;
 
 /// KDF algorithm selection
@@ -61,19 +58,19 @@ impl KdfPreset {
         match self {
             Self::Fast => KdfParams {
                 algorithm: KdfAlgorithm::Argon2id,
-                memory_kib: 8192,       // 8 MiB
+                memory_kib: 8192, // 8 MiB
                 iterations: 2,
                 parallelism: 4,
             },
             Self::Balanced => KdfParams {
                 algorithm: KdfAlgorithm::Argon2id,
-                memory_kib: 16384,      // 16 MiB
+                memory_kib: 16384, // 16 MiB
                 iterations: 3,
                 parallelism: 4,
             },
             Self::Secure => KdfParams {
                 algorithm: KdfAlgorithm::Argon2id,
-                memory_kib: 65536,      // 64 MiB
+                memory_kib: 65536, // 64 MiB
                 iterations: 3,
                 parallelism: 4,
             },
@@ -205,7 +202,13 @@ pub unsafe extern "C" fn argon2_derive_key(
 }
 
 /// High-level Argon2id key derivation function
-pub fn derive_key(password: &str, salt: &[u8], memory_kib: u32, iterations: u32, parallelism: u32) -> Result<Zeroizing<[u8; 32]>, String> {
+pub fn derive_key(
+    password: &str,
+    salt: &[u8],
+    memory_kib: u32,
+    iterations: u32,
+    parallelism: u32,
+) -> Result<Zeroizing<[u8; 32]>, String> {
     let mut key = [0u8; 32];
 
     let argon2 = Argon2::new(
@@ -215,7 +218,8 @@ pub fn derive_key(password: &str, salt: &[u8], memory_kib: u32, iterations: u32,
             .map_err(|e| format!("Invalid Argon2 params: {}", e))?,
     );
 
-    argon2.hash_password_into(password.as_bytes(), salt, &mut key)
+    argon2
+        .hash_password_into(password.as_bytes(), salt, &mut key)
         .map_err(|e| format!("Hash failed: {}", e))?;
 
     Ok(Zeroizing::new(key))
@@ -241,9 +245,7 @@ mod tests {
     fn test_generate_salt() {
         let mut salt = [0u8; 32];
 
-        let result = unsafe {
-            argon2_generate_salt(salt.as_mut_ptr(), salt.len())
-        };
+        let result = unsafe { argon2_generate_salt(salt.as_mut_ptr(), salt.len()) };
 
         assert_eq!(result, RESULT_OK);
         // Salt should not be all zeros
@@ -302,7 +304,10 @@ mod tests {
         let result = derive_key("", &salt, 8 * 1024, 1, 1);
         assert!(result.is_ok());
         let key = result.unwrap();
-        assert!(key.iter().any(|&x| x != 0), "Empty password should still produce non-zero key");
+        assert!(
+            key.iter().any(|&x| x != 0),
+            "Empty password should still produce non-zero key"
+        );
     }
 
     #[test]
@@ -348,7 +353,11 @@ mod tests {
             argon2_generate_salt(salt2.as_mut_ptr(), 32);
         }
 
-        assert_ne!(salt1.as_slice(), salt2.as_slice(), "Each salt generation should produce different values");
+        assert_ne!(
+            salt1.as_slice(),
+            salt2.as_slice(),
+            "Each salt generation should produce different values"
+        );
     }
 
     #[test]
@@ -376,7 +385,10 @@ mod tests {
         };
 
         assert_eq!(result, RESULT_OK);
-        assert!(output.iter().any(|&x| x != 0), "FFI derived key should not be all zeros");
+        assert!(
+            output.iter().any(|&x| x != 0),
+            "FFI derived key should not be all zeros"
+        );
     }
 
     #[test]

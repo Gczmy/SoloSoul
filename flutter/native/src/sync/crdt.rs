@@ -340,8 +340,14 @@ mod tests {
         let restored_b = doc_b.to_profile().unwrap();
 
         assert!(restored_a.identity.is_some(), "A should have identity");
-        assert!(restored_a.travel.is_some(), "A should have travel after merge");
-        assert!(restored_b.identity.is_some(), "B should have identity after merge");
+        assert!(
+            restored_a.travel.is_some(),
+            "A should have travel after merge"
+        );
+        assert!(
+            restored_b.identity.is_some(),
+            "B should have identity after merge"
+        );
         assert!(restored_b.travel.is_some(), "B should have travel");
     }
 }

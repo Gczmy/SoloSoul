@@ -6,12 +6,12 @@
 //! - Secure random generation
 //! - High-level profile data encryption (SOLO blob format)
 
-pub mod argon2;
 pub mod aes;
+pub mod argon2;
 pub mod utils;
 
-pub use argon2::*;
 pub use aes::*;
+pub use argon2::*;
 pub use utils::*;
 
 use zeroize::Zeroizing;
@@ -39,10 +39,7 @@ pub fn encrypt_profile_data(
 /// 2. **Legacy Dart format**: Nonce(12B) + Ciphertext + Tag(16B)  (no magic/version header)
 ///
 /// Returns the raw plaintext bytes.
-pub fn decrypt_profile_data(
-    key: &[u8; 32],
-    data: &[u8],
-) -> Result<Zeroizing<Vec<u8>>, String> {
+pub fn decrypt_profile_data(key: &[u8; 32], data: &[u8]) -> Result<Zeroizing<Vec<u8>>, String> {
     // Try SOLO blob format first (check magic bytes)
     if data.len() >= 33 && &data[0..4] == b"SOLO" {
         return aes::decrypt_blob(key, data);
@@ -57,10 +54,7 @@ pub fn decrypt_profile_data(
 }
 
 /// Decrypt data in legacy Dart format: nonce(12B) || ciphertext+tag
-fn decrypt_legacy_format(
-    key: &[u8; 32],
-    data: &[u8],
-) -> Result<Zeroizing<Vec<u8>>, String> {
+fn decrypt_legacy_format(key: &[u8; 32], data: &[u8]) -> Result<Zeroizing<Vec<u8>>, String> {
     use aes_gcm::{
         aead::{Aead, KeyInit},
         Aes256Gcm, Nonce,
@@ -69,8 +63,7 @@ fn decrypt_legacy_format(
     let nonce = &data[0..aes::NONCE_SIZE];
     let ciphertext = &data[aes::NONCE_SIZE..];
 
-    let cipher = Aes256Gcm::new_from_slice(key)
-        .map_err(|e| format!("Invalid key: {}", e))?;
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| format!("Invalid key: {}", e))?;
 
     let plaintext = cipher
         .decrypt(Nonce::from_slice(nonce), ciphertext)
