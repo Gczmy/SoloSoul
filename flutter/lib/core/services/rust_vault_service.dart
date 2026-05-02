@@ -74,17 +74,30 @@ class RustVaultService {
   // FFI Bridge calls via NativeVaultService (JSON Relay Pattern)
   // ===========================================================================
 
-  /// Initialize account manager with base path
+  /// Initialize account manager with base path.
+  /// Initializes BOTH the FRB AccountManager and the C FFI AccountManager
+  /// (JSON relay) so that all code paths can access account data.
   Future<bool> initAccountManager(String basePath) async {
     try {
       await frb.frbInitAccountManager(basePath: basePath);
       _vaultRoot = basePath;
-      SoloLog.d('RustVault', 'initAccountManager succeeded: $basePath');
-      return true;
+      SoloLog.d('RustVault', 'initAccountManager (FRB) succeeded: $basePath');
     } on Exception catch (e, st) {
-      SoloLog.e('RustVault', 'initAccountManager failed', e, st);
+      SoloLog.e('RustVault', 'initAccountManager (FRB) failed', e, st);
       return false;
     }
+
+    // Also initialize the C FFI AccountManager for JSON relay operations
+    // (getAccountConfig, verifyPassword, etc.)
+    try {
+      final cResult = NativeVaultService.instance.initAccountManager(basePath);
+      SoloLog.d('RustVault', 'initAccountManager (C FFI) result: $cResult');
+    } on Exception catch (e, st) {
+      SoloLog.e('RustVault', 'initAccountManager (C FFI) failed', e, st);
+      // Non-fatal — FRB path still works
+    }
+
+    return true;
   }
 
   /// Check if vault is unlocked

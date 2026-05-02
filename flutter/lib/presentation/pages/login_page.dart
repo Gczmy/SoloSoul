@@ -432,10 +432,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         context.go(AppRoutes.home);
       }
     } else if (mounted) {
+      final specificError = ref.read(authNotifierProvider.notifier).lastUnlockError;
+      final isPasswordError = specificError == null ||
+          specificError.toLowerCase().contains('invalid password') ||
+          specificError.toLowerCase().contains('invalid master password');
+      SoloLog.w('LOGIN', 'Unlock failed: specificError=$specificError, isPasswordError=$isPasswordError');
       setState(() {
         _isLoading = false;
-        _hasPasswordError = true;
-        _passwordErrorMessage = 'Invalid master password';
+        _hasPasswordError = isPasswordError;
+        _passwordErrorMessage = isPasswordError
+            ? 'Invalid master password'
+            : 'Unlock failed: $specificError';
       });
     }
   }

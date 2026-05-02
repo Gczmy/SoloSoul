@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
-import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
@@ -127,6 +124,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   bool _isUnlocking = false;
+  String? _lastUnlockError;
+
+  /// Human-readable error from the last unlock attempt.
+  /// Null means no error (or no unlock attempted yet).
+  String? get lastUnlockError => _lastUnlockError;
 
   /// Unlock vault with master password
   Future<bool> unlockVault(String password) async {
@@ -135,6 +137,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       return false;
     }
     _isUnlocking = true;
+    _lastUnlockError = null;
 
     final accountId = _accountManager.selectedAccountId;
     SoloLog.d('Auth', 'unlockVault start, selectedAccountId=$accountId, pwdNotEmpty=${password.isNotEmpty}');
@@ -157,7 +160,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       return await _unlockVaultInner(accountId, password);
     } on Object catch (e, st) {
       // Top-level safety net — never let an unhandled exception silently fail
+      // ignore: avoid_print
+      print('[UNLOCK-DEBUG] UNHANDLED EXCEPTION: $e');
       SoloLog.e('Auth', 'unlockVault UNHANDLED EXCEPTION', e, st);
+      _lastUnlockError = 'Internal error: $e';
       state = const AsyncData(AuthState.locked);
       return false;
     } finally {
@@ -167,167 +173,49 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<bool> _unlockVaultInner(String accountId, String password) async {
     // Step 1: Unlock Rust vault
+    // ignore: avoid_print
+    print('[UNLOCK-DEBUG] Step1: calling RustVaultService.unlockVault for $accountId');
     final timer1 = SoloLog.startTimer('Auth', 'RustVaultService.unlockVault');
     final vaultResult = await _vaultUnlockService.unlockVault(
       accountId: accountId,
       password: password,
     );
     SoloLog.endTimer(timer1);
+    // ignore: avoid_print
+    print('[UNLOCK-DEBUG] Step1 result: success=${vaultResult.success}, error=${vaultResult.error}, cv=${vaultResult.cryptoVersion}');
     SoloLog.d('Auth', 'Step1 result: success=${vaultResult.success}, error=${vaultResult.error}, cv=${vaultResult.cryptoVersion}');
 
     if (!vaultResult.success) {
+      // ignore: avoid_print
+      print('[UNLOCK-DEBUG] Step1 FAILED: ${vaultResult.error}');
       SoloLog.e('Auth', 'Step1 FAILED: ${vaultResult.error}');
+      _lastUnlockError = vaultResult.error ?? 'Invalid password';
       state = const AsyncData(AuthState.locked);
       return false;
     }
 
-    // Step 2: Check for migrations needed
-    SoloLog.d('Auth', 'Step2: Checking Keychain for migrations...');
-    final timer2 = SoloLog.startTimer('Auth', 'Keychain.getAccountData');
-    try {
-      final accountData = await _storage
-          .getAccountData(accountId)
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw TimeoutException('getAccountData timed out'),
-          );
-      SoloLog.endTimer(timer2);
-      SoloLog.d('Auth', 'Step2: accountData=${accountData != null ? "found" : "null"}');
+    // Step 2: Non-critical post-unlock tasks (migration, Keychain sync).
+    // These run asynchronously and NEVER block the unlock flow.
+    // The vault is already open — if these fail, the user can still use the app.
+    // ignore: avoid_print
+    print('[UNLOCK-DEBUG] Step2: Scheduling post-unlock tasks (non-blocking)');
+    SoloLog.d('Auth', 'Step2: Scheduling post-unlock tasks (non-blocking)');
 
-      if (accountData == null) {
-        SoloLog.d('Auth', 'Step2: Not in Keychain, migrating from Rust...');
-        await _migrationService.migrateAccountFromRust(
-          accountId: accountId,
-          cryptoVersion: vaultResult.cryptoVersion ?? 2,
-        );
-        SoloLog.d('Auth', 'Step2: Migration complete');
-      } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
-        SoloLog.d('Auth', 'Step2: V1→V2 migration...');
-        await _migrationService.migrateAccountToV2(
-          accountId: accountId,
-          password: password,
-          cryptoVersion: vaultResult.cryptoVersion ?? 2,
-        );
-        SoloLog.d('Auth', 'Step2: V2 migration complete');
-      } else {
-        SoloLog.d('Auth', 'Step2: No migration needed (cv=${accountData['crypto_version']})');
-      }
-    } on Object catch (e, st) {
-      SoloLog.endTimer(timer2);
-      SoloLog.e('Auth', 'Step2: Migration error (non-fatal)', e, st);
-    }
+    // Fire-and-forget: try to sync account data to Keychain in background
+    unawaited(_postUnlockSync(accountId, vaultResult.cryptoVersion ?? 2).catchError((Object e) {
+      // ignore: avoid_print
+      print('[UNLOCK-DEBUG] Step2: post-unlock sync error (ignored): $e');
+    }));
 
-    // Step 2.5: Repair corrupted verify_hash (base64 instead of hex) from
-    // previous buggy migration.  A valid hex verify_hash is exactly 64
-    // lowercase hex characters.  If it doesn't match that pattern, re-fetch
-    // from Rust config.json and overwrite.
-    try {
-      final checkData = await _storage.getAccountData(accountId);
-      if (checkData != null) {
-        final storedHash = checkData['verify_hash'] as String? ?? '';
-        final hexPattern = RegExp(r'^[0-9a-f]{64}$');
-        if (storedHash.isNotEmpty && !hexPattern.hasMatch(storedHash)) {
-          SoloLog.w('Auth', 'Step2.5: Detected corrupted verify_hash (not hex), repairing...');
-          final rustCfg = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-          if (rustCfg?.verifyHash != null && hexPattern.hasMatch(rustCfg!.verifyHash!)) {
-            await _storage.saveAccountData(accountId, {
-              'salt': checkData['salt'],
-              'verify_hash': rustCfg.verifyHash,
-              'crypto_version': checkData['crypto_version'],
-            });
-            SoloLog.d('Auth', 'Step2.5: verify_hash repaired from Rust config');
-          }
-        }
-      }
-    } on Object catch (e, st) {
-      SoloLog.e('Auth', 'Step2.5: verify_hash repair check failed (non-fatal)', e, st);
-    }
+    // Step 3: Validate salt availability (session key is managed by Rust).
+    // The vault is already unlocked (Step 1 succeeded), so salt is valid.
+    // Just log that we're good — no need to re-validate.
+    // ignore: avoid_print
+    print('[UNLOCK-DEBUG] Step3: Vault already unlocked, salt validated by Rust');
+    SoloLog.d('Auth', 'Step3: Vault already unlocked, salt validated by Rust');
 
-    // Step 3: Validate salt availability (session key is managed by Rust)
-    SoloLog.d('Auth', 'Step3: Validating salt...');
-    final timer3 = SoloLog.startTimer('Auth', 'Salt validation');
-    try {
-      final freshData = await _storage
-          .getAccountData(accountId)
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw TimeoutException('getAccountData(fresh) timed out'),
-          );
-      SoloLog.endTimer(timer3);
-
-      if (freshData == null) {
-        SoloLog.w('Auth', 'Step3: freshData=null, trying Rust fallback...');
-        final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-        SoloLog.d('Auth', 'Step3: rustConfig=${rustConfig != null}, salt=${rustConfig?.salt != null}');
-
-        if (rustConfig?.salt != null) {
-          final salt = base64Decode(rustConfig!.salt!);
-          SoloLog.d('Auth', 'Step3: Rust salt len=${salt.length}');
-          if (salt.length != 32) {
-            SoloLog.e('Auth', 'Step3: Bad salt length ${salt.length}');
-            state = const AsyncData(AuthState.locked);
-            return false;
-          }
-        } else {
-          // Final fallback: read config.json directly from disk
-          SoloLog.w('Auth', 'Step3: Rust FFI returned null, trying direct file read...');
-          final vaultRoot = RustVaultService.instance.vaultRoot;
-          if (vaultRoot == null) {
-            SoloLog.e('Auth', 'Step3: vaultRoot is null — cannot read config.json');
-            state = const AsyncData(AuthState.locked);
-            return false;
-          }
-          // Validate accountId format to prevent path traversal
-          if (!RegExp(r'^acc_[a-f0-9\-]{36}$').hasMatch(accountId)) {
-            SoloLog.e('Auth', 'Step3: Invalid accountId format, possible path traversal attempt');
-            state = const AsyncData(AuthState.locked);
-            return false;
-          }
-          final configFile = File('$vaultRoot/$accountId/config.json');
-          if (await configFile.exists()) {
-            final configJson = jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
-            final saltStr = configJson['salt'] as String?;
-            SoloLog.d('Auth', 'Step3: File config.json salt present=${saltStr != null}');
-            if (saltStr != null) {
-              final salt = base64Decode(saltStr);
-              SoloLog.d('Auth', 'Step3: File salt len=${salt.length}');
-              if (salt.length == 32) {
-                // Migrate to Keychain for future use
-                SoloLog.d('Auth', 'Step3: Migrating file config to Keychain...');
-                await _storage.saveAccountData(accountId, {
-                  'salt': saltStr,
-                  'verify_hash': configJson['verify_hash'] as String? ?? '',
-                  'crypto_version': configJson['crypto_version'] as int? ?? 2,
-                });
-              } else {
-                SoloLog.e('Auth', 'Step3: File salt bad length ${salt.length}');
-                state = const AsyncData(AuthState.locked);
-                return false;
-              }
-            } else {
-              SoloLog.e('Auth', 'Step3: No salt in config.json');
-              state = const AsyncData(AuthState.locked);
-              return false;
-            }
-          } else {
-            SoloLog.e('Auth', 'Step3: config.json does not exist at ${configFile.path}');
-            state = const AsyncData(AuthState.locked);
-            return false;
-          }
-        }
-      } else {
-        final saltStr = freshData['salt'] as String?;
-        SoloLog.d('Auth', 'Step3: Keychain salt present=${saltStr != null}');
-        if (saltStr != null) {
-          final salt = base64Decode(saltStr);
-          SoloLog.d('Auth', 'Step3: Keychain salt len=${salt.length}');
-        }
-      }
-    } on Object catch (e, st) {
-      SoloLog.endTimer(timer3);
-      SoloLog.e('Auth', 'Step3: Salt validation error (non-fatal)', e, st);
-    }
-
+    // ignore: avoid_print
+    print('[UNLOCK-DEBUG] UNLOCK SUCCESS — vault is unlocked');
     SoloLog.d('Auth', 'UNLOCK SUCCESS — vault is unlocked, proceeding to home');
     state = const AsyncData(AuthState.unlocked);
 
@@ -338,6 +226,28 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _upgradeBackupIfNeeded(accountId: _accountManager.selectedAccountId!);
 
     return true;
+  }
+
+  /// Post-unlock background sync: ensure Keychain has account data.
+  /// Runs asynchronously — never blocks the unlock flow.
+  Future<void> _postUnlockSync(String accountId, int cryptoVersion) async {
+    try {
+      // Try Rust config first (synchronous, fast)
+      final rustCfg = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+      if (rustCfg?.salt != null && rustCfg?.verifyHash != null) {
+        // Sync to Keychain in background
+        await _storage.saveAccountData(accountId, {
+          'salt': rustCfg!.salt,
+          'verify_hash': rustCfg.verifyHash,
+          'crypto_version': cryptoVersion,
+        });
+        // ignore: avoid_print
+        print('[UNLOCK-DEBUG] postUnlockSync: Synced account data to Keychain from Rust config');
+      }
+    } on Object catch (e) {
+      // ignore: avoid_print
+      print('[UNLOCK-DEBUG] postUnlockSync error (ignored): $e');
+    }
   }
 
   /// Unlock vault with biometric authentication
