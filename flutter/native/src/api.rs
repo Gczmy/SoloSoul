@@ -221,15 +221,17 @@ pub struct DeriveKeyResult {
 /// Vault must be unlocked.
 #[frb]
 pub fn frb_encrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
-    let session_key = manager.get_session_key()
-        .ok_or("Vault not unlocked")?;
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
 
-    let key: [u8; 32] = session_key.as_slice().try_into()
+    let key: [u8; 32] = session_key
+        .as_slice()
+        .try_into()
         .map_err(|_| "Invalid session key length")?;
 
     let blob = crate::crypto::encrypt_profile_data(&key, &data)
@@ -243,15 +245,17 @@ pub fn frb_encrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
 /// Vault must be unlocked.
 #[frb]
 pub fn frb_decrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
-    let session_key = manager.get_session_key()
-        .ok_or("Vault not unlocked")?;
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
 
-    let key: [u8; 32] = session_key.as_slice().try_into()
+    let key: [u8; 32] = session_key
+        .as_slice()
+        .try_into()
         .map_err(|_| "Invalid session key length")?;
 
     let plaintext = crate::crypto::decrypt_profile_data(&key, &data)
@@ -269,9 +273,10 @@ pub fn frb_decrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
 /// Vault must be unlocked.
 #[frb]
 pub fn frb_save_profile(name: String, data: Vec<u8>) -> Result<ProfileSummary, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     let vault_guard = manager.get_vault_store();
@@ -279,7 +284,8 @@ pub fn frb_save_profile(name: String, data: Vec<u8>) -> Result<ProfileSummary, S
     let vault = vault_lock.as_ref().ok_or("Vault not unlocked")?;
 
     // Check if profile exists by name
-    let existing = vault.list_profiles()
+    let existing = vault
+        .list_profiles()
         .ok()
         .and_then(|profiles| profiles.into_iter().find(|p| p.name == name));
 
@@ -304,7 +310,8 @@ pub fn frb_save_profile(name: String, data: Vec<u8>) -> Result<ProfileSummary, S
     };
 
     let summary = crate::vault::ProfileSummary::from_profile(&profile);
-    vault.save_profile(&profile)
+    vault
+        .save_profile(&profile)
         .map_err(|e| format!("Failed to save profile: {}", e))?;
 
     Ok(ProfileSummary {
@@ -320,9 +327,10 @@ pub fn frb_save_profile(name: String, data: Vec<u8>) -> Result<ProfileSummary, S
 /// Vault must be unlocked.
 #[frb]
 pub fn frb_load_profile(id: String) -> Result<Option<LoadedProfile>, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     let vault_guard = manager.get_vault_store();
@@ -348,9 +356,10 @@ pub fn frb_load_profile(id: String) -> Result<Option<LoadedProfile>, String> {
 /// Create a new account. Returns account info including salt and verify_hash.
 #[frb]
 pub fn frb_create_account(name: String, password: String) -> Result<CreateAccountResult, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     match manager.create_account(&name, &password) {
@@ -377,9 +386,10 @@ pub fn frb_create_account(name: String, password: String) -> Result<CreateAccoun
 /// Returns success status and crypto_version.
 #[frb]
 pub fn frb_unlock_vault(account_id: String, password: String) -> Result<UnlockVaultResult, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     let result = manager.unlock(&account_id, &password);
@@ -405,29 +415,34 @@ pub fn frb_lock_vault() -> bool {
 /// List all accounts.
 #[frb]
 pub fn frb_list_accounts() -> Result<Vec<AccountInfo>, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     let accounts = manager.list_accounts();
-    Ok(accounts.into_iter().map(|a| AccountInfo {
-        id: a.id,
-        name: a.name,
-        last_accessed: a.last_accessed.map(|dt| dt.to_rfc3339()),
-        password_hint: a.password_hint,
-        last_login_at: a.last_login_at.map(|dt| dt.to_rfc3339()),
-        last_operation_at: a.last_operation_at.map(|dt| dt.to_rfc3339()),
-        last_operation_desc: a.last_operation_desc,
-    }).collect())
+    Ok(accounts
+        .into_iter()
+        .map(|a| AccountInfo {
+            id: a.id,
+            name: a.name,
+            last_accessed: a.last_accessed.map(|dt| dt.to_rfc3339()),
+            password_hint: a.password_hint,
+            last_login_at: a.last_login_at.map(|dt| dt.to_rfc3339()),
+            last_operation_at: a.last_operation_at.map(|dt| dt.to_rfc3339()),
+            last_operation_desc: a.last_operation_desc,
+        })
+        .collect())
 }
 
 /// Delete an account and all its data.
 #[frb]
 pub fn frb_delete_account(account_id: String) -> Result<bool, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     match manager.delete_account(&account_id) {
@@ -439,9 +454,10 @@ pub fn frb_delete_account(account_id: String) -> Result<bool, String> {
 /// Get vault statistics.
 #[frb]
 pub fn frb_get_vault_stats() -> Result<VaultStats, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     let vault_guard = manager.get_vault_store();
@@ -461,10 +477,15 @@ pub fn frb_get_vault_stats() -> Result<VaultStats, String> {
 
 /// Change account password.
 #[frb]
-pub fn frb_change_password(account_id: String, old_password: String, new_password: String) -> Result<ChangePasswordResult, String> {
-    let manager_guard = crate::get_account_manager()
-        .map_err(|e| format!("Account manager error: {}", e))?;
-    let manager = manager_guard.as_ref()
+pub fn frb_change_password(
+    account_id: String,
+    old_password: String,
+    new_password: String,
+) -> Result<ChangePasswordResult, String> {
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
         .ok_or("Account manager not initialized")?;
 
     match manager.change_password(&account_id, &old_password, &new_password) {
@@ -496,14 +517,16 @@ pub fn frb_change_password(account_id: String, old_password: String, new_passwor
 /// - `iterations`: number of iterations (e.g. 1)
 /// - `parallelism`: degree of parallelism (e.g. 4)
 #[frb]
-pub fn frb_derive_key(password: String, salt: Vec<u8>, memory_kib: u32, iterations: u32, parallelism: u32) -> Result<Vec<u8>, String> {
-    let key = crate::crypto::argon2::derive_key(
-        &password,
-        &salt,
-        memory_kib,
-        iterations,
-        parallelism,
-    ).map_err(|e| format!("Key derivation failed: {}", e))?;
+pub fn frb_derive_key(
+    password: String,
+    salt: Vec<u8>,
+    memory_kib: u32,
+    iterations: u32,
+    parallelism: u32,
+) -> Result<Vec<u8>, String> {
+    let key =
+        crate::crypto::argon2::derive_key(&password, &salt, memory_kib, iterations, parallelism)
+            .map_err(|e| format!("Key derivation failed: {}", e))?;
 
     Ok(key.to_vec())
 }
@@ -528,7 +551,9 @@ pub fn frb_generate_salt(length: u32) -> Vec<u8> {
 /// Used by biometric credential service to encrypt session keys and bio tokens.
 #[frb]
 pub fn frb_encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8>, String> {
-    let key_arr: [u8; 32] = key.as_slice().try_into()
+    let key_arr: [u8; 32] = key
+        .as_slice()
+        .try_into()
         .map_err(|_| format!("Key must be 32 bytes, got {}", key.len()))?;
 
     let blob = crate::crypto::encrypt_profile_data(&key_arr, &plaintext)
@@ -542,7 +567,9 @@ pub fn frb_encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8>,
 /// Used by biometric credential service to decrypt session keys and bio tokens.
 #[frb]
 pub fn frb_decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>, String> {
-    let key_arr: [u8; 32] = key.as_slice().try_into()
+    let key_arr: [u8; 32] = key
+        .as_slice()
+        .try_into()
         .map_err(|_| format!("Key must be 32 bytes, got {}", key.len()))?;
 
     let plaintext = crate::crypto::decrypt_profile_data(&key_arr, &ciphertext)
