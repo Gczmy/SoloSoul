@@ -217,6 +217,32 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       SoloLog.e('Auth', 'Step2: Migration error (non-fatal)', e, st);
     }
 
+    // Step 2.5: Repair corrupted verify_hash (base64 instead of hex) from
+    // previous buggy migration.  A valid hex verify_hash is exactly 64
+    // lowercase hex characters.  If it doesn't match that pattern, re-fetch
+    // from Rust config.json and overwrite.
+    try {
+      final checkData = await _storage.getAccountData(accountId);
+      if (checkData != null) {
+        final storedHash = checkData['verify_hash'] as String? ?? '';
+        final hexPattern = RegExp(r'^[0-9a-f]{64}$');
+        if (storedHash.isNotEmpty && !hexPattern.hasMatch(storedHash)) {
+          SoloLog.w('Auth', 'Step2.5: Detected corrupted verify_hash (not hex), repairing...');
+          final rustCfg = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+          if (rustCfg?.verifyHash != null && hexPattern.hasMatch(rustCfg!.verifyHash!)) {
+            await _storage.saveAccountData(accountId, {
+              'salt': checkData['salt'],
+              'verify_hash': rustCfg.verifyHash,
+              'crypto_version': checkData['crypto_version'],
+            });
+            SoloLog.d('Auth', 'Step2.5: verify_hash repaired from Rust config');
+          }
+        }
+      }
+    } on Object catch (e, st) {
+      SoloLog.e('Auth', 'Step2.5: verify_hash repair check failed (non-fatal)', e, st);
+    }
+
     // Step 3: Validate salt availability (session key is managed by Rust)
     SoloLog.d('Auth', 'Step3: Validating salt...');
     final timer3 = SoloLog.startTimer('Auth', 'Salt validation');
