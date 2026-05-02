@@ -1,27 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
 part 'auth_state.g.dart';
-
-/// Pure state machine for authentication state (locked/unlocked/loading)
-class AuthStateNotifier extends Notifier<AuthState> {
-  @override
-  AuthState build() => AuthState.initial;
-
-  void setInitial() => state = AuthState.initial;
-  void setLoading() => state = AuthState.loading;
-  void setLocked() => state = AuthState.locked;
-  void setUnlocked() => state = AuthState.unlocked;
-
-  bool get isUnlocked => state == AuthState.unlocked;
-}
-
-/// Provider for auth state
-final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(() {
-  return AuthStateNotifier();
-});
 
 /// Sensitive data access validation timeout (unique constant)
 const kSensitiveAccessTimeout = Duration(minutes: 1);

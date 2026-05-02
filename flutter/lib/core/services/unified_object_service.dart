@@ -84,38 +84,6 @@ class DefaultSectionIds {
   static const award = '__section_award';
 }
 
-/// Mapping from page ID to its section IDs.
-const Map<String, List<String>> _kDefaultPageSections = {
-  DefaultPageIds.profile: [
-    DefaultSectionIds.identity,
-    DefaultSectionIds.contact,
-    DefaultSectionIds.idCard,
-    DefaultSectionIds.address,
-  ],
-  DefaultPageIds.travel: [
-    DefaultSectionIds.passport,
-    DefaultSectionIds.visa,
-    DefaultSectionIds.travelHistory,
-  ],
-  DefaultPageIds.financial: [
-    DefaultSectionIds.bankAccount,
-    DefaultSectionIds.card,
-    DefaultSectionIds.taxId,
-  ],
-  DefaultPageIds.professional: [
-    DefaultSectionIds.education,
-    DefaultSectionIds.employment,
-    DefaultSectionIds.skill,
-    DefaultSectionIds.language,
-    DefaultSectionIds.award,
-  ],
-};
-
-/// Get the list of section IDs for a given default page ID.
-List<String> getDefaultSectionIds(String pageId) {
-  return _kDefaultPageSections[pageId] ?? const [];
-}
-
 /// Metadata for auto-creating a default section when it is missing.
 class SectionMeta {
   final String name;
@@ -164,11 +132,6 @@ const Map<String, String> _kSectionItemTypes = {
   DefaultSectionIds.language: 'professional_language',
   DefaultSectionIds.award: 'professional_award',
 };
-
-/// Get the item type ID for a given section ID.
-String? getDefaultItemTypeId(String sectionId) {
-  return _kSectionItemTypes[sectionId];
-}
 
 /// 根据 item type ID 反向查找对应的默认 section ID。
 String? getDefaultSectionIdForItemType(String itemTypeId) {

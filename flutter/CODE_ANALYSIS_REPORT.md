@@ -47,15 +47,15 @@
 
 | ID | 优先级 | 文件位置 | 描述 | 状态 |
 |------|--------|----------|------|------|
-| D001 | P2 | `core/models/profile_data.dart:12` | `currentTimestamp()` 从未调用 | `[ ]` 待修复 |
-| D002 | P2 | `core/services/profile_storage_service.dart:20` | `generateEntryId()` 从未调用，`_uuid` 常量也仅被此函数使用 | `[ ]` 待修复 |
-| D003 | P2 | `core/services/unified_object_service.dart:115` | `getDefaultSectionIds()` 从未调用 | `[ ]` 待修复 |
-| D004 | P2 | `core/services/unified_object_service.dart:169` | `getDefaultItemTypeId()` 从未调用 | `[ ]` 待修复 |
-| D005 | P2 | `core/models/profile_data.dart:9` | `kMaxNameLength` 常量从未使用 | `[ ]` 待修复 |
-| D006 | P2 | `profile_data.dart:16`, `base_models.dart:27` | `kDefaultSchemaVersion` 在两处定义但均未使用 | `[ ]` 待修复 |
-| D007 | P2 | `account_style_provider.dart:92` | `sensitivityResolver` 常量及 `SensitivityResolver` 类均未使用 | `[ ]` 待修复 |
-| D008 | P2 | `auth/auth_state.dart:9,22` | `AuthStateNotifier` 和 `authStateProvider` 未被任何文件引用 | `[ ]` 待修复 |
-| D009 | P2 | `sensitivity_blurred_widget.dart` | 整个文件无任何引用，完全死代码 | `[ ]` 待修复 |
+| D001 | P2 | `core/models/profile_data.dart:12` | `currentTimestamp()` 从未调用 | `[x]` 已修复 |
+| D002 | P2 | `core/services/profile_storage_service.dart:20` | `generateEntryId()` 从未调用，`_uuid` 常量也仅被此函数使用 | `[x]` 已修复 |
+| D003 | P2 | `core/services/unified_object_service.dart:115` | `getDefaultSectionIds()` 从未调用 | `[x]` 已修复 |
+| D004 | P2 | `core/services/unified_object_service.dart:169` | `getDefaultItemTypeId()` 从未调用 | `[x]` 已修复 |
+| D005 | P2 | `core/models/profile_data.dart:9` | `kMaxNameLength` 常量从未使用 | `[x]` 已修复 |
+| D006 | P2 | `profile_data.dart:16`, `base_models.dart:27` | `kDefaultSchemaVersion` 在两处定义但均未使用 | `[x]` 已修复 |
+| D007 | P2 | `account_style_provider.dart:92` | `sensitivityResolver` 常量及 `SensitivityResolver` 类均未使用 | `[x]` 误报 — 已通过 sensitivity_provider.dart 导出 |
+| D008 | P2 | `auth/auth_state.dart:9,22` | `AuthStateNotifier` 和 `authStateProvider` 未被任何文件引用 | `[x]` 已修复 |
+| D009 | P2 | `sensitivity_blurred_widget.dart` | 整个文件无任何引用，完全死代码 | `[x]` 已修复 |
 | D010 | P2 | `field_history_models.dart:33-97` | 6 个 deprecated fromJson/toJson 方法（已有 .g.dart 生成版本） | `[ ]` 待修复 |
 | D011 | P2 | `rust_vault_service.dart:29-36` | 2 个 deprecated fromJson/toJson 方法 | `[ ]` 待修复 |
 
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：27 / 65
+- 已完成：36 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）

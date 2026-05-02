@@ -6,14 +6,6 @@ part 'profile_data.g.dart';
 // Re-export for backward compatibility
 /// Maximum character limits for form fields
 const int kMaxFieldLength = 32;
-const int kMaxNameLength = 16;
-
-/// Returns current timestamp in milliseconds since epoch
-int currentTimestamp() => DateTime.now().millisecondsSinceEpoch;
-
-/// Schema version for tracking model evolution.
-/// Default value 0 means no migration applied.
-const int kDefaultSchemaVersion = 0;
 
 /// Top-level profile container.
 /// All data is stored in [unifiedObjects] as a tree of [UnifiedObject].

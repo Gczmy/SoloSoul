@@ -4,8 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
-
 import 'package:solosoul_flutter/core/models/profile_data.dart';
 export 'package:solosoul_flutter/core/models/profile_data.dart';
 
@@ -13,12 +11,6 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
-
-const _uuid = Uuid();
-
-/// Generates a new unique ID using UUID v4
-String generateEntryId() => _uuid.v4();
-
 
 /// Profile storage service - stores encrypted profile data locally
 /// Delegates to RustVaultService via FFI for SQLCipher-encrypted storage
