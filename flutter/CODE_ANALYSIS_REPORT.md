@@ -33,9 +33,9 @@
 | ID | 优先级 | 文件位置 | 描述 | 状态 |
 |------|--------|----------|------|------|
 | PF001 | P1 | `trash_page.dart:421-444` | "清空回收站" 逐个删除并逐个 save，N 次加密+写盘 | `[x]` 已修复 |
-| PF002 | P1 | `unified_object_service.dart:594` | getObjectById() 使用 firstWhere 线性扫描 O(n)，高频调用 | `[ ]` 待修复 |
-| PF003 | P1 | `unified_object_provider.dart:95-175` | _repairOrphanItems 逐孤儿重建列表，O(n²) 启动开销 | `[ ]` 待修复 |
-| PF004 | P1 | `unified_object_provider.dart` | 所有 mutation 方法直接调用 _save()，无 debounce | `[ ]` 待修复 |
+| PF002 | P1 | `unified_object_service.dart:594` | getObjectById() 使用 firstWhere 线性扫描 O(n)，高频调用 | `[x]` 已修复 |
+| PF003 | P1 | `unified_object_provider.dart:95-175` | _repairOrphanItems 逐孤儿重建列表，O(n²) 启动开销 | `[x]` 已修复 |
+| PF004 | P1 | `unified_object_provider.dart` | 所有 mutation 方法直接调用 _save()，无 debounce | `[x]` 已修复 |
 | PF005 | P1 | `operation_log_provider.dart:223` | addEntry() 每次写盘（JSON+加密+I/O），无批量/节流 | `[ ]` 待修复 |
 | PF006 | P2 | `profile_page.dart:138`, `object_card.dart:955` | TextEditingController 在 build 中创建且未 dispose，内存泄漏 | `[ ]` 待修复 |
 | PF007 | P2 | `unified_object_provider.dart:563-647` | 派生 provider 在任何 mutation 时全部重建（select 粒度粗） | `[ ]` 待修复 |
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：37 / 65
+- 已完成：40 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）

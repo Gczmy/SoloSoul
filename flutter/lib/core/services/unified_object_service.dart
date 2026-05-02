@@ -555,11 +555,10 @@ class UnifiedObjectService {
 
   /// Find object by ID.
   UnifiedObject? getObjectById(List<UnifiedObject> objects, String id) {
-    try {
-      return objects.firstWhere((o) => o.id == id);
-    } on Object {
-      return null;
+    for (final o in objects) {
+      if (o.id == id) return o;
     }
+    return null;
   }
 
   /// Recursively collect all descendant IDs of [objectId].

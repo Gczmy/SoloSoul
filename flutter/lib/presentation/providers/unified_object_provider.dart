@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,10 +15,16 @@ part 'unified_object_provider.g.dart';
 /// Notifier for managing all unified objects.
 class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   late final UnifiedObjectService _service;
+  Timer? _saveTimer;
+  static const _saveDebounceDuration = Duration(milliseconds: 300);
 
   @override
   UnifiedObjectData build() {
     _service = UnifiedObjectService.instance;
+
+    ref.onDispose(() {
+      _saveTimer?.cancel();
+    });
 
     // Auto-load unified objects when profile data is loaded from storage.
     ref.listen(profileNotifierProvider, (previous, next) {
@@ -93,85 +101,109 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   /// 启动时数据完整性检查：将所有 parentId 指向不存在的 section 的 item
   /// 自动挂载到对应的默认 section（section 不存在则自动创建）。
   UnifiedObjectData _repairOrphanItems(UnifiedObjectData data) {
-    var objects = List<UnifiedObject>.from(data.objects);
+    final objects = List<UnifiedObject>.from(data.objects);
     final objectMap = {for (final o in objects) o.id: o};
-    var modified = false;
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Phase 1: Identify orphans and target sections (read-only scan)
+    final orphanTargets = <String, String>{}; // orphanId -> targetSectionId
+    final neededSections = <String, SectionMeta>{};
+    final neededPages = <String>{};
 
     for (final obj in objects) {
-      // 只检查 item 级别对象（有 parentId 且不是 page/collection）
       if (obj.parentId == null) continue;
       if (obj.typeId == 'page' || obj.typeId == 'collection') continue;
+      if (objectMap[obj.parentId] != null) continue;
 
-      final parent = objectMap[obj.parentId];
-      if (parent != null) continue; // parent 存在，不是孤儿
-
-      // 孤儿 item：尝试找到对应的默认 section
       final itemTypeId = obj.typeId;
       if (itemTypeId == null) continue;
       final targetSectionId = getDefaultSectionIdForItemType(itemTypeId);
       if (targetSectionId == null) continue;
 
-      // 确保 section 存在
-      final sectionExists = objectMap[targetSectionId] != null;
-      if (!sectionExists) {
+      orphanTargets[obj.id] = targetSectionId;
+
+      if (objectMap[targetSectionId] == null && !neededSections.containsKey(targetSectionId)) {
         final meta = getSectionMeta(targetSectionId);
         if (meta == null) continue;
-
-        // 确保 page 存在（使用固定 ID）
-        final pageExists = objectMap[meta.parentPageId] != null;
-        if (!pageExists) {
-          final now = DateTime.now().millisecondsSinceEpoch;
-          final page = UnifiedObject(
-            id: meta.parentPageId,
-            typeId: 'page',
-            name: _pageNameFromId(meta.parentPageId),
-            iconName: 'article',
-            parentId: null,
-            childrenIds: const [],
-            properties: const {},
-            isDeleted: false,
-            deletedAt: null,
-            createdAt: now,
-            updatedAt: now,
-          );
-          objects = _service.addObject(objects, page);
-          objectMap[page.id] = page;
+        neededSections[targetSectionId] = meta;
+        if (objectMap[meta.parentPageId] == null) {
+          neededPages.add(meta.parentPageId);
         }
-
-        // 创建 section（使用固定 ID）
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final section = UnifiedObject(
-          id: targetSectionId,
-          typeId: 'collection',
-          name: meta.name,
-          iconName: meta.iconName,
-          parentId: meta.parentPageId,
-          childrenIds: const [],
-          properties: const {},
-          isDeleted: false,
-          deletedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        );
-        objects = _service.addObject(objects, section);
-        objects = _service.addChild(objects, meta.parentPageId, section.id);
-        objectMap[section.id] = section;
-        modified = true;
       }
-
-      // 将孤儿 item 挂载到目标 section
-      objects = objects.map((o) {
-        if (o.id == obj.id) {
-          return o.copyWith(parentId: targetSectionId, updatedAt: DateTime.now().millisecondsSinceEpoch);
-        }
-        return o;
-      }).toList();
-      objects = _service.addChild(objects, targetSectionId, obj.id);
-      objectMap[obj.id] = objects.firstWhere((o) => o.id == obj.id);
-      modified = true;
     }
 
-    return modified ? data.copyWith(objects: objects) : data;
+    if (orphanTargets.isEmpty) return data;
+
+    // Phase 2: Add missing pages, sections, and reparent orphans in one pass
+    final newObjects = <UnifiedObject>[];
+    final sectionChildAdds = <String, List<String>>{}; // sectionId -> [orphanIds]
+    final pageChildAdds = <String, List<String>>{}; // pageId -> [sectionIds]
+
+    for (final pageId in neededPages) {
+      newObjects.add(UnifiedObject(
+        id: pageId,
+        typeId: 'page',
+        name: _pageNameFromId(pageId),
+        iconName: 'article',
+        parentId: null,
+        childrenIds: const [],
+        properties: const {},
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ));
+    }
+
+    for (final entry in neededSections.entries) {
+      final meta = entry.value;
+      newObjects.add(UnifiedObject(
+        id: entry.key,
+        typeId: 'collection',
+        name: meta.name,
+        iconName: meta.iconName,
+        parentId: meta.parentPageId,
+        childrenIds: const [],
+        properties: const {},
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ));
+      pageChildAdds.putIfAbsent(meta.parentPageId, () => []).add(entry.key);
+    }
+
+    // Build updated list: reparent orphans, add new objects
+    final updatedObjects = <UnifiedObject>[];
+    for (final obj in objects) {
+      final targetSectionId = orphanTargets[obj.id];
+      if (targetSectionId != null) {
+        updatedObjects.add(obj.copyWith(parentId: targetSectionId, updatedAt: now));
+        sectionChildAdds.putIfAbsent(targetSectionId, () => []).add(obj.id);
+      } else {
+        updatedObjects.add(obj);
+      }
+    }
+    updatedObjects.addAll(newObjects);
+
+    // Apply child additions to existing sections/pages
+    final result = <UnifiedObject>[];
+    for (final obj in updatedObjects) {
+      final sectionAdds = sectionChildAdds[obj.id];
+      final pageAdds = pageChildAdds[obj.id];
+      if (sectionAdds != null || pageAdds != null) {
+        final newChildren = [
+          ...obj.childrenIds,
+          if (sectionAdds != null) ...sectionAdds,
+          if (pageAdds != null) ...pageAdds,
+        ];
+        result.add(obj.copyWith(childrenIds: newChildren, updatedAt: now));
+      } else {
+        result.add(obj);
+      }
+    }
+
+    return data.copyWith(objects: result);
   }
 
   /// Save current state back to profile.
@@ -199,6 +231,18 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         );
     final profileNotifier = ref.read(profileNotifierProvider.notifier);
     return profileNotifier.saveProfileImmediate(updatedProfile);
+  }
+
+  /// Debounced save — batches rapid mutations into a single disk write.
+  /// Returns a Future that completes when the save actually executes.
+  Future<bool> _saveDebounced() {
+    final completer = Completer<bool>();
+    _saveTimer?.cancel();
+    _saveTimer = Timer(_saveDebounceDuration, () async {
+      final result = await _save();
+      completer.complete(result);
+    });
+    return completer.future;
   }
 
   // ---------------------------------------------------------------------------
@@ -229,7 +273,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _saveDebounced();
   }
 
   // ---------------------------------------------------------------------------
@@ -262,14 +306,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     state = state.copyWith(
       objects: _service.replaceObject(state.objects, updated),
     );
-    return _save();
+    return _saveDebounced();
   }
 
   /// Move an object to a new parent.
   Future<bool> moveObject(String objectId, String? newParentId) async {
     final updatedObjects = _service.moveObject(state.objects, objectId, newParentId);
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _saveDebounced();
   }
 
   // ---------------------------------------------------------------------------
@@ -333,7 +377,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _saveDebounced();
   }
 
   /// Permanently delete an object and all its descendants.
@@ -401,7 +445,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       newIndex,
     );
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _saveDebounced();
   }
 
   // ---------------------------------------------------------------------------
@@ -418,7 +462,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       updatedTypes.add(type);
     }
     state = state.copyWith(customTypes: updatedTypes);
-    return _save();
+    return _saveDebounced();
   }
 
   /// Delete a custom object type.
@@ -497,7 +541,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     updatedObjects = _service.addChild(updatedObjects, sectionId, object.id);
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _saveDebounced();
   }
 
   String _pageNameFromId(String pageId) {
@@ -528,7 +572,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     state = state.copyWith(
       objects: _service.replaceObject(state.objects, updated),
     );
-    return _save();
+    return _saveDebounced();
   }
 
   /// Soft-delete a default-page item. Removes it from its section's childrenIds.
@@ -573,7 +617,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _saveDebounced();
   }
 }
 
