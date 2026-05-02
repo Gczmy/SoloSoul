@@ -292,8 +292,8 @@ impl Transport for MockTransport {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::crdt::DocMeta;
+    use super::*;
     use crate::vault::*;
 
     fn make_profile_a() -> ProfileData {
