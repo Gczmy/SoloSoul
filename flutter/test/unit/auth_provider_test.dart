@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
 void main() {
@@ -35,11 +36,15 @@ void main() {
   });
 
   group('SensitivePageAccessNotifier', () {
+    late ProviderContainer container;
     late SensitivePageAccessNotifier notifier;
 
     setUp(() {
-      notifier = SensitivePageAccessNotifier();
+      container = ProviderContainer();
+      notifier = container.read(sensitivePageAccessProvider.notifier);
     });
+
+    tearDown(() => container.dispose());
 
     test('markVerified sets lastVerified to current time', () async {
       final before = DateTime.now();
@@ -293,9 +298,13 @@ void main() {
 
 
   group('AuthNotifier State', () {
-    test('AuthNotifier initial state is AuthState.initial', () {
-      final notifier = AuthNotifier();
-      expect(notifier.state, AuthState.initial);
+    test('AuthNotifier initial state is AuthState.initial', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(authNotifierProvider.notifier);
+      // AsyncNotifier starts with AsyncLoading, then resolves
+      final state = await container.read(authNotifierProvider.future);
+      expect(state, AuthState.initial);
       expect(notifier.isUnlocked, false);
       expect(notifier.selectedAccountId, isNull);
       expect(notifier.selectedAccount, isNull);

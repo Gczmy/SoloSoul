@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 
 void main() {
@@ -270,11 +271,15 @@ void main() {
   });
 
   group('FormFieldRegistryNotifier', () {
+    late ProviderContainer container;
     late FormFieldRegistryNotifier notifier;
 
     setUp(() {
-      notifier = FormFieldRegistryNotifier();
+      container = ProviderContainer();
+      notifier = container.read(formFieldRegistryProvider.notifier);
     });
+
+    tearDown(() => container.dispose());
 
     test('register adds field to state', () {
       const field = FieldSensitivity(
