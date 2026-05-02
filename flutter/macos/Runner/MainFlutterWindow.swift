@@ -11,6 +11,9 @@ class MainFlutterWindow: NSWindow {
     // Set minimum window size for desktop security
     self.minSize = NSSize(width: 800, height: 600)
 
+    // Persist window position and size across launches
+    setFrameAutosaveName("MainFlutterWindow")
+
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     super.awakeFromNib()

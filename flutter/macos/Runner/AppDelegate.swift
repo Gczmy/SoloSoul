@@ -17,8 +17,14 @@ class AppDelegate: FlutterAppDelegate {
     // Setup native channel for Keychain and biometrics
     setupNativeChannels()
 
+    // Setup power event monitoring (sleep/wake)
+    setupPowerEvents()
+
     // Setup menu bar
     setupMenuBar()
+
+    // Setup system tray icon
+    setupTrayIcon()
   }
 
   private func setupNativeChannels() {
@@ -76,17 +82,77 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   @objc private func handleLockVault() {
+    sendToFlutter(method: "lockVault")
+  }
+
+  // MARK: - System Tray
+
+  private func setupTrayIcon() {
+    guard let icon = NSImage(named: "TrayIcon") else {
+      return
+    }
+    icon.isTemplate = true  // Auto-adapts to dark/light menu bar
+    icon.size = NSSize(width: 16, height: 16)
+
+    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    if let button = statusItem.button {
+      button.image = icon
+      button.toolTip = "SoloSoul"
+    }
+
+    let menu = NSMenu()
+    menu.addItem(withTitle: "Show SoloSoul", action: #selector(showApp), keyEquivalent: "")
+    menu.addItem(NSMenuItem.separator())
+    menu.addItem(withTitle: "Lock Vault", action: #selector(lockVaultFromMenu), keyEquivalent: "l")
+    menu.addItem(NSMenuItem.separator())
+    menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    statusItem.menu = menu
+  }
+
+  @objc private func showApp() {
+    NSApp.activate(ignoringOtherApps: true)
+    mainFlutterWindow?.makeKeyAndOrderFront(nil)
+  }
+
+  // MARK: - Power Events (Sleep / Wake)
+
+  private func setupPowerEvents() {
+    NSWorkspace.shared.notificationCenter.addObserver(
+      self,
+      selector: #selector(handleWillSleep),
+      name: NSWorkspace.willSleepNotification,
+      object: nil
+    )
+    NSWorkspace.shared.notificationCenter.addObserver(
+      self,
+      selector: #selector(handleDidWake),
+      name: NSWorkspace.didWakeNotification,
+      object: nil
+    )
+  }
+
+  @objc private func handleWillSleep() {
+    // Lock vault before system sleeps to clear sensitive keys from memory
+    sendToFlutter(method: "onSystemWillSleep")
+  }
+
+  @objc private func handleDidWake() {
+    // Notify Dart to re-validate session after wake
+    sendToFlutter(method: "onSystemDidWake")
+  }
+
+  /// Helper to send method calls to Dart via the native channel
+  private func sendToFlutter(method: String, arguments: Any? = nil) {
     guard let flutterWindow = mainFlutterWindow,
           let flutterViewController = flutterWindow.contentViewController as? FlutterViewController else {
       return
     }
-
     let flutterEngine = flutterViewController.engine
     let channel = FlutterMethodChannel(
       name: "com.solosoul/native",
       binaryMessenger: flutterEngine.binaryMessenger
     )
-    channel.invokeMethod("lockVault", arguments: nil)
+    channel.invokeMethod(method, arguments: arguments)
   }
 
   // MARK: - TouchID / Biometrics

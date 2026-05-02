@@ -14,6 +14,7 @@ pub mod crypto;
 pub mod discovery;
 #[cfg(feature = "sandbox")]
 pub mod plugin;
+pub mod safe_storage;
 pub mod sync;
 pub mod vault;
 

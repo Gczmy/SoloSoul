@@ -92,6 +92,15 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
           DebugLogger.instance.logError('MAIN', 'Lock callback error: $e');
         }
       });
+
+      // Lock vault before system sleeps to clear sensitive keys from memory
+      NativeChannelService.setSleepCallback(() {
+        try {
+          unawaited(ref.read(authNotifierProvider.notifier).lockVault());
+        } on Exception catch (e) {
+          DebugLogger.instance.logError('MAIN', 'Sleep callback error: $e');
+        }
+      });
     }
   }
 

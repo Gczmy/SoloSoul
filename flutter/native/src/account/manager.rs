@@ -20,6 +20,7 @@ use zeroize::{Zeroize, Zeroizing};
 use crate::crypto::argon2::{
     derive_key, DEFAULT_ITERATIONS, DEFAULT_MEMORY_KIB, DEFAULT_PARALLELISM,
 };
+use crate::safe_storage;
 use crate::vault::{VaultConfig, VaultStore};
 
 /// Write debug log to file (works in sandboxed environment)
@@ -158,20 +159,18 @@ impl AccountManager {
         self.base_path.join(account_id)
     }
 
-    /// Load accounts cache from disk
+    /// Load accounts cache from disk (with crash recovery)
     fn load_accounts_cache(&self) {
         let accounts_file = self.base_path.join("accounts.json");
-        if accounts_file.exists() {
-            if let Ok(content) = fs::read_to_string(&accounts_file) {
-                if let Ok(accounts) = serde_json::from_str::<Vec<AccountMetadata>>(&content) {
-                    if let Ok(mut cache) = self
-                        .accounts_cache
-                        .write()
-                        .map_err(|e| format!("Lock poisoned: {}", e))
-                    {
-                        for account in accounts {
-                            cache.insert(account.id.clone(), account);
-                        }
+        if let Some(content) = safe_storage::recover_or_load(&accounts_file) {
+            if let Ok(accounts) = serde_json::from_str::<Vec<AccountMetadata>>(&content) {
+                if let Ok(mut cache) = self
+                    .accounts_cache
+                    .write()
+                    .map_err(|e| format!("Lock poisoned: {}", e))
+                {
+                    for account in accounts {
+                        cache.insert(account.id.clone(), account);
                     }
                 }
             }
@@ -192,7 +191,7 @@ impl AccountManager {
         fs::create_dir_all(&self.base_path)
             .map_err(|e| format!("Create base dir failed: {}", e))?;
 
-        fs::write(self.base_path.join("accounts.json"), content)
+        safe_storage::write_atomic(&self.base_path.join("accounts.json"), content.as_bytes())
             .map_err(|e| format!("Write accounts.json failed: {}", e))?;
 
         Ok(())
@@ -321,7 +320,7 @@ impl AccountManager {
         let config_path = account_dir.join("config.json");
         let config_content = serde_json::to_string_pretty(&config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
-        fs::write(&config_path, config_content)
+        safe_storage::write_atomic(&config_path, config_content.as_bytes())
             .map_err(|e| format!("Write config failed: {}", e))?;
 
         // Create metadata and save
@@ -433,12 +432,12 @@ impl AccountManager {
                     // Re-verify password without re-opening the vault
                     let account_dir = self.account_dir(account_id);
                     let config_path = account_dir.join("config.json");
-                    let config_content = match fs::read_to_string(&config_path) {
-                        Ok(c) => c,
-                        Err(e) => {
+                    let config_content = match safe_storage::recover_or_load(&config_path) {
+                        Some(c) => c,
+                        None => {
                             return VerifyResult {
                                 success: false,
-                                error: Some(format!("Failed to read config: {}", e)),
+                                error: Some("Failed to read config".to_string()),
                                 crypto_version: 0,
                             }
                         }
@@ -604,7 +603,7 @@ impl AccountManager {
             account_dir.exists()
         ));
 
-        // Load config
+        // Load config (with crash recovery)
         let config_path = account_dir.join("config.json");
         log_to_file(&format!("[MANAGER] config_path: {:?}", config_path));
         log_to_file(&format!(
@@ -612,13 +611,13 @@ impl AccountManager {
             config_path.exists()
         ));
 
-        let config_content = match fs::read_to_string(&config_path) {
-            Ok(c) => c,
-            Err(e) => {
-                log_to_file(&format!("[MANAGER] Failed to read config: {}", e));
+        let config_content = match safe_storage::recover_or_load(&config_path) {
+            Some(c) => c,
+            None => {
+                log_to_file("[MANAGER] Failed to read config (no valid source)");
                 return VerifyResult {
                     success: false,
-                    error: Some(format!("Failed to read config: {}", e)),
+                    error: Some("Failed to read config".to_string()),
                     crypto_version: 0,
                 };
             }
@@ -890,14 +889,14 @@ impl AccountManager {
             };
         }
 
-        // Load config
+        // Load config (with crash recovery)
         let config_path = account_dir.join("config.json");
-        let config_content = match fs::read_to_string(&config_path) {
-            Ok(c) => c,
-            Err(e) => {
+        let config_content = match safe_storage::recover_or_load(&config_path) {
+            Some(c) => c,
+            None => {
                 return VerifyResult {
                     success: false,
-                    error: Some(format!("Failed to read config: {}", e)),
+                    error: Some("Failed to read config".to_string()),
                     crypto_version: 0,
                 }
             }
@@ -1130,8 +1129,8 @@ impl AccountManager {
     ) -> Result<AccountInfo, String> {
         // Step 1: Verify old password first
         let config_path = self.account_dir(account_id).join("config.json");
-        let config_content = fs::read_to_string(&config_path)
-            .map_err(|e| format!("Failed to read config: {}", e))?;
+        let config_content = safe_storage::recover_or_load(&config_path)
+            .ok_or_else(|| "Failed to read config".to_string())?;
         let config: AccountConfig = serde_json::from_str(&config_content)
             .map_err(|e| format!("Failed to parse config: {}", e))?;
 
@@ -1231,7 +1230,7 @@ impl AccountManager {
 
         let new_config_content = serde_json::to_string_pretty(&new_config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
-        fs::write(&config_path, new_config_content)
+        safe_storage::write_atomic(&config_path, new_config_content.as_bytes())
             .map_err(|e| format!("Write config failed: {}", e))?;
 
         // Update session key to new key
@@ -1327,9 +1326,9 @@ impl AccountManager {
     /// Get account config (salt and verify_hash) for migration to Dart Keychain
     pub fn get_account_config(&self, account_id: &str) -> Option<AccountInfo> {
         let config_path = self.account_dir(account_id).join("config.json");
-        let config_content = match fs::read_to_string(&config_path) {
-            Ok(c) => c,
-            Err(_) => return None,
+        let config_content = match safe_storage::recover_or_load(&config_path) {
+            Some(c) => c,
+            None => return None,
         };
         let config: AccountConfig = match serde_json::from_str(&config_content) {
             Ok(c) => c,
@@ -1359,8 +1358,8 @@ impl AccountManager {
         update: MetadataUpdate,
     ) -> Result<(), String> {
         let config_path = self.account_dir(account_id).join("config.json");
-        let config_content = fs::read_to_string(&config_path)
-            .map_err(|e| format!("Failed to read config: {}", e))?;
+        let config_content = safe_storage::recover_or_load(&config_path)
+            .ok_or_else(|| "Failed to read config".to_string())?;
         let mut config: AccountConfig = serde_json::from_str(&config_content)
             .map_err(|e| format!("Failed to parse config: {}", e))?;
 
@@ -1385,7 +1384,8 @@ impl AccountManager {
 
         let new_content = serde_json::to_string_pretty(&config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
-        fs::write(&config_path, new_content).map_err(|e| format!("Write config failed: {}", e))?;
+        safe_storage::write_atomic(&config_path, new_content.as_bytes())
+            .map_err(|e| format!("Write config failed: {}", e))?;
 
         Ok(())
     }
