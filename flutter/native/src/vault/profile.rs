@@ -114,8 +114,7 @@ impl VersionedProfileData {
 
     /// Serialize to JSON string
     pub fn serialize(&self) -> Result<String, String> {
-        serde_json::to_string(self)
-            .map_err(|e| format!("Failed to serialize profile data: {}", e))
+        serde_json::to_string(self).map_err(|e| format!("Failed to serialize profile data: {}", e))
     }
 }
 
@@ -172,7 +171,10 @@ where
     #[serde(untagged)]
     enum TypeOrEntryType {
         Type(String),
-        EntryType { #[serde(alias = "entry_type")] entry_type: String },
+        EntryType {
+            #[serde(alias = "entry_type")]
+            entry_type: String,
+        },
     }
 
     let raw = TypeOrEntryType::deserialize(deserializer)?;

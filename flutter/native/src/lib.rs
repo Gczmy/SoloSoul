@@ -8,19 +8,21 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 // - E2EE cloud sync engine
 // - Wasm plugin sandbox
 
+pub mod account;
+pub mod api;
 pub mod crypto;
-pub mod vault;
-pub mod sync;
+pub mod discovery;
 #[cfg(feature = "sandbox")]
 pub mod plugin;
-pub mod account;
+pub mod sync;
+pub mod vault;
 
-use thiserror::Error;
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use std::ffi::CString;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum CoreError {
@@ -51,8 +53,11 @@ lazy_static::lazy_static! {
     static ref ACCOUNT_MANAGER: Mutex<Option<account::AccountManager>> = Mutex::new(None);
 }
 
-fn get_account_manager() -> Result<std::sync::MutexGuard<'static, Option<account::AccountManager>>, String> {
-    ACCOUNT_MANAGER.lock().map_err(|e| format!("Lock poisoned: {}", e))
+fn get_account_manager(
+) -> Result<std::sync::MutexGuard<'static, Option<account::AccountManager>>, String> {
+    ACCOUNT_MANAGER
+        .lock()
+        .map_err(|e| format!("Lock poisoned: {}", e))
 }
 
 fn init_account_manager(base_path: PathBuf) -> Result<(), String> {
@@ -112,8 +117,11 @@ pub fn vault_request(request_json: String) -> String {
     let request: vault::processor::VaultRequest = match serde_json::from_str(&request_json) {
         Ok(r) => r,
         Err(e) => {
-            let response = vault::processor::VaultResponse::error(format!("Invalid request JSON: {}", e));
-            return serde_json::to_string(&response).unwrap_or_else(|_| r#"{"success":false,"error":"serialization error"}"#.to_string());
+            let response =
+                vault::processor::VaultResponse::error(format!("Invalid request JSON: {}", e));
+            return serde_json::to_string(&response).unwrap_or_else(|_| {
+                r#"{"success":false,"error":"serialization error"}"#.to_string()
+            });
         }
     };
 
@@ -121,8 +129,11 @@ pub fn vault_request(request_json: String) -> String {
     let manager_guard = match get_account_manager() {
         Ok(g) => g,
         Err(e) => {
-            let response = vault::processor::VaultResponse::error(format!("Account manager error: {}", e));
-            return serde_json::to_string(&response).unwrap_or_else(|_| r#"{"success":false,"error":"serialization error"}"#.to_string());
+            let response =
+                vault::processor::VaultResponse::error(format!("Account manager error: {}", e));
+            return serde_json::to_string(&response).unwrap_or_else(|_| {
+                r#"{"success":false,"error":"serialization error"}"#.to_string()
+            });
         }
     };
 
@@ -130,12 +141,16 @@ pub fn vault_request(request_json: String) -> String {
         Some(m) => m,
         None => {
             let response = vault::processor::VaultResponse::error("No account manager".to_string());
-            return serde_json::to_string(&response).unwrap_or_else(|_| r#"{"success":false,"error":"serialization error"}"#.to_string());
+            return serde_json::to_string(&response).unwrap_or_else(|_| {
+                r#"{"success":false,"error":"serialization error"}"#.to_string()
+            });
         }
     };
 
     let response = vault::processor::handle_vault_request(request, manager);
-    serde_json::to_string(&response).unwrap_or_else(|_| r#"{"success":false,"error":"response serialization error"}"#.to_string())
+    serde_json::to_string(&response).unwrap_or_else(|_| {
+        r#"{"success":false,"error":"response serialization error"}"#.to_string()
+    })
 }
 
 // C-compatible FFI entry point for direct Dart FFI calls (bypasses flutter_rust_bridge)
@@ -151,7 +166,8 @@ pub extern "C" fn vault_request_ffi(
     // Catch panics to prevent crashing the entire process
     let result = panic::catch_unwind(|| {
         if request_ptr.is_null() {
-            let response = vault::processor::VaultResponse::error("Null request pointer".to_string());
+            let response =
+                vault::processor::VaultResponse::error("Null request pointer".to_string());
             let json = serde_json::to_string(&response).unwrap_or_default();
             return CString::new(json).unwrap().into_raw();
         }
@@ -164,9 +180,11 @@ pub extern "C" fn vault_request_ffi(
         let response_str = vault_request(request_str.to_string());
 
         // Return ownership to Dart (caller must free)
-        CString::new(response_str).unwrap_or_else(|_| {
-            CString::new(r#"{"success":false,"error":"response encoding error"}"#).unwrap()
-        }).into_raw()
+        CString::new(response_str)
+            .unwrap_or_else(|_| {
+                CString::new(r#"{"success":false,"error":"response encoding error"}"#).unwrap()
+            })
+            .into_raw()
     });
 
     match result {
@@ -174,14 +192,21 @@ pub extern "C" fn vault_request_ffi(
         Err(_) => {
             let response = vault::processor::VaultResponse::error("Internal error".to_string());
             let json = serde_json::to_string(&response).unwrap_or_default();
-            CString::new(json).unwrap_or_else(|_| CString::new("{}").unwrap()).into_raw()
+            CString::new(json)
+                .unwrap_or_else(|_| CString::new("{}").unwrap())
+                .into_raw()
         }
     }
 }
 
 /// Initialize account manager from base path (C-compatible)
+///
+/// # Safety
+/// `base_path_ptr` must be a valid, null-terminated C string pointer.
 #[no_mangle]
-pub extern "C" fn init_account_manager_ffi(base_path_ptr: *const libc::c_char) -> libc::c_int {
+pub unsafe extern "C" fn init_account_manager_ffi(
+    base_path_ptr: *const libc::c_char,
+) -> libc::c_int {
     use std::ffi::CStr;
 
     if base_path_ptr.is_null() {
@@ -212,8 +237,11 @@ pub extern "C" fn is_vault_unlocked_ffi() -> libc::c_int {
 }
 
 /// Free a string allocated by Rust (must be called by Dart to prevent memory leaks)
+///
+/// # Safety
+/// `ptr` must have been previously allocated by `CString::into_raw` in this crate.
 #[no_mangle]
-pub extern "C" fn free_rust_string_ffi(ptr: *mut libc::c_char) {
+pub unsafe extern "C" fn free_rust_string_ffi(ptr: *mut libc::c_char) {
     if !ptr.is_null() {
         drop(unsafe { CString::from_raw(ptr) });
     }

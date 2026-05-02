@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
@@ -19,12 +20,10 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider, SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show effectiveSensitivityProvider;
+    show effectiveSensitivityProvider, SensitivityLevel;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
-import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
-    show SensitivityLevel;
 
 part 'entry_card_widget.g.dart';
 
@@ -186,17 +185,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     return ref.watch(effectiveSensitivityProvider(fieldId));
   }
 
-  String _formatLabel(String key) {
-    // camelCase → Title Case (i18n-ready)
-    final spaced = key.replaceAllMapped(
-      RegExp(r'([a-z])([A-Z])'),
-      (m) => '${m[1]} ${m[2]}',
-    );
-    return spaced.replaceAll('_', ' ').split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-  }
+  String _formatLabel(String key) => formatFieldLabel(key);
 
   List<LabelValueField> _autoBuildFields() {
     final fields = <LabelValueField>[];

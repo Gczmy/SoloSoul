@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
@@ -18,7 +16,7 @@ import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
-import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -67,7 +65,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final objectCount = unifiedData.objects.length;
     final activeCount = unifiedData.objects.where((o) => !o.isDeleted).length;
 
-    DebugLogger.instance.logInfo(
+    SoloLog.d(
       'LOGIN',
       '_promptRestoreIfEmpty: profile=${profile != null}, '
       'unifiedObjects=${profile?.unifiedObjects != null}, '
@@ -86,7 +84,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (profile.unifiedObjects == null) {
         // 旧格式数据（无 unified_objects 字段），profile 存在但无法通过新模型读取
         // 为避免误报，不提示恢复（legacy migration 已移除，旧数据无法自动恢复）
-        DebugLogger.instance.logWarning(
+        SoloLog.w(
           'LOGIN',
           'Legacy profile detected without unified_objects, skipping restore prompt',
         );
@@ -358,30 +356,40 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    DebugLogger.instance.logInfo('LOGIN', 'Starting unlockVault for account: ${authNotifier.selectedAccountId}');
+    SoloLog.d('LOGIN', 'Starting unlockVault for account: ${authNotifier.selectedAccountId}');
     bool success;
     try {
       success = await authNotifier.unlockVault(_passwordController.text);
+      SoloLog.d('LOGIN', 'unlockVault returned: $success');
     } on Exception catch (e, st) {
-      DebugLogger.instance.logError('LOGIN', 'unlockVault exception: $e\n$st');
+      SoloLog.e('LOGIN', 'unlockVault threw exception', e, st);
       success = false;
     }
-    DebugLogger.instance.logInfo('LOGIN', 'unlockVault completed, success: $success');
+    SoloLog.d('LOGIN', 'unlockVault completed, success: $success');
 
     if (success && mounted) {
       // Pre-load profile before navigating to home
-      // Use timeout to prevent hanging if OperationLogService initialization is slow
-      DebugLogger.instance.logInfo('LOGIN', 'Unlock success, loading profile...');
-      await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          DebugLogger.instance.logError('LOGIN', 'loadProfile timed out');
-        },
-      );
-      DebugLogger.instance.logInfo('LOGIN', 'Profile loaded, calling loadFromProfile...');
-      await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
+      SoloLog.d('LOGIN', 'Unlock success, loading profile...');
+      try {
+        await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            SoloLog.e('LOGIN', 'loadProfile timed out');
+          },
+        );
+        SoloLog.d('LOGIN', 'Profile loaded OK');
+      } on Exception catch (e, st) {
+        SoloLog.e('LOGIN', 'loadProfile exception', e, st);
+      }
+      SoloLog.d('LOGIN', 'Calling loadFromProfile...');
+      try {
+        await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
+        SoloLog.d('LOGIN', 'loadFromProfile OK');
+      } on Exception catch (e, st) {
+        SoloLog.e('LOGIN', 'loadFromProfile exception', e, st);
+      }
       final unifiedData = ref.read(unifiedObjectProvider);
-      DebugLogger.instance.logInfo(
+      SoloLog.d(
         'LOGIN',
         'After loadFromProfile: objects=${unifiedData.objects.length}, customTypes=${unifiedData.customTypes.length}',
       );
@@ -414,7 +422,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             lastUsed: DateTime.now(),
           ).toJson(),
         ).timeout(const Duration(seconds: 5), onTimeout: () {
-          DebugLogger.instance.logWarning('LOGIN', 'updateAccountMetadata timed out');
+          SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
         });
         // Reload selected account info so Settings page shows updated data
         await authNotifier.selectAccount(accountId);
@@ -433,21 +441,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleCreateAccount() async {
-    // Use path_provider for cross-platform log directory (debug build only)
-    File? traceLog;
-    if (kDebugMode) {
-      try {
-        final appDocDir = await getApplicationDocumentsDirectory();
-        final logDir = Directory('${appDocDir.path}/logs');
-        if (!await logDir.exists()) {
-          await logDir.create(recursive: true);
-        }
-        traceLog = File('${logDir.path}/flutter_native_vault.log');
-        await traceLog.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] _handleCreateAccount start\n', mode: FileMode.append);
-      } on Exception {
-        // Silently fail if logging fails - not critical path
-      }
-    }
+    SoloLog.d('LOGIN', '_handleCreateAccount start');
 
     final name = _newAccountNameController.text.trim();
     final password = _newPasswordController.text;
@@ -472,7 +466,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _isLoading = true;
     });
 
-    await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.createAccount\n', mode: FileMode.append);
+    SoloLog.d('LOGIN', 'calling authNotifier.createAccount');
 
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final passwordHint = _passwordHintController.text.trim();
@@ -482,13 +476,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       passwordHint: passwordHint.isEmpty ? null : passwordHint,
     );
 
-    await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] createAccount returned, success=${result.success}\n', mode: FileMode.append);
+    SoloLog.d('LOGIN', 'createAccount returned, success=${result.success}');
 
     if (result.success && mounted) {
       // Account created, now unlock
-      await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] calling authNotifier.unlockVault\n', mode: FileMode.append);
+      SoloLog.d('LOGIN', 'calling authNotifier.unlockVault');
       final success = await authNotifier.unlockVault(password);
-      await traceLog?.writeAsString('${DateTime.now().toIso8601String()} [LOGIN] unlockVault returned, success=$success\n', mode: FileMode.append);
+      SoloLog.d('LOGIN', 'unlockVault returned, success=$success');
       if (success && mounted) {
         // Pre-load profile before navigating to home
         await ref.read(profileNotifierProvider.notifier).loadProfile();
@@ -515,7 +509,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _selectAccount(String accountId) async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     await authNotifier.selectAccount(accountId);
-    setState(() {});
+    // Rebuild to show password input for the selected account
+    // (build() uses ref.read for authNotifier, not ref.watch)
+    if (mounted) setState(() {});
   }
 
   Future<void> _backToAccountList() async {

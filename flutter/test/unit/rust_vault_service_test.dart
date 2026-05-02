@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
@@ -78,151 +77,6 @@ void main() {
     });
   });
 
-  group('RustVaultService instance management', skip: skipOnLinux, () {
-    test('instance returns singleton', () {
-      final instance1 = RustVaultService.instance;
-      final instance2 = RustVaultService.instance;
-
-      expect(instance1, same(instance2));
-    });
-
-    test('setEncryptionKey stores key', () {
-      final service = RustVaultService.instance;
-      final key = Uint8List.fromList(List.filled(32, 1));
-
-      service.setEncryptionKey(key);
-
-      expect(service.encryptionKey, isNotNull);
-      expect(service.encryptionKey!.length, 32);
-    });
-
-    test('clearEncryptionKey removes key', () {
-      final service = RustVaultService.instance;
-      final key = Uint8List.fromList(List.filled(32, 1));
-
-      service.setEncryptionKey(key);
-      expect(service.encryptionKey, isNotNull);
-
-      service.clearEncryptionKey();
-
-      expect(service.encryptionKey, isNull);
-    });
-  });
-
-  group('RustVaultService encryption helpers', skip: skipOnLinux, () {
-    late RustVaultService service;
-
-    setUp(() {
-      service = RustVaultService.instance;
-      // Set up encryption key for tests
-      service.setEncryptionKey(Uint8List.fromList(List.filled(32, 42)));
-    });
-
-    tearDown(() {
-      service.clearEncryptionKey();
-    });
-
-    test('setEncryptionKey accepts 32-byte key', () {
-      final key = Uint8List.fromList(List.filled(32, 99));
-      service.setEncryptionKey(key);
-      expect(service.encryptionKey, isNotNull);
-      expect(service.encryptionKey!.length, 32);
-    });
-
-    test('clearEncryptionKey removes key', () {
-      service.setEncryptionKey(Uint8List.fromList(List.filled(32, 99)));
-      expect(service.encryptionKey, isNotNull);
-
-      service.clearEncryptionKey();
-
-      expect(service.encryptionKey, isNull);
-    });
-
-    test('saveProfileEncrypted returns null without encryption key', () async {
-      service.clearEncryptionKey();
-      // This uses _encryptData internally which returns null when no key
-      final result = await service.saveProfileEncrypted(
-        'test_profile',
-        '{"data": "test"}',
-      );
-      expect(result, isNull);
-    });
-  });
-
-  group('RustVaultService high-level operations', skip: skipOnLinux, () {
-    late RustVaultService service;
-
-    setUp(() {
-      service = RustVaultService.instance;
-    });
-
-    test('saveProfileEncrypted returns null without encryption key', () async {
-      service.clearEncryptionKey();
-
-      final result = await service.saveProfileEncrypted(
-        'test_profile',
-        '{"data": "test"}',
-      );
-
-      expect(result, isNull);
-    });
-
-    test('loadProfileDecrypted handles null encrypted data', () async {
-      // Override loadProfile to return null
-      final result = await service.loadProfileDecrypted('nonexistent_id');
-
-      expect(result, isNull);
-    });
-
-    test('saveFieldHistoriesEncrypted returns false without key', () async {
-      service.clearEncryptionKey();
-
-      final result = await service.saveFieldHistoriesEncrypted(
-        'acc_123',
-        '{"history": []}',
-      );
-
-      expect(result, false);
-    });
-
-    test('loadFieldHistoriesDecrypted handles null result', () async {
-      final result = await service.loadFieldHistoriesDecrypted('nonexistent');
-
-      // Returns null when result is null or success is not true
-      expect(result, isNull);
-    });
-
-    test('deleteFieldHistories handles null result', () async {
-      final result = await service.deleteFieldHistories('nonexistent');
-
-      // Returns false when result is null or success is not true
-      expect(result, false);
-    });
-
-    test('saveSettingEncrypted returns false without key', () async {
-      service.clearEncryptionKey();
-
-      final result = await service.saveSettingEncrypted(
-        'acc_123',
-        '{"setting": "value"}',
-      );
-
-      expect(result, false);
-    });
-
-    test('loadSettingDecrypted handles null result', () async {
-      final result = await service.loadSettingDecrypted('nonexistent');
-
-      expect(result, isNull);
-    });
-
-    test('deleteSetting handles null result', () async {
-      final result = await service.deleteSetting('nonexistent');
-
-      expect(result, false);
-    });
-  });
-
   group('RustVaultService account operations', skip: skipOnLinux, () {
     late RustVaultService service;
 
@@ -230,9 +84,9 @@ void main() {
       service = RustVaultService.instance;
     });
 
-    test('createAccount returns failure result type', () {
+    test('createAccount returns failure result type', () async {
       // Without actual Rust library, returns error result
-      final result = service.createAccount(
+      final result = await service.createAccount(
         name: 'test_account',
         password: 'short', // Too short
       );
@@ -241,21 +95,13 @@ void main() {
       expect(result.error, isNotNull);
     });
 
-    test('unlockVault returns failure for empty password', () {
-      final result = service.unlockVault(
+    test('unlockVault returns failure for empty password', () async {
+      final result = await service.unlockVault(
         accountId: 'acc_123',
         password: '',
       );
 
       expect(result.success, false);
-    });
-
-    test('lockVault clears encryption key', () {
-      service.setEncryptionKey(Uint8List.fromList(List.filled(32, 1)));
-
-      service.lockVault();
-
-      expect(service.encryptionKey, isNull);
     });
 
     test('deleteAccount returns bool', () {

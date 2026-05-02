@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 part 'rust_vault_service.g.dart';
 
@@ -48,104 +49,46 @@ class RustVaultService {
     return _instance!;
   }
 
-  /// Encryption key derived from master password (set after unlock)
-  Uint8List? _encryptionKey;
-
-  /// Set the encryption key (derived from master password via Argon2id).
-  /// Makes a defensive copy so callers can safely wipe their original buffer.
-  void setEncryptionKey(Uint8List key) {
-    _encryptionKey = Uint8List.fromList(key);
-  }
-
-  /// Get the encryption key
-  Uint8List? get encryptionKey => _encryptionKey;
-
-  /// Clear the encryption key (on lock) - securely zero the buffer
-  void clearEncryptionKey() {
-    if (_encryptionKey != null) {
-      for (var i = 0; i < _encryptionKey!.length; i++) {
-        _encryptionKey![i] = 0;
-      }
-    }
-    _encryptionKey = null;
-  }
-
-  /// Encrypt profile data using AES-256-GCM
-  ///
-  /// Returns nonce + ciphertext combined, or null on failure
-  Uint8List? _encryptData(Uint8List data) {
-    if (_encryptionKey == null) {
-      return null;
-    }
-
-    final nonce = NativeCryptoService.instance.generateSalt();
-    if (nonce == null) {
-      return null;
-    }
-
-    // Use first 12 bytes of 32-byte salt as nonce
-    final nonce12 = Uint8List.fromList(nonce.sublist(0, 12));
-
-    final encrypted = NativeCryptoService.instance.encrypt(
-      data: data,
-      key: _encryptionKey!,
-      nonce: nonce12,
-    );
-    if (encrypted == null) {
-      return null;
-    }
-
-    // Combine nonce + ciphertext
-    final combined = Uint8List(12 + encrypted.length);
-    combined.setRange(0, 12, nonce12);
-    combined.setRange(12, combined.length, encrypted);
-    return combined;
-  }
-
-  /// Decrypt profile data using AES-256-GCM
-  ///
-  /// Expects nonce + ciphertext combined format
-  Uint8List? _decryptData(Uint8List combined) {
-    if (_encryptionKey == null) {
-      return null;
-    }
-    if (combined.length < 13) {
-      return null;
-    }
-
-    final nonce = combined.sublist(0, 12);
-    final encryptedData = combined.sublist(12);
-
-    final result = NativeCryptoService.instance.decrypt(
-      encrypted: encryptedData,
-      key: _encryptionKey!,
-      nonce: Uint8List.fromList(nonce),
-    );
-    if (result == null) {
-      return null;
-    }
-    return result;
-  }
+  /// Base path for vault storage (set during init)
+  String? _vaultRoot;
+  String? get vaultRoot => _vaultRoot;
 
   // ===========================================================================
   // Public encryption helpers for external services (e.g. BackupService)
   // ===========================================================================
 
-  /// Encrypt arbitrary bytes using the current encryption key.
-  /// Returns nonce(12B) + ciphertext combined, or null if key not set.
-  Uint8List? encryptBytes(Uint8List data) => _encryptData(data);
+  /// Encrypt arbitrary bytes via Rust FRB (AES-256-GCM, SOLO blob format).
+  /// Vault must be unlocked. Returns encrypted SOLO blob bytes.
+  Future<Uint8List?> encryptBytes(Uint8List data) async {
+    final result = await frb.frbEncryptBytes(data: data);
+    return result.isEmpty ? null : result;
+  }
 
-  /// Decrypt bytes that were encrypted with [encryptBytes].
-  /// Expects nonce + ciphertext combined format.
-  Uint8List? decryptBytes(Uint8List combined) => _decryptData(combined);
+  /// Decrypt SOLO blob bytes via Rust FRB.
+  /// Vault must be unlocked. Returns plaintext bytes.
+  Future<Uint8List?> decryptBytes(Uint8List combined) async {
+    try {
+      return await frb.frbDecryptBytes(data: combined);
+    } on Exception {
+      return null;
+    }
+  }
 
   // ===========================================================================
   // FFI Bridge calls via NativeVaultService (JSON Relay Pattern)
   // ===========================================================================
 
   /// Initialize account manager with base path
-  bool initAccountManager(String basePath) {
-    return NativeVaultService.instance.initAccountManager(basePath);
+  Future<bool> initAccountManager(String basePath) async {
+    try {
+      await frb.frbInitAccountManager(basePath: basePath);
+      _vaultRoot = basePath;
+      SoloLog.d('RustVault', 'initAccountManager succeeded: $basePath');
+      return true;
+    } on Exception catch (e, st) {
+      SoloLog.e('RustVault', 'initAccountManager failed', e, st);
+      return false;
+    }
   }
 
   /// Check if vault is unlocked
@@ -198,15 +141,11 @@ class RustVaultService {
 
   /// Create a new account in the Rust vault
   /// This must be called before unlockVault for new accounts
-  ({bool success, String? error, String? accountId, String? name, String? salt, String? verifyHash}) createAccount({
+  Future<({bool success, String? error, String? accountId, String? name, String? salt, String? verifyHash})> createAccount({
     required String name,
     required String password,
-  }) {
-    // NOTE: DebugLogger removed - synchronous file I/O may cause hangs
-    final result = NativeVaultService.instance.createAccount(name: name, password: password);
-    if (result == null) {
-      return (success: false, error: 'Failed to create account', accountId: null, name: null, salt: null, verifyHash: null);
-    }
+  }) async {
+    final result = await frb.frbCreateAccount(name: name, password: password);
     return (
       success: result.success,
       error: result.error,
@@ -219,12 +158,16 @@ class RustVaultService {
 
   /// Unlock the vault with account credentials
   /// This opens the encrypted SQLCipher database
-  ({bool success, String? error, int? cryptoVersion}) unlockVault({
+  Future<({bool success, String? error, int? cryptoVersion})> unlockVault({
     required String accountId,
     required String password,
-  }) {
-    final result = NativeVaultService.instance.unlockVault(accountId: accountId, password: password);
-    return result ?? (success: false, error: 'Failed to unlock vault', cryptoVersion: null);
+  }) async {
+    final result = await frb.frbUnlockVault(accountId: accountId, password: password);
+    return (
+      success: result.success,
+      error: result.error,
+      cryptoVersion: result.cryptoVersion,
+    );
   }
 
   /// Unlock the vault with a pre-derived session key (for biometric unlock)
@@ -257,25 +200,32 @@ class RustVaultService {
   }
 
   /// Lock the vault - clears session key and closes database connection
-  void lockVault() {
-    clearEncryptionKey();
-    NativeVaultService.instance.lockVault();
+  Future<void> lockVault() async {
+    await frb.frbLockVault();
   }
 
   /// Delete an account and all its data from Rust vault
-  bool deleteAccount(String accountId) {
-    return NativeVaultService.instance.deleteAccount(accountId: accountId);
+  Future<bool> deleteAccount(String accountId) async {
+    return frb.frbDeleteAccount(accountId: accountId);
   }
 
   /// Get vault statistics
-  Map<String, dynamic>? getVaultStats() {
-    return NativeVaultService.instance.getVaultStats();
+  Future<frb.VaultStats?> getVaultStats() async {
+    return frb.frbGetVaultStats();
   }
 
   /// List all accounts from Rust vault (single source of truth)
-  /// Uses JSON relay through NativeVaultService
-  List<Map<String, dynamic>>? listAccountsFromRust() {
-    return NativeVaultService.instance.listAccounts();
+  Future<List<Map<String, dynamic>>> listAccountsFromRust() async {
+    final accounts = await frb.frbListAccounts();
+    return accounts.map((a) => {
+      'id': a.id,
+      'name': a.name,
+      if (a.lastAccessed != null) 'last_accessed': a.lastAccessed!,
+      if (a.passwordHint != null) 'password_hint': a.passwordHint!,
+      if (a.lastLoginAt != null) 'last_login_at': a.lastLoginAt!,
+      if (a.lastOperationAt != null) 'last_operation_at': a.lastOperationAt!,
+      if (a.lastOperationDesc != null) 'last_operation_desc': a.lastOperationDesc!,
+    }).toList();
   }
 
   // ===========================================================================
@@ -292,20 +242,22 @@ class RustVaultService {
     String name,
     String jsonData,
   ) async {
-
-    if (_encryptionKey == null) {
-      return null;
-    }
-
+    // Use FRB: encrypt via Rust, then save to vault
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
 
-    final encryptedData = _encryptData(jsonBytes);
-    if (encryptedData == null) {
+    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
+    if (encryptedData.isEmpty) {
       return null;
     }
 
-    final result = await saveProfile(name, encryptedData);
-    return result;
+    final summary = await frb.frbSaveProfile(name: name, data: encryptedData);
+    return BridgeProfileSummary(
+      id: summary.id,
+      name: summary.name,
+      createdAt: summary.createdAt,
+      updatedAt: summary.updatedAt,
+      version: summary.version,
+    );
   }
 
   /// Load and decrypt a profile by ID
@@ -314,18 +266,14 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadProfileDecrypted(String id) async {
-    final encryptedData = await loadProfile(id);
-    if (encryptedData == null) {
+    // Use FRB: load from vault, then decrypt via Rust
+    final loaded = await frb.frbLoadProfile(id: id);
+    if (loaded == null) {
       return null;
     }
 
-    final decrypted = _decryptData(encryptedData);
-    if (decrypted == null) {
-      return null;
-    }
-
-    final result = utf8.decode(decrypted);
-    return result;
+    final decrypted = await frb.frbDecryptBytes(data: loaded.data);
+    return utf8.decode(decrypted);
   }
 
   // ===========================================================================
@@ -342,13 +290,9 @@ class RustVaultService {
     String accountId,
     String jsonData,
   ) async {
-    if (_encryptionKey == null) {
-      return false;
-    }
-
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
-    final encryptedData = _encryptData(jsonBytes);
-    if (encryptedData == null) {
+    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
+    if (encryptedData.isEmpty) {
       return false;
     }
 
@@ -378,8 +322,6 @@ class RustVaultService {
       return null;
     }
 
-    // Rust returns: {"success": true, "data": {"data": "base64..."}}
-    // Need to unwrap one layer like loadProfile does.
     final responseData = result!['data'] as Map<String, dynamic>?;
     if (responseData == null) {
       return null;
@@ -391,13 +333,13 @@ class RustVaultService {
     }
 
     if (data is String) {
-      // data is base64 encoded encrypted data
       final encryptedBytes = base64Decode(data);
-      final decrypted = _decryptData(encryptedBytes);
-      if (decrypted == null) {
+      try {
+        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
+        return utf8.decode(decrypted);
+      } on Exception {
         return null;
       }
-      return utf8.decode(decrypted);
     }
 
     return null;
@@ -431,13 +373,9 @@ class RustVaultService {
     String accountId,
     String jsonData,
   ) async {
-    if (_encryptionKey == null) {
-      return false;
-    }
-
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
-    final encryptedData = _encryptData(jsonBytes);
-    if (encryptedData == null) {
+    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
+    if (encryptedData.isEmpty) {
       return false;
     }
 
@@ -467,8 +405,6 @@ class RustVaultService {
       return null;
     }
 
-    // Rust returns: {"success": true, "data": {"data": "base64..."}}
-    // Need to unwrap one layer like loadProfile does.
     final responseData = result!['data'] as Map<String, dynamic>?;
     if (responseData == null) {
       return null;
@@ -480,13 +416,13 @@ class RustVaultService {
     }
 
     if (data is String) {
-      // data is base64 encoded encrypted data
       final encryptedBytes = base64Decode(data);
-      final decrypted = _decryptData(encryptedBytes);
-      if (decrypted == null) {
+      try {
+        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
+        return utf8.decode(decrypted);
+      } on Exception {
         return null;
       }
-      return utf8.decode(decrypted);
     }
 
     return null;

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -29,6 +28,9 @@ class ProfileStorageService {
   // Reference to Rust vault service
   final RustVaultService _rustVault = RustVaultService.instance;
 
+  // In-memory cache of last loaded profile per account
+  final Map<String, ProfileData> _profileCache = {};
+
   ProfileStorageService._();
 
   static ProfileStorageService get instance {
@@ -36,25 +38,11 @@ class ProfileStorageService {
     return _instance!;
   }
 
-  /// Set the encryption key (derived from master password)
-  /// Also sets it on the RustVaultService
-  void setEncryptionKey(Uint8List key) {
-    _rustVault.setEncryptionKey(key);
-  }
-
-  /// Get the encryption key (for use by OperationLogService)
-  Uint8List? get encryptionKey => _rustVault.encryptionKey;
-
   /// Get the storage directory for logs and other files
   /// Uses the app's documents directory
   Future<Directory> get storageDir async {
     final appDir = await getApplicationDocumentsDirectory();
     return Directory('${appDir.path}/solosoul_storage');
-  }
-
-  /// Clear the encryption key (on lock)
-  void clearEncryptionKey() {
-    _rustVault.clearEncryptionKey();
   }
 
   /// Current schema version for unified object model.
@@ -171,6 +159,7 @@ class ProfileStorageService {
           }),
         );
       }
+      _profileCache[accountId] = profile;
       return profile;
     } on RemoteError catch (e) {
       DebugLogger.instance.logError(
@@ -189,7 +178,7 @@ class ProfileStorageService {
   Future<bool> saveProfile(String accountId, ProfileData profile) async {
     try {
       // Data protection: prevent accidental loss of unifiedObjects
-      final existing = await loadProfile(accountId);
+      final existing = _profileCache[accountId];
       if (existing?.unifiedObjects != null && profile.unifiedObjects == null) {
         profile = profile.copyWith(unifiedObjects: existing!.unifiedObjects);
       }
@@ -202,6 +191,7 @@ class ProfileStorageService {
         return false;
       }
 
+      _profileCache[accountId] = profile;
       return true;
     } on Exception catch (_) {
       // IOException or other Error subclasses could occur here

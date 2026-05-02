@@ -3,12 +3,12 @@
 //! This module provides a type-safe JSON RPC interface for vault operations
 //! that works around flutter_rust_bridge's complex type handling limitations.
 
+use crate::account::{AccountManager, MetadataUpdate};
+use crate::vault::{Profile, ProfileSummary};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
-use crate::vault::{Profile, ProfileSummary};
-use crate::account::AccountManager;
 
 /// Write debug log to file (works in sandboxed environment)
 fn log_to_file(msg: &str) {
@@ -104,6 +104,12 @@ pub struct ChangePasswordPayload {
     pub new_password: String,
 }
 
+/// Payload for encrypt_data / decrypt_data actions
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CryptoPayload {
+    pub data: String, // Base64 encoded plaintext (encrypt) or ciphertext (decrypt)
+}
+
 /// Profile summary for JSON serialization
 #[derive(Debug, Serialize)]
 pub struct JsonProfileSummary {
@@ -159,6 +165,13 @@ pub fn handle_vault_request(
         "load_setting" => handle_load_setting(request.payload, account_manager),
         "delete_setting" => handle_delete_setting(request.payload, account_manager),
         "list_accounts" => handle_list_accounts(account_manager),
+        "encrypt_data" => handle_encrypt_data(request.payload, account_manager),
+        "decrypt_data" => handle_decrypt_data(request.payload, account_manager),
+        "verify_password" => handle_verify_password(request.payload, account_manager),
+        "migrate_encryption" => handle_migrate_encryption(request.payload, account_manager),
+        "update_account_metadata" => {
+            handle_update_account_metadata(request.payload, account_manager)
+        }
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
     }
 }
@@ -192,10 +205,8 @@ fn handle_list_profiles(manager: &AccountManager) -> VaultResponse {
 
     match vault.list_profiles() {
         Ok(profiles) => {
-            let summaries: Vec<JsonProfileSummary> = profiles
-                .into_iter()
-                .map(JsonProfileSummary::from)
-                .collect();
+            let summaries: Vec<JsonProfileSummary> =
+                profiles.into_iter().map(JsonProfileSummary::from).collect();
             match serde_json::to_value(summaries) {
                 Ok(json) => VaultResponse::success(json),
                 Err(e) => VaultResponse::error(format!("Failed to serialize profiles: {}", e)),
@@ -205,7 +216,10 @@ fn handle_list_profiles(manager: &AccountManager) -> VaultResponse {
     }
 }
 
-fn handle_save_profile(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_save_profile(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let vault_guard = match manager.get_vault_store() {
         Some(g) => g,
         None => return VaultResponse::error("Vault not unlocked".to_string()),
@@ -231,7 +245,8 @@ fn handle_save_profile(payload: Option<serde_json::Value>, manager: &AccountMana
     };
 
     // Check if profile exists by name
-    let existing = vault.list_profiles()
+    let existing = vault
+        .list_profiles()
         .ok()
         .and_then(|profiles| profiles.into_iter().find(|p| p.name == payload.name));
 
@@ -243,15 +258,15 @@ fn handle_save_profile(payload: Option<serde_json::Value>, manager: &AccountMana
         }
     }
 
-    let profile = if existing.is_some() {
+    let profile = if let Some(ref existing) = existing {
         // Use the existing profile's created_at since we're updating
         Profile {
-            id: payload.name.clone(),  // Use name as ID for consistent lookups
+            id: payload.name.clone(), // Use name as ID for consistent lookups
             name: payload.name.clone(),
             data,
-            created_at: existing.as_ref().unwrap().created_at,
+            created_at: existing.created_at,
             updated_at: chrono::Utc::now(),
-            version: existing.as_ref().unwrap().version + 1,
+            version: existing.version + 1,
         }
     } else {
         // Use profile name as ID so Flutter can look it up by accountId
@@ -269,7 +284,10 @@ fn handle_save_profile(payload: Option<serde_json::Value>, manager: &AccountMana
     }
 }
 
-fn handle_create_profile(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_create_profile(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let vault_guard = match manager.get_vault_store() {
         Some(g) => g,
         None => return VaultResponse::error("Vault not unlocked".to_string()),
@@ -307,7 +325,10 @@ fn handle_create_profile(payload: Option<serde_json::Value>, manager: &AccountMa
     }
 }
 
-fn handle_load_profile(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_load_profile(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let vault_guard = match manager.get_vault_store() {
         Some(g) => g,
         None => return VaultResponse::error("Vault not unlocked".to_string()),
@@ -319,12 +340,10 @@ fn handle_load_profile(payload: Option<serde_json::Value>, manager: &AccountMana
     };
 
     let id = match payload {
-        Some(p) => {
-            match p.get("id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing profile id".to_string()),
-            }
-        }
+        Some(p) => match p.get("id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing profile id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -343,7 +362,10 @@ fn handle_load_profile(payload: Option<serde_json::Value>, manager: &AccountMana
     }
 }
 
-fn handle_delete_profile(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_delete_profile(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let vault_guard = match manager.get_vault_store() {
         Some(g) => g,
         None => return VaultResponse::error("Vault not unlocked".to_string()),
@@ -355,12 +377,10 @@ fn handle_delete_profile(payload: Option<serde_json::Value>, manager: &AccountMa
     };
 
     let id = match payload {
-        Some(p) => {
-            match p.get("id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing profile id".to_string()),
-            }
-        }
+        Some(p) => match p.get("id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing profile id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -397,7 +417,10 @@ fn handle_is_unlocked(manager: &AccountManager) -> VaultResponse {
     }))
 }
 
-fn handle_unlock_vault(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_unlock_vault(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     log_to_file("[PROCESSOR] handle_unlock_vault called");
     let payload: UnlockVaultPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
@@ -413,9 +436,15 @@ fn handle_unlock_vault(payload: Option<serde_json::Value>, manager: &AccountMana
         }
     };
 
-    log_to_file(&format!("[PROCESSOR] Calling manager.unlock for account_id: {}", payload.account_id));
+    log_to_file(&format!(
+        "[PROCESSOR] Calling manager.unlock for account_id: {}",
+        payload.account_id
+    ));
     let result = manager.unlock(&payload.account_id, &payload.password);
-    log_to_file(&format!("[PROCESSOR] manager.unlock returned, success={}", result.success));
+    log_to_file(&format!(
+        "[PROCESSOR] manager.unlock returned, success={}",
+        result.success
+    ));
 
     VaultResponse::success(serde_json::json!({
         "success": result.success,
@@ -424,7 +453,10 @@ fn handle_unlock_vault(payload: Option<serde_json::Value>, manager: &AccountMana
     }))
 }
 
-fn handle_unlock_vault_with_key(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_unlock_vault_with_key(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     log_to_file("[PROCESSOR] handle_unlock_vault_with_key called");
     let payload: UnlockVaultWithKeyPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
@@ -440,9 +472,15 @@ fn handle_unlock_vault_with_key(payload: Option<serde_json::Value>, manager: &Ac
         }
     };
 
-    log_to_file(&format!("[PROCESSOR] Calling manager.unlock_with_key for account_id: {}", payload.account_id));
+    log_to_file(&format!(
+        "[PROCESSOR] Calling manager.unlock_with_key for account_id: {}",
+        payload.account_id
+    ));
     let result = manager.unlock_with_key(&payload.account_id, &payload.session_key);
-    log_to_file(&format!("[PROCESSOR] manager.unlock_with_key returned, success={}", result.success));
+    log_to_file(&format!(
+        "[PROCESSOR] manager.unlock_with_key returned, success={}",
+        result.success
+    ));
 
     VaultResponse::success(serde_json::json!({
         "success": result.success,
@@ -458,7 +496,10 @@ fn handle_lock_vault(manager: &AccountManager) -> VaultResponse {
     }))
 }
 
-fn handle_create_account(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_create_account(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     log_to_file("[PROCESSOR] handle_create_account called");
     let payload: CreateAccountPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
@@ -467,12 +508,18 @@ fn handle_create_account(payload: Option<serde_json::Value>, manager: &AccountMa
         },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
-    log_to_file(&format!("[PROCESSOR] create_account payload: name={}", payload.name));
+    log_to_file(&format!(
+        "[PROCESSOR] create_account payload: name={}",
+        payload.name
+    ));
 
     log_to_file("[PROCESSOR] Calling manager.create_account...");
     match manager.create_account(&payload.name, &payload.password) {
         Ok(info) => {
-            log_to_file(&format!("[PROCESSOR] manager.create_account success: id={}", info.id));
+            log_to_file(&format!(
+                "[PROCESSOR] manager.create_account success: id={}",
+                info.id
+            ));
             VaultResponse::success(serde_json::json!({
                 "id": info.id,
                 "name": info.name,
@@ -480,12 +527,15 @@ fn handle_create_account(payload: Option<serde_json::Value>, manager: &AccountMa
                 "verify_hash": info.verify_hash,
                 "created": true
             }))
-        },
+        }
         Err(e) => VaultResponse::error(format!("Failed to create account: {}", e)),
     }
 }
 
-fn handle_change_password(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_change_password(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let payload: ChangePasswordPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
             Ok(p) => p,
@@ -494,7 +544,11 @@ fn handle_change_password(payload: Option<serde_json::Value>, manager: &AccountM
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
-    match manager.change_password(&payload.account_id, &payload.old_password, &payload.new_password) {
+    match manager.change_password(
+        &payload.account_id,
+        &payload.old_password,
+        &payload.new_password,
+    ) {
         Ok(info) => VaultResponse::success(serde_json::json!({
             "id": info.id,
             "name": info.name,
@@ -506,14 +560,15 @@ fn handle_change_password(payload: Option<serde_json::Value>, manager: &AccountM
     }
 }
 
-fn handle_get_account_config(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_get_account_config(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let account_id = match payload {
-        Some(p) => {
-            match p.get("account_id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing account_id".to_string()),
-            }
-        }
+        Some(p) => match p.get("account_id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing account_id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -524,19 +579,29 @@ fn handle_get_account_config(payload: Option<serde_json::Value>, manager: &Accou
             "salt": info.salt,
             "verify_hash": info.verify_hash,
             "crypto_version": info.crypto_version,
+            "password_hint": info.password_hint,
+            "last_login_at": info.last_login_at.map(|d| d.to_rfc3339()),
+            "last_operation_at": info.last_operation_at.map(|d| d.to_rfc3339()),
+            "last_operation_desc": info.last_operation_desc,
+            "recent_devices": info.recent_devices.iter().map(|d| serde_json::json!({
+                "device_name": d.device_name,
+                "last_used": d.last_used.to_rfc3339(),
+            })).collect::<Vec<_>>(),
+            "biometric_enabled": info.biometric_enabled,
         })),
         None => VaultResponse::error("Account not found".to_string()),
     }
 }
 
-fn handle_delete_account(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_delete_account(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let account_id = match payload {
-        Some(p) => {
-            match p.get("account_id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing account_id".to_string()),
-            }
-        }
+        Some(p) => match p.get("account_id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing account_id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -546,7 +611,10 @@ fn handle_delete_account(payload: Option<serde_json::Value>, manager: &AccountMa
     }
 }
 
-fn handle_search_profiles(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_search_profiles(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let vault_guard = match manager.get_vault_store() {
         Some(g) => g,
         None => return VaultResponse::error("Vault not unlocked".to_string()),
@@ -558,12 +626,10 @@ fn handle_search_profiles(payload: Option<serde_json::Value>, manager: &AccountM
     };
 
     let query = match payload {
-        Some(p) => {
-            match p.get("query").and_then(|v| v.as_str()) {
-                Some(q) => q.to_lowercase(),
-                None => return VaultResponse::error("Missing query".to_string()),
-            }
-        }
+        Some(p) => match p.get("query").and_then(|v| v.as_str()) {
+            Some(q) => q.to_lowercase(),
+            None => return VaultResponse::error("Missing query".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -574,20 +640,23 @@ fn handle_search_profiles(payload: Option<serde_json::Value>, manager: &AccountM
     // Search by name (case-insensitive LIKE)
     match vault.search_profiles(&query) {
         Ok(results) => {
-            let summaries: Vec<JsonProfileSummary> = results
-                .into_iter()
-                .map(JsonProfileSummary::from)
-                .collect();
+            let summaries: Vec<JsonProfileSummary> =
+                results.into_iter().map(JsonProfileSummary::from).collect();
             match serde_json::to_value(summaries) {
                 Ok(json) => VaultResponse::success(json),
-                Err(e) => VaultResponse::error(format!("Failed to serialize search results: {}", e)),
+                Err(e) => {
+                    VaultResponse::error(format!("Failed to serialize search results: {}", e))
+                }
             }
         }
         Err(e) => VaultResponse::error(format!("Search failed: {}", e)),
     }
 }
 
-fn handle_save_field_histories(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_save_field_histories(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let (account_id, data_b64) = match payload {
         Some(p) => {
             let account_id = match p.get("account_id").and_then(|v| v.as_str()) {
@@ -624,14 +693,15 @@ fn handle_save_field_histories(payload: Option<serde_json::Value>, manager: &Acc
     }
 }
 
-fn handle_load_field_histories(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_load_field_histories(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let account_id = match payload {
-        Some(p) => {
-            match p.get("account_id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing account_id".to_string()),
-            }
-        }
+        Some(p) => match p.get("account_id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing account_id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -655,14 +725,15 @@ fn handle_load_field_histories(payload: Option<serde_json::Value>, manager: &Acc
     }
 }
 
-fn handle_delete_field_histories(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_delete_field_histories(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let account_id = match payload {
-        Some(p) => {
-            match p.get("account_id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing account_id".to_string()),
-            }
-        }
+        Some(p) => match p.get("account_id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing account_id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -682,7 +753,10 @@ fn handle_delete_field_histories(payload: Option<serde_json::Value>, manager: &A
     }
 }
 
-fn handle_save_setting(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_save_setting(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let (account_id, data_b64) = match payload {
         Some(p) => {
             let account_id = match p.get("account_id").and_then(|v| v.as_str()) {
@@ -719,14 +793,15 @@ fn handle_save_setting(payload: Option<serde_json::Value>, manager: &AccountMana
     }
 }
 
-fn handle_load_setting(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_load_setting(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let account_id = match payload {
-        Some(p) => {
-            match p.get("account_id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing account_id".to_string()),
-            }
-        }
+        Some(p) => match p.get("account_id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing account_id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -750,14 +825,15 @@ fn handle_load_setting(payload: Option<serde_json::Value>, manager: &AccountMana
     }
 }
 
-fn handle_delete_setting(payload: Option<serde_json::Value>, manager: &AccountManager) -> VaultResponse {
+fn handle_delete_setting(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
     let account_id = match payload {
-        Some(p) => {
-            match p.get("account_id").and_then(|v| v.as_str()) {
-                Some(id) => id.to_string(),
-                None => return VaultResponse::error("Missing account_id".to_string()),
-            }
-        }
+        Some(p) => match p.get("account_id").and_then(|v| v.as_str()) {
+            Some(id) => id.to_string(),
+            None => return VaultResponse::error("Missing account_id".to_string()),
+        },
         None => return VaultResponse::error("Missing payload".to_string()),
     };
 
@@ -777,6 +853,272 @@ fn handle_delete_setting(payload: Option<serde_json::Value>, manager: &AccountMa
     }
 }
 
+// =============================================================================
+// Phase 1: Unified encryption layer — encrypt/decrypt via Rust
+// =============================================================================
+
+fn handle_encrypt_data(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
+    let session_key = match manager.get_session_key() {
+        Some(k) => k,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let payload: CryptoPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let plaintext = match base64_decode(&payload.data) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    let key: [u8; 32] = match session_key.as_slice().try_into() {
+        Ok(k) => k,
+        Err(_) => return VaultResponse::error("Invalid session key length".to_string()),
+    };
+
+    match crate::crypto::encrypt_profile_data(&key, &plaintext) {
+        Ok(blob) => VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&blob),
+        })),
+        Err(e) => VaultResponse::error(format!("Encryption failed: {}", e)),
+    }
+}
+
+fn handle_decrypt_data(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
+    let session_key = match manager.get_session_key() {
+        Some(k) => k,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let payload: CryptoPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let ciphertext = match base64_decode(&payload.data) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    let key: [u8; 32] = match session_key.as_slice().try_into() {
+        Ok(k) => k,
+        Err(_) => return VaultResponse::error("Invalid session key length".to_string()),
+    };
+
+    match crate::crypto::decrypt_profile_data(&key, &ciphertext) {
+        Ok(plaintext) => VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&plaintext),
+        })),
+        Err(e) => VaultResponse::error(format!("Decryption failed: {}", e)),
+    }
+}
+
+fn handle_verify_password(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
+    #[derive(Deserialize)]
+    struct VerifyPayload {
+        account_id: String,
+        password: String,
+    }
+
+    let payload: VerifyPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let result = manager.unlock(&payload.account_id, &payload.password);
+    VaultResponse::success(serde_json::json!({
+        "success": result.success,
+        "error": result.error,
+        "crypto_version": result.crypto_version,
+    }))
+}
+
+fn handle_migrate_encryption(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
+    let session_key = match manager.get_session_key() {
+        Some(k) => k,
+        None => return VaultResponse::error("Vault not unlocked".to_string()),
+    };
+
+    let payload: CryptoPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let legacy_data = match base64_decode(&payload.data) {
+        Ok(d) => d,
+        Err(e) => return VaultResponse::error(format!("Failed to decode data: {}", e)),
+    };
+
+    let key: [u8; 32] = match session_key.as_slice().try_into() {
+        Ok(k) => k,
+        Err(_) => return VaultResponse::error("Invalid session key length".to_string()),
+    };
+
+    // Check if already SOLO format — return as-is
+    if legacy_data.len() >= 33 && &legacy_data[0..4] == b"SOLO" {
+        return VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&legacy_data),
+            "migrated": false,
+        }));
+    }
+
+    match crate::crypto::migrate_to_solo_format(&key, &legacy_data) {
+        Ok(solo_blob) => VaultResponse::success(serde_json::json!({
+            "data": base64_encode(&solo_blob),
+            "migrated": true,
+        })),
+        Err(e) => VaultResponse::error(format!("Migration failed: {}", e)),
+    }
+}
+
+fn handle_update_account_metadata(
+    payload: Option<serde_json::Value>,
+    manager: &AccountManager,
+) -> VaultResponse {
+    #[derive(Deserialize)]
+    struct MetadataPayload {
+        account_id: String,
+        #[serde(default)]
+        password_hint: Option<String>,
+        #[serde(default)]
+        last_login_at: Option<String>,
+        #[serde(default)]
+        last_operation_at: Option<String>,
+        #[serde(default)]
+        last_operation_desc: Option<String>,
+        #[serde(default)]
+        recent_devices: Option<Vec<serde_json::Value>>,
+        /// Append a single device to the list (upsert by device_name)
+        #[serde(default)]
+        add_device: Option<serde_json::Value>,
+        #[serde(default)]
+        biometric_enabled: Option<bool>,
+    }
+
+    let payload: MetadataPayload = match payload {
+        Some(p) => match serde_json::from_value(p) {
+            Ok(p) => p,
+            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+        },
+        None => return VaultResponse::error("Missing payload".to_string()),
+    };
+
+    let last_login_at = payload.last_login_at.and_then(|s| {
+        chrono::DateTime::parse_from_rfc3339(&s)
+            .ok()
+            .map(|d| d.with_timezone(&chrono::Utc))
+    });
+    let last_operation_at = payload.last_operation_at.and_then(|s| {
+        chrono::DateTime::parse_from_rfc3339(&s)
+            .ok()
+            .map(|d| d.with_timezone(&chrono::Utc))
+    });
+
+    // Handle add_device (append/upsert) vs recent_devices (overwrite)
+    let recent_devices = if let Some(device) = payload.add_device {
+        // Read current config to get existing devices
+        let config_path = manager
+            .base_path()
+            .join(&payload.account_id)
+            .join("config.json");
+        let existing_devices = if let Ok(content) = std::fs::read_to_string(&config_path) {
+            if let Ok(config) = serde_json::from_str::<crate::account::AccountConfig>(&content) {
+                config.recent_devices
+            } else {
+                Vec::new()
+            }
+        } else {
+            Vec::new()
+        };
+
+        let device_name = device
+            .get("device_name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let last_used = device
+            .get("last_used")
+            .and_then(|v| v.as_str())
+            .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+            .map(|d| d.with_timezone(&chrono::Utc))
+            .unwrap_or_else(chrono::Utc::now);
+
+        let mut devices = existing_devices;
+        if let Some(idx) = devices.iter().position(|d| d.device_name == device_name) {
+            devices[idx] = crate::account::DeviceEntry {
+                device_name,
+                last_used,
+            };
+        } else {
+            if devices.len() >= 5 {
+                devices.remove(0);
+            }
+            devices.push(crate::account::DeviceEntry {
+                device_name,
+                last_used,
+            });
+        }
+        Some(devices)
+    } else {
+        payload.recent_devices.map(|devices| {
+            devices
+                .into_iter()
+                .filter_map(|d| {
+                    Some(crate::account::DeviceEntry {
+                        device_name: d.get("device_name")?.as_str()?.to_string(),
+                        last_used: chrono::DateTime::parse_from_rfc3339(
+                            d.get("last_used")?.as_str()?,
+                        )
+                        .ok()?
+                        .with_timezone(&chrono::Utc),
+                    })
+                })
+                .collect::<Vec<_>>()
+        })
+    };
+
+    match manager.update_account_metadata(
+        &payload.account_id,
+        MetadataUpdate {
+            password_hint: payload.password_hint,
+            last_login_at,
+            last_operation_at,
+            last_operation_desc: payload.last_operation_desc,
+            recent_devices,
+            biometric_enabled: payload.biometric_enabled,
+        },
+    ) {
+        Ok(()) => VaultResponse::success(serde_json::json!({"updated": true})),
+        Err(e) => VaultResponse::error(format!("Failed to update metadata: {}", e)),
+    }
+}
+
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 
 // Base64 encoding using standard alphabet
@@ -786,7 +1128,9 @@ fn base64_encode(data: &[u8]) -> String {
 
 /// Base64 decoding
 fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
-    BASE64.decode(input).map_err(|e| format!("Base64 decode error: {}", e))
+    BASE64
+        .decode(input)
+        .map_err(|e| format!("Base64 decode error: {}", e))
 }
 
 #[cfg(test)]
@@ -849,7 +1193,10 @@ mod tests {
         assert!(request.payload.is_some());
 
         let payload = request.payload.unwrap();
-        assert_eq!(payload.get("name").unwrap().as_str().unwrap(), "Test Account");
+        assert_eq!(
+            payload.get("name").unwrap().as_str().unwrap(),
+            "Test Account"
+        );
     }
 
     #[test]
@@ -873,8 +1220,8 @@ mod tests {
 
     #[test]
     fn test_vault_request_unknown_action() {
-        use tempfile::TempDir;
         use crate::account::AccountManager;
+        use tempfile::TempDir;
 
         let temp_dir = TempDir::new().unwrap();
         let manager = AccountManager::new(temp_dir.path().to_path_buf());

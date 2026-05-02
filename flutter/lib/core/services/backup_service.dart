@@ -172,9 +172,9 @@ class BackupService {
 
       report(0.5);
       DebugLogger.instance.logInfo('BACKUP', 'Step 3/5: encryptBytes start');
-      final encrypted = RustVaultService.instance.encryptBytes(plainBytes);
+      final encrypted = await RustVaultService.instance.encryptBytes(plainBytes);
       if (encrypted == null) {
-        DebugLogger.instance.logWarning('BACKUP', 'encryptBytes returned null (encryption key missing?)');
+        DebugLogger.instance.logWarning('BACKUP', 'encryptBytes returned null');
         report(0);
         return null;
       }
@@ -243,7 +243,7 @@ class BackupService {
       if (!await file.exists()) return false;
 
       final encrypted = await file.readAsBytes();
-      final decrypted = RustVaultService.instance.decryptBytes(encrypted);
+      final decrypted = await RustVaultService.instance.decryptBytes(encrypted);
       if (decrypted == null) return false;
 
       final jsonString = utf8.decode(decrypted);
@@ -322,7 +322,7 @@ class BackupService {
       final plainBytes = await _encodeProfileInIsolate(profileData.toJson());
 
       report(0.5);
-      final encrypted = RustVaultService.instance.encryptBytes(plainBytes);
+      final encrypted = await RustVaultService.instance.encryptBytes(plainBytes);
       if (encrypted == null) {
         report(0);
         return null;
@@ -424,7 +424,7 @@ class BackupService {
       if (!await file.exists()) return false;
 
       final encrypted = await file.readAsBytes();
-      final decrypted = RustVaultService.instance.decryptBytes(encrypted);
+      final decrypted = await RustVaultService.instance.decryptBytes(encrypted);
       if (decrypted == null) return false;
 
       final jsonString = utf8.decode(decrypted);
@@ -487,9 +487,9 @@ class BackupService {
     if (list.length <= maxBackupCount) return;
 
     final toDelete = list.sublist(maxBackupCount);
+    final dir = await _accountBackupDir(accountId);
     for (final entry in toDelete) {
       try {
-        final dir = await _accountBackupDir(accountId);
         final file = File('${dir.path}/${entry.fileName}');
         if (await file.exists()) await file.delete();
       } on Exception catch (_) {

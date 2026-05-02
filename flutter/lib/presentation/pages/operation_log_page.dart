@@ -39,7 +39,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
 
   Future<void> _refreshLogs() async {
     await OperationLogService.instance.refreshFromDisk();
-    if (mounted) setState(() {});
   }
 
   Future<void> _verifyPassword() async {
@@ -454,7 +453,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
             onPressed: () {
               OperationLogService.instance.clearEntries();
               Navigator.pop(context);
-              setState(() {});
             },
             child: const Text('Clear', style: TextStyle(color: AppTheme.errorColor)),
           ),

@@ -3,19 +3,23 @@
 //! Implements双重加密: AES-256-GCM at application layer + SQLCipher at storage layer
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use rusqlite::{Connection, params};
+use rusqlite::{params, Connection};
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use zeroize::Zeroize;
 
-use super::{VaultConfig, VaultStats, VaultState};
 use super::migration::run_migrations;
+use super::{VaultConfig, VaultState, VaultStats};
 
 /// Write debug log to file (works in sandboxed environment)
 fn log_to_file(msg: &str) {
-    let log_path = if let Ok(home) = std::env::var("HOME") { PathBuf::from(home).join("Library/Logs/solosoul_debug.log") } else { PathBuf::from("/tmp/solosoul_debug.log") };
+    let log_path = if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home).join("Library/Logs/solosoul_debug.log")
+    } else {
+        PathBuf::from("/tmp/solosoul_debug.log")
+    };
     if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&log_path) {
         let timestamp = chrono::Utc::now().to_rfc3339();
         let _ = writeln!(file, "[{}] {}", timestamp, msg);
@@ -36,8 +40,8 @@ impl VaultStore {
         log_to_file(&format!("[VAULT] VaultStore::open path: {:?}", path));
 
         // Open SQLite connection
-        let mut conn = Connection::open(&path)
-            .map_err(|e| format!("Failed to open vault: {}", e))?;
+        let mut conn =
+            Connection::open(&path).map_err(|e| format!("Failed to open vault: {}", e))?;
         log_to_file("[VAULT] Connection opened");
 
         // Set busy timeout to prevent indefinite blocking on locked files
@@ -160,15 +164,15 @@ impl VaultStore {
             .map_err(|e| e.to_string())?;
 
         let total_size_bytes: u64 = conn
-            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles", [], |row| row.get(0))
-            .map_err(|e| e.to_string())?;
-
-        let last_modified: Option<String> = conn
             .query_row(
-                "SELECT MAX(updated_at) FROM profiles",
+                "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles",
                 [],
                 |row| row.get(0),
             )
+            .map_err(|e| e.to_string())?;
+
+        let last_modified: Option<String> = conn
+            .query_row("SELECT MAX(updated_at) FROM profiles", [], |row| row.get(0))
             .ok();
 
         Ok(VaultStats {
@@ -305,7 +309,10 @@ impl VaultStore {
     }
 
     /// Search profiles by name (case-insensitive LIKE)
-    pub fn search_profiles(&self, query: &str) -> Result<Vec<crate::vault::ProfileSummary>, String> {
+    pub fn search_profiles(
+        &self,
+        query: &str,
+    ) -> Result<Vec<crate::vault::ProfileSummary>, String> {
         let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
 
@@ -387,8 +394,11 @@ impl VaultStore {
         let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
         let key = format!("HIST_{}", account_id);
 
-        conn.execute("DELETE FROM metadata WHERE key = ?1", rusqlite::params![key])
-            .map_err(|e| format!("Failed to delete field histories: {}", e))?;
+        conn.execute(
+            "DELETE FROM metadata WHERE key = ?1",
+            rusqlite::params![key],
+        )
+        .map_err(|e| format!("Failed to delete field histories: {}", e))?;
 
         Ok(())
     }
@@ -443,21 +453,21 @@ impl VaultStore {
         let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
         let key = format!("SETTING_{}", account_id);
 
-        conn.execute("DELETE FROM metadata WHERE key = ?1", rusqlite::params![key])
-            .map_err(|e| format!("Failed to delete setting: {}", e))?;
+        conn.execute(
+            "DELETE FROM metadata WHERE key = ?1",
+            rusqlite::params![key],
+        )
+        .map_err(|e| format!("Failed to delete setting: {}", e))?;
 
         Ok(())
     }
 }
 
-/// Helper for hex encoding
-fn hex_encode(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{:02x}", b)).collect()
-}
-
 /// Helper for base64 decoding
 fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
-    BASE64.decode(input).map_err(|e| format!("Base64 decode error: {}", e))
+    BASE64
+        .decode(input)
+        .map_err(|e| format!("Base64 decode error: {}", e))
 }
 
 /// Helper for base64 encoding
@@ -615,7 +625,9 @@ mod tests {
         let mut vault = VaultStore::open(config).expect("Failed to open vault");
 
         let profile = Profile::new("test_profile", vec![1, 2, 3]);
-        vault.save_profile(&profile).expect("Failed to save profile");
+        vault
+            .save_profile(&profile)
+            .expect("Failed to save profile");
 
         vault.lock();
 

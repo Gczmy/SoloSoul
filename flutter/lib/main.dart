@@ -15,9 +15,13 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/frb/frb_generated.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Flutter Rust Bridge
+  await RustLib.init();
 
   // Configure error widget builder for release resilience
   ErrorWidget.builder = (details) {
@@ -83,7 +87,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     if (Platform.isMacOS) {
       NativeChannelService.setLockCallback(() {
         try {
-          ref.read(authNotifierProvider.notifier).lockVault();
+          unawaited(ref.read(authNotifierProvider.notifier).lockVault());
         } on Exception catch (e) {
           DebugLogger.instance.logError('MAIN', 'Lock callback error: $e');
         }
@@ -153,7 +157,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     final authNotifier = ref.read(authNotifierProvider.notifier);
     if (authNotifier.isUnlocked) {
       _wipeSensitiveState();
-      authNotifier.lockVault();
+      unawaited(authNotifier.lockVault());
     }
     _pausedAt = null;
   }

@@ -2,10 +2,7 @@
 //!
 //! FFI-accessible Argon2id implementation optimized for Apple Silicon
 
-use argon2::{
-    password_hash::rand_core::OsRng,
-    Argon2, Params, Version, Algorithm,
-};
+use argon2::{password_hash::rand_core::OsRng, Algorithm, Argon2, Params, Version};
 use rand::RngCore;
 use zeroize::Zeroizing;
 
@@ -17,9 +14,90 @@ const RESULT_INVALID_PARAMS: i32 = -3;
 const RESULT_HASH_FAILED: i32 = -4;
 
 /// Default Argon2id parameters (64MB memory, 3 iterations, 4 parallelism)
-pub const DEFAULT_MEMORY_KIB: u32 = 16384;  // 16MB for faster testing
-pub const DEFAULT_ITERATIONS: u32 = 1;      // 1 iteration for faster testing
+pub const DEFAULT_MEMORY_KIB: u32 = 16384; // 16MB for faster testing
+pub const DEFAULT_ITERATIONS: u32 = 1; // 1 iteration for faster testing
 pub const DEFAULT_PARALLELISM: u32 = 4;
+
+/// KDF algorithm selection
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum KdfAlgorithm {
+    /// Argon2id — memory-hard, recommended for password hashing
+    #[default]
+    #[serde(rename = "argon2id")]
+    Argon2id,
+    /// PBKDF2-SHA256 — compatible with legacy data
+    #[serde(rename = "pbkdf2")]
+    Pbkdf2,
+}
+
+/// KDF parameter presets (exposed to users in SecuritySettings)
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub enum KdfPreset {
+    /// 8 MiB, 2 iterations — low-end devices
+    Fast,
+    /// 16 MiB, 3 iterations — default
+    #[default]
+    Balanced,
+    /// 64 MiB, 3 iterations — high security
+    Secure,
+}
+
+impl KdfPreset {
+    /// Get the KdfParams for this preset
+    pub fn params(&self) -> KdfParams {
+        match self {
+            Self::Fast => KdfParams {
+                algorithm: KdfAlgorithm::Argon2id,
+                memory_kib: 8192, // 8 MiB
+                iterations: 2,
+                parallelism: 4,
+            },
+            Self::Balanced => KdfParams {
+                algorithm: KdfAlgorithm::Argon2id,
+                memory_kib: 16384, // 16 MiB
+                iterations: 3,
+                parallelism: 4,
+            },
+            Self::Secure => KdfParams {
+                algorithm: KdfAlgorithm::Argon2id,
+                memory_kib: 65536, // 64 MiB
+                iterations: 3,
+                parallelism: 4,
+            },
+        }
+    }
+}
+
+/// Key derivation function parameters (stored in account config.json)
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct KdfParams {
+    /// KDF algorithm (Argon2id or PBKDF2)
+    pub algorithm: KdfAlgorithm,
+    /// Memory in KiB (Argon2id: e.g., 65536 for 64 MiB)
+    pub memory_kib: u32,
+    /// Number of iterations (Argon2id: 3, PBKDF2: 600000)
+    pub iterations: u32,
+    /// Degree of parallelism (Argon2id: 4)
+    pub parallelism: u32,
+}
+
+impl Default for KdfParams {
+    fn default() -> Self {
+        KdfPreset::Balanced.params()
+    }
+}
+
+impl KdfParams {
+    /// Create params for a specific preset
+    pub fn from_preset(preset: KdfPreset) -> Self {
+        preset.params()
+    }
+
+    /// Extract (memory_kib, iterations, parallelism) tuple for use with `derive_key`
+    pub fn as_tuple(&self) -> (u32, u32, u32) {
+        (self.memory_kib, self.iterations, self.parallelism)
+    }
+}
 
 /// Generate a cryptographically secure random salt
 ///
@@ -114,7 +192,13 @@ pub unsafe extern "C" fn argon2_derive_key(
 }
 
 /// High-level Argon2id key derivation function
-pub fn derive_key(password: &str, salt: &[u8], memory_kib: u32, iterations: u32, parallelism: u32) -> Result<Zeroizing<[u8; 32]>, String> {
+pub fn derive_key(
+    password: &str,
+    salt: &[u8],
+    memory_kib: u32,
+    iterations: u32,
+    parallelism: u32,
+) -> Result<Zeroizing<[u8; 32]>, String> {
     let mut key = [0u8; 32];
 
     let argon2 = Argon2::new(
@@ -124,7 +208,8 @@ pub fn derive_key(password: &str, salt: &[u8], memory_kib: u32, iterations: u32,
             .map_err(|e| format!("Invalid Argon2 params: {}", e))?,
     );
 
-    argon2.hash_password_into(password.as_bytes(), salt, &mut key)
+    argon2
+        .hash_password_into(password.as_bytes(), salt, &mut key)
         .map_err(|e| format!("Hash failed: {}", e))?;
 
     Ok(Zeroizing::new(key))
@@ -150,9 +235,7 @@ mod tests {
     fn test_generate_salt() {
         let mut salt = [0u8; 32];
 
-        let result = unsafe {
-            argon2_generate_salt(salt.as_mut_ptr(), salt.len())
-        };
+        let result = unsafe { argon2_generate_salt(salt.as_mut_ptr(), salt.len()) };
 
         assert_eq!(result, RESULT_OK);
         // Salt should not be all zeros
@@ -211,7 +294,10 @@ mod tests {
         let result = derive_key("", &salt, 8 * 1024, 1, 1);
         assert!(result.is_ok());
         let key = result.unwrap();
-        assert!(key.iter().any(|&x| x != 0), "Empty password should still produce non-zero key");
+        assert!(
+            key.iter().any(|&x| x != 0),
+            "Empty password should still produce non-zero key"
+        );
     }
 
     #[test]
@@ -257,7 +343,11 @@ mod tests {
             argon2_generate_salt(salt2.as_mut_ptr(), 32);
         }
 
-        assert_ne!(salt1.as_slice(), salt2.as_slice(), "Each salt generation should produce different values");
+        assert_ne!(
+            salt1.as_slice(),
+            salt2.as_slice(),
+            "Each salt generation should produce different values"
+        );
     }
 
     #[test]
@@ -285,7 +375,10 @@ mod tests {
         };
 
         assert_eq!(result, RESULT_OK);
-        assert!(output.iter().any(|&x| x != 0), "FFI derived key should not be all zeros");
+        assert!(
+            output.iter().any(|&x| x != 0),
+            "FFI derived key should not be all zeros"
+        );
     }
 
     #[test]
@@ -347,15 +440,15 @@ mod tests {
     }
 
     #[test]
-    fn test_derive_key_ffi_invalid_salt_len() {
+    fn test_derive_key_ffi_short_salt_ok() {
         let password = b"test";
         let mut output = [0u8; 32];
         let result = unsafe {
             argon2_derive_key(
                 password.as_ptr(),
                 password.len(),
-                [0u8; 32].as_ptr(),
-                16, // Invalid salt length
+                [0u8; 16].as_ptr(),
+                16, // Short but valid (>= 8)
                 8 * 1024,
                 1,
                 1,
@@ -363,7 +456,7 @@ mod tests {
                 32,
             )
         };
-        assert_eq!(result, RESULT_INVALID_LEN);
+        assert_eq!(result, RESULT_OK);
     }
 
     #[test]
@@ -390,6 +483,68 @@ mod tests {
         assert_eq!(DEFAULT_MEMORY_KIB, 16384, "Default memory should be 16MB");
         assert_eq!(DEFAULT_ITERATIONS, 1, "Default iterations should be 1");
         assert_eq!(DEFAULT_PARALLELISM, 4, "Default parallelism should be 4");
+    }
+
+    #[test]
+    fn test_kdf_preset_fast() {
+        let params = KdfPreset::Fast.params();
+        assert_eq!(params.algorithm, KdfAlgorithm::Argon2id);
+        assert_eq!(params.memory_kib, 8192);
+        assert_eq!(params.iterations, 2);
+        assert_eq!(params.parallelism, 4);
+    }
+
+    #[test]
+    fn test_kdf_preset_balanced() {
+        let params = KdfPreset::Balanced.params();
+        assert_eq!(params.memory_kib, 16384);
+        assert_eq!(params.iterations, 3);
+        assert_eq!(params.parallelism, 4);
+    }
+
+    #[test]
+    fn test_kdf_preset_secure() {
+        let params = KdfPreset::Secure.params();
+        assert_eq!(params.memory_kib, 65536);
+        assert_eq!(params.iterations, 3);
+        assert_eq!(params.parallelism, 4);
+    }
+
+    #[test]
+    fn test_kdf_params_default_is_balanced() {
+        let params = KdfParams::default();
+        assert_eq!(params.memory_kib, 16384);
+        assert_eq!(params.iterations, 3);
+    }
+
+    #[test]
+    fn test_kdf_params_as_tuple() {
+        let params = KdfPreset::Secure.params();
+        assert_eq!(params.as_tuple(), (65536, 3, 4));
+    }
+
+    #[test]
+    fn test_kdf_preset_serde_roundtrip() {
+        let preset = KdfPreset::Secure;
+        let json = serde_json::to_string(&preset).unwrap();
+        let deserialized: KdfPreset = serde_json::from_str(&json).unwrap();
+        assert_eq!(preset, deserialized);
+    }
+
+    #[test]
+    fn test_kdf_params_serde_roundtrip() {
+        let params = KdfPreset::Fast.params();
+        let json = serde_json::to_string(&params).unwrap();
+        let deserialized: KdfParams = serde_json::from_str(&json).unwrap();
+        assert_eq!(params.algorithm, deserialized.algorithm);
+        assert_eq!(params.memory_kib, deserialized.memory_kib);
+        assert_eq!(params.iterations, deserialized.iterations);
+        assert_eq!(params.parallelism, deserialized.parallelism);
+    }
+
+    #[test]
+    fn test_kdf_algorithm_default_is_argon2id() {
+        assert_eq!(KdfAlgorithm::default(), KdfAlgorithm::Argon2id);
     }
 
     #[test]

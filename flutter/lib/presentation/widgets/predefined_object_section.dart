@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider;
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/utils/log_section_utils.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
@@ -239,26 +240,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
   }
 
   /// Map typeId to LogSection for operation logging.
-  LogSection? _logSectionForTypeId(String typeId) {
-    return switch (typeId) {
-      'profile_identity' => LogSection.identity,
-      'profile_contact' => LogSection.contactInformation,
-      'profile_id_card' => LogSection.idCard,
-      'profile_address' => LogSection.address,
-      'travel_passport' => LogSection.passport,
-      'travel_visa' => LogSection.visa,
-      'travel_history' => LogSection.travelHistory,
-      'financial_bank_account' => LogSection.bankAccount,
-      'financial_card' => LogSection.card,
-      'financial_tax_id' => LogSection.financial,
-      'professional_education' => LogSection.education,
-      'professional_employment' => LogSection.employment,
-      'professional_skill' => LogSection.skill,
-      'professional_language' => LogSection.language,
-      'professional_award' => LogSection.professional,
-      _ => null,
-    };
-  }
+  LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
 
   /// Look up sensitivity from FieldRegistry defaults.
   SensitivityLevel _lookupSensitivity(String fieldId) {

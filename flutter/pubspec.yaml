@@ -54,15 +54,9 @@ dependencies:
   freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
   uuid: ^4.4.0
-  pointycastle: ^3.9.1
-  cryptography: ^2.9.0
-  encrypt: ^5.0.3
 
   # Biometric authentication
   local_auth: ^2.3.0
-
-  # Cryptography (Dart fallback for Android)
-  crypto: ^3.0.3
 
   # Markdown rendering
   flutter_markdown: ^0.7.4

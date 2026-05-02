@@ -129,10 +129,23 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _getVaultDataSize() {
-    final stats = RustVaultService.instance.getVaultStats();
+  String _vaultDataSize = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVaultDataSize();
+  }
+
+  Future<void> _loadVaultDataSize() async {
+    final size = await _getVaultDataSize();
+    if (mounted) setState(() => _vaultDataSize = size);
+  }
+
+  Future<String> _getVaultDataSize() async {
+    final stats = await RustVaultService.instance.getVaultStats();
     if (stats == null) return 'Unknown';
-    final bytes = (stats['total_size_bytes'] as num?)?.toInt() ?? 0;
+    final bytes = stats.totalSizeBytes.toInt();
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     if (bytes < 1024 * 1024 * 1024) {
@@ -433,7 +446,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         _SettingsTile(
                           icon: Icons.storage_outlined,
                           title: 'Data Management',
-                          subtitle: _getVaultDataSize(),
+                          subtitle: _vaultDataSize,
                           onTap: () => context.go(AppRoutes.dataManagement),
                         ),
                       ],
@@ -466,7 +479,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       onTap: () async {
                         final confirmed = await showLockVaultDialog(context);
                         if (confirmed == true && context.mounted) {
-                          ref.read(authNotifierProvider.notifier).lockVault();
+                          await ref.read(authNotifierProvider.notifier).lockVault();
                           ref.read(sensitivePageAccessProvider.notifier).clear();
                         }
                       },
@@ -872,7 +885,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
 
     if (result == true && context.mounted) {
-      ref.read(authNotifierProvider.notifier).lockVault();
+      await ref.read(authNotifierProvider.notifier).lockVault();
       ref.read(sensitivePageAccessProvider.notifier).clear();
     }
   }

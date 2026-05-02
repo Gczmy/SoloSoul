@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart'
@@ -1038,16 +1039,7 @@ String _propValueToString(PropertyValue value) {
 }
 
 /// camelCase / snake_case → Title Case (e.g. "givenName" → "Given Name", "visa_type" → "Visa Type")
-String _formatLabel(String key) {
-  final spaced = key.replaceAllMapped(
-    RegExp(r'([a-z])([A-Z])'),
-    (m) => '${m[1]} ${m[2]}',
-  );
-  return spaced.replaceAll('_', ' ').split(' ').map((word) {
-    if (word.isEmpty) return word;
-    return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  }).join(' ');
-}
+String _formatLabel(String key) => formatFieldLabel(key);
 
 String _wrapEveryNChars(String text, int n) {
   if (text.length <= n) return '$text: ';

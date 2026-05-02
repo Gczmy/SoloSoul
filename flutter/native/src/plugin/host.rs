@@ -51,8 +51,8 @@ impl SoloHostFunctions {
 
     /// Check if field is allowed
     pub fn is_field_allowed(&self, field: &str) -> bool {
-        self.requested_fields.iter().any(|f| {
-            f == field || f == "*" || field.starts_with(f)
-        })
+        self.requested_fields
+            .iter()
+            .any(|f| f == field || f == "*" || field.starts_with(f))
     }
 }
