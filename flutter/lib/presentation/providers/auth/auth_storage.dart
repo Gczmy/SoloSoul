@@ -300,15 +300,18 @@ class SecureAccountStorage {
       await Future<void>.delayed(delay);
     }
 
-    SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId');
+    SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId pwdLen=${password.length}');
     final timer = SoloLog.startTimer('AuthStorage', 'verifyPassword');
     try {
       final result = NativeVaultService.instance.request(
         'verify_password',
         {'account_id': accountId, 'password': password},
       );
-      final success = result?['data']?['success'] == true;
-      SoloLog.d('AuthStorage', 'verifyPassword result: $success');
+      final data = result?['data'] as Map<String, dynamic>?;
+      final success = data?['success'] == true;
+      final error = data?['error'] as String?;
+      final cv = data?['crypto_version'];
+      SoloLog.d('AuthStorage', 'verifyPassword result: success=$success error=$error cv=$cv trackerAttempts=${tracker.attempts}');
       SoloLog.endTimer(timer);
 
       if (success) {

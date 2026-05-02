@@ -506,7 +506,19 @@ impl AccountManager {
                         }
                     };
                     let computed_hash = hex::encode(verify_key.as_slice());
+                    log_to_file(&format!(
+                        "[UNLOCK-FAST] account_id={} cfg_hash={}..({}) computed_hash={}..({})",
+                        account_id,
+                        &config.verify_hash[..8.min(config.verify_hash.len())],
+                        config.verify_hash.len(),
+                        &computed_hash[..8.min(computed_hash.len())],
+                        computed_hash.len(),
+                    ));
                     if computed_hash != config.verify_hash {
+                        log_to_file(&format!(
+                            "[UNLOCK-FAST] HASH MISMATCH for account_id={}",
+                            account_id,
+                        ));
                         return VerifyResult {
                             success: false,
                             error: Some("Invalid password".to_string()),
@@ -688,7 +700,23 @@ impl AccountManager {
             };
         let computed_hash = hex::encode(verify_key.as_slice());
 
+        log_to_file(&format!(
+            "[UNLOCK] account_id={} salt_b64_len={} verify_hash_cfg={}..({}) computed_hash={}..({})",
+            account_id,
+            config.salt.len(),
+            &config.verify_hash[..8.min(config.verify_hash.len())],
+            config.verify_hash.len(),
+            &computed_hash[..8.min(computed_hash.len())],
+            computed_hash.len(),
+        ));
+
         if computed_hash != config.verify_hash {
+            log_to_file(&format!(
+                "[UNLOCK] HASH MISMATCH for account_id={} cfg={}.. computed={}..",
+                account_id,
+                &config.verify_hash[..12.min(config.verify_hash.len())],
+                &computed_hash[..12.min(computed_hash.len())],
+            ));
             return VerifyResult {
                 success: false,
                 error: Some("Invalid password".to_string()),
