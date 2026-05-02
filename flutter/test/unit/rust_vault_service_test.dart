@@ -84,9 +84,9 @@ void main() {
       service = RustVaultService.instance;
     });
 
-    test('createAccount returns failure result type', () {
+    test('createAccount returns failure result type', () async {
       // Without actual Rust library, returns error result
-      final result = service.createAccount(
+      final result = await service.createAccount(
         name: 'test_account',
         password: 'short', // Too short
       );
@@ -95,8 +95,8 @@ void main() {
       expect(result.error, isNotNull);
     });
 
-    test('unlockVault returns failure for empty password', () {
-      final result = service.unlockVault(
+    test('unlockVault returns failure for empty password', () async {
+      final result = await service.unlockVault(
         accountId: 'acc_123',
         password: '',
       );

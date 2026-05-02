@@ -4,12 +4,12 @@
 //! ~/.solosoul/accounts.json - list of account metadata
 //! ~/.solosoul/{account_id}/config.json - per-account config with salt and verification token
 
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use argon2::password_hash::rand_core::OsRng;
-use rand::RngCore;
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use chrono::{DateTime, Utc};
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
@@ -24,7 +24,11 @@ use crate::vault::{VaultConfig, VaultStore};
 
 /// Write debug log to file (works in sandboxed environment)
 fn log_to_file(msg: &str) {
-    let log_path = if let Ok(home) = std::env::var("HOME") { PathBuf::from(home).join("Library/Logs/solosoul_debug.log") } else { PathBuf::from("/tmp/solosoul_debug.log") };
+    let log_path = if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home).join("Library/Logs/solosoul_debug.log")
+    } else {
+        PathBuf::from("/tmp/solosoul_debug.log")
+    };
     if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(&log_path) {
         let timestamp = chrono::Utc::now().to_rfc3339();
         let _ = writeln!(file, "[{}] {}", timestamp, msg);
@@ -52,10 +56,10 @@ pub struct DeviceEntry {
 pub struct AccountConfig {
     pub account_id: String,
     pub name: String,
-    pub salt: String,           // Base64 encoded salt
-    pub verify_hash: String,     // Hex encoded: Argon2id(master_key_hex, verify_data)
+    pub salt: String,        // Base64 encoded salt
+    pub verify_hash: String, // Hex encoded: Argon2id(master_key_hex, verify_data)
     pub created_at: DateTime<Utc>,
-    pub crypto_version: u32,     // Version of crypto algorithm (2 = current)
+    pub crypto_version: u32, // Version of crypto algorithm (2 = current)
     // Phase 2: metadata fields (migrated from Keychain)
     #[serde(default)]
     pub password_hint: Option<String>,
@@ -78,9 +82,9 @@ pub struct AccountConfig {
 pub struct AccountInfo {
     pub id: String,
     pub name: String,
-    pub salt: String,           // Base64 encoded salt used for key derivation
-    pub verify_hash: String,    // Hex encoded verify hash (for Dart to store)
-    pub crypto_version: u32,    // Version of crypto algorithm (2 = current)
+    pub salt: String,        // Base64 encoded salt used for key derivation
+    pub verify_hash: String, // Hex encoded verify hash (for Dart to store)
+    pub crypto_version: u32, // Version of crypto algorithm (2 = current)
     pub last_accessed: Option<DateTime<Utc>>,
     // Phase 2: metadata fields
     #[serde(default)]
@@ -102,7 +106,7 @@ pub struct AccountInfo {
 pub struct VerifyResult {
     pub success: bool,
     pub error: Option<String>,
-    pub crypto_version: u32,  // Version used for verification
+    pub crypto_version: u32, // Version used for verification
 }
 
 /// Account manager singleton
@@ -149,7 +153,11 @@ impl AccountManager {
         if accounts_file.exists() {
             if let Ok(content) = fs::read_to_string(&accounts_file) {
                 if let Ok(accounts) = serde_json::from_str::<Vec<AccountMetadata>>(&content) {
-                    if let Ok(mut cache) = self.accounts_cache.write().map_err(|e| format!("Lock poisoned: {}", e)) {
+                    if let Ok(mut cache) = self
+                        .accounts_cache
+                        .write()
+                        .map_err(|e| format!("Lock poisoned: {}", e))
+                    {
                         for account in accounts {
                             cache.insert(account.id.clone(), account);
                         }
@@ -161,10 +169,13 @@ impl AccountManager {
 
     /// Save accounts cache to disk
     fn save_accounts_cache(&self) -> Result<(), String> {
-        let cache = self.accounts_cache.read().map_err(|e| format!("Lock poisoned: {}", e))?;
+        let cache = self
+            .accounts_cache
+            .read()
+            .map_err(|e| format!("Lock poisoned: {}", e))?;
         let accounts: Vec<&AccountMetadata> = cache.values().collect();
-        let content =
-            serde_json::to_string_pretty(&accounts).map_err(|e| format!("Serialize failed: {}", e))?;
+        let content = serde_json::to_string_pretty(&accounts)
+            .map_err(|e| format!("Serialize failed: {}", e))?;
 
         // Ensure directory exists
         fs::create_dir_all(&self.base_path)
@@ -224,7 +235,9 @@ impl AccountManager {
                 return false;
             }
         };
-        !cache.values().any(|a| a.name.to_lowercase() == name.to_lowercase())
+        !cache
+            .values()
+            .any(|a| a.name.to_lowercase() == name.to_lowercase())
     }
 
     /// Create a new account
@@ -241,7 +254,10 @@ impl AccountManager {
         }
 
         // Generate account ID and salt (32 bytes)
-        let account_id = format!("acc_{}", &uuid::Uuid::new_v4().to_string().replace("-", "")[..16].to_string());
+        let account_id = format!(
+            "acc_{}",
+            &uuid::Uuid::new_v4().to_string().replace("-", "")[..16].to_string()
+        );
         let mut salt_bytes = [0u8; 32];
         OsRng.fill_bytes(&mut salt_bytes);
         let salt_b64 = base64_encode(&salt_bytes);
@@ -262,7 +278,7 @@ impl AccountManager {
         let verify_key = derive_key(
             &hex::encode(master_key.as_slice()),
             verify_data,
-            8192,  // Smaller params for verification
+            8192, // Smaller params for verification
             1,
             1,
         )
@@ -306,7 +322,10 @@ impl AccountManager {
         };
 
         {
-            let mut cache = self.accounts_cache.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+            let mut cache = self
+                .accounts_cache
+                .write()
+                .map_err(|e| format!("Lock poisoned: {}", e))?;
             cache.insert(account_id.clone(), metadata);
         }
         self.save_accounts_cache()?;
@@ -314,11 +333,17 @@ impl AccountManager {
         // Store session key (clone the key)
         let key_copy = master_key.as_slice().try_into().unwrap();
         {
-            let mut session = self.session_key.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+            let mut session = self
+                .session_key
+                .write()
+                .map_err(|e| format!("Lock poisoned: {}", e))?;
             *session = Some(Zeroizing::new(key_copy));
         }
         {
-            let mut unlocked = self.unlocked_account.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+            let mut unlocked = self
+                .unlocked_account
+                .write()
+                .map_err(|e| format!("Lock poisoned: {}", e))?;
             *unlocked = Some(account_id.clone());
         }
 
@@ -331,21 +356,33 @@ impl AccountManager {
         };
         match VaultStore::open(vault_config) {
             Ok(vault) => {
-                let mut vault_store = self.vault_store.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+                let mut vault_store = self
+                    .vault_store
+                    .write()
+                    .map_err(|e| format!("Lock poisoned: {}", e))?;
                 *vault_store = Some(vault);
             }
             Err(e) => {
-                log_to_file(&format!("[MANAGER] Failed to open vault store during create_account: {}", e));
+                log_to_file(&format!(
+                    "[MANAGER] Failed to open vault store during create_account: {}",
+                    e
+                ));
                 // Clear partial unlock state
                 {
-                    let mut session = self.session_key.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+                    let mut session = self
+                        .session_key
+                        .write()
+                        .map_err(|e| format!("Lock poisoned: {}", e))?;
                     if let Some(ref mut key) = *session {
                         key.zeroize();
                     }
                     session.take();
                 }
                 {
-                    let mut unlocked = self.unlocked_account.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+                    let mut unlocked = self
+                        .unlocked_account
+                        .write()
+                        .map_err(|e| format!("Lock poisoned: {}", e))?;
                     unlocked.take();
                 }
                 return Err(format!("Failed to open vault: {}", e));
@@ -370,50 +407,111 @@ impl AccountManager {
 
     /// Unlock account with password
     pub fn unlock(&self, account_id: &str, password: &str) -> VerifyResult {
-        log_to_file(&format!("[MANAGER] unlock called for account_id: {}", account_id));
+        log_to_file(&format!(
+            "[MANAGER] unlock called for account_id: {}",
+            account_id
+        ));
 
         // Fast path: if vault is already unlocked for this account, verify password only
         if self.is_unlocked() {
             if let Some(current) = self.get_unlocked_account() {
                 if current == account_id {
-                    log_to_file("[MANAGER] Vault already unlocked for this account, checking password...");
+                    log_to_file(
+                        "[MANAGER] Vault already unlocked for this account, checking password...",
+                    );
                     // Re-verify password without re-opening the vault
                     let account_dir = self.account_dir(account_id);
                     let config_path = account_dir.join("config.json");
                     let config_content = match fs::read_to_string(&config_path) {
                         Ok(c) => c,
-                        Err(e) => return VerifyResult { success: false, error: Some(format!("Failed to read config: {}", e)), crypto_version: 0 },
+                        Err(e) => {
+                            return VerifyResult {
+                                success: false,
+                                error: Some(format!("Failed to read config: {}", e)),
+                                crypto_version: 0,
+                            }
+                        }
                     };
                     let config: AccountConfig = match serde_json::from_str(&config_content) {
                         Ok(c) => c,
-                        Err(_) => return VerifyResult { success: false, error: Some("Config parse error".to_string()), crypto_version: 0 },
+                        Err(_) => {
+                            return VerifyResult {
+                                success: false,
+                                error: Some("Config parse error".to_string()),
+                                crypto_version: 0,
+                            }
+                        }
                     };
                     let salt_bytes: [u8; 32] = match base64_decode(&config.salt) {
                         Ok(s) => match s.as_slice().try_into() {
                             Ok(a) => a,
-                            Err(_) => return VerifyResult { success: false, error: Some("Invalid salt".to_string()), crypto_version: 0 },
+                            Err(_) => {
+                                return VerifyResult {
+                                    success: false,
+                                    error: Some("Invalid salt".to_string()),
+                                    crypto_version: 0,
+                                }
+                            }
                         },
-                        Err(_) => return VerifyResult { success: false, error: Some("Invalid salt encoding".to_string()), crypto_version: 0 },
+                        Err(_) => {
+                            return VerifyResult {
+                                success: false,
+                                error: Some("Invalid salt encoding".to_string()),
+                                crypto_version: 0,
+                            }
+                        }
                     };
-                    let master_key = match derive_key(password, &salt_bytes, DEFAULT_MEMORY_KIB, DEFAULT_ITERATIONS, DEFAULT_PARALLELISM) {
+                    let master_key = match derive_key(
+                        password,
+                        &salt_bytes,
+                        DEFAULT_MEMORY_KIB,
+                        DEFAULT_ITERATIONS,
+                        DEFAULT_PARALLELISM,
+                    ) {
                         Ok(k) => k,
-                        Err(_) => return VerifyResult { success: false, error: Some("Key derivation failed".to_string()), crypto_version: 0 },
+                        Err(_) => {
+                            return VerifyResult {
+                                success: false,
+                                error: Some("Key derivation failed".to_string()),
+                                crypto_version: 0,
+                            }
+                        }
                     };
                     let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
-                    let verify_key = match derive_key(&hex::encode(master_key.as_slice()), verify_data, 8192, 1, 1) {
+                    let verify_key = match derive_key(
+                        &hex::encode(master_key.as_slice()),
+                        verify_data,
+                        8192,
+                        1,
+                        1,
+                    ) {
                         Ok(k) => k,
-                        Err(_) => return VerifyResult { success: false, error: Some("Verify failed".to_string()), crypto_version: 0 },
+                        Err(_) => {
+                            return VerifyResult {
+                                success: false,
+                                error: Some("Verify failed".to_string()),
+                                crypto_version: 0,
+                            }
+                        }
                     };
                     let computed_hash = hex::encode(verify_key.as_slice());
                     if computed_hash != config.verify_hash {
-                        return VerifyResult { success: false, error: Some("Invalid password".to_string()), crypto_version: config.crypto_version };
+                        return VerifyResult {
+                            success: false,
+                            error: Some("Invalid password".to_string()),
+                            crypto_version: config.crypto_version,
+                        };
                     }
                     // Ensure vault store is open (create_account sets unlocked state but may not open vault)
                     let vault_guard = match self.vault_store.read() {
                         Ok(g) => g,
                         Err(e) => {
                             log_to_file(&format!("[MANAGER] Vault store lock poisoned: {}", e));
-                            return VerifyResult { success: false, error: Some("Internal error".to_string()), crypto_version: config.crypto_version };
+                            return VerifyResult {
+                                success: false,
+                                error: Some("Internal error".to_string()),
+                                crypto_version: config.crypto_version,
+                            };
                         }
                     };
                     if vault_guard.is_none() {
@@ -422,7 +520,11 @@ impl AccountManager {
                             Ok(g) => g,
                             Err(e) => {
                                 log_to_file(&format!("[MANAGER] Session key lock poisoned: {}", e));
-                                return VerifyResult { success: false, error: Some("Internal error".to_string()), crypto_version: config.crypto_version };
+                                return VerifyResult {
+                                    success: false,
+                                    error: Some("Internal error".to_string()),
+                                    crypto_version: config.crypto_version,
+                                };
                             }
                         };
                         if let Some(ref key) = *session_guard {
@@ -438,20 +540,35 @@ impl AccountManager {
                                         Ok(guard) => guard,
                                         Err(e) => {
                                             log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                                            return VerifyResult {
+                                                success: false,
+                                                error: Some(format!("Lock poisoned: {}", e)),
+                                                crypto_version: config.crypto_version,
+                                            };
                                         }
                                     };
                                     *vault_store = Some(vault);
                                 }
                                 Err(e) => {
-                                    log_to_file(&format!("[MANAGER] Failed to open vault store in fast path: {}", e));
-                                    return VerifyResult { success: false, error: Some(format!("Failed to open vault: {}", e)), crypto_version: config.crypto_version };
+                                    log_to_file(&format!(
+                                        "[MANAGER] Failed to open vault store in fast path: {}",
+                                        e
+                                    ));
+                                    return VerifyResult {
+                                        success: false,
+                                        error: Some(format!("Failed to open vault: {}", e)),
+                                        crypto_version: config.crypto_version,
+                                    };
                                 }
                             }
                         }
                     }
                     log_to_file("[MANAGER] Password re-verified successfully (vault ready)");
-                    return VerifyResult { success: true, error: None, crypto_version: config.crypto_version };
+                    return VerifyResult {
+                        success: true,
+                        error: None,
+                        crypto_version: config.crypto_version,
+                    };
                 }
             }
         }
@@ -459,12 +576,18 @@ impl AccountManager {
         // Check if account directory exists
         let account_dir = self.account_dir(account_id);
         log_to_file(&format!("[MANAGER] account_dir: {:?}", account_dir));
-        log_to_file(&format!("[MANAGER] account_dir exists: {}", account_dir.exists()));
+        log_to_file(&format!(
+            "[MANAGER] account_dir exists: {}",
+            account_dir.exists()
+        ));
 
         // Load config
         let config_path = account_dir.join("config.json");
         log_to_file(&format!("[MANAGER] config_path: {:?}", config_path));
-        log_to_file(&format!("[MANAGER] config_path exists: {}", config_path.exists()));
+        log_to_file(&format!(
+            "[MANAGER] config_path exists: {}",
+            config_path.exists()
+        ));
 
         let config_content = match fs::read_to_string(&config_path) {
             Ok(c) => c,
@@ -490,26 +613,33 @@ impl AccountManager {
                 };
             }
         };
-        log_to_file(&format!("[MANAGER] Config parsed, account_id: {}, name: {}", config.account_id, config.name));
+        log_to_file(&format!(
+            "[MANAGER] Config parsed, account_id: {}, name: {}",
+            config.account_id, config.name
+        ));
 
         // Decode salt
         let salt_bytes = match base64_decode(&config.salt) {
             Ok(s) => {
                 let arr: [u8; 32] = match s.as_slice().try_into() {
                     Ok(a) => a,
-                    Err(_) => return VerifyResult {
-                        success: false,
-                        error: Some("Invalid salt length".to_string()),
-                        crypto_version: 0,
-                    },
+                    Err(_) => {
+                        return VerifyResult {
+                            success: false,
+                            error: Some("Invalid salt length".to_string()),
+                            crypto_version: 0,
+                        }
+                    }
                 };
                 arr
             }
-            Err(_) => return VerifyResult {
-                success: false,
-                error: Some("Invalid salt encoding".to_string()),
-                crypto_version: 0,
-            },
+            Err(_) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some("Invalid salt encoding".to_string()),
+                    crypto_version: 0,
+                }
+            }
         };
 
         // Derive key from password
@@ -522,30 +652,29 @@ impl AccountManager {
             DEFAULT_PARALLELISM,
         ) {
             Ok(k) => k,
-            Err(e) => return VerifyResult {
-                success: false,
-                error: Some(format!("Key derivation failed: {}", e)),
-                crypto_version: 0,
-            },
+            Err(e) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some(format!("Key derivation failed: {}", e)),
+                    crypto_version: 0,
+                }
+            }
         };
         log_to_file("[MANAGER] Key derivation complete, starting verification hash...");
 
         // Verify by computing the same verify hash
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
-        let verify_key = match derive_key(
-            &hex::encode(master_key.as_slice()),
-            verify_data,
-            8192,
-            1,
-            1,
-        ) {
-            Ok(k) => k,
-            Err(_) => return VerifyResult {
-                success: false,
-                error: Some("Verification failed".to_string()),
-                crypto_version: 0,
-            },
-        };
+        let verify_key =
+            match derive_key(&hex::encode(master_key.as_slice()), verify_data, 8192, 1, 1) {
+                Ok(k) => k,
+                Err(_) => {
+                    return VerifyResult {
+                        success: false,
+                        error: Some("Verification failed".to_string()),
+                        crypto_version: 0,
+                    }
+                }
+            };
         let computed_hash = hex::encode(verify_key.as_slice());
 
         if computed_hash != config.verify_hash {
@@ -562,7 +691,11 @@ impl AccountManager {
                 Ok(guard) => guard,
                 Err(e) => {
                     log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                    return VerifyResult {
+                        success: false,
+                        error: Some(format!("Lock poisoned: {}", e)),
+                        crypto_version: 0,
+                    };
                 }
             };
             if let Some(account) = cache.get_mut(account_id) {
@@ -578,7 +711,11 @@ impl AccountManager {
                 Ok(guard) => guard,
                 Err(e) => {
                     log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                    return VerifyResult {
+                        success: false,
+                        error: Some(format!("Lock poisoned: {}", e)),
+                        crypto_version: 0,
+                    };
                 }
             };
             *session = Some(Zeroizing::new(key_copy));
@@ -588,7 +725,11 @@ impl AccountManager {
                 Ok(guard) => guard,
                 Err(e) => {
                     log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                    return VerifyResult {
+                        success: false,
+                        error: Some(format!("Lock poisoned: {}", e)),
+                        crypto_version: 0,
+                    };
                 }
             };
             *unlocked = Some(account_id.to_string());
@@ -602,7 +743,10 @@ impl AccountManager {
             account_id: account_id.to_string(),
             sqlcipher_key: Some(sqlcipher_key),
         };
-        log_to_file(&format!("[MANAGER] Opening vault at: {:?}", vault_config.path));
+        log_to_file(&format!(
+            "[MANAGER] Opening vault at: {:?}",
+            vault_config.path
+        ));
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 log_to_file("[MANAGER] Vault opened successfully");
@@ -610,7 +754,11 @@ impl AccountManager {
                     Ok(guard) => guard,
                     Err(e) => {
                         log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                        return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                        return VerifyResult {
+                            success: false,
+                            error: Some(format!("Lock poisoned: {}", e)),
+                            crypto_version: config.crypto_version,
+                        };
                     }
                 };
                 *vault_store = Some(vault);
@@ -628,7 +776,11 @@ impl AccountManager {
                         Ok(guard) => guard,
                         Err(e) => {
                             log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                            return VerifyResult {
+                                success: false,
+                                error: Some(format!("Lock poisoned: {}", e)),
+                                crypto_version: config.crypto_version,
+                            };
                         }
                     };
                     if let Some(ref mut key) = *session {
@@ -641,7 +793,11 @@ impl AccountManager {
                         Ok(guard) => guard,
                         Err(e) => {
                             log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                            return VerifyResult {
+                                success: false,
+                                error: Some(format!("Lock poisoned: {}", e)),
+                                crypto_version: config.crypto_version,
+                            };
                         }
                     };
                     unlocked.take();
@@ -658,24 +814,31 @@ impl AccountManager {
 
     /// Unlock account with a pre-derived session key (for biometric unlock)
     pub fn unlock_with_key(&self, account_id: &str, session_key_b64: &str) -> VerifyResult {
-        log_to_file(&format!("[MANAGER] unlock_with_key called for account_id: {}", account_id));
+        log_to_file(&format!(
+            "[MANAGER] unlock_with_key called for account_id: {}",
+            account_id
+        ));
 
         // Decode session key from base64
         let session_key_bytes = match base64_decode(session_key_b64) {
             Ok(b) => b,
-            Err(_) => return VerifyResult {
-                success: false,
-                error: Some("Invalid session key encoding".to_string()),
-                crypto_version: 0,
-            },
+            Err(_) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some("Invalid session key encoding".to_string()),
+                    crypto_version: 0,
+                }
+            }
         };
         let session_key_arr: [u8; 32] = match session_key_bytes.as_slice().try_into() {
             Ok(a) => a,
-            Err(_) => return VerifyResult {
-                success: false,
-                error: Some("Invalid session key length".to_string()),
-                crypto_version: 0,
-            },
+            Err(_) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some("Invalid session key length".to_string()),
+                    crypto_version: 0,
+                }
+            }
         };
 
         // Check if account directory exists
@@ -692,19 +855,23 @@ impl AccountManager {
         let config_path = account_dir.join("config.json");
         let config_content = match fs::read_to_string(&config_path) {
             Ok(c) => c,
-            Err(e) => return VerifyResult {
-                success: false,
-                error: Some(format!("Failed to read config: {}", e)),
-                crypto_version: 0,
-            },
+            Err(e) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some(format!("Failed to read config: {}", e)),
+                    crypto_version: 0,
+                }
+            }
         };
         let config: AccountConfig = match serde_json::from_str(&config_content) {
             Ok(c) => c,
-            Err(e) => return VerifyResult {
-                success: false,
-                error: Some(format!("Failed to parse config: {}", e)),
-                crypto_version: 0,
-            },
+            Err(e) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some(format!("Failed to parse config: {}", e)),
+                    crypto_version: 0,
+                }
+            }
         };
 
         // Verify the session key by computing the same verify hash
@@ -717,11 +884,13 @@ impl AccountManager {
             1,
         ) {
             Ok(k) => k,
-            Err(_) => return VerifyResult {
-                success: false,
-                error: Some("Verification failed".to_string()),
-                crypto_version: 0,
-            },
+            Err(_) => {
+                return VerifyResult {
+                    success: false,
+                    error: Some("Verification failed".to_string()),
+                    crypto_version: 0,
+                }
+            }
         };
         let computed_hash = hex::encode(verify_key.as_slice());
 
@@ -739,7 +908,11 @@ impl AccountManager {
                 Ok(guard) => guard,
                 Err(e) => {
                     log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                    return VerifyResult {
+                        success: false,
+                        error: Some(format!("Lock poisoned: {}", e)),
+                        crypto_version: 0,
+                    };
                 }
             };
             if let Some(account) = cache.get_mut(account_id) {
@@ -755,7 +928,11 @@ impl AccountManager {
                 Ok(guard) => guard,
                 Err(e) => {
                     log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                    return VerifyResult {
+                        success: false,
+                        error: Some(format!("Lock poisoned: {}", e)),
+                        crypto_version: 0,
+                    };
                 }
             };
             *session = Some(Zeroizing::new(key_copy));
@@ -765,7 +942,11 @@ impl AccountManager {
                 Ok(guard) => guard,
                 Err(e) => {
                     log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                    return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: 0 };
+                    return VerifyResult {
+                        success: false,
+                        error: Some(format!("Lock poisoned: {}", e)),
+                        crypto_version: 0,
+                    };
                 }
             };
             *unlocked = Some(account_id.to_string());
@@ -779,7 +960,10 @@ impl AccountManager {
             account_id: account_id.to_string(),
             sqlcipher_key: Some(sqlcipher_key),
         };
-        log_to_file(&format!("[MANAGER] Opening vault at: {:?}", vault_config.path));
+        log_to_file(&format!(
+            "[MANAGER] Opening vault at: {:?}",
+            vault_config.path
+        ));
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 log_to_file("[MANAGER] Vault opened successfully with session key");
@@ -787,7 +971,11 @@ impl AccountManager {
                     Ok(guard) => guard,
                     Err(e) => {
                         log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                        return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                        return VerifyResult {
+                            success: false,
+                            error: Some(format!("Lock poisoned: {}", e)),
+                            crypto_version: config.crypto_version,
+                        };
                     }
                 };
                 *vault_store = Some(vault);
@@ -805,7 +993,11 @@ impl AccountManager {
                         Ok(guard) => guard,
                         Err(e) => {
                             log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                            return VerifyResult {
+                                success: false,
+                                error: Some(format!("Lock poisoned: {}", e)),
+                                crypto_version: config.crypto_version,
+                            };
                         }
                     };
                     if let Some(ref mut key) = *session {
@@ -818,7 +1010,11 @@ impl AccountManager {
                         Ok(guard) => guard,
                         Err(e) => {
                             log_to_file(&format!("[MANAGER] Lock poisoned: {}", e));
-                            return VerifyResult { success: false, error: Some(format!("Lock poisoned: {}", e)), crypto_version: config.crypto_version };
+                            return VerifyResult {
+                                success: false,
+                                error: Some(format!("Lock poisoned: {}", e)),
+                                crypto_version: config.crypto_version,
+                            };
                         }
                     };
                     unlocked.take();
@@ -839,7 +1035,10 @@ impl AccountManager {
             let mut vault_store = match self.vault_store.write() {
                 Ok(g) => g,
                 Err(e) => {
-                    log_to_file(&format!("[MANAGER] Vault store lock poisoned during lock: {}", e));
+                    log_to_file(&format!(
+                        "[MANAGER] Vault store lock poisoned during lock: {}",
+                        e
+                    ));
                     return;
                 }
             };
@@ -853,7 +1052,10 @@ impl AccountManager {
             let mut session = match self.session_key.write() {
                 Ok(g) => g,
                 Err(e) => {
-                    log_to_file(&format!("[MANAGER] Session key lock poisoned during lock: {}", e));
+                    log_to_file(&format!(
+                        "[MANAGER] Session key lock poisoned during lock: {}",
+                        e
+                    ));
                     return;
                 }
             };
@@ -865,7 +1067,10 @@ impl AccountManager {
             let mut unlocked = match self.unlocked_account.write() {
                 Ok(g) => g,
                 Err(e) => {
-                    log_to_file(&format!("[MANAGER] Unlocked account lock poisoned during lock: {}", e));
+                    log_to_file(&format!(
+                        "[MANAGER] Unlocked account lock poisoned during lock: {}",
+                        e
+                    ));
                     return;
                 }
             };
@@ -878,7 +1083,12 @@ impl AccountManager {
     /// 2. Generate new salt and derive new keys
     /// 3. Update config.json with new credentials
     /// 4. Re-encrypt all profiles with new key
-    pub fn change_password(&self, account_id: &str, old_password: &str, new_password: &str) -> Result<AccountInfo, String> {
+    pub fn change_password(
+        &self,
+        account_id: &str,
+        old_password: &str,
+        new_password: &str,
+    ) -> Result<AccountInfo, String> {
         // Step 1: Verify old password first
         let config_path = self.account_dir(account_id).join("config.json");
         let config_content = fs::read_to_string(&config_path)
@@ -887,9 +1097,11 @@ impl AccountManager {
             .map_err(|e| format!("Failed to parse config: {}", e))?;
 
         // Decode old salt and verify old password
-        let old_salt_bytes = base64_decode(&config.salt)
-            .map_err(|e| format!("Invalid salt: {}", e))?;
-        let old_salt_arr: [u8; 32] = old_salt_bytes.as_slice().try_into()
+        let old_salt_bytes =
+            base64_decode(&config.salt).map_err(|e| format!("Invalid salt: {}", e))?;
+        let old_salt_arr: [u8; 32] = old_salt_bytes
+            .as_slice()
+            .try_into()
             .map_err(|_| "Invalid salt length".to_string())?;
 
         let old_master_key = derive_key(
@@ -898,7 +1110,8 @@ impl AccountManager {
             DEFAULT_MEMORY_KIB,
             DEFAULT_ITERATIONS,
             DEFAULT_PARALLELISM,
-        ).map_err(|e| format!("Key derivation failed: {}", e))?;
+        )
+        .map_err(|e| format!("Key derivation failed: {}", e))?;
 
         // Verify old password
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
@@ -908,7 +1121,8 @@ impl AccountManager {
             8192,
             1,
             1,
-        ).map_err(|e| format!("Verify key derivation failed: {}", e))?;
+        )
+        .map_err(|e| format!("Verify key derivation failed: {}", e))?;
         let old_computed_hash = hex::encode(old_verify_key.as_slice());
 
         if old_computed_hash != config.verify_hash {
@@ -926,7 +1140,8 @@ impl AccountManager {
             DEFAULT_MEMORY_KIB,
             DEFAULT_ITERATIONS,
             DEFAULT_PARALLELISM,
-        ).map_err(|e| format!("New key derivation failed: {}", e))?;
+        )
+        .map_err(|e| format!("New key derivation failed: {}", e))?;
 
         // Create new verify hash
         let new_verify_key = derive_key(
@@ -935,7 +1150,8 @@ impl AccountManager {
             8192,
             1,
             1,
-        ).map_err(|e| format!("New verify key derivation failed: {}", e))?;
+        )
+        .map_err(|e| format!("New verify key derivation failed: {}", e))?;
         let new_verify_hash = hex::encode(new_verify_key.as_slice());
 
         // Step 3: Re-encrypt all profiles with new key
@@ -982,7 +1198,10 @@ impl AccountManager {
         // Update session key to new key
         let key_copy = new_master_key.as_slice().try_into().unwrap();
         {
-            let mut session = self.session_key.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+            let mut session = self
+                .session_key
+                .write()
+                .map_err(|e| format!("Lock poisoned: {}", e))?;
             *session = Some(Zeroizing::new(key_copy));
         }
 
@@ -1007,14 +1226,20 @@ impl AccountManager {
         let session = match self.session_key.read() {
             Ok(s) => s,
             Err(e) => {
-                log_to_file(&format!("[MANAGER] Session key lock poisoned in is_unlocked: {}", e));
+                log_to_file(&format!(
+                    "[MANAGER] Session key lock poisoned in is_unlocked: {}",
+                    e
+                ));
                 return false;
             }
         };
         let unlocked = match self.unlocked_account.read() {
             Ok(u) => u,
             Err(e) => {
-                log_to_file(&format!("[MANAGER] Unlocked account lock poisoned in is_unlocked: {}", e));
+                log_to_file(&format!(
+                    "[MANAGER] Unlocked account lock poisoned in is_unlocked: {}",
+                    e
+                ));
                 return false;
             }
         };
@@ -1126,8 +1351,7 @@ impl AccountManager {
 
         let new_content = serde_json::to_string_pretty(&config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
-        fs::write(&config_path, new_content)
-            .map_err(|e| format!("Write config failed: {}", e))?;
+        fs::write(&config_path, new_content).map_err(|e| format!("Write config failed: {}", e))?;
 
         Ok(())
     }
@@ -1136,7 +1360,10 @@ impl AccountManager {
     pub fn delete_account(&self, account_id: &str) -> Result<(), String> {
         // Remove from accounts cache
         {
-            let mut cache = self.accounts_cache.write().map_err(|e| format!("Lock poisoned: {}", e))?;
+            let mut cache = self
+                .accounts_cache
+                .write()
+                .map_err(|e| format!("Lock poisoned: {}", e))?;
             cache.remove(account_id);
         }
 
@@ -1160,7 +1387,9 @@ fn base64_encode(data: &[u8]) -> String {
 }
 
 fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
-    BASE64.decode(input).map_err(|e| format!("Base64 decode error: {}", e))
+    BASE64
+        .decode(input)
+        .map_err(|e| format!("Base64 decode error: {}", e))
 }
 
 #[cfg(test)]
@@ -1186,12 +1415,19 @@ mod tests {
         let (manager, _temp_dir) = create_test_account_manager();
 
         let result = manager.create_account("test_account", "password123");
-        assert!(result.is_ok(), "Failed to create account: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to create account: {:?}",
+            result.err()
+        );
 
         let info = result.unwrap();
         assert_eq!(info.name, "test_account");
         assert!(!info.salt.is_empty(), "Salt should be generated");
-        assert!(!info.verify_hash.is_empty(), "Verify hash should be generated");
+        assert!(
+            !info.verify_hash.is_empty(),
+            "Verify hash should be generated"
+        );
         assert_eq!(info.crypto_version, 2);
     }
 
@@ -1201,7 +1437,9 @@ mod tests {
 
         let result = manager.create_account("test", "short");
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Password must be at least 8 characters"));
+        assert!(result
+            .unwrap_err()
+            .contains("Password must be at least 8 characters"));
     }
 
     #[test]
@@ -1227,7 +1465,9 @@ mod tests {
     fn test_create_account_name_case_insensitive() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        manager.create_account("TestAccount", "password123").unwrap();
+        manager
+            .create_account("TestAccount", "password123")
+            .unwrap();
         let result = manager.create_account("testaccount", "password456");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("already taken"));
@@ -1248,7 +1488,9 @@ mod tests {
     fn test_unlock_account() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("unlock_test", "password123").unwrap();
+        let created = manager
+            .create_account("unlock_test", "password123")
+            .unwrap();
 
         manager.lock();
 
@@ -1261,7 +1503,9 @@ mod tests {
     fn test_unlock_account_wrong_password() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("wrong_pw_test", "password123").unwrap();
+        let created = manager
+            .create_account("wrong_pw_test", "password123")
+            .unwrap();
         manager.lock();
 
         let result = manager.unlock(&created.id, "wrongpassword");
@@ -1282,7 +1526,9 @@ mod tests {
     fn test_unlock_with_key() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("unlock_key_test", "password123").unwrap();
+        let created = manager
+            .create_account("unlock_key_test", "password123")
+            .unwrap();
         assert!(manager.is_unlocked());
 
         // Get the session key
@@ -1294,7 +1540,11 @@ mod tests {
         assert!(!manager.is_unlocked());
 
         let result = manager.unlock_with_key(&created.id, &session_key_b64);
-        assert!(result.success, "Failed to unlock with key: {:?}", result.error);
+        assert!(
+            result.success,
+            "Failed to unlock with key: {:?}",
+            result.error
+        );
         assert!(manager.is_unlocked());
     }
 
@@ -1302,7 +1552,9 @@ mod tests {
     fn test_unlock_with_key_wrong_key() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("unlock_key_wrong_test", "password123").unwrap();
+        let created = manager
+            .create_account("unlock_key_wrong_test", "password123")
+            .unwrap();
         manager.lock();
 
         let wrong_key = [0u8; 32];
@@ -1329,7 +1581,9 @@ mod tests {
     fn test_is_unlocked_after_create() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        manager.create_account("unlocked_test", "password123").unwrap();
+        manager
+            .create_account("unlocked_test", "password123")
+            .unwrap();
         assert!(manager.is_unlocked());
     }
 
@@ -1337,7 +1591,9 @@ mod tests {
     fn test_get_unlocked_account() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("session_test", "password123").unwrap();
+        let created = manager
+            .create_account("session_test", "password123")
+            .unwrap();
         assert_eq!(manager.get_unlocked_account(), Some(created.id.clone()));
 
         manager.lock();
@@ -1383,7 +1639,9 @@ mod tests {
     fn test_get_account_config() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("config_test", "password123").unwrap();
+        let created = manager
+            .create_account("config_test", "password123")
+            .unwrap();
         manager.lock();
 
         let config = manager.get_account_config(&created.id);
@@ -1407,7 +1665,9 @@ mod tests {
     fn test_delete_account() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("delete_test", "password123").unwrap();
+        let created = manager
+            .create_account("delete_test", "password123")
+            .unwrap();
         assert!(manager.list_accounts().len() == 1);
 
         manager.lock();
@@ -1422,10 +1682,16 @@ mod tests {
     fn test_change_password() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("change_pw_test", "oldpassword").unwrap();
+        let created = manager
+            .create_account("change_pw_test", "oldpassword")
+            .unwrap();
 
         let result = manager.change_password(&created.id, "oldpassword", "newpassword123");
-        assert!(result.is_ok(), "Failed to change password: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to change password: {:?}",
+            result.err()
+        );
 
         let info = result.unwrap();
         assert_eq!(info.name, "change_pw_test");
@@ -1441,7 +1707,9 @@ mod tests {
     fn test_change_password_wrong_old_password() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("pw_wrong_test", "correctpassword").unwrap();
+        let created = manager
+            .create_account("pw_wrong_test", "correctpassword")
+            .unwrap();
 
         let result = manager.change_password(&created.id, "wrongpassword", "newpassword123");
         assert!(result.is_err());
@@ -1451,7 +1719,9 @@ mod tests {
     #[test]
     fn test_derive_sqlcipher_key() {
         let (manager, _temp_dir) = create_test_account_manager();
-        manager.create_account("sqlcipher_test", "password123").unwrap();
+        manager
+            .create_account("sqlcipher_test", "password123")
+            .unwrap();
 
         let session_key = manager.get_session_key().unwrap();
         let session_key_arr: [u8; 32] = session_key.as_slice().try_into().unwrap();
@@ -1466,7 +1736,9 @@ mod tests {
     #[test]
     fn test_derive_sqlcipher_key_different_inputs() {
         let (manager, _temp_dir) = create_test_account_manager();
-        manager.create_account("key_diff_test", "password123").unwrap();
+        manager
+            .create_account("key_diff_test", "password123")
+            .unwrap();
 
         let session_key1 = manager.get_session_key().unwrap();
         let mut session_key2 = [0u8; 32];
@@ -1508,7 +1780,9 @@ mod tests {
     fn test_unlock_account_updates_last_accessed() {
         let (manager, _temp_dir) = create_test_account_manager();
 
-        let created = manager.create_account("access_test", "password123").unwrap();
+        let created = manager
+            .create_account("access_test", "password123")
+            .unwrap();
         manager.lock();
 
         let result = manager.unlock(&created.id, "password123");
