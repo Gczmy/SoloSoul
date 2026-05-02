@@ -145,6 +145,11 @@ class MigrationService {
         SoloLog.w('AUTH', 'Rust FFI returned null, trying direct file read...');
         final vaultRoot = RustVaultService.instance.vaultRoot;
         if (vaultRoot != null) {
+          // Validate accountId format to prevent path traversal
+          if (!RegExp(r'^acc_[a-f0-9\-]{36}$').hasMatch(accountId)) {
+            SoloLog.e('AUTH', 'Invalid accountId format, possible path traversal attempt');
+            return;
+          }
           final configFile = File('$vaultRoot/$accountId/config.json');
           if (await configFile.exists()) {
             final configJson = jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;

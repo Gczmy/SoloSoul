@@ -71,6 +71,21 @@ class BackupService {
     return dir;
   }
 
+  /// Set restrictive file permissions (owner-only read/write) on backup files.
+  static Future<void> _setRestrictivePermissions(String path) async {
+    try {
+      final result = await Process.run('chmod', ['600', path]);
+      if (result.exitCode != 0) {
+        DebugLogger.instance.logWarning(
+          'BACKUP',
+          'chmod 600 failed for backup file (exit ${result.exitCode}).',
+        );
+      }
+    } on Exception {
+      // chmod not available on all platforms — best effort
+    }
+  }
+
   Future<Directory> _accountBackupDir(String accountId) async {
     final root = await _backupRootDir();
     final dir = Directory('${root.path}/$accountId');
@@ -187,6 +202,7 @@ class BackupService {
       final fileName = _backupFileName(now, appVersion: appVersion);
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(encrypted, flush: true);
+      unawaited(_setRestrictivePermissions(file.path));
       DebugLogger.instance.logInfo('BACKUP', 'Step 4/5: write file done -> $fileName');
 
       report(1.0);
@@ -333,6 +349,7 @@ class BackupService {
       final fileName = '$sanitized$_fileExt';
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(encrypted, flush: true);
+      unawaited(_setRestrictivePermissions(file.path));
 
       report(1.0);
       return fileName;

@@ -251,6 +251,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
             state = const AsyncData(AuthState.locked);
             return false;
           }
+          // Validate accountId format to prevent path traversal
+          if (!RegExp(r'^acc_[a-f0-9\-]{36}$').hasMatch(accountId)) {
+            SoloLog.e('Auth', 'Step3: Invalid accountId format, possible path traversal attempt');
+            state = const AsyncData(AuthState.locked);
+            return false;
+          }
           final configFile = File('$vaultRoot/$accountId/config.json');
           if (await configFile.exists()) {
             final configJson = jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;

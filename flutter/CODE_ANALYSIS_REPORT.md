@@ -17,8 +17,8 @@
 | S005 | P1 | `solo_log.dart:24`, `debug_logger.dart:127` | debug/profile 构建中 print() 暴露敏感日志到控制台 | `[x]` 已修复 |
 | S006 | P1 | `settings_page.dart:315-333` | Debug 模式激活允许仅生物识别（无密码），权限升级风险 | `[ ]` 待修复 |
 | S007 | P1 | `native_vault_service.dart:242-248` | 主密码以明文 String 传递（Dart 不可置零）— 平台限制 | `[ ]` 待修复 |
-| S008 | P1 | `backup_service.dart:189,335` | 备份文件创建后未设置限制性权限 | `[ ]` 待修复 |
-| S009 | P1 | `auth_notifier.dart:254`, `auth_services.dart:148` | accountId 直接拼接文件路径，未验证格式，路径穿越风险 | `[ ]` 待修复 |
+| S008 | P1 | `backup_service.dart:189,335` | 备份文件创建后未设置限制性权限 | `[x]` 已修复 |
+| S009 | P1 | `auth_notifier.dart:254`, `auth_services.dart:148` | accountId 直接拼接文件路径，未验证格式，路径穿越风险 | `[x]` 已修复 |
 | S010 | P1 | `debug_logger.dart:82-86` | getExportLog() 导出日志到系统剪贴板，任何应用可读 | `[x]` 已修复 |
 | S011 | P2 | `security_service.dart:121-123` | 安全设置加载异常被静默吞掉，回退到默认值 | `[ ]` 待修复 |
 | S012 | P2 | `auth_storage.dart:300-317` | deleteAccount 返回 true 即使 Keychain 清理失败 | `[ ]` 待修复 |
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：25 / 65
+- 已完成：27 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）
