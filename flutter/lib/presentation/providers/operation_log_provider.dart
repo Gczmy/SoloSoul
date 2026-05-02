@@ -28,6 +28,8 @@ class OperationLogService extends ChangeNotifier {
 
   /// Future to track pending save operations to prevent race conditions
   Future<void>? _pendingSave;
+  Timer? _saveTimer;
+  static const _saveDebounceDuration = Duration(milliseconds: 500);
 
   // TTL constants
   static const int _maxEntries = 500;
@@ -132,6 +134,8 @@ class OperationLogService extends ChangeNotifier {
   /// Encrypt and save logs to disk
   /// Waits for any pending save to complete before starting new save
   Future<void> _saveToDisk() async {
+    _saveTimer?.cancel();
+    _saveTimer = null;
     // Wait for any pending save operation to complete first
     // This ensures saves happen in order and don't overwrite each other
     if (_pendingSave != null) {
@@ -142,6 +146,14 @@ class OperationLogService extends ChangeNotifier {
     await _pendingSave;
     _pendingSave =
         null; // Reset after completion to allow next save to proceed immediately
+  }
+
+  /// Debounced save — batches rapid addEntry calls into a single disk write.
+  void _saveToDiskDebounced() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(_saveDebounceDuration, () {
+      unawaited(_saveToDisk());
+    });
   }
 
   /// Actual save implementation
@@ -200,7 +212,15 @@ class OperationLogService extends ChangeNotifier {
   /// Flush pending saves to disk and wait for completion
   /// Call this after batch operations to ensure all entries are persisted
   Future<void> flush() async {
+    _saveTimer?.cancel();
+    _saveTimer = null;
     await _saveToDisk();
+  }
+
+  @override
+  void dispose() {
+    _saveTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> addEntry(OperationEntry entry) async {
@@ -220,7 +240,7 @@ class OperationLogService extends ChangeNotifier {
 
     _entries.insert(0, entryWithDevice); // Most recent first
     _applyTTL(); // Ensure TTL limits before saving
-    await _saveToDisk();
+    _saveToDiskDebounced();
     notifyListeners(); // Notify Riverpod providers to refresh
   }
 

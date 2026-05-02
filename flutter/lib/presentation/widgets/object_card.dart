@@ -952,7 +952,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         SizedBox(
           width: 64,
           child: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller ?? TextEditingController(),
+            valueListenable: controller ?? ObjectCard._dummyController,
             builder: (context, val, child) {
               final len = val.text.length;
               const max = kMaxPropertyLength;

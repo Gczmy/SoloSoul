@@ -29,6 +29,8 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
+  static final _dummyController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -135,7 +137,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           SizedBox(
                             width: 64,
                             child: ValueListenableBuilder<TextEditingValue>(
-                              valueListenable: controller ?? TextEditingController(),
+                              valueListenable: controller ?? _dummyController,
                               builder: (context, val, child) {
                                 final len = val.text.length;
                                 final max = maxLength!;
