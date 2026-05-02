@@ -64,9 +64,20 @@ class FallbackSecureStorage {
     final data = {'value': value, 'timestamp': DateTime.now().toIso8601String()};
     await file.writeAsString(jsonEncode(data));
     try {
-      await Process.run('chmod', ['600', path]);
+      final result = await Process.run('chmod', ['600', path]);
+      if (result.exitCode != 0) {
+        DebugLogger.instance.logWarning(
+          'FALLBACK_STORAGE',
+          'chmod 600 failed for fallback file (exit ${result.exitCode}). '
+          'File may be world-readable.',
+        );
+      }
     } on Exception {
-      // Ignore chmod failures on platforms where it's not supported
+      DebugLogger.instance.logWarning(
+        'FALLBACK_STORAGE',
+        'chmod not available on this platform. '
+        'Fallback storage files use default permissions.',
+      );
     }
   }
 

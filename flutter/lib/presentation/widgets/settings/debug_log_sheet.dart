@@ -35,6 +35,29 @@ class DebugLogSheetState extends State<DebugLogSheet> {
   }
 
   Future<void> _copyToClipboard() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Copy Logs to Clipboard'),
+        content: const Text(
+          'Logs will be sanitized before copying, but clipboard content '
+          'is accessible to all apps on this device.\n\n'
+          'The clipboard should be cleared after use.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Copy'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
     final text = DebugLogger.instance.getExportLog();
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
@@ -44,13 +67,14 @@ class DebugLogSheetState extends State<DebugLogSheet> {
           children: [
             Icon(Icons.check_circle, color: Colors.white, size: 20),
             SizedBox(width: 12),
-            Text('Logs copied to clipboard'),
+            Text('Sanitized logs copied to clipboard'),
           ],
         ),
         backgroundColor: AppTheme.successColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
       ),
     );
   }

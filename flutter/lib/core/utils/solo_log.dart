@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 
 /// Unified logging utility for SoloSoul.
@@ -19,7 +18,9 @@ class SoloLog {
   static final Map<String, Stopwatch> _stopwatches = {};
 
   static void _consolePrint(String level, String tag, String message) {
-    if (kDebugMode) {
+    // Gate on user-activated debug mode, not kDebugMode,
+    // to prevent sensitive logs reaching console in debug/profile builds.
+    if (DebugLogger.instance.isActive) {
       // ignore: avoid_print
       print('[SoloLog] [$level] [$tag] $message');
     }

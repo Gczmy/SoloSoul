@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 enum LogLevel { debug, info, warning, error }
 
 /// A single log entry with structured data.
@@ -51,12 +49,22 @@ class DebugLogger {
 
   /// Patterns for sanitization - sensitive fields that should be redacted
   static final List<RegExp> _sensitivePatterns = [
-    RegExp(r'(password|secret|key|token|auth)[=:]\s*[\w\-]+', caseSensitive: false),
-    RegExp(r'"password"\s*:\s*"[^"]+"', caseSensitive: false),
-    RegExp(r'"secret"\s*:\s*"[^"]+"', caseSensitive: false),
-    RegExp(r'"vault_key"\s*:\s*"[^"]+"', caseSensitive: false),
-    RegExp(r'"access_token"\s*:\s*"[^"]+"', caseSensitive: false),
-    RegExp(r'"refresh_token"\s*:\s*"[^"]+"', caseSensitive: false),
+    // Key=value patterns (password, secret, key, token, auth, salt, hash)
+    RegExp(r'(password|secret|key|token|auth|salt|hash|verify)[=:]\s*[\w\-]+', caseSensitive: false),
+    // JSON field patterns
+    RegExp(r'"(password|secret|vault_key|access_token|refresh_token|salt|verify_hash|session_key)"\s*:\s*"[^"]+"', caseSensitive: false),
+    // Account ID patterns (acc_xxx)
+    RegExp(r'acc_[a-f0-9\-]{20,}', caseSensitive: false),
+    // File path patterns (vaultRoot, config.json, solosoul paths)
+    RegExp(r'(\/[^\s]*?(?:solosoul|vault|config\.json|Application Support)[^\s]*)', caseSensitive: false),
+    // Long hex strings (>16 chars, likely keys/hashes)
+    RegExp(r'\b[a-f0-9]{16,}\b', caseSensitive: false),
+    // Long base64 strings (>32 chars)
+    RegExp(r'[A-Za-z0-9+/]{32,}={0,2}', caseSensitive: false),
+    // Password length logging
+    RegExp(r'pwdLen[=:]\s*\d+', caseSensitive: false),
+    // Salt length logging
+    RegExp(r'saltLen[=:]\s*\d+', caseSensitive: false),
   ];
 
   /// Activate logging - must be called when debugModeProvider becomes true
@@ -78,12 +86,19 @@ class DebugLogger {
 
   List<LogEntry> get entries => List.unmodifiable(_logBuffer);
 
-  /// Get all buffered logs as a single string (for export)
+  /// Get all buffered logs as a sanitized string (for export).
+  /// Messages are double-sanitized at export time to catch any patterns
+  /// that were added to _sensitivePatterns after the log was recorded.
   String getExportLog() {
     if (_logBuffer.isEmpty) {
       return 'No debug logs available.';
     }
-    return _logBuffer.map((e) => e.toLine()).join('\n');
+    return _logBuffer.map((e) {
+      final sanitizedMessage = _sanitize(e.message);
+      return '[${e.timestamp.toIso8601String()}] '
+          '[${e.level.name.toUpperCase()}] '
+          '[${e.tag}] $sanitizedMessage';
+    }).join('\n');
   }
 
   /// Sanitize a message by redacting sensitive patterns
@@ -121,8 +136,10 @@ class DebugLogger {
       _logBuffer.removeAt(0);
     }
 
-    // Also print to console in debug mode
-    if (kDebugMode) {
+    // Print to console only when user-activated debug mode is on.
+    // Do NOT gate on kDebugMode — that would expose sensitive auth logs
+    // in debug/profile builds without user consent.
+    if (_isActive) {
       // ignore: avoid_print
       print(entry.toLine());
     }

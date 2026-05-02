@@ -10,21 +10,21 @@
 
 | ID | 优先级 | 文件位置 | 描述 | 状态 |
 |------|--------|----------|------|------|
-| S001 | P0 | `debug_log_sheet.dart:37-39` | Debug 日志导出到剪贴板，未充分脱敏（含 vaultRoot、accountId、salt 等） | `[ ]` 待修复 |
-| S002 | P0 | `debug_logger.dart:53-60` | `_sensitivePatterns` 脱敏不完整，缺少 salt/hash/path/accountId 模式 | `[ ]` 待修复 |
-| S003 | P0 | `fallback_secure_storage.dart:54-67` | Keychain 不可用时明文写入文件，chmod 失败被静默忽略 | `[ ]` 待修复 |
-| S004 | P0 | `auth_storage.dart:281-298` | 无暴力破解防护（无限速/锁定），仅依赖 Argon2id 慢速 | `[ ]` 待修复 |
-| S005 | P1 | `solo_log.dart:24`, `debug_logger.dart:127` | debug/profile 构建中 print() 暴露敏感日志到控制台 | `[ ]` 待修复 |
+| S001 | P0 | `debug_log_sheet.dart:37-39` | Debug 日志导出到剪贴板，未充分脱敏（含 vaultRoot、accountId、salt 等） | `[x]` 已修复 |
+| S002 | P0 | `debug_logger.dart:53-60` | `_sensitivePatterns` 脱敏不完整，缺少 salt/hash/path/accountId 模式 | `[x]` 已修复 |
+| S003 | P0 | `fallback_secure_storage.dart:54-67` | Keychain 不可用时明文写入文件，chmod 失败被静默忽略 | `[x]` 已修复 |
+| S004 | P0 | `auth_storage.dart:281-298` | 无暴力破解防护（无限速/锁定），仅依赖 Argon2id 慢速 | `[x]` 已修复 |
+| S005 | P1 | `solo_log.dart:24`, `debug_logger.dart:127` | debug/profile 构建中 print() 暴露敏感日志到控制台 | `[x]` 已修复 |
 | S006 | P1 | `settings_page.dart:315-333` | Debug 模式激活允许仅生物识别（无密码），权限升级风险 | `[ ]` 待修复 |
 | S007 | P1 | `native_vault_service.dart:242-248` | 主密码以明文 String 传递（Dart 不可置零）— 平台限制 | `[ ]` 待修复 |
 | S008 | P1 | `backup_service.dart:189,335` | 备份文件创建后未设置限制性权限 | `[ ]` 待修复 |
 | S009 | P1 | `auth_notifier.dart:254`, `auth_services.dart:148` | accountId 直接拼接文件路径，未验证格式，路径穿越风险 | `[ ]` 待修复 |
-| S010 | P1 | `debug_logger.dart:82-86` | getExportLog() 导出日志到系统剪贴板，任何应用可读 | `[ ]` 待修复 |
+| S010 | P1 | `debug_logger.dart:82-86` | getExportLog() 导出日志到系统剪贴板，任何应用可读 | `[x]` 已修复 |
 | S011 | P2 | `security_service.dart:121-123` | 安全设置加载异常被静默吞掉，回退到默认值 | `[ ]` 待修复 |
 | S012 | P2 | `auth_storage.dart:300-317` | deleteAccount 返回 true 即使 Keychain 清理失败 | `[ ]` 待修复 |
 | S013 | P2 | `auth_state.dart:35-38` | 敏感访问超时使用 wall clock，可被篡改 | `[ ]` 待修复 |
 | S014 | P2 | `biometric_credential_service.dart:228-258` | v1 遗留解密路径仍存在，旧格式凭据仍可解密 | `[ ]` 待修复 |
-| S015 | P2 | `auth_notifier.dart:140` | 日志记录密码长度（pwdLen），辅助暴力攻击 | `[ ]` 待修复 |
+| S015 | P2 | `auth_notifier.dart:140` | 日志记录密码长度（pwdLen），辅助暴力攻击 | `[x]` 已修复 |
 | S016 | P2 | `settings_page.dart:42-67` | GitHub API 调用无证书固定 | `[ ]` 待修复 |
 | S017 | P2 | `auth_helpers.dart:18-32` | constantTimeEquals 用 null 字符填充，非标准实现 | `[ ]` 待修复 |
 
@@ -108,10 +108,10 @@
 
 ## 修复进度
 
-- 已完成：19 / 65
+- 已完成：25 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
-- 轮次 2 新增：38 项
+- 轮次 2 新增：38 项（本轮修复 6 项）
 
 ## 详细问题描述与修复指引
 

@@ -137,7 +137,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _isUnlocking = true;
 
     final accountId = _accountManager.selectedAccountId;
-    SoloLog.d('Auth', 'unlockVault start, selectedAccountId=$accountId, pwdLen=${password.length}');
+    SoloLog.d('Auth', 'unlockVault start, selectedAccountId=$accountId, pwdNotEmpty=${password.isNotEmpty}');
 
     if (accountId == null) {
       SoloLog.w('Auth', '_selectedAccountId is null, returning false');

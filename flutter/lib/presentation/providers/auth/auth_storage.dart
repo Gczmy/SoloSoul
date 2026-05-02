@@ -14,6 +14,13 @@ class SecureAccountStorage {
   static const _accountsKey = 'solosoul_accounts';
   static const _accountDataPrefix = 'solosoul_account_';
 
+  // Brute-force protection: track failed attempts per account
+  static final Map<String, _AttemptTracker> _attemptTrackers = {};
+
+  static const int _maxAttemptsBeforeLockout = 10;
+  static const int _backoffStartAfterAttempts = 5;
+  static const Duration _initialBackoff = Duration(seconds: 30);
+
   const SecureAccountStorage._();
 
   static const SecureAccountStorage _instance = SecureAccountStorage._();
@@ -278,7 +285,21 @@ class SecureAccountStorage {
 
   /// Verify password against Rust AccountManager.
   /// Phase 2: delegates entirely to Rust — no more Dart-side Argon2id.
+  /// Includes brute-force protection with exponential backoff.
   Future<bool> verifyPassword(String accountId, String password) async {
+    // Brute-force protection: check rate limit
+    final tracker = _attemptTrackers.putIfAbsent(accountId, _AttemptTracker.new);
+    if (tracker.isLockedOut) {
+      final remaining = tracker.remainingLockout;
+      SoloLog.w('AuthStorage', 'verifyPassword: account locked out, ${remaining.inSeconds}s remaining');
+      return false;
+    }
+    if (tracker.shouldBackoff) {
+      final delay = tracker.currentBackoff;
+      SoloLog.w('AuthStorage', 'verifyPassword: backing off ${delay.inSeconds}s after ${tracker.attempts} failed attempts');
+      await Future<void>.delayed(delay);
+    }
+
     SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId');
     final timer = SoloLog.startTimer('AuthStorage', 'verifyPassword');
     try {
@@ -289,10 +310,17 @@ class SecureAccountStorage {
       final success = result?['data']?['success'] == true;
       SoloLog.d('AuthStorage', 'verifyPassword result: $success');
       SoloLog.endTimer(timer);
+
+      if (success) {
+        tracker.reset();
+      } else {
+        tracker.recordFailure();
+      }
       return success;
     } on Object catch (e, st) {
       SoloLog.e('AuthStorage', 'verifyPassword unexpected error', e, st);
       SoloLog.endTimer(timer);
+      tracker.recordFailure();
       return false;
     }
   }
@@ -380,5 +408,56 @@ class SecureAccountStorage {
     final hasLower = password.contains(RegExp(r'[a-z]'));
     final hasDigit = password.contains(RegExp(r'[0-9]'));
     return hasUpper && hasLower && hasDigit;
+  }
+}
+
+/// Tracks failed password attempts for brute-force protection.
+class _AttemptTracker {
+  int attempts = 0;
+  DateTime? _lockoutUntil;
+
+  static const int _backoffStartAfterAttempts =
+      SecureAccountStorage._backoffStartAfterAttempts;
+  static const int _maxAttempts =
+      SecureAccountStorage._maxAttemptsBeforeLockout;
+  static const Duration _initialBackoff =
+      SecureAccountStorage._initialBackoff;
+  static const Duration _lockoutDuration = Duration(minutes: 15);
+
+  bool get isLockedOut {
+    if (_lockoutUntil == null) return false;
+    if (DateTime.now().isAfter(_lockoutUntil!)) {
+      _lockoutUntil = null;
+      return false;
+    }
+    return true;
+  }
+
+  Duration get remainingLockout {
+    if (_lockoutUntil == null) return Duration.zero;
+    final remaining = _lockoutUntil!.difference(DateTime.now());
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  bool get shouldBackoff =>
+      attempts >= _backoffStartAfterAttempts && !isLockedOut;
+
+  Duration get currentBackoff {
+    if (attempts < _backoffStartAfterAttempts) return Duration.zero;
+    final exponent = attempts - _backoffStartAfterAttempts;
+    final seconds = _initialBackoff.inSeconds * (1 << exponent);
+    return Duration(seconds: seconds.clamp(0, 300));
+  }
+
+  void recordFailure() {
+    attempts++;
+    if (attempts >= _maxAttempts) {
+      _lockoutUntil = DateTime.now().add(_lockoutDuration);
+    }
+  }
+
+  void reset() {
+    attempts = 0;
+    _lockoutUntil = null;
   }
 }
