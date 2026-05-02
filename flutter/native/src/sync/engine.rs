@@ -7,9 +7,8 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::crdt::{DocMeta, SoloDoc};
+use super::crdt::SoloDoc;
 use super::protocol::SecureChannel;
-use crate::vault::ProfileData;
 
 /// Direction of sync result
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -236,7 +235,7 @@ impl SyncEngine {
         remote_diff: &Option<Vec<u8>>,
     ) -> SyncDirection {
         let sv_match = local_sv == remote_sv;
-        let has_remote = remote_diff.as_ref().map_or(false, |d| d.len() > 2);
+        let has_remote = remote_diff.as_ref().is_some_and(|d| d.len() > 2);
         match (sv_match, has_remote) {
             (true, false) => SyncDirection::NoChange,
             (false, false) => SyncDirection::Pushed,
@@ -294,6 +293,7 @@ impl Transport for MockTransport {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::crdt::DocMeta;
     use crate::vault::*;
 
     fn make_profile_a() -> ProfileData {

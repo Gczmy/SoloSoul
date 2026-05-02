@@ -85,6 +85,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [dev-dependencies]
 tempfile = "3.10"
 
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(frb_expand)'] }
+
 [profile.release]
 opt-level = 'z'      # Optimize for size
 lto = true            # Link-time optimization

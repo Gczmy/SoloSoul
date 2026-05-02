@@ -51,6 +51,17 @@ pub struct DeviceEntry {
     pub last_used: DateTime<Utc>,
 }
 
+/// Fields to update in account metadata (all optional)
+#[derive(Debug, Default)]
+pub struct MetadataUpdate {
+    pub password_hint: Option<String>,
+    pub last_login_at: Option<DateTime<Utc>>,
+    pub last_operation_at: Option<DateTime<Utc>>,
+    pub last_operation_desc: Option<String>,
+    pub recent_devices: Option<Vec<DeviceEntry>>,
+    pub biometric_enabled: Option<bool>,
+}
+
 /// Per-account config (stored in {account_id}/config.json)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountConfig {
@@ -528,7 +539,7 @@ impl AccountManager {
                             }
                         };
                         if let Some(ref key) = *session_guard {
-                            let sqlcipher_key = self.derive_sqlcipher_key(&**key);
+                            let sqlcipher_key = self.derive_sqlcipher_key(key);
                             let vault_config = VaultConfig {
                                 path: self.account_dir(account_id),
                                 account_id: account_id.to_string(),
@@ -1161,7 +1172,7 @@ impl AccountManager {
                 // Get all profiles and re-encrypt them
                 if let Ok(profiles) = vault.list_profiles() {
                     for profile_summary in profiles {
-                        if let Ok(Some(mut profile)) = vault.load_profile(&profile_summary.id) {
+                        if let Ok(Some(profile)) = vault.load_profile(&profile_summary.id) {
                             // Re-encrypt profile data with new key
                             // AES-256-GCM encryption happens at Flutter layer, vault stores raw bytes
                             // So we just need to update the vault with the same data
@@ -1317,12 +1328,7 @@ impl AccountManager {
     pub fn update_account_metadata(
         &self,
         account_id: &str,
-        password_hint: Option<String>,
-        last_login_at: Option<DateTime<Utc>>,
-        last_operation_at: Option<DateTime<Utc>>,
-        last_operation_desc: Option<String>,
-        recent_devices: Option<Vec<DeviceEntry>>,
-        biometric_enabled: Option<bool>,
+        update: MetadataUpdate,
     ) -> Result<(), String> {
         let config_path = self.account_dir(account_id).join("config.json");
         let config_content = fs::read_to_string(&config_path)
@@ -1330,22 +1336,22 @@ impl AccountManager {
         let mut config: AccountConfig = serde_json::from_str(&config_content)
             .map_err(|e| format!("Failed to parse config: {}", e))?;
 
-        if let Some(hint) = password_hint {
+        if let Some(hint) = update.password_hint {
             config.password_hint = Some(hint);
         }
-        if let Some(login) = last_login_at {
+        if let Some(login) = update.last_login_at {
             config.last_login_at = Some(login);
         }
-        if let Some(op_at) = last_operation_at {
+        if let Some(op_at) = update.last_operation_at {
             config.last_operation_at = Some(op_at);
         }
-        if let Some(op_desc) = last_operation_desc {
+        if let Some(op_desc) = update.last_operation_desc {
             config.last_operation_desc = Some(op_desc);
         }
-        if let Some(devices) = recent_devices {
+        if let Some(devices) = update.recent_devices {
             config.recent_devices = devices;
         }
-        if let Some(enabled) = biometric_enabled {
+        if let Some(enabled) = update.biometric_enabled {
             config.biometric_enabled = enabled;
         }
 

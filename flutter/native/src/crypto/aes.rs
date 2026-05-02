@@ -23,7 +23,7 @@ pub const TAG_SIZE: usize = 16;
 /// - Version (1 byte)
 /// - Nonce (12 bytes)
 /// - Ciphertext + Auth Tag (variable)
-
+///
 /// Magic bytes for encrypted blob
 const BLOB_MAGIC: [u8; 4] = [0x53, 0x4F, 0x4C, 0x4F]; // "SOLO"
 /// Current blob version
@@ -63,7 +63,7 @@ pub fn decrypt_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec<u8>>, S
     }
 
     // Verify magic
-    if &blob[0..4] != &BLOB_MAGIC {
+    if blob[0..4] != BLOB_MAGIC {
         return Err("Invalid blob magic".to_string());
     }
 

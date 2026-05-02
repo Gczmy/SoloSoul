@@ -463,11 +463,6 @@ impl VaultStore {
     }
 }
 
-/// Helper for hex encoding
-fn hex_encode(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{:02x}", b)).collect()
-}
-
 /// Helper for base64 decoding
 fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
     BASE64

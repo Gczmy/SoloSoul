@@ -3,7 +3,7 @@
 //! This module provides a type-safe JSON RPC interface for vault operations
 //! that works around flutter_rust_bridge's complex type handling limitations.
 
-use crate::account::AccountManager;
+use crate::account::{AccountManager, MetadataUpdate};
 use crate::vault::{Profile, ProfileSummary};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
@@ -258,15 +258,15 @@ fn handle_save_profile(
         }
     }
 
-    let profile = if existing.is_some() {
+    let profile = if let Some(ref existing) = existing {
         // Use the existing profile's created_at since we're updating
         Profile {
             id: payload.name.clone(), // Use name as ID for consistent lookups
             name: payload.name.clone(),
             data,
-            created_at: existing.as_ref().unwrap().created_at,
+            created_at: existing.created_at,
             updated_at: chrono::Utc::now(),
-            version: existing.as_ref().unwrap().version + 1,
+            version: existing.version + 1,
         }
     } else {
         // Use profile name as ID so Flutter can look it up by accountId
@@ -1105,12 +1105,14 @@ fn handle_update_account_metadata(
 
     match manager.update_account_metadata(
         &payload.account_id,
-        payload.password_hint,
-        last_login_at,
-        last_operation_at,
-        payload.last_operation_desc,
-        recent_devices,
-        payload.biometric_enabled,
+        MetadataUpdate {
+            password_hint: payload.password_hint,
+            last_login_at,
+            last_operation_at,
+            last_operation_desc: payload.last_operation_desc,
+            recent_devices,
+            biometric_enabled: payload.biometric_enabled,
+        },
     ) {
         Ok(()) => VaultResponse::success(serde_json::json!({"updated": true})),
         Err(e) => VaultResponse::error(format!("Failed to update metadata: {}", e)),

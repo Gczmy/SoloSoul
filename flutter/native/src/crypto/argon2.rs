@@ -19,9 +19,10 @@ pub const DEFAULT_ITERATIONS: u32 = 1; // 1 iteration for faster testing
 pub const DEFAULT_PARALLELISM: u32 = 4;
 
 /// KDF algorithm selection
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum KdfAlgorithm {
     /// Argon2id — memory-hard, recommended for password hashing
+    #[default]
     #[serde(rename = "argon2id")]
     Argon2id,
     /// PBKDF2-SHA256 — compatible with legacy data
@@ -29,27 +30,16 @@ pub enum KdfAlgorithm {
     Pbkdf2,
 }
 
-impl Default for KdfAlgorithm {
-    fn default() -> Self {
-        Self::Argon2id
-    }
-}
-
 /// KDF parameter presets (exposed to users in SecuritySettings)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum KdfPreset {
     /// 8 MiB, 2 iterations — low-end devices
     Fast,
     /// 16 MiB, 3 iterations — default
+    #[default]
     Balanced,
     /// 64 MiB, 3 iterations — high security
     Secure,
-}
-
-impl Default for KdfPreset {
-    fn default() -> Self {
-        Self::Balanced
-    }
 }
 
 impl KdfPreset {

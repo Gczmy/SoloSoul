@@ -200,8 +200,13 @@ pub extern "C" fn vault_request_ffi(
 }
 
 /// Initialize account manager from base path (C-compatible)
+///
+/// # Safety
+/// `base_path_ptr` must be a valid, null-terminated C string pointer.
 #[no_mangle]
-pub extern "C" fn init_account_manager_ffi(base_path_ptr: *const libc::c_char) -> libc::c_int {
+pub unsafe extern "C" fn init_account_manager_ffi(
+    base_path_ptr: *const libc::c_char,
+) -> libc::c_int {
     use std::ffi::CStr;
 
     if base_path_ptr.is_null() {
@@ -232,8 +237,11 @@ pub extern "C" fn is_vault_unlocked_ffi() -> libc::c_int {
 }
 
 /// Free a string allocated by Rust (must be called by Dart to prevent memory leaks)
+///
+/// # Safety
+/// `ptr` must have been previously allocated by `CString::into_raw` in this crate.
 #[no_mangle]
-pub extern "C" fn free_rust_string_ffi(ptr: *mut libc::c_char) {
+pub unsafe extern "C" fn free_rust_string_ffi(ptr: *mut libc::c_char) {
     if !ptr.is_null() {
         drop(unsafe { CString::from_raw(ptr) });
     }
