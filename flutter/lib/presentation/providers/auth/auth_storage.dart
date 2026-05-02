@@ -326,22 +326,24 @@ class SecureAccountStorage {
   }
 
   Future<bool> deleteAccount(String accountId) async {
+    var success = true;
     try {
       final accounts = await listAccounts();
       accounts.removeWhere((a) => a.id == accountId);
       await _saveAccounts(accounts);
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('STORAGE', 'deleteAccount _saveAccounts error: $e\nStack trace: $st');
+      success = false;
     }
 
     try {
       await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('STORAGE', 'deleteAccount _secureStorage.delete error: $e\nStack trace: $st');
+      // Keychain cleanup failure is non-fatal — Rust vault is source of truth
     }
 
-    // Return true regardless of Keychain errors - Rust is the source of truth
-    return true;
+    return success;
   }
 
   Future<void> updateAccountSalt(

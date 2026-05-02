@@ -21,7 +21,7 @@
 | S009 | P1 | `auth_notifier.dart:254`, `auth_services.dart:148` | accountId 直接拼接文件路径，未验证格式，路径穿越风险 | `[x]` 已修复 |
 | S010 | P1 | `debug_logger.dart:82-86` | getExportLog() 导出日志到系统剪贴板，任何应用可读 | `[x]` 已修复 |
 | S011 | P2 | `security_service.dart:121-123` | 安全设置加载异常被静默吞掉，回退到默认值 | `[x]` 已修复 |
-| S012 | P2 | `auth_storage.dart:300-317` | deleteAccount 返回 true 即使 Keychain 清理失败 | `[ ]` 待修复 |
+| S012 | P2 | `auth_storage.dart:300-317` | deleteAccount 返回 true 即使 Keychain 清理失败 | `[x]` 已修复 |
 | S013 | P2 | `auth_state.dart:35-38` | 敏感访问超时使用 wall clock，可被篡改 | `[ ]` 待修复 |
 | S014 | P2 | `biometric_credential_service.dart:228-258` | v1 遗留解密路径仍存在，旧格式凭据仍可解密 | `[ ]` 待修复 |
 | S015 | P2 | `auth_notifier.dart:140` | 日志记录密码长度（pwdLen），辅助暴力攻击 | `[x]` 已修复 |
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：47 / 65
+- 已完成：48 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）
