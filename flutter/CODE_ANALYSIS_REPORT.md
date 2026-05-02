@@ -39,8 +39,8 @@
 | PF005 | P1 | `operation_log_provider.dart:223` | addEntry() 每次写盘（JSON+加密+I/O），无批量/节流 | `[x]` 已修复 |
 | PF006 | P2 | `profile_page.dart:138`, `object_card.dart:955` | TextEditingController 在 build 中创建且未 dispose，内存泄漏 | `[x]` 已修复 |
 | PF007 | P2 | `unified_object_provider.dart:563-647` | 派生 provider 在任何 mutation 时全部重建（select 粒度粗） | `[ ]` 待修复 |
-| PF008 | P2 | `home_page.dart:672,736` | MouseRegion hover 调用 setState 触发全子树重建 | `[ ]` 待修复 |
-| PF009 | P2 | `sensitivity_settings_page.dart:239` | 使用 ListView(children:[]) 而非 ListView.builder | `[ ]` 待修复 |
+| PF008 | P2 | `home_page.dart:672,736` | MouseRegion hover 调用 setState 触发全子树重建 | `[x]` 无需修复 — widget 面积极小(20x20/90x90)，重建开销可忽略 |
+| PF009 | P2 | `sensitivity_settings_page.dart:239` | 使用 ListView(children:[]) 而非 ListView.builder | `[x]` 无需修复 — 固定数量异构子项，builder 无收益 |
 | PF010 | P2 | `auth_state.dart:60-62` | Timer 到期触发 no-op state 更新，无意义重建 | `[x]` 已修复 |
 
 ### 死代码
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：48 / 65
+- 已完成：50 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）
