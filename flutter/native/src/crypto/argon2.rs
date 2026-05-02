@@ -438,15 +438,15 @@ mod tests {
     }
 
     #[test]
-    fn test_derive_key_ffi_invalid_salt_len() {
+    fn test_derive_key_ffi_short_salt_ok() {
         let password = b"test";
         let mut output = [0u8; 32];
         let result = unsafe {
             argon2_derive_key(
                 password.as_ptr(),
                 password.len(),
-                [0u8; 32].as_ptr(),
-                16, // Invalid salt length
+                [0u8; 16].as_ptr(),
+                16, // Short but valid (>= 8)
                 8 * 1024,
                 1,
                 1,
@@ -454,7 +454,7 @@ mod tests {
                 32,
             )
         };
-        assert_eq!(result, RESULT_INVALID_LEN);
+        assert_eq!(result, RESULT_OK);
     }
 
     #[test]

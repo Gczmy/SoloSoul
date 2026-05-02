@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
@@ -151,7 +151,7 @@ class SecureAccountStorage {
     if (salt != null && verifyHashFromRust != null) {
       saltToStore = salt;
       hashToStore = verifyHashFromRust;
-      sessionKey = NativeCryptoService.instance.deriveKey(
+      sessionKey = await frb.frbDeriveKey(
         password: password,
         salt: base64Decode(salt),
         memoryKib: 16384,
@@ -159,50 +159,26 @@ class SecureAccountStorage {
         parallelism: 4,
       );
     } else {
-      final dartSalt = NativeCryptoService.instance.generateSalt();
-      if (dartSalt == null) {
-        return (
-          success: false,
-          error: 'Failed to generate salt',
-          account: null,
-          sessionKey: null
-        );
-      }
+      final dartSalt = await frb.frbGenerateSalt(length: 32);
       saltToStore = base64Encode(dartSalt);
       // Step 1: Derive master_key from password (same as Rust)
-      final masterKey = NativeCryptoService.instance.deriveKey(
+      final masterKey = await frb.frbDeriveKey(
         password: password,
         salt: dartSalt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
       );
-      if (masterKey == null) {
-        return (
-          success: false,
-          error: 'Failed to derive key',
-          account: null,
-          sessionKey: null
-        );
-      }
       // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
       final masterKeyHex = bytesToHex(masterKey);
       const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      final verifyKey = await frb.frbDeriveKey(
         password: masterKeyHex,
         salt: Uint8List.fromList(utf8.encode(verifyData)),
         memoryKib: 8192,
         iterations: 1,
         parallelism: 1,
       );
-      if (verifyKey == null) {
-        return (
-          success: false,
-          error: 'Failed to derive verify key',
-          account: null,
-          sessionKey: null
-        );
-      }
       // Step 3: Hex-encode verify_key (same as Rust)
       hashToStore = bytesToHex(verifyKey);
       sessionKey = masterKey;
@@ -253,30 +229,24 @@ class SecureAccountStorage {
     final storedHash = accountData['verify_hash'] as String;
 
     // Step 1: Derive master_key from password (same as Rust)
-    final masterKey = NativeCryptoService.instance.deriveKey(
+    final masterKey = await frb.frbDeriveKey(
       password: password,
       salt: Uint8List.fromList(salt),
       memoryKib: 16384,
       iterations: 1,
       parallelism: 4,
     );
-    if (masterKey == null) {
-      return (success: false, error: 'Key derivation failed', sessionKey: null);
-    }
 
     // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
     final masterKeyHex = bytesToHex(masterKey);
     const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-    final verifyKey = NativeCryptoService.instance.deriveKey(
+    final verifyKey = await frb.frbDeriveKey(
       password: masterKeyHex,
       salt: Uint8List.fromList(utf8.encode(verifyData)),
       memoryKib: 8192,
       iterations: 1,
       parallelism: 1,
     );
-    if (verifyKey == null) {
-      return (success: false, error: 'Verify failed', sessionKey: null);
-    }
 
     // Step 3: Hex-encode verify_key and compare (same as Rust)
     final derivedHashHex = bytesToHex(verifyKey);

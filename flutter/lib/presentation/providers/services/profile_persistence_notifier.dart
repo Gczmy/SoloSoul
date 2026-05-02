@@ -61,14 +61,6 @@ class ProfilePersistenceService {
         return null;
       }
 
-      final encryptionKey = _storage.encryptionKey;
-      if (encryptionKey != null) {
-        OperationLogService.instance.setEncryptionKey(encryptionKey);
-      } else {
-        DebugLogger.instance.logWarning('PROFILE', 'loadProfile skipped: encryptionKey is null');
-        return null;
-      }
-
       await OperationLogService.instance.initializeForAccount(accountId);
 
       final authStateBeforeLoad = _ref.read(authNotifierProvider).value;
@@ -118,9 +110,6 @@ class ProfilePersistenceService {
 
     final authState = _ref.read(authNotifierProvider).value;
     if (authState != AuthState.unlocked) return false;
-
-    final encryptionKey = _storage.encryptionKey;
-    if (encryptionKey == null) return false;
 
     final authNotifier = _ref.read(authNotifierProvider.notifier);
     final accountId = authNotifier.selectedAccountId;

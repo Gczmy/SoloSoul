@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
@@ -20,10 +21,10 @@ class VaultUnlockService {
   const VaultUnlockService();
 
   /// Unlock vault with accountId and password
-  ({bool success, String? error, int? cryptoVersion}) unlockVault({
+  Future<({bool success, String? error, int? cryptoVersion})> unlockVault({
     required String accountId,
     required String password,
-  }) {
+  }) async {
     return RustVaultService.instance.unlockVault(
       accountId: accountId,
       password: password,
@@ -42,8 +43,8 @@ class VaultUnlockService {
   }
 
   /// Lock the vault
-  void lockVault() {
-    RustVaultService.instance.lockVault();
+  Future<void> lockVault() async {
+    await RustVaultService.instance.lockVault();
   }
 
   /// Check if vault exists (has accounts)
@@ -69,30 +70,27 @@ class MigrationService {
     required int cryptoVersion,
   }) async {
     try {
-      final salt = NativeCryptoService.instance.generateSalt();
-      if (salt == null) return;
+      final salt = await frb.frbGenerateSalt(length: 32);
 
       // Step 1: Derive master_key from password (same as Rust)
-      final masterKey = NativeCryptoService.instance.deriveKey(
+      final masterKey = await frb.frbDeriveKey(
         password: password,
         salt: salt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
       );
-      if (masterKey == null) return;
 
       // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
       final masterKeyHex = bytesToHex(masterKey);
       const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      final verifyKey = await frb.frbDeriveKey(
         password: masterKeyHex,
         salt: Uint8List.fromList(utf8.encode(verifyData)),
         memoryKib: 8192,
         iterations: 1,
         parallelism: 1,
       );
-      if (verifyKey == null) return;
 
       await _storage.updateAccountSalt(accountId, salt, verifyKey);
 
@@ -126,8 +124,7 @@ class MigrationService {
     required int cryptoVersion,
   }) async {
     try {
-      DebugLogger.instance
-          .logInfo('AUTH', 'Migrating account from Rust, calling getAccountConfig...');
+      SoloLog.d('AUTH', 'Migrating account from Rust, calling getAccountConfig...');
       final rustConfig = await Future.delayed(
         Duration.zero,
         () => NativeVaultService.instance.getAccountConfig(accountId: accountId),
@@ -135,12 +132,35 @@ class MigrationService {
         const Duration(seconds: 5),
         onTimeout: () => throw TimeoutException('getAccountConfig timed out'),
       );
-      DebugLogger.instance
-          .logInfo('AUTH', 'getAccountConfig returned: ${rustConfig != null}');
+      SoloLog.d('AUTH', 'getAccountConfig returned: ${rustConfig != null}');
 
-      if (rustConfig == null ||
-          rustConfig.salt == null ||
-          rustConfig.verifyHash == null) {
+      String? salt;
+      String? verifyHash;
+
+      if (rustConfig != null && rustConfig.salt != null && rustConfig.verifyHash != null) {
+        salt = rustConfig.salt;
+        verifyHash = rustConfig.verifyHash;
+      } else {
+        // Fallback: read config.json directly from disk
+        SoloLog.w('AUTH', 'Rust FFI returned null, trying direct file read...');
+        final vaultRoot = RustVaultService.instance.vaultRoot;
+        if (vaultRoot != null) {
+          final configFile = File('$vaultRoot/$accountId/config.json');
+          if (await configFile.exists()) {
+            final configJson = jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
+            salt = configJson['salt'] as String?;
+            verifyHash = configJson['verify_hash'] as String?;
+            SoloLog.d('AUTH', 'File config.json: salt=${salt != null}, verifyHash=${verifyHash != null}');
+          } else {
+            SoloLog.w('AUTH', 'config.json not found at ${configFile.path}');
+          }
+        } else {
+          SoloLog.w('AUTH', 'vaultRoot is null — cannot read config.json');
+        }
+      }
+
+      if (salt == null || verifyHash == null) {
+        SoloLog.w('AUTH', 'No salt/verifyHash available, updating crypto version only');
         try {
           await _storage
               .updateAccountCryptoVersion(accountId, cryptoVersion)
@@ -150,13 +170,13 @@ class MigrationService {
                     throw TimeoutException('updateAccountCryptoVersion timed out'),
               );
         } on Exception catch (e, st) {
-          DebugLogger.instance.logError('AUTH', 'Failed to update crypto version: $e\nStack trace: $st');
+          SoloLog.e('AUTH', 'Failed to update crypto version', e, st);
         }
         return;
       }
 
-      final saltBytes = base64Decode(rustConfig.salt!);
-      final verifyHashBytes = hexToBytes(rustConfig.verifyHash!);
+      final saltBytes = base64Decode(salt);
+      final verifyHashBytes = hexToBytes(verifyHash);
 
       final accounts = await _storage.listAccounts().timeout(
             const Duration(seconds: 5),
@@ -171,8 +191,8 @@ class MigrationService {
         try {
           await _storage
               .saveAccountData(accountId, {
-                'salt': rustConfig.salt,
-                'verify_hash': rustConfig.verifyHash,
+                'salt': salt,
+                'verify_hash': verifyHash,
                 'crypto_version': cryptoVersion,
               })
               .timeout(
@@ -283,20 +303,7 @@ class PasswordService {
       );
     }
 
-    // Step 5: Derive new session key from new password
-    final newSessionKey = NativeCryptoService.instance.deriveKey(
-      password: newPassword,
-      salt: saltBytes,
-      memoryKib: 16384,
-      iterations: 1,
-      parallelism: 4,
-    );
-    if (newSessionKey == null) {
-      return (success: false, error: 'Failed to derive new session key');
-    }
-
-    // Step 6: Update encryption key and re-save profile if it exists
-    profileStorage.setEncryptionKey(newSessionKey);
+    // Step 5: Re-save profile if it exists (session key managed by Rust)
     if (currentProfile != null) {
       await profileStorage.saveProfile(accountId, currentProfile);
     }
@@ -321,13 +328,12 @@ class PasswordService {
 /// Service for account CRUD operations
 class AccountManager {
   final SecureAccountStorage _storage;
-  final ProfileStorageService _profileStorage;
 
   String? _selectedAccountId;
   AccountInfo? _selectedAccountInfo;
   int _accountsVersion = 0;
 
-  AccountManager(this._storage, this._profileStorage);
+  AccountManager(this._storage);
 
   String? get selectedAccountId => _selectedAccountId;
   AccountInfo? get selectedAccount => _selectedAccountInfo;
@@ -336,10 +342,10 @@ class AccountManager {
   /// Get all accounts sorted by most recent access
   Future<List<AccountInfo>> getAccountsSortedByRecent() async {
     SoloLog.d('AccountMgr', 'getAccountsSortedByRecent: Fetching accounts...');
-    final rustAccounts = RustVaultService.instance.listAccountsFromRust();
+    final rustAccounts = await RustVaultService.instance.listAccountsFromRust();
     List<AccountInfo> accounts;
 
-    if (rustAccounts != null && rustAccounts.isNotEmpty) {
+    if (rustAccounts.isNotEmpty) {
       SoloLog.d('AccountMgr', 'Found ${rustAccounts.length} accounts in Rust');
       final rustMappedAccounts = rustAccounts
           .map((r) => AccountInfo(
@@ -422,7 +428,7 @@ class AccountManager {
     // First create account in Rust vault
     DebugLogger.instance
         .logInfo('AUTH', 'CHECKPOINT: calling RustVaultService.createAccount');
-    final vaultResult = RustVaultService.instance.createAccount(
+    final vaultResult = await RustVaultService.instance.createAccount(
       name: name,
       password: password,
     );
@@ -457,7 +463,6 @@ class AccountManager {
       if (result.success && result.account != null && result.sessionKey != null) {
         _selectedAccountId = result.account!.id;
         _selectedAccountInfo = result.account;
-        _profileStorage.setEncryptionKey(result.sessionKey!);
         _accountsVersion++;
         return (success: true, error: null);
       } else if (result.error != null) {
@@ -467,19 +472,8 @@ class AccountManager {
       DebugLogger.instance.logError('AUTH', 'Keychain createAccount failed, using Rust-only mode: $e\nStack: $st');
     }
 
-    // If Keychain failed, we still have Rust account - derive session key from Rust data
+    // If Keychain failed, we still have Rust account (session key managed by Rust)
     DebugLogger.instance.logInfo('AUTH', 'Using Rust-only mode (Keychain unavailable)');
-    final salt = base64Decode(vaultResult.salt!);
-    final sessionKey = NativeCryptoService.instance.deriveKey(
-      password: password,
-      salt: salt,
-      memoryKib: 16384,
-      iterations: 1,
-      parallelism: 4,
-    );
-    if (sessionKey == null) {
-      return (success: false, error: 'Failed to derive session key');
-    }
 
     _selectedAccountId = vaultResult.accountId;
     _selectedAccountInfo = AccountInfo(
@@ -489,7 +483,6 @@ class AccountManager {
       lastAccessed: DateTime.now(),
       createdAt: DateTime.now(),
     );
-    _profileStorage.setEncryptionKey(sessionKey);
     _accountsVersion++;
     return (success: true, error: null);
   }
@@ -503,14 +496,13 @@ class AccountManager {
     final verifyResult = await _storage.verifyPassword(_selectedAccountId!, password);
     if (!verifyResult) return false;
 
-    final rustDeleted = RustVaultService.instance.deleteAccount(_selectedAccountId!);
+    final rustDeleted = await RustVaultService.instance.deleteAccount(_selectedAccountId!);
 
     // Clean up Keychain if possible, but don't fail if Keychain is unavailable
     // Rust is the source of truth for account data
     await _storage.deleteAccount(_selectedAccountId!);
 
     if (rustDeleted) {
-      _profileStorage.clearEncryptionKey();
       _selectedAccountId = null;
       _selectedAccountInfo = null;
       _accountsVersion++;

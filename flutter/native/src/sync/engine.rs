@@ -437,7 +437,9 @@ mod tests {
     #[test]
     fn test_sync_with_encrypted_channel() {
         let pairing_key = b"test-pairing-key-sync";
-        let (ch_a, ch_b) = SecureChannel::handshake(pairing_key).unwrap();
+        let key_a = SecureChannel::derive_keypair(pairing_key, b"device-a");
+        let key_b = SecureChannel::derive_keypair(pairing_key, b"device-b");
+        let (ch_a, ch_b) = SecureChannel::handshake_ik(&key_a, &key_b).unwrap();
 
         let meta = make_meta();
         let doc_a = SoloDoc::from_profile(&make_profile_a(), &meta);

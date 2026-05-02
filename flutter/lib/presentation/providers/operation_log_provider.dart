@@ -6,8 +6,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 
 part 'operation_log_provider.g.dart';
@@ -25,7 +25,6 @@ class OperationLogService extends ChangeNotifier {
   final List<OperationEntry> _entries = [];
   bool _initialized = false;
   String? _currentAccountId;
-  Uint8List? _encryptionKey;
 
   /// Future to track pending save operations to prevent race conditions
   Future<void>? _pendingSave;
@@ -33,12 +32,6 @@ class OperationLogService extends ChangeNotifier {
   // TTL constants
   static const int _maxEntries = 500;
   static const int _ttlDays = 90;
-
-  /// Set encryption key (called after vault unlock).
-  /// Makes a defensive copy so callers can safely wipe their original buffer.
-  void setEncryptionKey(Uint8List key) {
-    _encryptionKey = Uint8List.fromList(key);
-  }
 
   /// Initialize with account ID and load persisted (encrypted) logs
   Future<void> initializeForAccount(String accountId) async {
@@ -70,7 +63,6 @@ class OperationLogService extends ChangeNotifier {
     _entries.clear();
     _initialized = false;
     _currentAccountId = null;
-    _encryptionKey = null;
     _pendingSave = null;
   }
 
@@ -99,8 +91,6 @@ class OperationLogService extends ChangeNotifier {
 
   /// Load and decrypt logs from disk
   Future<void> _loadFromDisk() async {
-    if (_encryptionKey == null) return;
-
     try {
       await _ensureDirExists();
       final logFile = await _logFile;
@@ -115,7 +105,7 @@ class OperationLogService extends ChangeNotifier {
         return;
       }
 
-      final decrypted = _decrypt(encryptedContent);
+      final decrypted = await _decrypt(encryptedContent);
       if (decrypted == null) {
         _entries.clear();
         return;
@@ -148,8 +138,6 @@ class OperationLogService extends ChangeNotifier {
       await _pendingSave;
     }
 
-    if (_encryptionKey == null) return;
-
     _pendingSave = _doSave();
     await _pendingSave;
     _pendingSave =
@@ -163,7 +151,7 @@ class OperationLogService extends ChangeNotifier {
       final jsonList = _entries.map((e) => e.toJson()).toList();
       final jsonString = jsonEncode(jsonList);
 
-      final encrypted = _encrypt(jsonString);
+      final encrypted = await _encrypt(jsonString);
       if (encrypted != null) {
         final logFile = await _logFile;
         await logFile.writeAsString(encrypted);
@@ -173,54 +161,23 @@ class OperationLogService extends ChangeNotifier {
     }
   }
 
-  /// Encrypt using AES-256-GCM (same as ProfileStorageService)
-  String? _encrypt(String plaintext) {
-    if (_encryptionKey == null) return null;
-
+  /// Encrypt via Rust FRB (SOLO blob format)
+  Future<String?> _encrypt(String plaintext) async {
     try {
-      final salt = NativeCryptoService.instance.generateSalt();
-      if (salt == null) return null;
-
-      // Use first 12 bytes of 32-byte salt as nonce
-      final nonce = Uint8List.fromList(salt.sublist(0, 12));
-
-      final encrypted = NativeCryptoService.instance.encrypt(
-        data: Uint8List.fromList(utf8.encode(plaintext)),
-        key: _encryptionKey!,
-        nonce: nonce,
-      );
-      if (encrypted == null) return null;
-
-      // Combine nonce + ciphertext and encode as base64
-      final combined = Uint8List(12 + encrypted.length);
-      combined.setRange(0, 12, nonce);
-      combined.setRange(12, combined.length, encrypted);
-
-      return base64Encode(combined);
+      final data = Uint8List.fromList(utf8.encode(plaintext));
+      final encrypted = await frb.frbEncryptBytes(data: data);
+      if (encrypted.isEmpty) return null;
+      return base64Encode(encrypted);
     } on Exception catch (_) {
       return null;
     }
   }
 
-  /// Decrypt using AES-256-GCM (same as ProfileStorageService)
-  String? _decrypt(String ciphertext) {
-    if (_encryptionKey == null) return null;
-
+  /// Decrypt via Rust FRB (auto-detects SOLO blob or legacy format)
+  Future<String?> _decrypt(String ciphertext) async {
     try {
       final combined = base64Decode(ciphertext);
-      if (combined.length < 13) return null;
-
-      final nonce = combined.sublist(0, 12);
-      final encryptedData = combined.sublist(12);
-
-      final decrypted = NativeCryptoService.instance.decrypt(
-        encrypted: encryptedData,
-        key: _encryptionKey!,
-        nonce: Uint8List.fromList(nonce),
-      );
-
-      if (decrypted == null) return null;
-
+      final decrypted = await frb.frbDecryptBytes(data: combined);
       return utf8.decode(decrypted);
     } on Exception catch (_) {
       return null;

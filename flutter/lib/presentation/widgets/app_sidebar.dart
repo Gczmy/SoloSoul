@@ -364,7 +364,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           onTap: () async {
                             final confirmed = await showLockVaultDialog(context);
                             if (confirmed == true && context.mounted) {
-                              ref.read(authNotifierProvider.notifier).lockVault();
+                              await ref.read(authNotifierProvider.notifier).lockVault();
                             }
                           },
                         ),

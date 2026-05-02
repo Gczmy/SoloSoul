@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 /// Integration test for the Rust Vault FFI bridge.
 /// Run with: cd ios && flutter test integration_test/vault_ffi_integration_test.dart
@@ -19,7 +19,7 @@ void main() {
       testVaultPath = tempDir.path;
 
       // Initialize account manager
-      RustVaultService.instance.initAccountManager(testVaultPath);
+      await RustVaultService.instance.initAccountManager(testVaultPath);
     });
 
     tearDownAll(() async {
@@ -47,12 +47,11 @@ void main() {
 
     test('3. Create account and unlock flow', () async {
       // Generate a salt and derive a key (simulating account creation)
-      final salt = NativeCryptoService.instance.generateSalt();
-      expect(salt, isNotNull, reason: 'Salt generation should work');
-      expect(salt!.length, equals(32), reason: 'Salt should be 32 bytes');
+      final salt = await frb.frbGenerateSalt(length: 32);
+      expect(salt.length, equals(32), reason: 'Salt should be 32 bytes');
 
       const password = 'test_password_123!';
-      final derivedKey = NativeCryptoService.instance.deriveKey(
+      final derivedKey = await frb.frbDeriveKey(
         password: password,
         salt: salt,
         memoryKib: 16384,
@@ -60,27 +59,13 @@ void main() {
         parallelism: 4,
       );
 
-      expect(derivedKey, isNotNull, reason: 'Key derivation should succeed');
-
-      // Set encryption key for profile storage
-      RustVaultService.instance.setEncryptionKey(derivedKey!);
+      expect(derivedKey.length, equals(32), reason: 'Key derivation should succeed');
 
       // Now we could save/load profiles
       RustVaultService.instance.isVaultUnlocked();
     });
 
     test('4. Profile save and load roundtrip with complex data', () async {
-      // Set up encryption key
-      final salt = NativeCryptoService.instance.generateSalt()!;
-      final key = NativeCryptoService.instance.deriveKey(
-        password: 'roundtrip_test_pass',
-        salt: salt,
-        memoryKib: 16384,
-        iterations: 1,
-        parallelism: 4,
-      )!;
-      RustVaultService.instance.setEncryptionKey(key);
-
       // Create complex profile data matching the schema
       final profileJson = jsonEncode({
         'identity': {
@@ -174,17 +159,6 @@ void main() {
     });
 
     test('5. Profile update increments version', () async {
-      // Set up encryption key
-      final salt = NativeCryptoService.instance.generateSalt()!;
-      final key = NativeCryptoService.instance.deriveKey(
-        password: 'update_test_pass',
-        salt: salt,
-        memoryKib: 16384,
-        iterations: 1,
-        parallelism: 4,
-      )!;
-      RustVaultService.instance.setEncryptionKey(key);
-
       // Create initial profile
       final profile1 = jsonEncode({'test': 'data_v1'});
       final saved1 = await RustVaultService.instance.saveProfileEncrypted('update_test', profile1);
@@ -211,17 +185,6 @@ void main() {
     });
 
     test('7. Delete profile removes it', () async {
-      // Set up encryption key
-      final salt = NativeCryptoService.instance.generateSalt()!;
-      final key = NativeCryptoService.instance.deriveKey(
-        password: 'delete_test_pass',
-        salt: salt,
-        memoryKib: 16384,
-        iterations: 1,
-        parallelism: 4,
-      )!;
-      RustVaultService.instance.setEncryptionKey(key);
-
       // Create and save a profile
       final profile = jsonEncode({'delete': 'test'});
       final saved = await RustVaultService.instance.saveProfileEncrypted('delete_test_profile', profile);

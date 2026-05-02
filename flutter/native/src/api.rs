@@ -7,6 +7,17 @@ use flutter_rust_bridge::frb;
 use std::collections::HashMap;
 
 // ============================================================================
+// Initialization
+// ============================================================================
+
+/// Initialize the account manager with a base path.
+/// Must be called before any other vault operations.
+#[frb]
+pub fn frb_init_account_manager(base_path: String) -> Result<(), String> {
+    crate::init_account_manager(std::path::PathBuf::from(base_path))
+}
+
+// ============================================================================
 // Prototype: Complex types for FRB validation
 // ============================================================================
 
@@ -479,21 +490,63 @@ pub fn frb_change_password(account_id: String, old_password: String, new_passwor
 /// Derive a key from password and salt using Argon2id.
 /// This is a standalone function that doesn't require vault to be unlocked.
 /// Used by Dart auth flow for biometric credential verification, etc.
+///
+/// - `salt`: raw salt bytes (typically 32 bytes)
+/// - `memory_kib`: memory in KiB (e.g. 16384 for 16 MiB)
+/// - `iterations`: number of iterations (e.g. 1)
+/// - `parallelism`: degree of parallelism (e.g. 4)
 #[frb]
-pub fn frb_derive_key(password: String, salt_hex: String, preset: FrbKdfPreset) -> Result<Vec<u8>, String> {
-    let salt_bytes = hex::decode(&salt_hex)
-        .map_err(|e| format!("Invalid hex salt: {}", e))?;
-
-    let kdf_preset: crate::crypto::argon2::KdfPreset = preset.into();
-    let params = kdf_preset.params();
-
+pub fn frb_derive_key(password: String, salt: Vec<u8>, memory_kib: u32, iterations: u32, parallelism: u32) -> Result<Vec<u8>, String> {
     let key = crate::crypto::argon2::derive_key(
         &password,
-        &salt_bytes,
-        params.memory_kib,
-        params.iterations,
-        params.parallelism,
+        &salt,
+        memory_kib,
+        iterations,
+        parallelism,
     ).map_err(|e| format!("Key derivation failed: {}", e))?;
 
     Ok(key.to_vec())
+}
+
+// ---------------------------------------------------------------------------
+// Random salt generation (standalone — no vault required)
+// ---------------------------------------------------------------------------
+
+/// Generate cryptographically secure random bytes.
+/// Used for salt generation, nonces, and biometric tokens.
+#[frb]
+pub fn frb_generate_salt(length: u32) -> Vec<u8> {
+    crate::crypto::utils::random_bytes(length as usize)
+}
+
+// ---------------------------------------------------------------------------
+// Generic AES-256-GCM encrypt/decrypt with explicit key (standalone)
+// ---------------------------------------------------------------------------
+
+/// Encrypt data with an explicit 32-byte key using AES-256-GCM (SOLO blob format).
+/// Does NOT require the vault to be unlocked — the key is provided by the caller.
+/// Used by biometric credential service to encrypt session keys and bio tokens.
+#[frb]
+pub fn frb_encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8>, String> {
+    let key_arr: [u8; 32] = key.as_slice().try_into()
+        .map_err(|_| format!("Key must be 32 bytes, got {}", key.len()))?;
+
+    let blob = crate::crypto::encrypt_profile_data(&key_arr, &plaintext)
+        .map_err(|e| format!("Encryption failed: {}", e))?;
+
+    Ok(blob.to_vec())
+}
+
+/// Decrypt SOLO blob (or legacy format) data with an explicit 32-byte key.
+/// Does NOT require the vault to be unlocked — the key is provided by the caller.
+/// Used by biometric credential service to decrypt session keys and bio tokens.
+#[frb]
+pub fn frb_decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>, String> {
+    let key_arr: [u8; 32] = key.as_slice().try_into()
+        .map_err(|_| format!("Key must be 32 bytes, got {}", key.len()))?;
+
+    let plaintext = crate::crypto::decrypt_profile_data(&key_arr, &ciphertext)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
+
+    Ok(plaintext.to_vec())
 }

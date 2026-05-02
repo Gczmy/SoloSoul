@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 
 /// Unified logging utility for SoloSoul.
@@ -17,18 +18,24 @@ class SoloLog {
   /// Internal stopwatch for timing operations
   static final Map<String, Stopwatch> _stopwatches = {};
 
+  static void _consolePrint(String level, String tag, String message) {
+    if (kDebugMode) {
+      // ignore: avoid_print
+      print('[SoloLog] [$level] [$tag] $message');
+    }
+  }
+
   /// Debug/Info level log
   static void d(String tag, String message) {
+    _consolePrint('INFO', tag, message);
     DebugLogger.instance.logInfo(tag, message);
   }
 
   /// Warning level log
   static void w(String tag, String message, [Object? error]) {
-    if (error != null) {
-      DebugLogger.instance.logWarning(tag, '$message | Error: $error');
-    } else {
-      DebugLogger.instance.logWarning(tag, message);
-    }
+    final msg = error != null ? '$message | Error: $error' : message;
+    _consolePrint('WARN', tag, msg);
+    DebugLogger.instance.logWarning(tag, msg);
   }
 
   /// Error level log
@@ -45,11 +52,13 @@ class SoloLog {
     if (stackTrace != null) {
       fullMessage += '\nStack: $stackTrace';
     }
+    _consolePrint('ERROR', tag, fullMessage);
     DebugLogger.instance.logError(tag, fullMessage);
   }
 
   /// Debug level log (alias for d)
   static void debug(String tag, String message) {
+    _consolePrint('DEBUG', tag, message);
     DebugLogger.instance.logDebug(tag, message);
   }
 
@@ -61,6 +70,7 @@ class SoloLog {
   static String startTimer(String tag, String operationName) {
     final key = '$tag:$operationName';
     _stopwatches[key] = Stopwatch()..start();
+    _consolePrint('TIMER', tag, '[$operationName] started');
     DebugLogger.instance.logDebug(tag, '[$operationName] started');
     return key;
   }
@@ -80,10 +90,12 @@ class SoloLog {
     final tag = parts[0];
     final operationName = parts.sublist(1).join(':');
 
+    final level = elapsed > 1000 ? 'WARN' : 'TIMER';
+    final suffix = elapsed > 1000 ? ' (SLOW)' : '';
+    _consolePrint(level, tag, '[$operationName] took ${elapsed}ms$suffix');
+
     if (elapsed > 1000) {
       DebugLogger.instance.logWarning(tag, '[$operationName] took ${elapsed}ms (SLOW)');
-    } else if (elapsed > 100) {
-      DebugLogger.instance.logDebug(tag, '[$operationName] took ${elapsed}ms');
     } else {
       DebugLogger.instance.logDebug(tag, '[$operationName] took ${elapsed}ms');
     }

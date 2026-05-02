@@ -8,8 +8,13 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'api.freezed.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DeriveKeyResult`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DeriveKeyResult`, `FrbKdfPreset`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+
+/// Initialize the account manager with a base path.
+/// Must be called before any other vault operations.
+Future<void> frbInitAccountManager({required String basePath}) =>
+    RustLib.instance.api.crateApiFrbInitAccountManager(basePath: basePath);
 
 /// Test function — validates FRB can generate a simple function
 Future<String> frbPing() => RustLib.instance.api.crateApiFrbPing();
@@ -95,14 +100,50 @@ Future<ChangePasswordResult> frbChangePassword({
 /// Derive a key from password and salt using Argon2id.
 /// This is a standalone function that doesn't require vault to be unlocked.
 /// Used by Dart auth flow for biometric credential verification, etc.
+///
+/// - `salt`: raw salt bytes (typically 32 bytes)
+/// - `memory_kib`: memory in KiB (e.g. 16384 for 16 MiB)
+/// - `iterations`: number of iterations (e.g. 1)
+/// - `parallelism`: degree of parallelism (e.g. 4)
 Future<Uint8List> frbDeriveKey({
   required String password,
-  required String saltHex,
-  required FrbKdfPreset preset,
+  required List<int> salt,
+  required int memoryKib,
+  required int iterations,
+  required int parallelism,
 }) => RustLib.instance.api.crateApiFrbDeriveKey(
   password: password,
-  saltHex: saltHex,
-  preset: preset,
+  salt: salt,
+  memoryKib: memoryKib,
+  iterations: iterations,
+  parallelism: parallelism,
+);
+
+/// Generate cryptographically secure random bytes.
+/// Used for salt generation, nonces, and biometric tokens.
+Future<Uint8List> frbGenerateSalt({required int length}) =>
+    RustLib.instance.api.crateApiFrbGenerateSalt(length: length);
+
+/// Encrypt data with an explicit 32-byte key using AES-256-GCM (SOLO blob format).
+/// Does NOT require the vault to be unlocked — the key is provided by the caller.
+/// Used by biometric credential service to encrypt session keys and bio tokens.
+Future<Uint8List> frbEncryptWithKey({
+  required List<int> key,
+  required List<int> plaintext,
+}) => RustLib.instance.api.crateApiFrbEncryptWithKey(
+  key: key,
+  plaintext: plaintext,
+);
+
+/// Decrypt SOLO blob (or legacy format) data with an explicit 32-byte key.
+/// Does NOT require the vault to be unlocked — the key is provided by the caller.
+/// Used by biometric credential service to decrypt session keys and bio tokens.
+Future<Uint8List> frbDecryptWithKey({
+  required List<int> key,
+  required List<int> ciphertext,
+}) => RustLib.instance.api.crateApiFrbDecryptWithKey(
+  key: key,
+  ciphertext: ciphertext,
 );
 
 /// Account info from Rust vault
@@ -159,18 +200,6 @@ sealed class FormHistories with _$FormHistories {
   const factory FormHistories({
     required Map<String, Map<String, List<FieldHistoryEntry>>> histories,
   }) = _FormHistories;
-}
-
-/// KDF parameter presets (re-exported for FRB codegen)
-enum FrbKdfPreset {
-  /// 8 MiB, 2 iterations — low-end devices
-  fast,
-
-  /// 16 MiB, 3 iterations — default
-  balanced,
-
-  /// 64 MiB, 3 iterations — high security
-  secure,
 }
 
 /// Loaded profile data returned from Rust

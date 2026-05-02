@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart'
@@ -71,11 +70,7 @@ class BiometricCredentialService {
     final existing = await _rawSecureStorage.read(key: _deviceKeyId);
     if (existing != null && existing.isNotEmpty) return;
 
-    final deviceKey = NativeCryptoService.instance.generateSalt();
-    if (deviceKey == null) {
-      SoloLog.w('BioCred', 'Failed to generate deviceKey');
-      return;
-    }
+    final deviceKey = await frb.frbGenerateSalt(length: 32);
 
     await _rawSecureStorage.write(
       key: _deviceKeyId,
@@ -132,51 +127,26 @@ class BiometricCredentialService {
       }
 
       // 3. Generate bioToken
-      final bioToken = NativeCryptoService.instance.generateSalt();
-      if (bioToken == null || bioToken.length != 32) {
-        _secureWipe(sessionKey);
-        _secureWipe(deviceKey);
-        SoloLog.w('BioCred', 'Failed to generate bioToken');
-        return false;
-      }
+      final bioToken = await frb.frbGenerateSalt(length: 32);
 
-      // 4. Encrypt sessionKey with bioToken
-      final sessionKeyNonce = _generateNonce();
-      final encryptedSessionKey = NativeCryptoService.instance.encrypt(
-        data: sessionKey,
+      // 4. Encrypt sessionKey with bioToken (SOLO format — nonce embedded)
+      final encryptedSessionKey = await frb.frbEncryptWithKey(
         key: bioToken,
-        nonce: sessionKeyNonce,
+        plaintext: sessionKey,
       );
-      if (encryptedSessionKey == null) {
-        _secureWipe(sessionKey);
-        _secureWipe(deviceKey);
-        _secureWipe(bioToken);
-        SoloLog.w('BioCred', 'Failed to encrypt sessionKey');
-        return false;
-      }
 
-      // 5. Encrypt bioToken with deviceKey
-      final bioTokenNonce = _generateNonce();
-      final encryptedBioToken = NativeCryptoService.instance.encrypt(
-        data: bioToken,
+      // 5. Encrypt bioToken with deviceKey (SOLO format — nonce embedded)
+      final encryptedBioToken = await frb.frbEncryptWithKey(
         key: deviceKey,
-        nonce: bioTokenNonce,
+        plaintext: bioToken,
       );
-      if (encryptedBioToken == null) {
-        _secureWipe(sessionKey);
-        _secureWipe(deviceKey);
-        _secureWipe(bioToken);
-        SoloLog.w('BioCred', 'Failed to encrypt bioToken');
-        return false;
-      }
 
-      // 6. Store credential envelope
+      // 6. Store credential envelope (v2: SOLO format, no separate nonces)
       final envelope = {
-        'version': 1,
+        'version': 2,
+        'credentialVersion': 2,
         'encryptedSessionKey': base64Encode(encryptedSessionKey),
-        'sessionKeyNonce': base64Encode(sessionKeyNonce),
         'encryptedBioToken': base64Encode(encryptedBioToken),
-        'bioTokenNonce': base64Encode(bioTokenNonce),
         'createdAt': DateTime.now().toIso8601String(),
       };
 
@@ -224,43 +194,71 @@ class BiometricCredentialService {
       }
 
       final envelope = jsonDecode(envelopeJson) as Map<String, dynamic>;
-      final version = envelope['version'] as int?;
-      if (version != 1) {
-        _secureWipe(deviceKey);
-        SoloLog.w('BioCred', 'Unknown credential version: $version');
-        return null;
-      }
+      final credentialVersion = envelope['credentialVersion'] as int? ??
+          envelope['version'] as int?;
 
       final encryptedBioToken = base64Decode(envelope['encryptedBioToken'] as String);
-      final bioTokenNonce = base64Decode(envelope['bioTokenNonce'] as String);
       final encryptedSessionKey = base64Decode(envelope['encryptedSessionKey'] as String);
-      final sessionKeyNonce = base64Decode(envelope['sessionKeyNonce'] as String);
 
-      // 3. Decrypt bioToken with deviceKey
-      final bioToken = NativeCryptoService.instance.decrypt(
-        encrypted: encryptedBioToken,
-        key: deviceKey,
-        nonce: bioTokenNonce,
-      );
-      _secureWipe(deviceKey);
-      if (bioToken == null || bioToken.length != 32) {
-        SoloLog.w('BioCred', 'Failed to decrypt bioToken');
-        return null;
+      Uint8List? bioToken;
+      Uint8List? sessionKey;
+
+      if (credentialVersion != null && credentialVersion >= 2) {
+        // v2: SOLO format — nonce embedded in blob
+        bioToken = await frb.frbDecryptWithKey(
+          key: deviceKey,
+          ciphertext: encryptedBioToken,
+        );
+        _secureWipe(deviceKey);
+        if (bioToken.length != 32) {
+          SoloLog.w('BioCred', 'Failed to decrypt bioToken (v2)');
+          return null;
+        }
+
+        sessionKey = await frb.frbDecryptWithKey(
+          key: bioToken,
+          ciphertext: encryptedSessionKey,
+        );
+        _secureWipe(bioToken);
+        if (sessionKey.length != 32) {
+          SoloLog.w('BioCred', 'Failed to decrypt sessionKey (v2)');
+          return null;
+        }
+      } else {
+        // v1: legacy format — Nonce(12B) + Ciphertext + Tag(16B)
+        final bioTokenNonce = base64Decode(envelope['bioTokenNonce'] as String);
+        final sessionKeyNonce = base64Decode(envelope['sessionKeyNonce'] as String);
+
+        final legacyBioToken = Uint8List(bioTokenNonce.length + encryptedBioToken.length);
+        legacyBioToken.setRange(0, bioTokenNonce.length, bioTokenNonce);
+        legacyBioToken.setRange(bioTokenNonce.length, legacyBioToken.length, encryptedBioToken);
+
+        bioToken = await frb.frbDecryptWithKey(
+          key: deviceKey,
+          ciphertext: legacyBioToken,
+        );
+        _secureWipe(deviceKey);
+        if (bioToken.length != 32) {
+          SoloLog.w('BioCred', 'Failed to decrypt bioToken (v1)');
+          return null;
+        }
+
+        final legacySessionKey = Uint8List(sessionKeyNonce.length + encryptedSessionKey.length);
+        legacySessionKey.setRange(0, sessionKeyNonce.length, sessionKeyNonce);
+        legacySessionKey.setRange(sessionKeyNonce.length, legacySessionKey.length, encryptedSessionKey);
+
+        sessionKey = await frb.frbDecryptWithKey(
+          key: bioToken,
+          ciphertext: legacySessionKey,
+        );
+        _secureWipe(bioToken);
+        if (sessionKey.length != 32) {
+          SoloLog.w('BioCred', 'Failed to decrypt sessionKey (v1)');
+          return null;
+        }
       }
 
-      // 4. Decrypt sessionKey with bioToken
-      final sessionKey = NativeCryptoService.instance.decrypt(
-        encrypted: encryptedSessionKey,
-        key: bioToken,
-        nonce: sessionKeyNonce,
-      );
-      _secureWipe(bioToken);
-      if (sessionKey == null || sessionKey.length != 32) {
-        SoloLog.w('BioCred', 'Failed to decrypt sessionKey');
-        return null;
-      }
-
-      SoloLog.d('BioCred', 'Credential decrypted for $accountId');
+      SoloLog.d('BioCred', 'Credential decrypted for $accountId (v$credentialVersion)');
       return sessionKey;
     } on Exception catch (e, st) {
       SoloLog.e('BioCred', 'unlockWithBiometric error', e, st);
@@ -329,29 +327,24 @@ class BiometricCredentialService {
     final salt = base64Decode(saltStr);
 
     // Step 1: Derive masterKey from password
-    final masterKey = NativeCryptoService.instance.deriveKey(
+    final masterKey = await frb.frbDeriveKey(
       password: password,
       salt: Uint8List.fromList(salt),
       memoryKib: 16384,
       iterations: 1,
       parallelism: 4,
     );
-    if (masterKey == null) return null;
 
     // Step 2: Derive verifyKey from masterKey hex
     final masterKeyHex = bytesToHex(masterKey);
     const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-    final verifyKey = NativeCryptoService.instance.deriveKey(
+    final verifyKey = await frb.frbDeriveKey(
       password: masterKeyHex,
       salt: Uint8List.fromList(utf8.encode(verifyData)),
       memoryKib: 8192,
       iterations: 1,
       parallelism: 1,
     );
-    if (verifyKey == null) {
-      _secureWipe(masterKey);
-      return null;
-    }
 
     // Step 3: Compare verify hash
     final derivedHashHex = bytesToHex(verifyKey);
@@ -389,16 +382,6 @@ class BiometricCredentialService {
   // ==========================================================================
   // Utilities
   // ==========================================================================
-
-  /// Generate a 12-byte nonce for AES-256-GCM.
-  Uint8List _generateNonce() {
-    final nonce = Uint8List(12);
-    final random = Random.secure();
-    for (var i = 0; i < 12; i++) {
-      nonce[i] = random.nextInt(256);
-    }
-    return nonce;
-  }
 
   /// Best-effort secure wipe of a byte buffer.
   void _secureWipe(Uint8List buffer) {

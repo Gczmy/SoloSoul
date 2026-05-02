@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 /// FFI bindings to Rust vault implementation
@@ -333,6 +334,7 @@ class NativeVaultService {
     final payload = {'account_id': accountId};
     final response = request('get_account_config', payload);
     if (!_isSuccess(response)) {
+      SoloLog.w('NativeVault', 'getAccountConfig failed for $accountId: response=${response != null}, success=${response?['success']}, error=${response?['error']}');
       return null;
     }
     final data = response!['data'] as Map<String, dynamic>;
@@ -500,22 +502,4 @@ class NativeVaultService {
     }
   }
 
-  /// Derive a key from password and salt (FRB).
-  /// Standalone — doesn't require vault to be unlocked.
-  Future<Uint8List?> deriveKeyFrb({
-    required String password,
-    required String saltHex,
-    required frb.FrbKdfPreset preset,
-  }) async {
-    try {
-      return await frb.frbDeriveKey(
-        password: password,
-        saltHex: saltHex,
-        preset: preset,
-      );
-    } on Exception catch (e) {
-      _log('FRB deriveKey failed: $e');
-      return null;
-    }
-  }
 }

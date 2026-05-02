@@ -64,7 +64,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 1020371234;
+  int get rustContentHash => 1522251367;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -89,17 +89,33 @@ abstract class RustLibApi extends BaseApi {
 
   Future<Uint8List> crateApiFrbDecryptBytes({required List<int> data});
 
+  Future<Uint8List> crateApiFrbDecryptWithKey({
+    required List<int> key,
+    required List<int> ciphertext,
+  });
+
   Future<bool> crateApiFrbDeleteAccount({required String accountId});
 
   Future<Uint8List> crateApiFrbDeriveKey({
     required String password,
-    required String saltHex,
-    required FrbKdfPreset preset,
+    required List<int> salt,
+    required int memoryKib,
+    required int iterations,
+    required int parallelism,
   });
 
   Future<Uint8List> crateApiFrbEncryptBytes({required List<int> data});
 
+  Future<Uint8List> crateApiFrbEncryptWithKey({
+    required List<int> key,
+    required List<int> plaintext,
+  });
+
+  Future<Uint8List> crateApiFrbGenerateSalt({required int length});
+
   Future<VaultStats> crateApiFrbGetVaultStats();
+
+  Future<void> crateApiFrbInitAccountManager({required String basePath});
 
   Future<List<AccountInfo>> crateApiFrbListAccounts();
 
@@ -231,6 +247,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "frb_decrypt_bytes", argNames: ["data"]);
 
   @override
+  Future<Uint8List> crateApiFrbDecryptWithKey({
+    required List<int> key,
+    required List<int> ciphertext,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(key, serializer);
+          sse_encode_list_prim_u_8_loose(ciphertext, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbDecryptWithKeyConstMeta,
+        argValues: [key, ciphertext],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbDecryptWithKeyConstMeta => const TaskConstMeta(
+    debugName: "frb_decrypt_with_key",
+    argNames: ["key", "ciphertext"],
+  );
+
+  @override
   Future<bool> crateApiFrbDeleteAccount({required String accountId}) {
     return handler.executeNormal(
       NormalTask(
@@ -240,7 +290,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
@@ -263,20 +313,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<Uint8List> crateApiFrbDeriveKey({
     required String password,
-    required String saltHex,
-    required FrbKdfPreset preset,
+    required List<int> salt,
+    required int memoryKib,
+    required int iterations,
+    required int parallelism,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(password, serializer);
-          sse_encode_String(saltHex, serializer);
-          sse_encode_frb_kdf_preset(preset, serializer);
+          sse_encode_list_prim_u_8_loose(salt, serializer);
+          sse_encode_u_32(memoryKib, serializer);
+          sse_encode_u_32(iterations, serializer);
+          sse_encode_u_32(parallelism, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -285,7 +339,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_String,
         ),
         constMeta: kCrateApiFrbDeriveKeyConstMeta,
-        argValues: [password, saltHex, preset],
+        argValues: [password, salt, memoryKib, iterations, parallelism],
         apiImpl: this,
       ),
     );
@@ -293,7 +347,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiFrbDeriveKeyConstMeta => const TaskConstMeta(
     debugName: "frb_derive_key",
-    argNames: ["password", "saltHex", "preset"],
+    argNames: ["password", "salt", "memoryKib", "iterations", "parallelism"],
   );
 
   @override
@@ -306,7 +360,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -325,6 +379,68 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "frb_encrypt_bytes", argNames: ["data"]);
 
   @override
+  Future<Uint8List> crateApiFrbEncryptWithKey({
+    required List<int> key,
+    required List<int> plaintext,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(key, serializer);
+          sse_encode_list_prim_u_8_loose(plaintext, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbEncryptWithKeyConstMeta,
+        argValues: [key, plaintext],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbEncryptWithKeyConstMeta => const TaskConstMeta(
+    debugName: "frb_encrypt_with_key",
+    argNames: ["key", "plaintext"],
+  );
+
+  @override
+  Future<Uint8List> crateApiFrbGenerateSalt({required int length}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_u_32(length, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiFrbGenerateSaltConstMeta,
+        argValues: [length],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbGenerateSaltConstMeta =>
+      const TaskConstMeta(debugName: "frb_generate_salt", argNames: ["length"]);
+
+  @override
   Future<VaultStats> crateApiFrbGetVaultStats() {
     return handler.executeNormal(
       NormalTask(
@@ -333,7 +449,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 10,
             port: port_,
           );
         },
@@ -352,6 +468,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "frb_get_vault_stats", argNames: []);
 
   @override
+  Future<void> crateApiFrbInitAccountManager({required String basePath}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(basePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbInitAccountManagerConstMeta,
+        argValues: [basePath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbInitAccountManagerConstMeta =>
+      const TaskConstMeta(
+        debugName: "frb_init_account_manager",
+        argNames: ["basePath"],
+      );
+
+  @override
   Future<List<AccountInfo>> crateApiFrbListAccounts() {
     return handler.executeNormal(
       NormalTask(
@@ -360,7 +507,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 12,
             port: port_,
           );
         },
@@ -388,7 +535,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 13,
             port: port_,
           );
         },
@@ -415,7 +562,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 14,
             port: port_,
           );
         },
@@ -442,7 +589,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 15,
             port: port_,
           );
         },
@@ -474,7 +621,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 16,
             port: port_,
           );
         },
@@ -503,7 +650,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 17,
             port: port_,
           );
         },
@@ -530,7 +677,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 18,
             port: port_,
           );
         },
@@ -562,7 +709,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 19,
             port: port_,
           );
         },
@@ -708,12 +855,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             arr[0],
           ),
     );
-  }
-
-  @protected
-  FrbKdfPreset dco_decode_frb_kdf_preset(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return FrbKdfPreset.values[raw as int];
   }
 
   @protected
@@ -1069,13 +1210,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           deserializer,
         );
     return FormHistories(histories: var_histories);
-  }
-
-  @protected
-  FrbKdfPreset sse_decode_frb_kdf_preset(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_i_32(deserializer);
-    return FrbKdfPreset.values[inner];
   }
 
   @protected
@@ -1456,12 +1590,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       self.histories,
       serializer,
     );
-  }
-
-  @protected
-  void sse_encode_frb_kdf_preset(FrbKdfPreset self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.index, serializer);
   }
 
   @protected

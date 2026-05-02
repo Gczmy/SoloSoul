@@ -41,10 +41,9 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     _accountId = authNotifier.selectedAccountId;
 
-    final stats = RustVaultService.instance.getVaultStats();
+    final stats = await RustVaultService.instance.getVaultStats();
     if (stats != null) {
-      final bytes = (stats['total_size_bytes'] as num?)?.toInt() ?? 0;
-      _vaultDataSize = _formatBytes(bytes);
+      _vaultDataSize = _formatBytes(stats.totalSizeBytes.toInt());
     }
 
     final packageInfo = await PackageInfo.fromPlatform();

@@ -27,7 +27,7 @@ class _SplashPageState extends State<SplashPage> {
     // Perform async initialization while splash is visible
     if (!Platform.isAndroid) {
       final appSupport = await getApplicationSupportDirectory();
-      RustVaultService.instance.initAccountManager(appSupport.path);
+      await RustVaultService.instance.initAccountManager(appSupport.path);
     }
 
     // Small delay for splash animation to be visible (min 800ms)

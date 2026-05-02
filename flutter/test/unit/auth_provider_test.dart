@@ -1,13 +1,5 @@
-import 'dart:convert';
-import 'dart:io' show Platform;
-import 'dart:typed_data';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-
-// NativeCryptoService only supports Android/macOS/iOS - skip on Linux
-final _isSupported = Platform.isAndroid || Platform.isMacOS || Platform.isIOS;
 
 void main() {
   group('SensitivePageAccessState', () {
@@ -299,105 +291,6 @@ void main() {
     });
   });
 
-  group('NativeCryptoService integration for key derivation', () {
-    test('deriveKey with same salt produces consistent results', skip: !_isSupported, () {
-      final service = NativeCryptoService.instance;
-      final salt = service.generateSalt()!;
-
-      final key1 = service.deriveKey(
-        password: 'testpassword',
-        salt: salt,
-        memoryKib: 4096,
-        iterations: 1,
-        parallelism: 1,
-      );
-
-      final key2 = service.deriveKey(
-        password: 'testpassword',
-        salt: salt,
-        memoryKib: 4096,
-        iterations: 1,
-        parallelism: 1,
-      );
-
-      expect(key1, isNotNull);
-      expect(key2, isNotNull);
-      expect(key1, equals(key2));
-    });
-
-    test('deriveKey with different salts produces different keys', skip: !_isSupported, () {
-      final service = NativeCryptoService.instance;
-      final salt1 = service.generateSalt()!;
-      final salt2 = service.generateSalt()!;
-
-      final key1 = service.deriveKey(
-        password: 'samepassword',
-        salt: salt1,
-        memoryKib: 4096,
-        iterations: 1,
-        parallelism: 1,
-      );
-
-      final key2 = service.deriveKey(
-        password: 'samepassword',
-        salt: salt2,
-        memoryKib: 4096,
-        iterations: 1,
-        parallelism: 1,
-      );
-
-      expect(key1, isNotNull);
-      expect(key2, isNotNull);
-      expect(key1, isNot(equals(key2)));
-    });
-
-    test('verifyHash roundtrip with base64 encoding', skip: !_isSupported, () {
-      final service = NativeCryptoService.instance;
-      final salt = service.generateSalt()!;
-
-      final key = service.deriveKey(
-        password: 'password123',
-        salt: salt,
-        memoryKib: 4096,
-        iterations: 1,
-        parallelism: 1,
-      );
-
-      expect(key, isNotNull);
-
-      // Encode as base64 (like Dart-generated verify hash)
-      final encoded = base64Encode(key!);
-
-      // Decode and verify
-      final decoded = base64Decode(encoded);
-      expect(decoded, equals(key));
-    });
-
-    test('verifyHash roundtrip with hex encoding', skip: !_isSupported, () {
-      final service = NativeCryptoService.instance;
-      final salt = service.generateSalt()!;
-
-      final key = service.deriveKey(
-        password: 'password123',
-        salt: salt,
-        memoryKib: 4096,
-        iterations: 1,
-        parallelism: 1,
-      );
-
-      expect(key, isNotNull);
-
-      // Encode as hex (like Rust-generated verify hash)
-      final encoded = bytesToHex(key!);
-
-      // Decode and verify
-      final decoded = <int>[];
-      for (var i = 0; i < encoded.length; i += 2) {
-        decoded.add(int.parse(encoded.substring(i, i + 2), radix: 16));
-      }
-      expect(Uint8List.fromList(decoded), equals(key));
-    });
-  });
 
   group('AuthNotifier State', () {
     test('AuthNotifier initial state is AuthState.initial', () {
@@ -408,9 +301,4 @@ void main() {
       expect(notifier.selectedAccount, isNull);
     });
   });
-}
-
-// Helper for hex conversion
-String bytesToHex(List<int> bytes) {
-  return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 }

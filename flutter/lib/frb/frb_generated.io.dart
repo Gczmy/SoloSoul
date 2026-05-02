@@ -59,9 +59,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FormHistories dco_decode_form_histories(dynamic raw);
 
   @protected
-  FrbKdfPreset dco_decode_frb_kdf_preset(dynamic raw);
-
-  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
@@ -187,9 +184,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FormHistories sse_decode_form_histories(SseDeserializer deserializer);
-
-  @protected
-  FrbKdfPreset sse_decode_frb_kdf_preset(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -331,9 +325,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_form_histories(FormHistories self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_frb_kdf_preset(FrbKdfPreset self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);

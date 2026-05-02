@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
-import 'package:solosoul_flutter/core/services/native_crypto_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
@@ -88,22 +88,22 @@ void main() {
       final service = BiometricCredentialService.instance;
 
       // Create a fake account with known salt/verify_hash
-      final salt = NativeCryptoService.instance.generateSalt()!;
-      final masterKey = NativeCryptoService.instance.deriveKey(
+      final salt = await frb.frbGenerateSalt(length: 32);
+      final masterKey = await frb.frbDeriveKey(
         password: testPassword,
         salt: salt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
-      )!;
+      );
       final masterKeyHex = bytesToHex(masterKey);
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      final verifyKey = await frb.frbDeriveKey(
         password: masterKeyHex,
-        salt: Uint8List.fromList(utf8.encode('SOLOSOUL_VAULT_VERIFY_v1')),
+        salt: utf8.encode('SOLOSOUL_VAULT_VERIFY_v1'),
         memoryKib: 8192,
         iterations: 1,
         parallelism: 1,
-      )!;
+      );
       final verifyHash = bytesToHex(verifyKey);
 
       // Store fake account data in secure storage
@@ -142,22 +142,22 @@ void main() {
       final service = BiometricCredentialService.instance;
 
       // Create a fake account
-      final salt = NativeCryptoService.instance.generateSalt()!;
-      final masterKey = NativeCryptoService.instance.deriveKey(
+      final salt = await frb.frbGenerateSalt(length: 32);
+      final masterKey = await frb.frbDeriveKey(
         password: testPassword,
         salt: salt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
-      )!;
+      );
       final masterKeyHex = bytesToHex(masterKey);
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      final verifyKey = await frb.frbDeriveKey(
         password: masterKeyHex,
-        salt: Uint8List.fromList(utf8.encode('SOLOSOUL_VAULT_VERIFY_v1')),
+        salt: utf8.encode('SOLOSOUL_VAULT_VERIFY_v1'),
         memoryKib: 8192,
         iterations: 1,
         parallelism: 1,
-      )!;
+      );
       final verifyHash = bytesToHex(verifyKey);
 
       await SecureAccountStorage.instance.saveAccountData(
@@ -182,22 +182,22 @@ void main() {
       final service = BiometricCredentialService.instance;
 
       // Create a fake account
-      final salt = NativeCryptoService.instance.generateSalt()!;
-      final masterKey = NativeCryptoService.instance.deriveKey(
+      final salt = await frb.frbGenerateSalt(length: 32);
+      final masterKey = await frb.frbDeriveKey(
         password: testPassword,
         salt: salt,
         memoryKib: 16384,
         iterations: 1,
         parallelism: 4,
-      )!;
+      );
       final masterKeyHex = bytesToHex(masterKey);
-      final verifyKey = NativeCryptoService.instance.deriveKey(
+      final verifyKey = await frb.frbDeriveKey(
         password: masterKeyHex,
-        salt: Uint8List.fromList(utf8.encode('SOLOSOUL_VAULT_VERIFY_v1')),
+        salt: utf8.encode('SOLOSOUL_VAULT_VERIFY_v1'),
         memoryKib: 8192,
         iterations: 1,
         parallelism: 1,
-      )!;
+      );
       final verifyHash = bytesToHex(verifyKey);
 
       await SecureAccountStorage.instance.saveAccountData(
@@ -234,23 +234,20 @@ void main() {
     });
 
     test('device key is 32 bytes', () async {
-      final key = NativeCryptoService.instance.generateSalt()!;
+      final key = await frb.frbGenerateSalt(length: 32);
       expect(key.length, equals(32));
 
-      final nonce = _generateNonceForTest();
       final plaintext = Uint8List.fromList([1, 2, 3, 4, 5]);
 
-      final encrypted = NativeCryptoService.instance.encrypt(
-        data: plaintext,
+      final encrypted = await frb.frbEncryptWithKey(
+        plaintext: plaintext,
         key: key,
-        nonce: nonce,
       );
-      expect(encrypted, isNotNull);
+      expect(encrypted, isNotEmpty);
 
-      final decrypted = NativeCryptoService.instance.decrypt(
-        encrypted: encrypted!,
+      final decrypted = await frb.frbDecryptWithKey(
+        ciphertext: encrypted,
         key: key,
-        nonce: nonce,
       );
       expect(decrypted, equals(plaintext));
     });

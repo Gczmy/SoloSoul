@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 
@@ -63,7 +62,8 @@ void main() {
     final normalized = normalizeJson(json);
     final jsonString = jsonEncode(normalized);
     final bytes = utf8.encode(jsonString);
-    return sha256.convert(bytes).toString();
+    // TODO: restore sha256 when crypto dep is re-added (test is skipped)
+    return bytes.hashCode.toString();
   }
 
   // This test requires specific ProfileData field mappings that need to be
