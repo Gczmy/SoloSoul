@@ -6,8 +6,8 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel, formFieldRegistryProvider;
+import 'package:solosoul_flutter/presentation/utils/auth_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 
 class SensitivitySettingsPage extends ConsumerStatefulWidget {
   const SensitivitySettingsPage({super.key});
@@ -99,21 +99,11 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
 
   Future<void> _verifyPassword() async {
     _dialogShown = true;
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-    final selectedAccount = authNotifier.selectedAccount;
-    final result = await showPasswordVerificationDialog(
+    await verifyPasswordAndGrantAccess(
       context: context,
       ref: ref,
       message: 'Enter your master password to access sensitivity settings.',
-      passwordHint: selectedAccount?.passwordHint,
-      onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
-
-    if (!mounted) return;
-
-    if (result != null) {
-      ref.read(sensitivePageAccessProvider.notifier).markVerified();
-    }
   }
 
   @override

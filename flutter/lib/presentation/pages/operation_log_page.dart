@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/utils/auth_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/operation_filter_chip.dart';
@@ -42,23 +42,11 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   }
 
   Future<void> _verifyPassword() async {
-    // Use the shared password verification dialog with biometric support
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-    final selectedAccount = authNotifier.selectedAccount;
-    final result = await showPasswordVerificationDialog(
+    await verifyPasswordAndGrantAccess(
       context: context,
       ref: ref,
       message: 'Enter your master password to view the operation log.',
-      passwordHint: selectedAccount?.passwordHint,
-      onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
-
-    if (!mounted) return;
-
-    if (result != null) {
-      // Mark as verified in shared sensitive page access
-      ref.read(sensitivePageAccessProvider.notifier).markVerified();
-    }
   }
 
   @override
