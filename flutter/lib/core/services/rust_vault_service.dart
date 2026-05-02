@@ -25,13 +25,9 @@ class BridgeProfileSummary {
     required this.version,
   });
 
-  /// Deprecated: using generated fromJson
-  @Deprecated('Use the generated fromJson instead')
   factory BridgeProfileSummary.fromJson(Map<String, dynamic> json) =>
       _$BridgeProfileSummaryFromJson(json);
 
-  /// Deprecated: using generated toJson
-  @Deprecated('Use the generated toJson instead')
   Map<String, dynamic> toJson() => _$BridgeProfileSummaryToJson(this);
 }
 

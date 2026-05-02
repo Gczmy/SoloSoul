@@ -15,7 +15,7 @@
 | S003 | P0 | `fallback_secure_storage.dart:54-67` | Keychain 不可用时明文写入文件，chmod 失败被静默忽略 | `[x]` 已修复 |
 | S004 | P0 | `auth_storage.dart:281-298` | 无暴力破解防护（无限速/锁定），仅依赖 Argon2id 慢速 | `[x]` 已修复 |
 | S005 | P1 | `solo_log.dart:24`, `debug_logger.dart:127` | debug/profile 构建中 print() 暴露敏感日志到控制台 | `[x]` 已修复 |
-| S006 | P1 | `settings_page.dart:315-333` | Debug 模式激活允许仅生物识别（无密码），权限升级风险 | `[ ]` 待修复 |
+| S006 | P1 | `settings_page.dart:315-333` | Debug 模式激活允许仅生物识别（无密码），权限升级风险 | `[x]` 已修复 |
 | S007 | P1 | `native_vault_service.dart:242-248` | 主密码以明文 String 传递（Dart 不可置零）— 平台限制 | `[ ]` 待修复 |
 | S008 | P1 | `backup_service.dart:189,335` | 备份文件创建后未设置限制性权限 | `[x]` 已修复 |
 | S009 | P1 | `auth_notifier.dart:254`, `auth_services.dart:148` | accountId 直接拼接文件路径，未验证格式，路径穿越风险 | `[x]` 已修复 |
@@ -56,8 +56,8 @@
 | D007 | P2 | `account_style_provider.dart:92` | `sensitivityResolver` 常量及 `SensitivityResolver` 类均未使用 | `[x]` 误报 — 已通过 sensitivity_provider.dart 导出 |
 | D008 | P2 | `auth/auth_state.dart:9,22` | `AuthStateNotifier` 和 `authStateProvider` 未被任何文件引用 | `[x]` 已修复 |
 | D009 | P2 | `sensitivity_blurred_widget.dart` | 整个文件无任何引用，完全死代码 | `[x]` 已修复 |
-| D010 | P2 | `field_history_models.dart:33-97` | 6 个 deprecated fromJson/toJson 方法（已有 .g.dart 生成版本） | `[ ]` 待修复 |
-| D011 | P2 | `rust_vault_service.dart:29-36` | 2 个 deprecated fromJson/toJson 方法 | `[ ]` 待修复 |
+| D010 | P2 | `field_history_models.dart:33-97` | 6 个 deprecated fromJson/toJson 方法（已有 .g.dart 生成版本） | `[x]` 已修复 |
+| D011 | P2 | `rust_vault_service.dart:29-36` | 2 个 deprecated fromJson/toJson 方法 | `[x]` 已修复 |
 
 ### 代码质量
 
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：42 / 65
+- 已完成：45 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）

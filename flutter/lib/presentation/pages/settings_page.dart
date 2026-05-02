@@ -313,27 +313,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
 
     if (confirmed == true && mounted) {
-      // If biometric was verified, no password needed
-      if (isBiometricVerified) {
-        await ref.read(debugModeProvider.notifier).enableDebugMode();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Debug mode enabled'),
-                ],
-              ),
-              backgroundColor: AppTheme.successColor,
-            ),
-          );
-        }
-        return;
-      }
-
-      // Otherwise verify with password
+      // Always require password verification for debug mode activation.
+      // Biometric alone is not sufficient (security: biometric can be
+      // spoofed by a sleeping user's fingerprint).
       final success = await authNotifier.verifyPasswordForSensitiveData(
         passwordController.text,
       );
