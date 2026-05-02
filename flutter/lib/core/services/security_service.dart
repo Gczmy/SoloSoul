@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 
 /// Security settings for the app including auto-lock and clipboard behavior.
@@ -118,7 +119,8 @@ class SecurityService {
         _settings = SecuritySettings.fromJson(json);
       }
       _initialized = true;
-    } on Exception {
+    } on Exception catch (e) {
+      DebugLogger.instance.logWarning('SECURITY', 'Failed to load security settings: $e');
       _initialized = true;
     }
   }

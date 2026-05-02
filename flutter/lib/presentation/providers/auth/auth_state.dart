@@ -39,7 +39,7 @@ class SensitivePageAccessNotifier extends Notifier<SensitivePageAccessState> {
     _timer?.cancel();
     state = SensitivePageAccessState(lastVerified: DateTime.now());
     _timer = Timer(kSensitiveAccessTimeout, () {
-      state = state.copyWith(lastVerified: state.lastVerified);
+      state = const SensitivePageAccessState();
     });
   }
 

@@ -20,7 +20,7 @@
 | S008 | P1 | `backup_service.dart:189,335` | 备份文件创建后未设置限制性权限 | `[x]` 已修复 |
 | S009 | P1 | `auth_notifier.dart:254`, `auth_services.dart:148` | accountId 直接拼接文件路径，未验证格式，路径穿越风险 | `[x]` 已修复 |
 | S010 | P1 | `debug_logger.dart:82-86` | getExportLog() 导出日志到系统剪贴板，任何应用可读 | `[x]` 已修复 |
-| S011 | P2 | `security_service.dart:121-123` | 安全设置加载异常被静默吞掉，回退到默认值 | `[ ]` 待修复 |
+| S011 | P2 | `security_service.dart:121-123` | 安全设置加载异常被静默吞掉，回退到默认值 | `[x]` 已修复 |
 | S012 | P2 | `auth_storage.dart:300-317` | deleteAccount 返回 true 即使 Keychain 清理失败 | `[ ]` 待修复 |
 | S013 | P2 | `auth_state.dart:35-38` | 敏感访问超时使用 wall clock，可被篡改 | `[ ]` 待修复 |
 | S014 | P2 | `biometric_credential_service.dart:228-258` | v1 遗留解密路径仍存在，旧格式凭据仍可解密 | `[ ]` 待修复 |
@@ -41,7 +41,7 @@
 | PF007 | P2 | `unified_object_provider.dart:563-647` | 派生 provider 在任何 mutation 时全部重建（select 粒度粗） | `[ ]` 待修复 |
 | PF008 | P2 | `home_page.dart:672,736` | MouseRegion hover 调用 setState 触发全子树重建 | `[ ]` 待修复 |
 | PF009 | P2 | `sensitivity_settings_page.dart:239` | 使用 ListView(children:[]) 而非 ListView.builder | `[ ]` 待修复 |
-| PF010 | P2 | `auth_state.dart:60-62` | Timer 到期触发 no-op state 更新，无意义重建 | `[ ]` 待修复 |
+| PF010 | P2 | `auth_state.dart:60-62` | Timer 到期触发 no-op state 更新，无意义重建 | `[x]` 已修复 |
 
 ### 死代码
 
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：45 / 65
+- 已完成：47 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）
