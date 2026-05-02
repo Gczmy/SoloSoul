@@ -347,10 +347,10 @@ class SecureAccountStorage {
   }
 
   Future<void> updateAccountSalt(
-      String accountId, Uint8List salt, Uint8List verifyHash) async {
+      String accountId, Uint8List salt, String verifyHashHex) async {
     await saveAccountData(accountId, {
       'salt': base64Encode(salt),
-      'verify_hash': base64Encode(verifyHash),
+      'verify_hash': verifyHashHex,
     });
   }
 

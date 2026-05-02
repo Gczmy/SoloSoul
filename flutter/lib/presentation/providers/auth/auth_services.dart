@@ -92,7 +92,7 @@ class MigrationService {
         parallelism: 1,
       );
 
-      await _storage.updateAccountSalt(accountId, salt, verifyKey);
+      await _storage.updateAccountSalt(accountId, salt, bytesToHex(verifyKey));
 
       // Clear sensitive data from memory
       for (var i = 0; i < salt.length; i++) {
@@ -181,7 +181,6 @@ class MigrationService {
       }
 
       final saltBytes = base64Decode(salt);
-      final verifyHashBytes = hexToBytes(verifyHash);
 
       final accounts = await _storage.listAccounts().timeout(
             const Duration(seconds: 5),
@@ -215,7 +214,7 @@ class MigrationService {
               .updateAccountSalt(
                 accountId,
                 Uint8List.fromList(saltBytes),
-                Uint8List.fromList(verifyHashBytes),
+                verifyHash,
               )
               .timeout(
                 const Duration(seconds: 5),
@@ -292,14 +291,12 @@ class PasswordService {
     }
 
     // Step 4: Update Dart's Keychain with new salt/verify_hash from Rust
-    Uint8List saltBytes;
     if (rustResult.salt != null && rustResult.verifyHash != null) {
-      saltBytes = base64Decode(rustResult.salt!);
-      final verifyHashBytes = base64Decode(rustResult.verifyHash!);
+      final saltBytes = base64Decode(rustResult.salt!);
       await _storage.updateAccountSalt(
         accountId,
         saltBytes,
-        Uint8List.fromList(verifyHashBytes),
+        rustResult.verifyHash!,
       );
     } else {
       return (
