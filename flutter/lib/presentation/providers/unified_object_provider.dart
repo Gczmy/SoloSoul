@@ -356,6 +356,34 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return _save();
   }
 
+  /// Permanently delete multiple objects in a single save operation.
+  /// More efficient than calling permanentlyDeleteObject in a loop.
+  Future<bool> permanentlyDeleteMultiple(List<String> ids) async {
+    if (ids.isEmpty) return true;
+
+    final idsToRemove = <String>{};
+    for (final id in ids) {
+      idsToRemove.add(id);
+      idsToRemove.addAll(_service.getDescendantIds(state.objects, id));
+    }
+
+    var updatedObjects = state.objects
+        .where((o) => !idsToRemove.contains(o.id))
+        .toList();
+
+    // Remove from parent's childrenIds for each top-level deleted object
+    for (final id in ids) {
+      final object = _service.getObjectById(state.objects, id);
+      final parentId = object?.parentId;
+      if (parentId != null) {
+        updatedObjects = _service.removeChild(updatedObjects, parentId, id);
+      }
+    }
+
+    state = state.copyWith(objects: updatedObjects);
+    return _save();
+  }
+
   // ---------------------------------------------------------------------------
   // Reorder
   // ---------------------------------------------------------------------------

@@ -417,11 +417,12 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               final snackBarContext = context;
               Navigator.pop(snackBarContext);
 
-              // Permanently delete all soft-deleted unified objects
+              // Permanently delete all soft-deleted unified objects in one batch
               final deletedObjects = ref.read(deletedObjectsProvider);
               final notifier = ref.read(unifiedObjectProvider.notifier);
+
+              // Log operations first (before objects are removed)
               for (final obj in deletedObjects) {
-                await notifier.permanentlyDeleteObject(obj.id);
                 final logSection = _logSectionForTypeId(obj.typeId ?? '');
                 if (logSection != null) {
                   final properties = <String, String>{
@@ -442,6 +443,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                   await OperationLogService.instance.addEntry(entry);
                 }
               }
+
+              // Batch delete + single save
+              await notifier.permanentlyDeleteMultiple(
+                deletedObjects.map((o) => o.id).toList(),
+              );
 
               if (mounted) {
                 showOverlaySnackBar(

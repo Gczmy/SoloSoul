@@ -32,7 +32,7 @@
 
 | ID | 优先级 | 文件位置 | 描述 | 状态 |
 |------|--------|----------|------|------|
-| PF001 | P1 | `trash_page.dart:421-444` | "清空回收站" 逐个删除并逐个 save，N 次加密+写盘 | `[ ]` 待修复 |
+| PF001 | P1 | `trash_page.dart:421-444` | "清空回收站" 逐个删除并逐个 save，N 次加密+写盘 | `[x]` 已修复 |
 | PF002 | P1 | `unified_object_service.dart:594` | getObjectById() 使用 firstWhere 线性扫描 O(n)，高频调用 | `[ ]` 待修复 |
 | PF003 | P1 | `unified_object_provider.dart:95-175` | _repairOrphanItems 逐孤儿重建列表，O(n²) 启动开销 | `[ ]` 待修复 |
 | PF004 | P1 | `unified_object_provider.dart` | 所有 mutation 方法直接调用 _save()，无 debounce | `[ ]` 待修复 |
@@ -108,7 +108,7 @@
 
 ## 修复进度
 
-- 已完成：36 / 65
+- 已完成：37 / 65
 - 当前处理：无
 - 轮次 1 修复：19 项
 - 轮次 2 新增：38 项（本轮修复 6 项）
