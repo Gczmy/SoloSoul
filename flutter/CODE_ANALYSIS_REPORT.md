@@ -37,11 +37,12 @@
 | P026 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart` | unlockVaultWithBiometric 方法过长（~78行） | `[ ]` 待修复 |
 | P027 | P2     | 漏洞       | `presentation/providers/auth/auth_helpers.dart:18-32` | constantTimeEquals 在 Dart 中无法保证恒定时间 | `[ ]` 待修复 |
 | P028 | P2     | 漏洞       | `core/services/debug_logger.dart:51-68` | 敏感数据脱敏仅靠正则表达式，存在遗漏风险 | `[ ]` 待修复 |
+| P029 | P1     | 可优化代码 | `presentation/pages/settings_page.dart:1112-1147` | `_SloganChip` 将 ThemeData 作为构造参数传入，Widget 对主题变化不透明（复核发现） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：7 / 28
-- 当前处理：P004, P007
+- 已完成：8 / 29
+- 当前处理：复核修正
 
 ---
 
@@ -348,10 +349,10 @@ formState.validate();
 |------|----|----|----|----|
 | 漏洞（安全） | 5 | 2 | 2 | 9 |
 | 性能问题 | 1 | 3 | 0 | 4 |
-| 可优化代码 | 0 | 5 | 6 | 11 |
+| 可优化代码 | 0 | 6 | 6 | 12 |
 | 死代码 | 0 | 2 | 0 | 2 |
 | 内存泄露 | 1 | 0 | 0 | 1 |
-| **合计** | **7** | **13** | **8** | **28** |
+| **合计** | **7** | **14** | **8** | **29** |
 
 **代码库做得好的方面**:
 - Argon2id + AES-256-GCM 加密算法选型正确
