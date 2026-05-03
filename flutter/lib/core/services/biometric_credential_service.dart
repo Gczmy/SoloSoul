@@ -268,7 +268,7 @@ class BiometricCredentialService {
 
   /// Whether a biometric credential exists for the account.
   Future<bool> hasBiometricCredential(String accountId) async {
-    final value = await _fallbackStorage.read(
+    final value = await _rawSecureStorage.read(
       key: '$_credentialKeyPrefix$accountId',
     );
     return value != null && value.isNotEmpty;

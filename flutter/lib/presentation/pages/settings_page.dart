@@ -731,25 +731,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Row(
+                      const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _SloganChip(
                             icon: Icons.location_on_outlined,
                             label: 'Local',
-                            theme: theme,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           _SloganChip(
                             icon: Icons.lock_outline,
                             label: 'Private',
-                            theme: theme,
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           _SloganChip(
                             icon: Icons.person_outline,
                             label: 'Universal',
-                            theme: theme,
                           ),
                         ],
                       ),
@@ -1112,16 +1109,15 @@ class _SettingsTile extends StatelessWidget {
 class _SloganChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final ThemeData theme;
 
   const _SloganChip({
     required this.icon,
     required this.label,
-    required this.theme,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
