@@ -29,21 +29,21 @@
 | P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[x]` 已修复 |
 | P019 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[暂缓]` 需重构存储架构 |
 | P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[x]` 已修复 |
-| P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[ ]` 待修复 |
+| P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[x]` 已修复 — 文件I/O用FileSystemException，Keychain用PlatformException，FFI保留Exception |
 | P022 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart`（12处） | `!` 操作符在 selectedAccountId 上使用，绕过空安全检查 | `[x]` 已修复 — null 守卫后存为局部变量 |
 | P023 | P2     | 可优化代码 | `presentation/pages/trash_page.dart`（1046行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为1个独立Widget，1011→614行 (-39%) |
 | P024 | P2     | 可优化代码 | `presentation/pages/data_management_page.dart`（968行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为2个独立Widget，969→847行 (-13%) |
 | P025 | P2     | 可优化代码 | `presentation/widgets/app_sidebar.dart`（965行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为4个独立Widget，965→439行 (-54%) |
 | P026 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart` | unlockVaultWithBiometric 方法过长（~78行） | `[x]` 已优化 — P022 修复后 accountId 提取为局部变量，结构已清晰 |
 | P027 | P2     | 漏洞       | `presentation/providers/auth/auth_helpers.dart:18-32` | constantTimeEquals 在 Dart 中无法保证恒定时间 | `[ ]` 待修复 — 需迁移到 Rust FFI |
-| P028 | P2     | 漏洞       | `core/services/debug_logger.dart:51-68` | 敏感数据脱敏仅靠正则表达式，存在遗漏风险 | `[ ]` 待修复 |
+| P028 | P2     | 漏洞       | `core/services/debug_logger.dart:51-68` | 敏感数据脱敏仅靠正则表达式，存在遗漏风险 | `[x]` 已修复 — 添加结构化标签 `redact(value, SensitiveType)` + 正则兜底 |
 | P029 | P1     | 可优化代码 | `presentation/pages/settings_page.dart:1112-1147` | `_SloganChip` 将 ThemeData 作为构造参数传入，Widget 对主题变化不透明（复核发现） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：26 / 29
+- 已完成：28 / 29
 - 暂缓：P019（需重构存储架构）
-- 待修复：P021（~28处裸 `on Exception catch (e)`）、P027（constantTimeEquals 需迁移到 Rust FFI）、P028（debug 日志正则脱敏可被绕过）
+- 待修复：P027（constantTimeEquals 需迁移到 Rust FFI）
 
 ---
 
