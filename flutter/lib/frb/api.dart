@@ -146,6 +146,14 @@ Future<Uint8List> frbDecryptWithKey({
   ciphertext: ciphertext,
 );
 
+/// Constant-time comparison of two byte slices.
+/// Prevents timing attacks by always comparing all bytes regardless of early mismatch.
+/// Use for comparing hashes, keys, or other cryptographic material.
+Future<bool> frbConstantTimeCompare({
+  required List<int> a,
+  required List<int> b,
+}) => RustLib.instance.api.crateApiFrbConstantTimeCompare(a: a, b: b);
+
 /// Account info from Rust vault
 @freezed
 sealed class AccountInfo with _$AccountInfo {

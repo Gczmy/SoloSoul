@@ -579,3 +579,11 @@ pub fn frb_decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>
 
     Ok(plaintext.to_vec())
 }
+
+/// Constant-time comparison of two byte slices.
+/// Prevents timing attacks by always comparing all bytes regardless of early mismatch.
+/// Use for comparing hashes, keys, or other cryptographic material.
+#[frb]
+pub fn frb_constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
+    crate::crypto::utils::constant_time_compare(&a, &b)
+}

@@ -128,7 +128,7 @@ final class ChildrenProvider
   }
 }
 
-String _$childrenHash() => r'2ecae6979da97d25d8594ed9799b19d17509cfbd';
+String _$childrenHash() => r'7a07352dbdf14fad84cc9c0cde74caf23876c36b';
 
 /// Direct children of a specific parent, in childrenIds order, active only.
 
@@ -214,7 +214,7 @@ final class ObjectByIdProvider
   }
 }
 
-String _$objectByIdHash() => r'ec9de1587c153eb828aeffe9dee4d1da8975689a';
+String _$objectByIdHash() => r'b9524636aa44277934eb40cfa679506ab7fc89e1';
 
 /// Get a specific object by ID.
 
@@ -622,7 +622,7 @@ final class DefaultPageItemsProvider
   }
 }
 
-String _$defaultPageItemsHash() => r'7166602a8eaf662a2b6b015496731fe81bab7e9d';
+String _$defaultPageItemsHash() => r'b92bcce28af4e837cd0a7152835edf689a3eb26a';
 
 /// Get active items under a default section, ordered by section's childrenIds.
 

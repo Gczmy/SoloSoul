@@ -350,7 +350,7 @@ class BiometricCredentialService {
     final derivedHashHex = bytesToHex(verifyKey);
     _secureWipe(verifyKey);
 
-    if (!constantTimeEquals(derivedHashHex, storedHash)) {
+    if (!await constantTimeEquals(derivedHashHex, storedHash)) {
       _secureWipe(masterKey);
       return null;
     }

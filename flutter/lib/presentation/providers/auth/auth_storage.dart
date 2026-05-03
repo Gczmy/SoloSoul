@@ -267,7 +267,7 @@ class SecureAccountStorage {
 
     // Step 3: Hex-encode verify_key and compare (same as Rust)
     final derivedHashHex = bytesToHex(verifyKey);
-    if (!constantTimeEquals(derivedHashHex, storedHash)) {
+    if (!await constantTimeEquals(derivedHashHex, storedHash)) {
       secureWipe(verifyKey);
       secureWipe(masterKey);
       return (success: false, error: 'Invalid password', sessionKey: null);
