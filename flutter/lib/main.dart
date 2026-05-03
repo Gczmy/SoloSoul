@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
@@ -31,7 +32,18 @@ void main() async {
   };
 
   // Initialize Flutter Rust Bridge
-  await RustLib.init();
+  // On macOS, load the native library from the app bundle's Frameworks directory
+  // because FRB's default loader can't resolve the path when running .app directly.
+  ExternalLibrary? externalLibrary;
+  if (Platform.isMacOS) {
+    final exeDir = File(Platform.resolvedExecutable).parent.path;
+    final dylibPath = '$exeDir/../Frameworks/libsolosoul_core.dylib';
+    final absPath = File(dylibPath).absolute.path;
+    if (File(absPath).existsSync()) {
+      externalLibrary = ExternalLibrary.open(absPath);
+    }
+  }
+  await RustLib.init(externalLibrary: externalLibrary);
 
   // Configure error widget builder for release resilience
   ErrorWidget.builder = (details) {

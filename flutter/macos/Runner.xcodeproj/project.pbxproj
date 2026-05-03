@@ -357,7 +357,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "dest=\"$BUILT_PRODUCTS_DIR/$FRAMEWORKS_FOLDER_PATH\"\nmkdir -p \"$dest\"\ncp \"$PROJECT_DIR/../native/target/release/libsolosoul_core.dylib\" \"$dest/\"\n# Ad-hoc sign the dylib (skipped if CODE_SIGN_IDENTITY is empty)\nif [ \"${CODE_SIGN_IDENTITY:-}\" != \"\" ]; then\n  /usr/bin/codesign --force --sign \"${CODE_SIGN_IDENTITY}\" \"$dest/libsolosoul_core.dylib\"\nfi\n";
+			shellScript = "dest=\"$BUILT_PRODUCTS_DIR/$FRAMEWORKS_FOLDER_PATH\"\nmkdir -p \"$dest\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  src=\"$PROJECT_DIR/../native/target/release/libsolosoul_core.dylib\"\nelse\n  src=\"$PROJECT_DIR/../native/target/debug/libsolosoul_core.dylib\"\n  if [ ! -f \"$src\" ]; then\n    src=\"$PROJECT_DIR/../native/target/release/libsolosoul_core.dylib\"\n  fi\nfi\ncp \"$src\" \"$dest/\"\n# Ad-hoc sign the dylib (skipped if CODE_SIGN_IDENTITY is empty)\nif [ \"${CODE_SIGN_IDENTITY:-}\" != \"\" ]; then\n  /usr/bin/codesign --force --sign \"${CODE_SIGN_IDENTITY}\" \"$dest/libsolosoul_core.dylib\"\nfi\n";
 		};
 		3399D490228B24CF009A79C7 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
