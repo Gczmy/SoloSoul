@@ -211,7 +211,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _autoBackupAfterUnlock();
 
     // 升级保护备份：若检测到 App 版本变化，额外创建一份带版本号的备份
-    _upgradeBackupIfNeeded(accountId: _accountManager.selectedAccountId!);
+    _upgradeBackupIfNeeded(accountId: accountId);
 
     return true;
   }
@@ -238,9 +238,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   /// Unlock vault with biometric authentication
   /// Uses pre-derived session key from BiometricCredentialService.
   Future<bool> unlockVaultWithBiometric() async {
-    SoloLog.d('Auth', 'unlockVaultWithBiometric start, selectedAccountId=${_accountManager.selectedAccountId}');
+    final accountId = _accountManager.selectedAccountId;
+    SoloLog.d('Auth', 'unlockVaultWithBiometric start, selectedAccountId=$accountId');
 
-    if (_accountManager.selectedAccountId == null) {
+    if (accountId == null) {
       SoloLog.w('Auth', '_selectedAccountId is null, returning false');
       return false;
     }
@@ -250,7 +251,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     // Step 1: Retrieve session key from biometric credential
     final timer1 = SoloLog.startTimer('Auth', 'BiometricCredentialService.unlockWithBiometric');
     final sessionKey = await BiometricCredentialService.instance.unlockWithBiometric(
-      _accountManager.selectedAccountId!,
+      accountId,
     );
     SoloLog.endTimer(timer1);
 
@@ -263,7 +264,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     // Step 2: Unlock vault with session key
     final timer2 = SoloLog.startTimer('Auth', 'VaultUnlockService.unlockVaultWithKey');
     final vaultResult = await _vaultUnlockService.unlockVaultWithKey(
-      accountId: _accountManager.selectedAccountId!,
+      accountId: accountId,
       sessionKey: sessionKey,
     );
     SoloLog.endTimer(timer2);
@@ -282,7 +283,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     final timer3 = SoloLog.startTimer('Auth', 'Keychain.getAccountData');
     try {
       final accountData = await _storage
-          .getAccountData(_accountManager.selectedAccountId!)
+          .getAccountData(accountId)
           .timeout(
             const Duration(seconds: 5),
             onTimeout: () => throw TimeoutException('getAccountData timed out'),
@@ -292,7 +293,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (accountData == null) {
         SoloLog.d('Auth', 'Account not in Keychain, migrating from Rust...');
         await _migrationService.migrateAccountFromRust(
-          accountId: _accountManager.selectedAccountId!,
+          accountId: accountId,
           cryptoVersion: vaultResult.cryptoVersion ?? 2,
         );
       } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
@@ -311,7 +312,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     SoloLog.d('Auth', 'Vault unlocked with biometric successfully!');
 
     _autoBackupAfterUnlock();
-    _upgradeBackupIfNeeded(accountId: _accountManager.selectedAccountId!);
+    _upgradeBackupIfNeeded(accountId: accountId);
 
     return true;
   }
@@ -361,12 +362,13 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   /// storage (Keychain or Rust config as fallback) without depending on
   /// Rust vault unlock state.
   Future<bool> verifyPasswordForSensitiveData(String password) async {
-    if (_accountManager.selectedAccountId == null) return false;
+    final accountId = _accountManager.selectedAccountId;
+    if (accountId == null) return false;
     if (password.isEmpty) return false;
 
     SoloLog.d('Auth', 'verifyPasswordForSensitiveData: Starting verification...');
     final result = await _storage.verifyPassword(
-      _accountManager.selectedAccountId!,
+      accountId,
       password,
     );
     SoloLog.d('Auth', 'verifyPasswordForSensitiveData: result=$result');
@@ -402,12 +404,13 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String newPassword,
     String? newPasswordHint,
   }) async {
-    if (_accountManager.selectedAccountId == null) {
+    final accountId = _accountManager.selectedAccountId;
+    if (accountId == null) {
       return (success: false, error: 'No account selected');
     }
 
     final result = await _passwordService.changePassword(
-      accountId: _accountManager.selectedAccountId!,
+      accountId: accountId,
       currentPassword: currentPassword,
       newPassword: newPassword,
       profileStorage: _profileStorage,

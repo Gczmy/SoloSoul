@@ -597,46 +597,33 @@ class UnifiedObjectService {
     }
 
     final oldParentId = object.parentId;
-    var updated = List<UnifiedObject>.from(objects);
+    final result = List<UnifiedObject>.from(objects);
+    final now = _currentTimestamp();
 
-    // Remove from old parent's childrenIds
-    if (oldParentId != null) {
-      updated = updated.map((o) {
-        if (o.id == oldParentId) {
-          return o.copyWith(
-            childrenIds: o.childrenIds.where((id) => id != objectId).toList(),
-            updatedAt: _currentTimestamp(),
-          );
-        }
-        return o;
-      }).toList();
-    }
-
-    // Add to new parent's childrenIds
-    if (newParentId != null) {
-      updated = updated.map((o) {
-        if (o.id == newParentId && !o.childrenIds.contains(objectId)) {
-          return o.copyWith(
-            childrenIds: [...o.childrenIds, objectId],
-            updatedAt: _currentTimestamp(),
-          );
-        }
-        return o;
-      }).toList();
-    }
-
-    // Update object's parentId
-    updated = updated.map((o) {
-      if (o.id == objectId) {
-        return o.copyWith(
+    // Single pass: update old parent, new parent, and the object itself
+    for (var i = 0; i < result.length; i++) {
+      final o = result[i];
+      if (oldParentId != null && o.id == oldParentId) {
+        result[i] = o.copyWith(
+          childrenIds: o.childrenIds.where((id) => id != objectId).toList(),
+          updatedAt: now,
+        );
+      } else if (newParentId != null &&
+          o.id == newParentId &&
+          !o.childrenIds.contains(objectId)) {
+        result[i] = o.copyWith(
+          childrenIds: [...o.childrenIds, objectId],
+          updatedAt: now,
+        );
+      } else if (o.id == objectId) {
+        result[i] = o.copyWith(
           parentId: newParentId,
-          updatedAt: _currentTimestamp(),
+          updatedAt: now,
         );
       }
-      return o;
-    }).toList();
+    }
 
-    return updated;
+    return result;
   }
 
   /// Reorder children within a parent by moving from [oldIndex] to [newIndex].
@@ -656,15 +643,14 @@ class UnifiedObjectService {
     final item = children.removeAt(oldIndex);
     children.insert(newIndex, item);
 
-    return objects.map((o) {
-      if (o.id == parentId) {
-        return o.copyWith(
-          childrenIds: children,
-          updatedAt: _currentTimestamp(),
-        );
-      }
-      return o;
-    }).toList();
+    final idx = objects.indexWhere((o) => o.id == parentId);
+    if (idx < 0) return objects;
+    final result = List<UnifiedObject>.from(objects);
+    result[idx] = parent.copyWith(
+      childrenIds: children,
+      updatedAt: _currentTimestamp(),
+    );
+    return result;
   }
 
   /// Add a child reference to a parent's childrenIds.
@@ -673,15 +659,16 @@ class UnifiedObjectService {
     String parentId,
     String childId,
   ) {
-    return objects.map((o) {
-      if (o.id == parentId && !o.childrenIds.contains(childId)) {
-        return o.copyWith(
-          childrenIds: [...o.childrenIds, childId],
-          updatedAt: _currentTimestamp(),
-        );
-      }
-      return o;
-    }).toList();
+    final idx = objects.indexWhere((o) => o.id == parentId);
+    if (idx < 0) return objects;
+    final parent = objects[idx];
+    if (parent.childrenIds.contains(childId)) return objects;
+    final result = List<UnifiedObject>.from(objects);
+    result[idx] = parent.copyWith(
+      childrenIds: [...parent.childrenIds, childId],
+      updatedAt: _currentTimestamp(),
+    );
+    return result;
   }
 
   /// Remove a child reference from a parent's childrenIds.
@@ -690,15 +677,15 @@ class UnifiedObjectService {
     String parentId,
     String childId,
   ) {
-    return objects.map((o) {
-      if (o.id == parentId) {
-        return o.copyWith(
-          childrenIds: o.childrenIds.where((id) => id != childId).toList(),
-          updatedAt: _currentTimestamp(),
-        );
-      }
-      return o;
-    }).toList();
+    final idx = objects.indexWhere((o) => o.id == parentId);
+    if (idx < 0) return objects;
+    final parent = objects[idx];
+    final result = List<UnifiedObject>.from(objects);
+    result[idx] = parent.copyWith(
+      childrenIds: parent.childrenIds.where((id) => id != childId).toList(),
+      updatedAt: _currentTimestamp(),
+    );
+    return result;
   }
 
   // ---------------------------------------------------------------------------
@@ -716,7 +703,11 @@ class UnifiedObjectService {
     List<UnifiedObject> objects,
     UnifiedObject updatedObject,
   ) {
-    return objects.map((o) => o.id == updatedObject.id ? updatedObject : o).toList();
+    final idx = objects.indexWhere((o) => o.id == updatedObject.id);
+    if (idx < 0) return objects;
+    final result = List<UnifiedObject>.from(objects);
+    result[idx] = updatedObject;
+    return result;
   }
 
   List<UnifiedObject> removeObject(

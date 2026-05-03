@@ -16,8 +16,8 @@
 | P005 | P0     | 漏洞       | `presentation/providers/auth/auth_storage.dart:303` | 密码长度 pwdLen 泄露到日志输出，辅助攻击者缩小暴力破解空间 | `[x]` 已修复 |
 | P006 | P0     | 性能       | `presentation/pages/login_page.dart:343` / `settings_page.dart:956` | `_formKey.currentState!` 空断言崩溃风险（2处） | `[x]` 已修复 |
 | P007 | P0     | 漏洞       | `core/services/biometric_credential_service.dart:153-156` | 生物识别凭据信封存于文件回退存储而非原生安全存储 | `[x]` 已修复 |
-| P008 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:752-784` | unifiedObjectCacheProvider 在每次对象变更时 O(n*m) 重建全量索引 | `[ ]` 待修复 |
-| P009 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:639-676` | 多个派生 provider 各自独立构建 O(n) 对象映射，存在冗余计算 | `[ ]` 待修复 |
+| P008 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:752-784` | unifiedObjectCacheProvider 在每次对象变更时 O(n*m) 重建全量索引 | `[x]` 已优化 — service 层方法从 O(n) 全量 map 改为 indexWhere 单点替换 |
+| P009 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:639-676` | 多个派生 provider 各自独立构建 O(n) 对象映射，存在冗余计算 | `[x]` 已修复 — children/objectById/defaultPageItems 改用 unifiedObjectCacheProvider |
 | P010 | P1     | 可优化代码 | `presentation/pages/login_page.dart`（1393行） | 超长文件：业务逻辑与 UI 混杂，需拆分为多个文件 | `[ ]` 待修复 |
 | P011 | P1     | 可优化代码 | `presentation/widgets/object_card.dart`（1487行） | 超长文件：7个 Widget 类 + 8个顶层函数混在一处 | `[ ]` 待修复 |
 | P012 | P1     | 可优化代码 | `presentation/pages/settings_page.dart`（1145行） | 超长文件：_DeleteAccountDialog、debug 激活对话框未独立成文件 | `[ ]` 待修复 |
@@ -27,10 +27,10 @@
 | P016 | P1     | 死代码     | `presentation/widgets/object_card.dart:7` | 未使用的 import：FieldHistoryService | `[x]` 误报 — import 提供 `fieldHistoriesProvider`，在 L481/L1325 使用 |
 | P017 | P1     | 性能       | `core/services/profile_storage_service.dart:188-201` | saveProfile/deleteProfile 静默吞掉所有异常，无日志无诊断 | `[x]` 已修复 |
 | P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[x]` 已修复 |
-| P019 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[ ]` 待修复 |
+| P019 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[暂缓]` 需重构存储架构 |
 | P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[x]` 已修复 |
 | P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[ ]` 待修复 |
-| P022 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart`（12处） | `!` 操作符在 selectedAccountId 上使用，绕过空安全检查 | `[ ]` 待修复 |
+| P022 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart`（12处） | `!` 操作符在 selectedAccountId 上使用，绕过空安全检查 | `[x]` 已修复 — null 守卫后存为局部变量 |
 | P023 | P2     | 可优化代码 | `presentation/pages/trash_page.dart`（1046行） | 超长文件：建议拆分 | `[ ]` 待修复 |
 | P024 | P2     | 可优化代码 | `presentation/pages/data_management_page.dart`（968行） | 超长文件：建议拆分 | `[ ]` 待修复 |
 | P025 | P2     | 可优化代码 | `presentation/widgets/app_sidebar.dart`（965行） | 超长文件：建议拆分 | `[ ]` 待修复 |
@@ -41,8 +41,9 @@
 
 ## 修复进度
 
-- 已完成：12 / 29
-- 当前处理：P020
+- 已完成：14 / 29
+- 当前处理：P022
+- 暂缓：P019（需重构存储架构）
 
 ---
 

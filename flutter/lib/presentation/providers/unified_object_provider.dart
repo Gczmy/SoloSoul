@@ -647,12 +647,11 @@ List<UnifiedObject> rootObjects(Ref ref) {
 /// Direct children of a specific parent, in childrenIds order, active only.
 @riverpod
 List<UnifiedObject> children(Ref ref, String parentId) {
-  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
-  final map = {for (final o in objects) o.id: o};
-  final parent = map[parentId];
+  final cache = ref.watch(unifiedObjectCacheProvider);
+  final parent = cache.objectById[parentId];
   if (parent == null) return [];
   return parent.childrenIds
-      .map((id) => map[id])
+      .map((id) => cache.objectById[id])
       .whereType<UnifiedObject>()
       .where((o) => !o.isDeleted)
       .toList();
@@ -661,9 +660,8 @@ List<UnifiedObject> children(Ref ref, String parentId) {
 /// Get a specific object by ID.
 @riverpod
 UnifiedObject? objectById(Ref ref, String id) {
-  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
-  final map = {for (final o in objects) o.id: o};
-  return map[id];
+  final cache = ref.watch(unifiedObjectCacheProvider);
+  return cache.objectById[id];
 }
 
 /// Get all active objects of a given type.
@@ -711,12 +709,11 @@ UnifiedObject? defaultSection(Ref ref, String sectionId) {
 /// Get active items under a default section, ordered by section's childrenIds.
 @riverpod
 List<UnifiedObject> defaultPageItems(Ref ref, String sectionId) {
-  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
-  final map = {for (final o in objects) o.id: o};
-  final section = map[sectionId];
+  final cache = ref.watch(unifiedObjectCacheProvider);
+  final section = cache.objectById[sectionId];
   if (section == null) return [];
   return section.childrenIds
-      .map((id) => map[id])
+      .map((id) => cache.objectById[id])
       .whereType<UnifiedObject>()
       .where((o) => !o.isDeleted)
       .toList();
