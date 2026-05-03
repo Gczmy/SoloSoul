@@ -242,7 +242,7 @@ class BackupService {
 
       entries.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return entries;
-    } on Exception catch (_) {
+    } on FileSystemException catch (_) {
       return const [];
     }
   }
@@ -285,7 +285,7 @@ class BackupService {
         return true;
       }
       return false;
-    } on Exception catch (_) {
+    } on FileSystemException catch (_) {
       return false;
     }
   }
@@ -385,7 +385,7 @@ class BackupService {
 
       entries.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return entries;
-    } on Exception catch (_) {
+    } on FileSystemException catch (_) {
       return const [];
     }
   }
@@ -413,7 +413,7 @@ class BackupService {
 
       await oldFile.rename(newFile.path);
       return newFileName;
-    } on Exception catch (_) {
+    } on FileSystemException catch (_) {
       return null;
     }
   }
@@ -428,7 +428,7 @@ class BackupService {
         return true;
       }
       return false;
-    } on Exception catch (_) {
+    } on FileSystemException catch (_) {
       return false;
     }
   }
@@ -488,7 +488,7 @@ class BackupService {
 
       await regularFile.copy(specialFile.path);
       return newFileName;
-    } on Exception catch (e, st) {
+    } on FileSystemException catch (e, st) {
       DebugLogger.instance.logError(
           'BACKUP', 'promoteBackupToSpecial failed: $e\n$st');
       return null;
@@ -509,7 +509,7 @@ class BackupService {
       try {
         final file = File('${dir.path}/${entry.fileName}');
         if (await file.exists()) await file.delete();
-      } on Exception catch (_) {
+      } on FileSystemException catch (_) {
         // 忽略清理错误
       }
     }

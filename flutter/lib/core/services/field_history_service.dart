@@ -28,7 +28,7 @@ class FieldHistoryService {
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       return FormHistories.fromJson(json);
-    } on Exception catch (e) {
+    } on FormatException catch (e) {
       DebugLogger.instance
           .logError('HISTORY', 'Failed to parse field histories for $accountId: $e');
       return FormHistories();

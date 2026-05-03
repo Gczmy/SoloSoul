@@ -58,7 +58,7 @@ class OperationLogService extends ChangeNotifier {
           const Duration(seconds: 2),
           onTimeout: () => null,
         );
-      } on Exception catch (_) {
+      } on TimeoutException catch (_) {
         // Ignore save errors - we're clearing anyway
       }
     }
@@ -247,7 +247,7 @@ class OperationLogService extends ChangeNotifier {
   String _getCurrentDevice() {
     try {
       return Platform.operatingSystem.toLowerCase();
-    } on Exception catch (_) {
+    } on UnsupportedError catch (_) {
       return 'unknown';
     }
   }

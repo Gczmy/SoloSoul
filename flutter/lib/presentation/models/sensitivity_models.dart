@@ -102,7 +102,7 @@ class FieldRegistry {
     try {
       return defaultFields.firstWhere((f) => f.fieldId == fieldId).level ==
           SensitivityLevel.critical;
-    } on Exception catch (_) {
+    } on StateError catch (_) {
       return false;
     }
   }

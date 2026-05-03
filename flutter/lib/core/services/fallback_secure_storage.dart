@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -113,7 +114,7 @@ class FallbackSecureStorage {
           .read(key: key)
           .timeout(const Duration(seconds: 5));
       return value;
-    } on Exception catch (e) {
+    } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
         DebugLogger.instance.logWarning(
             'FALLBACK_STORAGE', 'Keychain unavailable ($e). Using fallback.');
@@ -132,7 +133,7 @@ class FallbackSecureStorage {
           .write(key: key, value: value)
           .timeout(const Duration(seconds: 5));
       return;
-    } on Exception catch (e) {
+    } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
         DebugLogger.instance.logWarning(
             'FALLBACK_STORAGE', 'Keychain unavailable ($e). Using fallback.');
@@ -148,7 +149,7 @@ class FallbackSecureStorage {
   Future<void> delete({required String key}) async {
     try {
       await _secureStorage.delete(key: key);
-    } on Exception catch (e) {
+    } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
         DebugLogger.instance.logDebug(
             'FALLBACK_STORAGE', 'Keychain delete unavailable ($e).');
@@ -164,7 +165,7 @@ class FallbackSecureStorage {
   Future<void> deleteAll() async {
     try {
       await _secureStorage.deleteAll();
-    } on Exception catch (e) {
+    } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
         DebugLogger.instance.logDebug(
             'FALLBACK_STORAGE', 'Keychain deleteAll unavailable ($e).');
