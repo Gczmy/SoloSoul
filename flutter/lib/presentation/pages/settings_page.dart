@@ -953,7 +953,9 @@ class _DeleteAccountDialogContentState extends State<_DeleteAccountDialogContent
   }
 
   Future<void> _handleDelete() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null) return;
+    if (!formState.validate()) return;
 
     setState(() => _isDeleting = true);
 

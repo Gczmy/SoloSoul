@@ -300,7 +300,7 @@ class SecureAccountStorage {
       await Future<void>.delayed(delay);
     }
 
-    SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId pwdLen=${password.length}');
+    SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId hasPassword=${password.isNotEmpty}');
     final timer = SoloLog.startTimer('AuthStorage', 'verifyPassword');
     try {
       final result = NativeVaultService.instance.request(

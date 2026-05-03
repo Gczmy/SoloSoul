@@ -10,11 +10,11 @@
 | ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
 | P001 | P0     | 漏洞       | `presentation/providers/auth/auth_notifier.dart:168-253` | 12处 `print()` 在 release 构建中泄露解锁流程数据（accountId、错误详情） | `[x]` 已修复 |
-| P002 | P0     | 漏洞       | `presentation/pages/splash_page.dart:26-39` | splash 页无错误处理：RustVaultService 初始化失败时应用永久卡死 | `[ ]` 待修复 |
-| P003 | P0     | 漏洞       | `presentation/widgets/change_password_dialog.dart:252-255` | 密码输入控制器 dispose 前未清除文本内容，密码残留在内存 | `[ ]` 待修复 |
+| P002 | P0     | 漏洞       | `presentation/pages/splash_page.dart:26-39` | splash 页无错误处理：RustVaultService 初始化失败时应用永久卡死 | `[x]` 已修复 |
+| P003 | P0     | 漏洞       | `presentation/widgets/change_password_dialog.dart:252-255` | 密码输入控制器 dispose 前未清除文本内容，密码残留在内存 | `[x]` 已修复 |
 | P004 | P0     | 漏洞       | `presentation/providers/auth/auth_storage.dart:172-191` | createAccount/unlockAccount 中 verifyHash 派生后未安全擦除密钥中间值 | `[ ]` 待修复 |
-| P005 | P0     | 漏洞       | `presentation/providers/auth/auth_storage.dart:303` | 密码长度 pwdLen 泄露到日志输出，辅助攻击者缩小暴力破解空间 | `[ ]` 待修复 |
-| P006 | P0     | 性能       | `presentation/pages/login_page.dart:343` / `settings_page.dart:956` | `_formKey.currentState!` 空断言崩溃风险（2处） | `[ ]` 待修复 |
+| P005 | P0     | 漏洞       | `presentation/providers/auth/auth_storage.dart:303` | 密码长度 pwdLen 泄露到日志输出，辅助攻击者缩小暴力破解空间 | `[x]` 已修复 |
+| P006 | P0     | 性能       | `presentation/pages/login_page.dart:343` / `settings_page.dart:956` | `_formKey.currentState!` 空断言崩溃风险（2处） | `[x]` 已修复 |
 | P007 | P0     | 漏洞       | `core/services/biometric_credential_service.dart:153-156` | 生物识别凭据信封存于文件回退存储而非原生安全存储 | `[ ]` 待修复 |
 | P008 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:752-784` | unifiedObjectCacheProvider 在每次对象变更时 O(n*m) 重建全量索引 | `[ ]` 待修复 |
 | P009 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:639-676` | 多个派生 provider 各自独立构建 O(n) 对象映射，存在冗余计算 | `[ ]` 待修复 |
@@ -40,8 +40,8 @@
 
 ## 修复进度
 
-- 已完成：1 / 28
-- 当前处理：P001
+- 已完成：5 / 28
+- 当前处理：P002-P006
 
 ---
 

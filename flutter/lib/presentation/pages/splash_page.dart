@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
@@ -26,8 +27,13 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _initializeAndNavigate() async {
     // Perform async initialization while splash is visible
     if (!Platform.isAndroid) {
-      final appSupport = await getApplicationSupportDirectory();
-      await RustVaultService.instance.initAccountManager(appSupport.path);
+      try {
+        final appSupport = await getApplicationSupportDirectory();
+        await RustVaultService.instance.initAccountManager(appSupport.path);
+      } on Exception catch (e) {
+        DebugLogger.instance
+            .logError('SPLASH', 'Init failed, proceeding to login: $e');
+      }
     }
 
     // Small delay for splash animation to be visible (min 800ms)

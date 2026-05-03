@@ -340,7 +340,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleUnlock() async {
-    if (!_formKey.currentState!.validate()) {
+    final formState = _formKey.currentState;
+    if (formState == null) return;
+    if (!formState.validate()) {
       // Form validator showed the error - sync our flag so label/icon turn red too
       setState(() {
         _hasPasswordError = true;

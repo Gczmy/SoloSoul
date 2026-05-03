@@ -249,9 +249,13 @@ Future<bool> showChangePasswordDialog({
     ),
   );
 
+  currentPasswordController.text = '';
   currentPasswordController.dispose();
+  newPasswordController.text = '';
   newPasswordController.dispose();
+  confirmPasswordController.text = '';
   confirmPasswordController.dispose();
+  newPasswordHintController.text = '';
   newPasswordHintController.dispose();
 
   return result ?? false;
