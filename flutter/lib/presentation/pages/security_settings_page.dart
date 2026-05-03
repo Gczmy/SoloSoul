@@ -44,6 +44,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
   Future<void> _updateSettings(SecuritySettings newSettings) async {
     setState(() => _settings = newSettings);
     await SecurityService.instance.saveSettings();
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Updated security settings'));
   }
 
   @override
@@ -311,6 +312,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         _settings = SecurityService.instance.settings;
         _biometricsEnabled = _settings.biometricsEnabled && _biometricsAvailable;
       });
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Reset security settings'));
     }
   }
 

@@ -763,16 +763,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AccountInfo dco_decode_account_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return AccountInfo(
       id: dco_decode_String(arr[0]),
       name: dco_decode_String(arr[1]),
-      lastAccessed: dco_decode_opt_String(arr[2]),
-      passwordHint: dco_decode_opt_String(arr[3]),
-      lastLoginAt: dco_decode_opt_String(arr[4]),
-      lastOperationAt: dco_decode_opt_String(arr[5]),
-      lastOperationDesc: dco_decode_opt_String(arr[6]),
+      createdAt: dco_decode_opt_String(arr[2]),
+      lastAccessed: dco_decode_opt_String(arr[3]),
+      passwordHint: dco_decode_opt_String(arr[4]),
+      lastLoginAt: dco_decode_opt_String(arr[5]),
+      lastOperationAt: dco_decode_opt_String(arr[6]),
+      lastOperationDesc: dco_decode_opt_String(arr[7]),
     );
   }
 
@@ -1107,6 +1108,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
     var var_name = sse_decode_String(deserializer);
+    var var_createdAt = sse_decode_opt_String(deserializer);
     var var_lastAccessed = sse_decode_opt_String(deserializer);
     var var_passwordHint = sse_decode_opt_String(deserializer);
     var var_lastLoginAt = sse_decode_opt_String(deserializer);
@@ -1115,6 +1117,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return AccountInfo(
       id: var_id,
       name: var_name,
+      createdAt: var_createdAt,
       lastAccessed: var_lastAccessed,
       passwordHint: var_passwordHint,
       lastLoginAt: var_lastLoginAt,
@@ -1512,6 +1515,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.name, serializer);
+    sse_encode_opt_String(self.createdAt, serializer);
     sse_encode_opt_String(self.lastAccessed, serializer);
     sse_encode_opt_String(self.passwordHint, serializer);
     sse_encode_opt_String(self.lastLoginAt, serializer);

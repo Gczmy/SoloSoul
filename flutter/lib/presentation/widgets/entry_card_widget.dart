@@ -198,8 +198,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       // Always add prefix since itemToMap returns unprefixed keys.
       final fieldId = '${widget.fieldPrefix}.$key';
       final sensitivity = _getSensitivityForField(key);
-      final isSensitive = sensitivity == SensitivityLevel.sensitive ||
-                          sensitivity == SensitivityLevel.critical;
+      final isSensitive = sensitivity == SensitivityLevel.critical;
       fields.add(LabelValueField(
         label: _formatLabel(key),
         value: value.toString(),

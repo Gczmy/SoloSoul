@@ -150,9 +150,17 @@ class AccountStyle {
       lastModified: json['last_modified'] != null
           ? DateTime.tryParse(json['last_modified'] as String)
           : null,
-      displayMode: SensitivityDisplayMode.values[json['display_mode'] as int? ?? 1],
+      displayMode: _displayModeFromJson(json['display_mode']),
       revealedFields: Set<String>.from(json['revealed_fields'] as List? ?? []),
     );
+  }
+
+  static SensitivityDisplayMode _displayModeFromJson(dynamic value) {
+    final index = value as int? ?? 1;
+    if (index >= 0 && index < SensitivityDisplayMode.values.length) {
+      return SensitivityDisplayMode.values[index];
+    }
+    return SensitivityDisplayMode.hidePrivate;
   }
 
   static SensitivityLevel _levelFromString(String name) {
@@ -183,7 +191,7 @@ class AccountStyleService {
     try {
       final json = jsonDecode(decrypted) as Map<String, dynamic>;
       return AccountStyle.fromJson(json);
-    } on Exception catch (_) {
+    } on Object catch (_) {
       return null;
     }
   }
@@ -256,6 +264,7 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
 
     state = AsyncData(updated);
     _autoSave();
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Changed sensitivity level'));
 
     // Log the sensitivity change
     final description = oldLevel != null
@@ -422,6 +431,7 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     ));
     _autoSave();
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Upgraded field sensitivity'));
 
     // Log the sensitivity upgrade
     OperationLogger.logSensitivitySettings(
@@ -453,6 +463,7 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     ));
     _autoSave();
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Downgraded field sensitivity'));
 
     // Log the sensitivity downgrade
     OperationLogger.logSensitivitySettings(

@@ -11,7 +11,18 @@ mixin FormattableEntry {
 
   String toFormattedString() {
     final data = toMap();
-    final ignoreKeys = {'id', 'createdAt', 'updatedAt', 'fieldHistories'};
+    final ignoreKeys = {
+      'id',
+      'createdAt',
+      'updatedAt',
+      'fieldHistories',
+      'typeId',
+      'iconName',
+      'parentId',
+      'childrenIds',
+      'isDeleted',
+      'deletedAt',
+    };
 
     return data.entries
         .where((e) => !ignoreKeys.contains(e.key) && e.value != null && e.value.toString().isNotEmpty)

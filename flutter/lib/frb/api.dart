@@ -152,6 +152,7 @@ sealed class AccountInfo with _$AccountInfo {
   const factory AccountInfo({
     required String id,
     required String name,
+    String? createdAt,
     String? lastAccessed,
     String? passwordHint,
     String? lastLoginAt,

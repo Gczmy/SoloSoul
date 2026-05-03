@@ -476,6 +476,20 @@ class PropertyValueConverter
   }
 }
 
+/// Convert PropertyValue to a human-readable display string for copying.
+String _propValueToDisplay(PropertyValue value) {
+  return switch (value) {
+    TextProperty(:final text) => text,
+    NumberProperty(:final value) => value?.toString() ?? '',
+    DateProperty(:final isoDate) => isoDate ?? '',
+    CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+    SelectProperty(:final selectedId) => selectedId ?? '',
+    MultiSelectProperty(:final selectedIds) => selectedIds.join(', '),
+    RelationProperty(:final targetObjectId) => targetObjectId ?? '',
+    UrlProperty(:final url) => url ?? '',
+  };
+}
+
 // =============================================================================
 // UnifiedObject & UnifiedObjectData
 // =============================================================================
@@ -539,6 +553,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
         'isDeleted': isDeleted,
         'createdAt': createdAt,
         'updatedAt': updatedAt,
+        for (final e in properties.entries) e.key: _propValueToDisplay(e.value),
       };
 
   factory UnifiedObject.fromJson(Map<String, dynamic> json) =>

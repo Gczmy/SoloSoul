@@ -729,6 +729,7 @@ impl SseDecode for crate::api::AccountInfo {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <String>::sse_decode(deserializer);
         let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_createdAt = <Option<String>>::sse_decode(deserializer);
         let mut var_lastAccessed = <Option<String>>::sse_decode(deserializer);
         let mut var_passwordHint = <Option<String>>::sse_decode(deserializer);
         let mut var_lastLoginAt = <Option<String>>::sse_decode(deserializer);
@@ -737,6 +738,7 @@ impl SseDecode for crate::api::AccountInfo {
         return crate::api::AccountInfo {
             id: var_id,
             name: var_name,
+            created_at: var_createdAt,
             last_accessed: var_lastAccessed,
             password_hint: var_passwordHint,
             last_login_at: var_lastLoginAt,
@@ -1157,6 +1159,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::AccountInfo {
         [
             self.id.into_into_dart().into_dart(),
             self.name.into_into_dart().into_dart(),
+            self.created_at.into_into_dart().into_dart(),
             self.last_accessed.into_into_dart().into_dart(),
             self.password_hint.into_into_dart().into_dart(),
             self.last_login_at.into_into_dart().into_dart(),
@@ -1416,6 +1419,7 @@ impl SseEncode for crate::api::AccountInfo {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.name, serializer);
+        <Option<String>>::sse_encode(self.created_at, serializer);
         <Option<String>>::sse_encode(self.last_accessed, serializer);
         <Option<String>>::sse_encode(self.password_hint, serializer);
         <Option<String>>::sse_encode(self.last_login_at, serializer);

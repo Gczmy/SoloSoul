@@ -996,12 +996,30 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   void _copyItem(UnifiedObject item) {
     void doCopy() {
+      // Internal/system fields that users should not see
+      const internalKeys = {
+        'TypeId',
+        'IconName',
+        'ParentId',
+        'ChildrenIds',
+        'IsDeleted',
+        'Id',
+        'CreatedAt',
+        'UpdatedAt',
+        'DeletedAt',
+      };
+
       final buffer = StringBuffer();
-      buffer.writeln('${item.name}:');
-      for (final entry in item.properties.entries) {
-        buffer.writeln('  ${entry.key}: ${_propValueToString(entry.value)}');
+      if (item.name.isNotEmpty) {
+        buffer.writeln('${item.name}:');
       }
-      final text = buffer.toString();
+      for (final entry in item.properties.entries) {
+        if (internalKeys.contains(entry.key)) continue;
+        final value = _propValueToString(entry.value);
+        if (value.isEmpty) continue;
+        buffer.writeln('  ${entry.key}: $value');
+      }
+      final text = buffer.toString().trimRight();
 
       if (widget.onCopyAll != null) {
         widget.onCopyAll!(item, text);

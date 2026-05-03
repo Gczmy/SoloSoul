@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AccountInfo {
 
- String get id; String get name; String? get lastAccessed; String? get passwordHint; String? get lastLoginAt; String? get lastOperationAt; String? get lastOperationDesc;
+ String get id; String get name; String? get createdAt; String? get lastAccessed; String? get passwordHint; String? get lastLoginAt; String? get lastOperationAt; String? get lastOperationDesc;
 /// Create a copy of AccountInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AccountInfoCopyWith<AccountInfo> get copyWith => _$AccountInfoCopyWithImpl<Acco
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastAccessed, lastAccessed) || other.lastAccessed == lastAccessed)&&(identical(other.passwordHint, passwordHint) || other.passwordHint == passwordHint)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt)&&(identical(other.lastOperationAt, lastOperationAt) || other.lastOperationAt == lastOperationAt)&&(identical(other.lastOperationDesc, lastOperationDesc) || other.lastOperationDesc == lastOperationDesc));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AccountInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastAccessed, lastAccessed) || other.lastAccessed == lastAccessed)&&(identical(other.passwordHint, passwordHint) || other.passwordHint == passwordHint)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt)&&(identical(other.lastOperationAt, lastOperationAt) || other.lastOperationAt == lastOperationAt)&&(identical(other.lastOperationDesc, lastOperationDesc) || other.lastOperationDesc == lastOperationDesc));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,lastAccessed,passwordHint,lastLoginAt,lastOperationAt,lastOperationDesc);
+int get hashCode => Object.hash(runtimeType,id,name,createdAt,lastAccessed,passwordHint,lastLoginAt,lastOperationAt,lastOperationDesc);
 
 @override
 String toString() {
-  return 'AccountInfo(id: $id, name: $name, lastAccessed: $lastAccessed, passwordHint: $passwordHint, lastLoginAt: $lastLoginAt, lastOperationAt: $lastOperationAt, lastOperationDesc: $lastOperationDesc)';
+  return 'AccountInfo(id: $id, name: $name, createdAt: $createdAt, lastAccessed: $lastAccessed, passwordHint: $passwordHint, lastLoginAt: $lastLoginAt, lastOperationAt: $lastOperationAt, lastOperationDesc: $lastOperationDesc)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AccountInfoCopyWith<$Res>  {
   factory $AccountInfoCopyWith(AccountInfo value, $Res Function(AccountInfo) _then) = _$AccountInfoCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? lastAccessed, String? passwordHint, String? lastLoginAt, String? lastOperationAt, String? lastOperationDesc
+ String id, String name, String? createdAt, String? lastAccessed, String? passwordHint, String? lastLoginAt, String? lastOperationAt, String? lastOperationDesc
 });
 
 
@@ -62,11 +62,12 @@ class _$AccountInfoCopyWithImpl<$Res>
 
 /// Create a copy of AccountInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? lastAccessed = freezed,Object? passwordHint = freezed,Object? lastLoginAt = freezed,Object? lastOperationAt = freezed,Object? lastOperationDesc = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? createdAt = freezed,Object? lastAccessed = freezed,Object? passwordHint = freezed,Object? lastLoginAt = freezed,Object? lastOperationAt = freezed,Object? lastOperationDesc = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,lastAccessed: freezed == lastAccessed ? _self.lastAccessed : lastAccessed // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,lastAccessed: freezed == lastAccessed ? _self.lastAccessed : lastAccessed // ignore: cast_nullable_to_non_nullable
 as String?,passwordHint: freezed == passwordHint ? _self.passwordHint : passwordHint // ignore: cast_nullable_to_non_nullable
 as String?,lastLoginAt: freezed == lastLoginAt ? _self.lastLoginAt : lastLoginAt // ignore: cast_nullable_to_non_nullable
 as String?,lastOperationAt: freezed == lastOperationAt ? _self.lastOperationAt : lastOperationAt // ignore: cast_nullable_to_non_nullable
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? lastAccessed,  String? passwordHint,  String? lastLoginAt,  String? lastOperationAt,  String? lastOperationDesc)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? createdAt,  String? lastAccessed,  String? passwordHint,  String? lastLoginAt,  String? lastOperationAt,  String? lastOperationDesc)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AccountInfo() when $default != null:
-return $default(_that.id,_that.name,_that.lastAccessed,_that.passwordHint,_that.lastLoginAt,_that.lastOperationAt,_that.lastOperationDesc);case _:
+return $default(_that.id,_that.name,_that.createdAt,_that.lastAccessed,_that.passwordHint,_that.lastLoginAt,_that.lastOperationAt,_that.lastOperationDesc);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.id,_that.name,_that.lastAccessed,_that.passwordHint,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? lastAccessed,  String? passwordHint,  String? lastLoginAt,  String? lastOperationAt,  String? lastOperationDesc)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? createdAt,  String? lastAccessed,  String? passwordHint,  String? lastLoginAt,  String? lastOperationAt,  String? lastOperationDesc)  $default,) {final _that = this;
 switch (_that) {
 case _AccountInfo():
-return $default(_that.id,_that.name,_that.lastAccessed,_that.passwordHint,_that.lastLoginAt,_that.lastOperationAt,_that.lastOperationDesc);}
+return $default(_that.id,_that.name,_that.createdAt,_that.lastAccessed,_that.passwordHint,_that.lastLoginAt,_that.lastOperationAt,_that.lastOperationDesc);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -191,10 +192,10 @@ return $default(_that.id,_that.name,_that.lastAccessed,_that.passwordHint,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? lastAccessed,  String? passwordHint,  String? lastLoginAt,  String? lastOperationAt,  String? lastOperationDesc)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? createdAt,  String? lastAccessed,  String? passwordHint,  String? lastLoginAt,  String? lastOperationAt,  String? lastOperationDesc)?  $default,) {final _that = this;
 switch (_that) {
 case _AccountInfo() when $default != null:
-return $default(_that.id,_that.name,_that.lastAccessed,_that.passwordHint,_that.lastLoginAt,_that.lastOperationAt,_that.lastOperationDesc);case _:
+return $default(_that.id,_that.name,_that.createdAt,_that.lastAccessed,_that.passwordHint,_that.lastLoginAt,_that.lastOperationAt,_that.lastOperationDesc);case _:
   return null;
 
 }
@@ -206,11 +207,12 @@ return $default(_that.id,_that.name,_that.lastAccessed,_that.passwordHint,_that.
 
 
 class _AccountInfo implements AccountInfo {
-  const _AccountInfo({required this.id, required this.name, this.lastAccessed, this.passwordHint, this.lastLoginAt, this.lastOperationAt, this.lastOperationDesc});
+  const _AccountInfo({required this.id, required this.name, this.createdAt, this.lastAccessed, this.passwordHint, this.lastLoginAt, this.lastOperationAt, this.lastOperationDesc});
   
 
 @override final  String id;
 @override final  String name;
+@override final  String? createdAt;
 @override final  String? lastAccessed;
 @override final  String? passwordHint;
 @override final  String? lastLoginAt;
@@ -227,16 +229,16 @@ _$AccountInfoCopyWith<_AccountInfo> get copyWith => __$AccountInfoCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastAccessed, lastAccessed) || other.lastAccessed == lastAccessed)&&(identical(other.passwordHint, passwordHint) || other.passwordHint == passwordHint)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt)&&(identical(other.lastOperationAt, lastOperationAt) || other.lastOperationAt == lastOperationAt)&&(identical(other.lastOperationDesc, lastOperationDesc) || other.lastOperationDesc == lastOperationDesc));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AccountInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastAccessed, lastAccessed) || other.lastAccessed == lastAccessed)&&(identical(other.passwordHint, passwordHint) || other.passwordHint == passwordHint)&&(identical(other.lastLoginAt, lastLoginAt) || other.lastLoginAt == lastLoginAt)&&(identical(other.lastOperationAt, lastOperationAt) || other.lastOperationAt == lastOperationAt)&&(identical(other.lastOperationDesc, lastOperationDesc) || other.lastOperationDesc == lastOperationDesc));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,lastAccessed,passwordHint,lastLoginAt,lastOperationAt,lastOperationDesc);
+int get hashCode => Object.hash(runtimeType,id,name,createdAt,lastAccessed,passwordHint,lastLoginAt,lastOperationAt,lastOperationDesc);
 
 @override
 String toString() {
-  return 'AccountInfo(id: $id, name: $name, lastAccessed: $lastAccessed, passwordHint: $passwordHint, lastLoginAt: $lastLoginAt, lastOperationAt: $lastOperationAt, lastOperationDesc: $lastOperationDesc)';
+  return 'AccountInfo(id: $id, name: $name, createdAt: $createdAt, lastAccessed: $lastAccessed, passwordHint: $passwordHint, lastLoginAt: $lastLoginAt, lastOperationAt: $lastOperationAt, lastOperationDesc: $lastOperationDesc)';
 }
 
 
@@ -247,7 +249,7 @@ abstract mixin class _$AccountInfoCopyWith<$Res> implements $AccountInfoCopyWith
   factory _$AccountInfoCopyWith(_AccountInfo value, $Res Function(_AccountInfo) _then) = __$AccountInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? lastAccessed, String? passwordHint, String? lastLoginAt, String? lastOperationAt, String? lastOperationDesc
+ String id, String name, String? createdAt, String? lastAccessed, String? passwordHint, String? lastLoginAt, String? lastOperationAt, String? lastOperationDesc
 });
 
 
@@ -264,11 +266,12 @@ class __$AccountInfoCopyWithImpl<$Res>
 
 /// Create a copy of AccountInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? lastAccessed = freezed,Object? passwordHint = freezed,Object? lastLoginAt = freezed,Object? lastOperationAt = freezed,Object? lastOperationDesc = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? createdAt = freezed,Object? lastAccessed = freezed,Object? passwordHint = freezed,Object? lastLoginAt = freezed,Object? lastOperationAt = freezed,Object? lastOperationDesc = freezed,}) {
   return _then(_AccountInfo(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,lastAccessed: freezed == lastAccessed ? _self.lastAccessed : lastAccessed // ignore: cast_nullable_to_non_nullable
+as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,lastAccessed: freezed == lastAccessed ? _self.lastAccessed : lastAccessed // ignore: cast_nullable_to_non_nullable
 as String?,passwordHint: freezed == passwordHint ? _self.passwordHint : passwordHint // ignore: cast_nullable_to_non_nullable
 as String?,lastLoginAt: freezed == lastLoginAt ? _self.lastLoginAt : lastLoginAt // ignore: cast_nullable_to_non_nullable
 as String?,lastOperationAt: freezed == lastOperationAt ? _self.lastOperationAt : lastOperationAt // ignore: cast_nullable_to_non_nullable

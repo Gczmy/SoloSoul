@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -109,6 +111,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (fileName != null) {
         await _loadBackups();
         if (!mounted) return;
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created backup'));
         OperationNotification.show(
           context,
           message: const OperationMessage(
@@ -175,6 +178,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success) {
       await _loadAllBackups();
       if (!mounted) return;
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored backup'));
       OperationNotification.show(
         context,
         message: const OperationMessage(
@@ -239,6 +243,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success && mounted) {
       await _loadBackups();
       if (!mounted) return;
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted backup'));
       OperationNotification.show(
         context,
         message: const OperationMessage(
@@ -322,6 +327,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (!mounted) return;
       await _loadSpecialBackups();
       if (!mounted) return;
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Promoted backup to special'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -423,6 +429,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (fileName != null) {
       await _loadSpecialBackups();
       if (!mounted) return;
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created special backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -489,6 +496,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (!mounted) return;
       await _loadSpecialBackups();
       if (!mounted) return;
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Renamed special backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -533,6 +541,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success) {
       await _loadAllBackups();
       if (!mounted) return;
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored special backup'));
       OperationNotification.show(
         context,
         message: const OperationMessage(
@@ -582,7 +591,10 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       _accountId!,
       entry.fileName,
     );
-    if (success && mounted) await _loadSpecialBackups();
+    if (success && mounted) {
+      await _loadSpecialBackups();
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted special backup'));
+    }
   }
 
   // -------------------------------------------------------------------------

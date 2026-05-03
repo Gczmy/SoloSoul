@@ -2,6 +2,6 @@
 //!
 //! Handles account creation, authentication, and account listing
 
-mod manager;
+pub(crate) mod manager;
 
-pub use manager::*;
+pub use manager::AccountManager;

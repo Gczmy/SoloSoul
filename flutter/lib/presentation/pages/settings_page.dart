@@ -429,7 +429,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           icon: Icons.storage_outlined,
                           title: 'Data Management',
                           subtitle: _vaultDataSize,
-                          onTap: () => context.go(AppRoutes.dataManagement),
+                          onTap: () => context.push(AppRoutes.dataManagement),
                         ),
                       ],
                     );

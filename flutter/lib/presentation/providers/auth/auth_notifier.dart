@@ -93,8 +93,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   /// Select an account
   Future<void> selectAccount(String? accountId) async {
     await _accountManager.selectAccount(accountId);
-    // Trigger rebuild by setting state to current value
-    state = AsyncData(state.value ?? AuthState.locked);
+    // Force Riverpod to detect a state change by toggling through loading.
+    // Setting AsyncData(same value) is deduplicated and doesn't trigger rebuilds.
+    final current = state.value ?? AuthState.locked;
+    state = const AsyncLoading();
+    state = AsyncData(current);
   }
 
   /// Create a new account
@@ -116,6 +119,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (result.success) {
       // Keep vault locked after account creation
       state = const AsyncData(AuthState.locked);
+      await updateOperation('Created account');
       return (success: true, error: null);
     } else {
       state = const AsyncData(AuthState.locked);
@@ -406,6 +410,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     final success = await _accountManager.deleteAccount(password);
     if (success) {
       state = const AsyncData(AuthState.locked);
+      await updateOperation('Deleted account');
     }
     return success;
   }
@@ -420,17 +425,40 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       return (success: false, error: 'No account selected');
     }
 
-    return _passwordService.changePassword(
+    final result = await _passwordService.changePassword(
       accountId: _accountManager.selectedAccountId!,
       currentPassword: currentPassword,
       newPassword: newPassword,
       profileStorage: _profileStorage,
       newPasswordHint: newPasswordHint,
     );
+    if (result.success) {
+      await updateOperation('Changed password');
+    }
+    return result;
   }
 
   /// Update operation metadata
   Future<void> updateOperation(String operationDesc) async {
     await _accountManager.updateOperation(operationDesc);
+  }
+
+  /// Update account metadata and bump accounts version to trigger UI rebuild.
+  Future<void> updateAccountMetadata({
+    DateTime? lastLoginAt,
+    DateTime? lastOperationAt,
+    String? lastOperationDesc,
+    Map<String, dynamic>? device,
+  }) async {
+    final accountId = _accountManager.selectedAccountId;
+    if (accountId == null) return;
+    await _storage.updateAccountMetadata(
+      accountId,
+      lastLoginAt: lastLoginAt,
+      lastOperationAt: lastOperationAt,
+      lastOperationDesc: lastOperationDesc,
+      device: device,
+    );
+    _accountManager.bumpAccountsVersion();
   }
 }

@@ -20,6 +20,16 @@ import 'package:solosoul_flutter/frb/frb_generated.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Capture ALL errors with full stack traces for debugging
+  FlutterError.onError = (FlutterErrorDetails details) {
+    DebugLogger.instance.logError(
+      'FLUTTER_ERROR',
+      '${details.exception}\n${details.stack}',
+    );
+    // Also print to stderr for immediate visibility
+    FlutterError.presentError(details);
+  };
+
   // Initialize Flutter Rust Bridge
   await RustLib.init();
 
@@ -51,7 +61,13 @@ void main() async {
   runApp(
     ProviderScope(
       child: const SoloSoulApp(),
-      retry: (retryCount, error) => null,
+      retry: (retryCount, error) {
+        DebugLogger.instance.logError(
+          'PROVIDER_ERROR',
+          'Provider error (retry $retryCount): $error',
+        );
+        return null;
+      },
     ),
   );
 }
@@ -67,6 +83,7 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     with WidgetsBindingObserver {
   DateTime? _pausedAt;
   Timer? _autoLockTimer;
+  DateTime _lastActivityTime = DateTime.now();
   late final GoRouter _router;
 
   @override
@@ -149,12 +166,19 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     if (delayMinutes == -1) return; // Never auto-lock
 
     _pausedAt = DateTime.now();
-    final duration = Duration(minutes: delayMinutes);
+    final delay = Duration(minutes: delayMinutes);
+    final inactiveSince = DateTime.now().difference(_lastActivityTime);
+    final remaining = delay - inactiveSince;
 
     _autoLockTimer?.cancel();
-    _autoLockTimer = Timer(duration, () {
+    if (remaining.isNegative || remaining == Duration.zero) {
+      // User has already been inactive longer than the delay — lock now
       _triggerAutoLock();
-    });
+    } else {
+      _autoLockTimer = Timer(remaining, () {
+        _triggerAutoLock();
+      });
+    }
   }
 
   void _cancelAutoLockTimer() {
@@ -178,12 +202,16 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
         SecurityService.instance.settings.autoLockDelayMinutes;
     if (delayMinutes == -1) return; // Never auto-lock
 
-    final elapsedMinutes = DateTime.now().difference(_pausedAt!).inMinutes;
-
-    if (elapsedMinutes >= delayMinutes) {
+    final inactiveDuration = DateTime.now().difference(_lastActivityTime);
+    if (inactiveDuration.inMinutes >= delayMinutes) {
       _triggerAutoLock();
     }
     _pausedAt = null;
+  }
+
+  /// Called on user interaction to reset the inactivity timer.
+  void _recordActivity() {
+    _lastActivityTime = DateTime.now();
   }
 
   void _wipeSensitiveState() {
@@ -210,14 +238,18 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     // Wrap with ScaffoldMessenger at root level so SnackBars persist across navigation.
     // Without this, each Scaffold has its own ScaffoldMessengerState and when that
     // Scaffold is removed (on navigation), all SnackBar timers are cancelled.
-    return ScaffoldMessenger(
-      child: MaterialApp.router(
-        title: 'SoloSoul',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: _router,
+    return Listener(
+      onPointerDown: (_) => _recordActivity(),
+      onPointerMove: (_) => _recordActivity(),
+      child: ScaffoldMessenger(
+        child: MaterialApp.router(
+          title: 'SoloSoul',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.system,
+          routerConfig: _router,
+        ),
       ),
     );
   }

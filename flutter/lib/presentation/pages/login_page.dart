@@ -275,8 +275,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       final accountId = authNotifier.selectedAccountId;
       if (accountId != null) {
-        await SecureAccountStorage.instance.updateAccountMetadata(
-          accountId,
+        await authNotifier.updateAccountMetadata(
           lastLoginAt: DateTime.now(),
           device: DeviceInfo(
             deviceName: Platform.isMacOS
@@ -293,7 +292,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             lastUsed: DateTime.now(),
           ).toJson(),
         );
-        await authNotifier.selectAccount(accountId);
       }
 
       if (mounted) {
@@ -404,8 +402,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       // Record login metadata (lastLoginAt + device)
       if (accountId != null) {
-        await SecureAccountStorage.instance.updateAccountMetadata(
-          accountId,
+        await authNotifier.updateAccountMetadata(
           lastLoginAt: DateTime.now(),
           device: DeviceInfo(
             deviceName: Platform.isMacOS
@@ -424,8 +421,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ).timeout(const Duration(seconds: 5), onTimeout: () {
           SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
         });
-        // Reload selected account info so Settings page shows updated data
-        await authNotifier.selectAccount(accountId);
       }
 
       if (mounted) {
@@ -496,6 +491,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
         // Pre-register all form fields for sensitivity settings
         ref.read(formFieldRegistryProvider.notifier).registerAllForms();
+
+        // Record login metadata (lastLoginAt + device)
+        final accountId = authNotifier.selectedAccountId;
+        SoloLog.d('LOGIN', '_handleCreateAccount: accountId=$accountId');
+        if (accountId != null) {
+          SoloLog.d('LOGIN', '_handleCreateAccount: calling updateAccountMetadata');
+          await authNotifier.updateAccountMetadata(
+            lastLoginAt: DateTime.now(),
+            device: DeviceInfo(
+              deviceName: Platform.isMacOS
+                  ? 'Mac'
+                  : Platform.isIOS
+                  ? 'iPhone'
+                  : Platform.isAndroid
+                  ? 'Android'
+                  : Platform.isLinux
+                  ? 'Linux'
+                  : Platform.isWindows
+                  ? 'Windows'
+                  : 'Flutter Device',
+              lastUsed: DateTime.now(),
+            ).toJson(),
+          ).timeout(const Duration(seconds: 5), onTimeout: () {
+            SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
+          });
+          SoloLog.d('LOGIN', '_handleCreateAccount: updateAccountMetadata done');
+        } else {
+          SoloLog.w('LOGIN', '_handleCreateAccount: accountId is null, skipping metadata');
+        }
+
         if (mounted) {
           context.go(AppRoutes.home);
         }

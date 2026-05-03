@@ -82,6 +82,7 @@ pub struct VaultStats {
 pub struct AccountInfo {
     pub id: String,
     pub name: String,
+    pub created_at: Option<String>,
     pub last_accessed: Option<String>,
     pub password_hint: Option<String>,
     pub last_login_at: Option<String>,
@@ -427,10 +428,11 @@ pub fn frb_list_accounts() -> Result<Vec<AccountInfo>, String> {
         .map(|a| AccountInfo {
             id: a.id,
             name: a.name,
-            last_accessed: a.last_accessed.map(|dt| dt.to_rfc3339()),
+            created_at: a.created_at,
+            last_accessed: a.last_accessed,
             password_hint: a.password_hint,
-            last_login_at: a.last_login_at.map(|dt| dt.to_rfc3339()),
-            last_operation_at: a.last_operation_at.map(|dt| dt.to_rfc3339()),
+            last_login_at: a.last_login_at,
+            last_operation_at: a.last_operation_at,
             last_operation_desc: a.last_operation_desc,
         })
         .collect())

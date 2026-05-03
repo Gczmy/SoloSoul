@@ -3,7 +3,8 @@
 //! This module provides a type-safe JSON RPC interface for vault operations
 //! that works around flutter_rust_bridge's complex type handling limitations.
 
-use crate::account::{AccountManager, MetadataUpdate};
+use crate::account::AccountManager;
+use crate::account::manager::MetadataUpdate;
 use crate::vault::{Profile, ProfileSummary};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
@@ -170,6 +171,8 @@ pub fn handle_vault_request(
         "verify_password" => handle_verify_password(request.payload, account_manager),
         "migrate_encryption" => handle_migrate_encryption(request.payload, account_manager),
         "update_account_metadata" => {
+            eprintln!("[PROCESSOR] Dispatching to handle_update_account_metadata");
+            log_to_file("[PROCESSOR] Dispatching to handle_update_account_metadata");
             handle_update_account_metadata(request.payload, account_manager)
         }
         _ => VaultResponse::error(format!("Unknown action: {}", request.action)),
@@ -184,7 +187,16 @@ fn handle_list_accounts(manager: &AccountManager) -> VaultResponse {
         .map(|a| serde_json::json!({
             "id": a.id,
             "name": a.name,
-            "last_accessed": a.last_accessed.map(|dt: chrono::DateTime<chrono::Utc>| dt.to_rfc3339()),
+            "created_at": a.created_at,
+            "last_accessed": a.last_accessed,
+            "password_hint": a.password_hint,
+            "last_login_at": a.last_login_at,
+            "last_operation_at": a.last_operation_at,
+            "last_operation_desc": a.last_operation_desc,
+            "recent_devices": a.recent_devices.iter().map(|d| serde_json::json!({
+                "device_name": d.device_name,
+                "last_used": d.last_used,
+            })).collect::<Vec<_>>(),
         }))
         .collect();
     VaultResponse::success(serde_json::json!({
@@ -580,12 +592,12 @@ fn handle_get_account_config(
             "verify_hash": info.verify_hash,
             "crypto_version": info.crypto_version,
             "password_hint": info.password_hint,
-            "last_login_at": info.last_login_at.map(|d| d.to_rfc3339()),
-            "last_operation_at": info.last_operation_at.map(|d| d.to_rfc3339()),
+            "last_login_at": info.last_login_at,
+            "last_operation_at": info.last_operation_at,
             "last_operation_desc": info.last_operation_desc,
             "recent_devices": info.recent_devices.iter().map(|d| serde_json::json!({
                 "device_name": d.device_name,
-                "last_used": d.last_used.to_rfc3339(),
+                "last_used": d.last_used,
             })).collect::<Vec<_>>(),
             "biometric_enabled": info.biometric_enabled,
         })),
@@ -1001,6 +1013,13 @@ fn handle_update_account_metadata(
     payload: Option<serde_json::Value>,
     manager: &AccountManager,
 ) -> VaultResponse {
+    // Use eprintln! for immediate console visibility + log_to_file for persistence
+    let payload_summary = payload.as_ref().map(|p| {
+        p.get("account_id").and_then(|v| v.as_str()).unwrap_or("?").to_string()
+    });
+    eprintln!("[METADATA] handle_update_account_metadata: account_id={:?}", payload_summary);
+    log_to_file(&format!("handle_update_account_metadata: account_id={:?}", payload_summary));
+
     #[derive(Deserialize)]
     struct MetadataPayload {
         account_id: String,
@@ -1024,10 +1043,25 @@ fn handle_update_account_metadata(
     let payload: MetadataPayload = match payload {
         Some(p) => match serde_json::from_value(p) {
             Ok(p) => p,
-            Err(e) => return VaultResponse::error(format!("Invalid payload: {}", e)),
+            Err(e) => {
+                eprintln!("[METADATA] Invalid payload: {}", e);
+                log_to_file(&format!("handle_update_account_metadata: Invalid payload: {}", e));
+                return VaultResponse::error(format!("Invalid payload: {}", e));
+            }
         },
-        None => return VaultResponse::error("Missing payload".to_string()),
+        None => {
+            eprintln!("[METADATA] Missing payload");
+            log_to_file("handle_update_account_metadata: Missing payload");
+            return VaultResponse::error("Missing payload".to_string());
+        }
     };
+
+    eprintln!("[METADATA] Parsed payload: account_id={}, last_login_at={:?}, add_device={:?}",
+        payload.account_id, payload.last_login_at, payload.add_device.is_some());
+    log_to_file(&format!(
+        "handle_update_account_metadata: parsed: account_id={}, last_login_at={:?}",
+        payload.account_id, payload.last_login_at
+    ));
 
     let last_login_at = payload.last_login_at.and_then(|s| {
         chrono::DateTime::parse_from_rfc3339(&s)
@@ -1042,13 +1076,17 @@ fn handle_update_account_metadata(
 
     // Handle add_device (append/upsert) vs recent_devices (overwrite)
     let recent_devices = if let Some(device) = payload.add_device {
+        eprintln!("[METADATA] Processing add_device");
+        log_to_file("handle_update_account_metadata: processing add_device");
         // Read current config to get existing devices
         let config_path = manager
             .base_path()
             .join(&payload.account_id)
             .join("config.json");
-        let existing_devices = if let Ok(content) = std::fs::read_to_string(&config_path) {
-            if let Ok(config) = serde_json::from_str::<crate::account::AccountConfig>(&content) {
+        eprintln!("[METADATA] config_path={:?}", config_path);
+        log_to_file(&format!("handle_update_account_metadata: config_path={:?}", config_path));
+        let existing_devices = if let Some(content) = crate::safe_storage::recover_or_load(&config_path) {
+            if let Ok(config) = serde_json::from_str::<crate::account::manager::AccountConfig>(&content) {
                 config.recent_devices
             } else {
                 Vec::new()
@@ -1065,13 +1103,12 @@ fn handle_update_account_metadata(
         let last_used = device
             .get("last_used")
             .and_then(|v| v.as_str())
-            .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
-            .map(|d| d.with_timezone(&chrono::Utc))
-            .unwrap_or_else(chrono::Utc::now);
+            .unwrap_or("")
+            .to_string();
 
         let mut devices = existing_devices;
         if let Some(idx) = devices.iter().position(|d| d.device_name == device_name) {
-            devices[idx] = crate::account::DeviceEntry {
+            devices[idx] = crate::account::manager::DeviceEntry {
                 device_name,
                 last_used,
             };
@@ -1079,29 +1116,29 @@ fn handle_update_account_metadata(
             if devices.len() >= 5 {
                 devices.remove(0);
             }
-            devices.push(crate::account::DeviceEntry {
+            devices.push(crate::account::manager::DeviceEntry {
                 device_name,
                 last_used,
             });
         }
+        eprintln!("[METADATA] devices count={}", devices.len());
         Some(devices)
     } else {
         payload.recent_devices.map(|devices| {
             devices
                 .into_iter()
                 .filter_map(|d| {
-                    Some(crate::account::DeviceEntry {
+                    Some(crate::account::manager::DeviceEntry {
                         device_name: d.get("device_name")?.as_str()?.to_string(),
-                        last_used: chrono::DateTime::parse_from_rfc3339(
-                            d.get("last_used")?.as_str()?,
-                        )
-                        .ok()?
-                        .with_timezone(&chrono::Utc),
+                        last_used: d.get("last_used")?.as_str()?.to_string(),
                     })
                 })
                 .collect::<Vec<_>>()
         })
     };
+
+    eprintln!("[METADATA] Calling manager.update_account_metadata...");
+    log_to_file("handle_update_account_metadata: calling manager.update_account_metadata");
 
     match manager.update_account_metadata(
         &payload.account_id,
@@ -1114,8 +1151,16 @@ fn handle_update_account_metadata(
             biometric_enabled: payload.biometric_enabled,
         },
     ) {
-        Ok(()) => VaultResponse::success(serde_json::json!({"updated": true})),
-        Err(e) => VaultResponse::error(format!("Failed to update metadata: {}", e)),
+        Ok(()) => {
+            eprintln!("[METADATA] SUCCESS");
+            log_to_file("handle_update_account_metadata: SUCCESS");
+            VaultResponse::success(serde_json::json!({"updated": true}))
+        },
+        Err(e) => {
+            eprintln!("[METADATA] FAILED: {}", e);
+            log_to_file(&format!("handle_update_account_metadata: FAILED: {}", e));
+            VaultResponse::error(format!("Failed to update metadata: {}", e))
+        },
     }
 }
 

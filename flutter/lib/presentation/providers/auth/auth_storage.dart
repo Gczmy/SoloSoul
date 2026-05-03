@@ -396,16 +396,26 @@ class SecureAccountStorage {
     String? lastOperationDesc,
     Map<String, dynamic>? device,
   }) async {
-    NativeVaultService.instance.request(
-      'update_account_metadata',
-      {
-        'account_id': accountId,
-        if (lastLoginAt != null) 'last_login_at': lastLoginAt.toUtc().toIso8601String(),
-        if (lastOperationAt != null) 'last_operation_at': lastOperationAt.toUtc().toIso8601String(),
-        if (lastOperationDesc != null) 'last_operation_desc': lastOperationDesc,
-        if (device != null) 'add_device': device,
-      },
-    );
+    SoloLog.d('AuthStorage', 'updateAccountMetadata: START accountId=$accountId, lastLoginAt=$lastLoginAt, device=${device != null}');
+    try {
+      final response = NativeVaultService.instance.request(
+        'update_account_metadata',
+        {
+          'account_id': accountId,
+          if (lastLoginAt != null) 'last_login_at': lastLoginAt.toUtc().toIso8601String(),
+          if (lastOperationAt != null) 'last_operation_at': lastOperationAt.toUtc().toIso8601String(),
+          if (lastOperationDesc != null) 'last_operation_desc': lastOperationDesc,
+          if (device != null) 'add_device': device,
+        },
+      );
+      if (response == null || response['success'] != true) {
+        SoloLog.e('AuthStorage', 'updateAccountMetadata FAILED: ${response?['error']}');
+      } else {
+        SoloLog.d('AuthStorage', 'updateAccountMetadata: SUCCESS');
+      }
+    } on Exception catch (e, st) {
+      SoloLog.e('AuthStorage', 'updateAccountMetadata EXCEPTION', e, st);
+    }
   }
 
   static bool _hasSufficientComplexity(String password) {

@@ -99,7 +99,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               customFormBuilder:
                   (context, theme, controllers, mode, onSubmit, onCancel,
                       sensitivities) {
-                    final selectedType = controllers['type']?.text ?? 'email';
+                    final typeText = controllers['type']?.text ?? '';
+                    final selectedType = typeText.isEmpty ? 'email' : typeText;
+                    // Sync controller with resolved default so save reads correct value
+                    if (typeText.isEmpty) {
+                      controllers['type']?.text = 'email';
+                    }
                     final valueSensitivity =
                         sensitivities['value'] ?? SensitivityLevel.public;
 
@@ -276,9 +281,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             : Icons.phone_outlined,
                     itemId: item.id,
                     historyFieldId: 'contact',
-                    formatAllFields:
-                        (c) =>
-                            '${itemMap['type'] ?? 'contact'}: ${itemMap['value'] ?? ''}',
+                    formatAllFields: (c) {
+                      final typeStr = itemMap['type'];
+                      final type = typeStr?.trim().isNotEmpty == true
+                          ? typeStr!
+                          : 'contact';
+                      return '$type: ${itemMap['value'] ?? ''}';
+                    },
                     itemData: itemMap,
                     fieldPrefix: 'contact',
                     excludeFields: const {'title'},

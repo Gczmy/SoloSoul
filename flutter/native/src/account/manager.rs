@@ -49,7 +49,7 @@ pub struct AccountMetadata {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeviceEntry {
     pub device_name: String,
-    pub last_used: DateTime<Utc>,
+    pub last_used: String, // RFC3339 timestamp
 }
 
 /// Fields to update in account metadata (all optional)
@@ -91,20 +91,21 @@ pub struct AccountConfig {
 
 /// Account info returned to Flutter
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountInfo {
+pub struct ManagerAccountInfo {
     pub id: String,
     pub name: String,
     pub salt: String,        // Base64 encoded salt used for key derivation
     pub verify_hash: String, // Hex encoded verify hash (for Dart to store)
     pub crypto_version: u32, // Version of crypto algorithm (2 = current)
-    pub last_accessed: Option<DateTime<Utc>>,
+    pub created_at: Option<String>, // RFC3339 timestamp
+    pub last_accessed: Option<String>, // RFC3339 timestamp
     // Phase 2: metadata fields
     #[serde(default)]
     pub password_hint: Option<String>,
     #[serde(default)]
-    pub last_login_at: Option<DateTime<Utc>>,
+    pub last_login_at: Option<String>, // RFC3339 timestamp
     #[serde(default)]
-    pub last_operation_at: Option<DateTime<Utc>>,
+    pub last_operation_at: Option<String>, // RFC3339 timestamp
     #[serde(default)]
     pub last_operation_desc: Option<String>,
     #[serde(default)]
@@ -197,8 +198,8 @@ impl AccountManager {
         Ok(())
     }
 
-    /// List all accounts
-    pub fn list_accounts(&self) -> Vec<AccountInfo> {
+    /// List all accounts with full metadata from config.json
+    pub fn list_accounts(&self) -> Vec<ManagerAccountInfo> {
         let cache = match self.accounts_cache.read() {
             Ok(c) => c,
             Err(e) => {
@@ -208,30 +209,51 @@ impl AccountManager {
         };
         cache
             .values()
-            .map(|m| AccountInfo {
-                id: m.id.clone(),
-                name: m.name.clone(),
-                salt: String::new(),
-                verify_hash: String::new(),
-                crypto_version: 2,
-                last_accessed: m.last_accessed,
-                password_hint: None,
-                last_login_at: None,
-                last_operation_at: None,
-                last_operation_desc: None,
-                recent_devices: Vec::new(),
-                biometric_enabled: false,
+            .map(|m| {
+                // Read full config to get metadata fields
+                let config_path = self.account_dir(&m.id).join("config.json");
+                let (created_at, password_hint, last_login_at, last_operation_at, last_operation_desc, recent_devices, biometric_enabled) =
+                    match safe_storage::recover_or_load(&config_path) {
+                        Some(content) => match serde_json::from_str::<AccountConfig>(&content) {
+                            Ok(config) => (
+                                Some(config.created_at.to_rfc3339()),
+                                config.password_hint,
+                                config.last_login_at.map(|d| d.to_rfc3339()),
+                                config.last_operation_at.map(|d| d.to_rfc3339()),
+                                config.last_operation_desc,
+                                config.recent_devices,
+                                config.biometric_enabled,
+                            ),
+                            Err(_) => (None, None, None, None, None, Vec::new(), false),
+                        },
+                        None => (None, None, None, None, None, Vec::new(), false),
+                    };
+                ManagerAccountInfo {
+                    id: m.id.clone(),
+                    name: m.name.clone(),
+                    salt: String::new(),
+                    verify_hash: String::new(),
+                    crypto_version: 2,
+                    created_at,
+                    last_accessed: m.last_accessed.map(|d| d.to_rfc3339()),
+                    password_hint,
+                    last_login_at,
+                    last_operation_at,
+                    last_operation_desc,
+                    recent_devices,
+                    biometric_enabled,
+                }
             })
             .collect()
     }
 
     /// List accounts sorted by most recent access
-    pub fn list_accounts_sorted(&self) -> Vec<AccountInfo> {
+    pub fn list_accounts_sorted(&self) -> Vec<ManagerAccountInfo> {
         let mut accounts = self.list_accounts();
         accounts.sort_by(|a, b| {
-            let a_time = a.last_accessed.unwrap_or_default();
-            let b_time = b.last_accessed.unwrap_or_default();
-            b_time.cmp(&a_time)
+            let a_time = a.last_accessed.as_deref().unwrap_or("");
+            let b_time = b.last_accessed.as_deref().unwrap_or("");
+            b_time.cmp(a_time)
         });
         accounts
     }
@@ -251,7 +273,7 @@ impl AccountManager {
     }
 
     /// Create a new account
-    pub fn create_account(&self, name: &str, password: &str) -> Result<AccountInfo, String> {
+    pub fn create_account(&self, name: &str, password: &str) -> Result<ManagerAccountInfo, String> {
         // Validate
         if name.trim().is_empty() {
             return Err("Account name is required".to_string());
@@ -399,15 +421,16 @@ impl AccountManager {
             }
         }
 
-        Ok(AccountInfo {
+        Ok(ManagerAccountInfo {
             id: account_id,
             name: name.to_string(),
             salt: salt_b64.clone(),
             verify_hash: verify_hash.clone(),
             crypto_version: 2,
-            last_accessed: Some(Utc::now()),
+            created_at: Some(Utc::now().to_rfc3339()),
+            last_accessed: Some(Utc::now().to_rfc3339()),
             password_hint: None,
-            last_login_at: Some(Utc::now()),
+            last_login_at: Some(Utc::now().to_rfc3339()),
             last_operation_at: None,
             last_operation_desc: None,
             recent_devices: Vec::new(),
@@ -1126,7 +1149,7 @@ impl AccountManager {
         account_id: &str,
         old_password: &str,
         new_password: &str,
-    ) -> Result<AccountInfo, String> {
+    ) -> Result<ManagerAccountInfo, String> {
         // Step 1: Verify old password first
         let config_path = self.account_dir(account_id).join("config.json");
         let config_content = safe_storage::recover_or_load(&config_path)
@@ -1243,16 +1266,17 @@ impl AccountManager {
             *session = Some(Zeroizing::new(key_copy));
         }
 
-        Ok(AccountInfo {
+        Ok(ManagerAccountInfo {
             id: config.account_id,
             name: config.name,
             salt: new_salt_b64,
             verify_hash: new_verify_hash,
             crypto_version: 2,
-            last_accessed: Some(chrono::Utc::now()),
+            created_at: Some(config.created_at.to_rfc3339()),
+            last_accessed: Some(chrono::Utc::now().to_rfc3339()),
             password_hint: config.password_hint,
-            last_login_at: config.last_login_at,
-            last_operation_at: config.last_operation_at,
+            last_login_at: config.last_login_at.map(|d| d.to_rfc3339()),
+            last_operation_at: config.last_operation_at.map(|d| d.to_rfc3339()),
             last_operation_desc: config.last_operation_desc,
             recent_devices: config.recent_devices,
             biometric_enabled: config.biometric_enabled,
@@ -1324,7 +1348,7 @@ impl AccountManager {
     }
 
     /// Get account config (salt and verify_hash) for migration to Dart Keychain
-    pub fn get_account_config(&self, account_id: &str) -> Option<AccountInfo> {
+    pub fn get_account_config(&self, account_id: &str) -> Option<ManagerAccountInfo> {
         let config_path = self.account_dir(account_id).join("config.json");
         let config_content = match safe_storage::recover_or_load(&config_path) {
             Some(c) => c,
@@ -1334,16 +1358,17 @@ impl AccountManager {
             Ok(c) => c,
             Err(_) => return None,
         };
-        Some(AccountInfo {
+        Some(ManagerAccountInfo {
             id: config.account_id,
             name: config.name,
             salt: config.salt,
             verify_hash: config.verify_hash,
             crypto_version: config.crypto_version,
+            created_at: Some(config.created_at.to_rfc3339()),
             last_accessed: None,
             password_hint: config.password_hint,
-            last_login_at: config.last_login_at,
-            last_operation_at: config.last_operation_at,
+            last_login_at: config.last_login_at.map(|d| d.to_rfc3339()),
+            last_operation_at: config.last_operation_at.map(|d| d.to_rfc3339()),
             last_operation_desc: config.last_operation_desc,
             recent_devices: config.recent_devices,
             biometric_enabled: config.biometric_enabled,
@@ -1357,16 +1382,31 @@ impl AccountManager {
         account_id: &str,
         update: MetadataUpdate,
     ) -> Result<(), String> {
+        eprintln!("[METADATA-MGR] update_account_metadata: account_id={}", account_id);
+        log_to_file(&format!("update_account_metadata: account_id={}", account_id));
         let config_path = self.account_dir(account_id).join("config.json");
+        eprintln!("[METADATA-MGR] config_path={:?}", config_path);
+        log_to_file(&format!("update_account_metadata: config_path={:?}", config_path));
         let config_content = safe_storage::recover_or_load(&config_path)
-            .ok_or_else(|| "Failed to read config".to_string())?;
+            .ok_or_else(|| {
+                eprintln!("[METADATA-MGR] FAILED: config not found at {:?}", config_path);
+                "Failed to read config".to_string()
+            })?;
+        eprintln!("[METADATA-MGR] config read OK, len={}", config_content.len());
+        log_to_file(&format!("update_account_metadata: config read OK, len={}", config_content.len()));
         let mut config: AccountConfig = serde_json::from_str(&config_content)
-            .map_err(|e| format!("Failed to parse config: {}", e))?;
+            .map_err(|e| {
+                eprintln!("[METADATA-MGR] FAILED to parse config: {}", e);
+                format!("Failed to parse config: {}", e)
+            })?;
+        eprintln!("[METADATA-MGR] config parsed OK, last_login_at={:?}", config.last_login_at);
+        log_to_file(&format!("update_account_metadata: config parsed OK, last_login_at={:?}", config.last_login_at));
 
         if let Some(hint) = update.password_hint {
             config.password_hint = Some(hint);
         }
         if let Some(login) = update.last_login_at {
+            eprintln!("[METADATA-MGR] Setting last_login_at: {:?}", login);
             config.last_login_at = Some(login);
         }
         if let Some(op_at) = update.last_operation_at {
@@ -1376,6 +1416,7 @@ impl AccountManager {
             config.last_operation_desc = Some(op_desc);
         }
         if let Some(devices) = update.recent_devices {
+            eprintln!("[METADATA-MGR] Setting {} devices", devices.len());
             config.recent_devices = devices;
         }
         if let Some(enabled) = update.biometric_enabled {
@@ -1384,8 +1425,15 @@ impl AccountManager {
 
         let new_content = serde_json::to_string_pretty(&config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
+        eprintln!("[METADATA-MGR] Writing config ({} bytes)...", new_content.len());
+        log_to_file(&format!("update_account_metadata: writing config, {} bytes", new_content.len()));
         safe_storage::write_atomic(&config_path, new_content.as_bytes())
-            .map_err(|e| format!("Write config failed: {}", e))?;
+            .map_err(|e| {
+                eprintln!("[METADATA-MGR] FAILED to write config: {}", e);
+                format!("Write config failed: {}", e)
+            })?;
+        eprintln!("[METADATA-MGR] write OK");
+        log_to_file("update_account_metadata: write OK");
 
         Ok(())
     }

@@ -45,11 +45,15 @@ class FieldSensitivity {
       };
 
   factory FieldSensitivity.fromJson(Map<String, dynamic> json) {
+    final levelIndex = json['level'] as int;
+    final level = (levelIndex >= 0 && levelIndex < SensitivityLevel.values.length)
+        ? SensitivityLevel.values[levelIndex]
+        : SensitivityLevel.public;
     return FieldSensitivity(
       fieldId: json['fieldId'] as String,
       fieldName: json['fieldName'] as String,
       fieldSection: json['fieldSection'] as String,
-      level: SensitivityLevel.values[json['level'] as int],
+      level: level,
     );
   }
 

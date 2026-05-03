@@ -341,25 +341,52 @@ class AccountManager {
   AccountInfo? get selectedAccount => _selectedAccountInfo;
   int get accountsVersion => _accountsVersion;
 
+  /// Bump accounts version to trigger provider rebuild
+  void bumpAccountsVersion() {
+    _accountsVersion++;
+  }
+
   /// Get all accounts sorted by most recent access
   Future<List<AccountInfo>> getAccountsSortedByRecent() async {
     SoloLog.d('AccountMgr', 'getAccountsSortedByRecent: Fetching accounts...');
-    final rustAccounts = await RustVaultService.instance.listAccountsFromRust();
+    List<Map<String, dynamic>> rustAccounts;
+    try {
+      rustAccounts = await RustVaultService.instance.listAccountsFromRust();
+    } on Object catch (e, st) {
+      SoloLog.e('AccountMgr', 'listAccountsFromRust FAILED', e, st);
+      rethrow;
+    }
     List<AccountInfo> accounts;
 
     if (rustAccounts.isNotEmpty) {
       SoloLog.d('AccountMgr', 'Found ${rustAccounts.length} accounts in Rust');
       final rustMappedAccounts = rustAccounts
-          .map((r) => AccountInfo(
+          .map((r) {
+            final devicesRaw = r['recent_devices'] as List<dynamic>?;
+            final devices = devicesRaw
+                    ?.map((d) => DeviceInfo.fromJson(d as Map<String, dynamic>))
+                    .toList() ??
+                const <DeviceInfo>[];
+            return AccountInfo(
                 id: r['id'] as String? ?? '',
                 name: r['name'] as String? ?? '',
+                passwordHint: r['password_hint'] as String?,
                 lastAccessed: r['last_accessed'] != null
                     ? DateTime.tryParse(r['last_accessed'] as String)
                     : null,
                 createdAt: r['created_at'] != null
                     ? DateTime.tryParse(r['created_at'] as String)
                     : null,
-              ))
+                lastLoginAt: r['last_login_at'] != null
+                    ? DateTime.tryParse(r['last_login_at'] as String)
+                    : null,
+                lastOperationAt: r['last_operation_at'] != null
+                    ? DateTime.tryParse(r['last_operation_at'] as String)
+                    : null,
+                lastOperationDesc: r['last_operation_desc'] as String?,
+                recentDevices: devices,
+              );
+          })
           .toList();
 
       final storageAccounts = await _storage.listAccounts();
@@ -370,13 +397,16 @@ class AccountManager {
         final storageAccount = storageById[rustAccount.id];
         if (storageAccount != null) {
           SoloLog.d('AccountMgr', 'Merging account ${rustAccount.id}: hasHint=${storageAccount.passwordHint != null}');
+          // Prefer Rust values; fall back to Keychain only when Rust is null
           return rustAccount.copyWith(
             createdAt: rustAccount.createdAt ?? storageAccount.createdAt,
-            lastLoginAt: storageAccount.lastLoginAt,
-            lastOperationAt: storageAccount.lastOperationAt,
-            lastOperationDesc: storageAccount.lastOperationDesc,
-            recentDevices: storageAccount.recentDevices,
-            passwordHint: storageAccount.passwordHint,
+            lastLoginAt: rustAccount.lastLoginAt ?? storageAccount.lastLoginAt,
+            lastOperationAt: rustAccount.lastOperationAt ?? storageAccount.lastOperationAt,
+            lastOperationDesc: rustAccount.lastOperationDesc ?? storageAccount.lastOperationDesc,
+            recentDevices: rustAccount.recentDevices.isNotEmpty
+                ? rustAccount.recentDevices
+                : storageAccount.recentDevices,
+            passwordHint: rustAccount.passwordHint ?? storageAccount.passwordHint,
           );
         }
         return rustAccount;

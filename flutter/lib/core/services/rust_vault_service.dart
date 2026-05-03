@@ -224,16 +224,48 @@ class RustVaultService {
   }
 
   /// List all accounts from Rust vault (single source of truth)
+  ///
+  /// Merges FRB account data (id, name, timestamps) with C FFI data
+  /// (recent_devices) since FRB AccountInfo doesn't carry device entries.
   Future<List<Map<String, dynamic>>> listAccountsFromRust() async {
+    // FRB path — typed account fields
     final accounts = await frb.frbListAccounts();
+
+    // C FFI path — get recent_devices from JSON relay
+    final Map<String, List<dynamic>> devicesByAccount = {};
+    try {
+      final cResult = NativeVaultService.instance.request(
+        'list_accounts',
+        {},
+      );
+      if (cResult?['success'] == true) {
+        final data = cResult!['data'] as Map<String, dynamic>?;
+        final accountList = data?['accounts'] as List<dynamic>?;
+        if (accountList != null) {
+          for (final entry in accountList) {
+            final m = entry as Map<String, dynamic>;
+            final id = m['id'] as String? ?? '';
+            final devs = m['recent_devices'] as List<dynamic>? ?? [];
+            if (id.isNotEmpty) {
+              devicesByAccount[id] = devs;
+            }
+          }
+        }
+      }
+    } on Exception {
+      // Non-fatal — devices may just be empty
+    }
+
     return accounts.map((a) => {
       'id': a.id,
       'name': a.name,
+      if (a.createdAt != null) 'created_at': a.createdAt!,
       if (a.lastAccessed != null) 'last_accessed': a.lastAccessed!,
       if (a.passwordHint != null) 'password_hint': a.passwordHint!,
       if (a.lastLoginAt != null) 'last_login_at': a.lastLoginAt!,
       if (a.lastOperationAt != null) 'last_operation_at': a.lastOperationAt!,
       if (a.lastOperationDesc != null) 'last_operation_desc': a.lastOperationDesc!,
+      'recent_devices': devicesByAccount[a.id] ?? [],
     }).toList();
   }
 

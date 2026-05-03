@@ -207,7 +207,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   }
 
   /// Save current state back to profile.
-  Future<bool> _save() async {
+  Future<bool> _save({String? operationDesc}) async {
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return false;
 
@@ -230,16 +230,20 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           schemaVersion: ProfileStorageService.kSchemaVersion,
         );
     final profileNotifier = ref.read(profileNotifierProvider.notifier);
-    return profileNotifier.saveProfileImmediate(updatedProfile);
+    final result = await profileNotifier.saveProfileImmediate(updatedProfile);
+    if (result && operationDesc != null) {
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(operationDesc));
+    }
+    return result;
   }
 
   /// Debounced save — batches rapid mutations into a single disk write.
   /// Returns a Future that completes when the save actually executes.
-  Future<bool> _saveDebounced() {
+  Future<bool> _saveDebounced({String? operationDesc}) {
     final completer = Completer<bool>();
     _saveTimer?.cancel();
     _saveTimer = Timer(_saveDebounceDuration, () async {
-      final result = await _save();
+      final result = await _save(operationDesc: operationDesc);
       completer.complete(result);
     });
     return completer.future;
@@ -273,7 +277,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Created object');
   }
 
   // ---------------------------------------------------------------------------
@@ -306,14 +310,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     state = state.copyWith(
       objects: _service.replaceObject(state.objects, updated),
     );
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Updated object');
   }
 
   /// Move an object to a new parent.
   Future<bool> moveObject(String objectId, String? newParentId) async {
     final updatedObjects = _service.moveObject(state.objects, objectId, newParentId);
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Moved object');
   }
 
   // ---------------------------------------------------------------------------
@@ -360,7 +364,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _save(operationDesc: 'Deleted object');
   }
 
   /// Restore a soft-deleted object.
@@ -377,7 +381,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Restored object');
   }
 
   /// Permanently delete an object and all its descendants.
@@ -397,7 +401,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _save(operationDesc: 'Permanently deleted object');
   }
 
   /// Permanently delete multiple objects in a single save operation.
@@ -425,7 +429,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _save(operationDesc: 'Permanently deleted ${ids.length} objects');
   }
 
   // ---------------------------------------------------------------------------
@@ -445,7 +449,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       newIndex,
     );
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Reordered objects');
   }
 
   // ---------------------------------------------------------------------------
@@ -462,14 +466,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       updatedTypes.add(type);
     }
     state = state.copyWith(customTypes: updatedTypes);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Saved custom type');
   }
 
   /// Delete a custom object type.
   Future<bool> deleteCustomType(String typeId) async {
     final updatedTypes = state.customTypes.where((t) => t.id != typeId).toList();
     state = state.copyWith(customTypes: updatedTypes);
-    return _save();
+    return _save(operationDesc: 'Deleted custom type');
   }
 
   // ---------------------------------------------------------------------------
@@ -541,7 +545,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     updatedObjects = _service.addChild(updatedObjects, sectionId, object.id);
 
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Created item');
   }
 
   String _pageNameFromId(String pageId) {
@@ -572,7 +576,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     state = state.copyWith(
       objects: _service.replaceObject(state.objects, updated),
     );
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Updated item');
   }
 
   /// Soft-delete a default-page item. Removes it from its section's childrenIds.
@@ -596,7 +600,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     updatedObjects = _service.replaceObject(updatedObjects, deleted);
 
     state = state.copyWith(objects: updatedObjects);
-    return _save();
+    return _save(operationDesc: 'Deleted item');
   }
 
   /// Restore a soft-deleted default-page item. Re-adds it to its section.
@@ -617,7 +621,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced();
+    return _saveDebounced(operationDesc: 'Restored item');
   }
 }
 
