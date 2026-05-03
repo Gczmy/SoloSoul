@@ -11,6 +11,8 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/utils/format_utils.dart';
+import 'package:solosoul_flutter/presentation/widgets/data_management/backup_list_tile.dart';
+import 'package:solosoul_flutter/presentation/widgets/data_management/backup_progress_indicator.dart';
 
 /// Data Management page — full-screen backup & restore UI.
 class DataManagementPage extends ConsumerStatefulWidget {
@@ -677,33 +679,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                   // Backup progress
                   if (_isCreating) ...[
                     const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LinearProgressIndicator(
-                            value: _backupProgress > 0 ? _backupProgress : null,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _backupProgress >= 1.0
-                                ? 'Finishing...'
-                                : _backupProgress >= 0.9
-                                    ? 'Writing file...'
-                                    : _backupProgress >= 0.5
-                                        ? 'Encrypting...'
-                                        : _backupProgress >= 0.3
-                                            ? 'Encoding...'
-                                            : 'Reading data...',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    BackupProgressIndicator(progress: _backupProgress),
                   ],
                   const SizedBox(height: 8),
                   Padding(
@@ -770,46 +746,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                   else
                     Column(
                       children: _backups.map((entry) {
-                        return ListTile(
-                          leading: Icon(
-                            Icons.backup_outlined,
-                            color: theme.colorScheme.primary,
-                          ),
-                          title: Text(entry.displayTime),
-                          subtitle: Text(
-                            formatBytes(entry.sizeBytes),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.star_outline,
-                                  size: 20,
-                                  color: theme.colorScheme.secondary,
-                                ),
-                                tooltip: 'Save as special backup',
-                                onPressed: () => _promoteToSpecialBackup(entry),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.restore, size: 20),
-                                tooltip: 'Restore',
-                                onPressed: _isRestoring
-                                    ? null
-                                    : () => _restoreBackup(entry),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 20),
-                                tooltip: 'Delete',
-                                style: IconButton.styleFrom(
-                                  foregroundColor: theme.colorScheme.error,
-                                  overlayColor: theme.colorScheme.error.withValues(alpha: 0.1),
-                                ),
-                                onPressed: () => _deleteBackup(entry),
-                              ),
-                            ],
-                          ),
+                        return BackupListTile(
+                          entry: entry,
+                          isRestoring: _isRestoring,
+                          onPromote: () => _promoteToSpecialBackup(entry),
+                          onRestore: () => _restoreBackup(entry),
+                          onDelete: () => _deleteBackup(entry),
                         );
                       }).toList(),
                     ),
@@ -856,33 +798,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                   ),
                   if (_isCreatingSpecial) ...[
                     const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LinearProgressIndicator(
-                            value: _specialBackupProgress > 0 ? _specialBackupProgress : null,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _specialBackupProgress >= 1.0
-                                ? 'Finishing...'
-                                : _specialBackupProgress >= 0.9
-                                    ? 'Writing file...'
-                                    : _specialBackupProgress >= 0.5
-                                        ? 'Encrypting...'
-                                        : _specialBackupProgress >= 0.3
-                                            ? 'Encoding...'
-                                            : 'Reading data...',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    BackupProgressIndicator(progress: _specialBackupProgress),
                   ],
                   const SizedBox(height: 4),
                   if (_specialBackups.isEmpty)
@@ -900,45 +816,13 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
                         children: _specialBackups.map((entry) {
-                          final displayName = entry.fileName.replaceAll('.backup', '');
-                          return ListTile(
-                            dense: true,
-                            leading: Icon(
-                              Icons.star,
-                              color: theme.colorScheme.secondary,
-                              size: 20,
-                            ),
-                            title: Text(displayName),
-                            subtitle: Text(
-                              '${entry.displayTime}  ·  ${formatBytes(entry.sizeBytes)}',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 18),
-                                  tooltip: 'Rename',
-                                  onPressed: () => _renameSpecialBackup(entry),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.restore, size: 18),
-                                  tooltip: 'Restore',
-                                  onPressed: _isRestoring
-                                      ? null
-                                      : () => _restoreSpecialBackup(entry),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 18),
-                                  tooltip: 'Delete',
-                                  style: IconButton.styleFrom(
-                                    foregroundColor: theme.colorScheme.error,
-                                    overlayColor: theme.colorScheme.error.withValues(alpha: 0.1),
-                                  ),
-                                  onPressed: () => _deleteSpecialBackup(entry),
-                                ),
-                              ],
-                            ),
+                          return BackupListTile(
+                            entry: entry,
+                            isSpecial: true,
+                            isRestoring: _isRestoring,
+                            onRename: () => _renameSpecialBackup(entry),
+                            onRestore: () => _restoreSpecialBackup(entry),
+                            onDelete: () => _deleteSpecialBackup(entry),
                           );
                         }).toList(),
                       ),

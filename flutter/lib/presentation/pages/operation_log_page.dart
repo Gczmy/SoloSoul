@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/presentation/utils/auth_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
-import 'package:solosoul_flutter/presentation/widgets/operation_filter_chip.dart';
+import 'package:solosoul_flutter/presentation/widgets/operation_log_filter_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/operation_tile.dart';
 
 class OperationLogPage extends ConsumerStatefulWidget {
@@ -136,7 +136,9 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
           _buildFilterHeader(),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: _filterExpanded ? _buildFilterSection() : const SizedBox.shrink(),
+            child: _filterExpanded
+                ? OperationLogFilterSection(onClearAll: _clearAllFilters)
+                : const SizedBox.shrink(),
           ),
           if (_searchQuery.isNotEmpty && filteredEntries.isNotEmpty)
             Padding(
@@ -260,163 +262,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildFilterSection() {
-    final theme = Theme.of(context);
-    final actionFilters = ref.watch(logActionFilterProvider);
-    final deviceFilters = ref.watch(logDeviceFilterProvider);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Action:',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      OperationFilterChip(
-                        label: 'Create',
-                        icon: Icons.add_circle_outline,
-                        isSelected: actionFilters.contains('create'),
-                        color: AppTheme.successColor,
-                        onSelected: (_) => _toggleFilter(actionFilters, 'create', logActionFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Update',
-                        icon: Icons.edit_outlined,
-                        isSelected: actionFilters.contains('update'),
-                        color: AppTheme.primaryColor,
-                        onSelected: (_) => _toggleFilter(actionFilters, 'update', logActionFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Delete',
-                        icon: Icons.delete_outline,
-                        isSelected: actionFilters.contains('delete'),
-                        color: Colors.orange.shade700,
-                        onSelected: (_) => _toggleFilter(actionFilters, 'delete', logActionFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Restore',
-                        icon: Icons.restore,
-                        isSelected: actionFilters.contains('restore'),
-                        color: Colors.blue,
-                        onSelected: (_) => _toggleFilter(actionFilters, 'restore', logActionFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Purge',
-                        icon: Icons.delete_forever,
-                        isSelected: actionFilters.contains('purge'),
-                        color: AppTheme.errorColor,
-                        onSelected: (_) => _toggleFilter(actionFilters, 'purge', logActionFilterProvider),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'Device:',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      OperationFilterChip(
-                        label: 'macOS',
-                        icon: Icons.laptop_mac,
-                        isSelected: deviceFilters.contains('macos'),
-                        color: Colors.grey.shade700,
-                        onSelected: (_) => _toggleFilter(deviceFilters, 'macos', logDeviceFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'iOS',
-                        icon: Icons.phone_iphone,
-                        isSelected: deviceFilters.contains('ios'),
-                        color: Colors.grey.shade700,
-                        onSelected: (_) => _toggleFilter(deviceFilters, 'ios', logDeviceFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Android',
-                        icon: Icons.phone_android,
-                        isSelected: deviceFilters.contains('android'),
-                        color: Colors.grey.shade700,
-                        onSelected: (_) => _toggleFilter(deviceFilters, 'android', logDeviceFilterProvider),
-                      ),
-                      const SizedBox(width: 4),
-                      OperationFilterChip(
-                        label: 'Web',
-                        icon: Icons.web,
-                        isSelected: deviceFilters.contains('web'),
-                        color: Colors.grey.shade700,
-                        onSelected: (_) => _toggleFilter(deviceFilters, 'web', logDeviceFilterProvider),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (actionFilters.isNotEmpty || deviceFilters.isNotEmpty)
-                TextButton.icon(
-                  onPressed: _clearAllFilters,
-                  icon: const Icon(Icons.clear_all, size: 16),
-                  label: const Text('Clear'),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _toggleFilter<T>(
-    Set<T> currentFilters,
-    T value,
-    dynamic provider,
-  ) {
-    final newFilters = Set<T>.from(currentFilters);
-    if (newFilters.contains(value)) {
-      newFilters.remove(value);
-    } else {
-      newFilters.add(value);
-    }
-    // ignore: avoid_dynamic_calls
-    ref.read(provider.notifier).state = newFilters;
   }
 
   void _clearAllFilters() {

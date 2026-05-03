@@ -28,6 +28,10 @@ import 'package:solosoul_flutter/presentation/widgets/settings/debug_log_sheet.d
 import 'package:solosoul_flutter/presentation/widgets/settings/version_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/current_account_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/all_accounts_sheet.dart';
+import 'package:solosoul_flutter/presentation/widgets/settings/delete_account_button.dart';
+import 'package:solosoul_flutter/presentation/widgets/settings/delete_account_dialog_content.dart';
+import 'package:solosoul_flutter/presentation/widgets/settings/settings_tile.dart';
+import 'package:solosoul_flutter/presentation/widgets/settings/slogan_chip.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 
 part 'settings_page.g.dart';
@@ -386,7 +390,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         );
                     return Column(
                       children: [
-                        _SettingsTile(
+                        SettingsTile(
                           icon: Icons.person_outline,
                           title: 'Current Account',
                           subtitle: currentAccount?.name ?? selectedId ?? 'Unknown',
@@ -417,7 +421,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           ),
                         ),
                         const Divider(height: 1),
-                        _SettingsTile(
+                        SettingsTile(
                           icon: Icons.people_outline,
                           title: 'All Accounts',
                           subtitle: '${accounts.length} account(s)',
@@ -425,7 +429,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               _showAllAccountsSheet(context, ref, accounts),
                         ),
                         const Divider(height: 1),
-                        _SettingsTile(
+                        SettingsTile(
                           icon: Icons.storage_outlined,
                           title: 'Data Management',
                           subtitle: _vaultDataSize,
@@ -438,7 +442,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     padding: EdgeInsets.all(16),
                     child: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (_, __) => const _SettingsTile(
+                  error: (_, __) => const SettingsTile(
                     icon: Icons.error_outline,
                     title: 'Error loading accounts',
                     subtitle: 'Please restart the app',
@@ -454,7 +458,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   title: 'Access',
                   icon: Icons.lock_outlined,
                   children: [
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.lock_open_outlined,
                       title: 'Lock Vault',
                       subtitle: 'Lock now and require password',
@@ -467,7 +471,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       },
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.password_outlined,
                       title: 'Change Master Password',
                       subtitle: 'Update your vault password',
@@ -516,7 +520,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   title: 'Security',
                   icon: Icons.shield_outlined,
                   children: [
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.lock_clock_outlined,
                       title: 'Auto-Lock & Privacy',
                       subtitle: 'Configure timeout and privacy settings',
@@ -540,7 +544,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       },
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.security_outlined,
                       title: 'Sensitivity Level Settings',
                       subtitle: 'Configure field sensitivity',
@@ -548,7 +552,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           context.push(AppRoutes.sensitivitySettings),
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.history,
                       title: 'Operation Log',
                       subtitle: 'View activity history',
@@ -569,7 +573,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   title: 'Sync',
                   icon: Icons.sync_outlined,
                   children: [
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.cloud_outlined,
                       title: 'Cloud Sync',
                       subtitle: 'Not configured',
@@ -580,7 +584,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ),
                     const Divider(height: 1),
-                    const _SettingsTile(
+                    const SettingsTile(
                       icon: Icons.wifi_off_outlined,
                       title: 'Offline Mode',
                       subtitle: 'Local data only',
@@ -606,7 +610,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     Consumer(
                       builder: (context, ref, _) {
                         final packageInfo = ref.watch(packageInfoProvider);
-                        return _SettingsTile(
+                        return SettingsTile(
                           icon: Icons.code,
                           title: 'Version',
                           subtitle: packageInfo.when(
@@ -625,7 +629,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         return Column(
                           children: [
                             const Divider(height: 1),
-                            _SettingsTile(
+                            SettingsTile(
                               icon: Icons.bug_report_outlined,
                               title: 'Debug Log',
                               subtitle: 'View debug log',
@@ -636,7 +640,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       },
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.description_outlined,
                       title: 'Privacy Policy',
                       subtitle: 'View our privacy policy',
@@ -647,7 +651,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ),
                     const Divider(height: 1),
-                    _SettingsTile(
+                    SettingsTile(
                       icon: Icons.article_outlined,
                       title: 'Terms of Service',
                       subtitle: 'View terms of service',
@@ -666,7 +670,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const SizedBox(height: 32),
 
             // Delete Account
-            _DeleteAccountButton(
+            DeleteAccountButton(
               onTap: () => _confirmDeleteAccount(context, ref),
             ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05, end: 0),
 
@@ -734,17 +738,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _SloganChip(
+                          SloganChip(
                             icon: Icons.location_on_outlined,
                             label: 'Local',
                           ),
                           SizedBox(width: 8),
-                          _SloganChip(
+                          SloganChip(
                             icon: Icons.lock_outline,
                             label: 'Private',
                           ),
                           SizedBox(width: 8),
-                          _SloganChip(
+                          SloganChip(
                             icon: Icons.person_outline,
                             label: 'Universal',
                           ),
@@ -857,7 +861,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => _DeleteAccountDialogContent(
+      builder: (dialogContext) => DeleteAccountDialogContent(
         dialogContext: dialogContext,
         ref: ref,
       ),
@@ -867,277 +871,5 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       await ref.read(authNotifierProvider.notifier).lockVault();
       ref.read(sensitivePageAccessProvider.notifier).clear();
     }
-  }
-}
-
-class _DeleteAccountButton extends StatefulWidget {
-  const _DeleteAccountButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  State<_DeleteAccountButton> createState() => _DeleteAccountButtonState();
-}
-
-class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppTheme.errorColor),
-            borderRadius: BorderRadius.circular(12),
-            color: _isHovered
-                ? AppTheme.errorColor.withValues(alpha: 0.1)
-                : Colors.transparent,
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: AppTheme.errorColor.withValues(alpha: 0.3),
-                      blurRadius: 0,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
-          ),
-          child: const Text(
-            'Delete Account',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppTheme.errorColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DeleteAccountDialogContent extends StatefulWidget {
-  final BuildContext dialogContext;
-  final WidgetRef ref;
-
-  const _DeleteAccountDialogContent({
-    required this.dialogContext,
-    required this.ref,
-  });
-
-  @override
-  State<_DeleteAccountDialogContent> createState() => _DeleteAccountDialogContentState();
-}
-
-class _DeleteAccountDialogContentState extends State<_DeleteAccountDialogContent> {
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _isDeleting = false;
-  bool _obscurePassword = true;
-  String? _errorMessage;
-
-  @override
-  void dispose() {
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleDelete() async {
-    final formState = _formKey.currentState;
-    if (formState == null) return;
-    if (!formState.validate()) return;
-
-    setState(() => _isDeleting = true);
-
-    final authNotifier = widget.ref.read(authNotifierProvider.notifier);
-    final navigator = Navigator.of(widget.dialogContext);
-    final success = await authNotifier.deleteAccount(_passwordController.text);
-
-    if (!success) {
-      setState(() {
-        _isDeleting = false;
-        _errorMessage = 'Invalid password';
-      });
-      return;
-    }
-
-    widget.ref.invalidate(accountsProvider);
-
-    if (mounted) {
-      navigator.pop(true);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Center(child: Text('Delete Account')),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.red.shade700, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    '删除账户后，该账号的所有数据都会被清空，确定要删除吗？',
-                    style: TextStyle(color: Colors.red, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Form(
-            key: _formKey,
-            child: TextFormField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              autofocus: true,
-              enabled: !_isDeleting,
-              onChanged: (_) => setState(() => _errorMessage = null),
-              decoration: InputDecoration(
-                labelText: 'Enter password to confirm',
-                errorText: _errorMessage,
-                errorStyle: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.w500),
-                prefixIcon: const Icon(Icons.lock_outline),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                ),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade400)),
-                errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.red.shade300)),
-                focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.red.shade500, width: 2)),
-              ),
-              validator: (v) => v == null || v.isEmpty ? 'Password is required' : null,
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isDeleting ? null : () => Navigator.pop(widget.dialogContext, false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _isDeleting ? null : _handleDelete,
-          style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
-          child: _isDeleting
-              ? const SizedBox(height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Delete Account'),
-        ),
-      ],
-    );
-  }
-}
-
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-    this.onTap,
-  });
-
-  static const _verticalPadding = 12.0;
-  static const _iconSize = 20.0;
-  static const _spacing = 12.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-        child: Row(
-          children: [
-            Icon(icon, size: _iconSize, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(width: _spacing),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: theme.textTheme.bodyLarge),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (trailing != null) trailing!,
-            if (trailing == null && onTap != null)
-              Icon(
-                Icons.chevron_right,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SloganChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _SloganChip({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: AppTheme.primaryColor),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppTheme.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

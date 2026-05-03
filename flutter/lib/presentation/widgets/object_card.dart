@@ -5,9 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
-import 'package:solosoul_flutter/core/models/field_history_models.dart'
-    show FieldHistory;
-import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
@@ -17,16 +14,17 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 import 'package:solosoul_flutter/presentation/widgets/entry_actions_context.dart';
-import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
-import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
-import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_edit_field.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_header.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_item_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
 
 
 /// Card displaying a Section and its Items.
+
 ///
 /// A Section contains multiple Items. Each Item has its own properties (key-value pairs).
 /// The Section's `properties` field defines the Item template by default,
@@ -90,9 +88,6 @@ class ObjectCard extends ConsumerStatefulWidget {
   /// for preset pages whose schema uses a different title property.
   final String titlePropertyKey;
 
-  /// Static dummy controller to avoid creating a new TextEditingController on every build.
-  static final _dummyController = TextEditingController();
-
   const ObjectCard({
     super.key,
     required this.object,
@@ -114,8 +109,6 @@ class ObjectCard extends ConsumerStatefulWidget {
   @override
   ConsumerState<ObjectCard> createState() => _ObjectCardState();
 }
-
-const int kMaxPropertyLength = 128;
 
 class _ObjectCardState extends ConsumerState<ObjectCard> {
   final Set<String> _expandedHistoryItemIds = {};
@@ -608,7 +601,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _ObjectCardHeader(
+            ObjectCardHeader(
               object: widget.object,
               onChangeIcon: _changeIcon,
               onEdit: _editObject,
@@ -700,7 +693,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         child: widget.displayItemBuilder!(context, item, isEditing: false),
       );
     }
-    return _ObjectCardItemTile(
+    return ObjectCardItemTile(
       item: item,
       isHistoryExpanded: _expandedHistoryItemIds.contains(item.id),
       onToggleHistory: () => _toggleItemHistory(item.id),
@@ -751,14 +744,27 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         children: [
           // Title input (only when template defines a title property)
           if (hasTitleField) ...[
-            _buildTitleField(),
+            ObjectCardEditField(
+              propertyKey: '__name__',
+              controller: _editControllers['__name__'],
+              isTitle: true,
+            ),
             const SizedBox(height: 12),
           ],
           // Property inputs (skip the title property — already shown above)
           ...template.keys.where((k) => k != widget.titlePropertyKey).map((key) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _buildEditPropertyField(key, template[key]!),
+              child: ObjectCardEditField(
+                propertyKey: key,
+                value: template[key]!,
+                controller: _editControllers[key],
+                onCheckboxChanged: (newValue) {
+                  setState(() {
+                    _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
+                  });
+                },
+              ),
             );
           }),
           const SizedBox(height: 12),
@@ -811,14 +817,27 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         children: [
           // Title input (only when item has a title property)
           if (hasTitleField) ...[
-            _buildTitleField(),
+            ObjectCardEditField(
+              propertyKey: '__name__',
+              controller: _editControllers['__name__'],
+              isTitle: true,
+            ),
             const SizedBox(height: 12),
           ],
           // Property inputs (skip the title property — already shown above)
           ...item.properties.keys.where((k) => k != widget.titlePropertyKey).map((key) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _buildEditPropertyField(key, item.properties[key]!),
+              child: ObjectCardEditField(
+                propertyKey: key,
+                value: item.properties[key]!,
+                controller: _editControllers[key],
+                onCheckboxChanged: (newValue) {
+                  setState(() {
+                    _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
+                  });
+                },
+              ),
             );
           }),
           const SizedBox(height: 12),
@@ -840,157 +859,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           const Divider(height: 16),
         ],
       ),
-    );
-  }
-
-  Widget _buildEditPropertyField(String key, PropertyValue value) {
-    final controller = _editControllers[key];
-
-    return switch (value) {
-      CheckboxProperty(:final checked) => Row(
-        children: [
-          Checkbox(
-            value: checked,
-            onChanged: (newValue) {
-              setState(() {
-                _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
-              });
-            },
-          ),
-          Text(formatLabel(key)),
-          const SizedBox(width: 8),
-          SensitivityTag(level: value.sensitivity),
-        ],
-      ),
-      _ => Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              maxLength: kMaxPropertyLength,
-              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-              decoration: InputDecoration(
-                labelText: formatLabel(key),
-                border: const OutlineInputBorder(),
-                suffixIcon: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    widthFactor: 1,
-                    child: SensitivityTag(level: value.sensitivity),
-                  ),
-                ),
-              ),
-              keyboardType: value is NumberProperty ? TextInputType.number : null,
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 64,
-            child: ValueListenableBuilder<TextEditingValue>(
-              valueListenable: controller ?? ObjectCard._dummyController,
-              builder: (context, val, child) {
-                final len = val.text.length;
-                const max = kMaxPropertyLength;
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 28,
-                      child: Text(
-                        '$len',
-                        textAlign: TextAlign.right,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '/',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 28,
-                      child: Text(
-                        '$max',
-                        textAlign: TextAlign.left,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    };
-  }
-
-  Widget _buildTitleField() {
-    final controller = _editControllers['__name__'];
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: controller,
-            maxLength: kMaxPropertyLength,
-            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-            decoration: const InputDecoration(
-              labelText: 'Title',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 64,
-          child: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller ?? ObjectCard._dummyController,
-            builder: (context, val, child) {
-              final len = val.text.length;
-              const max = kMaxPropertyLength;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 28,
-                    child: Text(
-                      '$len',
-                      textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '/',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 28,
-                    child: Text(
-                      '$max',
-                      textAlign: TextAlign.left,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: len >= max ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 
@@ -1038,391 +906,5 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     } else {
       doCopy();
     }
-  }
-}
-
-// =============================================================================
-// _ObjectCardHeader — Card header with icon, name, and action buttons
-// =============================================================================
-
-class _ObjectCardHeader extends StatelessWidget {
-  final UnifiedObject object;
-  final VoidCallback onChangeIcon;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-  final VoidCallback onAddItem;
-  final bool showEditActions;
-  final bool showAddButton;
-  final bool showEditSection;
-
-  const _ObjectCardHeader({
-    required this.object,
-    required this.onChangeIcon,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onAddItem,
-    required this.showEditActions,
-    required this.showAddButton,
-    this.showEditSection = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final icon = UnifiedObjectService.getIconFromName(object.iconName);
-
-    return Row(
-      children: [
-        InkWell(
-          onTap: onChangeIcon,
-          borderRadius: BorderRadius.circular(6),
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: Icon(icon, color: theme.colorScheme.primary, size: 20),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            object.name,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (showEditActions) ...[
-          // When showEditSection is true, the Add button slot becomes Edit Section,
-          // so hide the redundant Edit button here to avoid two edit icons.
-          if (!showEditSection)
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              onPressed: onEdit,
-              tooltip: 'Edit',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              visualDensity: VisualDensity.compact,
-            ),
-          if (!showEditSection) const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18),
-            onPressed: onDelete,
-            tooltip: 'Delete',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            visualDensity: VisualDensity.compact,
-          ),
-          const SizedBox(width: 8),
-        ],
-        if (showAddButton)
-          if (showEditSection)
-            IconButton(
-              icon: const Icon(Icons.edit_note, size: 18),
-              onPressed: onEdit,
-              tooltip: 'Edit Section',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              visualDensity: VisualDensity.compact,
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.add, size: 18),
-              onPressed: onAddItem,
-              tooltip: 'Add Item',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              visualDensity: VisualDensity.compact,
-            ),
-      ],
-    );
-  }
-}
-
-// =============================================================================
-// _ObjectCardPropertiesList — Renders an item's property rows
-// =============================================================================
-
-class _ObjectCardPropertiesList extends StatelessWidget {
-  final UnifiedObject item;
-  final String titlePropertyKey;
-
-  const _ObjectCardPropertiesList({
-    required this.item,
-    this.titlePropertyKey = 'Title',
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: item.properties.entries
-          .where((e) => e.key != titlePropertyKey)
-          .map((entry) {
-        final sensitivity = entry.value.sensitivity;
-        final isSensitive = sensitivity == SensitivityLevel.sensitive ||
-            sensitivity == SensitivityLevel.critical;
-        final valueStr = propValueToString(entry.value);
-        final isEmptyValue = valueStr.isEmpty;
-
-        return Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 2),
-          child: Row(
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 160),
-                child: SelectableText(
-                  wrapEveryNChars(formatLabel(entry.key), 12),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              if (isEmptyValue)
-                Expanded(
-                  child: Text(
-                    '(empty)',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                )
-              else if (isSensitive)
-                Expanded(
-                  child: SensitiveValueWidget(
-                    fieldId: 'item.${item.id}.${entry.key}',
-                    value: valueStr,
-                    sensitivityLevel: sensitivity,
-                  ),
-                )
-              else
-                Expanded(
-                  child: SelectableText(
-                    valueStr,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
-              const SizedBox(width: 6),
-              SensitivityTag(level: sensitivity),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-// =============================================================================
-// _ObjectCardHistorySection — Renders field history for an item
-// =============================================================================
-
-class _ObjectCardHistorySection extends StatelessWidget {
-  final FieldHistory? history;
-
-  const _ObjectCardHistorySection({this.history});
-
-  @override
-  Widget build(BuildContext context) {
-    return FieldHistoryView(
-      fieldName: 'unified',
-      history: history,
-      initiallyExpanded: true,
-    );
-  }
-}
-
-// =============================================================================
-// _ObjectCardItemTile — Per-item tile with fine-grained fieldHistory select
-// =============================================================================
-
-class _ObjectCardItemTile extends ConsumerWidget {
-  final UnifiedObject item;
-  final bool isHistoryExpanded;
-  final VoidCallback onToggleHistory;
-  final VoidCallback onCopy;
-  final VoidCallback onStartEdit;
-  final VoidCallback onDelete;
-  final String historyFieldIdPrefix;
-  final String Function(Map<String, String>)? nameExtractor;
-  final String titlePropertyKey;
-
-  const _ObjectCardItemTile({
-    required this.item,
-    required this.isHistoryExpanded,
-    required this.onToggleHistory,
-    required this.onCopy,
-    required this.onStartEdit,
-    required this.onDelete,
-    required this.historyFieldIdPrefix,
-    this.nameExtractor,
-    this.titlePropertyKey = 'Title',
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final history = ref.watch(
-      fieldHistoriesProvider.select((h) => h.getHistory(item.id, historyFieldIdPrefix)),
-    );
-    final count = history?.entries.length ?? 0;
-    final hasHist = count > 0;
-
-    // Check if any property requires sensitive verification for history
-    final requiresVerification = item.properties.values.any(
-      (p) => p.sensitivity == SensitivityLevel.sensitive ||
-             p.sensitivity == SensitivityLevel.critical,
-    );
-
-    final iconData = isHistoryExpanded ? Icons.history_toggle_off : Icons.history;
-    final iconColor = hasHist
-        ? theme.colorScheme.onSurfaceVariant
-        : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
-    final historyIcon = Icon(iconData, size: 20, color: iconColor);
-
-    Future<void> handleHistoryPress() async {
-      if (hasHist) {
-        if (requiresVerification) {
-          final isGranted = ref.read(isSensitiveAccessGrantedProvider);
-          if (!isGranted) {
-            final authNotifier = ref.read(authNotifierProvider.notifier);
-            final selectedAccount = authNotifier.selectedAccount;
-            final password = await showPasswordVerificationDialog(
-              context: context,
-              ref: ref,
-              passwordHint: selectedAccount?.passwordHint,
-              onVerify: authNotifier.verifyPasswordForSensitiveData,
-            );
-            if (password == null) return;
-            ref.read(sensitivePageAccessProvider.notifier).markVerified();
-          }
-        }
-        onToggleHistory();
-      } else {
-        if (context.mounted) {
-          showOverlaySnackBar(
-            context,
-            content: 'No history available',
-            type: SnackBarType.info,
-          );
-        }
-      }
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Item header: name + actions
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SelectableText(
-                      objectItemDisplayTitle(
-                        item,
-                        nameExtractor: nameExtractor,
-                        titlePropertyKey: titlePropertyKey,
-                      ),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    _ObjectCardPropertiesList(
-                      item: item,
-                      titlePropertyKey: titlePropertyKey,
-                    ),
-                  ],
-                ),
-              ),
-              // Action buttons: Copy | Edit | History | Delete
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.copy_all, size: 20),
-                    tooltip: 'Copy',
-                    onPressed: onCopy,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
-                    onPressed: onStartEdit,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  IconButton(
-                    icon: hasHist
-                        ? Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              historyIcon,
-                              Positioned(
-                                right: -6,
-                                top: -6,
-                                child: Text(
-                                  '$count',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: iconColor,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              historyIcon,
-                              Positioned(
-                                right: -6,
-                                top: -6,
-                                child: Text(
-                                  '0',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: iconColor,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                    tooltip: hasHist ? 'History ($count)' : 'No history yet',
-                    onPressed: handleHistoryPress,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.delete_outline,
-                      size: 20,
-                    ),
-                    tooltip: 'Delete',
-                    onPressed: onDelete,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Item history
-          if (isHistoryExpanded) ...[
-            const SizedBox(height: 8),
-            _ObjectCardHistorySection(history: history),
-          ],
-          const Divider(height: 16),
-        ],
-      ),
-    );
   }
 }

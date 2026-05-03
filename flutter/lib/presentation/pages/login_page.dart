@@ -17,6 +17,9 @@ import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart' show getDeviceName;
+import 'package:solosoul_flutter/presentation/widgets/login/account_list_section.dart';
+import 'package:solosoul_flutter/presentation/widgets/login/create_account_form.dart';
+import 'package:solosoul_flutter/presentation/widgets/login/password_input_section.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -527,6 +530,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
   }
 
+  void _backToAccountListFromCreate() {
+    setState(() {
+      _showCreateAccount = false;
+      _createError = null;
+      _newAccountNameController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+    });
+  }
+
   void _showPasswordHint(String hint) {
     // Guard against stale context
     if (!mounted) return;
@@ -674,7 +687,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
               // Content based on state
               if (_showCreateAccount) ...[
-                _buildCreateAccountForm(theme),
+                CreateAccountForm(
+                  nameController: _newAccountNameController,
+                  passwordController: _newPasswordController,
+                  confirmPasswordController: _confirmPasswordController,
+                  hintController: _passwordHintController,
+                  obscurePassword: _obscureNewPassword,
+                  obscureConfirmPassword: _obscureConfirmPassword,
+                  passwordFocusNode: _newPasswordFocusNode,
+                  isPasswordFocused: _isNewPasswordFocused,
+                  confirmPasswordFocusNode: _confirmPasswordFocusNode,
+                  isConfirmPasswordFocused: _isConfirmPasswordFocused,
+                  isLoading: _isLoading,
+                  createError: _createError,
+                  onCreateAccount: _handleCreateAccount,
+                  onBack: _backToAccountListFromCreate,
+                  onToggleObscurePassword: () {
+                    setState(() => _obscureNewPassword = !_obscureNewPassword);
+                  },
+                  onToggleObscureConfirmPassword: () {
+                    setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                    );
+                  },
+                ),
               ] else if (selectedAccountId != null) ...[
                 accountsAsync.when(
                   data: (accounts) {
@@ -685,7 +721,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           orElse: () => null,
                         );
                     if (selectedAccount != null) {
-                      return _buildPasswordInput(theme, selectedAccount);
+                      return PasswordInputSection(
+                        formKey: _formKey,
+                        passwordController: _passwordController,
+                        obscurePassword: _obscurePassword,
+                        passwordFocusNode: _passwordFocusNode,
+                        isPasswordFocused: _isPasswordFocused,
+                        hasPasswordError: _hasPasswordError,
+                        passwordErrorMessage: _passwordErrorMessage,
+                        isLoading: _isLoading,
+                        biometricsEnabled: _biometricsEnabled,
+                        biometricType: _biometricType,
+                        selectedAccount: selectedAccount,
+                        onBack: _backToAccountList,
+                        onUnlock: _handleUnlock,
+                        onBiometricUnlock: _handleBiometricUnlock,
+                        onToggleObscure: () {
+                          setState(() => _obscurePassword = !_obscurePassword);
+                        },
+                        onShowPasswordHint: _showPasswordHint,
+                      );
                     }
                     return const SizedBox.shrink();
                   },
@@ -695,7 +750,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ] else ...[
                 accountsAsync.when(
-                  data: (accounts) => _buildAccountList(theme, accounts),
+                  data: (accounts) => AccountListSection(
+                    accounts: accounts,
+                    accountsExpanded: _accountsExpanded,
+                    onSelectAccount: _selectAccount,
+                    onToggleExpanded: () {
+                      setState(() => _accountsExpanded = !_accountsExpanded);
+                    },
+                    onCreateAccount: () {
+                      setState(() {
+                        _showCreateAccount = true;
+                        _accountsExpanded = false;
+                      });
+                    },
+                    formatLastAccessed: _formatLastAccessed,
+                  ),
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, _) => Center(child: Text('Error: $error')),
@@ -708,658 +777,4 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildCreateAccountForm(ThemeData theme) {
-    return Column(
-      children: [
-        Text(
-          'Create New Account',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
-
-        const SizedBox(height: 32),
-
-        // Account Name Field
-        TextFormField(
-              controller: _newAccountNameController,
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Account Name',
-                hintText: 'e.g., Personal, Work',
-                prefixIcon: Icon(Icons.person_outline),
-              ),
-            )
-            .animate()
-            .fadeIn(delay: 200.ms, duration: 400.ms)
-            .slideY(begin: 0.2, end: 0),
-
-        const SizedBox(height: 16),
-
-        // New Password Field
-        TextFormField(
-              controller: _newPasswordController,
-              obscureText: _obscureNewPassword,
-              focusNode: _newPasswordFocusNode,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: 'Master Password',
-                hintText: 'Create a strong password',
-                labelStyle: TextStyle(
-                  color: _isNewPasswordFocused ? AppTheme.primaryColor : null,
-                ),
-                prefixIcon: Icon(
-                  Icons.key,
-                  color: _isNewPasswordFocused ? AppTheme.primaryColor : null,
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureNewPassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: _isNewPasswordFocused ? AppTheme.primaryColor : null,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscureNewPassword = !_obscureNewPassword);
-                  },
-                ),
-              ),
-            )
-            .animate()
-            .fadeIn(delay: 250.ms, duration: 400.ms)
-            .slideY(begin: 0.2, end: 0),
-
-        const SizedBox(height: 16),
-
-        // Confirm Password Field
-        TextFormField(
-              controller: _confirmPasswordController,
-              obscureText: _obscureConfirmPassword,
-              focusNode: _confirmPasswordFocusNode,
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _handleCreateAccount(),
-              decoration: InputDecoration(
-                labelText: 'Confirm Password',
-                hintText: 'Re-enter your password',
-                labelStyle: TextStyle(
-                  color: _isConfirmPasswordFocused
-                      ? AppTheme.primaryColor
-                      : null,
-                ),
-                prefixIcon: Icon(
-                  Icons.key,
-                  color: _isConfirmPasswordFocused
-                      ? AppTheme.primaryColor
-                      : null,
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: _isConfirmPasswordFocused
-                        ? AppTheme.primaryColor
-                        : null,
-                  ),
-                  onPressed: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
-                ),
-              ),
-            )
-            .animate()
-            .fadeIn(delay: 300.ms, duration: 400.ms)
-            .slideY(begin: 0.2, end: 0),
-
-        const SizedBox(height: 16),
-
-        // Password Hint Field (Optional)
-        TextFormField(
-              controller: _passwordHintController,
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _handleCreateAccount(),
-              decoration: const InputDecoration(
-                labelText: 'Password Hint (Optional)',
-                hintText: 'A hint to help you remember',
-                prefixIcon: Icon(Icons.help_outline),
-              ),
-            )
-            .animate()
-            .fadeIn(delay: 350.ms, duration: 400.ms)
-            .slideY(begin: 0.2, end: 0),
-
-        if (_createError != null) ...[
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _createError!,
-                    style: TextStyle(color: Colors.red.shade700),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 300.ms),
-        ],
-
-        const SizedBox(height: 24),
-
-        // Warning
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.orange.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orange.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.warning_amber,
-                color: Colors.orange.shade700,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'There is no password recovery. If you forget your master password, your data cannot be accessed.',
-                  style: TextStyle(color: Colors.orange.shade900, fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(delay: 350.ms, duration: 400.ms),
-
-        const SizedBox(height: 24),
-
-        // Create Button
-        ElevatedButton(
-              onPressed: _isLoading ? null : _handleCreateAccount,
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text('Create Account'),
-            )
-            .animate()
-            .fadeIn(delay: 400.ms, duration: 400.ms)
-            .slideY(begin: 0.2, end: 0),
-
-        const SizedBox(height: 12),
-
-        // Back to Account List
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _showCreateAccount = false;
-              _createError = null;
-              _newAccountNameController.clear();
-              _newPasswordController.clear();
-              _confirmPasswordController.clear();
-            });
-          },
-          child: const Text('Back to Account List'),
-        ).animate().fadeIn(delay: 450.ms, duration: 400.ms),
-      ],
-    );
-  }
-
-  Widget _buildPasswordInput(ThemeData theme, AccountInfo selectedAccount) {
-    return Column(
-      children: [
-        // Back button and selected account
-        Row(
-          children: [
-            IconButton(
-              onPressed: _backToAccountList,
-              icon: const Icon(Icons.arrow_back),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: AppTheme.primaryColor,
-                    child: Text(
-                      selectedAccount.name.isNotEmpty
-                          ? selectedAccount.name[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    selectedAccount.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 32),
-
-        Text(
-          'Enter Master Password',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          'Unlock your vault',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          textAlign: TextAlign.center,
-        ),
-
-        const SizedBox(height: 32),
-
-        Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Password field
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                focusNode: _passwordFocusNode,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _handleUnlock(),
-                decoration: InputDecoration(
-                  labelText: 'Master Password',
-                  hintText: 'Enter your password',
-                  labelStyle: TextStyle(
-                    color: _hasPasswordError
-                        ? Colors.red.shade700
-                        : _isPasswordFocused
-                        ? AppTheme.primaryColor
-                        : Theme.of(context).colorScheme.onSurface,
-                  ),
-                  floatingLabelStyle: TextStyle(
-                    color: _hasPasswordError
-                        ? Colors.red.shade700
-                        : _isPasswordFocused
-                        ? AppTheme.primaryColor
-                        : Theme.of(context).colorScheme.onSurface,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.key,
-                    color: _hasPasswordError
-                        ? Colors.red.shade700
-                        : _isPasswordFocused
-                        ? AppTheme.primaryColor
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  errorText: _hasPasswordError ? _passwordErrorMessage : null,
-                  errorStyle: TextStyle(
-                    color: Colors.red.shade700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  border: _hasPasswordError
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.red.shade700,
-                            width: 2,
-                          ),
-                        )
-                      : null,
-                  enabledBorder: _hasPasswordError
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.red.shade700,
-                            width: 2,
-                          ),
-                        )
-                      : null,
-                  focusedBorder: _hasPasswordError
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.red.shade700,
-                            width: 2,
-                          ),
-                        )
-                      : null,
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.red.shade700,
-                      width: 2,
-                    ),
-                  ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(8),
-                        icon: Icon(
-                          Icons.help_outline,
-                          size: 20,
-                          color: _hasPasswordError
-                              ? Colors.red.shade700
-                              : _isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () => _showPasswordHint(
-                          selectedAccount.passwordHint ?? 'No password hint available',
-                        ),
-                        tooltip: 'Show password hint',
-                      ),
-                      IconButton(
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(8),
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          size: 20,
-                          color: _hasPasswordError
-                              ? Colors.red.shade700
-                              : _isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (value.length < 8) {
-                    return 'Password must be at least 8 characters';
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              // Unlock button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _handleUnlock,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : const Text('Unlock'),
-              ),
-
-              // Face ID / Touch ID button
-              if (_biometricsEnabled) ...[
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _isLoading ? null : _handleBiometricUnlock,
-                  icon: Icon(
-                    _biometricType == 'Face ID'
-                        ? Icons.face
-                        : Icons.fingerprint,
-                    size: 22,
-                  ),
-                  label: Text('Use $_biometricType'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAccountList(ThemeData theme, List<AccountInfo> accounts) {
-    final displayAccounts = _accountsExpanded || accounts.length <= 3
-        ? accounts
-        : accounts.sublist(0, 3);
-
-    return Column(
-      children: [
-        Text(
-          'Select an account to unlock',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
-
-        const SizedBox(height: 32),
-
-        if (accounts.isNotEmpty) ...[
-          ...displayAccounts.asMap().entries.map((entry) {
-            final index = entry.key;
-            final account = entry.value;
-            final isRecent = index == 0;
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _selectAccount(account.id),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isRecent
-                            ? AppTheme.primaryColor
-                            : theme.dividerColor,
-                        width: isRecent ? 2 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      color: isRecent
-                          ? AppTheme.primaryColor.withValues(
-                              alpha: 0.05,
-                            )
-                          : null,
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: AppTheme.primaryColor,
-                          child: Text(
-                            account.name.isNotEmpty
-                                ? account.name[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    account.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  if (isRecent) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primaryColor,
-                                        borderRadius:
-                                            BorderRadius.circular(4),
-                                      ),
-                                      child: const Text(
-                                        'Recent',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Last accessed: ${_formatLastAccessed(account.lastAccessed)}',
-                                style: TextStyle(
-                                  color: theme
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-
-          // Expand/Collapse button when > 3 accounts
-          if (accounts.length > 3) ...[
-            const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: () {
-                setState(() => _accountsExpanded = !_accountsExpanded);
-              },
-              icon: Icon(
-                _accountsExpanded ? Icons.expand_less : Icons.expand_more,
-              ),
-              label: Text(
-                _accountsExpanded
-                    ? 'Show less'
-                    : 'Show all ${accounts.length} accounts',
-              ),
-            ),
-          ],
-        ] else ...[
-          Container(
-            padding: AppTheme.kPagePadding,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.account_circle_outlined,
-                  size: 48,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'No accounts yet',
-                  style: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-
-        const SizedBox(height: 24),
-
-        // Create New Account Button
-        OutlinedButton.icon(
-          onPressed: () {
-            setState(() {
-              _showCreateAccount = true;
-              _accountsExpanded = false;
-            });
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Create New Account'),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -13,7 +13,13 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/dashed_placeholder.dart';
 
+import 'package:solosoul_flutter/presentation/widgets/home/add_button.dart';
+import 'package:solosoul_flutter/presentation/widgets/home/add_quick_action_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/home/delete_badge.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/page_editor.dart';
+import 'package:solosoul_flutter/presentation/widgets/home/quick_action.dart';
+import 'package:solosoul_flutter/presentation/widgets/home/quick_action_tile.dart';
+import 'package:solosoul_flutter/presentation/widgets/home/security_item.dart';
 
 // =============================================================================
 // HomePage — Dashboard with quick actions + inline page editor
@@ -65,7 +71,7 @@ class _MainDashboard extends ConsumerStatefulWidget {
 
 class _MainDashboardState extends ConsumerState<_MainDashboard>
     with TickerProviderStateMixin {
-  late List<_QuickAction> _actions;
+  late List<QuickAction> _actions;
   bool _isEditing = false;
   late AnimationController _wobbleController;
   OverlayEntry? _topOverlayEntry;
@@ -75,12 +81,12 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   void initState() {
     super.initState();
     _actions = List.from(const [
-      _QuickAction(icon: Icons.person_outline, label: 'Profile', route: AppRoutes.profile, color: Colors.blue),
-      _QuickAction(icon: Icons.flight_outlined, label: 'Travel', route: AppRoutes.travel, color: Colors.teal),
-      _QuickAction(icon: Icons.account_balance_outlined, label: 'Financial', route: AppRoutes.financial, color: Colors.green),
-      _QuickAction(icon: Icons.work_outline, label: 'Professional', route: AppRoutes.professional, color: Colors.orange),
-      _QuickAction(icon: Icons.delete_outline, label: 'Trash', route: AppRoutes.trash, color: Colors.red),
-      _QuickAction(icon: Icons.settings_outlined, label: 'Settings', route: AppRoutes.settings, color: Colors.grey),
+      QuickAction(icon: Icons.person_outline, label: 'Profile', route: AppRoutes.profile, color: Colors.blue),
+      QuickAction(icon: Icons.flight_outlined, label: 'Travel', route: AppRoutes.travel, color: Colors.teal),
+      QuickAction(icon: Icons.account_balance_outlined, label: 'Financial', route: AppRoutes.financial, color: Colors.green),
+      QuickAction(icon: Icons.work_outline, label: 'Professional', route: AppRoutes.professional, color: Colors.orange),
+      QuickAction(icon: Icons.delete_outline, label: 'Trash', route: AppRoutes.trash, color: Colors.red),
+      QuickAction(icon: Icons.settings_outlined, label: 'Settings', route: AppRoutes.settings, color: Colors.grey),
     ]);
     _wobbleController = AnimationController(
       vsync: this,
@@ -100,13 +106,13 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     }
   }
 
-  List<_QuickAction> _rebuildActionsFromRoutes(List<String> routes) {
+  List<QuickAction> _rebuildActionsFromRoutes(List<String> routes) {
     final all = [..._allAvailableActions];
     // Append custom pages
     final customPages = ref.read(unifiedObjectProvider).objects
         .where((o) => o.typeId == 'page' && !o.isDeleted);
     for (final page in customPages) {
-      all.add(_QuickAction(
+      all.add(QuickAction(
         icon: UnifiedObjectService.getIconFromName(page.iconName),
         label: page.name,
         route: '${AppRoutes.objects}/${page.id}',
@@ -114,7 +120,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
       ));
     }
 
-    final result = <_QuickAction>[];
+    final result = <QuickAction>[];
     for (final route in routes) {
       final match = all.where((a) => a.route == route).firstOrNull;
       if (match != null) result.add(match);
@@ -152,17 +158,17 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     _persistQuickActions();
   }
 
-  static const List<_QuickAction> _allAvailableActions = [
-    _QuickAction(icon: Icons.person_outline, label: 'Profile', route: AppRoutes.profile, color: Colors.blue),
-    _QuickAction(icon: Icons.flight_outlined, label: 'Travel', route: AppRoutes.travel, color: Colors.teal),
-    _QuickAction(icon: Icons.account_balance_outlined, label: 'Financial', route: AppRoutes.financial, color: Colors.green),
-    _QuickAction(icon: Icons.work_outline, label: 'Professional', route: AppRoutes.professional, color: Colors.orange),
-    _QuickAction(icon: Icons.delete_outline, label: 'Trash', route: AppRoutes.trash, color: Colors.red),
-    _QuickAction(icon: Icons.settings_outlined, label: 'Settings', route: AppRoutes.settings, color: Colors.grey),
-    _QuickAction(icon: Icons.security_outlined, label: 'Security', route: AppRoutes.securitySettings, color: Colors.indigo),
-    _QuickAction(icon: Icons.history_outlined, label: 'Operation Log', route: AppRoutes.operationLog, color: Colors.purple),
-    _QuickAction(icon: Icons.visibility_outlined, label: 'Sensitivity', route: AppRoutes.sensitivitySettings, color: Colors.cyan),
-    _QuickAction(icon: Icons.search_outlined, label: 'Search', route: AppRoutes.search, color: Colors.deepOrange),
+  static const List<QuickAction> _allAvailableActions = [
+    QuickAction(icon: Icons.person_outline, label: 'Profile', route: AppRoutes.profile, color: Colors.blue),
+    QuickAction(icon: Icons.flight_outlined, label: 'Travel', route: AppRoutes.travel, color: Colors.teal),
+    QuickAction(icon: Icons.account_balance_outlined, label: 'Financial', route: AppRoutes.financial, color: Colors.green),
+    QuickAction(icon: Icons.work_outline, label: 'Professional', route: AppRoutes.professional, color: Colors.orange),
+    QuickAction(icon: Icons.delete_outline, label: 'Trash', route: AppRoutes.trash, color: Colors.red),
+    QuickAction(icon: Icons.settings_outlined, label: 'Settings', route: AppRoutes.settings, color: Colors.grey),
+    QuickAction(icon: Icons.security_outlined, label: 'Security', route: AppRoutes.securitySettings, color: Colors.indigo),
+    QuickAction(icon: Icons.history_outlined, label: 'Operation Log', route: AppRoutes.operationLog, color: Colors.purple),
+    QuickAction(icon: Icons.visibility_outlined, label: 'Sensitivity', route: AppRoutes.sensitivitySettings, color: Colors.cyan),
+    QuickAction(icon: Icons.search_outlined, label: 'Search', route: AppRoutes.search, color: Colors.deepOrange),
   ];
 
   void _showAddActionDialog() async {
@@ -170,7 +176,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
         .where((o) => o.typeId == 'page' && !o.isDeleted)
         .toList();
 
-    final customActions = customPages.map((page) => _QuickAction(
+    final customActions = customPages.map((page) => QuickAction(
           icon: UnifiedObjectService.getIconFromName(page.iconName),
           label: page.name,
           route: '${AppRoutes.objects}/${page.id}',
@@ -192,9 +198,9 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
       return;
     }
 
-    final selected = await showDialog<_QuickAction>(
+    final selected = await showDialog<QuickAction>(
       context: context,
-      builder: (ctx) => _AddQuickActionDialog(actions: available),
+      builder: (ctx) => AddQuickActionDialog(actions: available),
     );
 
     if (selected != null && mounted) {
@@ -282,7 +288,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
       );
     }
 
-    return _QuickActionTile(
+    return QuickActionTile(
       icon: _actions[index].icon,
       label: _actions[index].label,
       color: _actions[index].color,
@@ -309,7 +315,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
                 child: SizedBox(
                   width: 90,
                   height: 90,
-                  child: _QuickActionTile(
+                  child: QuickActionTile(
                     icon: action.icon,
                     label: action.label,
                     color: action.color,
@@ -325,7 +331,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
                   ) * 0.035;
                   return Transform.rotate(angle: angle, child: child);
                 },
-                child: _QuickActionTile(
+                child: QuickActionTile(
                   icon: action.icon,
                   label: action.label,
                   color: action.color,
@@ -336,7 +342,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
           Positioned(
             top: -4,
             right: -4,
-            child: _DeleteBadge(onTap: () => _deleteAction(index)),
+            child: DeleteBadge(onTap: () => _deleteAction(index)),
           ),
         ],
       ),
@@ -344,7 +350,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   }
 
   Widget _buildAddButton() {
-    return _AddButton(onTap: _showAddActionDialog);
+    return AddButton(onTap: _showAddActionDialog);
   }
 
   @override
@@ -472,21 +478,21 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
               padding: EdgeInsets.all(20),
               child: Column(
                 children: [
-                  _SecurityItem(
+                  SecurityItem(
                     icon: Icons.check_circle,
                     color: AppTheme.successColor,
                     title: 'End-to-End Encrypted',
                     subtitle: 'AES-256-GCM + Argon2id',
                   ),
                   Divider(height: 24),
-                  _SecurityItem(
+                  SecurityItem(
                     icon: Icons.check_circle,
                     color: AppTheme.successColor,
                     title: 'Local Storage',
                     subtitle: 'Data encrypted and stored locally',
                   ),
                   Divider(height: 24),
-                  _SecurityItem(
+                  SecurityItem(
                     icon: Icons.check_circle,
                     color: AppTheme.successColor,
                     title: 'Zero Knowledge',
@@ -497,263 +503,6 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _QuickAction {
-  final IconData icon;
-  final String label;
-  final String route;
-  final Color color;
-  const _QuickAction({required this.icon, required this.label, required this.route, required this.color});
-}
-
-class _QuickActionTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-
-  const _QuickActionTile({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return SizedBox(
-      width: 90,
-      height: 90,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SecurityItem extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String title;
-  final String subtitle;
-
-  const _SecurityItem({
-    required this.icon,
-    required this.color,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: theme.textTheme.titleSmall),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AddQuickActionDialog extends StatelessWidget {
-  final List<_QuickAction> actions;
-
-  const _AddQuickActionDialog({required this.actions});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Quick Action'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: actions.length,
-          itemBuilder: (context, index) {
-            final action = actions[index];
-            return ListTile(
-              leading: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: action.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(action.icon, color: action.color, size: 20),
-              ),
-              title: Text(action.label),
-              onTap: () => Navigator.pop(context, action),
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-      ],
-    );
-  }
-}
-
-// =============================================================================
-// Delete Badge with hover scale animation
-// =============================================================================
-
-class _DeleteBadge extends StatefulWidget {
-  final VoidCallback onTap;
-
-  const _DeleteBadge({required this.onTap});
-
-  @override
-  State<_DeleteBadge> createState() => _DeleteBadgeState();
-}
-
-class _DeleteBadgeState extends State<_DeleteBadge> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _isHovered ? 1.2 : 1.0,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.error,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.close,
-              size: 12,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// =============================================================================
-// Add Button with hover gray effect
-// =============================================================================
-
-class _AddButton extends StatefulWidget {
-  final VoidCallback onTap;
-
-  const _AddButton({required this.onTap});
-
-  @override
-  State<_AddButton> createState() => _AddButtonState();
-}
-
-class _AddButtonState extends State<_AddButton> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final borderColor = _isHovered
-        ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
-        : theme.colorScheme.primary.withValues(alpha: 0.4);
-    final iconColor = _isHovered
-        ? theme.colorScheme.onSurfaceVariant
-        : theme.colorScheme.primary;
-
-    return SizedBox(
-      width: 90,
-      height: 90,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          behavior: HitTestBehavior.opaque,
-          child: DashedPlaceholder(
-            color: borderColor,
-            child: Container(
-              color: _isHovered
-                  ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.12)
-                  : null,
-              child: Center(
-                child: Icon(
-                  Icons.add,
-                  color: iconColor,
-                  size: 28,
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

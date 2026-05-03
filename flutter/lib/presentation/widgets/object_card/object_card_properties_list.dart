@@ -1,0 +1,79 @@
+import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
+
+class ObjectCardPropertiesList extends StatelessWidget {
+  final UnifiedObject item;
+  final String titlePropertyKey;
+
+  const ObjectCardPropertiesList({
+    super.key,
+    required this.item,
+    this.titlePropertyKey = 'Title',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: item.properties.entries
+          .where((e) => e.key != titlePropertyKey)
+          .map((entry) {
+        final sensitivity = entry.value.sensitivity;
+        final isSensitive = sensitivity == SensitivityLevel.sensitive ||
+            sensitivity == SensitivityLevel.critical;
+        final valueStr = propValueToString(entry.value);
+        final isEmptyValue = valueStr.isEmpty;
+
+        return Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 2),
+          child: Row(
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 160),
+                child: SelectableText(
+                  wrapEveryNChars(formatLabel(entry.key), 12),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (isEmptyValue)
+                Expanded(
+                  child: Text(
+                    '(empty)',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              else if (isSensitive)
+                Expanded(
+                  child: SensitiveValueWidget(
+                    fieldId: 'item.${item.id}.${entry.key}',
+                    value: valueStr,
+                    sensitivityLevel: sensitivity,
+                  ),
+                )
+              else
+                Expanded(
+                  child: SelectableText(
+                    valueStr,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              const SizedBox(width: 6),
+              SensitivityTag(level: sensitivity),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
