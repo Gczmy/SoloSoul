@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +16,7 @@ import 'package:solosoul_flutter/core/services/biometric_credential_service.dart
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/utils/device_utils.dart' show getDeviceName;
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -278,17 +278,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await authNotifier.updateAccountMetadata(
           lastLoginAt: DateTime.now(),
           device: DeviceInfo(
-            deviceName: Platform.isMacOS
-                ? 'Mac'
-                : Platform.isIOS
-                ? 'iPhone'
-                : Platform.isAndroid
-                ? 'Android'
-                : Platform.isLinux
-                ? 'Linux'
-                : Platform.isWindows
-                ? 'Windows'
-                : 'Flutter Device',
+            deviceName: getDeviceName(),
             lastUsed: DateTime.now(),
           ).toJson(),
         );
@@ -407,17 +397,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await authNotifier.updateAccountMetadata(
           lastLoginAt: DateTime.now(),
           device: DeviceInfo(
-            deviceName: Platform.isMacOS
-                ? 'Mac'
-                : Platform.isIOS
-                ? 'iPhone'
-                : Platform.isAndroid
-                ? 'Android'
-                : Platform.isLinux
-                ? 'Linux'
-                : Platform.isWindows
-                ? 'Windows'
-                : 'Flutter Device',
+            deviceName: getDeviceName(),
             lastUsed: DateTime.now(),
           ).toJson(),
         ).timeout(const Duration(seconds: 5), onTimeout: () {
@@ -502,17 +482,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           await authNotifier.updateAccountMetadata(
             lastLoginAt: DateTime.now(),
             device: DeviceInfo(
-              deviceName: Platform.isMacOS
-                  ? 'Mac'
-                  : Platform.isIOS
-                  ? 'iPhone'
-                  : Platform.isAndroid
-                  ? 'Android'
-                  : Platform.isLinux
-                  ? 'Linux'
-                  : Platform.isWindows
-                  ? 'Windows'
-                  : 'Flutter Device',
+            deviceName: getDeviceName(),
               lastUsed: DateTime.now(),
             ).toJson(),
           ).timeout(const Duration(seconds: 5), onTimeout: () {

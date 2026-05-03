@@ -1,4 +1,17 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
+
+/// Returns the current platform's human-readable device name.
+String getDeviceName() {
+  if (Platform.isMacOS) return 'Mac';
+  if (Platform.isIOS) return 'iPhone';
+  if (Platform.isAndroid) return 'Android';
+  if (Platform.isLinux) return 'Linux';
+  if (Platform.isWindows) return 'Windows';
+  if (Platform.isFuchsia) return 'Fuchsia';
+  return 'Unknown';
+}
 
 /// Returns an appropriate device icon based on the device name.
 IconData getDeviceIcon(String deviceName) {

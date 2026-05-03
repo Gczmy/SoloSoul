@@ -21,7 +21,7 @@
 | P010 | P1     | 可优化代码 | `presentation/pages/login_page.dart`（1393行） | 超长文件：业务逻辑与 UI 混杂，需拆分为多个文件 | `[ ]` 待修复 |
 | P011 | P1     | 可优化代码 | `presentation/widgets/object_card.dart`（1487行） | 超长文件：7个 Widget 类 + 8个顶层函数混在一处 | `[ ]` 待修复 |
 | P012 | P1     | 可优化代码 | `presentation/pages/settings_page.dart`（1145行） | 超长文件：_DeleteAccountDialog、debug 激活对话框未独立成文件 | `[ ]` 待修复 |
-| P013 | P1     | 死代码     | `presentation/pages/login_page.dart:280-516` | DeviceInfo 构建逻辑在 3 个方法中重复（45行重复代码） | `[ ]` 待修复 |
+| P013 | P1     | 死代码     | `presentation/pages/login_page.dart:280-516` | DeviceInfo 构建逻辑在 3 个方法中重复（45行重复代码） | `[x]` 已修复 |
 | P014 | P1     | 可优化代码 | `presentation/pages/login_page.dart` + 多文件 | 24处 `_build*()` 私有方法返回 Widget 阻止框架优化重建 | `[ ]` 待修复 |
 | P015 | P1     | 可优化代码 | `presentation/widgets/object_card.dart:260-527` | 业务逻辑（OperationLog、OperationNotification）直接写在 Widget 层 | `[ ]` 待修复 |
 | P016 | P1     | 死代码     | `presentation/widgets/object_card.dart:7` | 未使用的 import：FieldHistoryService | `[x]` 误报 — import 提供 `fieldHistoriesProvider`，在 L481/L1325 使用 |
@@ -41,8 +41,8 @@
 
 ## 修复进度
 
-- 已完成：10 / 29
-- 当前处理：P016-P018
+- 已完成：11 / 29
+- 当前处理：P013
 
 ---
 
