@@ -24,9 +24,9 @@
 | P013 | P1     | 死代码     | `presentation/pages/login_page.dart:280-516` | DeviceInfo 构建逻辑在 3 个方法中重复（45行重复代码） | `[ ]` 待修复 |
 | P014 | P1     | 可优化代码 | `presentation/pages/login_page.dart` + 多文件 | 24处 `_build*()` 私有方法返回 Widget 阻止框架优化重建 | `[ ]` 待修复 |
 | P015 | P1     | 可优化代码 | `presentation/widgets/object_card.dart:260-527` | 业务逻辑（OperationLog、OperationNotification）直接写在 Widget 层 | `[ ]` 待修复 |
-| P016 | P1     | 死代码     | `presentation/widgets/object_card.dart:7` | 未使用的 import：FieldHistoryService | `[ ]` 待修复 |
-| P017 | P1     | 性能       | `core/services/profile_storage_service.dart:188-201` | saveProfile/deleteProfile 静默吞掉所有异常，无日志无诊断 | `[ ]` 待修复 |
-| P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[ ]` 待修复 |
+| P016 | P1     | 死代码     | `presentation/widgets/object_card.dart:7` | 未使用的 import：FieldHistoryService | `[x]` 误报 — import 提供 `fieldHistoriesProvider`，在 L481/L1325 使用 |
+| P017 | P1     | 性能       | `core/services/profile_storage_service.dart:188-201` | saveProfile/deleteProfile 静默吞掉所有异常，无日志无诊断 | `[x]` 已修复 |
+| P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[x]` 已修复 |
 | P019 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[ ]` 待修复 |
 | P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[ ]` 待修复 |
 | P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[ ]` 待修复 |
@@ -41,8 +41,8 @@
 
 ## 修复进度
 
-- 已完成：8 / 29
-- 当前处理：复核修正
+- 已完成：10 / 29
+- 当前处理：P016-P018
 
 ---
 
@@ -264,13 +264,11 @@ formState.validate();
 
 ---
 
-### P016 — [P1] 未使用的 import
+### P016 — [P1] 未使用的 import（误报）
 
 **文件**: `presentation/widgets/object_card.dart:7`
 
-**影响**: `import 'package:solosoul_flutter/core/services/field_history_service.dart'` 未被任何代码引用。
-
-**修复方案**: 删除该 import。
+**复查结论**: 该 import 并非未使用。`field_history_service.dart` 中定义了 Riverpod provider `fieldHistoriesProvider`（第147行），在 `object_card.dart` 的 L481 和 L1325 处被引用。删除 import 将导致编译错误。标记为误报。
 
 ---
 
@@ -289,6 +287,8 @@ formState.validate();
 
 **修复方案**: 添加 `DebugLogger.instance.logError()` 记录异常详情。
 
+**修复说明 (2026-05-03)**: 在 saveProfile 和 deleteProfile 的 catch 块中添加 `DebugLogger.instance.logError()` 调用，记录 accountId 和异常信息。
+
 ---
 
 ### P018 — [P1] 历史数据反序列化失败时静默丢失
@@ -305,6 +305,8 @@ formState.validate();
 **影响**: Schema 变更或数据损坏导致全部历史数据丢失，无恢复机会。
 
 **修复方案**: 记录错误日志并考虑保留原始数据的备份副本。
+
+**修复说明 (2026-05-03)**: 在 catch 块中添加 `DebugLogger.instance.logError()` 记录 accountId 和异常详情。
 
 ---
 

@@ -185,8 +185,9 @@ class ProfileStorageService {
 
       _profileCache[accountId] = profile;
       return true;
-    } on Exception catch (_) {
-      // IOException or other Error subclasses could occur here
+    } on Exception catch (e) {
+      DebugLogger.instance
+          .logError('PROFILE', 'saveProfile failed for $accountId: $e');
       return false;
     }
   }
@@ -196,7 +197,9 @@ class ProfileStorageService {
     try {
       final result = await _rustVault.deleteProfile(accountId);
       return result;
-    } on Exception catch (_) {
+    } on Exception catch (e) {
+      DebugLogger.instance
+          .logError('PROFILE', 'deleteProfile failed for $accountId: $e');
       return false;
     }
   }
