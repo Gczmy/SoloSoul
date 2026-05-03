@@ -28,7 +28,7 @@
 | P017 | P1     | 性能       | `core/services/profile_storage_service.dart:188-201` | saveProfile/deleteProfile 静默吞掉所有异常，无日志无诊断 | `[x]` 已修复 |
 | P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[x]` 已修复 |
 | P019 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[ ]` 待修复 |
-| P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[ ]` 待修复 |
+| P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[x]` 已修复 |
 | P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[ ]` 待修复 |
 | P022 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart`（12处） | `!` 操作符在 selectedAccountId 上使用，绕过空安全检查 | `[ ]` 待修复 |
 | P023 | P2     | 可优化代码 | `presentation/pages/trash_page.dart`（1046行） | 超长文件：建议拆分 | `[ ]` 待修复 |
@@ -41,8 +41,8 @@
 
 ## 修复进度
 
-- 已完成：11 / 29
-- 当前处理：P013
+- 已完成：12 / 29
+- 当前处理：P020
 
 ---
 

@@ -496,6 +496,7 @@ class AccountManager {
         _selectedAccountId = result.account!.id;
         _selectedAccountInfo = result.account;
         _accountsVersion++;
+        SecureAccountStorage.secureWipe(result.sessionKey!);
         return (success: true, error: null);
       } else if (result.error != null) {
         return (success: false, error: result.error);

@@ -32,7 +32,7 @@ class SecureAccountStorage {
   FallbackSecureStorage get _secureStorage => _fallbackSecureStorage;
 
   /// Best-effort secure wipe of a byte buffer (fills with zeros).
-  static void _secureWipe(Uint8List buffer) {
+  static void secureWipe(Uint8List buffer) {
     for (var i = 0; i < buffer.length; i++) {
       buffer[i] = 0;
     }
@@ -197,8 +197,8 @@ class SecureAccountStorage {
       hashToStore = bytesToHex(verifyKey);
       sessionKey = masterKey;
       // Wipe intermediate key material — sessionKey is returned for caller use
-      _secureWipe(dartSalt);
-      _secureWipe(verifyKey);
+      secureWipe(dartSalt);
+      secureWipe(verifyKey);
     }
 
     final now = DateTime.now();
@@ -268,13 +268,13 @@ class SecureAccountStorage {
     // Step 3: Hex-encode verify_key and compare (same as Rust)
     final derivedHashHex = bytesToHex(verifyKey);
     if (!constantTimeEquals(derivedHashHex, storedHash)) {
-      _secureWipe(verifyKey);
-      _secureWipe(masterKey);
+      secureWipe(verifyKey);
+      secureWipe(masterKey);
       return (success: false, error: 'Invalid password', sessionKey: null);
     }
 
     // Verification passed — wipe intermediate key material (sessionKey/masterKey is kept)
-    _secureWipe(verifyKey);
+    secureWipe(verifyKey);
 
     // Session key is masterKey (used for profile encryption)
     final accounts = await listAccounts();
