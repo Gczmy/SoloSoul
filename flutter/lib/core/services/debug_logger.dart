@@ -1,5 +1,26 @@
 enum LogLevel { debug, info, warning, error }
 
+/// Categories of sensitive data for structured tagging.
+enum SensitiveType {
+  /// Cryptographic keys, hashes, salts
+  crypto,
+
+  /// Passwords, PINs, passphrases
+  credential,
+
+  /// Session tokens, access tokens, refresh tokens
+  token,
+
+  /// Account IDs, user IDs
+  identifier,
+
+  /// File paths, directory paths
+  path,
+
+  /// Generic sensitive data (fallback)
+  generic,
+}
+
 /// A single log entry with structured data.
 class LogEntry {
   final DateTime timestamp;
@@ -47,16 +68,31 @@ class DebugLogger {
 
   static const int _maxBufferSize = 1000;
 
-  /// Patterns for sanitization - sensitive fields that should be redacted
+  /// Structured sensitive tag pattern: [[SENSITIVE:type:value]]
+  /// This is the primary sanitization mechanism - callers explicitly tag data.
+  static final RegExp _sensitiveTagPattern =
+      RegExp(r'\[\[SENSITIVE:\w+:[^\]]*\]\]');
+
+  /// Patterns for sanitization - safety net for untagged sensitive data.
+  /// These catch cases where callers forget to use structured tags.
   static final List<RegExp> _sensitivePatterns = [
     // Key=value patterns (password, secret, key, token, auth, salt, hash)
-    RegExp(r'(password|secret|key|token|auth|salt|hash|verify)[=:]\s*[\w\-]+', caseSensitive: false),
+    RegExp(
+      r'(password|secret|key|token|auth|salt|hash|verify)[=:]\s*[\w\-]+',
+      caseSensitive: false,
+    ),
     // JSON field patterns
-    RegExp(r'"(password|secret|vault_key|access_token|refresh_token|salt|verify_hash|session_key)"\s*:\s*"[^"]+"', caseSensitive: false),
+    RegExp(
+      r'"(password|secret|vault_key|access_token|refresh_token|salt|verify_hash|session_key)"\s*:\s*"[^"]+"',
+      caseSensitive: false,
+    ),
     // Account ID patterns (acc_xxx)
     RegExp(r'acc_[a-f0-9\-]{20,}', caseSensitive: false),
     // File path patterns (vaultRoot, config.json, solosoul paths)
-    RegExp(r'(\/[^\s]*?(?:solosoul|vault|config\.json|Application Support)[^\s]*)', caseSensitive: false),
+    RegExp(
+      r'(\/[^\s]*?(?:solosoul|vault|config\.json|Application Support)[^\s]*)',
+      caseSensitive: false,
+    ),
     // Long hex strings (>16 chars, likely keys/hashes)
     RegExp(r'\b[a-f0-9]{16,}\b', caseSensitive: false),
     // Long base64 strings (>32 chars)
@@ -76,7 +112,11 @@ class DebugLogger {
 
   /// Deactivate and clear all logs - "burn after reading"
   void deactivate() {
-    log('DEBUG_MODE_DISABLED', 'Debug logging deactivated, buffer cleared', LogLevel.info);
+    log(
+      'DEBUG_MODE_DISABLED',
+      'Debug logging deactivated, buffer cleared',
+      LogLevel.info,
+    );
     _isActive = false;
     _logBuffer.clear();
   }
@@ -85,6 +125,16 @@ class DebugLogger {
   bool get isActive => _isActive;
 
   List<LogEntry> get entries => List.unmodifiable(_logBuffer);
+
+  /// Wrap a sensitive value with a structured tag.
+  ///
+  /// Use this to explicitly mark sensitive data before logging:
+  /// ```dart
+  /// logger.logInfo('AUTH', 'Unlocked ${redact(accountId, SensitiveType.identifier)}');
+  /// ```
+  static String redact(String value, SensitiveType type) {
+    return '[[SENSITIVE:${type.name}:$value]]';
+  }
 
   /// Get all buffered logs as a sanitized string (for export).
   /// Messages are double-sanitized at export time to catch any patterns
@@ -101,18 +151,32 @@ class DebugLogger {
     }).join('\n');
   }
 
-  /// Sanitize a message by redacting sensitive patterns
+  /// Sanitize a message by redacting sensitive patterns.
+  ///
+  /// First strips structured [[SENSITIVE:type:value]] tags,
+  /// then applies regex-based safety net patterns.
   String _sanitize(String message) {
     String sanitized = message;
+
+    // Step 1: Strip structured sensitive tags (primary mechanism)
+    sanitized = sanitized.replaceAllMapped(_sensitiveTagPattern, (match) {
+      final tag = match.group(0) ?? '';
+      // Extract type from [[SENSITIVE:type:value]]
+      final typeMatch = RegExp(r'\[\[SENSITIVE:(\w+):').firstMatch(tag);
+      final type = typeMatch?.group(1) ?? 'generic';
+      return '[REDACTED:$type]';
+    });
+
+    // Step 2: Apply regex safety net for untagged sensitive data
     for (final pattern in _sensitivePatterns) {
       sanitized = sanitized.replaceAllMapped(pattern, (match) {
         final matchStr = match.group(0) ?? '';
         final keyEnd = matchStr.indexOf(':');
         if (keyEnd > 0) {
           final key = matchStr.substring(0, keyEnd).trim();
-          return '$key: ***';
+          return '$key: [REDACTED]';
         }
-        return 'redacted: ***';
+        return '[REDACTED]';
       });
     }
     return sanitized;
