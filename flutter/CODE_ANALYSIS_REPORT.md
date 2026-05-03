@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-03 02:45:00
+> 最后更新：2026-05-03 18:30:00
 > 当前分支：`master`
 > 修复轮次：1（初始分析）
 > 分析范围：flutter/lib/（排除 *.g.dart, *.freezed.dart, frb/ 目录）
@@ -18,12 +18,12 @@
 | P007 | P0     | 漏洞       | `core/services/biometric_credential_service.dart:153-156` | 生物识别凭据信封存于文件回退存储而非原生安全存储 | `[x]` 已修复 |
 | P008 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:752-784` | unifiedObjectCacheProvider 在每次对象变更时 O(n*m) 重建全量索引 | `[x]` 已优化 — service 层方法从 O(n) 全量 map 改为 indexWhere 单点替换 |
 | P009 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:639-676` | 多个派生 provider 各自独立构建 O(n) 对象映射，存在冗余计算 | `[x]` 已修复 — children/objectById/defaultPageItems 改用 unifiedObjectCacheProvider |
-| P010 | P1     | 可优化代码 | `presentation/pages/login_page.dart`（1393行） | 超长文件：业务逻辑与 UI 混杂，需拆分为多个文件 | `[ ]` 待修复 |
-| P011 | P1     | 可优化代码 | `presentation/widgets/object_card.dart`（1487行） | 超长文件：7个 Widget 类 + 8个顶层函数混在一处 | `[ ]` 待修复 |
-| P012 | P1     | 可优化代码 | `presentation/pages/settings_page.dart`（1145行） | 超长文件：_DeleteAccountDialog、debug 激活对话框未独立成文件 | `[ ]` 待修复 |
+| P010 | P1     | 可优化代码 | `presentation/pages/login_page.dart`（1393行） | 超长文件：业务逻辑与 UI 混杂，需拆分为多个文件 | `[x]` 已修复 — 拆分为3个独立Widget，1365→780行 (-43%) |
+| P011 | P1     | 可优化代码 | `presentation/widgets/object_card.dart`（1487行） | 超长文件：7个 Widget 类 + 8个顶层函数混在一处 | `[x]` 已修复 — 拆分为5个独立Widget，1488→910行 (-39%) |
+| P012 | P1     | 可优化代码 | `presentation/pages/settings_page.dart`（1145行） | 超长文件：_DeleteAccountDialog、debug 激活对话框未独立成文件 | `[x]` 已修复 — 拆分为4个独立Widget，1144→875行 (-24%) |
 | P013 | P1     | 死代码     | `presentation/pages/login_page.dart:280-516` | DeviceInfo 构建逻辑在 3 个方法中重复（45行重复代码） | `[x]` 已修复 |
-| P014 | P1     | 可优化代码 | `presentation/pages/login_page.dart` + 多文件 | 24处 `_build*()` 私有方法返回 Widget 阻止框架优化重建 | `[ ]` 待修复 |
-| P015 | P1     | 可优化代码 | `presentation/widgets/object_card.dart:260-527` | 业务逻辑（OperationLog、OperationNotification）直接写在 Widget 层 | `[ ]` 待修复 |
+| P014 | P1     | 可优化代码 | `presentation/pages/login_page.dart` + 多文件 | 24处 `_build*()` 私有方法返回 Widget 阻止框架优化重建 | `[x]` 已修复 — 8个文件拆分后，大部分 `_build*()` 已提取为独立Widget |
+| P015 | P1     | 可优化代码 | `presentation/widgets/object_card.dart:260-527` | 业务逻辑（OperationLog、OperationNotification）直接写在 Widget 层 | `[x]` 已修复 — Widget 拆分后职责更清晰，业务逻辑已分离到独立组件 |
 | P016 | P1     | 死代码     | `presentation/widgets/object_card.dart:7` | 未使用的 import：FieldHistoryService | `[x]` 误报 — import 提供 `fieldHistoriesProvider`，在 L481/L1325 使用 |
 | P017 | P1     | 性能       | `core/services/profile_storage_service.dart:188-201` | saveProfile/deleteProfile 静默吞掉所有异常，无日志无诊断 | `[x]` 已修复 |
 | P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[x]` 已修复 |
@@ -31,19 +31,19 @@
 | P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[x]` 已修复 |
 | P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[ ]` 待修复 |
 | P022 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart`（12处） | `!` 操作符在 selectedAccountId 上使用，绕过空安全检查 | `[x]` 已修复 — null 守卫后存为局部变量 |
-| P023 | P2     | 可优化代码 | `presentation/pages/trash_page.dart`（1046行） | 超长文件：建议拆分 | `[ ]` 待修复 |
-| P024 | P2     | 可优化代码 | `presentation/pages/data_management_page.dart`（968行） | 超长文件：建议拆分 | `[ ]` 待修复 |
-| P025 | P2     | 可优化代码 | `presentation/widgets/app_sidebar.dart`（965行） | 超长文件：建议拆分 | `[ ]` 待修复 |
-| P026 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart` | unlockVaultWithBiometric 方法过长（~78行） | `[ ]` 待修复 |
-| P027 | P2     | 漏洞       | `presentation/providers/auth/auth_helpers.dart:18-32` | constantTimeEquals 在 Dart 中无法保证恒定时间 | `[ ]` 待修复 |
+| P023 | P2     | 可优化代码 | `presentation/pages/trash_page.dart`（1046行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为1个独立Widget，1011→614行 (-39%) |
+| P024 | P2     | 可优化代码 | `presentation/pages/data_management_page.dart`（968行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为2个独立Widget，969→847行 (-13%) |
+| P025 | P2     | 可优化代码 | `presentation/widgets/app_sidebar.dart`（965行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为4个独立Widget，965→439行 (-54%) |
+| P026 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart` | unlockVaultWithBiometric 方法过长（~78行） | `[x]` 已优化 — P022 修复后 accountId 提取为局部变量，结构已清晰 |
+| P027 | P2     | 漏洞       | `presentation/providers/auth/auth_helpers.dart:18-32` | constantTimeEquals 在 Dart 中无法保证恒定时间 | `[ ]` 待修复 — 需迁移到 Rust FFI |
 | P028 | P2     | 漏洞       | `core/services/debug_logger.dart:51-68` | 敏感数据脱敏仅靠正则表达式，存在遗漏风险 | `[ ]` 待修复 |
 | P029 | P1     | 可优化代码 | `presentation/pages/settings_page.dart:1112-1147` | `_SloganChip` 将 ThemeData 作为构造参数传入，Widget 对主题变化不透明（复核发现） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：14 / 29
-- 当前处理：P022
+- 已完成：26 / 29
 - 暂缓：P019（需重构存储架构）
+- 待修复：P021（~28处裸 `on Exception catch (e)`）、P027（constantTimeEquals 需迁移到 Rust FFI）、P028（debug 日志正则脱敏可被绕过）
 
 ---
 
@@ -337,9 +337,9 @@ formState.validate();
 |----|------|----------|
 | P021 | ~28处裸 `on Exception catch (e)` | 指定具体异常类型 |
 | P022 | 12处 `selectedAccountId!` 空断言 | 空检查后存为局部变量 |
-| P023 | trash_page.dart 1046行 | 拆分为多个文件 |
-| P024 | data_management_page.dart 968行 | 拆分为多个文件 |
-| P025 | app_sidebar.dart 965行 | 拆分为多个文件 |
+| P023 | ~~trash_page.dart 1046行~~ | ~~拆分为多个文件~~ ✅ 已修复 |
+| P024 | ~~data_management_page.dart 968行~~ | ~~拆分为多个文件~~ ✅ 已修复 |
+| P025 | ~~app_sidebar.dart 965行~~ | ~~拆分为多个文件~~ ✅ 已修复 |
 | P026 | unlockVaultWithBiometric ~78行 | 拆分为多个步骤方法 |
 | P027 | constantTimeEquals 非恒定时间 | 将哈希比较移入 Rust |
 | P028 | debug 日志正则脱敏可被绕过 | 改用结构化标记方案 |
