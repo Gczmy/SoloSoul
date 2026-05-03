@@ -150,7 +150,7 @@ class BiometricCredentialService {
         'createdAt': DateTime.now().toIso8601String(),
       };
 
-      await _fallbackStorage.write(
+      await _rawSecureStorage.write(
         key: '$_credentialKeyPrefix$accountId',
         value: jsonEncode(envelope),
       );
@@ -185,7 +185,7 @@ class BiometricCredentialService {
       }
 
       // 2. Read credential envelope
-      final envelopeJson = await _fallbackStorage.read(
+      final envelopeJson = await _rawSecureStorage.read(
         key: '$_credentialKeyPrefix$accountId',
       );
       if (envelopeJson == null || envelopeJson.isEmpty) {
@@ -276,7 +276,7 @@ class BiometricCredentialService {
 
   /// Clear the biometric credential for an account.
   Future<void> clearBiometricCredential(String accountId) async {
-    await _fallbackStorage.delete(key: '$_credentialKeyPrefix$accountId');
+    await _rawSecureStorage.delete(key: '$_credentialKeyPrefix$accountId');
     SoloLog.d('BioCred', 'Credential cleared for $accountId');
   }
 
