@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
+import 'package:solosoul_flutter/presentation/utils/format_utils.dart';
 
 /// Data Management page — full-screen backup & restore UI.
 class DataManagementPage extends ConsumerStatefulWidget {
@@ -45,7 +46,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
     final stats = await RustVaultService.instance.getVaultStats();
     if (stats != null) {
-      _vaultDataSize = _formatBytes(stats.totalSizeBytes.toInt());
+      _vaultDataSize = formatBytes(stats.totalSizeBytes.toInt());
     }
 
     final packageInfo = await PackageInfo.fromPlatform();
@@ -776,7 +777,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                           ),
                           title: Text(entry.displayTime),
                           subtitle: Text(
-                            _formatBytes(entry.sizeBytes),
+                            formatBytes(entry.sizeBytes),
                             style: theme.textTheme.bodySmall,
                           ),
                           trailing: Row(
@@ -817,7 +818,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Center(
                         child: Text(
-                          '${_backups.length} regular backup(s) · total ${_formatBytes(totalSize)}',
+                          '${_backups.length} regular backup(s) · total ${formatBytes(totalSize)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -909,7 +910,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                             ),
                             title: Text(displayName),
                             subtitle: Text(
-                              '${entry.displayTime}  ·  ${_formatBytes(entry.sizeBytes)}',
+                              '${entry.displayTime}  ·  ${formatBytes(entry.sizeBytes)}',
                               style: theme.textTheme.bodySmall,
                             ),
                             trailing: Row(
@@ -958,11 +959,5 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
               ),
             ),
     );
-  }
-
-  String _formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }

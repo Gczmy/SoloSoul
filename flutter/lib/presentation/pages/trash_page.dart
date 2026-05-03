@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // ignore_for_file: use_build_context_synchronously
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/utils/log_section_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -427,7 +428,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                 if (logSection != null) {
                   final properties = <String, String>{
                     for (final entry in obj.properties.entries)
-                      entry.key: _propValueToString(entry.value),
+                      entry.key: propValueToString(entry.value),
                   };
                   final propertyLevels = <String, String>{
                     for (final entry in obj.properties.entries)
@@ -586,7 +587,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       if (logSection != null) {
         final properties = <String, String>{
           for (final entry in object.properties.entries)
-            entry.key: _propValueToString(entry.value),
+            entry.key: propValueToString(entry.value),
         };
         final propertyLevels = <String, String>{
           for (final entry in object.properties.entries)
@@ -609,20 +610,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         );
       }
     }
-  }
-
-  /// Convert a PropertyValue to its string representation.
-  String _propValueToString(PropertyValue value) {
-    return switch (value) {
-      TextProperty(:final text) => text,
-      NumberProperty(:final value) => value?.toString() ?? '',
-      DateProperty(:final isoDate) => isoDate ?? '',
-      CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
-      SelectProperty(:final selectedId) => selectedId ?? '',
-      MultiSelectProperty(:final selectedIds) => selectedIds.join(', '),
-      RelationProperty(:final targetObjectId) => targetObjectId ?? '',
-      UrlProperty(:final url) => url ?? '',
-    };
   }
 
   /// Map typeId to LogSection for operation logging.
@@ -654,7 +641,7 @@ class _UnifiedObjectTrashCard extends ConsumerWidget {
     final isExpiringSoon = daysRemaining <= 7;
 
     // History lookup
-    final fieldPrefix = _fieldPrefixForTypeId(object.typeId ?? '');
+    final fieldPrefix = fieldPrefixForTypeId(object.typeId ?? '');
     final history = fieldPrefix.isNotEmpty
         ? ref.watch(fieldHistoriesProvider.select((h) => h.getHistory(object.id, fieldPrefix)))
         : null;
@@ -899,7 +886,7 @@ class _UnifiedObjectTrashCard extends ConsumerWidget {
   }
 
   void _showDetailDialog(BuildContext context, WidgetRef ref) {
-    final fieldPrefix = _fieldPrefixForTypeId(object.typeId ?? '');
+    final fieldPrefix = fieldPrefixForTypeId(object.typeId ?? '');
     final deletedAt = object.deletedAt;
     showDialog(
       context: context,
@@ -1021,26 +1008,4 @@ class _UnifiedObjectTrashCard extends ConsumerWidget {
       return 'Just now';
     }
   }
-}
-
-/// Map typeId to field-prefix used by FieldRegistry.
-String _fieldPrefixForTypeId(String typeId) {
-  return switch (typeId) {
-    'profile_identity' => 'identity',
-    'profile_contact' => 'contact',
-    'profile_id_card' => 'idCard',
-    'profile_address' => 'address',
-    'travel_passport' => 'passport',
-    'travel_visa' => 'visa',
-    'travel_history' => 'travel',
-    'financial_bank_account' => 'bankAccount',
-    'financial_card' => 'card',
-    'financial_tax_id' => 'taxId',
-    'professional_education' => 'education',
-    'professional_employment' => 'employment',
-    'professional_skill' => 'skill',
-    'professional_language' => 'language',
-    'professional_award' => 'award',
-    _ => typeId,
-  };
 }

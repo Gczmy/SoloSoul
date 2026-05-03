@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart'
@@ -172,11 +172,11 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (widget.nameExtractor != null) {
       final props = <String, String>{
         for (final entry in item.properties.entries)
-          entry.key: _propValueToString(entry.value),
+          entry.key: propValueToString(entry.value),
       };
       return widget.nameExtractor!(props);
     }
-    return _objectItemDisplayTitle(item);
+    return objectItemDisplayTitle(item);
   }
 
 
@@ -234,7 +234,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (widget.nameExtractor != null) {
       final props = <String, String>{
         for (final entry in properties.entries)
-          entry.key: _propValueToString(entry.value),
+          entry.key: propValueToString(entry.value),
       };
       name = widget.nameExtractor!(props);
     } else {
@@ -408,9 +408,9 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         for (final key in allKeys) {
           final value = item.properties[key];
           final textValue = value != null
-              ? _propValueToString(value)
+              ? propValueToString(value)
               : _template[key] != null
-                  ? _propValueToString(_template[key]!)
+                  ? propValueToString(_template[key]!)
                   : '';
           _editControllers[key] = TextEditingController(text: textValue);
           _originalValues[key] = textValue;
@@ -465,7 +465,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (widget.nameExtractor != null) {
       final props = <String, String>{
         for (final entry in updatedProps.entries)
-          entry.key: _propValueToString(entry.value),
+          entry.key: propValueToString(entry.value),
       };
       name = widget.nameExtractor!(props);
     } else {
@@ -477,7 +477,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (accountId != null) {
       final oldValues = <String, String>{};
       for (final entry in item.properties.entries) {
-        oldValues[entry.key] = _propValueToString(entry.value);
+        oldValues[entry.key] = propValueToString(entry.value);
       }
       await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
         accountId: accountId,
@@ -857,7 +857,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               });
             },
           ),
-          Text(_formatLabel(key)),
+          Text(formatLabel(key)),
           const SizedBox(width: 8),
           SensitivityTag(level: value.sensitivity),
         ],
@@ -871,7 +871,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               maxLength: kMaxPropertyLength,
               buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
               decoration: InputDecoration(
-                labelText: _formatLabel(key),
+                labelText: formatLabel(key),
                 border: const OutlineInputBorder(),
                 suffixIcon: Padding(
                   padding: const EdgeInsets.only(right: 12),
@@ -1015,7 +1015,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       }
       for (final entry in item.properties.entries) {
         if (internalKeys.contains(entry.key)) continue;
-        final value = _propValueToString(entry.value);
+        final value = propValueToString(entry.value);
         if (value.isEmpty) continue;
         buffer.writeln('  ${entry.key}: $value');
       }
@@ -1039,65 +1039,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       doCopy();
     }
   }
-}
-
-// =============================================================================
-// File-level helpers (used by sub-widgets)
-// =============================================================================
-
-String _propValueToString(PropertyValue value) {
-  return switch (value) {
-    TextProperty(:final text) => text,
-    NumberProperty(:final value) => value?.toString() ?? '',
-    DateProperty(:final isoDate) => isoDate ?? '',
-    CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
-    SelectProperty(:final selectedId) => selectedId ?? '',
-    _ => '',
-  };
-}
-
-/// camelCase / snake_case → Title Case (e.g. "givenName" → "Given Name", "visa_type" → "Visa Type")
-String _formatLabel(String key) => formatFieldLabel(key);
-
-String _wrapEveryNChars(String text, int n) {
-  if (text.length <= n) return '$text: ';
-  final buffer = StringBuffer();
-  for (var i = 0; i < text.length; i += n) {
-    if (i > 0) buffer.write('\n');
-    buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
-  }
-  buffer.write(': ');
-  return buffer.toString();
-}
-
-/// Get the display title for an item.
-/// Uses [nameExtractor] if provided, otherwise falls back to [titlePropertyKey]
-/// and finally [item.name].
-String _objectItemDisplayTitle(
-  UnifiedObject item, {
-  String Function(Map<String, String>)? nameExtractor,
-  String titlePropertyKey = 'Title',
-}) {
-  if (nameExtractor != null) {
-    final props = <String, String>{
-      for (final entry in item.properties.entries)
-        entry.key: _propValueToString(entry.value),
-    };
-    final extracted = nameExtractor(props);
-    if (extracted.isNotEmpty && extracted != 'Untitled') {
-      return extracted;
-    }
-  }
-  final titleProp = item.properties[titlePropertyKey];
-  if (titleProp is TextProperty && titleProp.text.isNotEmpty) {
-    return titleProp.text;
-  }
-  // Legacy fallback for old 'Item Name' property
-  final oldNameProp = item.properties['Item Name'];
-  if (oldNameProp is TextProperty && oldNameProp.text.isNotEmpty) {
-    return oldNameProp.text;
-  }
-  return item.name;
 }
 
 // =============================================================================
@@ -1222,7 +1163,7 @@ class _ObjectCardPropertiesList extends StatelessWidget {
         final sensitivity = entry.value.sensitivity;
         final isSensitive = sensitivity == SensitivityLevel.sensitive ||
             sensitivity == SensitivityLevel.critical;
-        final valueStr = _propValueToString(entry.value);
+        final valueStr = propValueToString(entry.value);
         final isEmptyValue = valueStr.isEmpty;
 
         return Padding(
@@ -1232,7 +1173,7 @@ class _ObjectCardPropertiesList extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 160),
                 child: SelectableText(
-                  _wrapEveryNChars(_formatLabel(entry.key), 12),
+                  wrapEveryNChars(formatLabel(entry.key), 12),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -1383,7 +1324,7 @@ class _ObjectCardItemTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SelectableText(
-                      _objectItemDisplayTitle(
+                      objectItemDisplayTitle(
                         item,
                         nameExtractor: nameExtractor,
                         titlePropertyKey: titlePropertyKey,
