@@ -164,8 +164,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       return await _unlockVaultInner(accountId, password);
     } on Object catch (e, st) {
       // Top-level safety net — never let an unhandled exception silently fail
-      // ignore: avoid_print
-      print('[UNLOCK-DEBUG] UNHANDLED EXCEPTION: $e');
       SoloLog.e('Auth', 'unlockVault UNHANDLED EXCEPTION', e, st);
       _lastUnlockError = 'Internal error: $e';
       state = const AsyncData(AuthState.locked);
@@ -177,21 +175,15 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<bool> _unlockVaultInner(String accountId, String password) async {
     // Step 1: Unlock Rust vault
-    // ignore: avoid_print
-    print('[UNLOCK-DEBUG] Step1: calling RustVaultService.unlockVault for $accountId');
     final timer1 = SoloLog.startTimer('Auth', 'RustVaultService.unlockVault');
     final vaultResult = await _vaultUnlockService.unlockVault(
       accountId: accountId,
       password: password,
     );
     SoloLog.endTimer(timer1);
-    // ignore: avoid_print
-    print('[UNLOCK-DEBUG] Step1 result: success=${vaultResult.success}, error=${vaultResult.error}, cv=${vaultResult.cryptoVersion}');
     SoloLog.d('Auth', 'Step1 result: success=${vaultResult.success}, error=${vaultResult.error}, cv=${vaultResult.cryptoVersion}');
 
     if (!vaultResult.success) {
-      // ignore: avoid_print
-      print('[UNLOCK-DEBUG] Step1 FAILED: ${vaultResult.error}');
       SoloLog.e('Auth', 'Step1 FAILED: ${vaultResult.error}');
       _lastUnlockError = vaultResult.error ?? 'Invalid password';
       state = const AsyncData(AuthState.locked);
@@ -201,25 +193,17 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     // Step 2: Non-critical post-unlock tasks (migration, Keychain sync).
     // These run asynchronously and NEVER block the unlock flow.
     // The vault is already open — if these fail, the user can still use the app.
-    // ignore: avoid_print
-    print('[UNLOCK-DEBUG] Step2: Scheduling post-unlock tasks (non-blocking)');
     SoloLog.d('Auth', 'Step2: Scheduling post-unlock tasks (non-blocking)');
 
     // Fire-and-forget: try to sync account data to Keychain in background
     unawaited(_postUnlockSync(accountId, vaultResult.cryptoVersion ?? 2).catchError((Object e) {
-      // ignore: avoid_print
-      print('[UNLOCK-DEBUG] Step2: post-unlock sync error (ignored): $e');
     }));
 
     // Step 3: Validate salt availability (session key is managed by Rust).
     // The vault is already unlocked (Step 1 succeeded), so salt is valid.
     // Just log that we're good — no need to re-validate.
-    // ignore: avoid_print
-    print('[UNLOCK-DEBUG] Step3: Vault already unlocked, salt validated by Rust');
     SoloLog.d('Auth', 'Step3: Vault already unlocked, salt validated by Rust');
 
-    // ignore: avoid_print
-    print('[UNLOCK-DEBUG] UNLOCK SUCCESS — vault is unlocked');
     SoloLog.d('Auth', 'UNLOCK SUCCESS — vault is unlocked, proceeding to home');
     state = const AsyncData(AuthState.unlocked);
 
@@ -245,12 +229,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
           'verify_hash': rustCfg.verifyHash,
           'crypto_version': cryptoVersion,
         });
-        // ignore: avoid_print
-        print('[UNLOCK-DEBUG] postUnlockSync: Synced account data to Keychain from Rust config');
       }
-    } on Object catch (e) {
-      // ignore: avoid_print
-      print('[UNLOCK-DEBUG] postUnlockSync error (ignored): $e');
+    } on Object {
+      // non-fatal — post-unlock sync failure does not block the app
     }
   }
 
