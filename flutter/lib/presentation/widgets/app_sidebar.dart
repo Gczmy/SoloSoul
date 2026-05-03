@@ -379,6 +379,13 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           onTap: () => context.go(AppRoutes.trash),
                         ),
                         NavTile(
+                          icon: Icons.sync,
+                          label: 'Sync',
+                          expanded: _expanded,
+                          selected: location == AppRoutes.sync,
+                          onTap: () => context.go(AppRoutes.sync),
+                        ),
+                        NavTile(
                           icon: Icons.settings_outlined,
                           label: 'Settings',
                           expanded: _expanded,

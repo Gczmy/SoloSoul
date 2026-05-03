@@ -1,0 +1,703 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:solosoul_flutter/core/services/sync_service.dart';
+import 'package:solosoul_flutter/frb/api.dart' as frb;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sync_provider.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+
+class SyncPage extends ConsumerStatefulWidget {
+  const SyncPage({super.key});
+
+  @override
+  ConsumerState<SyncPage> createState() => _SyncPageState();
+}
+
+class _SyncPageState extends ConsumerState<SyncPage> {
+  final _pairingKeyController = TextEditingController();
+  final _addressController = TextEditingController();
+  bool _isPairingKeyVisible = false;
+
+  @override
+  void dispose() {
+    _pairingKeyController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final syncState = ref.watch(syncProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Device Sync'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: AppTheme.kPagePadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status Banner
+            if (syncState.status == SyncStatus.syncing)
+              _StatusBanner(
+                icon: Icons.sync,
+                message: 'Synchronizing...',
+                color: theme.colorScheme.primary,
+              )
+            else if (syncState.status == SyncStatus.success)
+              _StatusBanner(
+                icon: Icons.check_circle,
+                message: syncState.lastResult != null
+                  ? _syncResultText(syncState.lastResult!)
+                  : 'Sync complete',
+                color: Colors.green,
+              )
+            else if (syncState.status == SyncStatus.error)
+              _StatusBanner(
+                icon: Icons.error_outline,
+                message: syncState.errorMessage ?? 'Unknown error',
+                color: theme.colorScheme.error,
+              ),
+
+            const SizedBox(height: 16),
+
+            // Device Discovery Section
+            const _SectionHeader(
+              title: 'Device Discovery',
+              icon: Icons.radar,
+            ),
+            const SizedBox(height: 12),
+            _DiscoveryCard(
+              syncState: syncState,
+              onDiscover: () => ref
+                  .read(syncProvider.notifier)
+                  .discoverDevices(timeoutMs: 5000),
+              onDeviceTap: (device) => _showSyncDialog(device),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Manual Connection Section
+            const _SectionHeader(
+              title: 'Manual Connection',
+              icon: Icons.link,
+            ),
+            const SizedBox(height: 12),
+            _ManualConnectionCard(
+              addressController: _addressController,
+              pairingKeyController: _pairingKeyController,
+              isPairingKeyVisible: _isPairingKeyVisible,
+              onToggleVisibility: () =>
+                  setState(() => _isPairingKeyVisible = !_isPairingKeyVisible),
+              onConnect: _handleManualConnect,
+              isSyncing: syncState.status == SyncStatus.syncing,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Pairing Key Section
+            const _SectionHeader(
+              title: 'Pairing Key',
+              icon: Icons.vpn_key,
+            ),
+            const SizedBox(height: 12),
+            _PairingKeyCard(
+              onGenerateKey: _handleGenerateKey,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Last Sync Result
+            if (syncState.lastResult != null) ...[
+              const _SectionHeader(
+                title: 'Last Sync',
+                icon: Icons.history,
+              ),
+              const SizedBox(height: 12),
+              _SyncResultCard(result: syncState.lastResult!),
+            ],
+
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _syncResultText(frb.SyncResult result) {
+    if (!result.success) return 'Sync failed: ${result.error ?? 'unknown error'}';
+    return switch (result.direction) {
+      frb.SyncDirection.pushed => 'Pushed local changes',
+      frb.SyncDirection.pulled => 'Pulled remote changes',
+      frb.SyncDirection.merged => 'Merged changes from both devices',
+      frb.SyncDirection.noChange => 'Already in sync',
+    };
+  }
+
+  void _showSyncDialog(frb.DiscoveredDevice device) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => _SyncDialog(
+        device: device,
+        onSync: (pairingKey) => _handleDeviceSync(device, pairingKey),
+      ),
+    );
+  }
+
+  Future<void> _handleDeviceSync(
+    frb.DiscoveredDevice device,
+    List<int> pairingKey,
+  ) async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No active account for sync')),
+        );
+      }
+      return;
+    }
+
+    final deviceSalt = await SyncService.instance.generateDeviceSalt();
+    await ref.read(syncProvider.notifier).syncWithDevice(
+          accountId: accountId,
+          device: device,
+          pairingKey: pairingKey,
+          deviceSalt: deviceSalt,
+        );
+  }
+
+  Future<void> _handleManualConnect() async {
+    final address = _addressController.text.trim();
+    final pairingKeyHex = _pairingKeyController.text.trim();
+
+    if (address.isEmpty || pairingKeyHex.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter address and pairing key')),
+      );
+      return;
+    }
+
+    final pairingKey = _hexToBytes(pairingKeyHex);
+    if (pairingKey == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid pairing key hex')),
+      );
+      return;
+    }
+
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No active account for sync')),
+        );
+      }
+      return;
+    }
+
+    final deviceSalt = await SyncService.instance.generateDeviceSalt();
+    await ref.read(syncProvider.notifier).syncWithAddress(
+          accountId: accountId,
+          remoteAddr: address,
+          pairingKey: pairingKey,
+          deviceSalt: deviceSalt,
+        );
+  }
+
+  Future<void> _handleGenerateKey() async {
+    final key = await SyncService.instance.generatePairingKey();
+    final hex = key.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    await Clipboard.setData(ClipboardData(text: hex));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pairing key copied to clipboard')),
+      );
+    }
+  }
+
+  List<int>? _hexToBytes(String hex) {
+    hex = hex.replaceAll(RegExp(r'\s+'), '');
+    if (hex.length % 2 != 0) return null;
+    try {
+      return List.generate(
+        hex.length ~/ 2,
+        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
+      );
+    } on FormatException {
+      return null;
+    }
+  }
+}
+
+// =============================================================================
+// Private Widgets
+// =============================================================================
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _SectionHeader({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusBanner extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final Color color;
+
+  const _StatusBanner({
+    required this.icon,
+    required this.message,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(76)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: color, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 300.ms);
+  }
+}
+
+class _DiscoveryCard extends StatelessWidget {
+  final SyncState syncState;
+  final VoidCallback onDiscover;
+  final void Function(frb.DiscoveredDevice) onDeviceTap;
+
+  const _DiscoveryCard({
+    required this.syncState,
+    required this.onDiscover,
+    required this.onDeviceTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDiscovering = syncState.status == SyncStatus.discovering;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Scan for nearby SoloSoul devices on your local network.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  onPressed: isDiscovering ? null : onDiscover,
+                  icon: isDiscovering
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.search, size: 18),
+                  label: Text(isDiscovering ? 'Scanning...' : 'Scan'),
+                ),
+              ],
+            ),
+            if (syncState.devices.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Text(
+                'Found ${syncState.devices.length} device(s)',
+                style: theme.textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              ...syncState.devices.map(
+                (device) => _DeviceTile(
+                  device: device,
+                  onTap: () => onDeviceTap(device),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DeviceTile extends StatelessWidget {
+  final frb.DiscoveredDevice device;
+  final VoidCallback onTap;
+
+  const _DeviceTile({required this.device, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListTile(
+      leading: Icon(
+        _deviceIcon(device.name),
+        color: theme.colorScheme.primary,
+      ),
+      title: Text(device.name),
+      subtitle: Text(
+        device.addresses.isNotEmpty ? device.addresses.first : device.host,
+        style: theme.textTheme.bodySmall,
+      ),
+      trailing: const Icon(Icons.sync, size: 20),
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  IconData _deviceIcon(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('mac')) return Icons.laptop_mac;
+    if (lower.contains('iphone') || lower.contains('ios')) {
+      return Icons.phone_iphone;
+    }
+    if (lower.contains('android')) return Icons.phone_android;
+    if (lower.contains('windows')) return Icons.desktop_windows;
+    if (lower.contains('linux')) return Icons.computer;
+    return Icons.devices;
+  }
+}
+
+class _ManualConnectionCard extends StatelessWidget {
+  final TextEditingController addressController;
+  final TextEditingController pairingKeyController;
+  final bool isPairingKeyVisible;
+  final VoidCallback onToggleVisibility;
+  final VoidCallback onConnect;
+  final bool isSyncing;
+
+  const _ManualConnectionCard({
+    required this.addressController,
+    required this.pairingKeyController,
+    required this.isPairingKeyVisible,
+    required this.onToggleVisibility,
+    required this.onConnect,
+    required this.isSyncing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: addressController,
+              decoration: const InputDecoration(
+                labelText: 'Remote Address',
+                hintText: '192.168.1.5:9900',
+                prefixIcon: Icon(Icons.computer),
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: pairingKeyController,
+              decoration: InputDecoration(
+                labelText: 'Pairing Key (hex)',
+                hintText: 'Enter shared pairing key',
+                prefixIcon: const Icon(Icons.vpn_key),
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    isPairingKeyVisible
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                  onPressed: onToggleVisibility,
+                ),
+              ),
+              obscureText: !isPairingKeyVisible,
+              maxLines: 1,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: isSyncing ? null : onConnect,
+                icon: isSyncing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.sync, size: 18),
+                label: Text(isSyncing ? 'Syncing...' : 'Connect & Sync'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PairingKeyCard extends StatelessWidget {
+  final VoidCallback onGenerateKey;
+
+  const _PairingKeyCard({required this.onGenerateKey});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Generate a shared pairing key to establish a secure connection '
+              'between devices. Both devices must use the same key.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: onGenerateKey,
+              icon: const Icon(Icons.key, size: 18),
+              label: const Text('Generate & Copy Key'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SyncResultCard extends StatelessWidget {
+  final frb.SyncResult result;
+
+  const _SyncResultCard({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ResultRow(
+              label: 'Status',
+              value: result.success ? 'Success' : 'Failed',
+              icon: result.success ? Icons.check_circle : Icons.error_outline,
+            ),
+            const SizedBox(height: 8),
+            _ResultRow(
+              label: 'Direction',
+              value: _directionText(result.direction),
+              icon: _directionIcon(result.direction),
+            ),
+            const SizedBox(height: 8),
+            _ResultRow(
+              label: 'Data',
+              value: '${result.bytesSent} sent / ${result.bytesReceived} received',
+              icon: Icons.swap_vert,
+            ),
+            if (result.error != null && result.error!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _ResultRow(
+                label: 'Error',
+                value: result.error!,
+                icon: Icons.error_outline,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _directionText(frb.SyncDirection direction) {
+    return switch (direction) {
+      frb.SyncDirection.pushed => 'Push',
+      frb.SyncDirection.pulled => 'Pull',
+      frb.SyncDirection.merged => 'Merged',
+      frb.SyncDirection.noChange => 'No Change',
+    };
+  }
+
+  IconData _directionIcon(frb.SyncDirection direction) {
+    return switch (direction) {
+      frb.SyncDirection.pushed => Icons.upload,
+      frb.SyncDirection.pulled => Icons.download,
+      frb.SyncDirection.merged => Icons.merge,
+      frb.SyncDirection.noChange => Icons.check_circle_outline,
+    };
+  }
+}
+
+class _ResultRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _ResultRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Expanded(
+          child: Text(value, style: theme.textTheme.bodyMedium),
+        ),
+      ],
+    );
+  }
+}
+
+class _SyncDialog extends StatefulWidget {
+  final frb.DiscoveredDevice device;
+  final void Function(List<int> pairingKey) onSync;
+
+  const _SyncDialog({required this.device, required this.onSync});
+
+  @override
+  State<_SyncDialog> createState() => _SyncDialogState();
+}
+
+class _SyncDialogState extends State<_SyncDialog> {
+  final _keyController = TextEditingController();
+  bool _isObscured = true;
+
+  @override
+  void dispose() {
+    _keyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Sync with ${widget.device.name}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Enter the pairing key shared from the other device.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _keyController,
+            decoration: InputDecoration(
+              labelText: 'Pairing Key (hex)',
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isObscured ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () => setState(() => _isObscured = !_isObscured),
+              ),
+            ),
+            obscureText: _isObscured,
+            autofocus: true,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final hex = _keyController.text.trim();
+            final bytes = _hexToBytes(hex);
+            if (bytes == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Invalid pairing key hex')),
+              );
+              return;
+            }
+            Navigator.pop(context);
+            widget.onSync(bytes);
+          },
+          child: const Text('Sync'),
+        ),
+      ],
+    );
+  }
+
+  List<int>? _hexToBytes(String hex) {
+    hex = hex.replaceAll(RegExp(r'\s+'), '');
+    if (hex.length % 2 != 0) return null;
+    try {
+      return List.generate(
+        hex.length ~/ 2,
+        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
+      );
+    } on FormatException {
+      return null;
+    }
+  }
+}

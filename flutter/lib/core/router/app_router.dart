@@ -15,6 +15,7 @@ import 'package:solosoul_flutter/presentation/pages/operation_log_page.dart';
 import 'package:solosoul_flutter/presentation/pages/sensitivity_settings_page.dart';
 import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/search_page.dart';
+import 'package:solosoul_flutter/presentation/pages/sync_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_workspace_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart';
 import 'package:solosoul_flutter/presentation/pages/page_editor_page.dart';
@@ -41,6 +42,7 @@ class AppRoutes {
   static const String objects = '/objects';
   static const String objectEditor = '/object_editor';
   static const String pageEditor = '/page_editor';
+  static const String sync = '/sync';
 }
 
 /// Pages that don't require authentication
@@ -168,6 +170,10 @@ GoRouter createRouter(WidgetRef ref) {
                 parentId: parentId,
               );
             },
+          ),
+          GoRoute(
+            path: AppRoutes.sync,
+            builder: (context, state) => const SyncPage(),
           ),
         ],
       ),
