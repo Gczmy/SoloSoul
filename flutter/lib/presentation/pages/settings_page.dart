@@ -783,25 +783,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   void _showAllAccountsSheet(
-    BuildContext context,
+    BuildContext parentContext,
     WidgetRef ref,
     List<AccountInfo> accounts,
   ) {
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AllAccountsSheet(
+      builder: (sheetContext) => AllAccountsSheet(
         accounts: accounts,
         selectedAccountId: ref
             .read(authNotifierProvider.notifier)
             .selectedAccountId,
         onSelectAccount: (accountId) async {
           final authNotifier = ref.read(authNotifierProvider.notifier);
+          // Lock vault first so GoRouter redirect allows /login
+          await authNotifier.lockVault();
           await authNotifier.selectAccount(accountId);
-          if (context.mounted) {
-            Navigator.pop(context);
-            context.go(AppRoutes.login);
+          if (parentContext.mounted) {
+            GoRouter.of(parentContext).go(AppRoutes.login);
           }
         },
       ),
