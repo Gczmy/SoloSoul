@@ -8,8 +8,8 @@
 //! - CRDT-based profile replication
 
 pub mod crdt;
-mod engine;
-mod protocol;
+pub mod engine;
+pub mod protocol;
 pub mod transport;
 
 pub use engine::*;

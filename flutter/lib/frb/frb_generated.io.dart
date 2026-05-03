@@ -50,6 +50,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CreateAccountResult dco_decode_create_account_result(dynamic raw);
 
   @protected
+  DiscoveredDevice dco_decode_discovered_device(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
@@ -62,7 +65,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
   List<AccountInfo> dco_decode_list_account_info(dynamic raw);
+
+  @protected
+  List<DiscoveredDevice> dco_decode_list_discovered_device(dynamic raw);
 
   @protected
   List<FieldHistoryEntry> dco_decode_list_field_history_entry(dynamic raw);
@@ -113,6 +122,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SensitivityLevel dco_decode_sensitivity_level(dynamic raw);
+
+  @protected
+  SyncDirection dco_decode_sync_direction(dynamic raw);
+
+  @protected
+  SyncResult dco_decode_sync_result(dynamic raw);
+
+  @protected
+  int dco_decode_u_16(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -175,6 +193,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  DiscoveredDevice sse_decode_discovered_device(SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
@@ -189,7 +210,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
   List<AccountInfo> sse_decode_list_account_info(SseDeserializer deserializer);
+
+  @protected
+  List<DiscoveredDevice> sse_decode_list_discovered_device(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<FieldHistoryEntry> sse_decode_list_field_history_entry(
@@ -248,6 +277,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SensitivityLevel sse_decode_sensitivity_level(SseDeserializer deserializer);
+
+  @protected
+  SyncDirection sse_decode_sync_direction(SseDeserializer deserializer);
+
+  @protected
+  SyncResult sse_decode_sync_result(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_16(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -315,6 +353,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_discovered_device(
+    DiscoveredDevice self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
@@ -330,8 +374,17 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_account_info(
     List<AccountInfo> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_discovered_device(
+    List<DiscoveredDevice> self,
     SseSerializer serializer,
   );
 
@@ -403,6 +456,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     SensitivityLevel self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_sync_direction(SyncDirection self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_sync_result(SyncResult self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_16(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

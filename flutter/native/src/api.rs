@@ -587,3 +587,275 @@ pub fn frb_decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>
 pub fn frb_constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
     crate::crypto::utils::constant_time_compare(&a, &b)
 }
+
+// ============================================================================
+// Sync — Device-to-Device Synchronization
+// ============================================================================
+
+/// Direction of sync result
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum SyncDirection {
+    /// Local changes pushed to remote
+    Pushed,
+    /// Remote changes pulled to local
+    Pulled,
+    /// Both sides had changes, merged via CRDT
+    Merged,
+    /// No changes on either side
+    NoChange,
+}
+
+/// Result of a sync operation
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SyncResult {
+    pub success: bool,
+    pub direction: SyncDirection,
+    pub bytes_sent: usize,
+    pub bytes_received: usize,
+    pub error: Option<String>,
+}
+
+/// Discovered device on the local network
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DiscoveredDevice {
+    pub name: String,
+    pub host: String,
+    pub port: u16,
+    pub addresses: Vec<String>,
+}
+
+/// Discover SoloSoul devices on the local network via mDNS.
+/// Returns a list of discovered devices after waiting for [timeout_ms].
+#[frb]
+pub fn frb_mdns_discover(timeout_ms: u64) -> Result<Vec<DiscoveredDevice>, String> {
+    let discovery = crate::discovery::mdns::MdnsDiscovery::new()?;
+    let devices = discovery.browse(timeout_ms)?;
+    Ok(devices
+        .into_iter()
+        .map(|d| DiscoveredDevice {
+            name: d.name,
+            host: d.host,
+            port: d.port,
+            addresses: d.addresses.iter().map(|a| a.to_string()).collect(),
+        })
+        .collect())
+}
+
+/// Advertise this device on the local network via mDNS.
+/// [device_name] should be unique (e.g. account ID or device name).
+/// [port] is the TCP port the sync server listens on.
+#[frb]
+pub fn frb_mdns_advertise(device_name: String, port: u16) -> Result<(), String> {
+    let mut discovery = crate::discovery::mdns::MdnsDiscovery::new()?;
+    discovery.advertise(&device_name, port)
+}
+
+/// Helper: get session key from account manager
+fn get_session_key() -> Result<[u8; 32], String> {
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+    manager
+        .get_session_key()
+        .ok_or("Vault not unlocked".to_string())
+        .map(|k| *k)
+}
+
+/// Helper: decrypt profile data bytes into ProfileData
+fn decrypt_profile_data_bytes(encrypted: &[u8]) -> Result<crate::vault::ProfileData, String> {
+    let key = get_session_key()?;
+    let decrypted = crate::crypto::decrypt_profile_data(&key, encrypted)
+        .map_err(|e| format!("Decrypt failed: {}", e))?;
+    let json = String::from_utf8(decrypted.to_vec())
+        .map_err(|e| format!("Invalid UTF-8: {}", e))?;
+    serde_json::from_str(&json).map_err(|e| format!("JSON parse failed: {}", e))
+}
+
+/// Helper: encrypt ProfileData into bytes
+fn encrypt_profile_data_bytes(profile_data: &crate::vault::ProfileData) -> Result<Vec<u8>, String> {
+    let key = get_session_key()?;
+    let json = serde_json::to_string(profile_data)
+        .map_err(|e| format!("JSON serialize failed: {}", e))?;
+    let encrypted = crate::crypto::encrypt_profile_data(&key, json.as_bytes())
+        .map_err(|e| format!("Encrypt failed: {}", e))?;
+    Ok(encrypted.to_vec())
+}
+
+/// Sync profile with a remote device as the initiator (sends state vector first).
+///
+/// [account_id] identifies the account to sync.
+/// [remote_addr] is the remote device address (e.g. "192.168.1.5:9900").
+/// [pairing_key] is the shared pairing key for Noise handshake.
+/// [device_salt] is this device's unique identifier for key derivation.
+#[frb]
+pub fn frb_sync_initiator(
+    account_id: String,
+    remote_addr: String,
+    pairing_key: Vec<u8>,
+    device_salt: Vec<u8>,
+) -> Result<SyncResult, String> {
+    use crate::sync::engine::SyncEngine;
+    use crate::sync::transport::TcpTransport;
+
+    // 1. Load and decrypt current profile
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+    let vault_guard = manager.get_vault_store();
+    let vault_lock = vault_guard.ok_or("Vault not unlocked")?;
+    let vault = vault_lock.as_ref().ok_or("Vault not unlocked")?;
+
+    let profile = vault
+        .load_profile(&account_id)
+        .map_err(|e| format!("Load profile failed: {}", e))?
+        .ok_or_else(|| format!("Profile not found: {}", account_id))?;
+
+    let profile_data = decrypt_profile_data_bytes(&profile.data)?;
+
+    // 2. Create CRDT doc from profile
+    let meta = crate::sync::crdt::DocMeta {
+        profile_id: account_id.clone(),
+        version: 1,
+        last_modified: chrono::Utc::now().to_rfc3339(),
+    };
+    let crdt_doc = crate::sync::crdt::SoloDoc::from_profile(&profile_data, &meta);
+
+    // 3. Establish Noise channel
+    let local_keypair =
+        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, &device_salt);
+    let responder_keypair =
+        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"remote");
+    let (channel, _) =
+        crate::sync::protocol::SecureChannel::handshake_ik(&local_keypair, &responder_keypair)
+            .map_err(|e| format!("Noise handshake failed: {}", e))?;
+
+    // 4. Connect and sync
+    let transport =
+        TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
+
+    let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport));
+    let result = engine.sync_initiator()?;
+
+    // 5. If we pulled changes, encrypt and save updated profile
+    if matches!(
+        result.direction,
+        crate::sync::engine::SyncDirection::Pulled
+            | crate::sync::engine::SyncDirection::Merged
+    ) {
+        let updated_data = engine.crdt.to_profile()?;
+        let encrypted = encrypt_profile_data_bytes(&updated_data)?;
+        let mut new_profile = profile.clone();
+        new_profile.data = encrypted;
+        new_profile.updated_at = chrono::Utc::now();
+        vault
+            .save_profile(&new_profile)
+            .map_err(|e| format!("Save profile failed: {}", e))?;
+    }
+
+    Ok(SyncResult {
+        success: result.success,
+        direction: match result.direction {
+            crate::sync::engine::SyncDirection::Pushed => SyncDirection::Pushed,
+            crate::sync::engine::SyncDirection::Pulled => SyncDirection::Pulled,
+            crate::sync::engine::SyncDirection::Merged => SyncDirection::Merged,
+            crate::sync::engine::SyncDirection::NoChange => SyncDirection::NoChange,
+        },
+        bytes_sent: result.bytes_sent,
+        bytes_received: result.bytes_received,
+        error: result.error,
+    })
+}
+
+/// Sync profile with a remote device as the responder (receives state vector first).
+///
+/// [account_id] identifies the account to sync.
+/// [remote_addr] is the remote device address (e.g. "192.168.1.5:9900").
+/// [pairing_key] is the shared pairing key for Noise handshake.
+/// [device_salt] is this device's unique identifier for key derivation.
+#[frb]
+pub fn frb_sync_responder(
+    account_id: String,
+    remote_addr: String,
+    pairing_key: Vec<u8>,
+    device_salt: Vec<u8>,
+) -> Result<SyncResult, String> {
+    use crate::sync::engine::SyncEngine;
+    use crate::sync::transport::TcpTransport;
+
+    // 1. Load and decrypt current profile
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+    let vault_guard = manager.get_vault_store();
+    let vault_lock = vault_guard.ok_or("Vault not unlocked")?;
+    let vault = vault_lock.as_ref().ok_or("Vault not unlocked")?;
+
+    let profile = vault
+        .load_profile(&account_id)
+        .map_err(|e| format!("Load profile failed: {}", e))?
+        .ok_or_else(|| format!("Profile not found: {}", account_id))?;
+
+    let profile_data = decrypt_profile_data_bytes(&profile.data)?;
+
+    // 2. Create CRDT doc from profile
+    let meta = crate::sync::crdt::DocMeta {
+        profile_id: account_id.clone(),
+        version: 1,
+        last_modified: chrono::Utc::now().to_rfc3339(),
+    };
+    let crdt_doc = crate::sync::crdt::SoloDoc::from_profile(&profile_data, &meta);
+
+    // 3. Establish Noise channel
+    let local_keypair =
+        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, &device_salt);
+    let initiator_keypair =
+        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"remote");
+    let (_, channel) =
+        crate::sync::protocol::SecureChannel::handshake_ik(&initiator_keypair, &local_keypair)
+            .map_err(|e| format!("Noise handshake failed: {}", e))?;
+
+    // 4. Connect and sync
+    let transport =
+        TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
+
+    let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport));
+    let result = engine.sync_responder()?;
+
+    // 5. If we pulled changes, encrypt and save updated profile
+    if matches!(
+        result.direction,
+        crate::sync::engine::SyncDirection::Pulled
+            | crate::sync::engine::SyncDirection::Merged
+    ) {
+        let updated_data = engine.crdt.to_profile()?;
+        let encrypted = encrypt_profile_data_bytes(&updated_data)?;
+        let mut new_profile = profile.clone();
+        new_profile.data = encrypted;
+        new_profile.updated_at = chrono::Utc::now();
+        vault
+            .save_profile(&new_profile)
+            .map_err(|e| format!("Save profile failed: {}", e))?;
+    }
+
+    Ok(SyncResult {
+        success: result.success,
+        direction: match result.direction {
+            crate::sync::engine::SyncDirection::Pushed => SyncDirection::Pushed,
+            crate::sync::engine::SyncDirection::Pulled => SyncDirection::Pulled,
+            crate::sync::engine::SyncDirection::Merged => SyncDirection::Merged,
+            crate::sync::engine::SyncDirection::NoChange => SyncDirection::NoChange,
+        },
+        bytes_sent: result.bytes_sent,
+        bytes_received: result.bytes_received,
+        error: result.error,
+    })
+}

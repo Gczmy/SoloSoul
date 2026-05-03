@@ -810,6 +810,272 @@ as String?,
 }
 
 /// @nodoc
+mixin _$DiscoveredDevice {
+
+ String get name; String get host; int get port; List<String> get addresses;
+/// Create a copy of DiscoveredDevice
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DiscoveredDeviceCopyWith<DiscoveredDevice> get copyWith => _$DiscoveredDeviceCopyWithImpl<DiscoveredDevice>(this as DiscoveredDevice, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DiscoveredDevice&&(identical(other.name, name) || other.name == name)&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&const DeepCollectionEquality().equals(other.addresses, addresses));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,name,host,port,const DeepCollectionEquality().hash(addresses));
+
+@override
+String toString() {
+  return 'DiscoveredDevice(name: $name, host: $host, port: $port, addresses: $addresses)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DiscoveredDeviceCopyWith<$Res>  {
+  factory $DiscoveredDeviceCopyWith(DiscoveredDevice value, $Res Function(DiscoveredDevice) _then) = _$DiscoveredDeviceCopyWithImpl;
+@useResult
+$Res call({
+ String name, String host, int port, List<String> addresses
+});
+
+
+
+
+}
+/// @nodoc
+class _$DiscoveredDeviceCopyWithImpl<$Res>
+    implements $DiscoveredDeviceCopyWith<$Res> {
+  _$DiscoveredDeviceCopyWithImpl(this._self, this._then);
+
+  final DiscoveredDevice _self;
+  final $Res Function(DiscoveredDevice) _then;
+
+/// Create a copy of DiscoveredDevice
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? host = null,Object? port = null,Object? addresses = null,}) {
+  return _then(_self.copyWith(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,host: null == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
+as String,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
+as int,addresses: null == addresses ? _self.addresses : addresses // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DiscoveredDevice].
+extension DiscoveredDevicePatterns on DiscoveredDevice {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DiscoveredDevice value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DiscoveredDevice() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DiscoveredDevice value)  $default,){
+final _that = this;
+switch (_that) {
+case _DiscoveredDevice():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DiscoveredDevice value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DiscoveredDevice() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String host,  int port,  List<String> addresses)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DiscoveredDevice() when $default != null:
+return $default(_that.name,_that.host,_that.port,_that.addresses);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String host,  int port,  List<String> addresses)  $default,) {final _that = this;
+switch (_that) {
+case _DiscoveredDevice():
+return $default(_that.name,_that.host,_that.port,_that.addresses);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String host,  int port,  List<String> addresses)?  $default,) {final _that = this;
+switch (_that) {
+case _DiscoveredDevice() when $default != null:
+return $default(_that.name,_that.host,_that.port,_that.addresses);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _DiscoveredDevice implements DiscoveredDevice {
+  const _DiscoveredDevice({required this.name, required this.host, required this.port, required final  List<String> addresses}): _addresses = addresses;
+  
+
+@override final  String name;
+@override final  String host;
+@override final  int port;
+ final  List<String> _addresses;
+@override List<String> get addresses {
+  if (_addresses is EqualUnmodifiableListView) return _addresses;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_addresses);
+}
+
+
+/// Create a copy of DiscoveredDevice
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DiscoveredDeviceCopyWith<_DiscoveredDevice> get copyWith => __$DiscoveredDeviceCopyWithImpl<_DiscoveredDevice>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DiscoveredDevice&&(identical(other.name, name) || other.name == name)&&(identical(other.host, host) || other.host == host)&&(identical(other.port, port) || other.port == port)&&const DeepCollectionEquality().equals(other._addresses, _addresses));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,name,host,port,const DeepCollectionEquality().hash(_addresses));
+
+@override
+String toString() {
+  return 'DiscoveredDevice(name: $name, host: $host, port: $port, addresses: $addresses)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DiscoveredDeviceCopyWith<$Res> implements $DiscoveredDeviceCopyWith<$Res> {
+  factory _$DiscoveredDeviceCopyWith(_DiscoveredDevice value, $Res Function(_DiscoveredDevice) _then) = __$DiscoveredDeviceCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, String host, int port, List<String> addresses
+});
+
+
+
+
+}
+/// @nodoc
+class __$DiscoveredDeviceCopyWithImpl<$Res>
+    implements _$DiscoveredDeviceCopyWith<$Res> {
+  __$DiscoveredDeviceCopyWithImpl(this._self, this._then);
+
+  final _DiscoveredDevice _self;
+  final $Res Function(_DiscoveredDevice) _then;
+
+/// Create a copy of DiscoveredDevice
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? host = null,Object? port = null,Object? addresses = null,}) {
+  return _then(_DiscoveredDevice(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,host: null == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
+as String,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
+as int,addresses: null == addresses ? _self._addresses : addresses // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$FieldHistoryEntry {
 
  PropertyValue get value; String get timestamp; String? get source;
@@ -2298,6 +2564,269 @@ class _$PropertyValue_RichTextCopyWithImpl<$Res>
 html: null == html ? _self.html : html // ignore: cast_nullable_to_non_nullable
 as String,sensitivity: null == sensitivity ? _self.sensitivity : sensitivity // ignore: cast_nullable_to_non_nullable
 as SensitivityLevel,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$SyncResult {
+
+ bool get success; SyncDirection get direction; BigInt get bytesSent; BigInt get bytesReceived; String? get error;
+/// Create a copy of SyncResult
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SyncResultCopyWith<SyncResult> get copyWith => _$SyncResultCopyWithImpl<SyncResult>(this as SyncResult, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncResult&&(identical(other.success, success) || other.success == success)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.bytesSent, bytesSent) || other.bytesSent == bytesSent)&&(identical(other.bytesReceived, bytesReceived) || other.bytesReceived == bytesReceived)&&(identical(other.error, error) || other.error == error));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,success,direction,bytesSent,bytesReceived,error);
+
+@override
+String toString() {
+  return 'SyncResult(success: $success, direction: $direction, bytesSent: $bytesSent, bytesReceived: $bytesReceived, error: $error)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SyncResultCopyWith<$Res>  {
+  factory $SyncResultCopyWith(SyncResult value, $Res Function(SyncResult) _then) = _$SyncResultCopyWithImpl;
+@useResult
+$Res call({
+ bool success, SyncDirection direction, BigInt bytesSent, BigInt bytesReceived, String? error
+});
+
+
+
+
+}
+/// @nodoc
+class _$SyncResultCopyWithImpl<$Res>
+    implements $SyncResultCopyWith<$Res> {
+  _$SyncResultCopyWithImpl(this._self, this._then);
+
+  final SyncResult _self;
+  final $Res Function(SyncResult) _then;
+
+/// Create a copy of SyncResult
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? success = null,Object? direction = null,Object? bytesSent = null,Object? bytesReceived = null,Object? error = freezed,}) {
+  return _then(_self.copyWith(
+success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
+as bool,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as SyncDirection,bytesSent: null == bytesSent ? _self.bytesSent : bytesSent // ignore: cast_nullable_to_non_nullable
+as BigInt,bytesReceived: null == bytesReceived ? _self.bytesReceived : bytesReceived // ignore: cast_nullable_to_non_nullable
+as BigInt,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [SyncResult].
+extension SyncResultPatterns on SyncResult {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SyncResult value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SyncResult() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SyncResult value)  $default,){
+final _that = this;
+switch (_that) {
+case _SyncResult():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SyncResult value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SyncResult() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SyncResult() when $default != null:
+return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.error);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  String? error)  $default,) {final _that = this;
+switch (_that) {
+case _SyncResult():
+return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.error);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  String? error)?  $default,) {final _that = this;
+switch (_that) {
+case _SyncResult() when $default != null:
+return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.error);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _SyncResult implements SyncResult {
+  const _SyncResult({required this.success, required this.direction, required this.bytesSent, required this.bytesReceived, this.error});
+  
+
+@override final  bool success;
+@override final  SyncDirection direction;
+@override final  BigInt bytesSent;
+@override final  BigInt bytesReceived;
+@override final  String? error;
+
+/// Create a copy of SyncResult
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SyncResultCopyWith<_SyncResult> get copyWith => __$SyncResultCopyWithImpl<_SyncResult>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncResult&&(identical(other.success, success) || other.success == success)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.bytesSent, bytesSent) || other.bytesSent == bytesSent)&&(identical(other.bytesReceived, bytesReceived) || other.bytesReceived == bytesReceived)&&(identical(other.error, error) || other.error == error));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,success,direction,bytesSent,bytesReceived,error);
+
+@override
+String toString() {
+  return 'SyncResult(success: $success, direction: $direction, bytesSent: $bytesSent, bytesReceived: $bytesReceived, error: $error)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SyncResultCopyWith<$Res> implements $SyncResultCopyWith<$Res> {
+  factory _$SyncResultCopyWith(_SyncResult value, $Res Function(_SyncResult) _then) = __$SyncResultCopyWithImpl;
+@override @useResult
+$Res call({
+ bool success, SyncDirection direction, BigInt bytesSent, BigInt bytesReceived, String? error
+});
+
+
+
+
+}
+/// @nodoc
+class __$SyncResultCopyWithImpl<$Res>
+    implements _$SyncResultCopyWith<$Res> {
+  __$SyncResultCopyWithImpl(this._self, this._then);
+
+  final _SyncResult _self;
+  final $Res Function(_SyncResult) _then;
+
+/// Create a copy of SyncResult
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? success = null,Object? direction = null,Object? bytesSent = null,Object? bytesReceived = null,Object? error = freezed,}) {
+  return _then(_SyncResult(
+success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
+as bool,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as SyncDirection,bytesSent: null == bytesSent ? _self.bytesSent : bytesSent // ignore: cast_nullable_to_non_nullable
+as BigInt,bytesReceived: null == bytesReceived ? _self.bytesReceived : bytesReceived // ignore: cast_nullable_to_non_nullable
+as BigInt,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
