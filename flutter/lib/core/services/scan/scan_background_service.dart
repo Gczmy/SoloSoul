@@ -77,12 +77,16 @@ class ScanBackgroundService {
       maxFileSizeByExtension: maxFileSizeByExtension,
     ));
 
+    const progressThrottle = 50;
     _subscription = LocalSearchService.scan(
       paths: paths.isEmpty ? null : paths,
       extensions: extensions.isEmpty ? null : extensions,
       scanDepth: scanDepth,
       maxFileSizeByExtension: maxFileSizeByExtension,
       onProgress: (scanned, found, skipped, currentPath) {
+        // Throttle state updates to avoid O(n²) list copying overhead.
+        // UI updates every 50 files are sufficient for visual feedback.
+        if (scanned % progressThrottle != 0) return;
         _emit(_currentState.copyWith(
           scannedCount: scanned,
           foundCount: found,

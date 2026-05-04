@@ -126,6 +126,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   void _disposeControllers() {
     for (final c in _editControllers.values) {
+      c.text = '';
       c.dispose();
     }
     _editControllers.clear();

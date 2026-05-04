@@ -54,7 +54,7 @@ class UserPreferencesService {
       final data = jsonDecode(json) as Map<String, dynamic>;
       return (data['quick_action_routes'] as List<dynamic>?)?.cast<String>() ??
           [];
-    } on Exception {
+    } on Object {
       return [];
     }
   }

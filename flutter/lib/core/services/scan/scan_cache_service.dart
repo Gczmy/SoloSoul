@@ -31,8 +31,8 @@ class ScanCacheService {
             entry.key: ScanCacheEntry.fromJson(entry.value as Map<String, dynamic>),
         };
       }
-    } on Exception catch (_) {
-      // Ignore load errors
+    } on Object catch (_) {
+      // Ignore load errors (including TypeError from malformed JSON)
     }
     _loaded = true;
   }

@@ -102,7 +102,6 @@ class PasswordVerificationDialogContentState
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
-    _focusNode.addListener(_onFocusChanged);
   }
 
   @override
@@ -114,7 +113,6 @@ class PasswordVerificationDialogContentState
     // Securely clear password text before disposing
     _controller.text = '';
     _controller.dispose();
-    _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();
     super.dispose();
   }
@@ -129,10 +127,6 @@ class PasswordVerificationDialogContentState
       _userHasTypedAfterError = false;
     }
     setState(() {});
-  }
-
-  void _onFocusChanged() {
-    // Do NOT clear error on focus changes - only on user typing
   }
 
   void _showHintOverlay(String hint) {
@@ -362,7 +356,6 @@ class BiometricPasswordDialogContentState
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
-    _focusNode.addListener(_onFocusChanged);
   }
 
   @override
@@ -374,7 +367,6 @@ class BiometricPasswordDialogContentState
     // Securely clear password text before disposing
     _controller.text = '';
     _controller.dispose();
-    _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();
     super.dispose();
   }
@@ -388,10 +380,6 @@ class BiometricPasswordDialogContentState
       _userHasTypedAfterError = false;
     }
     setState(() {});
-  }
-
-  void _onFocusChanged() {
-    // Intentional no-op: focus changes are handled by the widget tree.
   }
 
   Future<void> _tryBiometric() async {

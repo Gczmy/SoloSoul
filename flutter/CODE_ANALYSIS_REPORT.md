@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-04 20:15:00
+> 最后更新：2026-05-04 20:30:00
 > 当前分支：`master`
 > 修复轮次：2（最终复审）
 > 分析范围：flutter/lib/（排除 *.g.dart, *.freezed.dart, frb/ 目录）
@@ -29,16 +29,24 @@
 | P041 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:468-507` | `_handleCreateAccount` 内存在 4 层嵌套 | `[ ]` 待修复 |
 | P042 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:363-413` | `_handleUnlock` 内存在 4 层嵌套 | `[ ]` 待修复 |
 | P043 | P2 | `_build*()` 私有方法 | 多处（12个文件，26个方法） | 返回 Widget 的 `_build*` 私有方法应提取为独立 StatelessWidget | `[ ]` 待修复 |
-| P044 | P2 | 死代码 | `presentation/widgets/password_verification_dialog.dart:393` | `_onFocusChanged()` 为空函数，无意义回调 | `[ ]` 待修复 |
+| P044 | P2 | 死代码 | `presentation/widgets/password_verification_dialog.dart:393` | `_onFocusChanged()` 为空函数，无意义回调 | `[x]` 已修复 |
 | P045 | P2 | 轻微结构问题 | `presentation/pages/login_page.dart:335/430` | `_handleUnlock` 与 `_handleCreateAccount` 后半段约 30 行完全相同 | `[ ]` 待修复 |
 | P046 | P2 | 轻微结构问题 | `presentation/pages/data_management_page.dart` | 5 个备份操作方法模式高度相似，可提取通用辅助 | `[ ]` 待修复 |
 | P047 | P2 | 代码规范 | `presentation/widgets/password_verification_dialog.dart:71/326` | 公共 Widget 构造函数缺少 named 'key' 参数（dart analyze info） | `[ ]` 待修复 |
+| P048 | P0 | 漏洞 | `presentation/widgets/object_card.dart:127-134` | `_disposeControllers()` 仅调用 `c.dispose()`，未先执行 `c.text = ''` 进行安全擦除 | `[x]` 已修复 |
+| P049 | P0 | 漏洞 | `presentation/pages/llm/llm_config_page.dart:41-45` | `_apiKeyController.dispose()` 时未先清空 `text`，API 密钥在内存中残留 | `[x]` 已修复 |
+| P050 | P1 | 性能 | `core/services/scan/scan_background_service.dart:85-93` | `onProgress` 回调中 O(n²) 全量复制三个列表 | `[x]` 已修复 |
+| P051 | P1 | 性能 | `core/services/field_history_service.dart:197-210` | `allChangesSorted` getter 包含三重嵌套循环，缓存失效时重建开销大 | `[ ]` 待修复 |
+| P052 | P1 | 崩溃风险 | `core/services/scan/scan_cache_service.dart:28` | `jsonDecode(...) as Map<String, dynamic>` 的 TypeError 无法被外层 `on Exception` 捕获 | `[x]` 已修复 |
+| P053 | P1 | 崩溃风险 | `core/services/user_preferences_service.dart:54` | `jsonDecode(json) as Map<String, dynamic>` 的 TypeError 无法被外层 `on Exception` 捕获 | `[x]` 已修复 |
+| P054 | P2 | 内存泄漏 | `presentation/pages/profile_page.dart:32` | `static final _dummyController = TextEditingController()` 永不 dispose | `[ ]` 待修复 |
+| P055 | P2 | 内存泄漏 | `presentation/widgets/object_card/object_card_edit_field.dart:24` | `static final _dummyController = TextEditingController()` 永不 dispose | `[ ]` 待修复 |
 
 ## 修复进度
 
 - 已完成（第一轮）：28 / 29
-- 已完成（第二轮）：1 / 18
-- 当前处理：P019
+- 已完成（第二轮）：7 / 27
+- 当前处理：无
 
 ## 详细问题描述与修复指引
 

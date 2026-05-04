@@ -39,6 +39,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
   @override
   void dispose() {
+    _apiKeyController.text = '';
     _apiKeyController.dispose();
     _endpointController.dispose();
     _modelController.dispose();
