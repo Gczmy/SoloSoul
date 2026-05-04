@@ -159,170 +159,33 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _showDebugActivationDialog() async {
-    final passwordController = TextEditingController();
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final biometricService = BiometricService.instance;
     final securityService = SecurityService.instance;
     await securityService.loadSettings();
 
-    bool obscurePassword = true;
-    bool hasError = false;
-    String? errorMessage;
-    bool isBiometricVerified = false;
     final selectedAccount = authNotifier.selectedAccount;
-
-    // Check if biometric is available and enabled
     final isBiometricAvailable = await biometricService.isAvailable();
     final isBiometricEnabled = securityService.settings.biometricsEnabled ||
         securityService.settings.faceIdEnabled;
     final canUseBiometric = isBiometricAvailable && isBiometricEnabled;
 
-    Future<void> tryBiometric() async {
-      if (isBiometricVerified) return;
-      final success = await biometricService.authenticate(
-        reason: 'Verify your identity to enable debug mode',
-      );
-      if (success) {
-        isBiometricVerified = true;
-        if (mounted) {
-          Navigator.pop(context, true);
-        }
-      }
-    }
-
     if (!mounted) return;
-    final confirmed = await showDialog<bool>(
+    final password = await showDialog<String?>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          final biometricType = securityService.settings.faceIdEnabled
-              ? 'Face ID'
-              : 'Touch ID';
-          return AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.bug_report, color: AppTheme.primaryColor),
-                SizedBox(width: 12),
-                Text('Enable Debug Mode'),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Enter your master password to enable Debug Log.'),
-                if (canUseBiometric && !isBiometricVerified) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: tryBiometric,
-                      icon: Icon(
-                        securityService.settings.faceIdEnabled
-                            ? Icons.face_outlined
-                            : Icons.fingerprint_outlined,
-                      ),
-                      label: Text('Use $biometricType'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('or', style: TextStyle(color: Colors.grey)),
-                      ),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                TextField(
-                  controller: passwordController,
-                  obscureText: obscurePassword,
-                  autofocus: !isBiometricVerified,
-                  decoration: InputDecoration(
-                    labelText: 'Master Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: const OutlineInputBorder(),
-                    errorText: hasError ? errorMessage : null,
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                            icon: const Icon(Icons.help_outline),
-                            onPressed: () {
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      const Icon(Icons.help_outline, color: Colors.white),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          selectedAccount?.passwordHint != null
-                                              ? 'Password Hint: ${selectedAccount!.passwordHint}'
-                                              : 'No password hint available',
-                                          style: const TextStyle(color: Colors.white),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  backgroundColor: AppTheme.primaryColor,
-                                  duration: const Duration(seconds: 4),
-                                ),
-                              );
-                            },
-                            tooltip: 'Show password hint',
-                          ),
-                        IconButton(
-                          icon: Icon(
-                            obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setDialogState(() => obscurePassword = !obscurePassword);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  onChanged: (_) {
-                    if (hasError) {
-                      setDialogState(() {
-                        hasError = false;
-                        errorMessage = null;
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Enable'),
-              ),
-            ],
-          );
-        },
+      builder: (ctx) => _DebugActivationDialog(
+        selectedAccount: selectedAccount,
+        canUseBiometric: canUseBiometric,
+        faceIdEnabled: securityService.settings.faceIdEnabled,
       ),
     );
 
-    if (confirmed == true && mounted) {
+    if (password != null && mounted) {
       // Always require password verification for debug mode activation.
       // Biometric alone is not sufficient (security: biometric can be
       // spoofed by a sleeping user's fingerprint).
-      final success = await authNotifier.verifyPasswordForSensitiveData(
-        passwordController.text,
-      );
+      final success = await authNotifier.verifyPasswordForSensitiveData(password);
       if (success && mounted) {
         await ref.read(debugModeProvider.notifier).enableDebugMode();
         if (mounted) {
@@ -892,5 +755,163 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       await ref.read(authNotifierProvider.notifier).lockVault();
       ref.read(sensitivePageAccessProvider.notifier).clear();
     }
+  }
+}
+
+/// Debug mode activation dialog with password + biometric options.
+/// Debug mode activation dialog with password + biometric options.
+/// Extracted from SettingsPage._showDebugActivationDialog to reduce method length.
+class _DebugActivationDialog extends StatefulWidget {
+  final AccountInfo? selectedAccount;
+  final bool canUseBiometric;
+  final bool faceIdEnabled;
+
+  const _DebugActivationDialog({
+    this.selectedAccount,
+    required this.canUseBiometric,
+    required this.faceIdEnabled,
+  });
+
+  @override
+  State<_DebugActivationDialog> createState() => _DebugActivationDialogState();
+}
+
+class _DebugActivationDialogState extends State<_DebugActivationDialog> {
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _hasError = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _tryBiometric() async {
+    final success = await BiometricService.instance.authenticate(
+      reason: 'Verify your identity to enable debug mode',
+    );
+    if (success && mounted) {
+      Navigator.pop(context, '');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final biometricType = widget.faceIdEnabled ? 'Face ID' : 'Touch ID';
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.bug_report, color: AppTheme.primaryColor),
+          SizedBox(width: 12),
+          Text('Enable Debug Mode'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Enter your master password to enable Debug Log.'),
+          if (widget.canUseBiometric) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _tryBiometric,
+                icon: Icon(
+                  widget.faceIdEnabled
+                      ? Icons.face_outlined
+                      : Icons.fingerprint_outlined,
+                ),
+                label: Text('Use $biometricType'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('or', style: TextStyle(color: Colors.grey)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+          TextField(
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Master Password',
+              prefixIcon: const Icon(Icons.lock_outline),
+              border: const OutlineInputBorder(),
+              errorText: _hasError ? _errorMessage : null,
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(Icons.help_outline, color: Colors.white),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  widget.selectedAccount?.passwordHint != null
+                                      ? 'Password Hint: ${widget.selectedAccount!.passwordHint}'
+                                      : 'No password hint available',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: AppTheme.primaryColor,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    },
+                    tooltip: 'Show password hint',
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            onChanged: (_) {
+              if (_hasError) {
+                setState(() {
+                  _hasError = false;
+                  _errorMessage = null;
+                });
+              }
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, null),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _passwordController.text),
+          child: const Text('Enable'),
+        ),
+      ],
+    );
   }
 }
