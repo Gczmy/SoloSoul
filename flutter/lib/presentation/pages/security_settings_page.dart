@@ -47,6 +47,86 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
     unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Updated security settings'));
   }
 
+  Future<void> _onBiometricsToggled(bool value) async {
+    if (!value) {
+      unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: false)));
+      setState(() => _biometricsEnabled = false);
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final accountId = authNotifier.selectedAccountId;
+      if (accountId != null) {
+        unawaited(BiometricCredentialService.instance.clearBiometricCredential(accountId));
+      }
+      return;
+    }
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final authenticated = await BiometricService.instance.authenticate(
+      reason: 'Verify your identity to enable biometric unlock',
+    );
+    if (!authenticated) {
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white, size: 20),
+                SizedBox(width: 12),
+                Text('Biometric authentication failed or was cancelled'),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+      return;
+    }
+
+    unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: true)));
+    setState(() => _biometricsEnabled = true);
+    if (!mounted) return;
+
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final accountId = authNotifier.selectedAccountId;
+    final hasCredential = accountId != null &&
+        await BiometricCredentialService.instance.hasBiometricCredential(accountId);
+
+    if (!hasCredential) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Biometric unlock enabled. Please go to Settings > Access to complete biometric setup with your password.',
+                ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppTheme.primaryColor,
+          duration: AppTheme.kNotificationDuration,
+        ),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Text('Biometric unlock enabled'),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -96,80 +176,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                             : 'Biometrics not available on this device',
                         value: _biometricsEnabled,
                         enabled: _biometricsAvailable,
-                        onChanged: (value) async {
-                          if (value) {
-                            final scaffoldMessenger = ScaffoldMessenger.of(context);
-                            final authenticated = await BiometricService.instance.authenticate(
-                              reason: 'Verify your identity to enable biometric unlock',
-                            );
-                            if (authenticated) {
-                              unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: true)));
-                              setState(() => _biometricsEnabled = true);
-                              if (mounted) {
-                                final authNotifier = ref.read(authNotifierProvider.notifier);
-                                final accountId = authNotifier.selectedAccountId;
-                                final hasCredential = accountId != null &&
-                                    await BiometricCredentialService.instance.hasBiometricCredential(accountId);
-                                if (!hasCredential) {
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Row(
-                                        children: [
-                                          Icon(Icons.info_outline, color: Colors.white, size: 20),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              'Biometric unlock enabled. Please go to Settings > Access to complete biometric setup with your password.',
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
-                                      backgroundColor: AppTheme.primaryColor,
-                                      duration: AppTheme.kNotificationDuration,
-                                    ),
-                                  );
-                                } else {
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Row(
-                                        children: [
-                                          Icon(Icons.check_circle, color: Colors.white, size: 20),
-                                          SizedBox(width: 12),
-                                          Text('Biometric unlock enabled'),
-                                        ],
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
-                                      backgroundColor: AppTheme.successColor,
-                                    ),
-                                  );
-                                }
-                              }
-                            } else if (mounted) {
-                              scaffoldMessenger.showSnackBar(
-                                const SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Icon(Icons.error_outline, color: Colors.white, size: 20),
-                                      SizedBox(width: 12),
-                                      Text('Biometric authentication failed or was cancelled'),
-                                    ],
-                                  ),
-                                  behavior: SnackBarBehavior.floating,
-                                  backgroundColor: AppTheme.errorColor,
-                                ),
-                              );
-                            }
-                          } else {
-                            unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: false)));
-                            setState(() => _biometricsEnabled = false);
-                            final authNotifier = ref.read(authNotifierProvider.notifier);
-                            final accountId = authNotifier.selectedAccountId;
-                            if (accountId != null) {
-                              unawaited(BiometricCredentialService.instance.clearBiometricCredential(accountId));
-                            }
-                          }
-                        },
+                        onChanged: (value) => _onBiometricsToggled(value),
                       ),
                     ],
                   ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0),

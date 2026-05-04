@@ -360,58 +360,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
     SoloLog.d('LOGIN', 'unlockVault completed, success: $success');
 
-    if (success && mounted) {
-      // Pre-load profile before navigating to home
-      SoloLog.d('LOGIN', 'Unlock success, loading profile...');
-      try {
-        await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            SoloLog.e('LOGIN', 'loadProfile timed out');
-          },
-        );
-        SoloLog.d('LOGIN', 'Profile loaded OK');
-      } on Exception catch (e, st) {
-        SoloLog.e('LOGIN', 'loadProfile exception', e, st);
-      }
-      SoloLog.d('LOGIN', 'Calling loadFromProfile...');
-      try {
-        await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
-        SoloLog.d('LOGIN', 'loadFromProfile OK');
-      } on Exception catch (e, st) {
-        SoloLog.e('LOGIN', 'loadFromProfile exception', e, st);
-      }
-      final unifiedData = ref.read(unifiedObjectProvider);
-      SoloLog.d(
-        'LOGIN',
-        'After loadFromProfile: objects=${unifiedData.objects.length}, customTypes=${unifiedData.customTypes.length}',
-      );
-
-      // 首次启动/空数据检测：若 Vault 无数据但存在备份，提示恢复
-      final accountId = authNotifier.selectedAccountId;
-      if (!mounted) return;
-      await _promptRestoreIfEmpty(context, ref, accountId);
-
-      // Pre-register all form fields for sensitivity settings
-      ref.read(formFieldRegistryProvider.notifier).registerAllForms();
-
-      // Record login metadata (lastLoginAt + device)
-      if (accountId != null) {
-        await authNotifier.updateAccountMetadata(
-          lastLoginAt: DateTime.now(),
-          device: DeviceInfo(
-            deviceName: getDeviceName(),
-            lastUsed: DateTime.now(),
-          ).toJson(),
-        ).timeout(const Duration(seconds: 5), onTimeout: () {
-          SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
-        });
-      }
-
-      if (mounted) {
-        context.go(AppRoutes.home);
-      }
-    } else if (mounted) {
+    if (!success || !mounted) {
       final specificError = ref.read(authNotifierProvider.notifier).lastUnlockError;
       final isPasswordError = specificError == null ||
           specificError.toLowerCase().contains('invalid password') ||
@@ -424,6 +373,58 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ? 'Invalid master password'
             : 'Unlock failed: $specificError';
       });
+      return;
+    }
+
+    // Pre-load profile before navigating to home
+    SoloLog.d('LOGIN', 'Unlock success, loading profile...');
+    try {
+      await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          SoloLog.e('LOGIN', 'loadProfile timed out');
+        },
+      );
+      SoloLog.d('LOGIN', 'Profile loaded OK');
+    } on Exception catch (e, st) {
+      SoloLog.e('LOGIN', 'loadProfile exception', e, st);
+    }
+    SoloLog.d('LOGIN', 'Calling loadFromProfile...');
+    try {
+      await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
+      SoloLog.d('LOGIN', 'loadFromProfile OK');
+    } on Exception catch (e, st) {
+      SoloLog.e('LOGIN', 'loadFromProfile exception', e, st);
+    }
+    final unifiedData = ref.read(unifiedObjectProvider);
+    SoloLog.d(
+      'LOGIN',
+      'After loadFromProfile: objects=${unifiedData.objects.length}, customTypes=${unifiedData.customTypes.length}',
+    );
+
+    // 首次启动/空数据检测：若 Vault 无数据但存在备份，提示恢复
+    final accountId = authNotifier.selectedAccountId;
+    if (!mounted) return;
+    await _promptRestoreIfEmpty(context, ref, accountId);
+
+    // Pre-register all form fields for sensitivity settings
+    ref.read(formFieldRegistryProvider.notifier).registerAllForms();
+
+    // Record login metadata (lastLoginAt + device)
+    if (accountId != null) {
+      await authNotifier.updateAccountMetadata(
+        lastLoginAt: DateTime.now(),
+        device: DeviceInfo(
+          deviceName: getDeviceName(),
+          lastUsed: DateTime.now(),
+        ).toJson(),
+      ).timeout(const Duration(seconds: 5), onTimeout: () {
+        SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
+      });
+    }
+
+    if (mounted) {
+      context.go(AppRoutes.home);
     }
   }
 
@@ -465,51 +466,58 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     SoloLog.d('LOGIN', 'createAccount returned, success=${result.success}');
 
-    if (result.success && mounted) {
-      // Account created, now unlock
-      SoloLog.d('LOGIN', 'calling authNotifier.unlockVault');
-      final success = await authNotifier.unlockVault(password);
-      SoloLog.d('LOGIN', 'unlockVault returned, success=$success');
-      if (success && mounted) {
-        // Pre-load profile before navigating to home
-        await ref.read(profileNotifierProvider.notifier).loadProfile();
-        await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
-        // Pre-register all form fields for sensitivity settings
-        ref.read(formFieldRegistryProvider.notifier).registerAllForms();
+    if (!result.success || !mounted) {
+      if (mounted) {
+        setState(() {
+          _createError = result.error ?? 'Failed to create account';
+          _isLoading = false;
+        });
+      }
+      return;
+    }
 
-        // Record login metadata (lastLoginAt + device)
-        final accountId = authNotifier.selectedAccountId;
-        SoloLog.d('LOGIN', '_handleCreateAccount: accountId=$accountId');
-        if (accountId != null) {
-          SoloLog.d('LOGIN', '_handleCreateAccount: calling updateAccountMetadata');
-          await authNotifier.updateAccountMetadata(
-            lastLoginAt: DateTime.now(),
-            device: DeviceInfo(
-            deviceName: getDeviceName(),
-              lastUsed: DateTime.now(),
-            ).toJson(),
-          ).timeout(const Duration(seconds: 5), onTimeout: () {
-            SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
-          });
-          SoloLog.d('LOGIN', '_handleCreateAccount: updateAccountMetadata done');
-        } else {
-          SoloLog.w('LOGIN', '_handleCreateAccount: accountId is null, skipping metadata');
-        }
+    // Account created, now unlock
+    SoloLog.d('LOGIN', 'calling authNotifier.unlockVault');
+    final unlockSuccess = await authNotifier.unlockVault(password);
+    SoloLog.d('LOGIN', 'unlockVault returned, success=$unlockSuccess');
 
-        if (mounted) {
-          context.go(AppRoutes.home);
-        }
-      } else if (mounted) {
+    if (!unlockSuccess || !mounted) {
+      if (mounted) {
         setState(() {
           _createError = 'Failed to unlock vault. Please try again.';
           _isLoading = false;
         });
       }
-    } else if (mounted) {
-      setState(() {
-        _createError = result.error ?? 'Failed to create account';
-        _isLoading = false;
+      return;
+    }
+
+    // Pre-load profile before navigating to home
+    await ref.read(profileNotifierProvider.notifier).loadProfile();
+    await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
+    // Pre-register all form fields for sensitivity settings
+    ref.read(formFieldRegistryProvider.notifier).registerAllForms();
+
+    // Record login metadata (lastLoginAt + device)
+    final accountId = authNotifier.selectedAccountId;
+    SoloLog.d('LOGIN', '_handleCreateAccount: accountId=$accountId');
+    if (accountId != null) {
+      SoloLog.d('LOGIN', '_handleCreateAccount: calling updateAccountMetadata');
+      await authNotifier.updateAccountMetadata(
+        lastLoginAt: DateTime.now(),
+        device: DeviceInfo(
+          deviceName: getDeviceName(),
+          lastUsed: DateTime.now(),
+        ).toJson(),
+      ).timeout(const Duration(seconds: 5), onTimeout: () {
+        SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
       });
+      SoloLog.d('LOGIN', '_handleCreateAccount: updateAccountMetadata done');
+    } else {
+      SoloLog.w('LOGIN', '_handleCreateAccount: accountId is null, skipping metadata');
+    }
+
+    if (mounted) {
+      context.go(AppRoutes.home);
     }
   }
 
