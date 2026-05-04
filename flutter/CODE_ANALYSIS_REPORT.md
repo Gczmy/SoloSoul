@@ -21,10 +21,10 @@
 | P033 | P1 | 重复代码 | `presentation/providers/sync_provider.dart` 与 `presentation/utils/device_utils.dart` | Platform 设备名称映射逻辑在两个文件中几乎完全一致 | `[x]` 已修复 |
 | P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[x]` 已修复 — _DebugActivationDialog 已提取，build 内所有 _build* 私有方法已提取为 StatelessWidget |
 | P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[x]` 已修复 — 提取 5 个 section widget + _CountedTextField，build 327→~20 行 |
-| P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[ ]` 待修复 |
+| P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[x]` 已修复 — 提取 _ObjectEditorHeader, _PropertyFieldsSection, _BottomSaveBar，build 360→57 行 |
 | P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[x]` 已修复 — 提取为 _DebugActivationDialog，方法从 196→58 行 |
 | P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[ ]` 待修复 |
-| P039 | P1 | 过长函数 | `presentation/pages/security_settings_page.dart:51` | build 方法长达 222 行 | `[ ]` 待修复 |
+| P039 | P1 | 过长函数 | `presentation/pages/security_settings_page.dart:51` | build 方法长达 222 行 | `[x]` 已修复 — _build* 提取 + 深层嵌套修复后 build 降至 165 行 |
 | P040 | P1 | 深层嵌套 | `presentation/pages/security_settings_page.dart:99-172` | build 内 onChanged 回调存在 5 层控制流嵌套 | `[x]` 已修复 |
 | P041 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:468-507` | `_handleCreateAccount` 内存在 4 层嵌套 | `[x]` 已修复 |
 | P042 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:363-413` | `_handleUnlock` 内存在 4 层嵌套 | `[x]` 已修复 |
@@ -185,7 +185,9 @@
 **修复状态**:
 - P034 settings_page.dart: `_showDebugActivationDialog` 提取为 `_DebugActivationDialog` (P037 ✅)。build 内所有 `_build*` 私有方法已提取为 StatelessWidget (P043 ✅)。build 方法从 401 行降至约 280 行。
 - P035 profile_page.dart: 已提取 5 个 section widget (`_IdentitySection`, `_ContactSection`, `_IdentityDocumentsSection`, `_AddressesSection`, `_CountedTextField`)，build 327→~20 行 ✅。
-- P036-P039: object_editor_page.dart / data_management_page.dart / security_settings_page.dart 中的 `_build*` 方法已全部提取 (P043 ✅)。深层嵌套问题已修复 (P040-P042 ✅)。
+- P036 object_editor_page.dart: 提取 _ObjectEditorHeader, _PropertyFieldsSection, _BottomSaveBar，build 360→57 行 ✅。
+- P038 data_management_page.dart: `_build*` 方法已提取 (P043 ✅)，待进一步拆分 (后台任务进行中)。
+- P039 security_settings_page.dart: `_build*` 提取 + 深层嵌套修复后 build 降至 165 行 ✅。
 
 ---
 
