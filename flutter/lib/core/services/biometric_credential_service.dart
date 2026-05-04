@@ -6,7 +6,6 @@ import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
-import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart'
     show bytesToHex, constantTimeEquals;
 
@@ -39,7 +38,6 @@ class BiometricCredentialService {
   );
 
   final FallbackSecureStorage _fallbackStorage = FallbackSecureStorage();
-  final SecureAccountStorage _accountStorage = SecureAccountStorage.instance;
 
   static const _deviceKeyId = 'biometric_device_key_v1';
   static const _credentialKeyPrefix = 'biometric_credential_';
@@ -303,26 +301,17 @@ class BiometricCredentialService {
     String accountId,
     String password,
   ) async {
-    // Read account data (salt and verify_hash)
-    final accountData = await _accountStorage.getAccountData(accountId);
-    String saltStr;
-    String storedHash;
-
-    if (accountData != null) {
-      saltStr = accountData['salt'] as String;
-      storedHash = accountData['verify_hash'] as String;
-    } else {
-      // Fallback to Rust config
-      final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-      if (rustConfig == null ||
-          rustConfig.salt == null ||
-          rustConfig.verifyHash == null) {
-        SoloLog.w('BioCred', 'No account data found for $accountId');
-        return null;
-      }
-      saltStr = rustConfig.salt!;
-      storedHash = rustConfig.verifyHash!;
+    // Read account credentials from Rust vault (single source of truth).
+    // Dart-side Keychain no longer stores salt/verify_hash.
+    final rustConfig = NativeVaultService.instance.getAccountConfig(accountId: accountId);
+    if (rustConfig == null ||
+        rustConfig.salt == null ||
+        rustConfig.verifyHash == null) {
+      SoloLog.w('BioCred', 'No account data found for $accountId');
+      return null;
     }
+    final saltStr = rustConfig.salt!;
+    final storedHash = rustConfig.verifyHash!;
 
     final salt = base64Decode(saltStr);
 

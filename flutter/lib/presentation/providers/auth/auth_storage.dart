@@ -163,13 +163,9 @@ class SecureAccountStorage {
     final effectiveAccountId =
         accountId ?? 'acc_${const Uuid().v4()}';
 
-    String saltToStore;
-    String hashToStore;
     Uint8List? sessionKey;
 
     if (salt != null && verifyHashFromRust != null) {
-      saltToStore = salt;
-      hashToStore = verifyHashFromRust;
       sessionKey = await frb.frbDeriveKey(
         password: password,
         salt: base64Decode(salt),
@@ -179,7 +175,6 @@ class SecureAccountStorage {
       );
     } else {
       final dartSalt = await frb.frbGenerateSalt(length: 32);
-      saltToStore = base64Encode(dartSalt);
       // Step 1: Derive master_key from password (same as Rust)
       final masterKey = await frb.frbDeriveKey(
         password: password,
@@ -198,8 +193,6 @@ class SecureAccountStorage {
         iterations: 1,
         parallelism: 1,
       );
-      // Step 3: Hex-encode verify_key (same as Rust)
-      hashToStore = bytesToHex(verifyKey);
       sessionKey = masterKey;
       // Wipe intermediate key material — sessionKey is returned for caller use
       secureWipe(dartSalt);
@@ -216,14 +209,6 @@ class SecureAccountStorage {
       lastLoginAt: now,
     );
 
-    DebugLogger.instance.logInfo('STORAGE', 'calling saveAccountData');
-    await saveAccountData(effectiveAccountId, {
-      'salt': saltToStore,
-      'verify_hash': hashToStore,
-      'crypto_version': 2,
-    });
-    DebugLogger.instance.logInfo('STORAGE', 'saveAccountData done');
-
     DebugLogger.instance.logInfo('STORAGE', 'calling _saveAccounts');
     accounts.add(account);
     await _saveAccounts(accounts);
@@ -235,72 +220,6 @@ class SecureAccountStorage {
       account: account,
       sessionKey: sessionKey
     );
-  }
-
-  Future<({bool success, String? error, Uint8List? sessionKey})>
-      unlockAccount(
-    String accountId,
-    String password,
-  ) async {
-    final accountData = await getAccountData(accountId);
-    if (accountData == null) {
-      return (success: false, error: 'Account not found', sessionKey: null);
-    }
-
-    final salt = base64Decode(accountData['salt'] as String);
-    final storedHash = accountData['verify_hash'] as String;
-
-    // Step 1: Derive master_key from password (same as Rust)
-    final masterKey = await frb.frbDeriveKey(
-      password: password,
-      salt: Uint8List.fromList(salt),
-      memoryKib: 16384,
-      iterations: 1,
-      parallelism: 4,
-    );
-
-    // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
-    final masterKeyHex = bytesToHex(masterKey);
-    const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-    final verifyKey = await frb.frbDeriveKey(
-      password: masterKeyHex,
-      salt: Uint8List.fromList(utf8.encode(verifyData)),
-      memoryKib: 8192,
-      iterations: 1,
-      parallelism: 1,
-    );
-
-    // Step 3: Hex-encode verify_key and compare (same as Rust)
-    final derivedHashHex = bytesToHex(verifyKey);
-    if (!await constantTimeEquals(derivedHashHex, storedHash)) {
-      secureWipe(verifyKey);
-      secureWipe(masterKey);
-      return (success: false, error: 'Invalid password', sessionKey: null);
-    }
-
-    // Verification passed — wipe intermediate key material (sessionKey/masterKey is kept)
-    secureWipe(verifyKey);
-
-    // Session key is masterKey (used for profile encryption)
-    final accounts = await listAccounts();
-    final idx = accounts.indexWhere((a) => a.id == accountId);
-    if (idx >= 0) {
-      final existing = accounts[idx];
-      accounts[idx] = AccountInfo(
-        id: existing.id,
-        name: existing.name,
-        passwordHint: existing.passwordHint,
-        lastAccessed: DateTime.now(),
-        createdAt: existing.createdAt,
-        lastLoginAt: DateTime.now(),
-        lastOperationAt: existing.lastOperationAt,
-        lastOperationDesc: existing.lastOperationDesc,
-        recentDevices: existing.recentDevices,
-      );
-      await _saveAccounts(accounts);
-    }
-
-    return (success: true, error: null, sessionKey: masterKey);
   }
 
   /// Verify password against Rust AccountManager.
@@ -367,14 +286,6 @@ class SecureAccountStorage {
     }
 
     return success;
-  }
-
-  Future<void> updateAccountSalt(
-      String accountId, Uint8List salt, String verifyHashHex) async {
-    await saveAccountData(accountId, {
-      'salt': base64Encode(salt),
-      'verify_hash': verifyHashHex,
-    });
   }
 
   Future<bool> updateAccountCryptoVersion(

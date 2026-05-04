@@ -1,365 +1,165 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-03 18:30:00
+> 最后更新：2026-05-04 20:15:00
 > 当前分支：`master`
-> 修复轮次：1（初始分析）
+> 修复轮次：2（最终复审）
 > 分析范围：flutter/lib/（排除 *.g.dart, *.freezed.dart, frb/ 目录）
 
-## 问题清单（按优先级 P0 > P1 > P2）
+## 第一轮修复总结
 
-| ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
-|------|--------|------------|----------------------------------|------------------------------------------------|-----------|
-| P001 | P0     | 漏洞       | `presentation/providers/auth/auth_notifier.dart:168-253` | 12处 `print()` 在 release 构建中泄露解锁流程数据（accountId、错误详情） | `[x]` 已修复 |
-| P002 | P0     | 漏洞       | `presentation/pages/splash_page.dart:26-39` | splash 页无错误处理：RustVaultService 初始化失败时应用永久卡死 | `[x]` 已修复 |
-| P003 | P0     | 漏洞       | `presentation/widgets/change_password_dialog.dart:252-255` | 密码输入控制器 dispose 前未清除文本内容，密码残留在内存 | `[x]` 已修复 |
-| P004 | P0     | 漏洞       | `presentation/providers/auth/auth_storage.dart:172-191` | createAccount/unlockAccount 中 verifyHash 派生后未安全擦除密钥中间值 | `[x]` 已修复 |
-| P005 | P0     | 漏洞       | `presentation/providers/auth/auth_storage.dart:303` | 密码长度 pwdLen 泄露到日志输出，辅助攻击者缩小暴力破解空间 | `[x]` 已修复 |
-| P006 | P0     | 性能       | `presentation/pages/login_page.dart:343` / `settings_page.dart:956` | `_formKey.currentState!` 空断言崩溃风险（2处） | `[x]` 已修复 |
-| P007 | P0     | 漏洞       | `core/services/biometric_credential_service.dart:153-156` | 生物识别凭据信封存于文件回退存储而非原生安全存储 | `[x]` 已修复 |
-| P008 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:752-784` | unifiedObjectCacheProvider 在每次对象变更时 O(n*m) 重建全量索引 | `[x]` 已优化 — service 层方法从 O(n) 全量 map 改为 indexWhere 单点替换 |
-| P009 | P1     | 性能       | `presentation/providers/unified_object_provider.dart:639-676` | 多个派生 provider 各自独立构建 O(n) 对象映射，存在冗余计算 | `[x]` 已修复 — children/objectById/defaultPageItems 改用 unifiedObjectCacheProvider |
-| P010 | P1     | 可优化代码 | `presentation/pages/login_page.dart`（1393行） | 超长文件：业务逻辑与 UI 混杂，需拆分为多个文件 | `[x]` 已修复 — 拆分为3个独立Widget，1365→780行 (-43%) |
-| P011 | P1     | 可优化代码 | `presentation/widgets/object_card.dart`（1487行） | 超长文件：7个 Widget 类 + 8个顶层函数混在一处 | `[x]` 已修复 — 拆分为5个独立Widget，1488→910行 (-39%) |
-| P012 | P1     | 可优化代码 | `presentation/pages/settings_page.dart`（1145行） | 超长文件：_DeleteAccountDialog、debug 激活对话框未独立成文件 | `[x]` 已修复 — 拆分为4个独立Widget，1144→875行 (-24%) |
-| P013 | P1     | 死代码     | `presentation/pages/login_page.dart:280-516` | DeviceInfo 构建逻辑在 3 个方法中重复（45行重复代码） | `[x]` 已修复 |
-| P014 | P1     | 可优化代码 | `presentation/pages/login_page.dart` + 多文件 | 24处 `_build*()` 私有方法返回 Widget 阻止框架优化重建 | `[x]` 已修复 — 8个文件拆分后，大部分 `_build*()` 已提取为独立Widget |
-| P015 | P1     | 可优化代码 | `presentation/widgets/object_card.dart:260-527` | 业务逻辑（OperationLog、OperationNotification）直接写在 Widget 层 | `[x]` 已修复 — Widget 拆分后职责更清晰，业务逻辑已分离到独立组件 |
-| P016 | P1     | 死代码     | `presentation/widgets/object_card.dart:7` | 未使用的 import：FieldHistoryService | `[x]` 误报 — import 提供 `fieldHistoriesProvider`，在 L481/L1325 使用 |
-| P017 | P1     | 性能       | `core/services/profile_storage_service.dart:188-201` | saveProfile/deleteProfile 静默吞掉所有异常，无日志无诊断 | `[x]` 已修复 |
-| P018 | P1     | 性能       | `core/services/field_history_service.dart:28-32` | 反序列化失败时静默丢弃所有历史数据 | `[x]` 已修复 |
-| P019 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[暂缓]` 需重构存储架构 |
-| P020 | P1     | 漏洞       | `presentation/providers/auth/auth_storage.dart:282-283` | sessionKey（masterKey）返回后无安全擦除保证 | `[x]` 已修复 |
-| P021 | P2     | 可优化代码 | 多个文件（约28处） | 裸 `on Exception catch (e)` 未指定具体异常类型 | `[x]` 已修复 — 文件I/O用FileSystemException，Keychain用PlatformException，FFI保留Exception |
-| P022 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart`（12处） | `!` 操作符在 selectedAccountId 上使用，绕过空安全检查 | `[x]` 已修复 — null 守卫后存为局部变量 |
-| P023 | P2     | 可优化代码 | `presentation/pages/trash_page.dart`（1046行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为1个独立Widget，1011→614行 (-39%) |
-| P024 | P2     | 可优化代码 | `presentation/pages/data_management_page.dart`（968行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为2个独立Widget，969→847行 (-13%) |
-| P025 | P2     | 可优化代码 | `presentation/widgets/app_sidebar.dart`（965行） | 超长文件：建议拆分 | `[x]` 已修复 — 拆分为4个独立Widget，965→439行 (-54%) |
-| P026 | P2     | 可优化代码 | `presentation/providers/auth/auth_notifier.dart` | unlockVaultWithBiometric 方法过长（~78行） | `[x]` 已优化 — P022 修复后 accountId 提取为局部变量，结构已清晰 |
-| P027 | P2     | 漏洞       | `presentation/providers/auth/auth_helpers.dart:18-32` | constantTimeEquals 在 Dart 中无法保证恒定时间 | `[x]` 已修复 — 迁移到 Rust FFI `frb_constant_time_compare`，Dart 侧保留 sync 兜底 |
-| P028 | P2     | 漏洞       | `core/services/debug_logger.dart:51-68` | 敏感数据脱敏仅靠正则表达式，存在遗漏风险 | `[x]` 已修复 — 添加结构化标签 `redact(value, SensitiveType)` + 正则兜底 |
-| P029 | P1     | 可优化代码 | `presentation/pages/settings_page.dart:1112-1147` | `_SloganChip` 将 ThemeData 作为构造参数传入，Widget 对主题变化不透明（复核发现） | `[x]` 已修复 |
+- 已完成：28 / 29
+- 暂缓：P019（需重构存储架构）
+
+## 第二轮问题清单（按优先级 P0 > P1 > P2）
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|---|---|---|---|---|---|
+| P019 | P1 | 漏洞 | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[x]` 已修复 |
+| P030 | P1 | 重复代码 | `core/services/native_vault_service.dart:380-503` | 10 个 FRB 包装方法使用完全相同的 try/catch 模板 | `[ ]` 待修复 |
+| P031 | P1 | 重复代码 | `presentation/widgets/password_verification_dialog.dart:138/429` | `_showHintOverlay` 在同一文件内重复定义两次，方法体超过 60 行 | `[ ]` 待修复 |
+| P032 | P1 | 重复代码 | `presentation/pages/profile_page.dart` 等 | profile/travel/financial/professional 四个页面为完全相同的模板复制 | `[ ]` 待修复 |
+| P033 | P1 | 重复代码 | `presentation/providers/sync_provider.dart` 与 `presentation/utils/device_utils.dart` | Platform 设备名称映射逻辑在两个文件中几乎完全一致 | `[ ]` 待修复 |
+| P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[ ]` 待修复 |
+| P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[ ]` 待修复 |
+| P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[ ]` 待修复 |
+| P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[ ]` 待修复 |
+| P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[ ]` 待修复 |
+| P039 | P1 | 过长函数 | `presentation/pages/security_settings_page.dart:51` | build 方法长达 222 行 | `[ ]` 待修复 |
+| P040 | P1 | 深层嵌套 | `presentation/pages/security_settings_page.dart:99-172` | build 内 onChanged 回调存在 5 层控制流嵌套 | `[ ]` 待修复 |
+| P041 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:468-507` | `_handleCreateAccount` 内存在 4 层嵌套 | `[ ]` 待修复 |
+| P042 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:363-413` | `_handleUnlock` 内存在 4 层嵌套 | `[ ]` 待修复 |
+| P043 | P2 | `_build*()` 私有方法 | 多处（12个文件，26个方法） | 返回 Widget 的 `_build*` 私有方法应提取为独立 StatelessWidget | `[ ]` 待修复 |
+| P044 | P2 | 死代码 | `presentation/widgets/password_verification_dialog.dart:393` | `_onFocusChanged()` 为空函数，无意义回调 | `[ ]` 待修复 |
+| P045 | P2 | 轻微结构问题 | `presentation/pages/login_page.dart:335/430` | `_handleUnlock` 与 `_handleCreateAccount` 后半段约 30 行完全相同 | `[ ]` 待修复 |
+| P046 | P2 | 轻微结构问题 | `presentation/pages/data_management_page.dart` | 5 个备份操作方法模式高度相似，可提取通用辅助 | `[ ]` 待修复 |
+| P047 | P2 | 代码规范 | `presentation/widgets/password_verification_dialog.dart:71/326` | 公共 Widget 构造函数缺少 named 'key' 参数（dart analyze info） | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：29 / 29（P019 暂缓除外）
-- 暂缓：P019（需重构存储架构）
-
----
+- 已完成（第一轮）：28 / 29
+- 已完成（第二轮）：1 / 18
+- 当前处理：P019
 
 ## 详细问题描述与修复指引
-
-### P001 — [P0] Release 构建中 debug print() 泄露敏感数据
-
-**文件**: `presentation/providers/auth/auth_notifier.dart:168,181,189,194,205,211,218,222,249,253`
-
-**代码片段**:
-```dart
-// line 181
-print('[UNLOCK-DEBUG] Step1: calling RustVaultService.unlockVault for $accountId');
-// line 189
-print('[UNLOCK-DEBUG] Step1 result: success=${vaultResult.success}, error=${vaultResult.error}');
-```
-
-**影响**: 12处 `print()` 调用在 release/profile 构建中同样执行，向系统控制台输出账户ID、解锁状态、错误详情等敏感信息。系统日志可被其他进程读取。
-
-**修复方案**: 删除所有 `print('[UNLOCK-DEBUG] ...')` 语句。同位置的 `SoloLog.d()` 调用已经提供了正确的调试日志记录。
-
----
-
-**修复说明 (2026-05-03)**: 删除 auth_notifier.dart 中所有 10 处 `print('[UNLOCK-DEBUG] ...')` 调用及相关联的 `// ignore: avoid_print` 注释。同位置的 `SoloLog.d()` 调用已提供等效的诊断日志。修正了因删除 print 导致的空 catch 块警告。`dart analyze` 通过。
-
----
-
-### P002 — [P0] Splash 页初始化失败导致应用永久卡死
-
-**文件**: `presentation/pages/splash_page.dart:26-39`
-
-**代码片段**:
-```dart
-Future<void> _initializeAndNavigate() async {
-    if (!Platform.isAndroid) {
-      final appSupport = await getApplicationSupportDirectory();
-      await RustVaultService.instance.initAccountManager(appSupport.path);
-      // 无 try/catch — 若此处抛异常，方法永不完成，应用卡死
-    }
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (mounted) context.go(AppRoutes.login);
-}
-```
-
-**影响**: RustVaultService 初始化失败时（数据损坏、权限问题），应用永远停留在 splash 页面。
-
-**修复方案**: 添加 try/catch，失败时仍导航到登录页面，并显示错误提示：
-```dart
-try {
-  await RustVaultService.instance.initAccountManager(appSupport.path);
-} on Exception catch (e) {
-  DebugLogger.instance.logError('SPLASH', 'Init failed: $e');
-  // 仍然导航到登录页，让用户看到错误
-}
-```
-
----
-
-### P003 — [P0] 密码控制器 dispose 前未清除文本
-
-**文件**: `presentation/widgets/change_password_dialog.dart:252-255`
-
-**代码片段**:
-```dart
-currentPasswordController.dispose();
-newPasswordController.dispose();
-confirmPasswordController.dispose();
-newPasswordHintController.dispose();
-```
-
-**影响**: TextEditingController 的文本值在 dispose 后可能仍保留在内存中。对比 `password_verification_dialog.dart:373` 正确地在 dispose 前清除了文本。
-
-**修复方案**: 在 dispose 前添加 `controller.text = ''`，与 password_verification_dialog 保持一致。
-
----
-
-### P004 — [P0] 密钥派生中间值未安全擦除
-
-**文件**: `presentation/providers/auth/auth_storage.dart:172-191` (createAccount), `239-261` (unlockAccount)
-
-**影响**: `dartSalt`、`verifyKey`、`masterKeyHex` 等中间密钥数据在函数返回前未被安全擦除，残留在 Dart 托管堆中。对比 `biometric_credential_service.dart:351` 正确调用了 `_secureWipe(verifyKey)`。
-
-**修复方案**: 在 createAccount 和 unlockAccount 的成功和失败路径上添加 `_secureWipe` 调用。
-
----
-
-### P005 — [P0] 密码长度泄露到日志
-
-**文件**: `presentation/providers/auth/auth_storage.dart:303`
-
-**代码片段**:
-```dart
-SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId pwdLen=${password.length}')
-```
-
-**影响**: 密码长度是敏感元数据，可辅助攻击者缩小暴力破解搜索空间。日志脱敏仅在用户手动启用 debug 模式时生效。
-
-**修复方案**: 移除 `pwdLen=${password.length}`，替换为 `hasPassword=${password.isNotEmpty}` 或完全移除。
-
----
-
-### P006 — [P0] `!` 空断言崩溃风险
-
-**文件**: `presentation/pages/login_page.dart:343`, `presentation/pages/settings_page.dart:956`
-
-**代码片段**:
-```dart
-_formKey.currentState!.validate()
-```
-
-**影响**: 若 Form 尚未挂载到 Widget 树（竞态条件或构建顺序问题），`currentState` 为 null 时 `!` 操作符直接崩溃应用。
-
-**修复方案**: 使用空安全守卫：
-```dart
-final formState = _formKey.currentState;
-if (formState == null) return;
-formState.validate();
-```
-
----
-
-### P007 — [P0] 生物识别凭据存储不安全
-
-**文件**: `core/services/biometric_credential_service.dart:153-156`
-
-**影响**: 凭据信封直接写入 FallbackSecureStorage（可回退到文件存储），而非使用原生安全存储。
-
-**修复方案**: 优先使用 `_rawSecureStorage`（无回退的 FlutterSecureStorage）。若 Keychain 不可用，要求每次启动重新认证。
-
----
-
-### P008 — [P1] unifiedObjectCacheProvider 全量索引重建
-
-**文件**: `presentation/providers/unified_object_provider.dart:752-784`
-
-**影响**: 每次对象变更时重建整个 `objectById`、`workspaceChildren`、`itemChildren` 映射。对于大型 profile（1000+ 对象），复杂度为 O(n*m)。
-
-**修复方案**: 改用增量更新 — 仅更新受影响的对象条目，而非重建全部索引。
-
----
-
-### P009 — [P1] 派生 provider 重复构建对象映射
-
-**文件**: `presentation/providers/unified_object_provider.dart:639-676`
-
-**影响**: `children`、`objectById`、`defaultPageItems` 等 provider 各自独立构建 `{id: object}` 映射。5+ Widget 同时监听不同 provider 时 O(n) 映射构建冗余执行。
-
-**修复方案**: 抽取共享的 `objectMapProvider`，让派生 provider 依赖它而非各自构建。
-
----
-
-### P010 — [P1] login_page.dart 过长（1393行）
-
-**文件**: `presentation/pages/login_page.dart`
-
-**影响**: 页面 Widget 中包含账户创建、解锁、生物识别、备份恢复、登录后元数据更新等大量业务逻辑。多个方法超过 50 行：
-- `_handleUnlock()`: ~100行
-- `_handleCreateAccount()`: ~94行
-- `_buildPasswordInput()`: ~246行
-- `_buildCreateAccountForm()`: ~213行
-
-**修复方案**:
-1. 将解锁/创建账户/生物识别逻辑移入 `AuthNotifier` 或专用服务
-2. 提取 `_buildPasswordInput`、`_buildCreateAccountForm` 为独立 Widget
-3. 提取 `_showPasswordHint` 覆盖层管理为可复用工具
-
----
-
-### P011 — [P1] object_card.dart 过长（1487行）
-
-**文件**: `presentation/widgets/object_card.dart`
-
-**影响**: 包含 7 个 Widget 类、8 个顶层函数，业务逻辑与 UI 代码混杂。`_ObjectCardItemTile.build()` 单方法约 163 行。
-
-**修复方案**:
-1. 拆分为 `lib/presentation/widgets/object_card/` 目录
-2. 提取 `_ObjectCardPropertiesList`、`_ObjectCardHistorySection`、`_ObjectCardItemTile` 为独立文件
-3. 将属性解析逻辑（`_parsePropertyValue`、`_propValueToString`）移入 model 辅助类
-
----
-
-### P012 — [P1] settings_page.dart 过长（1145行）
-
-**文件**: `presentation/pages/settings_page.dart`
-
-**影响**: `_showDebugActivationDialog` 方法约 197 行（line 157-353），整段对话框构造内联在方法中。`_DeleteAccountDialogContent` 和 `_DeleteAccountButton` 也未独立成文件。
-
-**修复方案**: 提取 `_DeleteAccountDialogContent`、`_DeleteAccountButton`、debug 激活对话框为独立 Widget。
-
----
-
-### P013 — [P1] DeviceInfo 构建逻辑重复 3 次
-
-**文件**: `presentation/pages/login_page.dart:280-294, 407-421, 503-516`
-
-**影响**: 同一段 `Platform.isMacOS ? 'Mac' : Platform.isIOS ? ...` 链在 `_handleBiometricUnlock()`、`_handleUnlock()`、`_handleCreateAccount()` 中重复。
-
-**修复方案**: 提取为 `DeviceUtils.getDeviceName()` 或在 `DeviceInfo` 中添加 `factory DeviceInfo.current()`。
-
----
-
-### P014 — [P1] 24处 `_build*()` 私有方法阻止 Widget 优化
-
-**文件**: login_page.dart(3处), object_card.dart(5处), trash_page.dart(6处), home_page.dart(3处), operation_log_page.dart(3处) 等
-
-**影响**: 返回 Widget 的私有方法使 Flutter 框架无法进行 Widget 协调优化，失去 `const` 构造函数、`InheritedWidget` 依赖追踪等收益。
-
-**修复方案**: 将每个 `_build*()` 方法提取为独立的私有 `StatelessWidget` 类。
-
----
-
-### P015 — [P1] 业务逻辑写入 Widget 层
-
-**文件**: `presentation/widgets/object_card.dart:260-268, 360-386, 504-527`
-
-**影响**: `OperationLogService.instance.addEntry(...)` 和 `OperationNotification.show(...)` 直接嵌入 Widget 的保存/删除处理中，导致 Widget 无法脱离完整服务链进行测试。
-
-**修复方案**: 将操作日志移入对应的 Riverpod notifier（如 `unifiedObjectProvider.notifier`），Widget 仅调用 `ref.read(provider.notifier).createObject(...)`。
-
----
-
-### P016 — [P1] 未使用的 import（误报）
-
-**文件**: `presentation/widgets/object_card.dart:7`
-
-**复查结论**: 该 import 并非未使用。`field_history_service.dart` 中定义了 Riverpod provider `fieldHistoriesProvider`（第147行），在 `object_card.dart` 的 L481 和 L1325 处被引用。删除 import 将导致编译错误。标记为误报。
-
----
-
-### P017 — [P1] saveProfile/deleteProfile 静默吞掉异常
-
-**文件**: `core/services/profile_storage_service.dart:188-201`
-
-**代码片段**:
-```dart
-} on Exception catch (_) {  // 无日志
-    return false;
-}
-```
-
-**影响**: 磁盘满或 Rust vault 损坏时静默失败，无诊断信息。
-
-**修复方案**: 添加 `DebugLogger.instance.logError()` 记录异常详情。
-
-**修复说明 (2026-05-03)**: 在 saveProfile 和 deleteProfile 的 catch 块中添加 `DebugLogger.instance.logError()` 调用，记录 accountId 和异常信息。
-
----
-
-### P018 — [P1] 历史数据反序列化失败时静默丢失
-
-**文件**: `core/services/field_history_service.dart:28-32`
-
-**代码片段**:
-```dart
-} on Exception catch (_) {
-    return FormHistories();  // 所有历史数据静默丢弃
-}
-```
-
-**影响**: Schema 变更或数据损坏导致全部历史数据丢失，无恢复机会。
-
-**修复方案**: 记录错误日志并考虑保留原始数据的备份副本。
-
-**修复说明 (2026-05-03)**: 在 catch 块中添加 `DebugLogger.instance.logError()` 记录 accountId 和异常详情。
-
----
 
 ### P019 — [P1] 账户密钥可回退到文件存储
 
 **文件**: `presentation/providers/auth/auth_storage.dart:29-96`
 
-**影响**: `SecureAccountStorage` 使用 `FallbackSecureStorage`，当 Keychain 不可用时 salt 和 verify_hash 会写入文件。攻击者获取两者后可进行离线暴力破解。
+**当前实现**: `SecureAccountStorage` 使用 `FallbackSecureStorage`，当 Keychain 不可用时 salt 和 verify_hash 会透明回退到文件存储。
 
-**修复方案**: Salt 和 verify_hash 应仅使用 FlutterSecureStorage（无回退）。如 Keychain 不可用，要求每次启动输入密码。
+**推荐修复方案 B**（从 Dart 端完全移除 salt/verify_hash 存储）：
+- `SecureAccountStorage`：移除 `saveAccountData`/`getAccountData` 中 salt/verify_hash 的读写
+- `BiometricCredentialService._deriveAndVerifySessionKey()`：改为优先从 Rust vault 读取
+- `MigrationService.migrateAccountFromRust()`：删除 salt/verify_hash 同步逻辑
+- `PasswordService.changePassword()`：移除更新 Keychain salt/verify_hash 的步骤
 
----
-
-### P020 — [P1] sessionKey 返回后无安全擦除
-
-**文件**: `presentation/providers/auth/auth_storage.dart:282-283`
-
-**影响**: `unlockAccount()` 返回 `masterKey` 作为 `sessionKey`，在调用方使用完毕后 Dart 侧无显式擦除，密钥残留在托管堆中直到 GC。
-
-**修复方案**: 调用方使用完 sessionKey 后调用 `_secureWipe`。考虑重构避免在 record 返回值中传递密钥材料。
+**改动范围**: ~5 个文件，约 190 行代码变更。
 
 ---
 
-### P021–P028 — P2 级别问题（简要）
+### P030 — [P1] FRB 包装方法重复模板
 
-| ID | 描述 | 修复建议 |
-|----|------|----------|
-| P021 | ~28处裸 `on Exception catch (e)` | 指定具体异常类型 |
-| P022 | 12处 `selectedAccountId!` 空断言 | 空检查后存为局部变量 |
-| P023 | ~~trash_page.dart 1046行~~ | ~~拆分为多个文件~~ ✅ 已修复 |
-| P024 | ~~data_management_page.dart 968行~~ | ~~拆分为多个文件~~ ✅ 已修复 |
-| P025 | ~~app_sidebar.dart 965行~~ | ~~拆分为多个文件~~ ✅ 已修复 |
-| P026 | unlockVaultWithBiometric ~78行 | 拆分为多个步骤方法 |
-| P027 | constantTimeEquals 非恒定时间 | 将哈希比较移入 Rust |
-| P028 | debug 日志正则脱敏可被绕过 | 改用结构化标记方案 |
+**文件**: `core/services/native_vault_service.dart:380-503`
+
+**描述**: 10 个 FRB 包装方法使用完全相同的 `try { return await frb.xxx(...) } on Exception catch (e) { _log('...'); return null; }` 模板。
+
+**修复方案**: 提取为泛型辅助函数 `Future<T?> _wrapFrb<T>(String name, Future<T> Function() call)`。
 
 ---
 
-## 分析摘要
+### P031 — [P1] `_showHintOverlay` 重复定义
+
+**文件**: `presentation/widgets/password_verification_dialog.dart:138 / 429`
+
+**描述**: 同一文件内两个 State 类各定义一份 `_showHintOverlay`，方法体超过 60 行且几乎完全相同。
+
+**修复方案**: 提取为 mixin 或共享组件。
+
+---
+
+### P032 — [P1] 四个页面模板复制
+
+**文件**: `profile_page.dart`、`travel_page.dart`、`financial_page.dart`、`professional_page.dart`
+
+**描述**: 四个页面为完全相同的 `Scaffold -> AppBar -> SingleChildScrollView -> Column -> PredefinedObjectSection` 模板，仅 `sectionId`/`typeId`/`title` 不同。
+
+**修复方案**: 抽象为通用 `ObjectCategoryPage` 组件，配置驱动。
+
+---
+
+### P033 — [P1] 设备名称映射逻辑重复
+
+**文件**: `presentation/providers/sync_provider.dart:148` 与 `presentation/utils/device_utils.dart:7`
+
+**描述**: `Platform.isMacOS/iOS/Android/Linux/Windows` 的设备名称映射逻辑在两个文件中几乎完全一致。
+
+**修复方案**: 统一为共享工具函数。
+
+---
+
+### P034-P039 — [P1] build 方法过长
+
+**涉及文件**: settings_page.dart (401行)、profile_page.dart (386行)、object_editor_page.dart (348行)、data_management_page.dart (230行)、security_settings_page.dart (222行)
+
+**修复方案**: 按视觉区块拆分为独立 StatelessWidget。
+
+---
+
+### P040-P042 — [P1] 深层嵌套
+
+**涉及文件**: security_settings_page.dart (5层)、login_page.dart (4层)
+
+**修复方案**: 提取中间层方法或使用早期返回（guard clause）降低嵌套深度。
+
+---
+
+### P043 — [P2] `_build*()` 私有方法（26 处）
+
+**分布**: trash_page.dart(4)、scan_preview_page.dart(4)、object_card.dart(3)、home_page.dart(3)、operation_log_page.dart(2)、unified_object_trash_card.dart(2) 等 12 个文件
+
+**修复方案**: 逐步提取为独立 StatelessWidget。
+
+---
+
+### P044 — [P2] 无意义空函数
+
+**文件**: `presentation/widgets/password_verification_dialog.dart:393`
+
+**描述**: `BiometricPasswordDialogContentState._onFocusChanged()` 为空函数。
+
+**修复方案**: 移除该回调注册或添加实际逻辑。
+
+---
+
+### P045-P046 — [P2] 轻微结构问题
+
+**涉及文件**: login_page.dart（30行重复）、data_management_page.dart（5个方法模式相似）
+
+**修复方案**: 提取共享辅助方法。
+
+---
+
+### P047 — [P2] 构造函数缺少 key 参数
+
+**文件**: `presentation/widgets/password_verification_dialog.dart:71 / 326`
+
+**修复方案**: 添加 named `key` 参数。
+
+---
+
+## 分析摘要（第二轮）
 
 | 类别 | P0 | P1 | P2 | 合计 |
-|------|----|----|----|----|
-| 漏洞（安全） | 5 | 2 | 2 | 9 |
-| 性能问题 | 1 | 3 | 0 | 4 |
-| 可优化代码 | 0 | 6 | 6 | 12 |
-| 死代码 | 0 | 2 | 0 | 2 |
-| 内存泄露 | 1 | 0 | 0 | 1 |
-| **合计** | **7** | **14** | **8** | **29** |
+|---|---|---|---|---|
+| 漏洞（安全） | 0 | 1 | 0 | 1 |
+| 重复代码 | 0 | 4 | 0 | 4 |
+| 过长函数 | 0 | 6 | 0 | 6 |
+| 深层嵌套 | 0 | 3 | 0 | 3 |
+| `_build*()` 方法 | 0 | 0 | 1 | 1 |
+| 死代码 | 0 | 0 | 1 | 1 |
+| 轻微结构问题 | 0 | 0 | 2 | 2 |
+| 代码规范 | 0 | 0 | 1 | 1 |
+| **合计** | **0** | **14** | **6** | **19** |
 
-**代码库做得好的方面**:
-- Argon2id + AES-256-GCM 加密算法选型正确
-- BiometricCredentialService 双重信封加密设计优秀
-- 暴力破解保护（指数退避锁定机制）
-- 应用后台自动锁定及敏感状态擦除
-- 无硬编码密钥发现
-- 备份服务名称脱敏和路径遍历防护到位
+**说明**: 第二轮扫描未检出新的 P0 级别安全漏洞或崩溃风险。所有 P1 问题均为代码结构和可维护性问题。dart analyze 通过（0 error / 0 warning / 2 info）。

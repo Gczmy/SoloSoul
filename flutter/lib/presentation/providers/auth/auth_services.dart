@@ -92,8 +92,6 @@ class MigrationService {
         parallelism: 1,
       );
 
-      await _storage.updateAccountSalt(accountId, salt, bytesToHex(verifyKey));
-
       // Clear sensitive data from memory
       for (var i = 0; i < salt.length; i++) {
         salt[i] = 0;
@@ -164,82 +162,23 @@ class MigrationService {
         }
       }
 
-      if (salt == null || verifyHash == null) {
-        SoloLog.w('AUTH', 'No salt/verifyHash available, updating crypto version only');
-        try {
-          await _storage
-              .updateAccountCryptoVersion(accountId, cryptoVersion)
-              .timeout(
-                const Duration(seconds: 5),
-                onTimeout: () =>
-                    throw TimeoutException('updateAccountCryptoVersion timed out'),
-              );
-        } on Exception catch (e, st) {
-          SoloLog.e('AUTH', 'Failed to update crypto version', e, st);
-        }
-        return;
-      }
-
-      final saltBytes = base64Decode(salt);
-
-      final accounts = await _storage.listAccounts().timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw TimeoutException('listAccounts timed out'),
-          );
-      final existingAccount = accounts.cast<AccountInfo?>().firstWhere(
-            (a) => a?.id == accountId,
-            orElse: () => null,
-          );
-
-      if (existingAccount == null) {
-        try {
-          await _storage
-              .saveAccountData(accountId, {
-                'salt': salt,
-                'verify_hash': verifyHash,
-                'crypto_version': cryptoVersion,
-              })
-              .timeout(
-                const Duration(seconds: 5),
-                onTimeout: () =>
-                    throw TimeoutException('saveAccountData timed out'),
-              );
-        } on Exception catch (e, st) {
-          DebugLogger.instance
-              .logError('AUTH', 'Failed to save new account data during migration: $e\nStack trace: $st');
-        }
-      } else {
-        try {
-          await _storage
-              .updateAccountSalt(
-                accountId,
-                Uint8List.fromList(saltBytes),
-                verifyHash,
-              )
-              .timeout(
-                const Duration(seconds: 5),
-                onTimeout: () =>
-                    throw TimeoutException('updateAccountSalt timed out'),
-              );
-        } on Exception catch (e, st) {
-          DebugLogger.instance
-              .logError('AUTH', 'Failed to update account salt during migration: $e\nStack trace: $st');
-        }
-        try {
-          await _storage
-              .updateAccountCryptoVersion(accountId, cryptoVersion)
-              .timeout(
-                const Duration(seconds: 5),
-                onTimeout: () =>
-                    throw TimeoutException('updateAccountCryptoVersion timed out'),
-              );
-        } on Exception catch (e, st) {
-          DebugLogger.instance
-              .logError('AUTH', 'Failed to update crypto version during migration: $e\nStack trace: $st');
-        }
+      // Salt/verify_hash are no longer stored in Dart-side Keychain.
+      // Rust vault is the single source of truth for sensitive credentials.
+      // Only update crypto version marker.
+      try {
+        await _storage
+            .updateAccountCryptoVersion(accountId, cryptoVersion)
+            .timeout(
+              const Duration(seconds: 5),
+              onTimeout: () =>
+                  throw TimeoutException('updateAccountCryptoVersion timed out'),
+            );
+      } on Exception catch (e, st) {
+        SoloLog.e('AUTH', 'Failed to update crypto version', e, st);
       }
     } on Exception catch (e, st) {
-      DebugLogger.instance.logError('AUTH', 'Migration error: $e\nStack trace: $st');
+      DebugLogger.instance
+          .logError('AUTH', 'Migration error: $e\nStack trace: $st');
     }
   }
 }
@@ -290,20 +229,8 @@ class PasswordService {
       );
     }
 
-    // Step 4: Update Dart's Keychain with new salt/verify_hash from Rust
-    if (rustResult.salt != null && rustResult.verifyHash != null) {
-      final saltBytes = base64Decode(rustResult.salt!);
-      await _storage.updateAccountSalt(
-        accountId,
-        saltBytes,
-        rustResult.verifyHash!,
-      );
-    } else {
-      return (
-        success: false,
-        error: 'Failed to get new credentials from vault'
-      );
-    }
+    // Step 4: Salt/verify_hash are no longer stored in Dart-side Keychain.
+    // Rust vault is the single source of truth for sensitive credentials.
 
     // Step 5: Re-save profile if it exists (session key managed by Rust)
     if (currentProfile != null) {

@@ -209,23 +209,20 @@ void main() {
 
     test('returns decoded data', () async {
       secureStorageData['solosoul_account_acc1'] =
-          '{"salt":"abc123","verify_hash":"deadbeef"}';
+          '{"crypto_version":2}';
       final data = await SecureAccountStorage.instance.getAccountData('acc1');
       expect(data, isNotNull);
-      expect(data!['salt'], 'abc123');
-      expect(data['verify_hash'], 'deadbeef');
+      expect(data!['crypto_version'], 2);
     });
   });
 
   group('SecureAccountStorage.saveAccountData', () {
     test('writes data to storage', () async {
       await SecureAccountStorage.instance.saveAccountData('acc1', {
-        'salt': 'salty',
-        'verify_hash': 'hashy',
+        'crypto_version': 2,
       });
       final stored = secureStorageData['solosoul_account_acc1'];
-      expect(stored, contains('salty'));
-      expect(stored, contains('hashy'));
+      expect(stored, contains('crypto_version'));
     });
   });
 
@@ -234,8 +231,8 @@ void main() {
       // Setup: two accounts
       secureStorageData['solosoul_accounts'] =
           '[{"id":"acc1","name":"First","created_at":"2024-01-01T00:00:00.000Z","last_accessed":"2024-01-01T00:00:00.000Z"},{"id":"acc2","name":"Second","created_at":"2024-01-01T00:00:00.000Z","last_accessed":"2024-01-01T00:00:00.000Z"}]';
-      secureStorageData['solosoul_account_acc1'] = '{"salt":"s1"}';
-      secureStorageData['solosoul_account_acc2'] = '{"salt":"s2"}';
+      secureStorageData['solosoul_account_acc1'] = '{"crypto_version":2}';
+      secureStorageData['solosoul_account_acc2'] = '{"crypto_version":2}';
 
       final success = await SecureAccountStorage.instance.deleteAccount('acc1');
       expect(success, isTrue);

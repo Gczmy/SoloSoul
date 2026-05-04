@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
-import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
@@ -56,7 +55,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   final SecureAccountStorage _storage;
   final ProfileStorageService _profileStorage;
   final VaultUnlockService _vaultUnlockService;
-  final MigrationService _migrationService;
   final PasswordService _passwordService;
   final AccountManager _accountManager;
 
@@ -66,7 +64,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   })  : _storage = storage ?? SecureAccountStorage.instance,
         _profileStorage = profileStorage ?? ProfileStorageService.instance,
         _vaultUnlockService = const VaultUnlockService(),
-        _migrationService = MigrationService(storage ?? SecureAccountStorage.instance),
         _passwordService = PasswordService(
           storage ?? SecureAccountStorage.instance,
         ),
@@ -195,10 +192,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     // The vault is already open — if these fail, the user can still use the app.
     SoloLog.d('Auth', 'Step2: Scheduling post-unlock tasks (non-blocking)');
 
-    // Fire-and-forget: try to sync account data to Keychain in background
-    unawaited(_postUnlockSync(accountId, vaultResult.cryptoVersion ?? 2).catchError((Object e) {
-    }));
-
     // Step 3: Validate salt availability (session key is managed by Rust).
     // The vault is already unlocked (Step 1 succeeded), so salt is valid.
     // Just log that we're good — no need to re-validate.
@@ -214,25 +207,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _upgradeBackupIfNeeded(accountId: accountId);
 
     return true;
-  }
-
-  /// Post-unlock background sync: ensure Keychain has account data.
-  /// Runs asynchronously — never blocks the unlock flow.
-  Future<void> _postUnlockSync(String accountId, int cryptoVersion) async {
-    try {
-      // Try Rust config first (synchronous, fast)
-      final rustCfg = NativeVaultService.instance.getAccountConfig(accountId: accountId);
-      if (rustCfg?.salt != null && rustCfg?.verifyHash != null) {
-        // Sync to Keychain in background
-        await _storage.saveAccountData(accountId, {
-          'salt': rustCfg!.salt,
-          'verify_hash': rustCfg.verifyHash,
-          'crypto_version': cryptoVersion,
-        });
-      }
-    } on Object {
-      // non-fatal — post-unlock sync failure does not block the app
-    }
   }
 
   /// Unlock vault with biometric authentication
@@ -277,33 +251,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       return false;
     }
 
-    SoloLog.d('Auth', 'Biometric unlock succeeded, checking Keychain...');
+    SoloLog.d('Auth', 'Biometric unlock succeeded');
 
-    // Step 3: Check for migrations needed (Rust→Keychain only, no V2 migration)
-    final timer3 = SoloLog.startTimer('Auth', 'Keychain.getAccountData');
-    try {
-      final accountData = await _storage
-          .getAccountData(accountId)
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => throw TimeoutException('getAccountData timed out'),
-          );
-      SoloLog.endTimer(timer3);
-
-      if (accountData == null) {
-        SoloLog.d('Auth', 'Account not in Keychain, migrating from Rust...');
-        await _migrationService.migrateAccountFromRust(
-          accountId: accountId,
-          cryptoVersion: vaultResult.cryptoVersion ?? 2,
-        );
-      } else if ((accountData['crypto_version'] as int? ?? 1) < 2) {
-        // V2 migration requires password re-derivation; biometric credential
-        // should only exist after at least one password unlock. Log warning.
-        SoloLog.w('Auth', 'V1 account detected but biometric unlock cannot perform V2 migration without password. Consider unlocking with password once.');
-      }
-    } on Object catch (e, st) {
-      SoloLog.e('Auth', 'Migration error during biometric unlock', e, st);
-    }
+    // Step 3: Rust vault is the single source of truth for account credentials.
+    // No Dart-side Keychain migration needed.
 
     // Step 4: Session key is now managed by Rust — no need to set on Dart side
     _secureWipe(sessionKey);
