@@ -622,165 +622,192 @@ class _PropertyFieldsSection extends StatelessWidget {
               ),
             );
           }
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: field.controller,
-                    maxLength: 24,
-                    buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-                    decoration: const InputDecoration(
-                      hintText: 'Key name',
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      field.key = value;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 40,
-                  child: ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: field.controller,
-                    builder: (context, value, child) {
-                      final len = value.text.length;
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            child: Text(
-                              '\$len',
-                              textAlign: TextAlign.right,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '/',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 16,
-                            child: Text(
-                              '24',
-                              textAlign: TextAlign.left,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 1,
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      border: OutlineInputBorder(),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isDense: true,
-                        value: field.type,
-                        items: const [
-                          DropdownMenuItem(value: 'text', child: Text('Text')),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            field.type = value;
-                            onFieldChanged();
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 72,
-                  child: PopupMenuButton<SensitivityLevel>(
-                    tooltip: 'Sensitivity',
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SensitivityTag(level: field.sensitivity),
-                          const SizedBox(width: 2),
-                          Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 12,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ],
-                      ),
-                    ),
-                    itemBuilder: (context) => SensitivityLevel.values.map((level) {
-                      return PopupMenuItem(
-                        value: level,
-                        child: Row(
-                          children: [
-                            Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
-                            const SizedBox(width: 8),
-                            Text(level.label),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onSelected: (level) {
-                      field.sensitivity = level;
-                      onFieldChanged();
-                    },
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
-                  tooltip: 'Delete',
-                  onPressed: () async {
-                    final keyName = field.key.trim().isNotEmpty ? field.key.trim() : 'this property';
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Delete Property'),
-                        content: Text('Are you sure you want to delete "$keyName"?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirmed == true) {
-                      onDeleteConfirmed(index);
-                    }
-                  },
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
+          return _PropertyFieldRow(
+            field: field,
+            index: index,
+            onDeleteConfirmed: onDeleteConfirmed,
+            onFieldChanged: onFieldChanged,
           );
         }),
       ],
     );
+  }
+}
+
+/// Single editable property field row.
+class _PropertyFieldRow extends StatelessWidget {
+  final _PropertyField field;
+  final int index;
+  final ValueChanged<int> onDeleteConfirmed;
+  final VoidCallback onFieldChanged;
+
+  const _PropertyFieldRow({
+    required this.field,
+    required this.index,
+    required this.onDeleteConfirmed,
+    required this.onFieldChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+  padding: const EdgeInsets.only(bottom: 8),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Expanded(
+        flex: 2,
+        child: TextField(
+          controller: field.controller,
+          maxLength: 24,
+          buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+          decoration: const InputDecoration(
+            hintText: 'Key name',
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (value) {
+            field.key = value;
+          },
+        ),
+      ),
+      const SizedBox(width: 8),
+      SizedBox(
+        width: 40,
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: field.controller,
+          builder: (context, value, child) {
+            final len = value.text.length;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 16,
+                  child: Text(
+                    '\$len',
+                    textAlign: TextAlign.right,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Text(
+                  '/',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                SizedBox(
+                  width: 16,
+                  child: Text(
+                    '24',
+                    textAlign: TextAlign.left,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        flex: 1,
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            border: OutlineInputBorder(),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              isDense: true,
+              value: field.type,
+              items: const [
+                DropdownMenuItem(value: 'text', child: Text('Text')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  field.type = value;
+                  onFieldChanged();
+                }
+              },
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      SizedBox(
+        width: 72,
+        child: PopupMenuButton<SensitivityLevel>(
+          tooltip: 'Sensitivity',
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SensitivityTag(level: field.sensitivity),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 12,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+          itemBuilder: (context) => SensitivityLevel.values.map((level) {
+            return PopupMenuItem(
+              value: level,
+              child: Row(
+                children: [
+                  Icon(Icons.circle, color: getSensitivityColor(level), size: 10),
+                  const SizedBox(width: 8),
+                  Text(level.label),
+                ],
+              ),
+            );
+          }).toList(),
+          onSelected: (level) {
+            field.sensitivity = level;
+            onFieldChanged();
+          },
+        ),
+      ),
+      IconButton(
+        icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
+        tooltip: 'Delete',
+        onPressed: () async {
+          final keyName = field.key.trim().isNotEmpty ? field.key.trim() : 'this property';
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Delete Property'),
+              content: Text('Are you sure you want to delete "$keyName"?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true) {
+            onDeleteConfirmed(index);
+          }
+        },
+        visualDensity: VisualDensity.compact,
+      ),
+    ],
+  ),
+);
+
   }
 }
