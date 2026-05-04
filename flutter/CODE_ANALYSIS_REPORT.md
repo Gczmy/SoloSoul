@@ -19,7 +19,7 @@
 | P031 | P1 | 重复代码 | `presentation/widgets/password_verification_dialog.dart:138/429` | `_showHintOverlay` 在同一文件内重复定义两次，方法体超过 60 行 | `[x]` 已修复 — 提取为 `PasswordDialogOverlayMixin` |
 | P032 | P1 | 重复代码 | `presentation/pages/profile_page.dart` 等 | profile/travel/financial/professional 四个页面为完全相同的模板复制 | `[x]` 已修复 — 创建 `ObjectCategoryPage` 配置驱动组件 |
 | P033 | P1 | 重复代码 | `presentation/providers/sync_provider.dart` 与 `presentation/utils/device_utils.dart` | Platform 设备名称映射逻辑在两个文件中几乎完全一致 | `[x]` 已修复 |
-| P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[x]` 已修复 — _DebugActivationDialog 已提取，build 内所有 _build* 私有方法已提取为 StatelessWidget |
+| P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[x]` 已修复 — 提取 7 个 section widget，build 427→35 行 |
 | P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[x]` 已修复 — 提取 5 个 section widget + _CountedTextField，build 327→~20 行 |
 | P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[x]` 已修复 — 提取 _ObjectEditorHeader, _PropertyFieldsSection, _BottomSaveBar，build 360→57 行 |
 | P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[x]` 已修复 — 提取为 _DebugActivationDialog，方法从 196→58 行 |
@@ -183,7 +183,7 @@
 **涉及文件**: settings_page.dart (401行→~280行)、profile_page.dart (已合并为 ObjectCategoryPage)、object_editor_page.dart (348行)、data_management_page.dart (230行)、security_settings_page.dart (222行)
 
 **修复状态**:
-- P034 settings_page.dart: `_showDebugActivationDialog` 提取为 `_DebugActivationDialog` (P037 ✅)。build 内所有 `_build*` 私有方法已提取为 StatelessWidget (P043 ✅)。build 方法从 401 行降至约 280 行。
+- P034 settings_page.dart: 提取 7 个 section widget (`_AccountSettingsSection`, `_AccessSettingsSection`, `_SecuritySettingsSection`, `_SyncSettingsSection`, `_LLMSettingsSection`, `_AppInfoSection`, `_SoloSoulAdSection`)，build 427→35 行 ✅。
 - P035 profile_page.dart: 已提取 5 个 section widget (`_IdentitySection`, `_ContactSection`, `_IdentityDocumentsSection`, `_AddressesSection`, `_CountedTextField`)，build 327→~20 行 ✅。
 - P036 object_editor_page.dart: 提取 _ObjectEditorHeader, _PropertyFieldsSection, _BottomSaveBar，build 360→57 行 ✅。
 - P038 data_management_page.dart: `_build*` 方法已提取 (P043 ✅)，待进一步拆分 (后台任务进行中)。
