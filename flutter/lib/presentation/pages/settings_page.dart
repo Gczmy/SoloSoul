@@ -158,7 +158,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
-  Future<void> _showDebugActivationDialog() async {
+  static Future<void> _showDebugActivationDialog(BuildContext context, WidgetRef ref) async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final biometricService = BiometricService.instance;
     final securityService = SecurityService.instance;
@@ -170,7 +170,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         securityService.settings.faceIdEnabled;
     final canUseBiometric = isBiometricAvailable && isBiometricEnabled;
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     final password = await showDialog<String?>(
       context: context,
       barrierDismissible: false,
@@ -181,14 +181,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
 
-    if (password != null && mounted) {
-      // Always require password verification for debug mode activation.
-      // Biometric alone is not sufficient (security: biometric can be
-      // spoofed by a sleeping user's fingerprint).
+    if (password != null && context.mounted) {
       final success = await authNotifier.verifyPasswordForSensitiveData(password);
-      if (success && mounted) {
+      if (success && context.mounted) {
         await ref.read(debugModeProvider.notifier).enableDebugMode();
-        if (mounted) {
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Row(
@@ -202,7 +199,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           );
         }
-      } else if (mounted) {
+      } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -221,10 +218,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-    final accountsAsync = ref.watch(accountsProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -237,506 +230,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Account Section
-            SectionCard(
-              title: 'Account',
-              icon: Icons.account_circle_outlined,
-              children: [
-                accountsAsync.when(
-                  data: (accounts) {
-                    final selectedId = authNotifier.selectedAccountId;
-                    final currentAccount = accounts
-                        .cast<AccountInfo?>()
-                        .firstWhere(
-                          (a) => a?.id == selectedId,
-                          orElse: () => null,
-                        );
-                    return Column(
-                      children: [
-                        SettingsTile(
-                          icon: Icons.person_outline,
-                          title: 'Current Account',
-                          subtitle: currentAccount?.name ?? selectedId ?? 'Unknown',
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.successColor.withValues(
-                                alpha: 0.1,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Active',
-                              style: TextStyle(
-                                color: AppTheme.successColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          onTap: () => _showCurrentAccountSheet(
-                            context,
-                            ref,
-                            currentAccount,
-                          ),
-                        ),
-                        const Divider(height: 1),
-                        SettingsTile(
-                          icon: Icons.people_outline,
-                          title: 'All Accounts',
-                          subtitle: '${accounts.length} account(s)',
-                          onTap: () =>
-                              _showAllAccountsSheet(context, ref, accounts),
-                        ),
-                        const Divider(height: 1),
-                        SettingsTile(
-                          icon: Icons.storage_outlined,
-                          title: 'Data Management',
-                          subtitle: _vaultDataSize,
-                          onTap: () => context.push(AppRoutes.dataManagement),
-                        ),
-                      ],
-                    );
-                  },
-                  loading: () => const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (_, __) => const SettingsTile(
-                    icon: Icons.error_outline,
-                    title: 'Error loading accounts',
-                    subtitle: 'Please restart the app',
-                  ),
-                ),
-              ],
-            ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0),
-
+            _AccountSettingsSection(vaultDataSize: _vaultDataSize),
             const SizedBox(height: 16),
-
-            // Access Section
-            SectionCard(
-                  title: 'Access',
-                  icon: Icons.lock_outlined,
-                  children: [
-                    SettingsTile(
-                      icon: Icons.lock_open_outlined,
-                      title: 'Lock Vault',
-                      subtitle: 'Lock now and require password',
-                      onTap: () async {
-                        final confirmed = await showLockVaultDialog(context);
-                        if (confirmed == true && context.mounted) {
-                          await ref.read(authNotifierProvider.notifier).lockVault();
-                          ref.read(sensitivePageAccessProvider.notifier).clear();
-                        }
-                      },
-                    ),
-                    const Divider(height: 1),
-                    SettingsTile(
-                      icon: Icons.password_outlined,
-                      title: 'Change Master Password',
-                      subtitle: 'Update your vault password',
-                      onTap: () async {
-                        final success = await showChangePasswordDialog(
-                          context: context,
-                          ref: ref,
-                        );
-                        if (success && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  SizedBox(width: 12),
-                                  Text('Master password changed successfully'),
-                                ],
-                              ),
-                              backgroundColor: AppTheme.successColor,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              margin: const EdgeInsets.all(16),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    const Divider(height: 1),
-                    const BiometricSettingsWidget(),
-                  ],
-                )
-                .animate()
-                .fadeIn(delay: 100.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
+            const _AccessSettingsSection(),
             const SizedBox(height: 16),
-
-            // Security Section
-            SectionCard(
-                  title: 'Security',
-                  icon: Icons.shield_outlined,
-                  children: [
-                    SettingsTile(
-                      icon: Icons.lock_clock_outlined,
-                      title: 'Auto-Lock & Privacy',
-                      subtitle: 'Configure timeout and privacy settings',
-                      onTap: () async {
-                        final authNotifier = ref.read(authNotifierProvider.notifier);
-                        final selectedAccount = authNotifier.selectedAccount;
-                        final result = await showPasswordVerificationDialog(
-                          context: context,
-                          ref: ref,
-                          message: 'Enter your master password to access security settings.',
-                          passwordHint: selectedAccount?.passwordHint,
-                          onVerify: authNotifier.verifyPasswordForSensitiveData,
-                        );
-                        if (!mounted) return;
-                        if (result != null) {
-                          ref.read(sensitivePageAccessProvider.notifier).markVerified();
-                          if (context.mounted) {
-                            await context.push(AppRoutes.securitySettings);
-                          }
-                        }
-                      },
-                    ),
-                    const Divider(height: 1),
-                    SettingsTile(
-                      icon: Icons.security_outlined,
-                      title: 'Sensitivity Level Settings',
-                      subtitle: 'Configure field sensitivity',
-                      onTap: () =>
-                          context.push(AppRoutes.sensitivitySettings),
-                    ),
-                    const Divider(height: 1),
-                    SettingsTile(
-                      icon: Icons.history,
-                      title: 'Operation Log',
-                      subtitle: 'View activity history',
-                      onTap: () =>
-                          context.push(AppRoutes.operationLog),
-                    ),
-                    // TODO: Manage Objects page is not ready yet, hide for now
-                  ],
-                )
-                .animate()
-                .fadeIn(delay: 100.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
+            const _SecuritySettingsSection(),
             const SizedBox(height: 16),
-
-            // Sync Section
-            SectionCard(
-                  title: 'Sync',
-                  icon: Icons.sync_outlined,
-                  children: [
-                    SettingsTile(
-                      icon: Icons.cloud_outlined,
-                      title: 'Cloud Sync',
-                      subtitle: 'Not configured',
-                      trailing: Switch(
-                        value: false,
-                        onChanged: (value) =>
-                            _showComingSoon(context, 'Cloud sync setup'),
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    const SettingsTile(
-                      icon: Icons.wifi_off_outlined,
-                      title: 'Offline Mode',
-                      subtitle: 'Local data only',
-                      trailing: Icon(
-                        Icons.check_circle,
-                        color: AppTheme.successColor,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                )
-                .animate()
-                .fadeIn(delay: 200.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
+            const _SyncSettingsSection(),
             const SizedBox(height: 16),
-
-            // AI / LLM Section (debug only — interface reservation)
-            if (kDebugMode)
-              SectionCard(
-                    title: 'AI Assistant',
-                    icon: Icons.psychology_outlined,
-                    children: [
-                      SettingsTile(
-                        icon: Icons.smart_toy_outlined,
-                        title: 'LLM Configuration',
-                        subtitle: 'Local model or cloud API',
-                        onTap: () => context.push(AppRoutes.llmConfig),
-                      ),
-                    ],
-                  )
-                  .animate()
-                  .fadeIn(delay: 250.ms, duration: 400.ms)
-                  .slideX(begin: 0.05, end: 0),
-
+            if (kDebugMode) const _LLMSettingsSection(),
             if (kDebugMode) const SizedBox(height: 16),
-
-            // App Info Section
-            SectionCard(
-                  title: 'About',
-                  icon: Icons.info_outlined,
-                  children: [
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final packageInfo = ref.watch(packageInfoProvider);
-                        return SettingsTile(
-                          icon: Icons.code,
-                          title: 'Version',
-                          subtitle: packageInfo.when(
-                            data: (info) => info.version,
-                            loading: () => '...',
-                            error: (_, __) => '1.0.0',
-                          ),
-                          onTap: () => _showVersionSheet(context, ref),
-                        );
-                      },
-                    ),
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final isDebugMode = ref.watch(debugModeProvider);
-                        if (!isDebugMode) return const SizedBox.shrink();
-                        return Column(
-                          children: [
-                            const Divider(height: 1),
-                            SettingsTile(
-                              icon: Icons.bug_report_outlined,
-                              title: 'Debug Log',
-                              subtitle: 'View debug log',
-                              onTap: () => _showDebugLogSheet(context),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    SettingsTile(
-                      icon: Icons.description_outlined,
-                      title: 'Privacy Policy',
-                      subtitle: 'View our privacy policy',
-                      onTap: () => showLegalDocumentSheet(
-                        context: context,
-                        title: 'Privacy Policy',
-                        assetPath: 'assets/docs/PRIVACY_POLICY.md',
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    SettingsTile(
-                      icon: Icons.article_outlined,
-                      title: 'Terms of Service',
-                      subtitle: 'View terms of service',
-                      onTap: () => showLegalDocumentSheet(
-                        context: context,
-                        title: 'Terms of Service',
-                        assetPath: 'assets/docs/TERMS_OF_SERVICE.md',
-                      ),
-                    ),
-                  ],
-                )
-                .animate()
-                .fadeIn(delay: 300.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
+            const _AppInfoSection(),
             const SizedBox(height: 32),
-
-            // Delete Account
             DeleteAccountButton(
               onTap: () => _confirmDeleteAccount(context, ref),
             ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.05, end: 0),
-
             const SizedBox(height: 32),
-
-            // SoloSoul Ad
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.primaryColor.withValues(alpha: 0.15),
-                    AppTheme.primaryColor.withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.auto_awesome,
-                          color: AppTheme.primaryColor,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SoloSoul 独灵',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Your Local Digital Twin. Privacy-First Universal Identity.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SloganChip(
-                            icon: Icons.location_on_outlined,
-                            label: 'Local',
-                          ),
-                          SizedBox(width: 8),
-                          SloganChip(
-                            icon: Icons.lock_outline,
-                            label: 'Private',
-                          ),
-                          SizedBox(width: 8),
-                          SloganChip(
-                            icon: Icons.person_outline,
-                            label: 'Universal',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+            const _SoloSoulAdSection(),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showCurrentAccountSheet(
-    BuildContext context,
-    WidgetRef ref,
-    AccountInfo? account,
-  ) {
-    if (account == null) return;
-
-    if (!context.mounted) return;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CurrentAccountSheet(account: account),
-    );
-  }
-
-  void _showAllAccountsSheet(
-    BuildContext parentContext,
-    WidgetRef ref,
-    List<AccountInfo> accounts,
-  ) {
-    showModalBottomSheet(
-      context: parentContext,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => AllAccountsSheet(
-        accounts: accounts,
-        selectedAccountId: ref
-            .read(authNotifierProvider.notifier)
-            .selectedAccountId,
-        onSelectAccount: (accountId) async {
-          final authNotifier = ref.read(authNotifierProvider.notifier);
-          // Lock vault first so GoRouter redirect allows /login
-          await authNotifier.lockVault();
-          await authNotifier.selectAccount(accountId);
-          if (parentContext.mounted) {
-            GoRouter.of(parentContext).go(AppRoutes.login);
-          }
-        },
-      ),
-    );
-  }
-
-  void _showVersionSheet(BuildContext context, WidgetRef ref) {
-    final packageInfo = ref.read(packageInfoProvider);
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => VersionSheet(
-        packageInfo: packageInfo,
-        onDebugActivationRequested: _showDebugActivationDialog,
-      ),
-    );
-  }
-
-  void _showDebugLogSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.3,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => DebugLogSheet(
-        scrollController: scrollController,
-        onDisableDebugMode: () async {
-          await ref.read(debugModeProvider.notifier).disableDebugMode();
-        },
-      ),
-      ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context, String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(feature),
-        content: const Text(
-          'This feature will be available in a future update.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
       ),
     );
   }
@@ -755,6 +267,494 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       await ref.read(authNotifierProvider.notifier).lockVault();
       ref.read(sensitivePageAccessProvider.notifier).clear();
     }
+  }
+}
+
+class _AccountSettingsSection extends ConsumerWidget {
+  final String vaultDataSize;
+
+  const _AccountSettingsSection({required this.vaultDataSize});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accountsAsync = ref.watch(accountsProvider);
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+
+    return SectionCard(
+      title: 'Account',
+      icon: Icons.account_circle_outlined,
+      children: [
+        accountsAsync.when(
+          data: (accounts) {
+            final selectedId = authNotifier.selectedAccountId;
+            final currentAccount = accounts
+                .cast<AccountInfo?>()
+                .firstWhere(
+                  (a) => a?.id == selectedId,
+                  orElse: () => null,
+                );
+            return Column(
+              children: [
+                SettingsTile(
+                  icon: Icons.person_outline,
+                  title: 'Current Account',
+                  subtitle: currentAccount?.name ?? selectedId ?? 'Unknown',
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.successColor.withValues(
+                        alpha: 0.1,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'Active',
+                      style: TextStyle(
+                        color: AppTheme.successColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    if (currentAccount == null) return;
+                    if (!context.mounted) return;
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => CurrentAccountSheet(account: currentAccount),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                SettingsTile(
+                  icon: Icons.people_outline,
+                  title: 'All Accounts',
+                  subtitle: '${accounts.length} account(s)',
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (sheetContext) => AllAccountsSheet(
+                        accounts: accounts,
+                        selectedAccountId: ref
+                            .read(authNotifierProvider.notifier)
+                            .selectedAccountId,
+                        onSelectAccount: (accountId) async {
+                          final authNotifier = ref.read(authNotifierProvider.notifier);
+                          await authNotifier.lockVault();
+                          await authNotifier.selectAccount(accountId);
+                          if (context.mounted) {
+                            context.go(AppRoutes.login);
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                SettingsTile(
+                  icon: Icons.storage_outlined,
+                  title: 'Data Management',
+                  subtitle: vaultDataSize,
+                  onTap: () => context.push(AppRoutes.dataManagement),
+                ),
+              ],
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const SettingsTile(
+            icon: Icons.error_outline,
+            title: 'Error loading accounts',
+            subtitle: 'Please restart the app',
+          ),
+        ),
+      ],
+    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _AccessSettingsSection extends ConsumerWidget {
+  const _AccessSettingsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SectionCard(
+      title: 'Access',
+      icon: Icons.lock_outlined,
+      children: [
+        SettingsTile(
+          icon: Icons.lock_open_outlined,
+          title: 'Lock Vault',
+          subtitle: 'Lock now and require password',
+          onTap: () async {
+            final confirmed = await showLockVaultDialog(context);
+            if (confirmed == true && context.mounted) {
+              await ref.read(authNotifierProvider.notifier).lockVault();
+              ref.read(sensitivePageAccessProvider.notifier).clear();
+            }
+          },
+        ),
+        const Divider(height: 1),
+        SettingsTile(
+          icon: Icons.password_outlined,
+          title: 'Change Master Password',
+          subtitle: 'Update your vault password',
+          onTap: () async {
+            final success = await showChangePasswordDialog(
+              context: context,
+              ref: ref,
+            );
+            if (success && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      SizedBox(width: 12),
+                      Text('Master password changed successfully'),
+                    ],
+                  ),
+                  backgroundColor: AppTheme.successColor,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                ),
+              );
+            }
+          },
+        ),
+        const Divider(height: 1),
+        const BiometricSettingsWidget(),
+      ],
+    ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _SecuritySettingsSection extends ConsumerWidget {
+  const _SecuritySettingsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SectionCard(
+      title: 'Security',
+      icon: Icons.shield_outlined,
+      children: [
+        SettingsTile(
+          icon: Icons.lock_clock_outlined,
+          title: 'Auto-Lock & Privacy',
+          subtitle: 'Configure timeout and privacy settings',
+          onTap: () async {
+            final authNotifier = ref.read(authNotifierProvider.notifier);
+            final selectedAccount = authNotifier.selectedAccount;
+            final result = await showPasswordVerificationDialog(
+              context: context,
+              ref: ref,
+              message: 'Enter your master password to access security settings.',
+              passwordHint: selectedAccount?.passwordHint,
+              onVerify: authNotifier.verifyPasswordForSensitiveData,
+            );
+            if (!context.mounted) return;
+            if (result != null) {
+              ref.read(sensitivePageAccessProvider.notifier).markVerified();
+              if (context.mounted) {
+                await context.push(AppRoutes.securitySettings);
+              }
+            }
+          },
+        ),
+        const Divider(height: 1),
+        SettingsTile(
+          icon: Icons.security_outlined,
+          title: 'Sensitivity Level Settings',
+          subtitle: 'Configure field sensitivity',
+          onTap: () => context.push(AppRoutes.sensitivitySettings),
+        ),
+        const Divider(height: 1),
+        SettingsTile(
+          icon: Icons.history,
+          title: 'Operation Log',
+          subtitle: 'View activity history',
+          onTap: () => context.push(AppRoutes.operationLog),
+        ),
+      ],
+    ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _SyncSettingsSection extends ConsumerWidget {
+  const _SyncSettingsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SectionCard(
+      title: 'Sync',
+      icon: Icons.sync_outlined,
+      children: [
+        SettingsTile(
+          icon: Icons.cloud_outlined,
+          title: 'Cloud Sync',
+          subtitle: 'Not configured',
+          trailing: Switch(
+            value: false,
+            onChanged: (value) => _showComingSoon(context, 'Cloud sync setup'),
+          ),
+        ),
+        const Divider(height: 1),
+        const SettingsTile(
+          icon: Icons.wifi_off_outlined,
+          title: 'Offline Mode',
+          subtitle: 'Local data only',
+          trailing: Icon(
+            Icons.check_circle,
+            color: AppTheme.successColor,
+            size: 20,
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _LLMSettingsSection extends ConsumerWidget {
+  const _LLMSettingsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SectionCard(
+      title: 'AI Assistant',
+      icon: Icons.psychology_outlined,
+      children: [
+        SettingsTile(
+          icon: Icons.smart_toy_outlined,
+          title: 'LLM Configuration',
+          subtitle: 'Local model or cloud API',
+          onTap: () => context.push(AppRoutes.llmConfig),
+        ),
+      ],
+    ).animate().fadeIn(delay: 250.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _AppInfoSection extends ConsumerWidget {
+  const _AppInfoSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SectionCard(
+      title: 'About',
+      icon: Icons.info_outlined,
+      children: [
+        Consumer(
+          builder: (context, ref, _) {
+            final packageInfo = ref.watch(packageInfoProvider);
+            return SettingsTile(
+              icon: Icons.code,
+              title: 'Version',
+              subtitle: packageInfo.when(
+                data: (info) => info.version,
+                loading: () => '...',
+                error: (_, __) => '1.0.0',
+              ),
+              onTap: () => _showVersionSheet(context, ref),
+            );
+          },
+        ),
+        Consumer(
+          builder: (context, ref, _) {
+            final isDebugMode = ref.watch(debugModeProvider);
+            if (!isDebugMode) return const SizedBox.shrink();
+            return Column(
+              children: [
+                const Divider(height: 1),
+                SettingsTile(
+                  icon: Icons.bug_report_outlined,
+                  title: 'Debug Log',
+                  subtitle: 'View debug log',
+                  onTap: () => _showDebugLogSheet(context, ref),
+                ),
+              ],
+            );
+          },
+        ),
+        const Divider(height: 1),
+        SettingsTile(
+          icon: Icons.description_outlined,
+          title: 'Privacy Policy',
+          subtitle: 'View our privacy policy',
+          onTap: () => showLegalDocumentSheet(
+            context: context,
+            title: 'Privacy Policy',
+            assetPath: 'assets/docs/PRIVACY_POLICY.md',
+          ),
+        ),
+        const Divider(height: 1),
+        SettingsTile(
+          icon: Icons.article_outlined,
+          title: 'Terms of Service',
+          subtitle: 'View terms of service',
+          onTap: () => showLegalDocumentSheet(
+            context: context,
+            title: 'Terms of Service',
+            assetPath: 'assets/docs/TERMS_OF_SERVICE.md',
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+void _showComingSoon(BuildContext context, String feature) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(feature),
+      content: const Text(
+        'This feature will be available in a future update.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showVersionSheet(BuildContext context, WidgetRef ref) {
+  final packageInfo = ref.read(packageInfoProvider);
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (context) => VersionSheet(
+      packageInfo: packageInfo,
+      onDebugActivationRequested: () => _SettingsPageState._showDebugActivationDialog(context, ref),
+    ),
+  );
+}
+
+void _showDebugLogSheet(BuildContext context, WidgetRef ref) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (context) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.3,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) => DebugLogSheet(
+        scrollController: scrollController,
+        onDisableDebugMode: () async {
+          await ref.read(debugModeProvider.notifier).disableDebugMode();
+        },
+      ),
+    ),
+  );
+}
+
+class _SoloSoulAdSection extends StatelessWidget {
+  const _SoloSoulAdSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.15),
+            AppTheme.primaryColor.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.primaryColor.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: AppTheme.primaryColor,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'SoloSoul 独灵',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your Local Digital Twin. Privacy-First Universal Identity.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SloganChip(
+                    icon: Icons.location_on_outlined,
+                    label: 'Local',
+                  ),
+                  SizedBox(width: 8),
+                  SloganChip(
+                    icon: Icons.lock_outline,
+                    label: 'Private',
+                  ),
+                  SizedBox(width: 8),
+                  SloganChip(
+                    icon: Icons.person_outline,
+                    label: 'Universal',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 400.ms, duration: 400.ms);
   }
 }
 
