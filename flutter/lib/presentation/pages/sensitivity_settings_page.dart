@@ -138,241 +138,29 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
         ),
       );
     }
-    return _buildSettingsView();
-  }
-
-  Widget _buildSettingsView() {
-    // Watch reactive formFieldRegistryProvider for field list changes
     final registry = ref.watch(formFieldRegistryProvider);
-    // Watch the full accountStyle - select on AsyncNotifier gives AsyncValue, access via .value
     final accountStyle = ref.watch(accountStyleProvider).value?.fieldSettings ?? {};
     final notifier = ref.read(accountStyleProvider.notifier);
 
     final effectiveFields = _getEffectiveFields(registry, accountStyle);
     final sections = _getFilteredSections(effectiveFields, _searchQuery);
-    final publicFields = sections[SensitivityLevel.public]!;
-    final internalFields = sections[SensitivityLevel.internal]!;
-    final sensitiveFields = sections[SensitivityLevel.sensitive]!;
-    final criticalFields = sections[SensitivityLevel.critical]!;
 
-    final hasResults = publicFields.isNotEmpty || internalFields.isNotEmpty || sensitiveFields.isNotEmpty || criticalFields.isNotEmpty;
-    final totalFields = effectiveFields.length;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sensitivity Settings'),
-        actions: const [
-          HeaderActionButtons(),
-        ],
-      ),
-      body: effectiveFields.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Search bar
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                    decoration: InputDecoration(
-                      hintText: 'Search fields...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _searchQuery = '');
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                ),
-
-                // Results count
-                if (_searchQuery.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Text(
-                          hasResults
-                              ? 'Found ${publicFields.length + internalFields.length + sensitiveFields.length + criticalFields.length} result(s)'
-                              : 'No results found',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: hasResults
-                                    ? Theme.of(context).colorScheme.onSurfaceVariant
-                                    : Colors.orange,
-                              ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '$totalFields total fields',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                const SizedBox(height: 8),
-
-                // Sections list
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      // Header info
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.security,
-                              color: AppTheme.primaryColor,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.primaryColor,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ).animate().fadeIn(duration: 400.ms),
-
-                      const SizedBox(height: 24),
-
-                      // Critical Section (Highest)
-                      if (criticalFields.isNotEmpty)
-                        _SensitivitySection(
-                          title: 'Critical',
-                          subtitle: 'Maximum sensitivity - always masked, requires verification',
-                          icon: Icons.shield,
-                          color: Colors.red.shade900,
-                          fields: criticalFields,
-                          onUpgrade: null, // Can't upgrade further
-                          onDowngrade: (fieldId) => _showDowngradeConfirmation(
-                            context,
-                            ref,
-                            fieldId,
-                          ),
-                          isHighest: true,
-                        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-
-                      if (criticalFields.isNotEmpty) const SizedBox(height: 16),
-
-                      // Sensitive Section
-                      if (sensitiveFields.isNotEmpty)
-                        _SensitivitySection(
-                          title: 'Sensitive',
-                          subtitle: 'Personal information requiring protection',
-                          icon: Icons.visibility_off,
-                          color: Colors.orange,
-                          fields: sensitiveFields,
-                          onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
-                          onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
-                          isHighest: false,
-                          isLowest: false,
-                        ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
-
-                      if (sensitiveFields.isNotEmpty) const SizedBox(height: 16),
-
-                      // Internal Section
-                      if (internalFields.isNotEmpty)
-                        _SensitivitySection(
-                          title: 'Internal',
-                          subtitle: 'Internal use only - can be hidden by display settings',
-                          icon: Icons.visibility,
-                          color: Colors.blue,
-                          fields: internalFields,
-                          onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
-                          onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
-                          isHighest: false,
-                          isLowest: false,
-                        ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-
-                      if (internalFields.isNotEmpty) const SizedBox(height: 16),
-
-                      // Public Section (Lowest)
-                      if (publicFields.isNotEmpty)
-                        _SensitivitySection(
-                          title: 'Public',
-                          subtitle: 'Lowest sensitivity - always visible',
-                          icon: Icons.public,
-                          color: Colors.green,
-                          fields: publicFields,
-                          onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
-                          onDowngrade: null, // Can't downgrade further
-                          isHighest: false,
-                          isLowest: true,
-                        ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-
-                      // No results message
-                      if (!hasResults && _searchQuery.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 48,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No fields match "$_searchQuery"',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                                child: const Text('Clear search'),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                      const SizedBox(height: 32),
-
-                      // Field count summary
-                      Center(
-                        child: Text(
-                          '$totalFields fields configured',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return _SensitivitySettingsView(
+      searchController: _searchController,
+      searchQuery: _searchQuery,
+      onSearchChanged: (value) => setState(() => _searchQuery = value),
+      onClearSearch: () {
+        _searchController.clear();
+        setState(() => _searchQuery = '');
+      },
+      effectiveFields: effectiveFields,
+      sections: sections,
+      onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
+      onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
+      onDowngradeCritical: (fieldId) => _showDowngradeConfirmation(context, ref, fieldId),
     );
   }
+
 
   void _showDowngradeConfirmation(
     BuildContext context,
@@ -682,6 +470,246 @@ class _FieldListTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SensitivitySettingsView extends StatelessWidget {
+  final TextEditingController searchController;
+  final String searchQuery;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onClearSearch;
+  final List<FieldSensitivity> effectiveFields;
+  final Map<SensitivityLevel, List<FieldSensitivity>> sections;
+  final void Function(String) onUpgrade;
+  final void Function(String) onDowngrade;
+  final void Function(String) onDowngradeCritical;
+
+  const _SensitivitySettingsView({
+    required this.searchController,
+    required this.searchQuery,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+    required this.effectiveFields,
+    required this.sections,
+    required this.onUpgrade,
+    required this.onDowngrade,
+    required this.onDowngradeCritical,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final publicFields = sections[SensitivityLevel.public]!;
+    final internalFields = sections[SensitivityLevel.internal]!;
+    final sensitiveFields = sections[SensitivityLevel.sensitive]!;
+    final criticalFields = sections[SensitivityLevel.critical]!;
+
+    final hasResults = publicFields.isNotEmpty || internalFields.isNotEmpty || sensitiveFields.isNotEmpty || criticalFields.isNotEmpty;
+    final totalFields = effectiveFields.length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sensitivity Settings'),
+        actions: const [
+          HeaderActionButtons(),
+        ],
+      ),
+      body: effectiveFields.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: 'Search fields...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: onClearSearch,
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+
+                // Results count
+                if (searchQuery.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Text(
+                          hasResults
+                              ? 'Found ${publicFields.length + internalFields.length + sensitiveFields.length + criticalFields.length} result(s)'
+                              : 'No results found',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: hasResults
+                                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                                    : Colors.orange,
+                              ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$totalFields total fields',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                const SizedBox(height: 8),
+
+                // Sections list
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      // Header info
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.security,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.primaryColor,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).animate().fadeIn(duration: 400.ms),
+
+                      const SizedBox(height: 24),
+
+                      // Critical Section (Highest)
+                      if (criticalFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Critical',
+                          subtitle: 'Maximum sensitivity - always masked, requires verification',
+                          icon: Icons.shield,
+                          color: Colors.red.shade900,
+                          fields: criticalFields,
+                          onUpgrade: null, // Can't upgrade further
+                          onDowngrade: onDowngradeCritical,
+                          isHighest: true,
+                        ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
+
+                      if (criticalFields.isNotEmpty) const SizedBox(height: 16),
+
+                      // Sensitive Section
+                      if (sensitiveFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Sensitive',
+                          subtitle: 'Personal information requiring protection',
+                          icon: Icons.visibility_off,
+                          color: Colors.orange,
+                          fields: sensitiveFields,
+                          onUpgrade: onUpgrade,
+                          onDowngrade: onDowngrade,
+                          isHighest: false,
+                          isLowest: false,
+                        ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
+
+                      if (sensitiveFields.isNotEmpty) const SizedBox(height: 16),
+
+                      // Internal Section
+                      if (internalFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Internal',
+                          subtitle: 'Internal use only - can be hidden by display settings',
+                          icon: Icons.visibility,
+                          color: Colors.blue,
+                          fields: internalFields,
+                          onUpgrade: onUpgrade,
+                          onDowngrade: onDowngrade,
+                          isHighest: false,
+                          isLowest: false,
+                        ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+
+                      if (internalFields.isNotEmpty) const SizedBox(height: 16),
+
+                      // Public Section (Lowest)
+                      if (publicFields.isNotEmpty)
+                        _SensitivitySection(
+                          title: 'Public',
+                          subtitle: 'Lowest sensitivity - always visible',
+                          icon: Icons.public,
+                          color: Colors.green,
+                          fields: publicFields,
+                          onUpgrade: onUpgrade,
+                          onDowngrade: null, // Can't downgrade further
+                          isHighest: false,
+                          isLowest: true,
+                        ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+
+                      // No results message
+                      if (!hasResults && searchQuery.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No fields match "$searchQuery"',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: onClearSearch,
+                                child: const Text('Clear search'),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 32),
+
+                      // Field count summary
+                      Center(
+                        child: Text(
+                          '$totalFields fields configured',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

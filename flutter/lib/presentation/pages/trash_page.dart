@@ -115,241 +115,28 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         ),
       );
     }
-    return _buildTrashView();
-  }
-
-  Widget _buildTrashView() {
     final theme = Theme.of(context);
-
-    // Always show scaffold with search bar and warning banner
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trash'),
-        actions: const [HeaderActionButtons()],
-      ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: InputDecoration(
-                hintText: 'Search trash...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ),
-
-          // Trash info banner - always shown
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.warning_amber, color: Colors.orange.shade700),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Items in trash are permanently deleted after 30 days',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.orange.shade700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 400.ms),
-
-          const SizedBox(height: 16),
-
-          // Main content area
-          Expanded(child: _buildTrashContent(theme)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrashContent(ThemeData theme) {
     final deletedUnifiedObjects = ref.watch(deletedObjectsProvider);
-
-    // Filter unified objects based on search query (by name and typeId only)
-    final filteredUnifiedObjects = _searchQuery.isEmpty
-        ? deletedUnifiedObjects
-        : deletedUnifiedObjects.where((obj) {
-            final lowerQuery = _searchQuery.toLowerCase();
-            return obj.name.toLowerCase().contains(lowerQuery) ||
-                (obj.typeId?.toLowerCase().contains(lowerQuery) ?? false);
-          }).toList();
-
-    final totalCount = filteredUnifiedObjects.length;
-
-    // Results count when searching
-    if (_searchQuery.isNotEmpty) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(
-                  totalCount > 0
-                      ? 'Found $totalCount result(s)'
-                      : 'No results found',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: totalCount > 0
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : Colors.orange,
-                      ),
-                ),
-                const Spacer(),
-                Text(
-                  '${deletedUnifiedObjects.length} total items in trash',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: totalCount == 0
-                ? _buildEmptyState(theme)
-                : _buildTrashList(theme, filteredUnifiedObjects),
-          ),
-        ],
-      );
-    }
-
-    // Empty state
-    if (totalCount == 0) {
-      return _buildEmptyState(theme);
-    }
-
-    // Items list with empty trash action
-    return _buildTrashList(theme, filteredUnifiedObjects);
-  }
-
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _searchQuery.isEmpty ? Icons.delete_outline : Icons.search_off,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _searchQuery.isEmpty ? 'Trash is empty' : 'No matching items',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _searchQuery.isEmpty
-                ? 'Deleted items will appear here'
-                : 'Try adjusting your search',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+    return _TrashViewWidget(
+      searchController: _searchController,
+      searchQuery: _searchQuery,
+      onSearchChanged: (value) => setState(() => _searchQuery = value),
+      onClearSearch: () {
+        _searchController.clear();
+        setState(() => _searchQuery = '');
+      },
+      trashContent: _TrashContentWidget(
+        theme: theme,
+        searchQuery: _searchQuery,
+        deletedUnifiedObjects: deletedUnifiedObjects,
+        onEmptyTrash: (count) => _confirmEmptyTrash(context, count),
+        onRestore: _confirmRestoreUnifiedObject,
+        onPurge: _confirmPurgeUnifiedObject,
       ),
     );
   }
 
-  Widget _buildTrashList(ThemeData theme, List<UnifiedObject> objects) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: () => _confirmEmptyTrash(context, objects.length),
-                icon: const Icon(
-                  Icons.delete_forever,
-                  color: AppTheme.errorColor,
-                ),
-                label: const Text(
-                  'Empty Trash',
-                  style: TextStyle(color: AppTheme.errorColor),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Builder(
-            builder: (context) {
-              final entries = <TrashEntry>[];
-              if (objects.isNotEmpty) {
-                entries.add(const TrashSectionHeader('Pages & Objects'));
-                entries.addAll(
-                  objects.map((o) => TrashUnifiedEntry(o)),
-                );
-              }
 
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: entries.length,
-                itemBuilder: (context, index) {
-                  final entry = entries[index];
-                  return switch (entry) {
-                    TrashSectionHeader(:final title) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    TrashUnifiedEntry(:final object) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: UnifiedObjectTrashCard(
-                          object: object,
-                          onRestore: () => _confirmRestoreUnifiedObject(object),
-                          onPurge: () => _confirmPurgeUnifiedObject(object),
-                        ),
-                      ),
-                  };
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
 
   void _confirmEmptyTrash(BuildContext context, int itemCount) {
     showDialog(
@@ -606,4 +393,302 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   /// Map typeId to LogSection for operation logging.
   LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
+}
+
+class _TrashEmptyState extends StatelessWidget {
+  final String searchQuery;
+  final ThemeData theme;
+
+  const _TrashEmptyState({required this.searchQuery, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            searchQuery.isEmpty ? Icons.delete_outline : Icons.search_off,
+            size: 64,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            searchQuery.isEmpty ? 'Trash is empty' : 'No matching items',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            searchQuery.isEmpty
+                ? 'Deleted items will appear here'
+                : 'Try adjusting your search',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrashListView extends StatelessWidget {
+  final ThemeData theme;
+  final List<UnifiedObject> objects;
+  final VoidCallback onEmptyTrash;
+  final ValueChanged<UnifiedObject> onRestore;
+  final ValueChanged<UnifiedObject> onPurge;
+
+  const _TrashListView({
+    required this.theme,
+    required this.objects,
+    required this.onEmptyTrash,
+    required this.onRestore,
+    required this.onPurge,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: onEmptyTrash,
+                icon: const Icon(
+                  Icons.delete_forever,
+                  color: AppTheme.errorColor,
+                ),
+                label: const Text(
+                  'Empty Trash',
+                  style: TextStyle(color: AppTheme.errorColor),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Builder(
+            builder: (context) {
+              final entries = <TrashEntry>[];
+              if (objects.isNotEmpty) {
+                entries.add(const TrashSectionHeader('Pages & Objects'));
+                entries.addAll(
+                  objects.map((o) => TrashUnifiedEntry(o)),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return switch (entry) {
+                    TrashSectionHeader(:final title) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    TrashUnifiedEntry(:final object) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: UnifiedObjectTrashCard(
+                          object: object,
+                          onRestore: () => onRestore(object),
+                          onPurge: () => onPurge(object),
+                        ),
+                      ),
+                  };
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrashViewWidget extends StatelessWidget {
+  final TextEditingController searchController;
+  final String searchQuery;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onClearSearch;
+  final Widget trashContent;
+
+  const _TrashViewWidget({
+    required this.searchController,
+    required this.searchQuery,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+    required this.trashContent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Trash'),
+        actions: const [HeaderActionButtons()],
+      ),
+      body: Column(
+        children: [
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Search trash...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: onClearSearch,
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ),
+
+          // Trash info banner - always shown
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber, color: Colors.orange.shade700),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Items in trash are permanently deleted after 30 days',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 400.ms),
+
+          const SizedBox(height: 16),
+
+          // Main content area
+          Expanded(child: trashContent),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrashContentWidget extends StatelessWidget {
+  final ThemeData theme;
+  final String searchQuery;
+  final List<UnifiedObject> deletedUnifiedObjects;
+  final void Function(int count) onEmptyTrash;
+  final ValueChanged<UnifiedObject> onRestore;
+  final ValueChanged<UnifiedObject> onPurge;
+
+  const _TrashContentWidget({
+    required this.theme,
+    required this.searchQuery,
+    required this.deletedUnifiedObjects,
+    required this.onEmptyTrash,
+    required this.onRestore,
+    required this.onPurge,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Filter unified objects based on search query (by name and typeId only)
+    final filteredUnifiedObjects = searchQuery.isEmpty
+        ? deletedUnifiedObjects
+        : deletedUnifiedObjects.where((obj) {
+            final lowerQuery = searchQuery.toLowerCase();
+            return obj.name.toLowerCase().contains(lowerQuery) ||
+                (obj.typeId?.toLowerCase().contains(lowerQuery) ?? false);
+          }).toList();
+
+    final totalCount = filteredUnifiedObjects.length;
+
+    // Results count when searching
+    if (searchQuery.isNotEmpty) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Text(
+                  totalCount > 0
+                      ? 'Found $totalCount result(s)'
+                      : 'No results found',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: totalCount > 0
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : Colors.orange,
+                      ),
+                ),
+                const Spacer(),
+                Text(
+                  '${deletedUnifiedObjects.length} total items in trash',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: totalCount == 0
+                ? _TrashEmptyState(searchQuery: searchQuery, theme: theme)
+                : _TrashListView(
+                    theme: theme,
+                    objects: filteredUnifiedObjects,
+                    onEmptyTrash: () => onEmptyTrash(filteredUnifiedObjects.length),
+                    onRestore: onRestore,
+                    onPurge: onPurge,
+                  ),
+          ),
+        ],
+      );
+    }
+
+    // Empty state
+    if (totalCount == 0) {
+      return _TrashEmptyState(searchQuery: searchQuery, theme: theme);
+    }
+
+    // Items list with empty trash action
+    return _TrashListView(
+      theme: theme,
+      objects: filteredUnifiedObjects,
+      onEmptyTrash: () => onEmptyTrash(filteredUnifiedObjects.length),
+      onRestore: onRestore,
+      onPurge: onPurge,
+    );
+  }
 }

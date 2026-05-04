@@ -165,11 +165,35 @@ class _ResultGrid extends StatelessWidget {
       spacing: 12,
       runSpacing: 12,
       alignment: WrapAlignment.center,
-      children: items.map((item) => _buildCard(item, theme)).toList(),
+      children: items.map((item) => _ScanImportCardWidget(item: item, theme: theme)).toList(),
     );
   }
 
-  Widget _buildCard(_GridItem item, ThemeData theme) {
+
+}
+
+class _GridItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  _GridItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+}
+
+class _ScanImportCardWidget extends StatelessWidget {
+  final _GridItem item;
+  final ThemeData theme;
+
+  const _ScanImportCardWidget({required this.item, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: 120,
       padding: const EdgeInsets.all(16),
@@ -199,18 +223,4 @@ class _ResultGrid extends StatelessWidget {
       ),
     );
   }
-}
-
-class _GridItem {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  _GridItem({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
 }

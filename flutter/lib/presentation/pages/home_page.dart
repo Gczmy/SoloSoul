@@ -266,92 +266,6 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     });
   }
 
-  Widget _buildActionSlot(int index) {
-    if (_isEditing) {
-      return DragTarget<int>(
-        onWillAcceptWithDetails: (details) => details.data != index,
-        onAcceptWithDetails: (details) {
-          final oldIndex = details.data;
-          setState(() {
-            _actions = List.from(_actions);
-            final item = _actions.removeAt(oldIndex);
-            _actions.insert(oldIndex < index ? index - 1 : index, item);
-          });
-          _persistQuickActions();
-        },
-        builder: (context, candidateData, rejectedData) {
-          if (candidateData.isNotEmpty) {
-            return const DashedPlaceholder();
-          }
-          return _buildEditingCard(index);
-        },
-      );
-    }
-
-    return QuickActionTile(
-      icon: _actions[index].icon,
-      label: _actions[index].label,
-      color: _actions[index].color,
-      onTap: () => context.push(_actions[index].route),
-    );
-  }
-
-  Widget _buildEditingCard(int index) {
-    final action = _actions[index];
-
-    return SizedBox(
-      width: 90,
-      height: 90,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: Draggable<int>(
-              data: index,
-              feedback: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.transparent,
-                child: SizedBox(
-                  width: 90,
-                  height: 90,
-                  child: QuickActionTile(
-                    icon: action.icon,
-                    label: action.label,
-                    color: action.color,
-                  ),
-                ),
-              ),
-              childWhenDragging: const DashedPlaceholder(),
-              child: AnimatedBuilder(
-                animation: _wobbleController,
-                builder: (context, child) {
-                  final angle = math.sin(
-                    _wobbleController.value * math.pi * 4 + index * 0.6,
-                  ) * 0.035;
-                  return Transform.rotate(angle: angle, child: child);
-                },
-                child: QuickActionTile(
-                  icon: action.icon,
-                  label: action.label,
-                  color: action.color,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: -4,
-            right: -4,
-            child: DeleteBadge(onTap: () => _deleteAction(index)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    return AddButton(onTap: _showAddActionDialog);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -462,9 +376,29 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
             spacing: _isEditing ? 20 : 12,
             runSpacing: _isEditing ? 20 : 12,
             children: [
-              for (int i = 0; i < _actions.length; i++)
-                _buildActionSlot(i),
-              _buildAddButton(),
+              for (int i = 0; i < _actions.length; i++) ...[
+                () {
+                  final index = i;
+                  return _ActionSlotWidget(
+                    index: index,
+                    isEditing: _isEditing,
+                    action: _actions[index],
+                    wobbleController: _wobbleController,
+                    onDragAccept: (details) {
+                      final oldIndex = details.data;
+                      setState(() {
+                        _actions = List.from(_actions);
+                        final item = _actions.removeAt(oldIndex);
+                        _actions.insert(oldIndex < index ? index - 1 : index, item);
+                      });
+                      _persistQuickActions();
+                    },
+                    onDelete: () => _deleteAction(index),
+                    onTap: () => context.push(_actions[index].route),
+                  );
+                }(),
+              ],
+              _AddButtonWidget(onTap: _showAddActionDialog),
             ],
           ),
 
@@ -505,5 +439,130 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
         ],
       ),
     );
+  }
+}
+
+class _ActionSlotWidget extends StatelessWidget {
+  final int index;
+  final bool isEditing;
+  final QuickAction action;
+  final AnimationController wobbleController;
+  final ValueChanged<DragTargetDetails<int>> onDragAccept;
+  final VoidCallback onDelete;
+  final VoidCallback onTap;
+
+  const _ActionSlotWidget({
+    required this.index,
+    required this.isEditing,
+    required this.action,
+    required this.wobbleController,
+    required this.onDragAccept,
+    required this.onDelete,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isEditing) {
+      return DragTarget<int>(
+        onWillAcceptWithDetails: (details) => details.data != index,
+        onAcceptWithDetails: onDragAccept,
+        builder: (context, candidateData, rejectedData) {
+          if (candidateData.isNotEmpty) {
+            return const DashedPlaceholder();
+          }
+          return _EditingCardWidget(
+            index: index,
+            action: action,
+            wobbleController: wobbleController,
+            onDelete: onDelete,
+          );
+        },
+      );
+    }
+
+    return QuickActionTile(
+      icon: action.icon,
+      label: action.label,
+      color: action.color,
+      onTap: onTap,
+    );
+  }
+}
+
+class _EditingCardWidget extends StatelessWidget {
+  final int index;
+  final QuickAction action;
+  final AnimationController wobbleController;
+  final VoidCallback onDelete;
+
+  const _EditingCardWidget({
+    required this.index,
+    required this.action,
+    required this.wobbleController,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 90,
+      height: 90,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Draggable<int>(
+              data: index,
+              feedback: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.transparent,
+                child: SizedBox(
+                  width: 90,
+                  height: 90,
+                  child: QuickActionTile(
+                    icon: action.icon,
+                    label: action.label,
+                    color: action.color,
+                  ),
+                ),
+              ),
+              childWhenDragging: const DashedPlaceholder(),
+              child: AnimatedBuilder(
+                animation: wobbleController,
+                builder: (context, child) {
+                  final angle = math.sin(
+                    wobbleController.value * math.pi * 4 + index * 0.6,
+                  ) * 0.035;
+                  return Transform.rotate(angle: angle, child: child);
+                },
+                child: QuickActionTile(
+                  icon: action.icon,
+                  label: action.label,
+                  color: action.color,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: -4,
+            right: -4,
+            child: DeleteBadge(onTap: onDelete),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddButtonWidget extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddButtonWidget({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return AddButton(onTap: onTap);
   }
 }

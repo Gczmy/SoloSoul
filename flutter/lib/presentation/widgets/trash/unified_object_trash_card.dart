@@ -138,15 +138,14 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                           maxLines: 1,
                         ),
                       ),
-                      _buildActionButton(
+                      _ActionButtonWidget(
                         narrow: narrow,
                         icon: Icons.info_outline,
                         label: 'Details',
                         onPressed: () => _showDetailDialog(context, ref),
                       ),
                       const SizedBox(width: 4),
-                      _buildHistoryButton(
-                        context: context,
+                      _HistoryButtonWidget(
                         narrow: narrow,
                         count: history?.entries.length ?? 0,
                         onShowHistory: () => FieldHistoryDialog.show(
@@ -161,14 +160,14 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      _buildActionButton(
+                      _ActionButtonWidget(
                         narrow: narrow,
                         icon: Icons.restore_from_trash,
                         label: 'Restore',
                         onPressed: onRestore,
                       ),
                       const SizedBox(width: 4),
-                      _buildActionButton(
+                      _ActionButtonWidget(
                         narrow: narrow,
                         icon: Icons.delete_forever,
                         label: 'Purge',
@@ -186,103 +185,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildHistoryButton({
-    required BuildContext context,
-    required bool narrow,
-    required int count,
-    required VoidCallback onShowHistory,
-  }) {
-    final hasHist = count > 0;
-    final iconColor = hasHist
-        ? null
-        : Theme.of(context)
-            .colorScheme
-            .onSurfaceVariant
-            .withValues(alpha: 0.4);
-    final icon =
-        Icon(Icons.history, size: narrow ? 18 : 16, color: iconColor);
 
-    final stackIcon = Stack(
-      clipBehavior: Clip.none,
-      children: [
-        icon,
-        Positioned(
-          right: -6,
-          top: -6,
-          child: Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 10,
-              color: iconColor,
-              fontWeight: FontWeight.w500,
-              height: 1,
-            ),
-          ),
-        ),
-      ],
-    );
-
-    if (narrow) {
-      return IconButton(
-        icon: stackIcon,
-        onPressed: hasHist
-            ? onShowHistory
-            : () => showOverlaySnackBar(
-                  context,
-                  content: 'No history available',
-                  type: SnackBarType.info,
-                ),
-        padding: const EdgeInsets.all(2),
-        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-        tooltip: hasHist ? 'History ($count)' : 'No history yet',
-      );
-    }
-
-    return TextButton.icon(
-      onPressed: hasHist
-          ? onShowHistory
-          : () => showOverlaySnackBar(
-                context,
-                content: 'No history available',
-                type: SnackBarType.info,
-              ),
-      icon: stackIcon,
-      label: const Text('History'),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        minimumSize: Size.zero,
-        foregroundColor: iconColor,
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required bool narrow,
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-    Color? color,
-  }) {
-    if (narrow) {
-      return IconButton(
-        icon: Icon(icon, size: 18, color: color),
-        onPressed: onPressed,
-        padding: const EdgeInsets.all(2),
-        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-        tooltip: label,
-      );
-    }
-    return TextButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        minimumSize: Size.zero,
-        foregroundColor: color,
-      ),
-    );
-  }
 
   void _showDetailDialog(BuildContext context, WidgetRef ref) {
     final fieldPrefix = fieldPrefixForTypeId(object.typeId ?? '');
@@ -419,5 +322,122 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
     } else {
       return 'Just now';
     }
+  }
+}
+
+class _HistoryButtonWidget extends StatelessWidget {
+  final bool narrow;
+  final int count;
+  final VoidCallback onShowHistory;
+
+  const _HistoryButtonWidget({
+    required this.narrow,
+    required this.count,
+    required this.onShowHistory,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasHist = count > 0;
+    final iconColor = hasHist
+        ? null
+        : Theme.of(context)
+            .colorScheme
+            .onSurfaceVariant
+            .withValues(alpha: 0.4);
+    final icon =
+        Icon(Icons.history, size: narrow ? 18 : 16, color: iconColor);
+
+    final stackIcon = Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        Positioned(
+          right: -6,
+          top: -6,
+          child: Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 10,
+              color: iconColor,
+              fontWeight: FontWeight.w500,
+              height: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (narrow) {
+      return IconButton(
+        icon: stackIcon,
+        onPressed: hasHist
+            ? onShowHistory
+            : () => showOverlaySnackBar(
+                  context,
+                  content: 'No history available',
+                  type: SnackBarType.info,
+                ),
+        padding: const EdgeInsets.all(2),
+        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        tooltip: hasHist ? 'History ($count)' : 'No history yet',
+      );
+    }
+
+    return TextButton.icon(
+      onPressed: hasHist
+          ? onShowHistory
+          : () => showOverlaySnackBar(
+                context,
+                content: 'No history available',
+                type: SnackBarType.info,
+              ),
+      icon: stackIcon,
+      label: const Text('History'),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        minimumSize: Size.zero,
+        foregroundColor: iconColor,
+      ),
+    );
+  }
+}
+
+class _ActionButtonWidget extends StatelessWidget {
+  final bool narrow;
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+  final Color? color;
+
+  const _ActionButtonWidget({
+    required this.narrow,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (narrow) {
+      return IconButton(
+        icon: Icon(icon, size: 18, color: color),
+        onPressed: onPressed,
+        padding: const EdgeInsets.all(2),
+        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        tooltip: label,
+      );
+    }
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        minimumSize: Size.zero,
+        foregroundColor: color,
+      ),
+    );
   }
 }

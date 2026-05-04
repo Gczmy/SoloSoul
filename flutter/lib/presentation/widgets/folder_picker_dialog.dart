@@ -152,7 +152,13 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
 
             // Folder list
             Expanded(
-              child: _buildContent(theme),
+              child: _FolderPickerContent(
+                theme: theme,
+                loading: _loading,
+                error: _error,
+                entries: _entries,
+                onLoadDirectory: _loadDirectory,
+              ),
             ),
 
             const SizedBox(height: 12),
@@ -180,12 +186,31 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
-    if (_loading) {
+
+}
+
+class _FolderPickerContent extends StatelessWidget {
+  final ThemeData theme;
+  final bool loading;
+  final String? error;
+  final List<FileSystemEntity> entries;
+  final ValueChanged<String> onLoadDirectory;
+
+  const _FolderPickerContent({
+    required this.theme,
+    required this.loading,
+    required this.error,
+    required this.entries,
+    required this.onLoadDirectory,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_error != null) {
+    if (error != null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -193,13 +218,13 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
             Icon(Icons.error_outline,
                 size: 48, color: theme.colorScheme.error),
             const SizedBox(height: 12),
-            Text(_error!, textAlign: TextAlign.center),
+            Text(error!, textAlign: TextAlign.center),
           ],
         ),
       );
     }
 
-    if (_entries.isEmpty) {
+    if (entries.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -219,9 +244,9 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
     }
 
     return ListView.builder(
-      itemCount: _entries.length,
+      itemCount: entries.length,
       itemBuilder: (context, index) {
-        final dir = _entries[index] as Directory;
+        final dir = entries[index] as Directory;
         final name = dir.path.split(Platform.pathSeparator).last;
 
         return ListTile(
@@ -232,7 +257,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
           ),
           title: Text(name),
           trailing: const Icon(Icons.chevron_right, size: 18),
-          onTap: () => _loadDirectory(dir.path),
+          onTap: () => onLoadDirectory(dir.path),
         );
       },
     );

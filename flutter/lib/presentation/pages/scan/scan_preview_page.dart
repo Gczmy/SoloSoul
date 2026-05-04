@@ -64,144 +64,28 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
         ],
       ),
       body: state.importCandidates.isEmpty
-          ? _buildEmptyState(theme)
-          : _buildPreviewList(state, theme),
+          ? _ScanPreviewEmptyState(theme: theme)
+          : _ScanPreviewList(state: state, theme: theme),
       bottomNavigationBar: state.importCandidates.isEmpty
           ? null
-          : _buildBottomBar(state, theme, hasConflicts),
+          : _ScanPreviewBottomBar(
+              state: state,
+              theme: theme,
+              hasConflicts: hasConflicts,
+              isImporting: _isImporting,
+              onImport: _doImport,
+              onToggleSelectAll: _toggleSelectAll,
+            ),
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No importable items found',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try scanning with a different depth or more folders.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: () => context.pop(),
-            child: const Text('Back'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreviewList(LocalSearchState state, ThemeData theme) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: state.importCandidates.length,
-      itemBuilder: (context, candidateIndex) {
-        final candidate = state.importCandidates[candidateIndex];
-        return _CandidateCard(
-          candidate: candidate,
-          candidateIndex: candidateIndex,
-          conflicts: state.importConflicts
-              .where((c) => c.candidate.source.section == candidate.source.section)
-              .toList(),
-        );
-      },
-    );
-  }
-
-  Widget _buildBottomBar(LocalSearchState state, ThemeData theme, bool hasConflicts) {
-    final selectedCount = state.importCandidates.where((c) => c.isSelected).length;
-
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            top: BorderSide(color: theme.colorScheme.outlineVariant),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (hasConflicts)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber, color: theme.colorScheme.error, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${state.importConflicts.length} conflict(s) detected. Review before importing.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Row(
-              children: [
-                // Select all / none
-                TextButton.icon(
-                  onPressed: () {
-                    final allSelected = state.importCandidates.every((c) => c.isSelected);
-                    final notifier = ref.read(localSearchProvider.notifier);
-                    for (var i = 0; i < state.importCandidates.length; i++) {
-                      notifier.setCandidateSelected(i, !allSelected);
-                    }
-                  },
-                  icon: Icon(
-                    state.importCandidates.every((c) => c.isSelected)
-                        ? Icons.deselect
-                        : Icons.select_all,
-                  ),
-                  label: Text(
-                    state.importCandidates.every((c) => c.isSelected)
-                        ? 'Deselect All'
-                        : 'Select All',
-                  ),
-                ),
-                const Spacer(),
-                // Import button
-                FilledButton.icon(
-                  onPressed: selectedCount == 0 || _isImporting ? null : _doImport,
-                  icon: _isImporting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.download),
-                  label: Text('Import ($selectedCount)'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  void _toggleSelectAll() {
+    final state = ref.read(localSearchProvider);
+    final allSelected = state.importCandidates.every((c) => c.isSelected);
+    final notifier = ref.read(localSearchProvider.notifier);
+    for (var i = 0; i < state.importCandidates.length; i++) {
+      notifier.setCandidateSelected(i, !allSelected);
+    }
   }
 
   Future<void> _doImport() async {
@@ -413,7 +297,11 @@ class _FieldRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 // Value with masking for critical/sensitive
-                _buildValueDisplay(source, theme, candidateIndex),
+                _ValueDisplayWidget(
+                  source: source,
+                  theme: theme,
+                  candidateIndex: candidateIndex,
+                ),
               ],
             ),
           ),
@@ -428,25 +316,7 @@ class _FieldRow extends StatelessWidget {
     );
   }
 
-  Widget _buildValueDisplay(ScanField source, ThemeData theme, int candidateIndex) {
-    final isSensitive = source.sensitivity == SensitivityLevel.critical ||
-        source.sensitivity == SensitivityLevel.sensitive;
 
-    if (isSensitive) {
-      return SensitiveValueWidget(
-        fieldId: '${candidateIndex}_${source.key}',
-        value: source.value,
-        sensitivityLevel: source.sensitivity,
-      );
-    }
-
-    return Text(
-      source.value,
-      style: theme.textTheme.bodyMedium,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
 }
 
 // =============================================================================
@@ -535,6 +405,72 @@ class _ActionDropdown extends StatelessWidget {
 // Badge
 // =============================================================================
 
+class _ScanPreviewEmptyState extends StatelessWidget {
+  final ThemeData theme;
+
+  const _ScanPreviewEmptyState({required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 64,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No importable items found',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try scanning with a different depth or more folders.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: () => context.pop(),
+            child: const Text('Back'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScanPreviewList extends StatelessWidget {
+  final LocalSearchState state;
+  final ThemeData theme;
+
+  const _ScanPreviewList({required this.state, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      itemCount: state.importCandidates.length,
+      itemBuilder: (context, candidateIndex) {
+        final candidate = state.importCandidates[candidateIndex];
+        return _CandidateCard(
+          candidate: candidate,
+          candidateIndex: candidateIndex,
+          conflicts: state.importConflicts
+              .where((c) => c.candidate.source.section == candidate.source.section)
+              .toList(),
+        );
+      },
+    );
+  }
+}
+
 class _Badge extends StatelessWidget {
   final String label;
   final Color color;
@@ -558,6 +494,133 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+  }
+}
+
+class _ScanPreviewBottomBar extends StatelessWidget {
+  final LocalSearchState state;
+  final ThemeData theme;
+  final bool hasConflicts;
+  final bool isImporting;
+  final VoidCallback onImport;
+  final VoidCallback onToggleSelectAll;
+
+  const _ScanPreviewBottomBar({
+    required this.state,
+    required this.theme,
+    required this.hasConflicts,
+    required this.isImporting,
+    required this.onImport,
+    required this.onToggleSelectAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedCount = state.importCandidates.where((c) => c.isSelected).length;
+
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: theme.colorScheme.outlineVariant),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasConflicts)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: theme.colorScheme.error, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${state.importConflicts.length} conflict(s) detected. Review before importing.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Row(
+              children: [
+                // Select all / none
+                TextButton.icon(
+                  onPressed: onToggleSelectAll,
+                  icon: Icon(
+                    state.importCandidates.every((c) => c.isSelected)
+                        ? Icons.deselect
+                        : Icons.select_all,
+                  ),
+                  label: Text(
+                    state.importCandidates.every((c) => c.isSelected)
+                        ? 'Deselect All'
+                        : 'Select All',
+                  ),
+                ),
+                const Spacer(),
+                // Import button
+                FilledButton.icon(
+                  onPressed: selectedCount == 0 || isImporting ? null : onImport,
+                  icon: isImporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download),
+                  label: Text('Import ($selectedCount)'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ValueDisplayWidget extends StatelessWidget {
+  final ScanField source;
+  final ThemeData theme;
+  final int candidateIndex;
+
+  const _ValueDisplayWidget({
+    required this.source,
+    required this.theme,
+    required this.candidateIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSensitive = source.sensitivity == SensitivityLevel.critical ||
+        source.sensitivity == SensitivityLevel.sensitive;
+
+    if (isSensitive) {
+      return SensitiveValueWidget(
+        fieldId: '${candidateIndex}_${source.key}',
+        value: source.value,
+        sensitivityLevel: source.sensitivity,
+      );
+    }
+
+    return Text(
+      source.value,
+      style: theme.textTheme.bodyMedium,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

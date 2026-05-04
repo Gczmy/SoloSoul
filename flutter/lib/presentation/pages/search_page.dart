@@ -72,13 +72,71 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
           SearchFilters(searchState: searchState),
           const Divider(height: 24),
-          Expanded(child: _buildResults(searchState, theme)),
+          Expanded(
+            child: _SearchResultsWidget(
+              searchState: searchState,
+              theme: theme,
+              ref: ref,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildResults(SearchState searchState, ThemeData theme) {
+
+}
+
+// =============================================================================
+// Sticky section header for search results
+// =============================================================================
+
+class _SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String title;
+  final TextStyle? style;
+
+  _SearchHeaderDelegate(this.title, {this.style});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: style ??
+            theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 40;
+
+  @override
+  double get minExtent => 40;
+
+  @override
+  bool shouldRebuild(covariant _SearchHeaderDelegate oldDelegate) =>
+      oldDelegate.title != title || oldDelegate.style != style;
+}
+class _SearchResultsWidget extends StatelessWidget {
+  final SearchState searchState;
+  final ThemeData theme;
+  final WidgetRef ref;
+
+  const _SearchResultsWidget({
+    required this.searchState,
+    required this.theme,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (searchState.query.isEmpty) {
       return const SearchEmptyState();
     }
@@ -138,42 +196,4 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       ],
     );
   }
-}
-
-// =============================================================================
-// Sticky section header for search results
-// =============================================================================
-
-class _SearchHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final String title;
-  final TextStyle? style;
-
-  _SearchHeaderDelegate(this.title, {this.style});
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: style ??
-            theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => 40;
-
-  @override
-  double get minExtent => 40;
-
-  @override
-  bool shouldRebuild(covariant _SearchHeaderDelegate oldDelegate) =>
-      oldDelegate.title != title || oldDelegate.style != style;
 }

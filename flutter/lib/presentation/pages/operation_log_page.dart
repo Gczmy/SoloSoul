@@ -6,6 +6,8 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/operation_log_filter_section.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
+    show OperationEntry;
 import 'package:solosoul_flutter/presentation/widgets/operation_tile.dart';
 
 class OperationLogPage extends ConsumerStatefulWidget {
@@ -78,18 +80,89 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
         ),
       );
     }
-    return _buildLogView();
+    final entries = ref.watch(operationLogFilteredEntriesProvider);
+    return _OperationLogView(
+      searchController: _searchController,
+      searchQuery: _searchQuery,
+      entries: entries,
+      onSearchChanged: (value) => setState(() => _searchQuery = value),
+      onClearSearch: () {
+        _searchController.clear();
+        setState(() => _searchQuery = '');
+      },
+      onConfirmClearLog: () => _confirmClearLog(context),
+      filterExpanded: _filterExpanded,
+      onClearAllFilters: _clearAllFilters,
+      filterHeader: _OperationLogFilterHeader(
+        filterExpanded: _filterExpanded,
+        actionFilters: ref.watch(logActionFilterProvider),
+        deviceFilters: ref.watch(logDeviceFilterProvider),
+        onToggle: () => setState(() => _filterExpanded = !_filterExpanded),
+      ),
+    );
   }
 
-  Widget _buildLogView() {
-    final theme = Theme.of(context);
-    final entries = ref.watch(operationLogFilteredEntriesProvider);
+  void _clearAllFilters() {
+    ref.read(logActionFilterProvider.notifier).clear();
+    ref.read(logDeviceFilterProvider.notifier).clear();
+  }
 
-    // Apply search filter on top of action/device filters
-    final filteredEntries = _searchQuery.isEmpty
+  void _confirmClearLog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Log'),
+        content: const Text(
+          'Are you sure you want to clear all operation history?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              OperationLogService.instance.clearEntries();
+              Navigator.pop(context);
+            },
+            child: const Text('Clear', style: TextStyle(color: AppTheme.errorColor)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OperationLogView extends StatelessWidget {
+  final TextEditingController searchController;
+  final String searchQuery;
+  final List<OperationEntry> entries;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onClearSearch;
+  final VoidCallback onConfirmClearLog;
+  final bool filterExpanded;
+  final VoidCallback onClearAllFilters;
+  final Widget filterHeader;
+
+  const _OperationLogView({
+    required this.searchController,
+    required this.searchQuery,
+    required this.entries,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+    required this.onConfirmClearLog,
+    required this.filterExpanded,
+    required this.onClearAllFilters,
+    required this.filterHeader,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final filteredEntries = searchQuery.isEmpty
         ? entries
         : entries.where((entry) {
-            final lowerQuery = _searchQuery.toLowerCase();
+            final lowerQuery = searchQuery.toLowerCase();
             return entry.description.toLowerCase().contains(lowerQuery) ||
                 entry.section.toLowerCase().contains(lowerQuery) ||
                 entry.action.toLowerCase().contains(lowerQuery);
@@ -103,7 +176,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
           if (entries.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmClearLog(context),
+              onPressed: onConfirmClearLog,
               tooltip: 'Clear log',
             ),
         ],
@@ -114,18 +187,15 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
+              controller: searchController,
+              onChanged: onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Search logs...',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
+                suffixIcon: searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
+                        onPressed: onClearSearch,
                       )
                     : null,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -133,14 +203,14 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
               ),
             ),
           ),
-          _buildFilterHeader(),
+          filterHeader,
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: _filterExpanded
-                ? OperationLogFilterSection(onClearAll: _clearAllFilters)
+            child: filterExpanded
+                ? OperationLogFilterSection(onClearAll: onClearAllFilters)
                 : const SizedBox.shrink(),
           ),
-          if (_searchQuery.isNotEmpty && filteredEntries.isNotEmpty)
+          if (searchQuery.isNotEmpty && filteredEntries.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Align(
@@ -160,20 +230,20 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _searchQuery.isNotEmpty ? Icons.search_off : Icons.filter_list_off,
+                          searchQuery.isNotEmpty ? Icons.search_off : Icons.filter_list_off,
                           size: 64,
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _searchQuery.isNotEmpty ? 'No matching entries' : 'No matching entries',
+                          searchQuery.isNotEmpty ? 'No matching entries' : 'No matching entries',
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _searchQuery.isNotEmpty
+                          searchQuery.isNotEmpty
                               ? 'Try a different search term'
                               : 'Try adjusting your filters',
                           style: theme.textTheme.bodySmall?.copyWith(
@@ -197,15 +267,28 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
       ),
     );
   }
+}
 
-  Widget _buildFilterHeader() {
+class _OperationLogFilterHeader extends StatelessWidget {
+  final bool filterExpanded;
+  final Set<String> actionFilters;
+  final Set<String> deviceFilters;
+  final VoidCallback onToggle;
+
+  const _OperationLogFilterHeader({
+    required this.filterExpanded,
+    required this.actionFilters,
+    required this.deviceFilters,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final actionFilters = ref.watch(logActionFilterProvider);
-    final deviceFilters = ref.watch(logDeviceFilterProvider);
     final hasActiveFilters = actionFilters.isNotEmpty || deviceFilters.isNotEmpty;
 
     return InkWell(
-      onTap: () => setState(() => _filterExpanded = !_filterExpanded),
+      onTap: onToggle,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -251,7 +334,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
             ],
             const Spacer(),
             AnimatedRotation(
-              turns: _filterExpanded ? 0.5 : 0,
+              turns: filterExpanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 300),
               child: Icon(
                 Icons.keyboard_arrow_down,
@@ -260,36 +343,6 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _clearAllFilters() {
-    ref.read(logActionFilterProvider.notifier).clear();
-    ref.read(logDeviceFilterProvider.notifier).clear();
-  }
-
-  void _confirmClearLog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Log'),
-        content: const Text(
-          'Are you sure you want to clear all operation history?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              OperationLogService.instance.clearEntries();
-              Navigator.pop(context);
-            },
-            child: const Text('Clear', style: TextStyle(color: AppTheme.errorColor)),
-          ),
-        ],
       ),
     );
   }

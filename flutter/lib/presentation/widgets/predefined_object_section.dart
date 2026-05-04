@@ -89,7 +89,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     // Load predefined schema from registry
     final typeDef = ObjectTypeRegistry.getType(widget.typeId);
     if (typeDef == null) {
-      return _buildError('Unknown type: ${widget.typeId}');
+      return _PredefinedErrorWidget(message: 'Unknown type: ${widget.typeId}');
     }
 
     // Build template from schema + FieldRegistry sensitivity
@@ -207,15 +207,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     );
   }
 
-  Widget _buildError(String message) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Text(
-        'Error: $message',
-        style: const TextStyle(color: Colors.red),
-      ),
-    );
-  }
+
 
   /// Map typeId to the field-prefix used by FieldRegistry.
   String _fieldPrefix(String typeId) {
@@ -251,5 +243,22 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     } on Object catch (_) {
       return SensitivityLevel.public;
     }
+  }
+}
+
+class _PredefinedErrorWidget extends StatelessWidget {
+  final String message;
+
+  const _PredefinedErrorWidget({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        'Error: $message',
+        style: const TextStyle(color: Colors.red),
+      ),
+    );
   }
 }

@@ -639,8 +639,46 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                 ),
               )
             else ...[
-              if (_isAddingItem) _buildNewItemForm(),
-              ...visibleItems.map((item) => _buildItemTile(item)),
+              if (_isAddingItem)
+                _NewItemFormWidget(
+                  template: _template,
+                  editControllers: _editControllers,
+                  hasChanges: _hasChanges,
+                  onSave: _saveNewItem,
+                  onCancel: _cancelAddItem,
+                  customFormBuilder: widget.customFormBuilder,
+                  titlePropertyKey: widget.titlePropertyKey,
+                  onCheckboxChanged: (key, value) {
+                    setState(() {
+                      _editControllers[key]?.text = (value ?? false) ? 'Yes' : 'No';
+                    });
+                  },
+                ),
+              ...visibleItems.map((item) => _ItemTileWidget(
+                item: item,
+                isEditing: _editingItemId == item.id,
+                isHistoryExpanded: _expandedHistoryItemIds.contains(item.id),
+                displayItemBuilder: widget.displayItemBuilder,
+                onEdit: () => _startEditingItem(item),
+                onDelete: () => _deleteItem(item.id),
+                onCopy: () => _copyItem(item),
+                onToggleHistory: () => _toggleItemHistory(item.id),
+                onStartEdit: () => _startEditingItem(item),
+                historyFieldIdPrefix: widget.historyFieldIdPrefix,
+                nameExtractor: widget.nameExtractor,
+                titlePropertyKey: widget.titlePropertyKey,
+                template: _template,
+                editControllers: _editControllers,
+                hasChanges: _hasChanges,
+                onSaveEditItem: () => _saveEditItem(item.id),
+                onCancelEditItem: _cancelEditItem,
+                customFormBuilder: widget.customFormBuilder,
+                onCheckboxChanged: (key, value) {
+                  setState(() {
+                    _editControllers[key]?.text = (value ?? false) ? 'Yes' : 'No';
+                  });
+                },
+              )),
               if (shouldCollapse && !_isAddingItem) ...[
                 const SizedBox(height: 8),
                 InkWell(
@@ -680,33 +718,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     );
   }
 
-  Widget _buildItemTile(UnifiedObject item) {
-    final isEditing = _editingItemId == item.id;
-    if (isEditing) {
-      return _buildItemEditMode(item);
-    }
-    if (widget.displayItemBuilder != null) {
-      return EntryActionsContext(
-        onEdit: () => _startEditingItem(item),
-        onDelete: () => _deleteItem(item.id),
-        onCopy: (_) async => _copyItem(item),
-        onToggleHistory: () => _toggleItemHistory(item.id),
-        child: widget.displayItemBuilder!(context, item, isEditing: false),
-      );
-    }
-    return ObjectCardItemTile(
-      item: item,
-      isHistoryExpanded: _expandedHistoryItemIds.contains(item.id),
-      onToggleHistory: () => _toggleItemHistory(item.id),
-      onCopy: () => _copyItem(item),
-      onStartEdit: () => _startEditingItem(item),
-      onDelete: () => _deleteItem(item.id),
-      historyFieldIdPrefix: widget.historyFieldIdPrefix,
-      nameExtractor: widget.nameExtractor,
-      titlePropertyKey: widget.titlePropertyKey,
-    );
-  }
-
   void _toggleItemHistory(String itemId) {
     setState(() {
       if (_expandedHistoryItemIds.contains(itemId)) {
@@ -715,152 +726,6 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         _expandedHistoryItemIds.add(itemId);
       }
     });
-  }
-
-  Widget _buildNewItemForm() {
-    final template = _template;
-    final theme = Theme.of(context);
-
-    if (widget.customFormBuilder != null) {
-      final sensitivities = <String, SensitivityLevel>{
-        for (final entry in template.entries)
-          entry.key: entry.value.sensitivity,
-      };
-      return widget.customFormBuilder!(
-        context,
-        theme,
-        _editControllers,
-        'add',
-        _saveNewItem,
-        _cancelAddItem,
-        sensitivities,
-      );
-    }
-
-    final hasTitleField = template.containsKey(widget.titlePropertyKey);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title input (only when template defines a title property)
-          if (hasTitleField) ...[
-            ObjectCardEditField(
-              propertyKey: '__name__',
-              controller: _editControllers['__name__'],
-              isTitle: true,
-            ),
-            const SizedBox(height: 12),
-          ],
-          // Property inputs (skip the title property — already shown above)
-          ...template.keys.where((k) => k != widget.titlePropertyKey).map((key) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ObjectCardEditField(
-                propertyKey: key,
-                value: template[key]!,
-                controller: _editControllers[key],
-                onCheckboxChanged: (newValue) {
-                  setState(() {
-                    _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
-                  });
-                },
-              ),
-            );
-          }),
-          const SizedBox(height: 12),
-          // Action buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: _cancelAddItem,
-                child: const Text('Cancel'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: _hasChanges ? _saveNewItem : null,
-                child: const Text('Add'),
-              ),
-            ],
-          ),
-          const Divider(height: 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItemEditMode(UnifiedObject item) {
-    final template = _template;
-    final theme = Theme.of(context);
-
-    if (widget.customFormBuilder != null) {
-      final sensitivities = <String, SensitivityLevel>{
-        for (final entry in template.entries)
-          entry.key: entry.value.sensitivity,
-      };
-      return widget.customFormBuilder!(
-        context,
-        theme,
-        _editControllers,
-        'edit',
-        () => _saveEditItem(item.id),
-        _cancelEditItem,
-        sensitivities,
-      );
-    }
-
-    final hasTitleField = item.properties.containsKey(widget.titlePropertyKey);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title input (only when item has a title property)
-          if (hasTitleField) ...[
-            ObjectCardEditField(
-              propertyKey: '__name__',
-              controller: _editControllers['__name__'],
-              isTitle: true,
-            ),
-            const SizedBox(height: 12),
-          ],
-          // Property inputs (skip the title property — already shown above)
-          ...item.properties.keys.where((k) => k != widget.titlePropertyKey).map((key) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ObjectCardEditField(
-                propertyKey: key,
-                value: item.properties[key]!,
-                controller: _editControllers[key],
-                onCheckboxChanged: (newValue) {
-                  setState(() {
-                    _editControllers[key]?.text = (newValue ?? false) ? 'Yes' : 'No';
-                  });
-                },
-              ),
-            );
-          }),
-          const SizedBox(height: 12),
-          // Action buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: _cancelEditItem,
-                child: const Text('Cancel'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: _hasChanges ? () => _saveEditItem(item.id) : null,
-                child: const Text('Save'),
-              ),
-            ],
-          ),
-          const Divider(height: 16),
-        ],
-      ),
-    );
   }
 
   void _copyItem(UnifiedObject item) {
@@ -907,5 +772,301 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     } else {
       doCopy();
     }
+  }
+}
+
+class _ItemTileWidget extends StatelessWidget {
+  final UnifiedObject item;
+  final bool isEditing;
+  final bool isHistoryExpanded;
+  final Widget Function(BuildContext, UnifiedObject, {required bool isEditing})?
+      displayItemBuilder;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onCopy;
+  final VoidCallback onToggleHistory;
+  final VoidCallback onStartEdit;
+  final String historyFieldIdPrefix;
+  final String Function(Map<String, String>)? nameExtractor;
+  final String titlePropertyKey;
+
+  // Edit mode delegation
+  final Map<String, PropertyValue> template;
+  final Map<String, TextEditingController> editControllers;
+  final bool hasChanges;
+  final VoidCallback onSaveEditItem;
+  final VoidCallback onCancelEditItem;
+  final Widget Function(
+    BuildContext,
+    ThemeData,
+    Map<String, TextEditingController>,
+    String,
+    VoidCallback,
+    VoidCallback,
+    Map<String, SensitivityLevel>,
+  )? customFormBuilder;
+  final void Function(String key, bool? value) onCheckboxChanged;
+
+  const _ItemTileWidget({
+    required this.item,
+    required this.isEditing,
+    required this.isHistoryExpanded,
+    this.displayItemBuilder,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onCopy,
+    required this.onToggleHistory,
+    required this.onStartEdit,
+    required this.historyFieldIdPrefix,
+    this.nameExtractor,
+    required this.titlePropertyKey,
+    required this.template,
+    required this.editControllers,
+    required this.hasChanges,
+    required this.onSaveEditItem,
+    required this.onCancelEditItem,
+    this.customFormBuilder,
+    required this.onCheckboxChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isEditing) {
+      return _ItemEditModeWidget(
+        item: item,
+        template: template,
+        editControllers: editControllers,
+        hasChanges: hasChanges,
+        onSave: onSaveEditItem,
+        onCancel: onCancelEditItem,
+        customFormBuilder: customFormBuilder,
+        titlePropertyKey: titlePropertyKey,
+        onCheckboxChanged: onCheckboxChanged,
+      );
+    }
+    if (displayItemBuilder != null) {
+      return EntryActionsContext(
+        onEdit: onEdit,
+        onDelete: onDelete,
+        onCopy: (_) async => onCopy(),
+        onToggleHistory: onToggleHistory,
+        child: displayItemBuilder!(context, item, isEditing: false),
+      );
+    }
+    return ObjectCardItemTile(
+      item: item,
+      isHistoryExpanded: isHistoryExpanded,
+      onToggleHistory: onToggleHistory,
+      onCopy: onCopy,
+      onStartEdit: onStartEdit,
+      onDelete: onDelete,
+      historyFieldIdPrefix: historyFieldIdPrefix,
+      nameExtractor: nameExtractor,
+      titlePropertyKey: titlePropertyKey,
+    );
+  }
+}
+
+class _NewItemFormWidget extends StatelessWidget {
+  final Map<String, PropertyValue> template;
+  final Map<String, TextEditingController> editControllers;
+  final bool hasChanges;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
+  final String titlePropertyKey;
+  final Widget Function(
+    BuildContext,
+    ThemeData,
+    Map<String, TextEditingController>,
+    String,
+    VoidCallback,
+    VoidCallback,
+    Map<String, SensitivityLevel>,
+  )? customFormBuilder;
+  final void Function(String key, bool? value) onCheckboxChanged;
+
+  const _NewItemFormWidget({
+    required this.template,
+    required this.editControllers,
+    required this.hasChanges,
+    required this.onSave,
+    required this.onCancel,
+    required this.titlePropertyKey,
+    this.customFormBuilder,
+    required this.onCheckboxChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (customFormBuilder != null) {
+      final sensitivities = <String, SensitivityLevel>{
+        for (final entry in template.entries)
+          entry.key: entry.value.sensitivity,
+      };
+      return customFormBuilder!(
+        context,
+        theme,
+        editControllers,
+        'add',
+        onSave,
+        onCancel,
+        sensitivities,
+      );
+    }
+
+    final hasTitleField = template.containsKey(titlePropertyKey);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title input (only when template defines a title property)
+          if (hasTitleField) ...[
+            ObjectCardEditField(
+              propertyKey: '__name__',
+              controller: editControllers['__name__'],
+              isTitle: true,
+            ),
+            const SizedBox(height: 12),
+          ],
+          // Property inputs (skip the title property — already shown above)
+          ...template.keys.where((k) => k != titlePropertyKey).map((key) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ObjectCardEditField(
+                propertyKey: key,
+                value: template[key]!,
+                controller: editControllers[key],
+                onCheckboxChanged: (newValue) {
+                  onCheckboxChanged(key, newValue);
+                },
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
+          // Action buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: onCancel,
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: hasChanges ? onSave : null,
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+          const Divider(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemEditModeWidget extends StatelessWidget {
+  final UnifiedObject item;
+  final Map<String, PropertyValue> template;
+  final Map<String, TextEditingController> editControllers;
+  final bool hasChanges;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
+  final String titlePropertyKey;
+  final Widget Function(
+    BuildContext,
+    ThemeData,
+    Map<String, TextEditingController>,
+    String,
+    VoidCallback,
+    VoidCallback,
+    Map<String, SensitivityLevel>,
+  )? customFormBuilder;
+  final void Function(String key, bool? value) onCheckboxChanged;
+
+  const _ItemEditModeWidget({
+    required this.item,
+    required this.template,
+    required this.editControllers,
+    required this.hasChanges,
+    required this.onSave,
+    required this.onCancel,
+    required this.titlePropertyKey,
+    this.customFormBuilder,
+    required this.onCheckboxChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (customFormBuilder != null) {
+      final sensitivities = <String, SensitivityLevel>{
+        for (final entry in template.entries)
+          entry.key: entry.value.sensitivity,
+      };
+      return customFormBuilder!(
+        context,
+        theme,
+        editControllers,
+        'edit',
+        onSave,
+        onCancel,
+        sensitivities,
+      );
+    }
+
+    final hasTitleField = item.properties.containsKey(titlePropertyKey);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title input (only when item has a title property)
+          if (hasTitleField) ...[
+            ObjectCardEditField(
+              propertyKey: '__name__',
+              controller: editControllers['__name__'],
+              isTitle: true,
+            ),
+            const SizedBox(height: 12),
+          ],
+          // Property inputs (skip the title property — already shown above)
+          ...item.properties.keys.where((k) => k != titlePropertyKey).map((key) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ObjectCardEditField(
+                propertyKey: key,
+                value: item.properties[key]!,
+                controller: editControllers[key],
+                onCheckboxChanged: (newValue) {
+                  onCheckboxChanged(key, newValue);
+                },
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
+          // Action buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: onCancel,
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: hasChanges ? onSave : null,
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+          const Divider(height: 16),
+        ],
+      ),
+    );
   }
 }

@@ -79,75 +79,7 @@ class DebugLogSheetState extends State<DebugLogSheet> {
     );
   }
 
-  Color _levelColor(LogLevel level) {
-    switch (level) {
-      case LogLevel.error:
-        return Colors.red.shade700;
-      case LogLevel.warning:
-        return Colors.orange.shade700;
-      case LogLevel.info:
-        return Colors.blue.shade700;
-      case LogLevel.debug:
-        return Colors.grey.shade600;
-    }
-  }
 
-  TextStyle _levelStyle(LogLevel level, Color baseColor) {
-    return TextStyle(
-      fontFamily: 'monospace',
-      fontSize: 11,
-      color: baseColor,
-      fontWeight: FontWeight.w600,
-    );
-  }
-
-  TextStyle _normalStyle(Color baseColor) {
-    return TextStyle(
-      fontFamily: 'monospace',
-      fontSize: 11,
-      color: baseColor,
-    );
-  }
-
-  Widget _buildLogText(BuildContext context) {
-    if (_entries.isEmpty) {
-      return Text(
-        'No debug logs available.',
-        style: TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 11,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-
-    final baseColor = Theme.of(context).colorScheme.onSurface;
-    final spans = <TextSpan>[];
-
-    for (final entry in _entries) {
-      final color = _levelColor(entry.level);
-      spans.add(TextSpan(
-        text: '[${entry.timestamp.toIso8601String()}] ',
-        style: _normalStyle(baseColor),
-      ));
-      spans.add(TextSpan(
-        text: '[${entry.level.name.toUpperCase()}] ',
-        style: _levelStyle(entry.level, color),
-      ));
-      spans.add(TextSpan(
-        text: '[${entry.tag}] ',
-        style: _normalStyle(baseColor),
-      ));
-      spans.add(TextSpan(
-        text: '${entry.message}\n',
-        style: _normalStyle(baseColor),
-      ));
-    }
-
-    return SelectableText.rich(
-      TextSpan(children: spans),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -238,11 +170,88 @@ class DebugLogSheetState extends State<DebugLogSheet> {
             child: SingleChildScrollView(
               controller: widget.scrollController,
               padding: const EdgeInsets.all(16),
-              child: _buildLogText(context),
+              child: _LogTextWidget(entries: _entries),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LogTextWidget extends StatelessWidget {
+  final List<LogEntry> entries;
+
+  const _LogTextWidget({required this.entries});
+
+  Color _levelColor(LogLevel level) {
+    switch (level) {
+      case LogLevel.error:
+        return Colors.red.shade700;
+      case LogLevel.warning:
+        return Colors.orange.shade700;
+      case LogLevel.info:
+        return Colors.blue.shade700;
+      case LogLevel.debug:
+        return Colors.grey.shade600;
+    }
+  }
+
+  TextStyle _levelStyle(LogLevel level, Color baseColor) {
+    return TextStyle(
+      fontFamily: 'monospace',
+      fontSize: 11,
+      color: baseColor,
+      fontWeight: FontWeight.w600,
+    );
+  }
+
+  TextStyle _normalStyle(Color baseColor) {
+    return TextStyle(
+      fontFamily: 'monospace',
+      fontSize: 11,
+      color: baseColor,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (entries.isEmpty) {
+      return Text(
+        'No debug logs available.',
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    final baseColor = Theme.of(context).colorScheme.onSurface;
+    final spans = <TextSpan>[];
+
+    for (final entry in entries) {
+      final color = _levelColor(entry.level);
+      spans.add(TextSpan(
+        text: '[${entry.timestamp.toIso8601String()}] ',
+        style: _normalStyle(baseColor),
+      ));
+      spans.add(TextSpan(
+        text: '[${entry.level.name.toUpperCase()}] ',
+        style: _levelStyle(entry.level, color),
+      ));
+      spans.add(TextSpan(
+        text: '[${entry.tag}] ',
+        style: _normalStyle(baseColor),
+      ));
+      spans.add(TextSpan(
+        text: '${entry.message}\n',
+        style: _normalStyle(baseColor),
+      ));
+    }
+
+    return SelectableText.rich(
+      TextSpan(children: spans),
     );
   }
 }
