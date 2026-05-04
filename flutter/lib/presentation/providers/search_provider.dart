@@ -155,7 +155,7 @@ class SearchNotifier extends Notifier<SearchState> {
     required bool searchSensitive,
     required bool searchRestricted,
   }) {
-    return Isolate.run(() => _executeSearch(
+    return Isolate.run(() => executeSearch(
       objects,
       query,
       searchPublic,
@@ -166,7 +166,8 @@ class SearchNotifier extends Notifier<SearchState> {
   }
 
   /// Pure search function — runs in a background isolate.
-  static List<SearchResultItem> _executeSearch(
+  /// Public for testing.
+  static List<SearchResultItem> executeSearch(
     List<UnifiedObject> objects,
     String query,
     bool searchPublic,

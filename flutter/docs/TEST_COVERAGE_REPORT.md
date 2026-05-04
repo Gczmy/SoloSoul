@@ -1,7 +1,7 @@
 # SoloSoul Flutter 测试覆盖率报告
 
 > 生成日期: 2026-05-03
-> 最后更新: 2026-05-04 (Phase 10 — EntryActionsContext + FilterChip + DeleteBadge + AddButton + DashedPlaceholder + IconPicker widget 渲染测试)
+> 最后更新: 2026-05-04 (Phase 11 — Search pure logic + Orphan repair + derived providers + ObjectCardHeader/PropertiesList + InfoTile/VersionInfoTile + SidebarHeader/AddPageInput + UniversalEntryCard widget 渲染测试)
 > 统计范围: `lib/` (排除 `.g.dart` / `.freezed.dart` / `frb/` 自动生成代码)
 
 ## 1. 总览
@@ -11,9 +11,9 @@
 | 源文件总数 | 135 | 135 | 135 | 135 | — |
 | 源代码总行数 | 31,286 | 31,286 | 31,286 | 31,304 | +18 |
 | 测试文件总数 | 10 | 21 | 26 | **71** | +61 |
-| 测试代码总行数 | 1,980 | 3,041 | 3,898 | **10,846** | +8,866 |
-| **文件覆盖率** | 7.4% | 18.5% | 22.2% | **55.6% (75/135)** | +48.2% |
-| **代码行覆盖率** | 6.3% | 9.7% | 12.5% | **~34.7%** | +28.4% |
+| 测试代码总行数 | 1,980 | 3,041 | 3,898 | **11,624** | +9,644 |
+| **文件覆盖率** | 7.4% | 18.5% | 22.2% | **58.5% (79/135)** | +51.1% |
+| **代码行覆盖率** | 6.3% | 9.7% | 12.5% | **~36.2%** | +29.9% |
 | **测试/源代码比** | 1:15.8 | 1:10.3 | 1:8.0 | **1:2.9** | 超标 |
 
 ## 2. 已测试模块
@@ -147,6 +147,19 @@
 | `widget/quick_action_tile_test.dart` | 60 | Widget | `widgets/home/quick_action_tile.dart` | ✅ 渲染/颜色/onTap/固定尺寸 |
 | `widget/security_item_test.dart` | 50 | Widget | `widgets/home/security_item.dart` | ✅ 渲染/颜色/文本样式 |
 
+### Phase 11 新增测试 (2026-05-04)
+
+| 测试文件 | 行数 | 测试类型 | 对应源文件 | 状态 |
+|----------|------|----------|-----------|------|
+| `unit/presentation/providers/search_provider_test.dart` | 280 | Unit | `providers/search_provider.dart` | ✅ `executeSearch` 纯静态方法 21 个 case：空查询/大小写不敏感/删除过滤/名称/typeId/属性值/属性键/空值跳过/四级敏感度过滤/父链解析/破损回退/多种 PropertyValue 类型/null 值处理/多结果 |
+| `unit/presentation/providers/unified_object_provider_test.dart` | 330 | Unit | `providers/unified_object_provider.dart` | ✅ `pageNameFromId` 4 默认页面 + 未知回退; `repairOrphanItems` 10 个 case; 派生 providers 6 个 case |
+| `widget/object_card/object_card_header_test.dart` | 170 | Widget | `widgets/object_card/object_card_header.dart` | ✅ 渲染/编辑删除按钮/section 编辑按钮/添加按钮/全部 5 个回调触发 |
+| `widget/object_card/object_card_properties_list_test.dart` | 125 | Widget | `widgets/object_card/object_card_properties_list.dart` | ✅ 排除 title 键/空值占位/敏感度标签/自定义 titlePropertyKey/标签格式化/非敏感 SelectableText |
+| `widget/settings/settings_common_test.dart` | 85 | Widget | `widgets/settings/settings_common.dart` | ✅ `InfoTile` 渲染/副标题; `VersionInfoTile` 渲染/trailing |
+| `widget/sidebar/add_page_input_test.dart` | 90 | Widget | `widgets/sidebar/add_page_input.dart` | ✅ 渲染/图标点击/确认点击/提交触发/autofocus |
+| `widget/universal_entry_card_test.dart` | 115 | Widget | `widgets/universal_entry_card.dart` | ✅ `UniversalEntryCard` title/subtitle/leading/actions/children/bottomActions; `UniversalEntryTile` title/leading/actions/children |
+| `widget/sidebar_header_test.dart` | +15 | Widget | `widgets/sidebar/sidebar_header.dart` | ✅ 窄宽度展开模式下隐藏文本 |
+
 ## 3. 未测试模块清单
 
 ### 3.1 核心服务 (`core/services/`) — 8/14 未测试
@@ -183,13 +196,13 @@
 
 | 文件 | 行数 | 优先级 |
 |------|------|--------|
-| `unified_object_provider.dart` | 786 | **P0** | ⚠️ 已测试 build、reset、loadFromProfile、Cache、DerivedProviders |
+| `unified_object_provider.dart` | 786 | **P0** | ✅ 已测试 `pageNameFromId` + `repairOrphanItems` + DerivedProviders + Cache |
 | `auth/auth_services.dart` | 551 | **P0** | ⚠️ 已测试 VaultUnlockService + AccountManager getter/状态管理 |
 | `auth/auth_storage.dart` | 493 | **P0** | ⚠️ 已测试 `hasSufficientComplexity` + `AttemptTracker` + CRUD + `createAccount` 验证，FFI 路径未覆盖 |
 | `account_style_provider.dart` | 500 | **P1** | ✅ 已测试 AccountStyle+SensitivityResolver |
 | `auth/auth_notifier.dart` | 448 | **P0** | ⚠️ 已测试初始状态、getter、早期返回路径 |
 | `operation_log_provider.dart` | 356 | **P1** | ⚠️ 已测试 OperationLogService + Provider 层 |
-| `search_provider.dart` | 291 | **P1** | ⚠️ 已测试 SearchNotifier 状态方法 |
+| `search_provider.dart` | 291 | **P1** | ✅ 已测试 `executeSearch` 纯逻辑 + SearchNotifier 状态方法 |
 | `profile_provider.dart` | 245 | **P1** | ⚠️ 已测试 build、clearProfile、isLoading |
 | `sync_provider.dart` | 178 | **P1** | ✅ 已测试 SyncStatus+SyncState |
 | `auth/auth_helpers.dart` | 146 | ✅ 已测试 |
@@ -268,17 +281,18 @@
 | Core Models | 5 | 5 | 100% | +100% |
 | Providers | 12 | 11 | 91.7% | +75.0% |
 | Pages | 19 | 3 | 15.8% | — |
+| Widgets | 63 | 29 | ~46.0% | +11.1% |
 | Utils | 7 | 6 | 85.7% | +14.3% |
 | Presentation Models | 3 | 3 | 100% | +33.3% |
-| Widgets | 63 | 22 | ~34.9% | +11.1% |
-| **总计** | **135** | **75** | **55.6%** | **+48.2%** |
+
+| **总计** | **135** | **79** | **58.5%** | **+51.1%** |
 
 ## 5. 测试类型分布
 
 | 类型 | 文件数 | 行数 | 占比 |
 |------|--------|------|------|
-| Unit Tests | 46 | 7,524 | 69.4% |
-| Widget Tests | 25 | 3,322 | 30.6% |
+| Unit Tests | 48 | 8,134 | 70.0% |
+| Widget Tests | 26 | 3,490 | 30.0% |
 | Integration Tests | 0 | 0 | 0% |
 | E2E Tests | 0 | 0 | 0% |
 
@@ -342,11 +356,22 @@
 - [x] `widgets/search_empty_state.dart` — SearchEmptyState/SearchLoadingState/SearchNoResultsState 渲染
 - [x] `widgets/settings/slogan_chip.dart` — 渲染/颜色/文本样式/圆角容器
 
+### Phase 11 — 纯逻辑与 Widget 渲染 (2026-05-04)
+
+- [x] `providers/search_provider.dart` — `executeSearch` 纯静态方法：空查询/大小写不敏感/删除过滤/名称搜索/typeId搜索/属性值搜索/属性键搜索/空值跳过/敏感度分级过滤/父链解析/破损父链回退/多种属性类型
+- [x] `providers/unified_object_provider.dart` — `pageNameFromId` 4 个默认页面 + 未知ID回退; `repairOrphanItems` 无孤儿/单孤儿修复/创建缺失页面/创建缺失section/有效父项保留/跳过page和collection/跳过null typeId/更新childrenIds/多同类型孤儿聚合; 派生 providers: `rootObjects`/`deletedObjects`/`objectById`/`objectsByType`/`unifiedObjectCache`
+- [x] `widgets/object_card/object_card_header.dart` — 渲染/编辑按钮/删除按钮/添加按钮/编辑section按钮/回调触发
+- [x] `widgets/object_card/object_card_properties_list.dart` — 排除title键/空值占位/敏感度标签/自定义titlePropertyKey/标签格式化/非敏感SelectableText
+- [x] `widgets/settings/settings_common.dart` — `InfoTile` 渲染/副标题; `VersionInfoTile` 渲染/trailing
+- [x] `widgets/sidebar/add_page_input.dart` — 渲染/图标点击/确认点击/提交触发/autofocus
+- [x] `widgets/universal_entry_card.dart` — `UniversalEntryCard` title/subtitle/leading/actions/children/bottomActions; `UniversalEntryTile` title/leading/actions/children
+- [x] `widgets/sidebar/sidebar_header.dart` — 窄宽度展开模式下隐藏文本
+
 ### Phase 3 — UI 与集成 (目标: 覆盖率 → 65%)
 
 - [ ] 所有页面 Widget 测试
 - [x] `sync_provider.dart` — SyncNotifier 状态方法测试
-- [ ] 剩余 Widget 测试
+- [ ] 剩余 Widget 测试 (Tier 3/4)
 - [ ] 集成测试 (关键用户流程)
 
 ### Phase 4 — 完善 (目标: 覆盖率 → 80%+)
@@ -361,8 +386,8 @@
 |------|---------------|------|
 | 初始值 | 1:15.8 (1,980/31,304) | 🔴 严重不足 |
 | Phase 1 后 | 1:10.3 (3,041/31,304) | 🟡 改善中 |
-| 当前 | 1:2.9 (10,846/31,304) | ✅ 超标 |
+| 当前 | 1:2.7 (11,624/31,304) | ✅ 超标 |
 | 行业标准 | 1:1 ~ 1:3 | — |
 | 建议目标 | 至少 1:3 | — |
 
-按 1:3 目标，测试代码应达到 **~10,435 行**，当前已超出 **411 行**。
+按 1:3 目标，测试代码应达到 **~10,435 行**，当前已超出 **1,189 行**。

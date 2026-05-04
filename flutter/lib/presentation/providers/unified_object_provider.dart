@@ -84,7 +84,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     // 数据完整性修复：挂载孤儿 item 到默认 section
-    final repaired = _repairOrphanItems(data);
+    final repaired = repairOrphanItems(data);
     DebugLogger.instance.logInfo(
       'UNIFIED_OBJECT',
       'loadFromProfile: loaded ${repaired.objects.length} objects, ${repaired.customTypes.length} customTypes',
@@ -100,7 +100,8 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
   /// 启动时数据完整性检查：将所有 parentId 指向不存在的 section 的 item
   /// 自动挂载到对应的默认 section（section 不存在则自动创建）。
-  UnifiedObjectData _repairOrphanItems(UnifiedObjectData data) {
+  /// Public for testing.
+  UnifiedObjectData repairOrphanItems(UnifiedObjectData data) {
     final objects = List<UnifiedObject>.from(data.objects);
     final objectMap = {for (final o in objects) o.id: o};
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -143,7 +144,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       newObjects.add(UnifiedObject(
         id: pageId,
         typeId: 'page',
-        name: _pageNameFromId(pageId),
+        name: pageNameFromId(pageId),
         iconName: 'article',
         parentId: null,
         childrenIds: const [],
@@ -503,7 +504,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           final page = UnifiedObject(
             id: meta.parentPageId,
             typeId: 'page',
-            name: _pageNameFromId(meta.parentPageId),
+            name: pageNameFromId(meta.parentPageId),
             iconName: 'article',
             parentId: null,
             childrenIds: const [],
@@ -548,7 +549,8 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return _saveDebounced(operationDesc: 'Created item');
   }
 
-  String _pageNameFromId(String pageId) {
+  /// Public for testing.
+  String pageNameFromId(String pageId) {
     return switch (pageId) {
       DefaultPageIds.profile => 'Profile',
       DefaultPageIds.travel => 'Travel',
