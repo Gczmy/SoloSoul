@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-04 21:10:00
+> 最后更新：2026-05-04 21:30:00
 > 当前分支：`master`
 > 修复轮次：2（最终复审）
 > 分析范围：flutter/lib/（排除 *.g.dart, *.freezed.dart, frb/ 目录）
@@ -19,10 +19,10 @@
 | P031 | P1 | 重复代码 | `presentation/widgets/password_verification_dialog.dart:138/429` | `_showHintOverlay` 在同一文件内重复定义两次，方法体超过 60 行 | `[ ]` 待修复 |
 | P032 | P1 | 重复代码 | `presentation/pages/profile_page.dart` 等 | profile/travel/financial/professional 四个页面为完全相同的模板复制 | `[ ]` 待修复 |
 | P033 | P1 | 重复代码 | `presentation/providers/sync_provider.dart` 与 `presentation/utils/device_utils.dart` | Platform 设备名称映射逻辑在两个文件中几乎完全一致 | `[x]` 已修复 |
-| P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[ ]` 待修复 |
+| P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[~]` 部分修复 — _DebugActivationDialog 已提取，build 内 _build* 方法由后台任务提取中 |
 | P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[ ]` 待修复 |
 | P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[ ]` 待修复 |
-| P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[ ]` 待修复 |
+| P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[x]` 已修复 — 提取为 _DebugActivationDialog，方法从 196→58 行 |
 | P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[ ]` 待修复 |
 | P039 | P1 | 过长函数 | `presentation/pages/security_settings_page.dart:51` | build 方法长达 222 行 | `[ ]` 待修复 |
 | P040 | P1 | 深层嵌套 | `presentation/pages/security_settings_page.dart:99-172` | build 内 onChanged 回调存在 5 层控制流嵌套 | `[x]` 已修复 |
@@ -30,8 +30,8 @@
 | P042 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:363-413` | `_handleUnlock` 内存在 4 层嵌套 | `[x]` 已修复 |
 | P043 | P2 | `_build*()` 私有方法 | 多处（12个文件，26个方法） | 返回 Widget 的 `_build*` 私有方法应提取为独立 StatelessWidget | `[ ]` 待修复 |
 | P044 | P2 | 死代码 | `presentation/widgets/password_verification_dialog.dart:393` | `_onFocusChanged()` 为空函数，无意义回调 | `[x]` 已修复 |
-| P045 | P2 | 轻微结构问题 | `presentation/pages/login_page.dart:335/430` | `_handleUnlock` 与 `_handleCreateAccount` 后半段约 30 行完全相同 | `[ ]` 待修复 |
-| P046 | P2 | 轻微结构问题 | `presentation/pages/data_management_page.dart` | 5 个备份操作方法模式高度相似，可提取通用辅助 | `[ ]` 待修复 |
+| P045 | P2 | 轻微结构问题 | `presentation/pages/login_page.dart:335/430` | `_handleUnlock` 与 `_handleCreateAccount` 后半段约 30 行完全相同 | `[x]` 已修复 — 提取 _postLoginSetup() 共享方法 |
+| P046 | P2 | 轻微结构问题 | `presentation/pages/data_management_page.dart` | 5 个备份操作方法模式高度相似，可提取通用辅助 | `[x]` 已修复 — 提取 _showConfirmDialog 通用辅助 |
 | P047 | P2 | 代码规范 | `presentation/widgets/password_verification_dialog.dart:71/326` | 公共 Widget 构造函数缺少 named 'key' 参数（dart analyze info） | `[x]` 已修复 |
 | P048 | P0 | 漏洞 | `presentation/widgets/object_card.dart:127-134` | `_disposeControllers()` 仅调用 `c.dispose()`，未先执行 `c.text = ''` 进行安全擦除 | `[x]` 已修复 |
 | P049 | P0 | 漏洞 | `presentation/pages/llm/llm_config_page.dart:41-45` | `_apiKeyController.dispose()` 时未先清空 `text`，API 密钥在内存中残留 | `[x]` 已修复 |
@@ -45,7 +45,7 @@
 ## 修复进度
 
 - 已完成（第一轮）：28 / 29
-- 已完成（第二轮）：16 / 27
+- 已完成（第二轮）：19 / 27
 - 当前处理：无
 
 ## 第二轮修复总结
@@ -176,9 +176,12 @@
 
 ### P034-P039 — [P1] build 方法过长
 
-**涉及文件**: settings_page.dart (401行)、profile_page.dart (386行)、object_editor_page.dart (348行)、data_management_page.dart (230行)、security_settings_page.dart (222行)
+**涉及文件**: settings_page.dart (401行→~280行)、profile_page.dart (已合并为 ObjectCategoryPage)、object_editor_page.dart (348行)、data_management_page.dart (230行)、security_settings_page.dart (222行)
 
-**修复方案**: 按视觉区块拆分为独立 StatelessWidget。
+**修复状态**:
+- settings_page.dart: `_showDebugActivationDialog` 已提取为 `_DebugActivationDialog` (P037 ✅)。build 方法中 `_build*` 私有方法由后台任务提取中 (P043)。
+- profile_page.dart: 已合并为 `ObjectCategoryPage` 复用组件 (P032 ✅)，原 386 行模板代码已删除。
+- 其余文件待处理。
 
 ---
 
@@ -194,7 +197,7 @@
 
 **分布**: trash_page.dart(4)、scan_preview_page.dart(4)、object_card.dart(3)、home_page.dart(3)、operation_log_page.dart(2)、unified_object_trash_card.dart(2) 等 12 个文件
 
-**修复方案**: 逐步提取为独立 StatelessWidget。
+**修复状态**: 后台任务进行中 (agent-5pa737s4)。settings_page.dart 的 `_confirmDeleteAccount` 和 `_DebugActivationDialog` 已手动提取。
 
 ---
 
@@ -212,7 +215,9 @@
 
 **涉及文件**: login_page.dart（30行重复）、data_management_page.dart（5个方法模式相似）
 
-**修复方案**: 提取共享辅助方法。
+**修复状态**:
+- P045 login_page.dart: `_postLoginSetup()` 已提取，`_handleUnlock` 与 `_handleCreateAccount` 共享 (✅)。
+- P046 data_management_page.dart: `_confirmAndExecute` 通用辅助已提取 (✅)。
 
 ---
 
