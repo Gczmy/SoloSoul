@@ -20,7 +20,7 @@
 | P032 | P1 | 重复代码 | `presentation/pages/profile_page.dart` 等 | profile/travel/financial/professional 四个页面为完全相同的模板复制 | `[x]` 已修复 — 创建 `ObjectCategoryPage` 配置驱动组件 |
 | P033 | P1 | 重复代码 | `presentation/providers/sync_provider.dart` 与 `presentation/utils/device_utils.dart` | Platform 设备名称映射逻辑在两个文件中几乎完全一致 | `[x]` 已修复 |
 | P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[x]` 已修复 — _DebugActivationDialog 已提取，build 内所有 _build* 私有方法已提取为 StatelessWidget |
-| P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[x]` 已修复 — 通过 P032 使用 `ObjectCategoryPage`，原模板代码已删除 |
+| P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[x]` 已修复 — 提取 5 个 section widget + _CountedTextField，build 327→~20 行 |
 | P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[ ]` 待修复 |
 | P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[x]` 已修复 — 提取为 _DebugActivationDialog，方法从 196→58 行 |
 | P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[ ]` 待修复 |
@@ -184,7 +184,7 @@
 
 **修复状态**:
 - P034 settings_page.dart: `_showDebugActivationDialog` 提取为 `_DebugActivationDialog` (P037 ✅)。build 内所有 `_build*` 私有方法已提取为 StatelessWidget (P043 ✅)。build 方法从 401 行降至约 280 行。
-- P035 profile_page.dart: 已合并为 `ObjectCategoryPage` 复用组件 (P032 ✅)，原 386 行模板代码已删除。
+- P035 profile_page.dart: 已提取 5 个 section widget (`_IdentitySection`, `_ContactSection`, `_IdentityDocumentsSection`, `_AddressesSection`, `_CountedTextField`)，build 327→~20 行 ✅。
 - P036-P039: object_editor_page.dart / data_management_page.dart / security_settings_page.dart 中的 `_build*` 方法已全部提取 (P043 ✅)。深层嵌套问题已修复 (P040-P042 ✅)。
 
 ---
@@ -251,3 +251,24 @@
 | **合计** | **0** | **14** | **6** | **19** |
 
 **说明**: 第二轮扫描未检出新的 P0 级别安全漏洞或崩溃风险。所有 P1 问题均为代码结构和可维护性问题。dart analyze 通过（0 error / 0 warning / 2 info）。
+
+---
+
+## 分析摘要（第三轮 — D 全量扫描）
+
+| 类别 | P0 | P1 | P2 | 合计 |
+|---|---|---|---|---|
+| 空 catch 块（日志缺失） | 0 | 0 | 1 | 1 |
+| 过长 build 方法（>200行，新增） | 0 | 3 | 0 | 3 |
+| **合计** | **0** | **3** | **1** | **4** |
+
+**说明**: 第三轮扫描重点检查异常处理、方法长度、资源泄漏。dart analyze 通过（0 issues）。
+
+### 新增问题详情
+
+| 问题 | 级别 | 类型 | 位置 | 描述 | 状态 |
+|------|------|------|------|------|------|
+| P056 | P2 | 代码质量 | `core/services/scan/*.dart` (6处) | 空 catch 块静默吞掉异常，无日志 | `[x]` 已修复 — 添加 SoloLog 警告 |
+| P057 | P1 | 过长函数 | `widgets/login/password_input_section.dart` | build 方法 243 行 | `[ ]` 待修复 |
+| P058 | P1 | 过长函数 | `widgets/sidebar/page_tree_tile.dart` | build 方法 225 行 | `[ ]` 待修复 |
+| P059 | P1 | 过长函数 | `pages/scan/local_search_config_page.dart` | build 方法 205 行 | `[ ]` 待修复 |

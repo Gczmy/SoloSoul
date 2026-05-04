@@ -33,7 +33,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isPrivacyMode =
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
@@ -41,391 +40,436 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return ObjectCategoryPage(
       title: 'Profile',
       sections: [
-        // Identity
-            PredefinedObjectSection(
-              sectionId: DefaultSectionIds.identity,
-              typeId: 'profile_identity',
-              title: 'Identity',
-              icon: Icons.person_outlined,
-              maxVisibleItems: 1,
-              displayItemBuilder: (item, itemMap) =>
-                  EntryCardWidget<UnifiedObject>(
-                    item: item,
-                    title:
-                        itemMap['fullName']?.isNotEmpty == true
-                            ? itemMap['fullName']!
-                            : item.name,
-                    icon: Icons.person,
-                    itemId: item.id,
-                    historyFieldId: 'identity',
-                    formatAllFields:
-                        (i) => 'Identity\n${i.toFormattedString()}',
-                    itemData: itemMap,
-                    fieldPrefix: 'identity',
-                    excludeFields: const {'fullName'},
-                  ),
-              onDidDelete: buildOnDidDelete(
-                context,
-                logSection: LogSection.identity,
-                isPrivacyMode: isPrivacyMode,
-                ref: ref,
+        _IdentitySection(isPrivacyMode: isPrivacyMode),
+        const SizedBox(height: 16),
+        _ContactSection(isPrivacyMode: isPrivacyMode, dummyValueNotifier: _dummyValueNotifier),
+        const SizedBox(height: 16),
+        _IdentityDocumentsSection(isPrivacyMode: isPrivacyMode),
+        const SizedBox(height: 16),
+        _AddressesSection(isPrivacyMode: isPrivacyMode),
+        const SizedBox(height: 32),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.primaryColor.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.lock_outline,
+                color: AppTheme.primaryColor,
+                size: 24,
               ),
-              onDeleteFailed: buildOnDeleteFailed(
-                context,
-                sectionLabel: 'identity',
-              ),
-              onCopyAll: buildOnCopyAll(context),
-            )
-                .animate()
-                .fadeIn(duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
-            const SizedBox(height: 16),
-
-            // Contact Information
-            PredefinedObjectSection(
-              sectionId: DefaultSectionIds.contact,
-              typeId: 'profile_contact',
-              title: 'Contact Information',
-              icon: Icons.contact_mail_outlined,
-              maxVisibleItems: 3,
-              customFormBuilder:
-                  (context, theme, controllers, mode, onSubmit, onCancel,
-                      sensitivities) {
-                    final typeText = controllers['type']?.text ?? '';
-                    final selectedType = typeText.isEmpty ? 'email' : typeText;
-                    // Sync controller with resolved default so save reads correct value
-                    if (typeText.isEmpty) {
-                      controllers['type']?.text = 'email';
-                    }
-                    final valueSensitivity =
-                        sensitivities['value'] ?? SensitivityLevel.public;
-
-                    Widget buildCountedField({
-                      required TextEditingController? controller,
-                      required String label,
-                      String? hint,
-                      int? maxLength,
-                      Widget? suffixIcon,
-                      TextInputType? keyboardType,
-                    }) {
-                      maxLength ??= kMaxFieldLength;
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: controller,
-                              maxLength: maxLength,
-                              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-                              decoration: InputDecoration(
-                                labelText: label,
-                                hintText: hint,
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                suffixIcon: suffixIcon,
-                              ),
-                              keyboardType: keyboardType,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: 64,
-                            child: ValueListenableBuilder<TextEditingValue>(
-                              valueListenable: controller ?? _dummyValueNotifier,
-                              builder: (context, val, child) {
-                                final len = val.text.length;
-                                final max = maxLength!;
-                                return Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      width: 28,
-                                      child: Text(
-                                        '$len',
-                                        textAlign: TextAlign.right,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: len >= max
-                                              ? theme.colorScheme.error
-                                              : theme.colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '/',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: len >= max
-                                            ? theme.colorScheme.error
-                                            : theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 28,
-                                      child: Text(
-                                        '$max',
-                                        textAlign: TextAlign.left,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: len >= max
-                                              ? theme.colorScheme.error
-                                              : theme.colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          mode == 'adding' ? 'Add Contact' : 'Edit Contact',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        buildCountedField(
-                          controller: controllers['title'],
-                          label: 'Title',
-                          hint: 'e.g., Gmail, Work',
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<String>(
-                          initialValue:
-                              selectedType.isEmpty ? 'email' : selectedType,
-                          decoration: const InputDecoration(
-                            labelText: 'Type',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'email',
-                              child: Text('email'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'phone',
-                              child: Text('phone'),
-                            ),
-                          ],
-                          onChanged: (v) {
-                            controllers['type']?.text = v ?? 'email';
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        buildCountedField(
-                          controller: controllers['value'],
-                          label: 'Value',
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              widthFactor: 1,
-                              child: SensitivityTag(level: valueSensitivity),
-                            ),
-                          ),
-                          keyboardType:
-                              selectedType == 'email'
-                                  ? TextInputType.emailAddress
-                                  : TextInputType.phone,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: onCancel,
-                              child: const Text('Cancel'),
-                            ),
-                            const SizedBox(width: 8),
-                            FilledButton(
-                              onPressed: onSubmit,
-                              child: Text(
-                                mode == 'adding' ? 'Add' : 'Save',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-              displayItemBuilder: (item, itemMap) =>
-                  EntryCardWidget<UnifiedObject>(
-                    item: item,
-                    title:
-                        itemMap['title']?.isNotEmpty == true
-                            ? itemMap['title']!
-                            : (itemMap['value'] ?? item.name),
-                    icon:
-                        itemMap['type'] == 'email'
-                            ? Icons.email_outlined
-                            : Icons.phone_outlined,
-                    itemId: item.id,
-                    historyFieldId: 'contact',
-                    formatAllFields: (c) {
-                      final typeStr = itemMap['type'];
-                      final type = typeStr?.trim().isNotEmpty == true
-                          ? typeStr!
-                          : 'contact';
-                      return '$type: ${itemMap['value'] ?? ''}';
-                    },
-                    itemData: itemMap,
-                    fieldPrefix: 'contact',
-                    excludeFields: const {'title'},
-                  ),
-              onDidDelete: buildOnDidDelete(
-                context,
-                logSection: LogSection.contactInformation,
-                isPrivacyMode: isPrivacyMode,
-                ref: ref,
-              ),
-              onDeleteFailed: buildOnDeleteFailed(
-                context,
-                sectionLabel: 'contact',
-              ),
-              onCopyAll: buildOnCopyAll(context),
-            )
-                .animate()
-                .fadeIn(delay: 100.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
-            const SizedBox(height: 16),
-
-            // Identity Documents
-            PredefinedObjectSection(
-              sectionId: DefaultSectionIds.idCard,
-              typeId: 'profile_id_card',
-              title: 'Identity Documents',
-              icon: Icons.badge_outlined,
-              maxVisibleItems: 3,
-              displayItemBuilder: (item, itemMap) =>
-                  EntryCardWidget<UnifiedObject>(
-                    item: item,
-                    title:
-                        itemMap['title']?.isNotEmpty == true
-                            ? itemMap['title']!
-                            : 'ID Card',
-                    icon: Icons.badge_outlined,
-                    itemId: item.id,
-                    historyFieldId: 'idCard',
-                    formatAllFields:
-                        (c) => 'ID Card\n${c.toFormattedString()}',
-                    itemData: itemMap,
-                    fieldPrefix: 'idCard',
-                    excludeFields: const {'title'},
-                  ),
-              onDidDelete: buildOnDidDelete(
-                context,
-                logSection: LogSection.idCard,
-                isPrivacyMode: isPrivacyMode,
-                ref: ref,
-              ),
-              onDeleteFailed: buildOnDeleteFailed(
-                context,
-                sectionLabel: 'ID card',
-              ),
-              onCopyAll: buildOnCopyAll(context),
-            )
-                .animate()
-                .fadeIn(delay: 200.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
-            const SizedBox(height: 16),
-
-            // Addresses
-            PredefinedObjectSection(
-              sectionId: DefaultSectionIds.address,
-              typeId: 'profile_address',
-              title: 'Addresses',
-              icon: Icons.location_on_outlined,
-              maxVisibleItems: 3,
-              displayItemBuilder: (item, itemMap) =>
-                  EntryCardWidget<UnifiedObject>(
-                    item: item,
-                    title:
-                        itemMap['title']?.isNotEmpty == true
-                            ? itemMap['title']!
-                            : 'Address',
-                    icon: Icons.home_outlined,
-                    itemId: item.id,
-                    historyFieldId: 'address',
-                    itemData: itemMap,
-                    fieldPrefix: 'address',
-                    excludeFields: const {'title'},
-                  ),
-              onDidDelete: buildOnDidDelete(
-                context,
-                logSection: LogSection.address,
-                isPrivacyMode: isPrivacyMode,
-                ref: ref,
-              ),
-              onDeleteFailed: buildOnDeleteFailed(
-                context,
-                sectionLabel: 'address',
-              ),
-              onCopyAll: buildOnCopyAll(context),
-            )
-                .animate()
-                .fadeIn(delay: 300.ms, duration: 400.ms)
-                .slideX(begin: 0.05, end: 0),
-
-            const SizedBox(height: 32),
-
-            // Security notice
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'End-to-End Encrypted',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Your data is encrypted with AES-256-GCM',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.lock_outline,
-                    color: AppTheme.primaryColor,
-                    size: 24,
+            ],
+          ),
+        ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+      ],
+    );
+  }
+}
+
+class _IdentitySection extends ConsumerWidget {
+  const _IdentitySection({required this.isPrivacyMode});
+  final bool isPrivacyMode;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PredefinedObjectSection(
+      sectionId: DefaultSectionIds.identity,
+      typeId: 'profile_identity',
+      title: 'Identity',
+      icon: Icons.person_outlined,
+      maxVisibleItems: 1,
+      displayItemBuilder: (item, itemMap) =>
+          EntryCardWidget<UnifiedObject>(
+            item: item,
+            title:
+                itemMap['fullName']?.isNotEmpty == true
+                    ? itemMap['fullName']!
+                    : item.name,
+            icon: Icons.person,
+            itemId: item.id,
+            historyFieldId: 'identity',
+            formatAllFields:
+                (i) => 'Identity\n${i.toFormattedString()}',
+            itemData: itemMap,
+            fieldPrefix: 'identity',
+            excludeFields: const {'fullName'},
+          ),
+      onDidDelete: buildOnDidDelete(
+        context,
+        logSection: LogSection.identity,
+        isPrivacyMode: isPrivacyMode,
+        ref: ref,
+      ),
+      onDeleteFailed: buildOnDeleteFailed(
+        context,
+        sectionLabel: 'identity',
+      ),
+      onCopyAll: buildOnCopyAll(context),
+    )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _ContactSection extends ConsumerWidget {
+  const _ContactSection({
+    required this.isPrivacyMode,
+    required this.dummyValueNotifier,
+  });
+  final bool isPrivacyMode;
+  final ValueNotifier<TextEditingValue> dummyValueNotifier;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PredefinedObjectSection(
+      sectionId: DefaultSectionIds.contact,
+      typeId: 'profile_contact',
+      title: 'Contact Information',
+      icon: Icons.contact_mail_outlined,
+      maxVisibleItems: 3,
+      customFormBuilder:
+          (context, theme, controllers, mode, onSubmit, onCancel,
+              sensitivities) {
+            final typeText = controllers['type']?.text ?? '';
+            final selectedType = typeText.isEmpty ? 'email' : typeText;
+            // Sync controller with resolved default so save reads correct value
+            if (typeText.isEmpty) {
+              controllers['type']?.text = 'email';
+            }
+            final valueSensitivity =
+                sensitivities['value'] ?? SensitivityLevel.public;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mode == 'adding' ? 'Add Contact' : 'Edit Contact',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'End-to-End Encrypted',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Your data is encrypted with AES-256-GCM',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                ),
+                const SizedBox(height: 12),
+                _CountedTextField(
+                  controller: controllers['title'],
+                  label: 'Title',
+                  hint: 'e.g., Gmail, Work',
+                  dummyValueNotifier: dummyValueNotifier,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue:
+                      selectedType.isEmpty ? 'email' : selectedType,
+                  decoration: const InputDecoration(
+                    labelText: 'Type',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'email',
+                      child: Text('email'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'phone',
+                      child: Text('phone'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    controllers['type']?.text = v ?? 'email';
+                  },
+                ),
+                const SizedBox(height: 12),
+                _CountedTextField(
+                  controller: controllers['value'],
+                  label: 'Value',
+                  suffixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      widthFactor: 1,
+                      child: SensitivityTag(level: valueSensitivity),
+                    ),
+                  ),
+                  keyboardType:
+                      selectedType == 'email'
+                          ? TextInputType.emailAddress
+                          : TextInputType.phone,
+                  dummyValueNotifier: dummyValueNotifier,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: onSubmit,
+                      child: Text(
+                        mode == 'adding' ? 'Add' : 'Save',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+      displayItemBuilder: (item, itemMap) =>
+          EntryCardWidget<UnifiedObject>(
+            item: item,
+            title:
+                itemMap['title']?.isNotEmpty == true
+                    ? itemMap['title']!
+                    : (itemMap['value'] ?? item.name),
+            icon:
+                itemMap['type'] == 'email'
+                    ? Icons.email_outlined
+                    : Icons.phone_outlined,
+            itemId: item.id,
+            historyFieldId: 'contact',
+            formatAllFields: (c) {
+              final typeStr = itemMap['type'];
+              final type = typeStr?.trim().isNotEmpty == true
+                  ? typeStr!
+                  : 'contact';
+              return '$type: ${itemMap['value'] ?? ''}';
+            },
+            itemData: itemMap,
+            fieldPrefix: 'contact',
+            excludeFields: const {'title'},
+          ),
+      onDidDelete: buildOnDidDelete(
+        context,
+        logSection: LogSection.contactInformation,
+        isPrivacyMode: isPrivacyMode,
+        ref: ref,
+      ),
+      onDeleteFailed: buildOnDeleteFailed(
+        context,
+        sectionLabel: 'contact',
+      ),
+      onCopyAll: buildOnCopyAll(context),
+    )
+        .animate()
+        .fadeIn(delay: 100.ms, duration: 400.ms)
+        .slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _CountedTextField extends StatelessWidget {
+  const _CountedTextField({
+    required this.controller,
+    required this.label,
+    this.hint,
+    this.suffixIcon,
+    this.keyboardType,
+    required this.dummyValueNotifier,
+  });
+  final TextEditingController? controller;
+  final String label;
+  final String? hint;
+  final Widget? suffixIcon;
+  final TextInputType? keyboardType;
+  final ValueNotifier<TextEditingValue> dummyValueNotifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    const effectiveMaxLength = kMaxFieldLength;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            maxLength: effectiveMaxLength,
+            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: hint,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              suffixIcon: suffixIcon,
+            ),
+            keyboardType: keyboardType,
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 64,
+          child: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller ?? dummyValueNotifier,
+            builder: (context, val, child) {
+              final len = val.text.length;
+              const max = effectiveMaxLength;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 28,
+                    child: Text(
+                      '$len',
+                      textAlign: TextAlign.right,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: len >= max
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '/',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: len >= max
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 28,
+                    child: Text(
+                      '$max',
+                      textAlign: TextAlign.left,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: len >= max
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
+              );
+            },
+          ),
+        ),
       ],
     );
+  }
+}
+
+class _IdentityDocumentsSection extends ConsumerWidget {
+  const _IdentityDocumentsSection({required this.isPrivacyMode});
+  final bool isPrivacyMode;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PredefinedObjectSection(
+      sectionId: DefaultSectionIds.idCard,
+      typeId: 'profile_id_card',
+      title: 'Identity Documents',
+      icon: Icons.badge_outlined,
+      maxVisibleItems: 3,
+      displayItemBuilder: (item, itemMap) =>
+          EntryCardWidget<UnifiedObject>(
+            item: item,
+            title:
+                itemMap['title']?.isNotEmpty == true
+                    ? itemMap['title']!
+                    : 'ID Card',
+            icon: Icons.badge_outlined,
+            itemId: item.id,
+            historyFieldId: 'idCard',
+            formatAllFields:
+                (c) => 'ID Card\n${c.toFormattedString()}',
+            itemData: itemMap,
+            fieldPrefix: 'idCard',
+            excludeFields: const {'title'},
+          ),
+      onDidDelete: buildOnDidDelete(
+        context,
+        logSection: LogSection.idCard,
+        isPrivacyMode: isPrivacyMode,
+        ref: ref,
+      ),
+      onDeleteFailed: buildOnDeleteFailed(
+        context,
+        sectionLabel: 'ID card',
+      ),
+      onCopyAll: buildOnCopyAll(context),
+    )
+        .animate()
+        .fadeIn(delay: 200.ms, duration: 400.ms)
+        .slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _AddressesSection extends ConsumerWidget {
+  const _AddressesSection({required this.isPrivacyMode});
+  final bool isPrivacyMode;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PredefinedObjectSection(
+      sectionId: DefaultSectionIds.address,
+      typeId: 'profile_address',
+      title: 'Addresses',
+      icon: Icons.location_on_outlined,
+      maxVisibleItems: 3,
+      displayItemBuilder: (item, itemMap) =>
+          EntryCardWidget<UnifiedObject>(
+            item: item,
+            title:
+                itemMap['title']?.isNotEmpty == true
+                    ? itemMap['title']!
+                    : 'Address',
+            icon: Icons.home_outlined,
+            itemId: item.id,
+            historyFieldId: 'address',
+            itemData: itemMap,
+            fieldPrefix: 'address',
+            excludeFields: const {'title'},
+          ),
+      onDidDelete: buildOnDidDelete(
+        context,
+        logSection: LogSection.address,
+        isPrivacyMode: isPrivacyMode,
+        ref: ref,
+      ),
+      onDeleteFailed: buildOnDeleteFailed(
+        context,
+        sectionLabel: 'address',
+      ),
+      onCopyAll: buildOnCopyAll(context),
+    )
+        .animate()
+        .fadeIn(delay: 300.ms, duration: 400.ms)
+        .slideX(begin: 0.05, end: 0);
   }
 }
