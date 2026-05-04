@@ -156,98 +156,16 @@ class _ContactSection extends ConsumerWidget {
       title: 'Contact Information',
       icon: Icons.contact_mail_outlined,
       maxVisibleItems: 3,
-      customFormBuilder:
-          (context, theme, controllers, mode, onSubmit, onCancel,
-              sensitivities) {
-            final typeText = controllers['type']?.text ?? '';
-            final selectedType = typeText.isEmpty ? 'email' : typeText;
-            // Sync controller with resolved default so save reads correct value
-            if (typeText.isEmpty) {
-              controllers['type']?.text = 'email';
-            }
-            final valueSensitivity =
-                sensitivities['value'] ?? SensitivityLevel.public;
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  mode == 'adding' ? 'Add Contact' : 'Edit Contact',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _CountedTextField(
-                  controller: controllers['title'],
-                  label: 'Title',
-                  hint: 'e.g., Gmail, Work',
-                  dummyValueNotifier: dummyValueNotifier,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue:
-                      selectedType.isEmpty ? 'email' : selectedType,
-                  decoration: const InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'email',
-                      child: Text('email'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'phone',
-                      child: Text('phone'),
-                    ),
-                  ],
-                  onChanged: (v) {
-                    controllers['type']?.text = v ?? 'email';
-                  },
-                ),
-                const SizedBox(height: 12),
-                _CountedTextField(
-                  controller: controllers['value'],
-                  label: 'Value',
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      widthFactor: 1,
-                      child: SensitivityTag(level: valueSensitivity),
-                    ),
-                  ),
-                  keyboardType:
-                      selectedType == 'email'
-                          ? TextInputType.emailAddress
-                          : TextInputType.phone,
-                  dummyValueNotifier: dummyValueNotifier,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: onCancel,
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: onSubmit,
-                      child: Text(
-                        mode == 'adding' ? 'Add' : 'Save',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
+      customFormBuilder: (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
+        return _ContactForm(
+          controllers: controllers,
+          mode: mode,
+          onSubmit: onSubmit,
+          onCancel: onCancel,
+          sensitivities: sensitivities,
+          dummyValueNotifier: dummyValueNotifier,
+        );
+      },
       displayItemBuilder: (item, itemMap) =>
           EntryCardWidget<UnifiedObject>(
             item: item,
@@ -471,5 +389,115 @@ class _AddressesSection extends ConsumerWidget {
         .animate()
         .fadeIn(delay: 300.ms, duration: 400.ms)
         .slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _ContactForm extends StatelessWidget {
+  final Map<String, TextEditingController?> controllers;
+  final String mode;
+  final VoidCallback onSubmit;
+  final VoidCallback onCancel;
+  final Map<String, SensitivityLevel> sensitivities;
+  final ValueNotifier<TextEditingValue> dummyValueNotifier;
+
+  const _ContactForm({
+    required this.controllers,
+    required this.mode,
+    required this.onSubmit,
+    required this.onCancel,
+    required this.sensitivities,
+    required this.dummyValueNotifier,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final typeText = controllers['type']?.text ?? '';
+    final selectedType = typeText.isEmpty ? 'email' : typeText;
+    if (typeText.isEmpty) {
+      controllers['type']?.text = 'email';
+    }
+    final valueSensitivity = sensitivities['value'] ?? SensitivityLevel.public;
+
+    return Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text(
+      mode == 'adding' ? 'Add Contact' : 'Edit Contact',
+      style: theme.textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+    const SizedBox(height: 12),
+    _CountedTextField(
+      controller: controllers['title'],
+      label: 'Title',
+      hint: 'e.g., Gmail, Work',
+      dummyValueNotifier: dummyValueNotifier,
+    ),
+    const SizedBox(height: 12),
+    DropdownButtonFormField<String>(
+      initialValue:
+          selectedType.isEmpty ? 'email' : selectedType,
+      decoration: const InputDecoration(
+        labelText: 'Type',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ),
+      ),
+      items: const [
+        DropdownMenuItem(
+          value: 'email',
+          child: Text('email'),
+        ),
+        DropdownMenuItem(
+          value: 'phone',
+          child: Text('phone'),
+        ),
+      ],
+      onChanged: (v) {
+        controllers['type']?.text = v ?? 'email';
+      },
+    ),
+    const SizedBox(height: 12),
+    _CountedTextField(
+      controller: controllers['value'],
+      label: 'Value',
+      suffixIcon: Padding(
+        padding: const EdgeInsets.only(right: 12),
+        child: Align(
+          alignment: Alignment.centerRight,
+          widthFactor: 1,
+          child: SensitivityTag(level: valueSensitivity),
+        ),
+      ),
+      keyboardType:
+          selectedType == 'email'
+              ? TextInputType.emailAddress
+              : TextInputType.phone,
+      dummyValueNotifier: dummyValueNotifier,
+    ),
+    const SizedBox(height: 16),
+    Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          onPressed: onCancel,
+          child: const Text('Cancel'),
+        ),
+        const SizedBox(width: 8),
+        FilledButton(
+          onPressed: onSubmit,
+          child: Text(
+            mode == 'adding' ? 'Add' : 'Save',
+          ),
+        ),
+      ],
+    ),
+  ],
+);
+
   }
 }
