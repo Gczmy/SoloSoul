@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/services/scan/content_parser_service.dart';
@@ -731,7 +732,9 @@ class LocalSearchService {
     try {
       final docs = await getApplicationDocumentsDirectory();
       results.add(docs.path);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      SoloLog.w('LOCAL_SEARCH', 'getApplicationDocumentsDirectory failed', e);
+    }
 
     // Fallback to expanding ~
     final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];

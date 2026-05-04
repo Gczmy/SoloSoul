@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:xml/xml.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 
 // =============================================================================
 // Content Parser Service
@@ -114,7 +115,9 @@ class ContentParserService {
       if (result.exitCode == 0 && result.stdout is String) {
         return _truncate(result.stdout as String);
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      SoloLog.w('CONTENT_PARSER', 'pdftotext failed for $path', e);
+    }
 
     // Fallback: strings command
     try {
@@ -123,7 +126,9 @@ class ContentParserService {
       if (result.exitCode == 0 && result.stdout is String) {
         return _truncate(result.stdout as String);
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      SoloLog.w('CONTENT_PARSER', 'strings failed for $path', e);
+    }
 
     // Last resort: read raw and filter printable chars
     try {
@@ -193,7 +198,9 @@ class ContentParserService {
         for (final node in ssDoc.findAllElements('si')) {
           sharedStrings[idx++] = node.innerText;
         }
-      } on Exception catch (_) {}
+      } on Exception catch (e) {
+        SoloLog.w('CONTENT_PARSER', 'Excel sharedStrings parse failed', e);
+      }
 
       // Read first worksheet
       final sheetFile = archive.files.firstWhere(

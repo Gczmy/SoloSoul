@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 
 // =============================================================================
 // Windows Search Service (Everything SDK)
@@ -110,7 +111,9 @@ class WindowsSearchService {
           }
         }
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      SoloLog.w('WINDOWS_SEARCH', 'es.exe search failed', e);
+    }
 
     return results;
   }
@@ -134,7 +137,9 @@ class WindowsSearchService {
           return dt.millisecondsSinceEpoch;
         }
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      SoloLog.w('WINDOWS_SEARCH', 'Date parse failed: $dateStr', e);
+    }
     return 0;
   }
 
