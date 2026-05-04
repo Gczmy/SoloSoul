@@ -47,55 +47,11 @@ class PasswordInputSection extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        // Back button and selected account
-        Row(
-          children: [
-            IconButton(
-              onPressed: onBack,
-              icon: const Icon(Icons.arrow_back),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: AppTheme.primaryColor,
-                    child: Text(
-                      selectedAccount.name.isNotEmpty
-                          ? selectedAccount.name[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    selectedAccount.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        _AccountHeader(
+          selectedAccount: selectedAccount,
+          onBack: onBack,
         ),
-
         const SizedBox(height: 32),
-
         Text(
           'Enter Master Password',
           style: theme.textTheme.titleLarge?.copyWith(
@@ -103,9 +59,7 @@ class PasswordInputSection extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-
         const SizedBox(height: 8),
-
         Text(
           'Unlock your vault',
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -113,177 +67,309 @@ class PasswordInputSection extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-
         const SizedBox(height: 32),
-
         Form(
           key: formKey,
           child: Column(
             children: [
-              // Password field
-              TextFormField(
+              _PasswordField(
                 controller: passwordController,
                 obscureText: obscurePassword,
                 focusNode: passwordFocusNode,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => onUnlock(),
-                decoration: InputDecoration(
-                  labelText: 'Master Password',
-                  hintText: 'Enter your password',
-                  labelStyle: TextStyle(
-                    color: hasPasswordError
-                        ? Colors.red.shade700
-                        : isPasswordFocused
-                        ? AppTheme.primaryColor
-                        : theme.colorScheme.onSurface,
-                  ),
-                  floatingLabelStyle: TextStyle(
-                    color: hasPasswordError
-                        ? Colors.red.shade700
-                        : isPasswordFocused
-                        ? AppTheme.primaryColor
-                        : theme.colorScheme.onSurface,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.key,
-                    color: hasPasswordError
-                        ? Colors.red.shade700
-                        : isPasswordFocused
-                        ? AppTheme.primaryColor
-                        : theme.colorScheme.onSurfaceVariant,
-                  ),
-                  errorText: hasPasswordError ? passwordErrorMessage : null,
-                  errorStyle: TextStyle(
-                    color: Colors.red.shade700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  border: hasPasswordError
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.red.shade700,
-                            width: 2,
-                          ),
-                        )
-                      : null,
-                  enabledBorder: hasPasswordError
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.red.shade700,
-                            width: 2,
-                          ),
-                        )
-                      : null,
-                  focusedBorder: hasPasswordError
-                      ? OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.red.shade700,
-                            width: 2,
-                          ),
-                        )
-                      : null,
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Colors.red.shade700,
-                      width: 2,
-                    ),
-                  ),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(8),
-                        icon: Icon(
-                          Icons.help_outline,
-                          size: 20,
-                          color: hasPasswordError
-                              ? Colors.red.shade700
-                              : isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () => onShowPasswordHint(
-                          selectedAccount.passwordHint ?? 'No password hint available',
-                        ),
-                        tooltip: 'Show password hint',
-                      ),
-                      IconButton(
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(8),
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          size: 20,
-                          color: hasPasswordError
-                              ? Colors.red.shade700
-                              : isPasswordFocused
-                              ? AppTheme.primaryColor
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: onToggleObscure,
-                      ),
-                    ],
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (value.length < 8) {
-                    return 'Password must be at least 8 characters';
-                  }
-                  return null;
-                },
+                isFocused: isPasswordFocused,
+                hasError: hasPasswordError,
+                errorMessage: passwordErrorMessage,
+                selectedAccount: selectedAccount,
+                onUnlock: onUnlock,
+                onToggleObscure: onToggleObscure,
+                onShowPasswordHint: onShowPasswordHint,
               ),
-
               const SizedBox(height: 24),
-
-              // Unlock button
-              ElevatedButton(
-                onPressed: isLoading ? null : onUnlock,
-                child: isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : const Text('Unlock'),
+              _UnlockButton(
+                isLoading: isLoading,
+                onUnlock: onUnlock,
               ),
-
-              // Face ID / Touch ID button
               if (biometricsEnabled) ...[
                 const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: isLoading ? null : onBiometricUnlock,
-                  icon: Icon(
-                    biometricType == 'Face ID'
-                        ? Icons.face
-                        : Icons.fingerprint,
-                    size: 22,
-                  ),
-                  label: Text('Use $biometricType'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
+                _BiometricButton(
+                  biometricType: biometricType,
+                  isLoading: isLoading,
+                  onBiometricUnlock: onBiometricUnlock,
                 ),
               ],
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AccountHeader extends StatelessWidget {
+  final AccountInfo selectedAccount;
+  final VoidCallback onBack;
+
+  const _AccountHeader({
+    required this.selectedAccount,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: onBack,
+          icon: const Icon(Icons.arrow_back),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: AppTheme.primaryColor,
+                child: Text(
+                  selectedAccount.name.isNotEmpty
+                      ? selectedAccount.name[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                selectedAccount.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PasswordField extends StatelessWidget {
+  final TextEditingController controller;
+  final bool obscureText;
+  final FocusNode focusNode;
+  final bool isFocused;
+  final bool hasError;
+  final String? errorMessage;
+  final AccountInfo selectedAccount;
+  final VoidCallback onUnlock;
+  final VoidCallback onToggleObscure;
+  final ValueChanged<String> onShowPasswordHint;
+
+  const _PasswordField({
+    required this.controller,
+    required this.obscureText,
+    required this.focusNode,
+    required this.isFocused,
+    required this.hasError,
+    this.errorMessage,
+    required this.selectedAccount,
+    required this.onUnlock,
+    required this.onToggleObscure,
+    required this.onShowPasswordHint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      focusNode: focusNode,
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => onUnlock(),
+      decoration: InputDecoration(
+        labelText: 'Master Password',
+        hintText: 'Enter your password',
+        labelStyle: TextStyle(
+          color: hasError
+              ? Colors.red.shade700
+              : isFocused
+                  ? AppTheme.primaryColor
+                  : theme.colorScheme.onSurface,
+        ),
+        floatingLabelStyle: TextStyle(
+          color: hasError
+              ? Colors.red.shade700
+              : isFocused
+                  ? AppTheme.primaryColor
+                  : theme.colorScheme.onSurface,
+        ),
+        prefixIcon: Icon(
+          Icons.key,
+          color: hasError
+              ? Colors.red.shade700
+              : isFocused
+                  ? AppTheme.primaryColor
+                  : theme.colorScheme.onSurfaceVariant,
+        ),
+        errorText: hasError ? errorMessage : null,
+        errorStyle: TextStyle(
+          color: Colors.red.shade700,
+          fontWeight: FontWeight.w500,
+        ),
+        border: hasError
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.red.shade700,
+                  width: 2,
+                ),
+              )
+            : null,
+        enabledBorder: hasError
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.red.shade700,
+                  width: 2,
+                ),
+              )
+            : null,
+        focusedBorder: hasError
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.red.shade700,
+                  width: 2,
+                ),
+              )
+            : null,
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red.shade700,
+            width: 2,
+          ),
+        ),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+              icon: Icon(
+                Icons.help_outline,
+                size: 20,
+                color: hasError
+                    ? Colors.red.shade700
+                    : isFocused
+                        ? AppTheme.primaryColor
+                        : theme.colorScheme.onSurfaceVariant,
+              ),
+              onPressed: () => onShowPasswordHint(
+                selectedAccount.passwordHint ?? 'No password hint available',
+              ),
+              tooltip: 'Show password hint',
+            ),
+            IconButton(
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+              icon: Icon(
+                obscureText
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                size: 20,
+                color: hasError
+                    ? Colors.red.shade700
+                    : isFocused
+                        ? AppTheme.primaryColor
+                        : theme.colorScheme.onSurfaceVariant,
+              ),
+              onPressed: onToggleObscure,
+            ),
+          ],
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your password';
+        }
+        if (value.length < 8) {
+          return 'Password must be at least 8 characters';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+class _UnlockButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onUnlock;
+
+  const _UnlockButton({
+    required this.isLoading,
+    required this.onUnlock,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: isLoading ? null : onUnlock,
+      child: isLoading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white,
+                ),
+              ),
+            )
+          : const Text('Unlock'),
+    );
+  }
+}
+
+class _BiometricButton extends StatelessWidget {
+  final String biometricType;
+  final bool isLoading;
+  final VoidCallback onBiometricUnlock;
+
+  const _BiometricButton({
+    required this.biometricType,
+    required this.isLoading,
+    required this.onBiometricUnlock,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: isLoading ? null : onBiometricUnlock,
+      icon: Icon(
+        biometricType == 'Face ID' ? Icons.face : Icons.fingerprint,
+        size: 22,
+      ),
+      label: Text('Use $biometricType'),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 12,
+        ),
+      ),
     );
   }
 }

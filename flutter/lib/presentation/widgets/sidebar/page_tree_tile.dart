@@ -78,35 +78,139 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
         : <UnifiedObject>[];
     final hasChildren = childPages.isNotEmpty;
 
-    final nameWidget = _isEditing && widget.expanded
-        ? TextField(
-            controller: _editController,
-            autofocus: true,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: fgColor,
-              fontWeight: widget.isSelected ? FontWeight.w600 : null,
-            ),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-              border: InputBorder.none,
-            ),
-            onSubmitted: (_) => _confirmRename(),
-            onTapOutside: (_) => _confirmRename(),
+    final tile = _TreeTile(
+      expanded: widget.expanded,
+      depth: widget.depth,
+      bgColor: bgColor,
+      onTap: widget.onTap,
+      onDoubleTap: widget.expanded
+          ? () {
+              _editController.text = widget.page.name;
+              setState(() => _isEditing = true);
+            }
+          : null,
+      iconName: widget.page.iconName,
+      fgColor: fgColor,
+      onIconTap: widget.onIconTap,
+      isEditing: _isEditing,
+      pageName: widget.page.name,
+      isSelected: widget.isSelected,
+      editController: _editController,
+      onConfirmRename: _confirmRename,
+      hasChildren: hasChildren,
+      isExpanded: isExpanded,
+      onToggleExpand: () => widget.onToggleExpand(widget.page.id),
+    );
+
+    final draggableTile = _TreeTileDraggable(
+      pageId: widget.page.id,
+      pageName: widget.page.name,
+      iconName: widget.page.iconName,
+      tile: tile,
+    );
+
+    if (!widget.expanded) {
+      return Tooltip(message: widget.page.name, child: draggableTile);
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        draggableTile,
+        _TreeTileChildren(
+          expanded: widget.expanded,
+          isExpanded: isExpanded,
+          hasChildren: hasChildren,
+          childPages: childPages,
+          depth: widget.depth,
+          expandedPageIds: widget.expandedPageIds,
+          onToggleExpand: widget.onToggleExpand,
+        ),
+      ],
+    );
+  }
+}
+
+class _TreeTile extends StatelessWidget {
+  final bool expanded;
+  final int depth;
+  final Color bgColor;
+  final VoidCallback onTap;
+  final VoidCallback? onDoubleTap;
+  final String iconName;
+  final Color fgColor;
+  final VoidCallback? onIconTap;
+  final bool isEditing;
+  final String pageName;
+  final bool isSelected;
+  final TextEditingController editController;
+  final VoidCallback onConfirmRename;
+  final bool hasChildren;
+  final bool isExpanded;
+  final VoidCallback onToggleExpand;
+
+  const _TreeTile({
+    required this.expanded,
+    required this.depth,
+    required this.bgColor,
+    required this.onTap,
+    this.onDoubleTap,
+    required this.iconName,
+    required this.fgColor,
+    this.onIconTap,
+    required this.isEditing,
+    required this.pageName,
+    required this.isSelected,
+    required this.editController,
+    required this.onConfirmRename,
+    required this.hasChildren,
+    required this.isExpanded,
+    required this.onToggleExpand,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final child = expanded
+        ? Row(
+            children: [
+              _TreeTileLeading(
+                iconName: iconName,
+                fgColor: fgColor,
+                onIconTap: onIconTap,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _TreeTileTitle(
+                  isEditing: isEditing,
+                  pageName: pageName,
+                  isSelected: isSelected,
+                  fgColor: fgColor,
+                  controller: editController,
+                  onConfirmRename: onConfirmRename,
+                ),
+              ),
+              _TreeTileTrailing(
+                hasChildren: hasChildren,
+                isEditing: isEditing,
+                isExpanded: isExpanded,
+                onToggleExpand: onToggleExpand,
+              ),
+            ],
           )
-        : Text(
-            widget.page.name,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: fgColor,
-              fontWeight: widget.isSelected ? FontWeight.w600 : null,
+        : Center(
+            child: _TreeTileLeading(
+              iconName: iconName,
+              fgColor: fgColor,
+              onIconTap: onIconTap,
+              iconSize: 22,
             ),
-            overflow: TextOverflow.ellipsis,
           );
 
-    final tile = Padding(
+    return Padding(
       padding: EdgeInsets.only(
-        left: widget.expanded ? (widget.depth * 16.0) : 8,
-        right: widget.expanded ? 0 : 8,
+        left: expanded ? (depth * 16.0) : 8,
+        right: expanded ? 0 : 8,
         top: 2,
         bottom: 2,
       ),
@@ -116,80 +220,43 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
           color: bgColor,
           borderRadius: BorderRadius.circular(8),
           child: InkWell(
-            onTap: widget.onTap,
-            onDoubleTap: widget.expanded
-                ? () {
-                    _editController.text = widget.page.name;
-                    setState(() => _isEditing = true);
-                  }
-                : null,
+            onTap: onTap,
+            onDoubleTap: onDoubleTap,
             borderRadius: BorderRadius.circular(8),
             child: Container(
               height: 40,
-              alignment: widget.expanded ? Alignment.centerLeft : Alignment.center,
-              padding: widget.expanded
+              alignment: expanded ? Alignment.centerLeft : Alignment.center,
+              padding: expanded
                   ? const EdgeInsets.symmetric(horizontal: 12)
                   : const EdgeInsets.all(0),
-              child: widget.expanded
-                  ? Row(
-                      children: [
-                        if (widget.onIconTap != null)
-                          InkWell(
-                            onTap: widget.onIconTap,
-                            borderRadius: BorderRadius.circular(6),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(
-                                UnifiedObjectService.getIconFromName(
-                                    widget.page.iconName),
-                                size: 20,
-                                color: fgColor,
-                              ),
-                            ),
-                          )
-                        else
-                          Icon(
-                            UnifiedObjectService.getIconFromName(
-                                widget.page.iconName),
-                            size: 20,
-                            color: fgColor,
-                          ),
-                        const SizedBox(width: 8),
-                        Expanded(child: nameWidget),
-                        if (hasChildren && !_isEditing)
-                          InkWell(
-                            onTap: () => widget.onToggleExpand(widget.page.id),
-                            borderRadius: BorderRadius.circular(6),
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: Icon(
-                                isExpanded
-                                    ? Icons.expand_more
-                                    : Icons.chevron_right,
-                                size: 18,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                      ],
-                    )
-                  : Center(
-                      child: Icon(
-                        UnifiedObjectService.getIconFromName(
-                            widget.page.iconName),
-                        size: 22,
-                        color: fgColor,
-                      ),
-                    ),
+              child: child,
             ),
           ),
         ),
       ),
     );
+  }
+}
 
-    final draggableTile = Draggable<String>(
-      data: widget.page.id,
+class _TreeTileDraggable extends ConsumerWidget {
+  final String pageId;
+  final String pageName;
+  final String iconName;
+  final Widget tile;
+
+  const _TreeTileDraggable({
+    required this.pageId,
+    required this.pageName,
+    required this.iconName,
+    required this.tile,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+
+    return Draggable<String>(
+      data: pageId,
       feedback: Material(
         elevation: 4,
         borderRadius: BorderRadius.circular(8),
@@ -204,14 +271,14 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
           child: Row(
             children: [
               Icon(
-                UnifiedObjectService.getIconFromName(widget.page.iconName),
+                UnifiedObjectService.getIconFromName(iconName),
                 size: 20,
                 color: theme.colorScheme.onSurface,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  widget.page.name,
+                  pageName,
                   style: theme.textTheme.bodyMedium,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -227,16 +294,16 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
       child: DragTarget<String>(
         onWillAcceptWithDetails: (details) {
           final draggedId = details.data;
-          if (draggedId == widget.page.id) return false;
+          if (draggedId == pageId) return false;
           final allObjects = ref.read(unifiedObjectProvider).objects;
           final descendants =
               UnifiedObjectService.instance.getDescendantIds(allObjects, draggedId);
-          return !descendants.contains(widget.page.id);
+          return !descendants.contains(pageId);
         },
         onAcceptWithDetails: (details) {
           ref.read(unifiedObjectProvider.notifier).moveObject(
             details.data,
-            widget.page.id,
+            pageId,
           );
         },
         builder: (context, candidateData, rejectedData) {
@@ -254,36 +321,171 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
         },
       ),
     );
+  }
+}
 
-    final children = (widget.expanded && isExpanded && hasChildren)
-        ? childPages.map((child) {
-            final childLocation =
-                '${AppRoutes.objects}/${child.id}';
-            return PageTreeTile(
-              key: ValueKey(child.id),
-              page: child,
-              expanded: widget.expanded,
-              depth: widget.depth + 1,
-              isSelected: GoRouterState.of(context).matchedLocation ==
-                  childLocation,
-              onTap: () => context.go(childLocation),
-              expandedPageIds: widget.expandedPageIds,
-              onToggleExpand: widget.onToggleExpand,
-            );
-          }).toList()
-        : <Widget>[];
+class _TreeTileLeading extends StatelessWidget {
+  final String iconName;
+  final Color fgColor;
+  final VoidCallback? onIconTap;
+  final double iconSize;
 
-    if (!widget.expanded) {
-      return Tooltip(message: widget.page.name, child: draggableTile);
+  const _TreeTileLeading({
+    required this.iconName,
+    required this.fgColor,
+    this.onIconTap,
+    this.iconSize = 20,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = Icon(
+      UnifiedObjectService.getIconFromName(iconName),
+      size: iconSize,
+      color: fgColor,
+    );
+
+    if (onIconTap != null) {
+      return InkWell(
+        onTap: onIconTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: icon,
+        ),
+      );
+    }
+
+    return icon;
+  }
+}
+
+class _TreeTileTitle extends StatelessWidget {
+  final bool isEditing;
+  final String pageName;
+  final bool isSelected;
+  final Color fgColor;
+  final TextEditingController controller;
+  final VoidCallback onConfirmRename;
+
+  const _TreeTileTitle({
+    required this.isEditing,
+    required this.pageName,
+    required this.isSelected,
+    required this.fgColor,
+    required this.controller,
+    required this.onConfirmRename,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (isEditing) {
+      return TextField(
+        controller: controller,
+        autofocus: true,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: fgColor,
+          fontWeight: isSelected ? FontWeight.w600 : null,
+        ),
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+          border: InputBorder.none,
+        ),
+        onSubmitted: (_) => onConfirmRename(),
+        onTapOutside: (_) => onConfirmRename(),
+      );
+    }
+
+    return Text(
+      pageName,
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: fgColor,
+        fontWeight: isSelected ? FontWeight.w600 : null,
+      ),
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+class _TreeTileTrailing extends StatelessWidget {
+  final bool hasChildren;
+  final bool isEditing;
+  final bool isExpanded;
+  final VoidCallback onToggleExpand;
+
+  const _TreeTileTrailing({
+    required this.hasChildren,
+    required this.isEditing,
+    required this.isExpanded,
+    required this.onToggleExpand,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasChildren || isEditing) {
+      return const SizedBox.shrink();
+    }
+
+    return InkWell(
+      onTap: onToggleExpand,
+      borderRadius: BorderRadius.circular(6),
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: Icon(
+          isExpanded ? Icons.expand_more : Icons.chevron_right,
+          size: 18,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _TreeTileChildren extends StatelessWidget {
+  final bool expanded;
+  final bool isExpanded;
+  final bool hasChildren;
+  final List<UnifiedObject> childPages;
+  final int depth;
+  final Set<String> expandedPageIds;
+  final ValueChanged<String> onToggleExpand;
+
+  const _TreeTileChildren({
+    required this.expanded,
+    required this.isExpanded,
+    required this.hasChildren,
+    required this.childPages,
+    required this.depth,
+    required this.expandedPageIds,
+    required this.onToggleExpand,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!expanded || !isExpanded || !hasChildren) {
+      return const SizedBox.shrink();
     }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        draggableTile,
-        ...children,
-      ],
+      children: childPages.map((child) {
+        final childLocation = '${AppRoutes.objects}/${child.id}';
+        return PageTreeTile(
+          key: ValueKey(child.id),
+          page: child,
+          expanded: expanded,
+          depth: depth + 1,
+          isSelected: GoRouterState.of(context).matchedLocation == childLocation,
+          onTap: () => context.go(childLocation),
+          expandedPageIds: expandedPageIds,
+          onToggleExpand: onToggleExpand,
+        );
+      }).toList(),
     );
   }
 }

@@ -605,7 +605,6 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final totalSize = _backups.fold<int>(0, (s, e) => s + e.sizeBytes);
 
     return Scaffold(
@@ -630,217 +629,318 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 children: [
-                  // Vault size
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Vault size: ',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Text(
-                          _vaultDataSize,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _VaultInfoCard(vaultDataSize: _vaultDataSize),
                   const SizedBox(height: 16),
-                  // Backup Now button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _isCreating ? null : _createBackup,
-                            icon: _isCreating
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.backup, size: 18),
-                            label: const Text('Backup Now'),
-                          ),
-                        ),
-                      ],
-                    ),
+                  _BackupSection(
+                    isCreating: _isCreating,
+                    backupProgress: _backupProgress,
+                    backups: _backups,
+                    isRestoring: _isRestoring,
+                    totalSize: totalSize,
+                    onCreateBackup: _createBackup,
+                    onRestoreBackup: _restoreBackup,
+                    onDeleteBackup: _deleteBackup,
+                    onPromoteBackup: _promoteToSpecialBackup,
                   ),
-                  // Backup progress
-                  if (_isCreating) ...[
-                    const SizedBox(height: 12),
-                    BackupProgressIndicator(progress: _backupProgress),
-                  ],
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, size: 14, color: theme.colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Backups are encrypted with your vault key. Auto-backup runs on every unlock.',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 8),
-                  // Regular backups header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Icon(Icons.backup_outlined, color: theme.colorScheme.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Regular Backups',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Regular backup list
-                  if (_backups.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.cloud_off_outlined,
-                            size: 48,
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No backups yet',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else
-                    Column(
-                      children: _backups.map((entry) {
-                        return BackupListTile(
-                          entry: entry,
-                          isRestoring: _isRestoring,
-                          onPromote: () => _promoteToSpecialBackup(entry),
-                          onRestore: () => _restoreBackup(entry),
-                          onDelete: () => _deleteBackup(entry),
-                        );
-                      }).toList(),
-                    ),
-                  if (_backups.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Center(
-                        child: Text(
-                          '${_backups.length} regular backup(s) · total ${formatBytes(totalSize)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
                   const Divider(height: 1),
                   const SizedBox(height: 12),
-                  // Special backups header
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.star_outline,
-                          color: theme.colorScheme.secondary,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Special Backups',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: _isCreatingSpecial ? null : _createSpecialBackup,
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Create'),
-                        ),
-                      ],
-                    ),
+                  _RestoreSection(
+                    specialBackups: _specialBackups,
+                    isCreatingSpecial: _isCreatingSpecial,
+                    specialBackupProgress: _specialBackupProgress,
+                    isRestoring: _isRestoring,
+                    onCreateSpecialBackup: _createSpecialBackup,
+                    onRestoreSpecialBackup: _restoreSpecialBackup,
+                    onDeleteSpecialBackup: _deleteSpecialBackup,
+                    onRenameSpecialBackup: _renameSpecialBackup,
                   ),
-                  if (_isCreatingSpecial) ...[
-                    const SizedBox(height: 8),
-                    BackupProgressIndicator(progress: _specialBackupProgress),
-                  ],
-                  const SizedBox(height: 4),
-                  if (_specialBackups.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      child: Text(
-                        'No special backups yet. Create one to preserve a specific version.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        children: _specialBackups.map((entry) {
-                          return BackupListTile(
-                            entry: entry,
-                            isSpecial: true,
-                            isRestoring: _isRestoring,
-                            onRename: () => _renameSpecialBackup(entry),
-                            onRestore: () => _restoreSpecialBackup(entry),
-                            onDelete: () => _deleteSpecialBackup(entry),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  if (_specialBackups.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Center(
-                        child: Text(
-                          '${_specialBackups.length} / ${BackupService.maxSpecialBackupCount} special backups',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
+    );
+  }
+}
+
+// =============================================================================
+// Extracted widgets
+// =============================================================================
+
+class _VaultInfoCard extends StatelessWidget {
+  final String vaultDataSize;
+
+  const _VaultInfoCard({required this.vaultDataSize});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Text(
+            'Vault size: ',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            vaultDataSize,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BackupSection extends StatelessWidget {
+  final bool isCreating;
+  final double backupProgress;
+  final List<BackupEntry> backups;
+  final bool isRestoring;
+  final int totalSize;
+  final VoidCallback onCreateBackup;
+  final ValueChanged<BackupEntry> onRestoreBackup;
+  final ValueChanged<BackupEntry> onDeleteBackup;
+  final ValueChanged<BackupEntry> onPromoteBackup;
+
+  const _BackupSection({
+    required this.isCreating,
+    required this.backupProgress,
+    required this.backups,
+    required this.isRestoring,
+    required this.totalSize,
+    required this.onCreateBackup,
+    required this.onRestoreBackup,
+    required this.onDeleteBackup,
+    required this.onPromoteBackup,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: isCreating ? null : onCreateBackup,
+                  icon: isCreating
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.backup, size: 18),
+                  label: const Text('Backup Now'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isCreating) ...[
+          const SizedBox(height: 12),
+          BackupProgressIndicator(progress: backupProgress),
+        ],
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, size: 14, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Backups are encrypted with your vault key. Auto-backup runs on every unlock.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Divider(height: 1),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Icon(Icons.backup_outlined, color: theme.colorScheme.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Regular Backups',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (backups.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.cloud_off_outlined,
+                  size: 48,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No backups yet',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Column(
+            children: backups.map((entry) {
+              return BackupListTile(
+                entry: entry,
+                isRestoring: isRestoring,
+                onPromote: () => onPromoteBackup(entry),
+                onRestore: () => onRestoreBackup(entry),
+                onDelete: () => onDeleteBackup(entry),
+              );
+            }).toList(),
+          ),
+        if (backups.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Center(
+              child: Text(
+                '${backups.length} regular backup(s) · total ${formatBytes(totalSize)}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RestoreSection extends StatelessWidget {
+  final List<BackupEntry> specialBackups;
+  final bool isCreatingSpecial;
+  final double specialBackupProgress;
+  final bool isRestoring;
+  final VoidCallback onCreateSpecialBackup;
+  final ValueChanged<BackupEntry> onRestoreSpecialBackup;
+  final ValueChanged<BackupEntry> onDeleteSpecialBackup;
+  final ValueChanged<BackupEntry> onRenameSpecialBackup;
+
+  const _RestoreSection({
+    required this.specialBackups,
+    required this.isCreatingSpecial,
+    required this.specialBackupProgress,
+    required this.isRestoring,
+    required this.onCreateSpecialBackup,
+    required this.onRestoreSpecialBackup,
+    required this.onDeleteSpecialBackup,
+    required this.onRenameSpecialBackup,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Icon(
+                Icons.star_outline,
+                color: theme.colorScheme.secondary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Special Backups',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              TextButton.icon(
+                onPressed: isCreatingSpecial ? null : onCreateSpecialBackup,
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Create'),
+              ),
+            ],
+          ),
+        ),
+        if (isCreatingSpecial) ...[
+          const SizedBox(height: 8),
+          BackupProgressIndicator(progress: specialBackupProgress),
+        ],
+        const SizedBox(height: 4),
+        if (specialBackups.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Text(
+              'No special backups yet. Create one to preserve a specific version.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              children: specialBackups.map((entry) {
+                return BackupListTile(
+                  entry: entry,
+                  isSpecial: true,
+                  isRestoring: isRestoring,
+                  onRename: () => onRenameSpecialBackup(entry),
+                  onRestore: () => onRestoreSpecialBackup(entry),
+                  onDelete: () => onDeleteSpecialBackup(entry),
+                );
+              }).toList(),
+            ),
+          ),
+        if (specialBackups.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Center(
+              child: Text(
+                '${specialBackups.length} / ${BackupService.maxSpecialBackupCount} special backups',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

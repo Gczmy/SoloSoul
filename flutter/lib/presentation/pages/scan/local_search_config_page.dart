@@ -72,7 +72,6 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Text(
               'Scan Local Files',
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -87,63 +86,24 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               ),
             ),
             const SizedBox(height: 32),
-
-            // Section: Search Paths
             const _SectionTitle(icon: Icons.folder_outlined, title: 'Search Paths'),
             const SizedBox(height: 12),
-            Card(
-              child: Column(
-                children: [
-                  RadioListTile<bool>(
-                    title: const Text('Use default paths'),
-                    subtitle: const Text('Documents, Desktop, Downloads'),
-                    value: true,
-                    groupValue: useDefaultPaths,
-                    onChanged: (v) {
-                      if (v == true) notifier.setPaths([]);
-                    },
-                  ),
-                  RadioListTile<bool>(
-                    title: const Text('Custom paths'),
-                    subtitle: const Text('Select specific folders'),
-                    value: false,
-                    groupValue: useDefaultPaths,
-                    onChanged: (v) {
-                      if (v == false && customPaths.isEmpty) {
-                        _pickFolder();
-                      }
-                    },
-                  ),
-                  if (!useDefaultPaths) ...[
-                    const Divider(height: 1),
-                    ...customPaths.map((p) => ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.folder),
-                          title: Text(
-                            p,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.close, size: 18),
-                            onPressed: () {
-                              final updated = [...customPaths]..remove(p);
-                              notifier.setPaths(updated);
-                            },
-                          ),
-                        )),
-                    ListTile(
-                      leading: const Icon(Icons.add),
-                      title: const Text('Add folder'),
-                      onTap: _pickFolder,
-                    ),
-                  ],
-                ],
-              ),
+            _SearchPathsSection(
+              useDefaultPaths: useDefaultPaths,
+              customPaths: customPaths,
+              onUseDefaultPaths: () => notifier.setPaths([]),
+              onUseCustomPaths: () {
+                if (customPaths.isEmpty) {
+                  _pickFolder();
+                }
+              },
+              onRemovePath: (p) {
+                final updated = [...customPaths]..remove(p);
+                notifier.setPaths(updated);
+              },
+              onAddPath: _pickFolder,
             ),
             const SizedBox(height: 24),
-
-            // Section: File Types
             const _SectionTitle(icon: Icons.file_present_outlined, title: 'File Types'),
             const SizedBox(height: 8),
             Text(
@@ -153,33 +113,22 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               ),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: _kExtensionOptions.map((opt) {
-                final selected = selectedExtensions.contains(opt.ext);
-                final limit = sizeLimits[opt.ext] ?? opt.defaultLimitMb;
-                return _FileTypeButton(
-                  icon: opt.icon,
-                  label: opt.label,
-                  sizeLimitMb: limit,
-                  selected: selected,
-                  onTap: () {
-                    final updated = [...selectedExtensions];
-                    if (selected) {
-                      updated.remove(opt.ext);
-                    } else {
-                      updated.add(opt.ext);
-                    }
-                    notifier.setExtensions(updated);
-                  },
-                  onLongPress: () => _showSizeLimitDialog(opt.ext, opt.label, limit),
-                );
-              }).toList(),
+            _FileTypeFilterSection(
+              options: _kExtensionOptions,
+              selectedExtensions: selectedExtensions,
+              sizeLimits: sizeLimits,
+              onToggleExtension: (ext) {
+                final updated = [...selectedExtensions];
+                if (updated.contains(ext)) {
+                  updated.remove(ext);
+                } else {
+                  updated.add(ext);
+                }
+                notifier.setExtensions(updated);
+              },
+              onShowSizeLimitDialog: _showSizeLimitDialog,
             ),
             const SizedBox(height: 24),
-
-            // Section: Scan Depth
             const _SectionTitle(icon: Icons.tune_outlined, title: 'Scan Depth'),
             const SizedBox(height: 12),
             Card(
@@ -210,10 +159,6 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               ),
             ),
             const SizedBox(height: 24),
-
-
-
-            // Privacy notice
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -240,16 +185,9 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               ),
             ),
             const SizedBox(height: 32),
-
-            // Start button
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton.icon(
-                onPressed: selectedExtensions.isEmpty ? null : _startScan,
-                icon: const Icon(Icons.search),
-                label: const Text('Start Scan'),
-              ),
+            _SearchActionButtons(
+              isEnabled: selectedExtensions.isNotEmpty,
+              onStartScan: _startScan,
             ),
           ],
         ),
@@ -441,4 +379,134 @@ class _ExtensionOption {
   final int defaultLimitMb;
 
   const _ExtensionOption(this.ext, this.label, this.icon, {this.defaultLimitMb = 1});
+}
+
+// =============================================================================
+// Extracted widgets
+// =============================================================================
+
+class _SearchPathsSection extends StatelessWidget {
+  final bool useDefaultPaths;
+  final List<String> customPaths;
+  final VoidCallback onUseDefaultPaths;
+  final VoidCallback onUseCustomPaths;
+  final ValueChanged<String> onRemovePath;
+  final VoidCallback onAddPath;
+
+  const _SearchPathsSection({
+    required this.useDefaultPaths,
+    required this.customPaths,
+    required this.onUseDefaultPaths,
+    required this.onUseCustomPaths,
+    required this.onRemovePath,
+    required this.onAddPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          RadioListTile<bool>(
+            title: const Text('Use default paths'),
+            subtitle: const Text('Documents, Desktop, Downloads'),
+            value: true,
+            groupValue: useDefaultPaths,
+            onChanged: (v) {
+              if (v == true) onUseDefaultPaths();
+            },
+          ),
+          RadioListTile<bool>(
+            title: const Text('Custom paths'),
+            subtitle: const Text('Select specific folders'),
+            value: false,
+            groupValue: useDefaultPaths,
+            onChanged: (v) {
+              if (v == false) onUseCustomPaths();
+            },
+          ),
+          if (!useDefaultPaths) ...[
+            const Divider(height: 1),
+            ...customPaths.map((p) => ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.folder),
+                  title: Text(
+                    p,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => onRemovePath(p),
+                  ),
+                )),
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('Add folder'),
+              onTap: onAddPath,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FileTypeFilterSection extends StatelessWidget {
+  final List<_ExtensionOption> options;
+  final List<String> selectedExtensions;
+  final Map<String, int> sizeLimits;
+  final ValueChanged<String> onToggleExtension;
+  final void Function(String ext, String label, int currentMb) onShowSizeLimitDialog;
+
+  const _FileTypeFilterSection({
+    required this.options,
+    required this.selectedExtensions,
+    required this.sizeLimits,
+    required this.onToggleExtension,
+    required this.onShowSizeLimitDialog,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: options.map((opt) {
+        final selected = selectedExtensions.contains(opt.ext);
+        final limit = sizeLimits[opt.ext] ?? opt.defaultLimitMb;
+        return _FileTypeButton(
+          icon: opt.icon,
+          label: opt.label,
+          sizeLimitMb: limit,
+          selected: selected,
+          onTap: () => onToggleExtension(opt.ext),
+          onLongPress: () => onShowSizeLimitDialog(opt.ext, opt.label, limit),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _SearchActionButtons extends StatelessWidget {
+  final bool isEnabled;
+  final VoidCallback onStartScan;
+
+  const _SearchActionButtons({
+    required this.isEnabled,
+    required this.onStartScan,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: FilledButton.icon(
+        onPressed: isEnabled ? onStartScan : null,
+        icon: const Icon(Icons.search),
+        label: const Text('Start Scan'),
+      ),
+    );
+  }
 }
