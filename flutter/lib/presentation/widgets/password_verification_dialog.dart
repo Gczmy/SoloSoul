@@ -7,6 +7,79 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 // ignore_for_file: use_build_context_synchronously
 
+/// Mixin for password dialog overlay management.
+/// Extracts the duplicate showHintOverlay logic shared by both dialog states.
+mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
+  OverlayEntry? _hintOverlayEntry;
+  Timer? _hintOverlayTimer;
+
+  /// Cancel timer and remove overlay. Safe to call multiple times.
+  void disposeOverlay() {
+    _hintOverlayTimer?.cancel();
+    _hintOverlayEntry?.remove();
+    _hintOverlayEntry = null;
+  }
+
+  /// Show a floating password hint overlay at the top of the screen.
+  /// Auto-dismisses after 4 seconds.
+  void showHintOverlay(String hint) {
+    disposeOverlay();
+
+    final overlay = Overlay.of(context);
+    _hintOverlayEntry = OverlayEntry(
+      builder: (overlayCtx) => Positioned(
+        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+        left: 16,
+        right: 16,
+        child: SafeArea(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade700,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_outline, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Password Hint: $hint',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: disposeOverlay,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(_hintOverlayEntry!);
+    _hintOverlayTimer = Timer(const Duration(seconds: 4), disposeOverlay);
+  }
+}
+
 /// Shared password verification dialog for sensitive operations.
 /// Returns the password if verified, null if cancelled.
 /// Biometric authentication is offered if the user has enabled it in settings.
@@ -85,7 +158,8 @@ class PasswordVerificationDialogContent extends StatefulWidget {
 }
 
 class PasswordVerificationDialogContentState
-    extends State<PasswordVerificationDialogContent> {
+    extends State<PasswordVerificationDialogContent>
+    with PasswordDialogOverlayMixin {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -95,10 +169,6 @@ class PasswordVerificationDialogContentState
   bool _userHasTypedAfterError = false;
   bool _obscurePassword = true;
 
-  // Hint overlay tracking
-  OverlayEntry? _hintOverlayEntry;
-  Timer? _hintOverlayTimer;
-
   @override
   void initState() {
     super.initState();
@@ -107,9 +177,7 @@ class PasswordVerificationDialogContentState
 
   @override
   void dispose() {
-    _hintOverlayTimer?.cancel();
-    _hintOverlayEntry?.remove();
-    _hintOverlayEntry = null;
+    disposeOverlay();
     _controller.removeListener(_onTextChanged);
     // Securely clear password text before disposing
     _controller.text = '';
@@ -128,72 +196,6 @@ class PasswordVerificationDialogContentState
       _userHasTypedAfterError = false;
     }
     setState(() {});
-  }
-
-  void _showHintOverlay(String hint) {
-    // Cancel any existing timer and remove existing overlay
-    _hintOverlayTimer?.cancel();
-    _hintOverlayEntry?.remove();
-
-    final overlay = Overlay.of(context);
-    _hintOverlayEntry = OverlayEntry(
-      builder: (overlayCtx) => Positioned(
-        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
-        left: 16,
-        right: 16,
-        child: SafeArea(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade700,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.lightbulb_outline, color: Colors.white, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Password Hint: $hint',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      _hintOverlayTimer?.cancel();
-                      _hintOverlayEntry?.remove();
-                      _hintOverlayEntry = null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(_hintOverlayEntry!);
-    _hintOverlayTimer = Timer(const Duration(seconds: 4), () {
-      _hintOverlayEntry?.remove();
-      _hintOverlayEntry = null;
-    });
   }
 
   Future<void> _verify() async {
@@ -271,7 +273,7 @@ class PasswordVerificationDialogContentState
                 children: [
                   IconButton(
                       icon: const Icon(Icons.help_outline, size: 20),
-                      onPressed: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
+                      onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                       tooltip: 'Show password hint',
                     ),
                   IconButton(
@@ -339,7 +341,8 @@ class BiometricPasswordDialogContent extends StatefulWidget {
 }
 
 class BiometricPasswordDialogContentState
-    extends State<BiometricPasswordDialogContent> {
+    extends State<BiometricPasswordDialogContent>
+    with PasswordDialogOverlayMixin {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -350,10 +353,6 @@ class BiometricPasswordDialogContentState
   bool _isBiometricVerified = false;
   bool _obscurePassword = true;
 
-  // Hint overlay tracking
-  OverlayEntry? _hintOverlayEntry;
-  Timer? _hintOverlayTimer;
-
   @override
   void initState() {
     super.initState();
@@ -362,9 +361,7 @@ class BiometricPasswordDialogContentState
 
   @override
   void dispose() {
-    _hintOverlayTimer?.cancel();
-    _hintOverlayEntry?.remove();
-    _hintOverlayEntry = null;
+    disposeOverlay();
     _controller.removeListener(_onTextChanged);
     // Securely clear password text before disposing
     _controller.text = '';
@@ -414,72 +411,6 @@ class BiometricPasswordDialogContentState
         _userHasTypedAfterError = false;
       });
     }
-  }
-
-  void _showHintOverlay(String hint) {
-    // Cancel any existing timer and remove existing overlay
-    _hintOverlayTimer?.cancel();
-    _hintOverlayEntry?.remove();
-
-    final overlay = Overlay.of(context);
-    _hintOverlayEntry = OverlayEntry(
-      builder: (overlayCtx) => Positioned(
-        top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
-        left: 16,
-        right: 16,
-        child: SafeArea(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade700,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.lightbulb_outline, color: Colors.white, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Password Hint: $hint',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white70, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      _hintOverlayTimer?.cancel();
-                      _hintOverlayEntry?.remove();
-                      _hintOverlayEntry = null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    overlay.insert(_hintOverlayEntry!);
-    _hintOverlayTimer = Timer(const Duration(seconds: 4), () {
-      _hintOverlayEntry?.remove();
-      _hintOverlayEntry = null;
-    });
   }
 
   @override
@@ -569,7 +500,7 @@ class BiometricPasswordDialogContentState
                 children: [
                   IconButton(
                       icon: const Icon(Icons.help_outline, size: 20),
-                      onPressed: () => _showHintOverlay(widget.passwordHint ?? 'No password hint available'),
+                      onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                       tooltip: 'Show password hint',
                     ),
                   IconButton(

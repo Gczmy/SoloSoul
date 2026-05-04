@@ -8,7 +8,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
-import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
@@ -30,16 +30,9 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Financial'),
-        actions: const [HeaderActionButtons()],
-      ),
-      body: SingleChildScrollView(
-        padding: AppTheme.kPagePadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return ObjectCategoryPage(
+      title: 'Financial',
+      sections: [
             PredefinedObjectSection(
               sectionId: DefaultSectionIds.bankAccount,
               typeId: 'financial_bank_account',
@@ -189,9 +182,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                 ],
               ),
             ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

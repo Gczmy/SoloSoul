@@ -4,10 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show AppTheme;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
@@ -31,16 +29,9 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Professional'),
-        actions: const [HeaderActionButtons()],
-      ),
-      body: SingleChildScrollView(
-        padding: AppTheme.kPagePadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return ObjectCategoryPage(
+      title: 'Professional',
+      sections: [
             // Upload CV button at top
             SizedBox(
               width: double.infinity,
@@ -218,9 +209,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .animate()
                 .fadeIn(delay: 500.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
-          ],
-        ),
-      ),
+      ],
     );
   }
 

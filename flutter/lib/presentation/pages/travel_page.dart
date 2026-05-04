@@ -4,12 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
-import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
 
 class TravelPage extends ConsumerStatefulWidget {
@@ -31,17 +29,10 @@ class _TravelPageState extends ConsumerState<TravelPage> {
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Travel'),
-        actions: const [HeaderActionButtons()],
-      ),
-      body: SingleChildScrollView(
-        padding: AppTheme.kPagePadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
+    return ObjectCategoryPage(
+      title: 'Travel',
+      sections: [
+        const SizedBox(height: 8),
             PredefinedObjectSection(
               sectionId: DefaultSectionIds.passport,
               typeId: 'travel_passport',
@@ -142,9 +133,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

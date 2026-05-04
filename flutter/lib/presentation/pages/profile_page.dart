@@ -18,7 +18,7 @@ import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart'
     show SensitivityTag;
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
 
-import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -38,17 +38,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: const [HeaderActionButtons()],
-      ),
-      body: SingleChildScrollView(
-        padding: AppTheme.kPagePadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Identity
+    return ObjectCategoryPage(
+      title: 'Profile',
+      sections: [
+        // Identity
             PredefinedObjectSection(
               sectionId: DefaultSectionIds.identity,
               typeId: 'profile_identity',
@@ -432,9 +425,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ],
               ),
             ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

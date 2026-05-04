@@ -147,16 +147,16 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     }
   }
 
-  Future<void> _restoreBackup(BackupEntry entry) async {
-    if (_accountId == null) return;
+  Future<bool> _showConfirmDialog({
+    required String title,
+    required String content,
+    String confirmLabel = 'Confirm',
+  }) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restore Backup?'),
-        content: Text(
-          'This will overwrite your current data with the backup from ${entry.displayTime}. '
-          'A safety backup of the current state will be created first.',
-        ),
+        title: Text(title),
+        content: Text(content),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -164,12 +164,23 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Restore'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    return confirmed == true;
+  }
+
+  Future<void> _restoreBackup(BackupEntry entry) async {
+    if (_accountId == null) return;
+    final confirmed = await _showConfirmDialog(
+      title: 'Restore Backup?',
+      content: 'This will overwrite your current data with the backup from ${entry.displayTime}. '
+          'A safety backup of the current state will be created first.',
+      confirmLabel: 'Restore',
+    );
+    if (!confirmed || !mounted) return;
 
     setState(() => _isRestoring = true);
     final success = await BackupService.instance.restoreBackup(
@@ -207,24 +218,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (_accountId == null) return;
 
     // Step 1: Confirm deletion
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Backup?'),
-        content: Text('Delete backup from ${entry.displayTime}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await _showConfirmDialog(
+      title: 'Delete Backup?',
+      content: 'Delete backup from ${entry.displayTime}?',
+      confirmLabel: 'Delete',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     if (!mounted) return;
 
     // Step 2: Verify password before destructive action
