@@ -39,7 +39,7 @@ Future<String?> showPasswordVerificationDialog({
 
   // If biometric is available and enabled, offer it as an option
   if (isBiometricAvailable && isBiometricEnabled) {
-    final dialogBuilder = _BiometricPasswordDialogContent(
+    final dialogBuilder = BiometricPasswordDialogContent(
       message: message,
       passwordHint: passwordHint,
       onVerify: onVerify,
@@ -54,7 +54,7 @@ Future<String?> showPasswordVerificationDialog({
   }
 
   // Fall back to password-only dialog
-  final passwordDialogContent = _PasswordVerificationDialogContent(
+  final passwordDialogContent = PasswordVerificationDialogContent(
     message: message,
     passwordHint: passwordHint,
     onVerify: onVerify,
@@ -66,8 +66,9 @@ Future<String?> showPasswordVerificationDialog({
   );
 }
 
-class _PasswordVerificationDialogContent extends StatefulWidget {
-  const _PasswordVerificationDialogContent({
+/// Password verification dialog content (public for testing).
+class PasswordVerificationDialogContent extends StatefulWidget {
+  const PasswordVerificationDialogContent({
     required this.message,
     this.passwordHint,
     required this.onVerify,
@@ -78,12 +79,12 @@ class _PasswordVerificationDialogContent extends StatefulWidget {
   final Future<bool> Function(String password) onVerify;
 
   @override
-  State<_PasswordVerificationDialogContent> createState() =>
-      _PasswordVerificationDialogContentState();
+  State<PasswordVerificationDialogContent> createState() =>
+      PasswordVerificationDialogContentState();
 }
 
-class _PasswordVerificationDialogContentState
-    extends State<_PasswordVerificationDialogContent> {
+class PasswordVerificationDialogContentState
+    extends State<PasswordVerificationDialogContent> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -320,8 +321,9 @@ class _PasswordVerificationDialogContentState
 }
 
 /// Biometric-enhanced password verification dialog with Touch ID/Face ID option
-class _BiometricPasswordDialogContent extends StatefulWidget {
-  const _BiometricPasswordDialogContent({
+/// Biometric-enhanced password verification dialog content (public for testing).
+class BiometricPasswordDialogContent extends StatefulWidget {
+  const BiometricPasswordDialogContent({
     required this.message,
     this.passwordHint,
     required this.onVerify,
@@ -336,12 +338,12 @@ class _BiometricPasswordDialogContent extends StatefulWidget {
   final SecurityService securityService;
 
   @override
-  State<_BiometricPasswordDialogContent> createState() =>
-      _BiometricPasswordDialogContentState();
+  State<BiometricPasswordDialogContent> createState() =>
+      BiometricPasswordDialogContentState();
 }
 
-class _BiometricPasswordDialogContentState
-    extends State<_BiometricPasswordDialogContent> {
+class BiometricPasswordDialogContentState
+    extends State<BiometricPasswordDialogContent> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 

@@ -104,7 +104,7 @@ class BackupService {
     return dir;
   }
 
-  String _backupFileName(DateTime dt, {String? appVersion}) {
+  static String backupFileName(DateTime dt, {String? appVersion}) {
     final ts =
         '${dt.year}-${_two(dt.month)}-${_two(dt.day)}_${_two(dt.hour)}-${_two(dt.minute)}-${_two(dt.second)}';
     final versionSuffix = appVersion != null ? '_v$appVersion' : '';
@@ -112,7 +112,7 @@ class BackupService {
   }
 
   /// 清理用户输入的特别备份名称，防止路径遍历
-  String _sanitizeSpecialName(String name) {
+  static String sanitizeSpecialName(String name) {
     return name
         .replaceAll('/', '-')
         .replaceAll('\\', '-')
@@ -134,22 +134,22 @@ class BackupService {
   // 安全做法：将 Isolate.run 调用封装到独立的 static 方法中，使其 closure
   // context 与 UI 回调完全隔离。
   // -------------------------------------------------------------------------
-  static Uint8List _encodeProfileToBytes(Map<String, dynamic> json) {
+  static Uint8List encodeProfileToBytes(Map<String, dynamic> json) {
     final jsonString = jsonEncode(json);
     return Uint8List.fromList(utf8.encode(jsonString));
   }
 
   static Future<Uint8List> _encodeProfileInIsolate(Map<String, dynamic> json) {
-    return Isolate.run(() => _encodeProfileToBytes(json));
+    return Isolate.run(() => encodeProfileToBytes(json));
   }
 
-  static ProfileData _decodeProfileFromString(String jsonString) {
+  static ProfileData decodeProfileFromString(String jsonString) {
     final json = jsonDecode(jsonString) as Map<String, dynamic>;
     return ProfileData.fromJson(json);
   }
 
   static Future<ProfileData> _decodeProfileInIsolate(String jsonString) {
-    return Isolate.run(() => _decodeProfileFromString(jsonString));
+    return Isolate.run(() => decodeProfileFromString(jsonString));
   }
 
   // -------------------------------------------------------------------------
@@ -199,7 +199,7 @@ class BackupService {
       DebugLogger.instance.logInfo('BACKUP', 'Step 4/5: write file start');
       final dir = await _accountBackupDir(accountId);
       final now = DateTime.now();
-      final fileName = _backupFileName(now, appVersion: appVersion);
+      final fileName = BackupService.backupFileName(now, appVersion: appVersion);
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(encrypted, flush: true);
       unawaited(_setRestrictivePermissions(file.path));
@@ -316,7 +316,7 @@ class BackupService {
     void Function(double progress)? onProgress,
   }) async {
     void report(double p) => onProgress?.call(p);
-    final sanitized = _sanitizeSpecialName(name);
+    final sanitized = BackupService.sanitizeSpecialName(name);
     if (sanitized.isEmpty) return null;
 
     final specialList = await listSpecialBackups(accountId);
@@ -397,7 +397,7 @@ class BackupService {
     String oldFileName,
     String newName,
   ) async {
-    final sanitized = _sanitizeSpecialName(newName);
+    final sanitized = BackupService.sanitizeSpecialName(newName);
     if (sanitized.isEmpty) return null;
 
     final newFileName = '$sanitized$_fileExt';
@@ -466,7 +466,7 @@ class BackupService {
     String regularFileName,
     String name,
   ) async {
-    final sanitized = _sanitizeSpecialName(name);
+    final sanitized = BackupService.sanitizeSpecialName(name);
     if (sanitized.isEmpty) return null;
 
     final specialList = await listSpecialBackups(accountId);

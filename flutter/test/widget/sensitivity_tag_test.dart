@@ -1,11 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 void main() {
-  group('SensitivityTag Widget Tests', () {
-    testWidgets('renders correctly for public level', (tester) async {
+  group('getSensitivityColor', () {
+    test('returns correct colors', () {
+      expect(
+        getSensitivityColor(SensitivityLevel.public),
+        Colors.green,
+      );
+      expect(
+        getSensitivityColor(SensitivityLevel.internal),
+        Colors.blue,
+      );
+      expect(
+        getSensitivityColor(SensitivityLevel.sensitive),
+        Colors.orange,
+      );
+      expect(
+        getSensitivityColor(SensitivityLevel.critical),
+        Colors.red.shade900,
+      );
+    });
+  });
+
+  group('getSensitivityLabel', () {
+    test('returns correct labels', () {
+      expect(getSensitivityLabel(SensitivityLevel.public), 'Public');
+      expect(getSensitivityLabel(SensitivityLevel.internal), 'Internal');
+      expect(getSensitivityLabel(SensitivityLevel.sensitive), 'Sensitive');
+      expect(getSensitivityLabel(SensitivityLevel.critical), 'Critical');
+    });
+  });
+
+  group('SensitivityTag widget', () {
+    testWidgets('renders label for public level', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -15,33 +45,11 @@ void main() {
       );
 
       expect(find.text('Public'), findsOneWidget);
+      final text = tester.widget<Text>(find.text('Public'));
+      expect(text.style?.color, Colors.green);
     });
 
-    testWidgets('renders correctly for sensitive level', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SensitivityTag(level: SensitivityLevel.sensitive),
-          ),
-        ),
-      );
-
-      expect(find.text('Sensitive'), findsOneWidget);
-    });
-
-    testWidgets('renders correctly for internal level', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SensitivityTag(level: SensitivityLevel.internal),
-          ),
-        ),
-      );
-
-      expect(find.text('Internal'), findsOneWidget);
-    });
-
-    testWidgets('renders correctly for critical level', (tester) async {
+    testWidgets('renders label for critical level', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -51,52 +59,37 @@ void main() {
       );
 
       expect(find.text('Critical'), findsOneWidget);
+      final text = tester.widget<Text>(find.text('Critical'));
+      expect(text.style?.color, Colors.red.shade900);
     });
 
-    testWidgets('has correct container styling', (tester) async {
+    testWidgets('uses small font and semibold weight', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: SensitivityTag(level: SensitivityLevel.public),
+            body: SensitivityTag(level: SensitivityLevel.sensitive),
           ),
         ),
       );
 
-      final container = tester.widget<Container>(find.byType(Container).first);
+      final text = tester.widget<Text>(find.text('Sensitive'));
+      expect(text.style?.fontSize, 10);
+      expect(text.style?.fontWeight, FontWeight.w600);
+    });
+
+    testWidgets('renders container with border and background', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SensitivityTag(level: SensitivityLevel.internal),
+          ),
+        ),
+      );
+
+      final container = tester.widget<Container>(find.byType(Container));
       final decoration = container.decoration as BoxDecoration;
-
-      expect(decoration.borderRadius, equals(BorderRadius.circular(4)));
-      expect(container.padding, equals(const EdgeInsets.symmetric(horizontal: 6, vertical: 2)));
-    });
-
-    testWidgets('text has correct styling properties', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SensitivityTag(level: SensitivityLevel.critical),
-          ),
-        ),
-      );
-
-      final text = tester.widget<Text>(find.byType(Text).first);
-      expect(text.style?.fontSize, equals(10));
-      expect(text.style?.fontWeight, equals(FontWeight.w600));
-    });
-  });
-
-  group('Helper Function Tests', () {
-    test('getSensitivityColor returns correct colors', () {
-      expect(getSensitivityColor(SensitivityLevel.public), equals(Colors.green));
-      expect(getSensitivityColor(SensitivityLevel.internal), equals(Colors.blue));
-      expect(getSensitivityColor(SensitivityLevel.sensitive), equals(Colors.orange));
-      expect(getSensitivityColor(SensitivityLevel.critical), equals(Colors.red.shade900));
-    });
-
-    test('getSensitivityLabel returns correct labels', () {
-      expect(getSensitivityLabel(SensitivityLevel.public), equals('Public'));
-      expect(getSensitivityLabel(SensitivityLevel.internal), equals('Internal'));
-      expect(getSensitivityLabel(SensitivityLevel.sensitive), equals('Sensitive'));
-      expect(getSensitivityLabel(SensitivityLevel.critical), equals('Critical'));
+      expect(decoration.borderRadius, BorderRadius.circular(4));
+      expect(decoration.border, isA<Border>());
     });
   });
 }

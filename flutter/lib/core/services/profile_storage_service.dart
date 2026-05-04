@@ -43,7 +43,7 @@ class ProfileStorageService {
   /// Migrate profile to latest schema if needed.
   /// Legacy migration paths (v0→v3, v3→v4) have been removed since
   /// all production data is now on v4+ unified object model.
-  static ProfileData _migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
+  static ProfileData migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
     final currentVersion = profile.schemaVersion ?? 0;
     if (currentVersion >= kSchemaVersion) return profile;
 
@@ -60,7 +60,7 @@ class ProfileStorageService {
   /// - Invalid [parentId] references (set to null if parent no longer exists)
   ///
   /// Returns a repaired copy if fixes were applied, or the original if valid.
-  static (ProfileData, bool) _validateAndRepairProfile(ProfileData profile) {
+  static (ProfileData, bool) validateAndRepairProfile(ProfileData profile) {
     var repaired = profile;
     var wasRepaired = false;
 
@@ -96,9 +96,20 @@ class ProfileStorageService {
           wasRepaired = true;
         }
 
-        repairedObjects.add(obj.copyWith(
-          childrenIds: validChildren,
+        // Direct construction because copyWith cannot set parentId to null
+        // (its ?? operator treats null as "don't change").
+        repairedObjects.add(UnifiedObject(
+          id: obj.id,
+          typeId: obj.typeId,
+          name: obj.name,
+          iconName: obj.iconName,
           parentId: validParentId,
+          childrenIds: validChildren,
+          properties: obj.properties,
+          isDeleted: obj.isDeleted,
+          deletedAt: obj.deletedAt,
+          createdAt: obj.createdAt,
+          updatedAt: obj.updatedAt,
         ));
       }
 
@@ -125,8 +136,8 @@ class ProfileStorageService {
       final (profile, needsSave, logs) = await Isolate.run(() {
         final json = jsonDecode(decrypted) as Map<String, dynamic>;
         final profile = ProfileData.fromJson(json);
-        final migratedProfile = ProfileStorageService._migrateIfNeeded(profile, json);
-        final (repairedProfile, wasRepaired) = ProfileStorageService._validateAndRepairProfile(migratedProfile);
+        final migratedProfile = ProfileStorageService.migrateIfNeeded(profile, json);
+        final (repairedProfile, wasRepaired) = ProfileStorageService.validateAndRepairProfile(migratedProfile);
         final logs = <String>[];
         if (wasRepaired) {
           logs.add('Data integrity repairs applied during load');

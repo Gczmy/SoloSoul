@@ -15,11 +15,11 @@ class SecureAccountStorage {
   static const _accountDataPrefix = 'solosoul_account_';
 
   // Brute-force protection: track failed attempts per account
-  static final Map<String, _AttemptTracker> _attemptTrackers = {};
+  static final Map<String, AttemptTracker> _attemptTrackers = {};
 
-  static const int _maxAttemptsBeforeLockout = 10;
-  static const int _backoffStartAfterAttempts = 5;
-  static const Duration _initialBackoff = Duration(seconds: 30);
+  static const int maxAttemptsBeforeLockout = 10;
+  static const int backoffStartAfterAttempts = 5;
+  static const Duration initialBackoff = Duration(seconds: 30);
 
   const SecureAccountStorage._();
 
@@ -30,6 +30,11 @@ class SecureAccountStorage {
       FallbackSecureStorage();
 
   FallbackSecureStorage get _secureStorage => _fallbackSecureStorage;
+
+  /// Clears all attempt trackers. Used only in tests for isolation.
+  void clearAttemptTrackersForTest() {
+    _attemptTrackers.clear();
+  }
 
   /// Best-effort secure wipe of a byte buffer (fills with zeros).
   static void secureWipe(Uint8List buffer) {
@@ -135,7 +140,7 @@ class SecureAccountStorage {
       );
     }
     if (password.length < 12 &&
-        !_hasSufficientComplexity(password)) {
+        !hasSufficientComplexity(password)) {
       return (
         success: false,
         error: 'Password must be at least 12 characters, '
@@ -303,7 +308,7 @@ class SecureAccountStorage {
   /// Includes brute-force protection with exponential backoff.
   Future<bool> verifyPassword(String accountId, String password) async {
     // Brute-force protection: check rate limit
-    final tracker = _attemptTrackers.putIfAbsent(accountId, _AttemptTracker.new);
+    final tracker = _attemptTrackers.putIfAbsent(accountId, AttemptTracker.new);
     if (tracker.isLockedOut) {
       final remaining = tracker.remainingLockout;
       SoloLog.w('AuthStorage', 'verifyPassword: account locked out, ${remaining.inSeconds}s remaining');
@@ -433,7 +438,7 @@ class SecureAccountStorage {
     }
   }
 
-  static bool _hasSufficientComplexity(String password) {
+  static bool hasSufficientComplexity(String password) {
     final hasUpper = password.contains(RegExp(r'[A-Z]'));
     final hasLower = password.contains(RegExp(r'[a-z]'));
     final hasDigit = password.contains(RegExp(r'[0-9]'));
@@ -442,17 +447,17 @@ class SecureAccountStorage {
 }
 
 /// Tracks failed password attempts for brute-force protection.
-class _AttemptTracker {
+class AttemptTracker {
   int attempts = 0;
   DateTime? _lockoutUntil;
 
-  static const int _backoffStartAfterAttempts =
-      SecureAccountStorage._backoffStartAfterAttempts;
-  static const int _maxAttempts =
-      SecureAccountStorage._maxAttemptsBeforeLockout;
-  static const Duration _initialBackoff =
-      SecureAccountStorage._initialBackoff;
-  static const Duration _lockoutDuration = Duration(minutes: 15);
+  static const int backoffStartAfterAttempts =
+      SecureAccountStorage.backoffStartAfterAttempts;
+  static const int maxAttempts =
+      SecureAccountStorage.maxAttemptsBeforeLockout;
+  static const Duration initialBackoff =
+      SecureAccountStorage.initialBackoff;
+  static const Duration lockoutDuration = Duration(minutes: 15);
 
   bool get isLockedOut {
     if (_lockoutUntil == null) return false;
@@ -470,19 +475,19 @@ class _AttemptTracker {
   }
 
   bool get shouldBackoff =>
-      attempts >= _backoffStartAfterAttempts && !isLockedOut;
+      attempts >= backoffStartAfterAttempts && !isLockedOut;
 
   Duration get currentBackoff {
-    if (attempts < _backoffStartAfterAttempts) return Duration.zero;
-    final exponent = attempts - _backoffStartAfterAttempts;
-    final seconds = _initialBackoff.inSeconds * (1 << exponent);
+    if (attempts < backoffStartAfterAttempts) return Duration.zero;
+    final exponent = attempts - backoffStartAfterAttempts;
+    final seconds = initialBackoff.inSeconds * (1 << exponent);
     return Duration(seconds: seconds.clamp(0, 300));
   }
 
   void recordFailure() {
     attempts++;
-    if (attempts >= _maxAttempts) {
-      _lockoutUntil = DateTime.now().add(_lockoutDuration);
+    if (attempts >= maxAttempts) {
+      _lockoutUntil = DateTime.now().add(lockoutDuration);
     }
   }
 
