@@ -23,7 +23,7 @@
 | P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[x]` 已修复 — 提取 5 个 section widget + _CountedTextField，build 327→~20 行 |
 | P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[x]` 已修复 — 提取 _ObjectEditorHeader, _PropertyFieldsSection, _BottomSaveBar，build 360→57 行 |
 | P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[x]` 已修复 — 提取为 _DebugActivationDialog，方法从 196→58 行 |
-| P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[ ]` 待修复 |
+| P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[x]` 已修复 — 提取 _VaultInfoCard, _BackupSection, _RestoreSection，build 239→121 行 |
 | P039 | P1 | 过长函数 | `presentation/pages/security_settings_page.dart:51` | build 方法长达 222 行 | `[x]` 已修复 — _build* 提取 + 深层嵌套修复后 build 降至 165 行 |
 | P040 | P1 | 深层嵌套 | `presentation/pages/security_settings_page.dart:99-172` | build 内 onChanged 回调存在 5 层控制流嵌套 | `[x]` 已修复 |
 | P041 | P1 | 深层嵌套 | `presentation/pages/login_page.dart:468-507` | `_handleCreateAccount` 内存在 4 层嵌套 | `[x]` 已修复 |
@@ -271,6 +271,6 @@
 | 问题 | 级别 | 类型 | 位置 | 描述 | 状态 |
 |------|------|------|------|------|------|
 | P056 | P2 | 代码质量 | `core/services/scan/*.dart` (6处) | 空 catch 块静默吞掉异常，无日志 | `[x]` 已修复 — 添加 SoloLog 警告 |
-| P057 | P1 | 过长函数 | `widgets/login/password_input_section.dart` | build 方法 243 行 | `[ ]` 待修复 |
-| P058 | P1 | 过长函数 | `widgets/sidebar/page_tree_tile.dart` | build 方法 225 行 | `[ ]` 待修复 |
-| P059 | P1 | 过长函数 | `pages/scan/local_search_config_page.dart` | build 方法 205 行 | `[ ]` 待修复 |
+| P057 | P1 | 过长函数 | `widgets/login/password_input_section.dart` | build 方法 243 行 | `[x]` 已修复 — 提取 _AccountHeader, _PasswordField, _BiometricButton, _UnlockButton，build 243→123 行 |
+| P058 | P1 | 过长函数 | `widgets/sidebar/page_tree_tile.dart` | build 方法 225 行 | `[x]` 已修复 — 提取 _TreeTileLeading, _TreeTileTitle, _TreeTileTrailing, _TreeTileChildren，build 225→70 行 |
+| P059 | P1 | 过长函数 | `pages/scan/local_search_config_page.dart` | build 方法 205 行 | `[x]` 已修复 — 提取 _SearchPathsSection, _FileTypeFilterSection, _SearchActionButtons，build 205→143 行 |
