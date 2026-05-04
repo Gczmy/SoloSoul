@@ -69,6 +69,7 @@ Future<String?> showPasswordVerificationDialog({
 /// Password verification dialog content (public for testing).
 class PasswordVerificationDialogContent extends StatefulWidget {
   const PasswordVerificationDialogContent({
+    super.key,
     required this.message,
     this.passwordHint,
     required this.onVerify,
@@ -318,6 +319,7 @@ class PasswordVerificationDialogContentState
 /// Biometric-enhanced password verification dialog content (public for testing).
 class BiometricPasswordDialogContent extends StatefulWidget {
   const BiometricPasswordDialogContent({
+    super.key,
     required this.message,
     this.passwordHint,
     required this.onVerify,

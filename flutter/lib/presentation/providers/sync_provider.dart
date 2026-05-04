@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/sync_service.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
+import 'package:solosoul_flutter/presentation/utils/device_utils.dart';
 
 /// Sync state for the current session
 enum SyncStatus {
@@ -145,12 +146,7 @@ class SyncNotifier extends Notifier<SyncState> {
   }
 
   String _getDeviceName() {
-    if (Platform.isMacOS) return 'Mac-${Platform.localHostname}';
-    if (Platform.isIOS) return 'iPhone-${Platform.localHostname}';
-    if (Platform.isAndroid) return 'Android-${Platform.localHostname}';
-    if (Platform.isLinux) return 'Linux-${Platform.localHostname}';
-    if (Platform.isWindows) return 'Windows-${Platform.localHostname}';
-    return 'Device-${Platform.localHostname}';
+    return '${getDeviceName()}-${Platform.localHostname}';
   }
 }
 

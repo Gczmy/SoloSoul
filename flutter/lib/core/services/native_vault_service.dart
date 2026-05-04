@@ -375,131 +375,81 @@ class NativeVaultService {
   // FRB typed methods — async, type-safe replacements for JSON relay
   // ==========================================================================
 
-  /// Encrypt bytes using the vault's session key (FRB).
-  /// Returns SOLO blob bytes. Vault must be unlocked.
-  Future<Uint8List?> encryptBytesFrb(Uint8List data) async {
+  /// Generic FRB wrapper for nullable return types.
+  Future<T?> _wrapFrb<T>(String name, Future<T?> Function() call) async {
     try {
-      return await frb.frbEncryptBytes(data: data);
+      return await call();
     } on Exception catch (e) {
-      _log('FRB encryptBytes failed: $e');
+      _log('FRB $name failed: $e');
       return null;
     }
   }
+
+  /// Generic FRB wrapper for boolean return types.
+  Future<bool> _wrapFrbBool(String name, Future<bool> Function() call) async {
+    try {
+      return await call();
+    } on Exception catch (e) {
+      _log('FRB $name failed: $e');
+      return false;
+    }
+  }
+
+  /// Encrypt bytes using the vault's session key (FRB).
+  /// Returns SOLO blob bytes. Vault must be unlocked.
+  Future<Uint8List?> encryptBytesFrb(Uint8List data) =>
+      _wrapFrb('encryptBytes', () => frb.frbEncryptBytes(data: data));
 
   /// Decrypt SOLO blob bytes using the vault's session key (FRB).
   /// Returns plaintext bytes. Vault must be unlocked.
-  Future<Uint8List?> decryptBytesFrb(Uint8List data) async {
-    try {
-      return await frb.frbDecryptBytes(data: data);
-    } on Exception catch (e) {
-      _log('FRB decryptBytes failed: $e');
-      return null;
-    }
-  }
+  Future<Uint8List?> decryptBytesFrb(Uint8List data) =>
+      _wrapFrb('decryptBytes', () => frb.frbDecryptBytes(data: data));
 
   /// Save a profile with raw encrypted bytes (FRB).
   /// Returns profile summary on success.
-  Future<frb.ProfileSummary?> saveProfileFrb(String name, Uint8List data) async {
-    try {
-      return await frb.frbSaveProfile(name: name, data: data);
-    } on Exception catch (e) {
-      _log('FRB saveProfile failed: $e');
-      return null;
-    }
-  }
+  Future<frb.ProfileSummary?> saveProfileFrb(String name, Uint8List data) =>
+      _wrapFrb('saveProfile', () => frb.frbSaveProfile(name: name, data: data));
 
   /// Load a profile by ID, returning raw encrypted bytes (FRB).
-  Future<frb.LoadedProfile?> loadProfileFrb(String id) async {
-    try {
-      return await frb.frbLoadProfile(id: id);
-    } on Exception catch (e) {
-      _log('FRB loadProfile failed: $e');
-      return null;
-    }
-  }
+  Future<frb.LoadedProfile?> loadProfileFrb(String id) =>
+      _wrapFrb('loadProfile', () => frb.frbLoadProfile(id: id));
 
   /// Create a new account (FRB).
   Future<frb.CreateAccountResult?> createAccountFrb({
     required String name,
     required String password,
-  }) async {
-    try {
-      return await frb.frbCreateAccount(name: name, password: password);
-    } on Exception catch (e) {
-      _log('FRB createAccount failed: $e');
-      return null;
-    }
-  }
+  }) => _wrapFrb('createAccount', () => frb.frbCreateAccount(name: name, password: password));
 
   /// Unlock the vault (FRB).
   Future<frb.UnlockVaultResult?> unlockVaultFrb({
     required String accountId,
     required String password,
-  }) async {
-    try {
-      return await frb.frbUnlockVault(accountId: accountId, password: password);
-    } on Exception catch (e) {
-      _log('FRB unlockVault failed: $e');
-      return null;
-    }
-  }
+  }) => _wrapFrb('unlockVault', () => frb.frbUnlockVault(accountId: accountId, password: password));
 
   /// Lock the vault (FRB).
-  Future<bool> lockVaultFrb() async {
-    try {
-      return await frb.frbLockVault();
-    } on Exception catch (e) {
-      _log('FRB lockVault failed: $e');
-      return false;
-    }
-  }
+  Future<bool> lockVaultFrb() => _wrapFrbBool('lockVault', frb.frbLockVault);
 
   /// List all accounts (FRB).
-  Future<List<frb.AccountInfo>?> listAccountsFrb() async {
-    try {
-      return await frb.frbListAccounts();
-    } on Exception catch (e) {
-      _log('FRB listAccounts failed: $e');
-      return null;
-    }
-  }
+  Future<List<frb.AccountInfo>?> listAccountsFrb() =>
+      _wrapFrb('listAccounts', frb.frbListAccounts);
 
   /// Delete an account (FRB).
-  Future<bool> deleteAccountFrb(String accountId) async {
-    try {
-      return await frb.frbDeleteAccount(accountId: accountId);
-    } on Exception catch (e) {
-      _log('FRB deleteAccount failed: $e');
-      return false;
-    }
-  }
+  Future<bool> deleteAccountFrb(String accountId) =>
+      _wrapFrbBool('deleteAccount', () => frb.frbDeleteAccount(accountId: accountId));
 
   /// Get vault statistics (FRB).
-  Future<frb.VaultStats?> getVaultStatsFrb() async {
-    try {
-      return await frb.frbGetVaultStats();
-    } on Exception catch (e) {
-      _log('FRB getVaultStats failed: $e');
-      return null;
-    }
-  }
+  Future<frb.VaultStats?> getVaultStatsFrb() =>
+      _wrapFrb('getVaultStats', frb.frbGetVaultStats);
 
   /// Change account password (FRB).
   Future<frb.ChangePasswordResult?> changePasswordFrb({
     required String accountId,
     required String oldPassword,
     required String newPassword,
-  }) async {
-    try {
-      return await frb.frbChangePassword(
+  }) => _wrapFrb('changePassword', () => frb.frbChangePassword(
         accountId: accountId,
         oldPassword: oldPassword,
         newPassword: newPassword,
-      );
-    } on Exception catch (e) {
-      _log('FRB changePassword failed: $e');
-      return null;
-    }
-  }
+      ));
 
 }

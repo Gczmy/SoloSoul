@@ -21,7 +21,7 @@ class ObjectCardEditField extends StatelessWidget {
     this.onCheckboxChanged,
   });
 
-  static final _dummyController = TextEditingController();
+  static final _dummyValueNotifier = ValueNotifier<TextEditingValue>(const TextEditingValue());
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class ObjectCardEditField extends StatelessWidget {
         SizedBox(
           width: 64,
           child: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller ?? _dummyController,
+            valueListenable: controller ?? _dummyValueNotifier,
             builder: (context, val, child) {
               final len = val.text.length;
               const max = kMaxPropertyLength;
