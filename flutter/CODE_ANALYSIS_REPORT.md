@@ -16,11 +16,11 @@
 |---|---|---|---|---|---|
 | P019 | P1 | 漏洞 | `presentation/providers/auth/auth_storage.dart:29-96` | 账户密钥（salt + verify_hash）通过 FallbackSecureStorage 可回退到文件存储 | `[x]` 已修复 |
 | P030 | P1 | 重复代码 | `core/services/native_vault_service.dart:380-503` | 10 个 FRB 包装方法使用完全相同的 try/catch 模板 | `[x]` 已修复 |
-| P031 | P1 | 重复代码 | `presentation/widgets/password_verification_dialog.dart:138/429` | `_showHintOverlay` 在同一文件内重复定义两次，方法体超过 60 行 | `[ ]` 待修复 |
-| P032 | P1 | 重复代码 | `presentation/pages/profile_page.dart` 等 | profile/travel/financial/professional 四个页面为完全相同的模板复制 | `[ ]` 待修复 |
+| P031 | P1 | 重复代码 | `presentation/widgets/password_verification_dialog.dart:138/429` | `_showHintOverlay` 在同一文件内重复定义两次，方法体超过 60 行 | `[x]` 已修复 — 提取为 `PasswordDialogOverlayMixin` |
+| P032 | P1 | 重复代码 | `presentation/pages/profile_page.dart` 等 | profile/travel/financial/professional 四个页面为完全相同的模板复制 | `[x]` 已修复 — 创建 `ObjectCategoryPage` 配置驱动组件 |
 | P033 | P1 | 重复代码 | `presentation/providers/sync_provider.dart` 与 `presentation/utils/device_utils.dart` | Platform 设备名称映射逻辑在两个文件中几乎完全一致 | `[x]` 已修复 |
 | P034 | P1 | 过长函数 | `presentation/pages/settings_page.dart:360` | build 方法长达 401 行非注释代码 | `[x]` 已修复 — _DebugActivationDialog 已提取，build 内所有 _build* 私有方法已提取为 StatelessWidget |
-| P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[ ]` 待修复 |
+| P035 | P1 | 过长函数 | `presentation/pages/profile_page.dart:35` | build 方法长达 386 行 | `[x]` 已修复 — 通过 P032 使用 `ObjectCategoryPage`，原模板代码已删除 |
 | P036 | P1 | 过长函数 | `presentation/pages/object_editor_page.dart:134` | build 方法长达 348 行 | `[ ]` 待修复 |
 | P037 | P1 | 过长函数 | `presentation/pages/settings_page.dart:161` | `_showDebugActivationDialog` 长达 186 行 | `[x]` 已修复 — 提取为 _DebugActivationDialog，方法从 196→58 行 |
 | P038 | P1 | 过长函数 | `presentation/pages/data_management_page.dart:608` | build 方法长达 230 行 | `[ ]` 待修复 |
@@ -152,6 +152,8 @@
 
 **修复方案**: 提取为 mixin 或共享组件。
 
+**修复状态**: ✅ 已完成 — `PasswordDialogOverlayMixin` 已创建，两个 State 类均 `with` 该 mixin。
+
 ---
 
 ### P032 — [P1] 四个页面模板复制
@@ -161,6 +163,8 @@
 **描述**: 四个页面为完全相同的 `Scaffold -> AppBar -> SingleChildScrollView -> Column -> PredefinedObjectSection` 模板，仅 `sectionId`/`typeId`/`title` 不同。
 
 **修复方案**: 抽象为通用 `ObjectCategoryPage` 组件，配置驱动。
+
+**修复状态**: ✅ 已完成 — `ObjectCategoryPage` 已创建，四个页面均简化为其包装器。
 
 ---
 
