@@ -336,6 +336,35 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 
 ## P1
 
+### 本地搜索与 Vault 自动导入 🟡
+> 详细设计文档：[LOCAL_SEARCH_IMPORT_DESIGN.md](LOCAL_SEARCH_IMPORT_DESIGN.md)
+
+**目标**：让用户指定搜索路径，扫描本地文件中的个人信息，预览确认后自动创建/填充 Vault 条目。
+
+**Phase 1：基础扫描能力（预计 3 天）**
+- [x] 创建 `ScanResult` / `ScanSection` / `ScanField` 数据模型（Freezed）
+- [x] 实现 `LocalSearchService`（macOS `mdfind` + 跨平台 `find` / `dir` 回退）
+- [x] 扩展名 + 文件名关键词过滤
+- [x] 内容指纹正则匹配（身份证、手机号、邮箱、护照号、银行卡号）
+- [x] 基础 `ContentParserService`（txt / md / json / csv / pdf）
+- [x] 单元测试
+
+**Phase 2：预览与导入管线（预计 4 天）**
+- [x] 实现 `ScanImportService`（映射 → 冲突检测 → 批量导入）
+- [x] `LocalSearchConfigPage` + `LocalSearchProgressPage`
+- [x] `ScanPreviewPage`（字段级确认、冲突高亮、敏感度标记）
+- [x] `ScanImportResultPage`
+- [x] 集成 `SensitiveValueWidget` + `PasswordVerificationDialog`
+- [x] Widget 测试
+
+**Phase 3：Office 格式与优化（预计 3 天）**
+- [x] `.docx` / `.xlsx` 内容解析
+- [x] 增量扫描缓存（mtime + size 记录到应用文档目录）
+- [x] Windows Everything SDK 集成
+- [x] 集成测试（端到端扫描 → 预览 → 导入 → Vault 验证）
+
+---
+
 ### UI优化 🟡
 - [ ] 优化travel history条目， 有两个重复的到达时间
 - [ ] 现在所有条目在点击添加按钮后，都是使用footer，输入框都在最上方，很不方便，应该出现在对应条目的位置，比如条目在第三个，name输入框就出现在第三个的位置。

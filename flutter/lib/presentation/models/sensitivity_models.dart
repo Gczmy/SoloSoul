@@ -111,6 +111,32 @@ class FieldRegistry {
     return defaultFields.where((f) => f.fieldSection == section).toList();
   }
 
+  /// Get display name for a field within a section.
+  /// Falls back to title-casing the key if not found in registry.
+  static String displayNameForField(String section, String key) {
+    final fieldId = '$section.$key';
+    final field = firstWhereOrNull(defaultFields, (f) => f.fieldId == fieldId);
+    if (field != null) return field.fieldName;
+    // Fallback: convert camelCase to Title Case
+    return _camelCaseToTitle(key);
+  }
+
+  static String _camelCaseToTitle(String input) {
+    if (input.isEmpty) return input;
+    final buffer = StringBuffer();
+    for (var i = 0; i < input.length; i++) {
+      final char = input[i];
+      if (i == 0) {
+        buffer.write(char.toUpperCase());
+      } else if (char.toUpperCase() == char && char.toLowerCase() != char) {
+        buffer.write(' $char');
+      } else {
+        buffer.write(char);
+      }
+    }
+    return buffer.toString();
+  }
+
   static List<String> get allSections => [
         'identity',
         'contact',

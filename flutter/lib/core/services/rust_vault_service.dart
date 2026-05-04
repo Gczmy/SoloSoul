@@ -401,6 +401,89 @@ class RustVaultService {
   }
 
   // ===========================================================================
+  // Scan config - encrypted storage (SCAN_CONFIG_{accountId} pattern)
+  // ===========================================================================
+
+  /// Save scan configuration with encryption
+  ///
+  /// [accountId] - Account ID
+  /// [jsonData] - JSON string of scan configuration
+  ///
+  /// Returns true on success
+  Future<bool> saveScanConfigEncrypted(
+    String accountId,
+    String jsonData,
+  ) async {
+    final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
+    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
+    if (encryptedData.isEmpty) {
+      return false;
+    }
+
+    final result = NativeVaultService.instance.request(
+      'save_scan_config',
+      {
+        'account_id': accountId,
+        'data': base64Encode(encryptedData),
+      },
+    );
+
+    return result?['success'] == true;
+  }
+
+  /// Load and decrypt scan configuration by account ID
+  ///
+  /// [accountId] - Account ID
+  ///
+  /// Returns decrypted JSON string, or null if not found/error
+  Future<String?> loadScanConfigDecrypted(String accountId) async {
+    final result = NativeVaultService.instance.request(
+      'load_scan_config',
+      {'account_id': accountId},
+    );
+
+    if (result?['success'] != true) {
+      return null;
+    }
+
+    final responseData = result!['data'] as Map<String, dynamic>?;
+    if (responseData == null) {
+      return null;
+    }
+
+    final data = responseData['data'];
+    if (data == null) {
+      return null;
+    }
+
+    if (data is String) {
+      final encryptedBytes = base64Decode(data);
+      try {
+        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
+        return utf8.decode(decrypted);
+      } on Exception {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  /// Delete scan configuration for an account
+  ///
+  /// [accountId] - Account ID
+  ///
+  /// Returns true on success
+  Future<bool> deleteScanConfig(String accountId) async {
+    final result = NativeVaultService.instance.request(
+      'delete_scan_config',
+      {'account_id': accountId},
+    );
+
+    return result?['success'] == true;
+  }
+
+  // ===========================================================================
   // Account settings - encrypted storage (SETTING_{accountId} pattern)
   // ===========================================================================
 

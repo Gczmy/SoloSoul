@@ -17,6 +17,11 @@ import 'package:solosoul_flutter/presentation/pages/trash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/search_page.dart';
 import 'package:solosoul_flutter/presentation/pages/sync_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_workspace_page.dart';
+import 'package:solosoul_flutter/presentation/pages/scan/local_search_config_page.dart';
+import 'package:solosoul_flutter/presentation/pages/scan/local_search_progress_page.dart';
+import 'package:solosoul_flutter/presentation/pages/scan/scan_preview_page.dart';
+import 'package:solosoul_flutter/presentation/pages/scan/scan_import_result_page.dart';
+import 'package:solosoul_flutter/presentation/pages/llm/llm_config_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart';
 import 'package:solosoul_flutter/presentation/pages/page_editor_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -43,6 +48,11 @@ class AppRoutes {
   static const String objectEditor = '/object_editor';
   static const String pageEditor = '/page_editor';
   static const String sync = '/sync';
+  static const String localSearch = '/local_search';
+  static const String localSearchProgress = '/local_search/progress';
+  static const String scanPreview = '/local_search/preview';
+  static const String scanImportResult = '/local_search/result';
+  static const String llmConfig = '/settings/llm';
 }
 
 /// Pages that don't require authentication
@@ -69,6 +79,20 @@ GoRouter createRouter(WidgetRef ref) {
           return AppRoutes.home;
         }
         return null;
+      }
+
+      // Debug-only routes (local import + LLM interface reservation)
+      if (!kDebugMode) {
+        const debugOnlyRoutes = {
+          AppRoutes.localSearch,
+          AppRoutes.localSearchProgress,
+          AppRoutes.scanPreview,
+          AppRoutes.scanImportResult,
+          AppRoutes.llmConfig,
+        };
+        if (debugOnlyRoutes.contains(currentPath)) {
+          return AppRoutes.home;
+        }
       }
 
       // All other routes require authentication
@@ -174,6 +198,26 @@ GoRouter createRouter(WidgetRef ref) {
           GoRoute(
             path: AppRoutes.sync,
             builder: (context, state) => const SyncPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.localSearch,
+            builder: (context, state) => const LocalSearchConfigPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.localSearchProgress,
+            builder: (context, state) => const LocalSearchProgressPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.scanPreview,
+            builder: (context, state) => const ScanPreviewPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.scanImportResult,
+            builder: (context, state) => const ScanImportResultPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.llmConfig,
+            builder: (context, state) => const LlmConfigPage(),
           ),
         ],
       ),

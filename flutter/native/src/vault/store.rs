@@ -403,6 +403,69 @@ impl VaultStore {
         Ok(())
     }
 
+    // ===========================================================================
+    // Scan config - encrypted storage (SCAN_CONFIG_{accountId} pattern)
+    // ===========================================================================
+
+    /// Save scan config (encrypted blob)
+    pub fn save_scan_config(&self, account_id: &str, data: &[u8]) -> Result<(), String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        let key = format!("SCAN_CONFIG_{}", account_id);
+
+        conn.execute(
+            "INSERT INTO metadata (key, value, updated_at)
+             VALUES (?1, ?2, ?3)
+             ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = excluded.updated_at",
+            rusqlite::params![key, base64_encode(data), now],
+        )
+        .map_err(|e| format!("Failed to save scan config: {}", e))?;
+
+        Ok(())
+    }
+
+    /// Load scan config (encrypted blob)
+    pub fn load_scan_config(&self, account_id: &str) -> Result<Option<Vec<u8>>, String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let key = format!("SCAN_CONFIG_{}", account_id);
+
+        let result: Option<String> = conn
+            .query_row(
+                "SELECT value FROM metadata WHERE key = ?1",
+                rusqlite::params![key],
+                |row| row.get(0),
+            )
+            .ok();
+
+        match result {
+            Some(encoded) => {
+                let decoded = base64_decode(&encoded)
+                    .map_err(|e| format!("Failed to decode scan config: {}", e))?;
+                Ok(Some(decoded))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// Delete scan config
+    pub fn delete_scan_config(&self, account_id: &str) -> Result<(), String> {
+        let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = conn_guard.as_mut().ok_or("Vault is locked")?;
+        let key = format!("SCAN_CONFIG_{}", account_id);
+
+        conn.execute(
+            "DELETE FROM metadata WHERE key = ?1",
+            rusqlite::params![key],
+        )
+        .map_err(|e| format!("Failed to delete scan config: {}", e))?;
+
+        Ok(())
+    }
+
     /// Save setting (encrypted blob) - SETTING_{accountId} pattern
     pub fn save_setting(&self, account_id: &str, data: &[u8]) -> Result<(), String> {
         let mut conn_guard = self.conn.lock().map_err(|e| e.to_string())?;

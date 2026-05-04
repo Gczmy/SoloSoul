@@ -602,6 +602,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
             const SizedBox(height: 16),
 
+            // AI / LLM Section (debug only — interface reservation)
+            if (kDebugMode)
+              SectionCard(
+                    title: 'AI Assistant',
+                    icon: Icons.psychology_outlined,
+                    children: [
+                      SettingsTile(
+                        icon: Icons.smart_toy_outlined,
+                        title: 'LLM Configuration',
+                        subtitle: 'Local model or cloud API',
+                        onTap: () => context.push(AppRoutes.llmConfig),
+                      ),
+                    ],
+                  )
+                  .animate()
+                  .fadeIn(delay: 250.ms, duration: 400.ms)
+                  .slideX(begin: 0.05, end: 0),
+
+            if (kDebugMode) const SizedBox(height: 16),
+
             // App Info Section
             SectionCard(
                   title: 'About',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -114,24 +115,19 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
         selected: location == AppRoutes.search,
         onTap: () => context.go(AppRoutes.search),
       ),
-      // Scan (placeholder)
-      NavTile(
-        icon: Icons.document_scanner_outlined,
-        label: 'Scan',
-        expanded: _expanded,
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (ctx) => const AlertDialog(
-              title: Text('OCR Scan'),
-              content: Text(
-                'Document scanning will be available in a future update.',
-              ),
-            ),
-          );
-        },
-      ),
-      const SizedBox(height: 4),
+      // Local Search Import (debug only)
+      if (kDebugMode)
+        NavTile(
+          icon: Icons.document_scanner_outlined,
+          label: 'Local Import',
+          expanded: _expanded,
+          selected: location == AppRoutes.localSearch ||
+              location == AppRoutes.localSearchProgress ||
+              location == AppRoutes.scanPreview ||
+              location == AppRoutes.scanImportResult,
+          onTap: () => context.go(AppRoutes.localSearch),
+        ),
+      if (kDebugMode) const SizedBox(height: 4),
       const Divider(height: 1),
       const SizedBox(height: 8),
       // Default pages
@@ -392,7 +388,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           selected: location == AppRoutes.settings ||
                               location == AppRoutes.securitySettings ||
                               location == AppRoutes.sensitivitySettings ||
-                              location == AppRoutes.operationLog,
+                              location == AppRoutes.operationLog ||
+                              (kDebugMode && location == AppRoutes.llmConfig),
                           onTap: () => context.go(AppRoutes.settings),
                         ),
                       ],
