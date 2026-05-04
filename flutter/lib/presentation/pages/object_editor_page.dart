@@ -145,77 +145,11 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon + Name
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Labels
-                    Row(
-                      children: [
-                        Text('Icon', style: theme.textTheme.titleMedium),
-                        const SizedBox(width: 16 + 56 + 16), // gap + icon width + gap
-                        Expanded(
-                          child: Text('Name', style: theme.textTheme.titleMedium),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Inputs
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: () async {
-                            final result = await showModalBottomSheet<String>(
-                              context: context,
-                              builder: (ctx) => IconPickerSheet(
-                                currentIcon: _iconController.text.isEmpty
-                                    ? 'folder'
-                                    : _iconController.text,
-                              ),
-                            );
-                            if (result != null && mounted) {
-                              setState(() {
-                                _iconController.text = result;
-                              });
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              UnifiedObjectService.getIconFromName(_iconController.text),
-                              color: theme.colorScheme.primary,
-                              size: 28,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: SizedBox(
-                            height: 56,
-                            child: TextField(
-                              controller: _nameController,
-                              expands: true,
-                              minLines: null,
-                              maxLines: null,
-                              textAlignVertical: TextAlignVertical.center,
-                              decoration: const InputDecoration(
-                                hintText: 'Enter section name',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                _ObjectEditorHeader(
+                  theme: theme,
+                  iconController: _iconController,
+                  nameController: _nameController,
+                  onIconChanged: (icon) => setState(() => _iconController.text = icon),
                 ),
                 const SizedBox(height: 24),
 
@@ -471,22 +405,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
               ],
             ),
           ),
-          // Save button — fixed at bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              color: theme.scaffoldBackgroundColor,
-              padding: AppTheme.kPagePadding,
-              child: Center(
-                child: OutlinedButton(
-                  onPressed: _saveObject,
-                  child: const Text('Save'),
-                ),
-              ),
-            ),
-          ),
+          _BottomSaveBar(onSave: _saveObject),
         ],
       ),
     );
@@ -614,6 +533,91 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   }
 }
 
+/// Icon picker + section name input row.
+class _ObjectEditorHeader extends StatelessWidget {
+  final ThemeData theme;
+  final TextEditingController iconController;
+  final TextEditingController nameController;
+  final ValueChanged<String> onIconChanged;
+
+  const _ObjectEditorHeader({
+    required this.theme,
+    required this.iconController,
+    required this.nameController,
+    required this.onIconChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Icon', style: theme.textTheme.titleMedium),
+            const SizedBox(width: 16 + 56 + 16),
+            Expanded(
+              child: Text('Name', style: theme.textTheme.titleMedium),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            InkWell(
+              onTap: () async {
+                final result = await showModalBottomSheet<String>(
+                  context: context,
+                  builder: (ctx) => IconPickerSheet(
+                    currentIcon: iconController.text.isEmpty
+                        ? 'folder'
+                        : iconController.text,
+                  ),
+                );
+                if (result != null) {
+                  onIconChanged(result);
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  UnifiedObjectService.getIconFromName(iconController.text),
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SizedBox(
+                height: 56,
+                child: TextField(
+                  controller: nameController,
+                  expands: true,
+                  minLines: null,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter section name',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 class _TypeDropdown extends ConsumerWidget {
   final String? selectedTypeId;
@@ -729,6 +733,34 @@ class ObjectParentDropdown extends ConsumerWidget {
             }),
           ],
           onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Fixed bottom save bar for object editor.
+class _BottomSaveBar extends StatelessWidget {
+  final VoidCallback onSave;
+
+  const _BottomSaveBar({required this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        color: theme.scaffoldBackgroundColor,
+        padding: AppTheme.kPagePadding,
+        child: Center(
+          child: OutlinedButton(
+            onPressed: onSave,
+            child: const Text('Save'),
+          ),
         ),
       ),
     );
