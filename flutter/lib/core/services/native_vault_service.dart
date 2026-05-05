@@ -39,7 +39,40 @@ class NativeVaultService {
     _log('NativeVaultService initializing...');
 
     // Load the native library
-    if (Platform.isMacOS || Platform.isIOS) {
+    if (Platform.isMacOS) {
+      // macOS: 显式加载 dylib，确保与 FRB 使用同一个实例。
+      // DynamicLibrary.process() 可能命中主可执行文件中的静态副本（另一个全局状态），
+      // 因此必须显式打开同一个 dylib 文件。
+      final exePath = Platform.resolvedExecutable;
+      final exeDir = File(exePath).parent.path;
+      final appBundleDir = File(exeDir).parent.path;
+      final frameworkDir = '$appBundleDir/Frameworks';
+      final pwd = Directory.current.path;
+
+      final candidates = [
+        '$frameworkDir/libsolosoul_core.dylib', // app bundle
+        '$pwd/native/target/release/libsolosoul_core.dylib', // 开发模式（相对工作目录）
+        '$pwd/native/target/debug/libsolosoul_core.dylib',
+        '$pwd/../native/target/release/libsolosoul_core.dylib', // 如果工作目录在 app bundle 内
+        '$pwd/../native/target/debug/libsolosoul_core.dylib',
+        'libsolosoul_core.dylib',
+      ];
+      bool loaded = false;
+      for (final path in candidates) {
+        try {
+          _lib = DynamicLibrary.open(path);
+          _log('Loaded native library via DynamicLibrary.open($path)');
+          loaded = true;
+          break;
+        } on Exception catch (e) {
+          _log('Failed to load $path: $e');
+        }
+      }
+      if (!loaded) {
+        _lib = DynamicLibrary.process();
+        _log('Fallback to DynamicLibrary.process()');
+      }
+    } else if (Platform.isIOS) {
       _lib = DynamicLibrary.process();
       _log('Loaded native library via DynamicLibrary.process()');
     } else if (Platform.isAndroid) {

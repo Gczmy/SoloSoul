@@ -208,11 +208,19 @@ class ImportFieldCandidate {
   final ImportAction suggestedAction;
   ImportAction userAction;
 
+  /// 映射来源：'rule' 规则引擎 | 'llm' AI 建议 | 'both' 两者一致。
+  final String mappingSource;
+
+  /// 映射置信度（0.0 ~ 1.0）。规则引擎默认为 1.0。
+  final double mappingConfidence;
+
   ImportFieldCandidate({
     required this.source,
     this.targetPropertyId,
     required this.suggestedAction,
     ImportAction? userAction,
+    this.mappingSource = 'rule',
+    this.mappingConfidence = 1.0,
   }) : userAction = userAction ?? suggestedAction;
 }
 

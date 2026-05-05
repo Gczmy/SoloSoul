@@ -22,6 +22,8 @@ import 'package:solosoul_flutter/presentation/pages/scan/local_search_progress_p
 import 'package:solosoul_flutter/presentation/pages/scan/scan_preview_page.dart';
 import 'package:solosoul_flutter/presentation/pages/scan/scan_import_result_page.dart';
 import 'package:solosoul_flutter/presentation/pages/llm/llm_config_page.dart';
+import 'package:solosoul_flutter/presentation/pages/llm/llm_stats_page.dart';
+import 'package:solosoul_flutter/presentation/pages/llm/llm_chat_page.dart';
 import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart';
 import 'package:solosoul_flutter/presentation/pages/page_editor_page.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -53,6 +55,8 @@ class AppRoutes {
   static const String scanPreview = '/local_search/preview';
   static const String scanImportResult = '/local_search/result';
   static const String llmConfig = '/settings/llm';
+  static const String llmStats = '/settings/llm/stats';
+  static const String llmChat = '/llm_chat';
 }
 
 /// Pages that don't require authentication
@@ -218,6 +222,14 @@ GoRouter createRouter(WidgetRef ref) {
           GoRoute(
             path: AppRoutes.llmConfig,
             builder: (context, state) => const LlmConfigPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.llmStats,
+            builder: (context, state) => const LlmStatsPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.llmChat,
+            builder: (context, state) => const LlmChatPage(),
           ),
         ],
       ),

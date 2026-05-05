@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_field_mapping_parser.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/scan/local_search_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
@@ -43,6 +44,101 @@ class ScanImportService {
           source: field,
           targetPropertyId: propertyId,
           suggestedAction: ImportAction.createNew,
+        ));
+      }
+
+      candidates.add(ImportCandidate(
+        source: section,
+        existingObjectId: existing?.id,
+        fields: fieldCandidates,
+      ));
+    }
+
+    return candidates;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 1b: AI-assisted field mapping (optional enhancement)
+  // ---------------------------------------------------------------------------
+
+  /// 将规则引擎结果与 LLM 建议按优先级合并。
+  ///
+  /// 优先级：规则引擎高置信度 > LLM 高置信度 (≥0.8) > LLM 低置信度 > 规则引擎默认。
+  /// LLM 建议的字段标记 `mappingSource = 'llm'`，绝不静默替换用户已确认的映射。
+  List<ImportCandidate> mapScanResultWithLlm(
+    ScanResult result,
+    LlmFieldMappingResult llmResult, {
+    String llmSource = 'local',
+  }) {
+    final candidates = <ImportCandidate>[];
+
+    for (final section in result.sections) {
+      final typeId = LocalSearchService.mapSectionToTypeId(section.section);
+      if (typeId == null) continue;
+
+      final existing = _findExistingObject(typeId);
+      final fieldCandidates = <ImportFieldCandidate>[];
+
+      for (final field in section.fields) {
+        // 1. 规则引擎映射
+        final rulePropertyId = LocalSearchService.mapFieldToPropertyId(
+              section.section,
+              field.key,
+            ) ??
+            field.key;
+
+        // 2. 查找 LLM 建议
+        // 匹配优先级：精确 key > 精确短 value（≤50 字符）> 忽略大小写 key
+        LlmFieldSuggestion? llmSuggestion;
+        for (final s in llmResult.mappings) {
+          final src = s.sourceField;
+          if (src == field.key) {
+            llmSuggestion = s;
+            break;
+          }
+          if (field.value.length <= 50 && src == field.value) {
+            llmSuggestion = s;
+            break;
+          }
+          if (src.toLowerCase() == field.key.toLowerCase()) {
+            llmSuggestion = s;
+            break;
+          }
+        }
+
+        // 3. 合并决策
+        String finalPropertyId = rulePropertyId;
+        String mappingSource = 'rule';
+        double confidence = 1.0;
+
+        if (llmSuggestion != null) {
+          if (llmSuggestion.targetPropertyId != null &&
+              llmSuggestion.targetPropertyId!.isNotEmpty) {
+            if (llmSuggestion.confidence >= 0.8) {
+              // LLM 高置信度：优先采用，若与规则不同则标记为 both
+              finalPropertyId = llmSuggestion.targetPropertyId!;
+              if (finalPropertyId == rulePropertyId) {
+                mappingSource = 'both';
+              } else {
+                mappingSource = 'llm';
+              }
+              confidence = llmSuggestion.confidence;
+            } else {
+              // LLM 低置信度：保留规则引擎，但记录 LLM 建议供 UI 展示
+              mappingSource = 'rule';
+              confidence = 1.0;
+              // 注意：低置信度 LLM 建议不覆盖规则结果，
+              // UI 层可通过逐字段 AI 按钮单独触发高精度映射
+            }
+          }
+        }
+
+        fieldCandidates.add(ImportFieldCandidate(
+          source: field,
+          targetPropertyId: finalPropertyId,
+          suggestedAction: ImportAction.createNew,
+          mappingSource: mappingSource,
+          mappingConfidence: confidence,
         ));
       }
 

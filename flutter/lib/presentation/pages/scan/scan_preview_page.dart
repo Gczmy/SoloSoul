@@ -47,6 +47,12 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
         title: const Text('Preview & Confirm'),
         centerTitle: true,
         actions: [
+          // AI 智能映射按钮
+          if (totalCandidates > 0)
+            _AiMappingButton(
+              isLoading: state.aiMappingStatus.isLoading,
+              onPressed: () => _performAiMapping(),
+            ),
           if (totalCandidates > 0)
             Padding(
               padding: const EdgeInsets.only(right: 16),
@@ -88,6 +94,35 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
     }
   }
 
+  Future<void> _performAiMapping() async {
+    await ref.read(localSearchProvider.notifier).performAiMapping();
+
+    if (!mounted) return;
+    final state = ref.read(localSearchProvider);
+    if (state.aiMappingStatus.isError && state.aiMappingError != null) {
+      final error = state.aiMappingError!;
+      final isConfigError = error.contains('配置') ||
+          error.contains('API Key') ||
+          error.contains('权限不足');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          action: isConfigError
+              ? SnackBarAction(
+                  label: '去配置',
+                  onPressed: () => context.push(AppRoutes.llmConfig),
+                )
+              : null,
+        ),
+      );
+    } else if (state.aiMappingStatus.isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('AI 智能映射完成')),
+      );
+    }
+  }
+
   Future<void> _doImport() async {
     setState(() => _isImporting = true);
     try {
@@ -98,6 +133,47 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
     } finally {
       if (mounted) setState(() => _isImporting = false);
     }
+  }
+}
+
+// =============================================================================
+// AI Mapping Button
+// =============================================================================
+
+class _AiMappingButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _AiMappingButton({
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (isLoading) {
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      );
+    }
+
+    return Tooltip(
+      message: 'AI 智能映射',
+      child: IconButton(
+        icon: Icon(Icons.auto_fix_high, color: theme.colorScheme.primary),
+        onPressed: onPressed,
+      ),
+    );
   }
 }
 
@@ -292,6 +368,24 @@ class _FieldRow extends StatelessWidget {
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
+                    ],
+                    // AI 映射来源徽章
+                    if (field.mappingSource == 'llm' || field.mappingSource == 'both') ...[
+                      const SizedBox(width: 8),
+                      _Badge(
+                        label: field.mappingSource == 'both' ? 'AI+Rule' : 'AI',
+                        color: theme.colorScheme.tertiary,
+                      ),
+                      if (field.mappingConfidence < 1.0) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          '${(field.mappingConfidence * 100).toStringAsFixed(0)}%',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.tertiary,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ],
                   ],
                 ),

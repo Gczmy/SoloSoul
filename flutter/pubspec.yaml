@@ -68,6 +68,9 @@ dependencies:
   # Version info (SSOT: read version from platform build)
   package_info_plus: ^8.0.0
 
+  # HTTP client for LLM cloud APIs
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

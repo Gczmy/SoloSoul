@@ -238,8 +238,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const SizedBox(height: 16),
             const _SyncSettingsSection(),
             const SizedBox(height: 16),
-            if (kDebugMode) const _LLMSettingsSection(),
-            if (kDebugMode) const SizedBox(height: 16),
+            const _LLMSettingsSection(),
+            const SizedBox(height: 16),
             const _AppInfoSection(),
             const SizedBox(height: 32),
             DeleteAccountButton(
@@ -544,6 +544,12 @@ class _LLMSettingsSection extends ConsumerWidget {
           title: 'LLM Configuration',
           subtitle: 'Local model or cloud API',
           onTap: () => context.push(AppRoutes.llmConfig),
+        ),
+        SettingsTile(
+          icon: Icons.chat_bubble_outline,
+          title: 'AI 对话',
+          subtitle: '与本地或云端模型聊天',
+          onTap: () => context.push(AppRoutes.llmChat),
         ),
       ],
     ).animate().fadeIn(delay: 250.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);

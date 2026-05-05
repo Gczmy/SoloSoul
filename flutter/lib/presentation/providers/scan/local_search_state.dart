@@ -27,6 +27,10 @@ class LocalSearchState {
   final List<ImportConflict> importConflicts;
   final ScanImportResult? importResult;
 
+  // AI 字段映射状态
+  final AiMappingStatus aiMappingStatus;
+  final String? aiMappingError;
+
   const LocalSearchState({
     this.isScanning = false,
     this.wasCanceled = false,
@@ -54,6 +58,8 @@ class LocalSearchState {
     this.importCandidates = const [],
     this.importConflicts = const [],
     this.importResult,
+    this.aiMappingStatus = AiMappingStatus.idle,
+    this.aiMappingError,
   });
 
   LocalSearchState copyWith({
@@ -75,6 +81,8 @@ class LocalSearchState {
     List<ImportCandidate>? importCandidates,
     List<ImportConflict>? importConflicts,
     ScanImportResult? importResult,
+    AiMappingStatus? aiMappingStatus,
+    String? aiMappingError,
   }) {
     return LocalSearchState(
       isScanning: isScanning ?? this.isScanning,
@@ -95,6 +103,28 @@ class LocalSearchState {
       importCandidates: importCandidates ?? this.importCandidates,
       importConflicts: importConflicts ?? this.importConflicts,
       importResult: importResult ?? this.importResult,
+      aiMappingStatus: aiMappingStatus ?? this.aiMappingStatus,
+      aiMappingError: aiMappingError == null
+          ? this.aiMappingError
+          : (aiMappingError.isEmpty ? null : aiMappingError),
     );
   }
+}
+
+// =============================================================================
+// AI Mapping Status
+// =============================================================================
+
+enum AiMappingStatus {
+  idle,
+  loading,
+  success,
+  error,
+}
+
+extension AiMappingStatusExtension on AiMappingStatus {
+  bool get isIdle => this == AiMappingStatus.idle;
+  bool get isLoading => this == AiMappingStatus.loading;
+  bool get isSuccess => this == AiMappingStatus.success;
+  bool get isError => this == AiMappingStatus.error;
 }

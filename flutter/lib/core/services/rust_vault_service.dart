@@ -88,13 +88,10 @@ class RustVaultService {
     }
 
     // Also initialize the C FFI AccountManager for JSON relay operations
-    // (getAccountConfig, verifyPassword, etc.)
-    try {
-      final cResult = NativeVaultService.instance.initAccountManager(basePath);
-      SoloLog.d('RustVault', 'initAccountManager (C FFI) result: $cResult');
-    } on Exception catch (e, st) {
-      SoloLog.e('RustVault', 'initAccountManager (C FFI) failed', e, st);
-      // Non-fatal — FRB path still works
+    final cResult = NativeVaultService.instance.initAccountManager(basePath);
+    SoloLog.d('RustVault', 'initAccountManager (C FFI) result: $cResult');
+    if (!cResult) {
+      throw Exception('C FFI AccountManager init failed');
     }
 
     return true;
@@ -491,17 +488,22 @@ class RustVaultService {
   ///
   /// [accountId] - Account ID
   /// [jsonData] - Settings data as JSON string
-  ///
-  /// Returns true on success
-  Future<bool> saveSettingEncrypted(
+  Future<void> saveSettingEncrypted(
     String accountId,
     String jsonData,
   ) async {
+    // 诊断：对比 FRB 和 C FFI 的 vault 状态
+    try {
+      await frb.frbEncryptBytes(data: Uint8List.fromList([0]));
+      SoloLog.d('RustVault', 'DIAG: FRB encrypt success (vault unlocked in FRB)');
+    } on Exception catch (e) {
+      SoloLog.d('RustVault', 'DIAG: FRB encrypt failed: $e');
+    }
+    final cffiUnlocked = isVaultUnlocked();
+    SoloLog.d('RustVault', 'DIAG: C FFI isVaultUnlocked=$cffiUnlocked');
+
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
     final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
-    if (encryptedData.isEmpty) {
-      return false;
-    }
 
     final result = NativeVaultService.instance.request(
       'save_setting',
@@ -511,7 +513,13 @@ class RustVaultService {
       },
     );
 
-    return result?['success'] == true;
+    if (result == null) {
+      throw Exception('save_setting returned null response');
+    }
+    if (result['success'] != true) {
+      final error = result['error'] as String? ?? 'Unknown error';
+      throw Exception('save_setting failed: $error');
+    }
   }
 
   /// Load and decrypt account settings by account ID

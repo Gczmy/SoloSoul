@@ -2,9 +2,14 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_field_mapping_parser.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_prompt_templates.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_background_service.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_import_service.dart';
+import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/scan/local_search_state.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/presentation/providers/scan/scan_config_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
@@ -143,11 +148,14 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
     final fields = [...candidates[candidateIndex].fields];
     if (fieldIndex < 0 || fieldIndex >= fields.length) return;
 
+    final old = fields[fieldIndex];
     fields[fieldIndex] = ImportFieldCandidate(
-      source: fields[fieldIndex].source,
-      targetPropertyId: fields[fieldIndex].targetPropertyId,
-      suggestedAction: fields[fieldIndex].suggestedAction,
+      source: old.source,
+      targetPropertyId: old.targetPropertyId,
+      suggestedAction: old.suggestedAction,
       userAction: action,
+      mappingSource: old.mappingSource,
+      mappingConfidence: old.mappingConfidence,
     );
 
     candidates[candidateIndex] = ImportCandidate(
@@ -158,6 +166,159 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
     );
 
     state = state.copyWith(importCandidates: candidates);
+  }
+
+  // ---------------------------------------------------------------------------
+  // AI-assisted field mapping
+  // ---------------------------------------------------------------------------
+
+  Future<void> performAiMapping() async {
+    if (state.scanResults.isEmpty) return;
+
+    state = state.copyWith(
+      aiMappingStatus: AiMappingStatus.loading,
+      aiMappingError: '',
+    );
+
+    // 自动加载模型：若未加载则尝试根据配置初始化
+    final modelState = ref.read(llmModelProvider);
+    if (!modelState.hasValue || modelState.value != LlmModelState.loaded) {
+      try {
+        await ref.read(llmModelProvider.notifier).loadFromConfig();
+      } on LlmException catch (e) {
+        final errorMsg = switch (e.code) {
+          LlmErrorCode.unauthorized => 'API Key 无效或权限不足，请先配置 LLM',
+          LlmErrorCode.modelNotFound => '模型未加载，请先配置 LLM',
+          LlmErrorCode.network => '网络连接失败，请检查网络后重试',
+          _ => '模型加载失败: ${e.message}',
+        };
+        state = state.copyWith(
+          aiMappingStatus: AiMappingStatus.error,
+          aiMappingError: errorMsg,
+        );
+        return;
+      }
+    }
+
+    final importService = ScanImportService(
+      ref.read(unifiedObjectProvider.notifier),
+      ref.read(unifiedObjectProvider).objects,
+    );
+
+    // 保存用户当前的选择状态，错误回退时恢复
+    final previousSelection = <String, bool>{};
+    for (final c in state.importCandidates) {
+      previousSelection[c.source.section] = c.isSelected;
+    }
+
+    try {
+      final modelNotifier = ref.read(llmModelProvider.notifier);
+      final allCandidates = <ImportCandidate>[];
+
+      for (final result in state.scanResults) {
+        // 构建文件内容预览和 schema 描述
+        final fileName = result.meta.sourceFile.split('/').last;
+        final contentPreview = result.sections
+            .map((s) => s.fields.map((f) => '${f.key}: ${f.value}').join('\n'))
+            .join('\n---\n');
+
+        // 简化 schema：列出所有出现的 section 和字段
+        final schemaBuffer = StringBuffer();
+        for (final section in result.sections) {
+          schemaBuffer.writeln('Section: ${section.section}');
+          for (final field in section.fields) {
+            schemaBuffer.writeln('  - ${field.key}');
+          }
+        }
+
+        final prompt = LlmPromptTemplates.fieldMapping(
+          fileName: fileName,
+          contentPreview: contentPreview.isEmpty
+              ? '(文件内容为空或无法预览)'
+              : contentPreview.substring(
+                  0,
+                  contentPreview.length > 2000 ? 2000 : contentPreview.length,
+                ),
+          schemaJson: schemaBuffer.isEmpty
+              ? '(无可用字段)'
+              : schemaBuffer.toString(),
+        );
+
+        final llmResponse = await modelNotifier.infer(prompt, maxTokens: 1024);
+
+        // 解析 LLM 返回的 JSON
+        final llmResult = LlmFieldMappingParser.parse(
+          llmResponse,
+          source: 'local',
+        );
+
+        final candidates = importService.mapScanResultWithLlm(
+          result,
+          llmResult,
+        );
+        allCandidates.addAll(candidates);
+      }
+
+      // 重新检测冲突
+      final conflicts = importService.detectConflicts(allCandidates);
+
+      state = state.copyWith(
+        importCandidates: allCandidates,
+        importConflicts: conflicts,
+        aiMappingStatus: AiMappingStatus.success,
+      );
+    } on LlmException catch (e) {
+      final errorMsg = switch (e.code) {
+        LlmErrorCode.timeout => '模型响应超时，已回退到规则引擎',
+        LlmErrorCode.modelNotFound => '模型未加载，请先配置 LLM',
+        LlmErrorCode.network => '网络连接失败，已回退到规则引擎',
+        LlmErrorCode.unauthorized => 'API Key 无效或权限不足，已回退到规则引擎',
+        LlmErrorCode.rateLimited => '请求频率超限，已回退到规则引擎',
+        LlmErrorCode.privacyBlocked => '隐私策略阻止了请求，已回退到规则引擎',
+        _ => 'AI 映射失败: ${e.message}',
+      };
+
+      _fallbackToRuleEngine(importService, previousSelection, errorMsg);
+    } on FormatException catch (_) {
+      _fallbackToRuleEngine(
+        importService,
+        previousSelection,
+        '模型返回格式错误，已回退到规则引擎',
+      );
+    } on Exception catch (e) {
+      _fallbackToRuleEngine(
+        importService,
+        previousSelection,
+        'AI 映射失败: $e',
+      );
+    }
+  }
+
+  void _fallbackToRuleEngine(
+    ScanImportService importService,
+    Map<String, bool> previousSelection,
+    String errorMsg,
+  ) {
+    final allCandidates = <ImportCandidate>[];
+    for (final result in state.scanResults) {
+      final candidates = importService.mapScanResult(result);
+      // 恢复用户之前的选择状态
+      for (final c in candidates) {
+        final wasSelected = previousSelection[c.source.section];
+        if (wasSelected != null) {
+          c.isSelected = wasSelected;
+        }
+      }
+      allCandidates.addAll(candidates);
+    }
+    final conflicts = importService.detectConflicts(allCandidates);
+
+    state = state.copyWith(
+      importCandidates: allCandidates,
+      importConflicts: conflicts,
+      aiMappingStatus: AiMappingStatus.error,
+      aiMappingError: errorMsg,
+    );
   }
 
   Future<ScanImportResult> executeImport() async {

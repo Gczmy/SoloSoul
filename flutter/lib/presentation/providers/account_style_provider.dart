@@ -199,7 +199,12 @@ class AccountStyleService {
   /// Save account style to Rust vault.
   Future<bool> saveStyle(String accountId, AccountStyle style) async {
     final jsonData = jsonEncode(style.toJson());
-    return await _rustVault.saveSettingEncrypted(accountId, jsonData);
+    try {
+      await _rustVault.saveSettingEncrypted(accountId, jsonData);
+      return true;
+    } on Exception {
+      return false;
+    }
   }
 
   /// Delete account style from Rust vault.

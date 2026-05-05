@@ -1,54 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-
-// =============================================================================
-// LLM Config State
-// =============================================================================
-
-/// Immutable snapshot of LLM configuration for UI consumption.
-class LlmConfigState {
-  final LlmBackendType backendType;
-  final String cloudApiKey;
-  final String cloudEndpoint;
-  final String cloudModel;
-  final String? localModelPath;
-  final bool cloudConsent;
-
-  const LlmConfigState({
-    this.backendType = LlmBackendType.local,
-    this.cloudApiKey = '',
-    this.cloudEndpoint = 'https://api.openai.com/v1',
-    this.cloudModel = 'gpt-4o-mini',
-    this.localModelPath,
-    this.cloudConsent = false,
-  });
-
-  LlmConfigState copyWith({
-    LlmBackendType? backendType,
-    String? cloudApiKey,
-    String? cloudEndpoint,
-    String? cloudModel,
-    String? localModelPath,
-    bool? cloudConsent,
-  }) {
-    return LlmConfigState(
-      backendType: backendType ?? this.backendType,
-      cloudApiKey: cloudApiKey ?? this.cloudApiKey,
-      cloudEndpoint: cloudEndpoint ?? this.cloudEndpoint,
-      cloudModel: cloudModel ?? this.cloudModel,
-      localModelPath: localModelPath ?? this.localModelPath,
-      cloudConsent: cloudConsent ?? this.cloudConsent,
-    );
-  }
-
-  /// Whether cloud mode is usable (key + consent + endpoint).
-  bool get canUseCloud =>
-      backendType == LlmBackendType.cloud &&
-      cloudApiKey.isNotEmpty &&
-      cloudConsent;
-}
 
 // =============================================================================
 // Async Notifier
@@ -67,22 +21,7 @@ class LlmConfigNotifier extends AsyncNotifier<LlmConfigState> {
   Future<LlmConfigState> build() async {
     final accountId = _accountId;
     if (accountId == null) return const LlmConfigState();
-
-    final backend = await _service.getBackendType(accountId);
-    final key = await _service.getCloudApiKey(accountId) ?? '';
-    final endpoint = await _service.getCloudEndpoint(accountId);
-    final model = await _service.getCloudModel(accountId);
-    final localPath = await _service.getLocalModelPath(accountId);
-    final consent = await _service.getCloudConsent(accountId);
-
-    return LlmConfigState(
-      backendType: backend,
-      cloudApiKey: key,
-      cloudEndpoint: endpoint,
-      cloudModel: model,
-      localModelPath: localPath,
-      cloudConsent: consent,
-    );
+    return _service.getLlmConfigState(accountId);
   }
 
   // ---------------------------------------------------------------------------
@@ -91,51 +30,149 @@ class LlmConfigNotifier extends AsyncNotifier<LlmConfigState> {
 
   Future<void> setBackendType(LlmBackendType type) async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(backendType: type));
     final id = _accountId;
     if (id != null) await _service.setBackendType(id, type);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(backendType: type));
+    }
   }
 
   Future<void> setCloudApiKey(String apiKey) async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(cloudApiKey: apiKey));
     final id = _accountId;
     if (id != null) await _service.setCloudApiKey(id, apiKey);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudApiKey: apiKey));
+    }
   }
 
   Future<void> clearCloudApiKey() async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(cloudApiKey: ''));
     final id = _accountId;
     if (id != null) await _service.clearCloudApiKey(id);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudApiKey: ''));
+    }
   }
 
   Future<void> setCloudEndpoint(String endpoint) async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(cloudEndpoint: endpoint));
     final id = _accountId;
     if (id != null) await _service.setCloudEndpoint(id, endpoint);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudEndpoint: endpoint));
+    }
   }
 
   Future<void> setCloudModel(String model) async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(cloudModel: model));
     final id = _accountId;
     if (id != null) await _service.setCloudModel(id, model);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudModel: model));
+    }
   }
 
   Future<void> setLocalModelPath(String path) async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(localModelPath: path));
     final id = _accountId;
     if (id != null) await _service.setLocalModelPath(id, path);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(localModelPath: path));
+    }
   }
 
   Future<void> setCloudConsent(bool consent) async {
     if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(cloudConsent: consent));
     final id = _accountId;
     if (id != null) await _service.setCloudConsent(id, consent);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudConsent: consent));
+    }
+  }
+
+  Future<void> setCloudProviderType(LlmCloudProviderType type) async {
+    if (!state.hasValue) return;
+    final id = _accountId;
+    if (id != null) await _service.setCloudProviderType(id, type);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudProviderType: type));
+    }
+  }
+
+  Future<void> setCloudAnthropicVersion(String version) async {
+    if (!state.hasValue) return;
+    final id = _accountId;
+    if (id != null) await _service.setCloudAnthropicVersion(id, version);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(cloudAnthropicVersion: version));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Profile CRUD
+  // ---------------------------------------------------------------------------
+
+  Future<void> addCloudProfile({
+    required String name,
+    required LlmCloudProviderType providerType,
+    required String apiKey,
+    required String endpoint,
+    required String model,
+    String? anthropicVersion,
+  }) async {
+    final id = _accountId;
+    if (id == null) return;
+    await _service.addCloudProfile(
+      id,
+      name: name,
+      providerType: providerType,
+      apiKey: apiKey,
+      endpoint: endpoint,
+      model: model,
+      anthropicVersion: anthropicVersion,
+    );
+    state = AsyncData(await _service.getLlmConfigState(id));
+  }
+
+  Future<void> updateCloudProfile({
+    required String profileId,
+    String? name,
+    LlmCloudProviderType? providerType,
+    String? apiKey,
+    String? endpoint,
+    String? model,
+    String? anthropicVersion,
+  }) async {
+    final id = _accountId;
+    if (id == null) return;
+    await _service.updateCloudProfile(
+      id,
+      profileId: profileId,
+      name: name,
+      providerType: providerType,
+      apiKey: apiKey,
+      endpoint: endpoint,
+      model: model,
+      anthropicVersion: anthropicVersion,
+    );
+    state = AsyncData(await _service.getLlmConfigState(id));
+  }
+
+  Future<void> deleteCloudProfile(String profileId) async {
+    final id = _accountId;
+    if (id == null) return;
+    await _service.deleteCloudProfile(id, profileId);
+    state = AsyncData(await _service.getLlmConfigState(id));
+  }
+
+  Future<void> setActiveCloudProfile(String profileId) async {
+    final id = _accountId;
+    if (id == null) return;
+    await _service.setActiveCloudProfileId(id, profileId);
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(activeCloudProfileId: profileId));
+    }
   }
 }
 

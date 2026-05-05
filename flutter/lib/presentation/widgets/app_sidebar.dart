@@ -127,6 +127,14 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               location == AppRoutes.scanImportResult,
           onTap: () => context.go(AppRoutes.localSearch),
         ),
+      // AI Chat
+      NavTile(
+        icon: Icons.chat_bubble_outline,
+        label: 'AI 对话',
+        expanded: _expanded,
+        selected: location == AppRoutes.llmChat,
+        onTap: () => context.go(AppRoutes.llmChat),
+      ),
       if (kDebugMode) const SizedBox(height: 4),
       const Divider(height: 1),
       const SizedBox(height: 8),
@@ -389,7 +397,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                               location == AppRoutes.securitySettings ||
                               location == AppRoutes.sensitivitySettings ||
                               location == AppRoutes.operationLog ||
-                              (kDebugMode && location == AppRoutes.llmConfig),
+                              location == AppRoutes.llmConfig,
                           onTap: () => context.go(AppRoutes.settings),
                         ),
                       ],
