@@ -598,6 +598,9 @@ class LlmApiError {
 /// Communicates with `http://localhost:11434/api/chat` by default.
 /// Supports streaming responses via [streamChat].
 class LlmLocalService implements LlmService {
+  /// Default local model name (Ollama).
+  static const String defaultModelName = 'qwen2.5:1.5b';
+
   final String baseUrl;
   final String modelName;
   final Duration timeout;
@@ -614,7 +617,7 @@ class LlmLocalService implements LlmService {
 
   LlmLocalService({
     this.baseUrl = 'http://localhost:11434',
-    this.modelName = 'qwen2.5:1.5b',
+    this.modelName = defaultModelName,
     this.timeout = const Duration(seconds: 60),
     this.temperature = 0.7,
     this.topP = 0.9,

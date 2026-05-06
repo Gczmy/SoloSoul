@@ -119,29 +119,7 @@ class LlmModelManager {
       _currentProvider = provider.name;
       _errorMessage = null;
       await _transitionTo(LlmModelState.loaded);
-      // 记录该模型的最后加载时间（账户级 + 会话级）
-      final loadKey = '${provider.name}/$model';
-      final now = DateTime.now();
-      final existingLoad = _perModelStats[loadKey];
-      if (existingLoad != null) {
-        _perModelStats[loadKey] = existingLoad.copyWith(lastLoadTime: now);
-      } else {
-        _perModelStats[loadKey] = LlmModelUsage(
-          modelName: model,
-          provider: provider.name,
-          lastLoadTime: now,
-        );
-      }
-      final sessionExistingLoad = _sessionPerModelStats[loadKey];
-      if (sessionExistingLoad != null) {
-        _sessionPerModelStats[loadKey] = sessionExistingLoad.copyWith(lastLoadTime: now);
-      } else {
-        _sessionPerModelStats[loadKey] = LlmModelUsage(
-          modelName: model,
-          provider: provider.name,
-          lastLoadTime: now,
-        );
-      }
+      _recordModelLoad('${provider.name}/$model', model, provider.name);
     } catch (e) {
       _service = null;
       _errorMessage = e.toString();
@@ -186,29 +164,7 @@ class LlmModelManager {
       _currentProvider = 'ollama';
       _errorMessage = null;
       await _transitionTo(LlmModelState.loaded);
-      // 记录该模型的最后加载时间（账户级 + 会话级）
-      final loadKey = 'ollama/$modelName';
-      final now = DateTime.now();
-      final existingLoad = _perModelStats[loadKey];
-      if (existingLoad != null) {
-        _perModelStats[loadKey] = existingLoad.copyWith(lastLoadTime: now);
-      } else {
-        _perModelStats[loadKey] = LlmModelUsage(
-          modelName: modelName,
-          provider: 'ollama',
-          lastLoadTime: now,
-        );
-      }
-      final sessionExistingLoad = _sessionPerModelStats[loadKey];
-      if (sessionExistingLoad != null) {
-        _sessionPerModelStats[loadKey] = sessionExistingLoad.copyWith(lastLoadTime: now);
-      } else {
-        _sessionPerModelStats[loadKey] = LlmModelUsage(
-          modelName: modelName,
-          provider: 'ollama',
-          lastLoadTime: now,
-        );
-      }
+      _recordModelLoad('ollama/$modelName', modelName, 'ollama');
     } catch (e) {
       _service = null;
       _errorMessage = e.toString();
@@ -458,6 +414,18 @@ class LlmModelManager {
     if (!_stateController.isClosed) {
       _stateController.close();
     }
+  }
+
+  void _recordModelLoad(String loadKey, String modelName, String provider) {
+    final now = DateTime.now();
+    final existing = _perModelStats[loadKey];
+    _perModelStats[loadKey] = existing != null
+        ? existing.copyWith(lastLoadTime: now)
+        : LlmModelUsage(modelName: modelName, provider: provider, lastLoadTime: now);
+    final sessionExisting = _sessionPerModelStats[loadKey];
+    _sessionPerModelStats[loadKey] = sessionExisting != null
+        ? sessionExisting.copyWith(lastLoadTime: now)
+        : LlmModelUsage(modelName: modelName, provider: provider, lastLoadTime: now);
   }
 
   Future<void> _transitionTo(LlmModelState newState) async {

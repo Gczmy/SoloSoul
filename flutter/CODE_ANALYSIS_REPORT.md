@@ -29,7 +29,7 @@
 | P018 | P2     | 一致性     | `lib/core/services/llm/llm_service.dart:640-692 vs 697-741` | `LlmLocalService` 流式与非流式请求 options 不一致（缺少 `top_p`、`num_ctx`） | `[x]` 已修复 |
 | P019 | P2     | 可配置性   | `lib/core/services/llm/llm_service.dart:598` | 默认 `modelName` 硬编码 `'qwen2.5:1.5b'`，应从配置读取 | `[ ]` 待修复 |
 | P020 | P2     | 可维护性   | `lib/core/services/llm/llm_service.dart` 整体 | 文件 887 行包含 7 个类，应拆分为 `llm_message.dart`、`llm_cloud_service.dart`、`llm_local_service.dart` 等 | `[ ]` 待修复 |
-| P021 | P2     | 重复代码   | `lib/core/services/llm/llm_model_manager.dart:130-144,190-211` | `loadCloud` 与 `loadLocal` 中记录模型最后加载时间的逻辑完全重复 | `[ ]` 待修复 |
+| P021 | P2     | 重复代码   | `lib/core/services/llm/llm_model_manager.dart:130-144,190-211` | `loadCloud` 与 `loadLocal` 中记录模型最后加载时间的逻辑完全重复 | `[x]` 已修复（提取 `_recordModelLoad` 方法） |
 | P022 | P2     | 国际化     | `lib/core/services/llm/llm_query_enhancer.dart:78-94,137-149` | Prompt 模板与同义词表仅支持中文，英文查询优化效果差 | `[ ]` 待修复 |
 | P023 | P2     | 误报风险   | `lib/core/services/scan/local_search_service.dart:42,46,54,55,59,60,651,662` | 正则指纹缺少边界锚定，容易在长数字串中误匹配 | `[x]` 已修复 |
 | P024 | P2     | 一致性     | `lib/core/services/scan/local_search_service.dart:298,388` | `_listFilesMacOS` fallback 未传 `maxFiles`；`_listFilesGeneric` 硬编码 200 限制与 500 不一致 | `[ ]` 待修复 |
@@ -42,8 +42,8 @@
 
 ## 修复进度
 
-- 已完成：25 / 30
-- 当前处理：全部 P0/P1 及大部分 P2 已修复
+- 已完成：27 / 30
+- 当前处理：P019, P021
 
 ## 详细问题描述与修复指引
 
