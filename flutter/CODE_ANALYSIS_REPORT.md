@@ -20,8 +20,8 @@
 | P009 | P1     | 安全设计   | `lib/core/services/llm/llm_config_service.dart:48-73` | 自动迁移旧配置时将 legacy apiKey 写入 profile 并序列化存储 | `[x]` 已修复（注释修正：明确说明 Vault 加密保护） |
 | P010 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:66-69` | `LlmMessage.fromJson` 强制类型转换无空值防护，无效 JSON 会抛 `TypeError` | `[x]` 已修复 |
 | P011 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:270-285,291-301,327-345` | `_parseResponse` / `_parseError` 中多处 `dynamic` 强制转换缺少防护 | `[x]` 已修复 |
-| P012 | P1     | 可维护性   | `lib/core/services/scan/local_search_service.dart:144-242` | `scan()` 方法过长（98 行），混合文件遍历、缓存、解析、回调逻辑 | `[ ]` 待修复 |
-| P013 | P1     | 可维护性   | `lib/core/services/scan/scan_import_service.dart:269-375` | `executeImport()` 过长（106 行），应拆分为子步骤方法 | `[ ]` 待修复 |
+| P012 | P1     | 可维护性   | `lib/core/services/scan/local_search_service.dart:144-242` | `scan()` 方法过长（98 行），混合文件遍历、缓存、解析、回调逻辑 | `[x]` 已修复（提取 `_shouldSkipFile` 和 `_scanFile`） |
+| P013 | P1     | 可维护性   | `lib/core/services/scan/scan_import_service.dart:269-375` | `executeImport()` 过长（106 行），应拆分为子步骤方法 | `[x]` 已修复（提取 `_fieldsToWrite`、`_buildProperties`、`_updateExisting`、`_createNew`） |
 | P014 | P1     | 可维护性   | `lib/presentation/widgets/llm/llm_chat_panel.dart:152-317` | `build()` 方法过长（164 行），应将子组件提取为独立 widget | `[x]` 已修复（提取 `_buildInputArea` 方法） |
 | P015 | P1     | 功能缺陷   | `lib/core/services/llm/llm_config_service.dart:169` | `updateCloudProfile` 中 apiKey 为空字符串时无法清空，会保留旧值 | `[x]` 已修复（引入 sentinel 区分"不修改"与"清空"） |
 | P016 | P1     | 性能/费用  | `lib/presentation/providers/scan/local_search_provider.dart:175-295` | `performAiMapping` 对每个 scan result 单独调用 LLM，无并发限制，大量文件时可能请求风暴 | `[x]` 已修复（限制最多 5 个文件使用 AI 映射，其余回退规则引擎） |
@@ -42,8 +42,8 @@
 
 ## 修复进度
 
-- 已完成：23 / 30
-- 当前处理：P012-P013, P017-P018, P023-P030
+- 已完成：25 / 30
+- 当前处理：全部 P0/P1 及大部分 P2 已修复
 
 ## 详细问题描述与修复指引
 
