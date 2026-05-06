@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/models/search_models.dart'
     show SearchResultItem, SearchState;
@@ -39,7 +40,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: const Text('Search'),
       ),
       body: Column(

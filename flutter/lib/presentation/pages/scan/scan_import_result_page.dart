@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
@@ -18,7 +19,7 @@ class ScanImportResultPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: const Text('Import Complete'),
         centerTitle: true,
         automaticallyImplyLeading: false,

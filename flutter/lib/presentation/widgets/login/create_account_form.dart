@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Create account form for the login page.
@@ -45,6 +46,8 @@ class CreateAccountForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+
     return Column(
       children: [
         Text(
@@ -215,20 +218,34 @@ class CreateAccountForm extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        // Create Button
-        ElevatedButton(
-              onPressed: isLoading ? null : onCreateAccount,
-              child: isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text('Create Account'),
-            )
+        // Create Button — Liquid Glass
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: GlassButton.custom(
+            onTap: isLoading ? () {} : onCreateAccount,
+            width: double.infinity,
+            height: 52,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    'Create Account',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF1F1F1F),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        )
             .animate()
             .fadeIn(delay: 400.ms, duration: 400.ms)
             .slideY(begin: 0.2, end: 0),

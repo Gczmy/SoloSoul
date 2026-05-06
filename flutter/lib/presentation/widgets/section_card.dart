@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 class CollapsibleSectionCard extends StatefulWidget {
   final String title;
@@ -50,84 +51,82 @@ class _CollapsibleSectionCardState extends State<CollapsibleSectionCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
+    return GlassCard(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Icon(widget.icon, size: 20, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                if (widget.actionIcon != null && widget.onAction != null)
-                  IconButton(
-                    icon: Icon(widget.actionIcon, size: 20),
-                    onPressed: widget.onAction,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Add',
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Content
-            if (widget.children.isEmpty && widget.emptyContentBuilder != null)
-              widget.emptyContentBuilder!(theme)
-            else
-              ...widget.children.take(_visibleCount),
-            // Expand/Collapse button
-            if (_shouldCollapse) ...[
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: () => setState(() => _isExpanded = !_isExpanded),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _isExpanded
-                            ? Icons.keyboard_arrow_up
-                            : Icons.keyboard_arrow_down,
-                        size: 20,
-                        color: theme.colorScheme.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _isExpanded
-                            ? 'Show less'
-                            : 'Show $_hiddenCount more',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(widget.icon, size: 20, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+              if (widget.actionIcon != null && widget.onAction != null)
+                IconButton(
+                  icon: Icon(widget.actionIcon, size: 20),
+                  onPressed: widget.onAction,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Add',
+                ),
             ],
-            // Footer (form or other content inside the card)
-            if (widget.footer != null) ...[
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-              widget.footer!,
-            ],
+          ),
+          const SizedBox(height: 8),
+          // Content
+          if (widget.children.isEmpty && widget.emptyContentBuilder != null)
+            widget.emptyContentBuilder!(theme)
+          else
+            ...widget.children.take(_visibleCount),
+          // Expand/Collapse button
+          if (_shouldCollapse) ...[
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () => setState(() => _isExpanded = !_isExpanded),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _isExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      size: 20,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isExpanded
+                          ? 'Show less'
+                          : 'Show $_hiddenCount more',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
+          // Footer (form or other content inside the card)
+          if (widget.footer != null) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            widget.footer!,
+          ],
+        ],
       ),
     );
   }
@@ -155,46 +154,44 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
+    return GlassCard(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: titleColor ?? theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: titleColor,
-                    ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: titleColor ?? theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: titleColor,
                   ),
                 ),
-                if (actionIcon != null && onAction != null)
-                  IconButton(
-                    icon: Icon(actionIcon, size: 20),
-                    onPressed: onAction,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    tooltip: 'Add',
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Content
-            ...children,
-          ],
-        ),
+              ),
+              if (actionIcon != null && onAction != null)
+                IconButton(
+                  icon: Icon(actionIcon, size: 20),
+                  onPressed: onAction,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Add',
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Content
+          ...children,
+        ],
       ),
     );
   }

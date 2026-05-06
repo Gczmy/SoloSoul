@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
 /// Generic page scaffold for object category pages (Profile, Travel, Financial, Professional).
@@ -20,7 +21,7 @@ class ObjectCategoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: Text(title),
         actions: const [HeaderActionButtons()],
       ),

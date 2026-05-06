@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel, formFieldRegistryProvider;
@@ -113,7 +114,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
         if (!_dialogShown) _verifyPassword();
       });
       return Scaffold(
-        appBar: AppBar(title: const Text('Sensitivity Settings')),
+        appBar: SoloGlassAppBar(title: const Text('Sensitivity Settings')),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -508,7 +509,7 @@ class _SensitivitySettingsView extends StatelessWidget {
     final totalFields = effectiveFields.length;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: const Text('Sensitivity Settings'),
         actions: const [
           HeaderActionButtons(),

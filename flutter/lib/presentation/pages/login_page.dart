@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
@@ -11,6 +12,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
@@ -101,26 +103,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!context.mounted) return;
 
     final latest = backups.first;
-    final shouldRestore = await showDialog<bool>(
+    final shouldRestore = await showSoloGlassDialog<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Data Recovery'),
-        content: Text(
+      title: 'Data Recovery',
+      message:
           'Your vault appears to be empty, but a backup exists from ${latest.displayTime}. '
           'Would you like to restore from this backup?',
+      actions: [
+        SoloGlassDialogAction(
+          label: 'Skip',
+          onPressed: () => Navigator.of(context).pop(false),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Skip'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Restore Backup'),
-          ),
-        ],
-      ),
+        SoloGlassDialogAction(
+          label: 'Restore Backup',
+          isPrimary: true,
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+      ],
     );
 
     if (shouldRestore == true) {
@@ -142,6 +141,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     }
   }
+
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
   String? _createError;
@@ -611,6 +611,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     // Use ref.read to avoid rebuilds when auth state changes during setState
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final selectedAccountId = authNotifier.selectedAccountId;
@@ -619,6 +620,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
+      backgroundColor:
+          isDark ? AppTheme.darkBackground : AppTheme.lightBackground,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -630,29 +633,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header Logo
+              // Header Logo — Liquid Glass orb
               Center(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppTheme.primaryColor,
-                            AppTheme.secondaryColor,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.lock_outline,
-                        size: 40,
-                        color: Colors.white,
-                      ),
-                    ),
-                  )
+                child: GlassButton(
+                  icon: const Icon(
+                    Icons.lock_outline,
+                    color: Colors.white,
+                  ),
+                  onTap: () {},
+                  width: 80,
+                  height: 80,
+                  iconSize: 36,
+                  shape: const LiquidRoundedSuperellipse(borderRadius: 20),
+                  useOwnLayer: true,
+                  settings: const LiquidGlassSettings(
+                    thickness: 30,
+                    blur: 10,
+                    glassColor: Color(0x4D487CA5),
+                    refractiveIndex: 1.3,
+                    lightIntensity: 1.2,
+                  ),
+                ),
+              )
                   .animate()
                   .scale(
                     begin: const Offset(0.8, 0.8),
@@ -675,91 +677,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
               const SizedBox(height: 8),
 
-              // Content based on state
-              if (_showCreateAccount) ...[
-                CreateAccountForm(
-                  nameController: _newAccountNameController,
-                  passwordController: _newPasswordController,
-                  confirmPasswordController: _confirmPasswordController,
-                  hintController: _passwordHintController,
-                  obscurePassword: _obscureNewPassword,
-                  obscureConfirmPassword: _obscureConfirmPassword,
-                  passwordFocusNode: _newPasswordFocusNode,
-                  isPasswordFocused: _isNewPasswordFocused,
-                  confirmPasswordFocusNode: _confirmPasswordFocusNode,
-                  isConfirmPasswordFocused: _isConfirmPasswordFocused,
-                  isLoading: _isLoading,
-                  createError: _createError,
-                  onCreateAccount: _handleCreateAccount,
-                  onBack: _backToAccountListFromCreate,
-                  onToggleObscurePassword: () {
-                    setState(() => _obscureNewPassword = !_obscureNewPassword);
-                  },
-                  onToggleObscureConfirmPassword: () {
-                    setState(
-                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                    );
-                  },
-                ),
-              ] else if (selectedAccountId != null) ...[
-                accountsAsync.when(
-                  data: (accounts) {
-                    final selectedAccount = accounts
-                        .cast<AccountInfo?>()
-                        .firstWhere(
-                          (a) => a?.id == selectedAccountId,
-                          orElse: () => null,
-                        );
-                    if (selectedAccount != null) {
-                      return PasswordInputSection(
-                        formKey: _formKey,
-                        passwordController: _passwordController,
-                        obscurePassword: _obscurePassword,
-                        passwordFocusNode: _passwordFocusNode,
-                        isPasswordFocused: _isPasswordFocused,
-                        hasPasswordError: _hasPasswordError,
-                        passwordErrorMessage: _passwordErrorMessage,
-                        isLoading: _isLoading,
-                        biometricsEnabled: _biometricsEnabled,
-                        biometricType: _biometricType,
-                        selectedAccount: selectedAccount,
-                        onBack: _backToAccountList,
-                        onUnlock: _handleUnlock,
-                        onBiometricUnlock: _handleBiometricUnlock,
-                        onToggleObscure: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                        onShowPasswordHint: _showPasswordHint,
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
-              ] else ...[
-                accountsAsync.when(
-                  data: (accounts) => AccountListSection(
-                    accounts: accounts,
-                    accountsExpanded: _accountsExpanded,
-                    onSelectAccount: _selectAccount,
-                    onToggleExpanded: () {
-                      setState(() => _accountsExpanded = !_accountsExpanded);
-                    },
-                    onCreateAccount: () {
-                      setState(() {
-                        _showCreateAccount = true;
-                        _accountsExpanded = false;
-                      });
-                    },
-                    formatLastAccessed: _formatLastAccessed,
+              // Content based on state — wrapped in GlassCard for depth
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: GlassCard(
+                  useOwnLayer: true,
+                  padding: const EdgeInsets.all(24),
+                  settings: isDark
+                      ? const LiquidGlassSettings(
+                          thickness: 30,
+                          blur: 12,
+                          glassColor: Color(0x26FFFFFF),
+                          refractiveIndex: 1.2,
+                          lightIntensity: 1.1,
+                        )
+                      : const LiquidGlassSettings(
+                          thickness: 20,
+                          blur: 10,
+                          glassColor: Color(0x18D2DCF0),
+                          refractiveIndex: 1.15,
+                          lightIntensity: 0.95,
+                        ),
+                  child: _buildContent(
+                    selectedAccountId,
+                    accountsAsync,
+                    isDark,
                   ),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(child: Text('Error: $error')),
                 ),
-              ],
+              ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
             ],
           ),
         ),
@@ -767,4 +712,92 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
+  Widget _buildContent(
+    String? selectedAccountId,
+    AsyncValue<List<AccountInfo>> accountsAsync,
+    bool isDark,
+  ) {
+    if (_showCreateAccount) {
+      return CreateAccountForm(
+        nameController: _newAccountNameController,
+        passwordController: _newPasswordController,
+        confirmPasswordController: _confirmPasswordController,
+        hintController: _passwordHintController,
+        obscurePassword: _obscureNewPassword,
+        obscureConfirmPassword: _obscureConfirmPassword,
+        passwordFocusNode: _newPasswordFocusNode,
+        isPasswordFocused: _isNewPasswordFocused,
+        confirmPasswordFocusNode: _confirmPasswordFocusNode,
+        isConfirmPasswordFocused: _isConfirmPasswordFocused,
+        isLoading: _isLoading,
+        createError: _createError,
+        onCreateAccount: _handleCreateAccount,
+        onBack: _backToAccountListFromCreate,
+        onToggleObscurePassword: () {
+          setState(() => _obscureNewPassword = !_obscureNewPassword);
+        },
+        onToggleObscureConfirmPassword: () {
+          setState(
+            () => _obscureConfirmPassword = !_obscureConfirmPassword,
+          );
+        },
+      );
+    } else if (selectedAccountId != null) {
+      return accountsAsync.when(
+        data: (accounts) {
+          final selectedAccount = accounts
+              .cast<AccountInfo?>()
+              .firstWhere(
+                (a) => a?.id == selectedAccountId,
+                orElse: () => null,
+              );
+          if (selectedAccount != null) {
+            return PasswordInputSection(
+              formKey: _formKey,
+              passwordController: _passwordController,
+              obscurePassword: _obscurePassword,
+              passwordFocusNode: _passwordFocusNode,
+              isPasswordFocused: _isPasswordFocused,
+              hasPasswordError: _hasPasswordError,
+              passwordErrorMessage: _passwordErrorMessage,
+              isLoading: _isLoading,
+              biometricsEnabled: _biometricsEnabled,
+              biometricType: _biometricType,
+              selectedAccount: selectedAccount,
+              onBack: _backToAccountList,
+              onUnlock: _handleUnlock,
+              onBiometricUnlock: _handleBiometricUnlock,
+              onToggleObscure: () {
+                setState(() => _obscurePassword = !_obscurePassword);
+              },
+              onShowPasswordHint: _showPasswordHint,
+            );
+          }
+          return const SizedBox.shrink();
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => const SizedBox.shrink(),
+      );
+    } else {
+      return accountsAsync.when(
+        data: (accounts) => AccountListSection(
+          accounts: accounts,
+          accountsExpanded: _accountsExpanded,
+          onSelectAccount: _selectAccount,
+          onToggleExpanded: () {
+            setState(() => _accountsExpanded = !_accountsExpanded);
+          },
+          onCreateAccount: () {
+            setState(() {
+              _showCreateAccount = true;
+              _accountsExpanded = false;
+            });
+          },
+          formatLastAccessed: _formatLastAccessed,
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('Error: $error')),
+      );
+    }
+  }
 }

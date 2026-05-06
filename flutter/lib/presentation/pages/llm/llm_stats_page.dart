@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,7 @@ class LlmStatsPage extends ConsumerWidget {
     final daily = modelNotifier.dailyStats;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: const Text('使用统计'),
         centerTitle: true,
       ),

@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/utils/format_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/data_management/backup_list_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/data_management/backup_progress_indicator.dart';
@@ -608,7 +609,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     final totalSize = _backups.fold<int>(0, (s, e) => s + e.sizeBytes);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: const Text('Data Management'),
         actions: [
           if (_isCreating || _isRestoring || _isCreatingSpecial)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
@@ -326,20 +327,34 @@ class _UnlockButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: isLoading ? null : onUnlock,
-      child: isLoading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.white,
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: GlassButton.custom(
+        onTap: isLoading ? () {} : onUnlock,
+        width: double.infinity,
+        height: 52,
+        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                'Unlock',
+                style: TextStyle(
+                  color: isDark ? Colors.white : const Color(0xFF1F1F1F),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            )
-          : const Text('Unlock'),
+      ),
     );
   }
 }
@@ -357,17 +372,35 @@ class _BiometricButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: isLoading ? null : onBiometricUnlock,
-      icon: Icon(
-        biometricType == 'Face ID' ? Icons.face : Icons.fingerprint,
-        size: 22,
-      ),
-      label: Text('Use $biometricType'),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 24,
-          vertical: 12,
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: GlassButton.custom(
+        onTap: isLoading ? () {} : onBiometricUnlock,
+        width: double.infinity,
+        height: 48,
+        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+        style: GlassButtonStyle.transparent,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              biometricType == 'Face ID' ? Icons.face : Icons.fingerprint,
+              size: 22,
+              color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Use $biometricType',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );

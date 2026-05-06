@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
@@ -16,7 +17,7 @@ import 'package:solosoul_flutter/presentation/widgets/sidebar/page_tree_tile.dar
 import 'package:solosoul_flutter/presentation/widgets/sidebar/sidebar_header.dart';
 
 // =============================================================================
-// AppSidebar — Persistent sidebar for all protected pages
+// AppSidebar — Persistent sidebar for all protected pages (Liquid Glass)
 // =============================================================================
 
 class AppSidebar extends ConsumerStatefulWidget {
@@ -311,99 +312,127 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     final allPages = ref.watch(objectsByTypeProvider('page'));
     // Filter out default pages (Profile, Travel, Financial, Professional)
     // so they don't appear in the custom pages section.
-    final customPages = allPages.where((p) =>
-        p.id != DefaultPageIds.profile &&
-        p.id != DefaultPageIds.travel &&
-        p.id != DefaultPageIds.financial &&
-        p.id != DefaultPageIds.professional).toList();
+    final customPages = allPages
+        .where((p) =>
+            p.id != DefaultPageIds.profile &&
+            p.id != DefaultPageIds.travel &&
+            p.id != DefaultPageIds.financial &&
+            p.id != DefaultPageIds.professional)
+        .toList();
+
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 
     return SizedBox(
       width: sidebarWidth,
       child: Stack(
         children: [
-          // Sidebar content
-          Container(
+          // Sidebar content with liquid glass background
+          SizedBox(
             width: sidebarWidth,
-            clipBehavior: Clip.hardEdge,
-            decoration: const BoxDecoration(),
-            child: Container(
-              color: theme.colorScheme.surfaceContainerLowest,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  SidebarHeader(expanded: _expanded, onToggle: _toggle),
-                  const Divider(height: 1),
+            child: AdaptiveGlass(
+              shape: const LiquidRoundedRectangle(borderRadius: 0),
+              settings: isDark
+                  ? const LiquidGlassSettings(
+                      thickness: 30,
+                      blur: 20,
+                      glassColor: Color(0x1AFFFFFF),
+                      refractiveIndex: 1.3,
+                      lightIntensity: 0.8,
+                      ambientStrength: 0.15,
+                    )
+                  : const LiquidGlassSettings(
+                      thickness: 20,
+                      blur: 15,
+                      glassColor: Color(0x15D2DCF0),
+                      refractiveIndex: 1.15,
+                      lightIntensity: 0.9,
+                      ambientStrength: 0.1,
+                    ),
+              quality: GlassQuality.standard,
+              child: Container(
+                color: isDark
+                    ? const Color(0x0DFFFFFF)
+                    : const Color(0x08D2DCF0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    SidebarHeader(expanded: _expanded, onToggle: _toggle),
+                    const Divider(height: 1),
 
-                  // Nav items + custom pages
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final sidebarItems = _buildSidebarItems(
-                          context, location, customPages, theme,
-                        );
-                        return ListView.builder(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: _expanded ? 12 : 0,
-                            vertical: 8,
+                    // Nav items + custom pages
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          final sidebarItems = _buildSidebarItems(
+                            context,
+                            location,
+                            customPages,
+                            theme,
+                          );
+                          return ListView.builder(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: _expanded ? 12 : 0,
+                              vertical: 8,
+                            ),
+                            itemCount: sidebarItems.length,
+                            itemBuilder: (context, index) => sidebarItems[index],
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Bottom actions: Lock + Trash + Settings
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: _expanded ? 12 : 0,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          NavTile(
+                            icon: Icons.lock_outline,
+                            label: 'Lock Vault',
+                            expanded: _expanded,
+                            onTap: () async {
+                              final confirmed = await showLockVaultDialog(context);
+                              if (confirmed == true && context.mounted) {
+                                await ref.read(authNotifierProvider.notifier).lockVault();
+                              }
+                            },
                           ),
-                          itemCount: sidebarItems.length,
-                          itemBuilder: (context, index) => sidebarItems[index],
-                        );
-                      },
+                          NavTile(
+                            icon: Icons.delete_outline,
+                            label: 'Trash',
+                            expanded: _expanded,
+                            selected: location == AppRoutes.trash,
+                            onTap: () => context.go(AppRoutes.trash),
+                          ),
+                          NavTile(
+                            icon: Icons.sync,
+                            label: 'Sync',
+                            expanded: _expanded,
+                            selected: location == AppRoutes.sync,
+                            onTap: () => context.go(AppRoutes.sync),
+                          ),
+                          NavTile(
+                            icon: Icons.settings_outlined,
+                            label: 'Settings',
+                            expanded: _expanded,
+                            selected: location == AppRoutes.settings ||
+                                location == AppRoutes.securitySettings ||
+                                location == AppRoutes.sensitivitySettings ||
+                                location == AppRoutes.operationLog ||
+                                location == AppRoutes.llmConfig,
+                            onTap: () => context.go(AppRoutes.settings),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-
-                  // Bottom actions: Lock + Trash + Settings
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: _expanded ? 12 : 0,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        NavTile(
-                          icon: Icons.lock_outline,
-                          label: 'Lock Vault',
-                          expanded: _expanded,
-                          onTap: () async {
-                            final confirmed = await showLockVaultDialog(context);
-                            if (confirmed == true && context.mounted) {
-                              await ref.read(authNotifierProvider.notifier).lockVault();
-                            }
-                          },
-                        ),
-                        NavTile(
-                          icon: Icons.delete_outline,
-                          label: 'Trash',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.trash,
-                          onTap: () => context.go(AppRoutes.trash),
-                        ),
-                        NavTile(
-                          icon: Icons.sync,
-                          label: 'Sync',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.sync,
-                          onTap: () => context.go(AppRoutes.sync),
-                        ),
-                        NavTile(
-                          icon: Icons.settings_outlined,
-                          label: 'Settings',
-                          expanded: _expanded,
-                          selected: location == AppRoutes.settings ||
-                              location == AppRoutes.securitySettings ||
-                              location == AppRoutes.sensitivitySettings ||
-                              location == AppRoutes.operationLog ||
-                              location == AppRoutes.llmConfig,
-                          onTap: () => context.go(AppRoutes.settings),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

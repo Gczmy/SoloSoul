@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
@@ -10,6 +11,7 @@ import 'package:solosoul_flutter/core/services/user_preferences_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/dashed_placeholder.dart';
 
@@ -22,7 +24,7 @@ import 'package:solosoul_flutter/presentation/widgets/home/quick_action_tile.dar
 import 'package:solosoul_flutter/presentation/widgets/home/security_item.dart';
 
 // =============================================================================
-// HomePage — Dashboard with quick actions + inline page editor
+// HomePage — Dashboard with quick actions + inline page editor (Liquid Glass)
 // =============================================================================
 
 class HomePage extends ConsumerStatefulWidget {
@@ -44,9 +46,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SoloSoul'),
-        actions: const [HeaderActionButtons()],
+      appBar: const SoloGlassAppBar(
+        title: Text('SoloSoul'),
+        actions: [HeaderActionButtons()],
       ),
       body: _isEditingPage
           ? PageEditor(
@@ -271,83 +273,98 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = ref.watch(authNotifierProvider.select((a) => a.value));
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 
     return SingleChildScrollView(
       padding: AppTheme.kPagePadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppTheme.successColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.shield,
-                      color: AppTheme.successColor,
-                    ),
+          // Status card — Liquid Glass
+          GlassCard(
+            useOwnLayer: true,
+            padding: const EdgeInsets.all(20),
+            settings: isDark
+                ? const LiquidGlassSettings(
+                    thickness: 28,
+                    blur: 10,
+                    glassColor: Color(0x20FFFFFF),
+                    refractiveIndex: 1.2,
+                    lightIntensity: 1.1,
+                  )
+                : const LiquidGlassSettings(
+                    thickness: 18,
+                    blur: 8,
+                    glassColor: Color(0x15D2DCF0),
+                    refractiveIndex: 1.15,
+                    lightIntensity: 1.0,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Vault Unlocked',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          ref.watch(authNotifierProvider.notifier).selectedAccount?.name ?? 'Account',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.successColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: authState == AuthState.unlocked
-                          ? AppTheme.successColor.withValues(alpha: 0.1)
-                          : Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          authState == AuthState.unlocked ? Icons.shield : Icons.lock,
-                          size: 14,
+                  child: const Icon(
+                    Icons.shield,
+                    color: AppTheme.successColor,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vault Unlocked',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        ref.watch(authNotifierProvider.notifier).selectedAccount?.name ?? 'Account',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: authState == AuthState.unlocked
+                        ? AppTheme.successColor.withValues(alpha: 0.1)
+                        : Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        authState == AuthState.unlocked ? Icons.shield : Icons.lock,
+                        size: 14,
+                        color: authState == AuthState.unlocked
+                            ? AppTheme.successColor
+                            : Colors.blue,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        authState == AuthState.unlocked ? 'Online' : 'Offline',
+                        style: theme.textTheme.labelSmall?.copyWith(
                           color: authState == AuthState.unlocked
                               ? AppTheme.successColor
                               : Colors.blue,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          authState == AuthState.unlocked ? 'Online' : 'Offline',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: authState == AuthState.unlocked
-                                ? AppTheme.successColor
-                                : Colors.blue,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
@@ -404,36 +421,50 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
           const SizedBox(height: 32),
 
-          // Security Status
+          // Security Status — Liquid Glass
           Text('Security Status', style: theme.textTheme.titleLarge),
           const SizedBox(height: 16),
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  SecurityItem(
-                    icon: Icons.check_circle,
-                    color: AppTheme.successColor,
-                    title: 'End-to-End Encrypted',
-                    subtitle: 'AES-256-GCM + Argon2id',
+          GlassCard(
+            useOwnLayer: true,
+            padding: const EdgeInsets.all(20),
+            settings: isDark
+                ? const LiquidGlassSettings(
+                    thickness: 28,
+                    blur: 10,
+                    glassColor: Color(0x20FFFFFF),
+                    refractiveIndex: 1.2,
+                    lightIntensity: 1.1,
+                  )
+                : const LiquidGlassSettings(
+                    thickness: 18,
+                    blur: 8,
+                    glassColor: Color(0x15D2DCF0),
+                    refractiveIndex: 1.15,
+                    lightIntensity: 1.0,
                   ),
-                  Divider(height: 24),
-                  SecurityItem(
-                    icon: Icons.check_circle,
-                    color: AppTheme.successColor,
-                    title: 'Local Storage',
-                    subtitle: 'Data encrypted and stored locally',
-                  ),
-                  Divider(height: 24),
-                  SecurityItem(
-                    icon: Icons.check_circle,
-                    color: AppTheme.successColor,
-                    title: 'Zero Knowledge',
-                    subtitle: 'Master password never stored',
-                  ),
-                ],
-              ),
+            child: const Column(
+              children: [
+                SecurityItem(
+                  icon: Icons.check_circle,
+                  color: AppTheme.successColor,
+                  title: 'End-to-End Encrypted',
+                  subtitle: 'AES-256-GCM + Argon2id',
+                ),
+                Divider(height: 24),
+                SecurityItem(
+                  icon: Icons.check_circle,
+                  color: AppTheme.successColor,
+                  title: 'Local Storage',
+                  subtitle: 'Data encrypted and stored locally',
+                ),
+                Divider(height: 24),
+                SecurityItem(
+                  icon: Icons.check_circle,
+                  color: AppTheme.successColor,
+                  title: 'Zero Knowledge',
+                  subtitle: 'Master password never stored',
+                ),
+              ],
             ),
           ),
         ],

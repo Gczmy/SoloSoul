@@ -30,7 +30,7 @@
 
 | 组件 | 技术 | 备注 |
 |------|------|------|
-| Flutter 客户端 | Dart, `flutter_riverpod`, `go_router` (实际使用 `MaterialApp.routes`) | 状态管理以 Riverpod + StateNotifier 为主 |
+| Flutter 客户端 | Dart, `flutter_riverpod`, `go_router`, `liquid_glass_widgets` | 状态管理以 Riverpod + StateNotifier 为主；UI 采用 iOS 26 Liquid Glass 设计语言 |
 | Rust 核心（Flutter） | Rust 2021, `argon2`, `aes-gcm`, `rusqlite`, `tokio`, `wasmtime` | 位于 `flutter/native/`，构建为 `staticlib/cdylib/rlib` |
 | Rust 核心（Go） | Rust 2021, `argon2`, `aes-gcm`, `rand` | 位于 `crypto-argon2/`，构建为 `staticlib/cdylib` |
 | Go 后端 | Go 1.26.1, 标准库 `net/http`（Go 1.22 pattern mux） | **注意：不使用 Gin 框架** |
@@ -49,6 +49,7 @@
 - `local_auth: ^2.3.0` — 生物识别（Touch ID）
 - `flutter_secure_storage: ^9.2.2` — macOS Keychain 封装
 - `pointycastle`, `cryptography`, `encrypt` — Dart 端密码学回退（Android 使用）
+- `liquid_glass_widgets: ^0.10.6` — iOS 26 Liquid Glass 玻璃质感 UI 组件库（36 个组件），替代原生 Material Card/AppBar/TextField 等
 
 ---
 

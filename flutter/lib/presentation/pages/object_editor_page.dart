@@ -11,6 +11,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -151,7 +152,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: Text(_isEditing ? 'Edit Section' : 'New Section'),
       ),
       body: Stack(

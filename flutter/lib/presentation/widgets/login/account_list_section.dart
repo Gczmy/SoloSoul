@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
@@ -26,6 +27,7 @@ class AccountListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final displayAccounts = accountsExpanded || accounts.length <= 3
         ? accounts
         : accounts.sublist(0, 3);
@@ -50,95 +52,93 @@ class AccountListSection extends StatelessWidget {
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => onSelectAccount(account.id),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isRecent
-                            ? AppTheme.primaryColor
-                            : theme.dividerColor,
-                        width: isRecent ? 2 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      color: isRecent
-                          ? AppTheme.primaryColor.withValues(alpha: 0.05)
-                          : null,
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: AppTheme.primaryColor,
-                          child: Text(
-                            account.name.isNotEmpty
-                                ? account.name[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
+              child: GestureDetector(
+                onTap: () => onSelectAccount(account.id),
+                child: GlassCard(
+                  useOwnLayer: true,
+                  padding: const EdgeInsets.all(16),
+                  margin: EdgeInsets.zero,
+                  shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+                  settings: isRecent
+                      ? LiquidGlassSettings(
+                          thickness: isDark ? 35 : 22,
+                          blur: isDark ? 12 : 10,
+                          glassColor: isDark
+                              ? const Color(0x33487CA5)
+                              : const Color(0x1A487CA5),
+                          refractiveIndex: 1.2,
+                          lightIntensity: isDark ? 1.2 : 1.0,
+                        )
+                      : null,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: AppTheme.primaryColor,
+                        child: Text(
+                          account.name.isNotEmpty
+                              ? account.name[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    account.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                if (isRecent) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'Recent',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
-                                  if (isRecent) ...[
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primaryColor,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: const Text(
-                                        'Recent',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ],
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Last accessed: ${formatLastAccessed(account.lastAccessed)}',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 13,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Last accessed: ${formatLastAccessed(account.lastAccessed)}',
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -161,12 +161,9 @@ class AccountListSection extends StatelessWidget {
             ),
           ],
         ] else ...[
-          Container(
+          GlassCard(
+            useOwnLayer: true,
             padding: AppTheme.kPagePadding,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: Column(
               children: [
                 Icon(
@@ -189,15 +186,34 @@ class AccountListSection extends StatelessWidget {
 
         const SizedBox(height: 24),
 
-        // Create New Account Button
-        OutlinedButton.icon(
-          onPressed: onCreateAccount,
-          icon: const Icon(Icons.add),
-          label: const Text('Create New Account'),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
+        // Create New Account Button — Liquid Glass
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: GlassButton.custom(
+            onTap: onCreateAccount,
+            width: double.infinity,
+            height: 48,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+            style: GlassButtonStyle.transparent,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 20,
+                  color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Create New Account',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

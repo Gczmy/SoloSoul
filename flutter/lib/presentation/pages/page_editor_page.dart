@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart'
     show ObjectParentDropdown;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 
 /// Editor specifically for Page-type UnifiedObjects.
 class PageEditorPage extends ConsumerStatefulWidget {
@@ -104,7 +105,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: SoloGlassAppBar(
         title: Text(_isEditing ? 'Edit Page' : 'New Page'),
       ),
       body: SingleChildScrollView(

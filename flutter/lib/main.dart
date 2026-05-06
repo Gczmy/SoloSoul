@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:go_router/go_router.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
@@ -20,6 +21,10 @@ import 'package:solosoul_flutter/frb/frb_generated.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Liquid Glass library — shader prewarming, Impeller pipeline.
+  // Adaptive quality is enabled for broad device support (macOS/Android).
+  await LiquidGlassWidgets.initialize();
 
   // Capture ALL errors with full stack traces for debugging
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -250,17 +255,28 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     // Wrap with ScaffoldMessenger at root level so SnackBars persist across navigation.
     // Without this, each Scaffold has its own ScaffoldMessengerState and when that
     // Scaffold is removed (on navigation), all SnackBar timers are cancelled.
+    //
+    // Liquid Glass wrapping order:
+    // 1. LiquidGlassWidgets.wrap() — installs GlassBackdropScope + optional GlassAdaptiveScope
+    // 2. GlassTheme — provides centralized glass theme configuration
+    // 3. MaterialApp.router — the app itself
     return Listener(
       onPointerDown: (_) => _recordActivity(),
       onPointerMove: (_) => _recordActivity(),
       child: ScaffoldMessenger(
-        child: MaterialApp.router(
-          title: 'SoloSoul',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.system,
-          routerConfig: _router,
+        child: LiquidGlassWidgets.wrap(
+          adaptiveQuality: true,
+          child: GlassTheme(
+            data: AppTheme.glassThemeData,
+            child: MaterialApp.router(
+              title: 'SoloSoul',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeMode.system,
+              routerConfig: _router,
+            ),
+          ),
         ),
       ),
     );

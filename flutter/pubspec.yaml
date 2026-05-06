@@ -50,6 +50,9 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_animate: ^4.5.0
 
+  # Liquid Glass UI kit — iOS 26 style glassmorphism
+  liquid_glass_widgets: ^0.10.6
+
   # Utils：freezed 3.x for riverpod_generator 3.0 compatibility
   freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0

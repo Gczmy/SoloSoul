@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/change_password_dialog.dart';
@@ -219,9 +220,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        actions: const [
+      appBar: const SoloGlassAppBar(
+        title: Text('Settings'),
+        actions: [
           HeaderActionButtons(),
         ],
       ),

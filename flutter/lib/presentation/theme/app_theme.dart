@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart' show SensitivityLevel;
+export 'package:solosoul_flutter/core/constants/sensitivity_enums.dart'
+    show SensitivityLevel;
 
 /// SnackBar type for toast notifications
 enum SnackBarType {
@@ -47,9 +49,7 @@ void showOverlaySnackBar(
   };
 
   // Position below status bar (top position, same as OperationNotification)
-  final topOffset = MediaQuery.of(context).padding.top +
-      kToolbarHeight +
-      8;
+  final topOffset = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
   entry = OverlayEntry(
     builder: (context) => Positioned(
@@ -60,7 +60,8 @@ void showOverlaySnackBar(
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(12.0),
@@ -102,36 +103,131 @@ void showOverlaySnackBar(
   });
 }
 
-/// App theme configuration
+// =============================================================================
+// AppTheme — Material + Liquid Glass unified theme system
+// =============================================================================
+
+/// App theme configuration following Notion + Anytype bright aesthetic
+/// fused with iOS 26 Liquid Glass material.
+///
+/// Design principles:
+/// - Clean, breathable whitespace
+/// - Notion light mode palette (#FFFFFF canvas, subtle grays)
+/// - Liquid Glass as accent/containment, not the protagonist
+/// - Consistent spacing and typography hierarchy
 class AppTheme {
   AppTheme._();
 
-  // Color palette
-  static const Color primaryColor = Color(0xFF6366F1); // Indigo
-  static const Color secondaryColor = Color(0xFF8B5CF6); // Violet
-  static const Color accentColor = Color(0xFF06B6D4); // Cyan
-  static const Color errorColor = Color(0xFFEF4444); // Red
-  static const Color successColor = Color(0xFF10B981); // Green
+  // ── Notion-inspired Color Palette ─────────────────────────────────────────
 
-  // Light theme colors
-  static const Color lightBackground = Color(0xFFFAFAFA);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightOnSurface = Color(0xFF1F2937);
-  static const Color lightOnSurfaceVariant = Color(0xFF6B7280);
+  /// Primary brand — Notion Blue (desaturated, restrained)
+  static const Color primaryColor = Color(0xFF487CA5);
 
-  // Dark theme colors
+  /// Secondary accent
+  static const Color secondaryColor = Color(0xFF6B7C93);
+
+  /// Accent / Cyan for highlights
+  static const Color accentColor = Color(0xFF06B6D4);
+
+  /// Error / Danger
+  static const Color errorColor = Color(0xFFC4554D);
+
+  /// Success / Positive
+  static const Color successColor = Color(0xFF548164);
+
+  /// Warning / Caution
+  static const Color warningColor = Color(0xFFC29343);
+
+  // ── Light Theme Colors (Notion Bright) ────────────────────────────────────
+
+  /// Main canvas — pure white like Notion light mode
+  static const Color lightBackground = Color(0xFFFFFFFF);
+
+  /// Secondary surface — sidebar, card groupings
+  static const Color lightSurface = Color(0xFFF8F9FA);
+
+  /// Primary text — high contrast
+  static const Color lightOnSurface = Color(0xFF1F1F1F);
+
+  /// Secondary text — hints, captions
+  static const Color lightOnSurfaceVariant = Color(0xFF6B6B6B);
+
+  /// Borders and dividers — subtle
+  static const Color lightBorder = Color(0xFFEBECEF);
+
+  // ── Dark Theme Colors ─────────────────────────────────────────────────────
+
   static const Color darkBackground = Color(0xFF0F172A);
   static const Color darkSurface = Color(0xFF1E293B);
   static const Color darkOnSurface = Color(0xFFF1F5F9);
   static const Color darkOnSurfaceVariant = Color(0xFF94A3B8);
 
-  // UI constants
+  // ── UI Constants ──────────────────────────────────────────────────────────
+
   static const Duration kNotificationDuration = Duration(seconds: 5);
   static const Duration kOverlayDuration = Duration(seconds: 2);
   static const Duration kPasswordHintDelay = Duration(seconds: 4);
   static const EdgeInsets kPagePadding = EdgeInsets.all(24);
   static const double kDefaultBorderRadius = 12.0;
   static const int kDefaultMaxVisibleItems = 3;
+
+  // ── Liquid Glass Settings (Light) ─────────────────────────────────────────
+
+  /// Light mode glass settings — subtle, airy, matches white canvas.
+  /// Lower thickness and blur to keep the "breathing" feel.
+  static const GlassThemeSettings lightGlassSettings = GlassThemeSettings(
+    thickness: 16.0,
+    blur: 8.0,
+    glassColor: Color(0x2DD2DCF0), // ~18% cool blue-white tint
+    chromaticAberration: 0.2,
+    refractiveIndex: 1.15,
+    lightIntensity: 1.0,
+    ambientStrength: 0.15,
+    saturation: 1.0,
+  );
+
+  /// Dark mode glass settings — deeper, more luminous.
+  static const GlassThemeSettings darkGlassSettings = GlassThemeSettings(
+    thickness: 32.0,
+    blur: 10.0,
+    glassColor: Color(0x33FFFFFF), // ~20% white tint
+    chromaticAberration: 0.25,
+    refractiveIndex: 1.2,
+    lightIntensity: 1.3,
+    ambientStrength: 0.2,
+    saturation: 1.05,
+  );
+
+  /// Glass glow colors matching our brand palette.
+  static const GlassGlowColors glassGlowColors = GlassGlowColors(
+    primary: Color(0x3DFFFFFF),
+    secondary: Color(0xFF487CA5),
+    success: Color(0xFF548164),
+    warning: Color(0xFFC29343),
+    danger: Color(0xFFC4554D),
+    info: Color(0xFF487CA5),
+    glowBlurRadius: 4.0,
+    glowSpreadRadius: 0,
+    glowOpacity: 1.0,
+  );
+
+  /// Glass theme data for the entire app.
+  static GlassThemeData get glassThemeData => const GlassThemeData(
+        light: GlassThemeVariant(
+          settings: lightGlassSettings,
+          quality: GlassQuality.standard,
+          glowColors: glassGlowColors,
+          borderRadius: 12.0,
+        ),
+        dark: GlassThemeVariant(
+          settings: darkGlassSettings,
+          quality: GlassQuality.standard,
+          glowColors: glassGlowColors,
+          borderRadius: 12.0,
+        ),
+      );
+
+  // ── Material Light Theme ──────────────────────────────────────────────────
 
   /// Light theme
   static ThemeData get lightTheme {
@@ -146,11 +242,15 @@ class AppTheme {
         surface: lightSurface,
         onSurface: lightOnSurface,
         onSurfaceVariant: lightOnSurfaceVariant,
+        surfaceContainerLowest: Color(0xFFF8F9FA),
+        surfaceContainerLow: Color(0xFFF1F1EF),
+        surfaceContainer: Color(0xFFEBECEF),
+        outline: lightBorder,
       ),
       scaffoldBackgroundColor: lightBackground,
       textTheme: _buildTextTheme(lightOnSurface),
       appBarTheme: const AppBarTheme(
-        backgroundColor: lightSurface,
+        backgroundColor: Colors.transparent,
         foregroundColor: lightOnSurface,
         elevation: 0,
         centerTitle: true,
@@ -191,15 +291,18 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: lightBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        fillColor: lightSurface,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.2)),
+          borderSide:
+              BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.2)),
+          borderSide:
+              BorderSide(color: lightOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -246,7 +349,7 @@ class AppTheme {
       scaffoldBackgroundColor: darkBackground,
       textTheme: _buildTextTheme(darkOnSurface),
       appBarTheme: const AppBarTheme(
-        backgroundColor: darkSurface,
+        backgroundColor: Colors.transparent,
         foregroundColor: darkOnSurface,
         elevation: 0,
         centerTitle: true,
@@ -288,14 +391,17 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkBackground,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.2)),
+          borderSide:
+              BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.2)),
+          borderSide:
+              BorderSide(color: darkOnSurfaceVariant.withValues(alpha: 0.2)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
