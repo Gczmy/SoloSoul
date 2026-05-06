@@ -64,8 +64,8 @@ class LlmMessage {
   Map<String, String> toJson() => {'role': role, 'content': content};
 
   factory LlmMessage.fromJson(Map<String, dynamic> json) => LlmMessage(
-        role: json['role'] as String,
-        content: json['content'] as String,
+        role: (json['role'] as String?) ?? 'user',
+        content: (json['content'] as String?) ?? '',
       );
 
   @override
@@ -278,10 +278,14 @@ class LlmCloudService implements LlmService {
         if (choices == null || choices.isEmpty) {
           throw const LlmException('API 返回空 choices', code: LlmErrorCode.unknown);
         }
-        final choice = choices.first as Map<String, dynamic>;
-        final message = choice['message'] as Map<String, dynamic>?;
-        final content = message?['content'] as String? ?? '';
-        final finishReason = choice['finish_reason'] as String?;
+        final first = choices.first;
+        if (first is! Map<String, dynamic>) {
+          throw const LlmException('API 返回无效 choice 格式', code: LlmErrorCode.unknown);
+        }
+        final message = first['message'];
+        final messageMap = message is Map<String, dynamic> ? message : null;
+        final content = messageMap?['content'] as String? ?? '';
+        final finishReason = first['finish_reason'] as String?;
         final usageJson = json['usage'] as Map<String, dynamic>?;
         final usage = usageJson != null ? LlmTokenUsage.fromJson(usageJson) : const LlmTokenUsage();
         return LlmInferenceResponse(
@@ -299,9 +303,9 @@ class LlmCloudService implements LlmService {
         // Anthropic 格式：content 为 block 数组，text 类型块持有实际回复文本
         final textParts = <String>[];
         for (final block in contentList) {
-          final blockMap = block as Map<String, dynamic>;
-          if (blockMap['type'] == 'text') {
-            final text = blockMap['text'] as String?;
+          if (block is! Map<String, dynamic>) continue;
+          if (block['type'] == 'text') {
+            final text = block['text'] as String?;
             if (text != null && text.isNotEmpty) {
               textParts.add(text);
             }
@@ -335,7 +339,8 @@ class LlmCloudService implements LlmService {
   LlmApiError _parseError(Map<String, dynamic> json, int statusCode) {
     switch (provider) {
       case LlmCloudProviderType.openai:
-        final errorObj = json['error'] as Map<String, dynamic>?;
+        final rawError = json['error'];
+        final errorObj = rawError is Map<String, dynamic> ? rawError : null;
         return LlmApiError(
           message: errorObj?['message']?.toString() ?? '未知错误',
           type: errorObj?['type']?.toString() ?? 'unknown',
@@ -343,7 +348,8 @@ class LlmCloudService implements LlmService {
         );
       case LlmCloudProviderType.anthropic:
         // Anthropic: {"type":"error","error":{"type":"...","message":"..."}}
-        final errorObj = json['error'] as Map<String, dynamic>?;
+        final rawError = json['error'];
+        final errorObj = rawError is Map<String, dynamic> ? rawError : null;
         return LlmApiError(
           message: errorObj?['message']?.toString() ?? '未知错误',
           type: errorObj?['type']?.toString() ?? 'unknown',
@@ -525,8 +531,11 @@ class LlmCloudService implements LlmService {
       case LlmCloudProviderType.openai:
         final choices = json['choices'] as List<dynamic>?;
         if (choices == null || choices.isEmpty) return null;
-        final delta = choices[0]['delta'] as Map<String, dynamic>?;
-        return delta?['content'] as String?;
+        final first = choices[0];
+        if (first is! Map<String, dynamic>) return null;
+        final delta = first['delta'];
+        final deltaMap = delta is Map<String, dynamic> ? delta : null;
+        return deltaMap?['content'] as String?;
       case LlmCloudProviderType.anthropic:
         // 忽略非内容事件：message_start, content_block_start, content_block_stop, message_stop
         if (eventType != null && eventType != 'content_block_delta') return null;

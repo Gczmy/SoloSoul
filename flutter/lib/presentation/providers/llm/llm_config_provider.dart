@@ -135,11 +135,13 @@ class LlmConfigNotifier extends AsyncNotifier<LlmConfigState> {
     state = AsyncData(await _service.getLlmConfigState(id));
   }
 
+  static const _apiKeySentinel = Object();
+
   Future<void> updateCloudProfile({
     required String profileId,
     String? name,
     LlmCloudProviderType? providerType,
-    String? apiKey,
+    Object? apiKey = _apiKeySentinel,
     String? endpoint,
     String? model,
     String? anthropicVersion,

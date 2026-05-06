@@ -43,7 +43,9 @@ class LlmConfigService {
           'usage=${config.usageCount} prompt=${config.totalPromptTokens} '
           'completion=${config.totalCompletionTokens} '
           'models=${config.perModelStats.length} days=${config.dailyStats.length}');
-      // 自动迁移：旧配置无 profiles 时，将单配置字段包装为第一个 Profile
+      // 自动迁移：旧配置无 profiles 时，将单配置字段包装为第一个 Profile。
+      // apiKey 被存入 profile 并随 Vault 加密 JSON 持久化；内存保险库 _apiKeyVault
+      // 在运行时提供额外隔离，但持久化依赖 Vault 加密保护。
       if (config.cloudProfiles.isEmpty &&
           (config._legacyCloudApiKey?.isNotEmpty == true ||
            config._legacyCloudEndpoint?.isNotEmpty == true)) {
@@ -150,12 +152,14 @@ class LlmConfigService {
     return profile.id;
   }
 
+  static const _apiKeySentinel = Object();
+
   Future<void> updateCloudProfile(
     String accountId, {
     required String profileId,
     String? name,
     LlmCloudProviderType? providerType,
-    String? apiKey, // null = 不修改
+    Object? apiKey = _apiKeySentinel,
     String? endpoint,
     String? model,
     String? anthropicVersion,
@@ -163,10 +167,13 @@ class LlmConfigService {
     final config = await _load(accountId);
     final profiles = config.cloudProfiles.map((p) {
       if (p.id != profileId) return p;
-      final newApiKey = (apiKey != null && apiKey.isNotEmpty) ? apiKey : p.apiKey;
-      if (newApiKey.isNotEmpty) {
-        _apiKeyVault[p.apiKeyRef] = newApiKey;
+      final String? newApiKey;
+      if (apiKey == _apiKeySentinel) {
+        newApiKey = p.apiKey;
+      } else {
+        newApiKey = apiKey as String?;
       }
+      _apiKeyVault[p.apiKeyRef] = newApiKey ?? '';
       return p.copyWith(
         name: name,
         providerType: providerType,

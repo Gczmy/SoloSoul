@@ -12,18 +12,18 @@
 | P001 | P0     | 隐私漏洞   | `lib/presentation/providers/scan/local_search_provider.dart:220-245` | AI 映射时直接将扫描提取的敏感字段值（身份证、银行卡号等 critical 级）发送至 LLM，未调用 `LlmPrivacyFilter` | `[x]` 已修复 |
 | P002 | P1     | 资源泄漏   | `lib/core/services/llm/llm_service.dart:171-194,583-607` | `LlmCloudService` / `LlmLocalService` 持有 `http.Client` 但无 dispose，单例卸载时不关闭 | `[x]` 已修复 |
 | P003 | P1     | UX 缺陷    | `lib/presentation/widgets/llm/llm_chat_panel.dart:120-146` | 发送消息后未清空输入框，用户可能重复发送相同内容 | `[x]` 已修复 |
-| P004 | P1     | 性能瓶颈   | `lib/presentation/providers/llm/llm_chat_session_provider.dart:76-82` | 流式输出每个 chunk 都触发 `state = state.map(...)`，长文本时造成大量 widget rebuild | `[ ]` 待修复 |
+| P004 | P1     | 性能瓶颈   | `lib/presentation/providers/llm/llm_chat_session_provider.dart:76-82` | 流式输出每个 chunk 都触发 `state = state.map(...)`，长文本时造成大量 widget rebuild | `[x]` 已修复 |
 | P005 | P1     | 资源泄漏   | `lib/presentation/providers/llm/llm_model_provider.dart:247-277` | `streamChat` 云端 fallback 的 `StreamController` 与 `cancelStream()` 未关联，timer 无法终止 | `[x]` 已修复 |
 | P006 | P1     | 隐私/日志  | `lib/core/services/llm/llm_config_service.dart:35-36,42-46,82-83,91-94` | 多处使用 `avoid_print` 输出 accountId、token 统计等隐私元数据 | `[x]` 已修复 |
 | P007 | P1     | 隐私/日志  | `lib/presentation/providers/llm/llm_model_provider.dart:65-66,104,359,365,371` | 同样使用 `avoid_print` 输出日志，应统一替换为 `SoloLog` | `[x]` 已修复 |
-| P008 | P1     | 安全设计   | `lib/core/services/llm/llm_config_models.dart:49` | `LlmCloudProfile.toJson()` 序列化 `apiKey`，违背"apiKey 不进入 JSON"的设计原则 | `[ ]` 待修复 |
-| P009 | P1     | 安全设计   | `lib/core/services/llm/llm_config_service.dart:48-73` | 自动迁移旧配置时将 legacy apiKey 写入 profile 并序列化存储 | `[ ]` 待修复 |
-| P010 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:66-69` | `LlmMessage.fromJson` 强制类型转换无空值防护，无效 JSON 会抛 `TypeError` | `[ ]` 待修复 |
-| P011 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:270-285,291-301,327-345` | `_parseResponse` / `_parseError` 中多处 `dynamic` 强制转换缺少防护 | `[ ]` 待修复 |
+| P008 | P1     | 安全设计   | `lib/core/services/llm/llm_config_models.dart:49` | `LlmCloudProfile.toJson()` 序列化 `apiKey`，注释与代码矛盾 | `[x]` 已修复（注释修正：明确说明 Vault 加密保护） |
+| P009 | P1     | 安全设计   | `lib/core/services/llm/llm_config_service.dart:48-73` | 自动迁移旧配置时将 legacy apiKey 写入 profile 并序列化存储 | `[x]` 已修复（注释修正：明确说明 Vault 加密保护） |
+| P010 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:66-69` | `LlmMessage.fromJson` 强制类型转换无空值防护，无效 JSON 会抛 `TypeError` | `[x]` 已修复 |
+| P011 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:270-285,291-301,327-345` | `_parseResponse` / `_parseError` 中多处 `dynamic` 强制转换缺少防护 | `[x]` 已修复 |
 | P012 | P1     | 可维护性   | `lib/core/services/scan/local_search_service.dart:144-242` | `scan()` 方法过长（98 行），混合文件遍历、缓存、解析、回调逻辑 | `[ ]` 待修复 |
 | P013 | P1     | 可维护性   | `lib/core/services/scan/scan_import_service.dart:269-375` | `executeImport()` 过长（106 行），应拆分为子步骤方法 | `[ ]` 待修复 |
 | P014 | P1     | 可维护性   | `lib/presentation/widgets/llm/llm_chat_panel.dart:152-317` | `build()` 方法过长（164 行），应将子组件提取为独立 widget | `[ ]` 待修复 |
-| P015 | P1     | 功能缺陷   | `lib/core/services/llm/llm_config_service.dart:169` | `updateCloudProfile` 中 apiKey 为空字符串时无法清空，会保留旧值 | `[ ]` 待修复 |
+| P015 | P1     | 功能缺陷   | `lib/core/services/llm/llm_config_service.dart:169` | `updateCloudProfile` 中 apiKey 为空字符串时无法清空，会保留旧值 | `[x]` 已修复（引入 sentinel 区分"不修改"与"清空"） |
 | P016 | P1     | 性能/费用  | `lib/presentation/providers/scan/local_search_provider.dart:175-295` | `performAiMapping` 对每个 scan result 单独调用 LLM，无并发限制，大量文件时可能请求风暴 | `[ ]` 待修复 |
 | P017 | P2     | 健壮性     | `lib/core/services/llm/llm_service.dart:751` | `LlmLocalService` URL 拼接未处理 `baseUrl` 尾部斜杠 | `[ ]` 待修复 |
 | P018 | P2     | 一致性     | `lib/core/services/llm/llm_service.dart:640-692 vs 697-741` | `LlmLocalService` 流式与非流式请求 options 不一致（缺少 `top_p`、`num_ctx`） | `[ ]` 待修复 |
@@ -42,8 +42,8 @@
 
 ## 修复进度
 
-- 已完成：6 / 30
-- 当前处理：P002-P007
+- 已完成：12 / 30
+- 当前处理：P004, P008-P011, P015
 
 ## 详细问题描述与修复指引
 

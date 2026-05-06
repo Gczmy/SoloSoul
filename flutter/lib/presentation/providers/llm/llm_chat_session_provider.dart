@@ -72,31 +72,39 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
     await _streamSub?.cancel();
 
     // 4. 订阅 stream：在后台逐字累积，widget 重建时直接读取
+    // 使用 100ms debounce 批量刷新 state，避免每个 chunk 都触发 rebuild
     final buffer = StringBuffer();
+    Timer? debounceTimer;
+
+    void flushState({bool finish = false}) {
+      state = state.map((m) {
+        if (m.id != aiId) return m;
+        if (finish && buffer.isEmpty) {
+          return m.copyWith(
+            text: '（模型未返回任何内容，请检查配置或重试）',
+            isStreaming: false,
+          );
+        }
+        return m.copyWith(
+          text: buffer.toString(),
+          isStreaming: !finish,
+        );
+      }).toList();
+    }
+
     _streamSub = stream.listen(
       (chunk) {
         buffer.write(chunk);
-        state = state.map((m) {
-          if (m.id != aiId) return m;
-          return m.copyWith(text: buffer.toString());
-        }).toList();
+        debounceTimer?.cancel();
+        debounceTimer = Timer(const Duration(milliseconds: 100), () => flushState());
       },
       onDone: () {
-        if (buffer.isEmpty) {
-          state = state.map((m) {
-            if (m.id != aiId) return m;
-            return m.copyWith(
-              text: '（模型未返回任何内容，请检查配置或重试）',
-            );
-          }).toList();
-        }
-        state = state.map((m) {
-          if (m.id != aiId) return m;
-          return m.copyWith(isStreaming: false);
-        }).toList();
+        debounceTimer?.cancel();
+        flushState(finish: true);
         _streamSub = null;
       },
       onError: (Object err) {
+        debounceTimer?.cancel();
         state = state.map((m) {
           if (m.id != aiId) return m;
           return m.copyWith(

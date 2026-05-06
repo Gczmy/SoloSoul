@@ -38,7 +38,11 @@ class LlmCloudProfile {
   });
 
   // ---------------------------------------------------------------------------
-  // Serialization (apiKey NOT included)
+  // Serialization (apiKey included — protected by Vault encryption)
+  // ---------------------------------------------------------------------------
+  // NOTE: apiKey is serialized here because the entire JSON blob is encrypted
+  // by RustVaultService. The _apiKeyVault in LlmConfigService provides an
+  // additional in-memory isolation layer, but persistence relies on Vault.
   // ---------------------------------------------------------------------------
 
   Map<String, dynamic> toJson() => {
