@@ -86,6 +86,13 @@ class LlmConfigService {
   }
 
   Future<void> _save(String accountId, _LlmConfig config) async {
+    // Guard: 若 Vault 未解锁，跳过持久化以避免 Unhandled Exception。
+    // LLM 统计属于非关键数据，可在下次 Vault 解锁时重新恢复。
+    if (!_vault.isVaultUnlocked()) {
+      SoloLog.w('LlmConfigService', '_save skipped: vault is locked, '
+          'account=$accountId');
+      return;
+    }
     final jsonData = jsonEncode(config.toJson());
     SoloLog.d('LlmConfigService', '_save account=$accountId '
         'usage=${config.usageCount} prompt=${config.totalPromptTokens} '
