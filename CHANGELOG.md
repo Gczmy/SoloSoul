@@ -7,9 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.6] - 2026-05-06
 
+### Added
+
+- **LLM Integration** — AI chat interface with smart field mapping, encrypted usage stats, and per-model tracking with sparkline charts
+- **Local Search Import** — Import objects from local search results with schema-aware field mapping and validation
+- **Multi-Device Sync** — FRB-based sync engine with CRDT data structure, Noise protocol encryption, and TCP transport; includes sync UI for device pairing
+- **Rust Core Engine** — Replaced Dart crypto fallback with unified Rust encryption layer (Argon2id + AES-256-GCM), unified account management, and typed FRB bindings
+- **Anytype-Inspired macOS Features** — Redesigned workspace and editor interactions following Anytype patterns
+- **Operation Recording** — All user CRUD actions are now logged with before/after snapshots for complete audit trails
+- **Comprehensive Test Coverage** — Added 11 phases of unit, widget, and integration tests covering auth, vault, LLM, and sync modules
+
 ### Fixed
 
+- **AI Privacy Protection** — Critical/sensitive data is now blocked from being sent to cloud LLM APIs during smart mapping
+- **Startup Black Screen** — Fixed native library loading race condition that caused black screen on app launch
+- **Unlock Hangs** — Restructured unlock flow to prevent hangs caused by async verify_hash encoding mismatches and corrupted Keychain data
+- **Account Switch Security** — Password verification now required when switching accounts from settings
 - **Password Dialog Error Icon Color** — Error state now turns hint and visibility toggle icons red to match error text
+- **Code Audit Round 2** — Resolved 65 tracked issues covering security hardening (path traversal, debug leaks, key material wipe), performance (O(n²) elimination, debounce, batch delete), and dead code cleanup
+
+### Refactored
+
+- **Widget Extraction** — Extracted 26+ widget classes from 8 oversized files (settings 427→35 lines, profile 327→~50 lines)
+- **LLM Service Split** — Split monolithic `llm_service.dart` into focused files for maintainability
+- **Shared Utilities** — Extracted common dialog overlays, page templates, and `_postLoginSetup` logic
 
 ## [1.4.5] - 2026-04-30
 
