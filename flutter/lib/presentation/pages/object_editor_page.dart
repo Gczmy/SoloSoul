@@ -703,7 +703,7 @@ class _PropertyFieldRow extends StatelessWidget {
                 SizedBox(
                   width: 16,
                   child: Text(
-                    '\$len',
+                    '$len',
                     textAlign: TextAlign.right,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
