@@ -44,6 +44,19 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
   }
 
   @override
+  void didUpdateWidget(PageTreeTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Cancel editing and revert name when the page is no longer selected
+    // or when editing an unselected page and parent rebuilds (e.g. navigation).
+    if (_isEditing && !widget.isSelected) {
+      setState(() {
+        _isEditing = false;
+        _editController.text = widget.page.name;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _editController.dispose();
     super.dispose();
@@ -83,7 +96,7 @@ class _PageTreeTileState extends ConsumerState<PageTreeTile> {
       depth: widget.depth,
       bgColor: bgColor,
       onTap: widget.onTap,
-      onDoubleTap: widget.expanded
+      onLongPress: widget.expanded
           ? () {
               _editController.text = widget.page.name;
               setState(() => _isEditing = true);
@@ -137,7 +150,7 @@ class _TreeTile extends StatelessWidget {
   final int depth;
   final Color bgColor;
   final VoidCallback onTap;
-  final VoidCallback? onDoubleTap;
+  final VoidCallback? onLongPress;
   final String iconName;
   final Color fgColor;
   final VoidCallback? onIconTap;
@@ -155,7 +168,7 @@ class _TreeTile extends StatelessWidget {
     required this.depth,
     required this.bgColor,
     required this.onTap,
-    this.onDoubleTap,
+    this.onLongPress,
     required this.iconName,
     required this.fgColor,
     this.onIconTap,
@@ -221,7 +234,7 @@ class _TreeTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: InkWell(
             onTap: onTap,
-            onDoubleTap: onDoubleTap,
+            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(8),
             child: Container(
               height: 40,
@@ -287,39 +300,73 @@ class _TreeTileDraggable extends ConsumerWidget {
           ),
         ),
       ),
+      // Lightweight placeholder instead of the full complex tile
       childWhenDragging: Opacity(
         opacity: 0.35,
-        child: tile,
+        child: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
       ),
-      child: DragTarget<String>(
-        onWillAcceptWithDetails: (details) {
-          final draggedId = details.data;
-          if (draggedId == pageId) return false;
+      child: _PageTreeDragTarget(
+        pageId: pageId,
+        tile: tile,
+      ),
+    );
+  }
+}
+
+/// Separated DragTarget to avoid rebuilding the entire Draggable on every hover frame.
+class _PageTreeDragTarget extends ConsumerWidget {
+  final String pageId;
+  final Widget tile;
+
+  const _PageTreeDragTarget({
+    required this.pageId,
+    required this.tile,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Cache descendant lookups within a single drag session
+    final descendantCache = <String, Set<String>>{};
+
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final draggedId = details.data;
+        if (draggedId == pageId) return false;
+        // Reuse cached result if the same draggedId was checked before
+        var descendants = descendantCache[draggedId];
+        if (descendants == null) {
           final allObjects = ref.read(unifiedObjectProvider).objects;
-          final descendants =
-              UnifiedObjectService.instance.getDescendantIds(allObjects, draggedId);
-          return !descendants.contains(pageId);
-        },
-        onAcceptWithDetails: (details) {
-          ref.read(unifiedObjectProvider.notifier).moveObject(
-            details.data,
-            pageId,
+          descendants = UnifiedObjectService.instance.getDescendantIds(
+            allObjects,
+            draggedId,
           );
-        },
-        builder: (context, candidateData, rejectedData) {
-          final isHovering = candidateData.isNotEmpty;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: isHovering
-                  ? theme.colorScheme.primary.withValues(alpha: 0.12)
-                  : null,
-            ),
-            child: tile,
-          );
-        },
-      ),
+          descendantCache[draggedId] = descendants;
+        }
+        return !descendants.contains(pageId);
+      },
+      onAcceptWithDetails: (details) {
+        ref.read(unifiedObjectProvider.notifier).moveObject(
+          details.data,
+          pageId,
+        );
+      },
+      builder: (context, candidateData, rejectedData) {
+        final isHovering = candidateData.isNotEmpty;
+        if (!isHovering) return tile;
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+          ),
+          child: tile,
+        );
+      },
     );
   }
 }
