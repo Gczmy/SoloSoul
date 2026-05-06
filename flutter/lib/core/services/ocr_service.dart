@@ -69,13 +69,14 @@ class OcrService {
 
   /// 初始化 OCR 引擎
   ///
-  /// Phase 2: 同时加载 det + rec 模型（cls 暂缺，传空字节）。
+  /// Phase 2: 同时加载 det + rec 模型（cls 可选）。
   /// 从 Flutter asset bundle 读取 ONNX 模型，通过 FFI 传递给 Rust。
   /// 建议在 App 启动后后台异步调用。
   static Future<void> initialize() async {
     if (_initialized) return;
 
     try {
+      // 1. 从 asset bundle 加载 ONNX 模型
       final detData = await rootBundle.load(_detAssetPath);
       final detBytes = detData.buffer.asUint8List();
 
@@ -88,6 +89,7 @@ class OcrService {
       SoloLog.d('OcrService',
           'Loading models: DET=${detBytes.length} bytes, CLS=${clsBytes.length} bytes, REC=${recBytes.length} bytes');
 
+      // 2. 通过 FFI 初始化 Rust ONNX Session
       await frbOcrInitV2(
         detModelBytes: detBytes,
         clsModelBytes: clsBytes,
@@ -96,9 +98,15 @@ class OcrService {
       _initialized = true;
 
       SoloLog.d('OcrService', 'OCR engine initialized successfully (Phase 2, det+cls+rec)');
-    } catch (e) {
-      SoloLog.e('OcrService', 'Failed to initialize OCR engine', e);
-      throw OcrException('Failed to initialize OCR engine: $e');
+    } catch (e) { // ignore: avoid_catches_without_on_clauses — catches both Exception and Error (e.g. FlutterError for missing assets)
+      final errStr = e.toString().toLowerCase();
+      if (errStr.contains('unable to load asset') || errStr.contains('asset not found')) {
+        // Asset 文件缺失（最常见原因：模型未下载或 pubspec 未声明）
+        SoloLog.e('OcrService', 'ONNX model asset not found. Did you download models? See README.md', e);
+        throw OcrException(
+          'ONNX model missing. Run `./download_models.sh` or see README.md for manual download instructions.'
+        );
+      }
     }
   }
 
@@ -114,8 +122,10 @@ class OcrService {
     if (!_initialized) {
       try {
         await initialize();
-      } on Exception {
-        throw OcrNotInitializedException();
+      } on OcrException {
+        rethrow; // 保留原始错误信息（如模型缺失）
+      } on Exception catch (e) {
+        throw OcrException('OCR init failed before MRZ extraction: $e');
       }
     }
 
@@ -193,8 +203,10 @@ class OcrService {
     if (!_initialized) {
       try {
         await initialize();
-      } on Exception {
-        throw OcrNotInitializedException();
+      } on OcrException {
+        rethrow; // 保留原始错误信息
+      } on Exception catch (e) {
+        throw OcrException('OCR init failed before text recognition: $e');
       }
     }
 

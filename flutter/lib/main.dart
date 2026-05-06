@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show Future, Timer, unawaited;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +18,8 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/frb/frb_generated.dart';
+import 'package:solosoul_flutter/core/services/ocr_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 
 void main() {
   // 仅做最基本的 Flutter 绑定，立即显示启动画面
@@ -98,6 +100,9 @@ class _AppBootstrapState extends State<AppBootstrap> {
         NativeChannelService.initialize();
       }
 
+      // 4. OCR 引擎预初始化（后台异步，失败不阻塞启动）
+      unawaited(_prewarmOcrEngine());
+
       if (mounted) {
         setState(() => _initialized = true);
       }
@@ -109,10 +114,19 @@ class _AppBootstrapState extends State<AppBootstrap> {
     }
   }
 
+  /// 后台预热 OCR 引擎，避免用户首次使用时等待模型加载
+  Future<void> _prewarmOcrEngine() async {
+    try {
+      await OcrService.initialize();
+      SoloLog.d('BOOTSTRAP', 'OCR engine prewarmed successfully');
+    } on Exception catch (e) {
+      // OCR 预热失败不阻塞应用启动，用户首次使用时会重试
+      SoloLog.w('BOOTSTRAP', 'OCR prewarm failed (will retry on first use): $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    DebugLogger.instance.logError('BOOTSTRAP', 'build: initialized=$_initialized, error=${_errorMessage != null}');
-
     // 初始化失败
     if (_errorMessage != null) {
       return MaterialApp(
