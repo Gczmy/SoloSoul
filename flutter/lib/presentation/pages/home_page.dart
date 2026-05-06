@@ -110,15 +110,21 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
   List<QuickAction> _rebuildActionsFromRoutes(List<String> routes) {
     final all = [..._allAvailableActions];
-    // Append custom pages
+    // Append custom pages (exclude default pages)
     final customPages = ref.read(unifiedObjectProvider).objects
-        .where((o) => o.typeId == 'page' && !o.isDeleted);
+        .where((o) => o.typeId == 'page' && !o.isDeleted)
+        .where((o) =>
+            o.id != DefaultPageIds.profile &&
+            o.id != DefaultPageIds.travel &&
+            o.id != DefaultPageIds.financial &&
+            o.id != DefaultPageIds.professional);
     for (final page in customPages) {
       all.add(QuickAction(
         icon: UnifiedObjectService.getIconFromName(page.iconName),
         label: page.name,
         route: '${AppRoutes.objects}/${page.id}',
         color: _colorForPage(page.name),
+        isCustom: true,
       ));
     }
 
@@ -176,6 +182,11 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   void _showAddActionDialog() async {
     final customPages = ref.read(unifiedObjectProvider).objects
         .where((o) => o.typeId == 'page' && !o.isDeleted)
+        .where((o) =>
+            o.id != DefaultPageIds.profile &&
+            o.id != DefaultPageIds.travel &&
+            o.id != DefaultPageIds.financial &&
+            o.id != DefaultPageIds.professional)
         .toList();
 
     final customActions = customPages.map((page) => QuickAction(
@@ -183,6 +194,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
           label: page.name,
           route: '${AppRoutes.objects}/${page.id}',
           color: _colorForPage(page.name),
+          isCustom: true,
         )).toList();
 
     final available = [
