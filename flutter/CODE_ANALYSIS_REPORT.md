@@ -24,7 +24,7 @@
 | P013 | P1     | 可维护性   | `lib/core/services/scan/scan_import_service.dart:269-375` | `executeImport()` 过长（106 行），应拆分为子步骤方法 | `[ ]` 待修复 |
 | P014 | P1     | 可维护性   | `lib/presentation/widgets/llm/llm_chat_panel.dart:152-317` | `build()` 方法过长（164 行），应将子组件提取为独立 widget | `[ ]` 待修复 |
 | P015 | P1     | 功能缺陷   | `lib/core/services/llm/llm_config_service.dart:169` | `updateCloudProfile` 中 apiKey 为空字符串时无法清空，会保留旧值 | `[x]` 已修复（引入 sentinel 区分"不修改"与"清空"） |
-| P016 | P1     | 性能/费用  | `lib/presentation/providers/scan/local_search_provider.dart:175-295` | `performAiMapping` 对每个 scan result 单独调用 LLM，无并发限制，大量文件时可能请求风暴 | `[ ]` 待修复 |
+| P016 | P1     | 性能/费用  | `lib/presentation/providers/scan/local_search_provider.dart:175-295` | `performAiMapping` 对每个 scan result 单独调用 LLM，无并发限制，大量文件时可能请求风暴 | `[x]` 已修复（限制最多 5 个文件使用 AI 映射，其余回退规则引擎） |
 | P017 | P2     | 健壮性     | `lib/core/services/llm/llm_service.dart:751` | `LlmLocalService` URL 拼接未处理 `baseUrl` 尾部斜杠 | `[ ]` 待修复 |
 | P018 | P2     | 一致性     | `lib/core/services/llm/llm_service.dart:640-692 vs 697-741` | `LlmLocalService` 流式与非流式请求 options 不一致（缺少 `top_p`、`num_ctx`） | `[ ]` 待修复 |
 | P019 | P2     | 可配置性   | `lib/core/services/llm/llm_service.dart:598` | 默认 `modelName` 硬编码 `'qwen2.5:1.5b'`，应从配置读取 | `[ ]` 待修复 |
@@ -42,8 +42,8 @@
 
 ## 修复进度
 
-- 已完成：12 / 30
-- 当前处理：P004, P008-P011, P015
+- 已完成：13 / 30
+- 当前处理：P016
 
 ## 详细问题描述与修复指引
 

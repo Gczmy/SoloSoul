@@ -216,6 +216,10 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
       final modelNotifier = ref.read(llmModelProvider.notifier);
       final allCandidates = <ImportCandidate>[];
 
+      // 限制 AI 映射文件数，防止大量文件时请求风暴或费用暴增
+      const maxAiMappingFiles = 5;
+      var aiMappedCount = 0;
+
       for (final result in state.scanResults) {
         // 隐私过滤：云端模式下 critical 字段禁止外发
         final service = modelNotifier.service;
@@ -238,6 +242,14 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
           allCandidates.addAll(candidates);
           continue;
         }
+
+        if (aiMappedCount >= maxAiMappingFiles) {
+          // 超过 AI 映射上限，回退到规则引擎
+          final candidates = importService.mapScanResult(result);
+          allCandidates.addAll(candidates);
+          continue;
+        }
+        aiMappedCount++;
 
         // 构建文件内容预览和 schema 描述（sensitive 字段脱敏）
         final fileName = result.meta.sourceFile.split('/').last;
