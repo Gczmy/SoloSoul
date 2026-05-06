@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.7] - 2026-05-06
+
+### Added
+
+- **Login Page UI Overhaul** — Complete visual redesign of the login page:
+  - Gradient background with decorative color orbs for depth
+  - Vertical centering via `LayoutBuilder` + `ConstrainedBox`
+  - Subtitle "Your data, your control" for richer content hierarchy
+  - Hover scale + shadow feedback on account rows, unlock button, biometric button, and create-account button
+  - "Create New Account" button now matches "Unlock" filled style
+- **SoloGlassAppBar Back Route** — Added `backRoute` parameter to support fallback navigation when navigator cannot pop (e.g. pages reached via `context.go()`)
+
+### Fixed
+
+- **Sensitivity Lock Masking** — `SensitiveValueWidget` now correctly masks `internal` fields when sensitive access is locked (`!hasRecentVerification`)
+- **Sensitivity Lock Reveal State** — Fixed bug where previously revealed fields would still show plaintext after locking sensitive access. `revealed` is now forced to `false` when `!hasRecentVerification`
+- **History Auto-Collapse on Lock** — `EntryCardWidget` listens to `isSensitiveAccessGrantedProvider`; when it transitions from `true` to `false`, all expanded history is automatically collapsed
+- **Sidebar Rename State Leak** — `PageTreeTile` now cancels editing via `didUpdateWidget` when `!widget.isSelected`, preventing the rename input from persisting after navigation
+- **Sidebar Click Latency** — Replaced `onDoubleTap` with `onLongPress` for page rename, eliminating the ~300ms `InkWell` double-tap timeout that delayed single-tap navigation
+- **Sidebar Drag Performance** — Optimized `PageTreeTile` drag-and-drop:
+  - `_TreeTileDraggable` now caches `getDescendantIds` lookups within a drag session
+  - `childWhenDragging` uses a lightweight `Container` placeholder instead of the full complex tile
+  - Replaced `AnimatedContainer` in `DragTarget.builder` with a simple `Container` to avoid per-frame animation overhead
+
+### Refactored
+
+- **Sensitivity Model Migration** — Moved `sensitivity_models.dart` from `presentation/models/` to `core/models/` for better layer separation
+- **Scan Service Sensitivity Resolution** — `LocalSearchService.getDefaultSensitivity()` now delegates to `FieldRegistry.defaultFields` instead of hardcoded field lists, ensuring scan-imported objects use the same sensitivity levels as the rest of the app
+
 ## [1.4.6] - 2026-05-06
 
 ### Added
