@@ -82,14 +82,10 @@ fn sauvola_binarize(img: &GrayImage, window_size: u32, k: f32) -> GrayImage {
     let half_window = (window_size / 2) as i32;
     let mut result = GrayImage::new(width, height);
 
-    // 预计算积分图（均值和方差）加速
-    // 注意：integral_squared_image 使用 u64 避免溢出
+    // 自建积分图（u64），避免 imageproc 内部 u32 溢出
     // 2048x2048 图像的平方积分最大值 ≈ 2.7e11，远超 u32 上限
-    let integral = imageproc::integral_image::integral_image(img);
-    let integral_sq: ImageBuffer<Luma<u64>, Vec<u64>> =
-        imageproc::integral_image::integral_squared_image(img);
+    let (integral, integral_sq) = build_integral_images_u64(img);
 
-    let _window_area = (window_size * window_size) as f32;
     let r = 128.0; // 标准动态范围的一半
 
     for y in 0..height {
@@ -101,7 +97,7 @@ fn sauvola_binarize(img: &GrayImage, window_size: u32, k: f32) -> GrayImage {
             let y1 = (y + half_window as u32 + 1).min(height);
 
             // 从积分图快速计算窗口内均值和方差
-            let sum = integral_sum(&integral, x0, y0, x1, y1);
+            let sum = integral_sum_u64(&integral, x0, y0, x1, y1);
             let sum_sq = integral_sum_u64(&integral_sq, x0, y0, x1, y1);
             let area = ((x1 - x0) * (y1 - y0)) as f32;
 
@@ -121,20 +117,38 @@ fn sauvola_binarize(img: &GrayImage, window_size: u32, k: f32) -> GrayImage {
     result
 }
 
-/// 从积分图计算矩形区域和（u32 版本）
-fn integral_sum(
-    integral: &ImageBuffer<Luma<u32>, Vec<u32>>,
-    x0: u32,
-    y0: u32,
-    x1: u32,
-    y1: u32,
-) -> f32 {
-    let get = |x: u32, y: u32| integral.get_pixel(x, y)[0] as f32;
+/// 自建 u64 积分图（普通 + 平方），完全避免 u32 溢出
+///
+/// 返回 (integral, integral_sq)，尺寸为 (width+1) × (height+1)，
+/// 第 0 行和第 0 列全为 0（标准积分图约定）。
+fn build_integral_images_u64(
+    img: &GrayImage,
+) -> (ImageBuffer<Luma<u64>, Vec<u64>>, ImageBuffer<Luma<u64>, Vec<u64>>) {
+    let (width, height) = img.dimensions();
+    let _w = width as usize;
 
-    get(x1, y1) - get(x0, y1) - get(x1, y0) + get(x0, y0)
+    let mut integral: ImageBuffer<Luma<u64>, Vec<u64>> = ImageBuffer::new(width + 1, height + 1);
+    let mut integral_sq: ImageBuffer<Luma<u64>, Vec<u64>> = ImageBuffer::new(width + 1, height + 1);
+
+    for y in 0..height {
+        let mut row_sum: u64 = 0;
+        let mut row_sum_sq: u64 = 0;
+        for x in 0..width {
+            let val = img.get_pixel(x, y)[0] as u64;
+            row_sum += val;
+            row_sum_sq += val * val;
+
+            let above = integral.get_pixel(x + 1, y)[0];
+            let above_sq = integral_sq.get_pixel(x + 1, y)[0];
+            integral.put_pixel(x + 1, y + 1, Luma([above + row_sum]));
+            integral_sq.put_pixel(x + 1, y + 1, Luma([above_sq + row_sum_sq]));
+        }
+    }
+
+    (integral, integral_sq)
 }
 
-/// 从积分图计算矩形区域和（u64 版本，用于平方积分图）
+/// 从 u64 积分图计算矩形区域和
 fn integral_sum_u64(
     integral: &ImageBuffer<Luma<u64>, Vec<u64>>,
     x0: u32,
