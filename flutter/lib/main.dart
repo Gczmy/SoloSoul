@@ -19,74 +19,212 @@ import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/frb/frb_generated.dart';
 
-void main() async {
+void main() {
+  // 仅做最基本的 Flutter 绑定，立即显示启动画面
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Liquid Glass library — shader prewarming, Impeller pipeline.
-  // Adaptive quality is enabled for broad device support (macOS/Android).
-  await LiquidGlassWidgets.initialize();
-
-  // Capture ALL errors with full stack traces for debugging
+  // 配置全局错误捕获（不依赖 Rust）
   FlutterError.onError = (FlutterErrorDetails details) {
     DebugLogger.instance.logError(
       'FLUTTER_ERROR',
       '${details.exception}\n${details.stack}',
     );
-    // Also print to stderr for immediate visibility
     FlutterError.presentError(details);
   };
 
-  // Initialize Flutter Rust Bridge
-  // On macOS, load the native library from the app bundle's Frameworks directory
-  // because FRB's default loader can't resolve the path when running .app directly.
-  ExternalLibrary? externalLibrary;
-  if (Platform.isMacOS) {
-    final exeDir = File(Platform.resolvedExecutable).parent.path;
-    final dylibPath = '$exeDir/../Frameworks/libsolosoul_core.dylib';
-    final absPath = File(dylibPath).absolute.path;
-    if (File(absPath).existsSync()) {
-      externalLibrary = ExternalLibrary.open(absPath);
-    }
-  }
-  await RustLib.init(externalLibrary: externalLibrary);
-
-  // Configure error widget builder for release resilience
   ErrorWidget.builder = (details) {
     DebugLogger.instance.logError(
       'ERROR_WIDGET',
       '${details.exception}\n${details.stack}',
     );
-    return Material(
+    return const Material(
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Text(
             'Something went wrong. Please restart the app.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: Colors.grey),
           ),
         ),
       ),
     );
   };
 
-  // Initialize native channel service (for macOS menu bar callbacks)
-  if (Platform.isMacOS) {
-    NativeChannelService.initialize();
+  // 立即显示启动引导页，所有重量级初始化在后台异步执行
+  runApp(const AppBootstrap());
+}
+
+// ============================================================================
+// 启动引导页：先显示动画，后台异步初始化，完成后进入主应用
+// ============================================================================
+
+class AppBootstrap extends StatefulWidget {
+  const AppBootstrap({super.key});
+
+  @override
+  State<AppBootstrap> createState() => _AppBootstrapState();
+}
+
+class _AppBootstrapState extends State<AppBootstrap> {
+  bool _initialized = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
   }
 
-  runApp(
-    ProviderScope(
-      child: const SoloSoulApp(),
-      retry: (retryCount, error) {
-        DebugLogger.instance.logError(
-          'PROVIDER_ERROR',
-          'Provider error (retry $retryCount): $error',
-        );
-        return null;
-      },
-    ),
-  );
+  Future<void> _initialize() async {
+    try {
+      // 1. Liquid Glass shader 预热
+      await LiquidGlassWidgets.initialize();
+
+      // 2. Rust FFI 初始化
+      ExternalLibrary? externalLibrary;
+      if (Platform.isMacOS) {
+        final exeDir = File(Platform.resolvedExecutable).parent.path;
+        final dylibPath = '$exeDir/../Frameworks/libsolosoul_core.dylib';
+        final absPath = File(dylibPath).absolute.path;
+        if (File(absPath).existsSync()) {
+          externalLibrary = ExternalLibrary.open(absPath);
+        }
+      }
+      await RustLib.init(externalLibrary: externalLibrary);
+
+      // 3. macOS 原生通道
+      if (Platform.isMacOS) {
+        NativeChannelService.initialize();
+      }
+
+      if (mounted) {
+        setState(() => _initialized = true);
+      }
+    } on Exception catch (e, stack) {
+      DebugLogger.instance.logError('BOOTSTRAP', 'Initialization failed: $e\n$stack');
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    DebugLogger.instance.logError('BOOTSTRAP', 'build: initialized=$_initialized, error=${_errorMessage != null}');
+
+    // 初始化失败
+    if (_errorMessage != null) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '启动失败',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 初始化完成 → 进入主应用
+    if (_initialized) {
+      return ProviderScope(
+        child: const SoloSoulApp(),
+        retry: (retryCount, error) {
+          DebugLogger.instance.logError(
+            'PROVIDER_ERROR',
+            'Provider error (retry $retryCount): $error',
+          );
+          return null;
+        },
+      );
+    }
+
+    // 初始化中 → 显示启动画面
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'S',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // App name
+              const Text(
+                'SoloSoul',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '独奏生命数据，重塑数字原点',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 40),
+              // Loading indicator
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class SoloSoulApp extends ConsumerStatefulWidget {

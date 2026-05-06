@@ -8,6 +8,10 @@ class MainFlutterWindow: NSWindow {
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
+    // Set Flutter view background to white to avoid black screen during startup
+    flutterViewController.view.wantsLayer = true
+    flutterViewController.view.layer?.backgroundColor = NSColor.white.cgColor
+
     // Set minimum window size for desktop security
     self.minSize = NSSize(width: 800, height: 600)
 
