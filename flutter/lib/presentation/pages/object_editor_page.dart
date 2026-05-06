@@ -98,6 +98,22 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         ));
       }
     }
+    // 补全 Schema 中缺失的字段（兼容导入时只写入部分字段的历史数据）
+    final type = ObjectTypeRegistry.getType(object.typeId ?? '');
+    if (type != null) {
+      final existingKeys = _propertyFields.map((f) => f.key).toSet();
+      for (final propDef in type.properties) {
+        if (propDef.id == 'Title' || propDef.id == 'Item Name') continue;
+        if (!existingKeys.contains(propDef.id)) {
+          _propertyFields.add(_PropertyField(
+            key: propDef.id,
+            type: 'text',
+            sensitivity: SensitivityLevel.public,
+          ));
+        }
+      }
+    }
+
     if (!hasDefaultName) {
       _propertyFields.insert(0, _PropertyField(
         key: 'Title',

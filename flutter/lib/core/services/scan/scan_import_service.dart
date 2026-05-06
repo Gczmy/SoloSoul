@@ -295,12 +295,17 @@ class ScanImportService {
       if (fieldsToWrite.isEmpty) continue;
 
       final properties = _buildProperties(fieldsToWrite, () => fieldsWritten++);
+      final completeProperties = _ensureSchemaFields(
+        properties,
+        typeId,
+        candidate.source.section,
+      );
 
       if (candidate.existingObjectId != null) {
-        final updated = await _updateExisting(candidate, properties, warnings);
+        final updated = await _updateExisting(candidate, completeProperties, warnings);
         if (updated) itemsUpdated++;
       } else {
-        await _createNew(candidate, typeId, parentSectionId, properties);
+        await _createNew(candidate, typeId, parentSectionId, completeProperties);
         itemsCreated++;
       }
     }
@@ -364,6 +369,28 @@ class ScanImportService {
       properties: mergedProperties,
     );
     return true;
+  }
+
+  /// Ensure all schema-defined properties exist, filling missing ones with empty values.
+  Map<String, PropertyValue> _ensureSchemaFields(
+    Map<String, PropertyValue> properties,
+    String typeId,
+    String sectionId,
+  ) {
+    final type = ObjectTypeRegistry.getType(typeId);
+    if (type == null) return properties;
+
+    final result = Map<String, PropertyValue>.from(properties);
+    for (final propDef in type.properties) {
+      if (result.containsKey(propDef.id)) continue;
+      if (propDef.id == 'Title' || propDef.id == 'Item Name') continue;
+
+      result[propDef.id] = TextProperty(
+        text: '',
+        sensitivity: LocalSearchService.getDefaultSensitivity(sectionId, propDef.id),
+      );
+    }
+    return result;
   }
 
   Future<void> _createNew(
