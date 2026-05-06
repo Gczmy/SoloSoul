@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_usage_stats.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_notifier.dart';
+import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 
@@ -59,9 +60,13 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
 
     // 从加密 Vault 恢复使用统计（必须先完成，再设置账户切换监听，
     // 否则 getStats 期间 auth 变化会触发 _handleAccountSwitch 保存空数据）
+    // 关键：Vault 锁定时 _load 返回空配置，getStats 不会抛异常但数据为空。
+    // 若此时 restoreStats(0) 并置 _hasRestoredStats=true，Vault 解锁后不会重新加载，
+    // 且 onDispose 可能将 0 覆盖回 Vault，导致真实统计永久丢失。
+    final authState = ref.read(authNotifierProvider).value;
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     _lastAccountId = accountId;
-    if (accountId != null) {
+    if (accountId != null && authState == AuthState.unlocked) {
       try {
         final stats = await LlmConfigService.instance.getStats(accountId);
         _manager.restoreStats(stats);
@@ -74,11 +79,15 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       _hasRestoredStats = false;
     }
 
-    // 账户切换监听：在数据恢复完成后设置，避免竞态
-    ref.listen(authNotifierProvider, (_, __) {
+    // 账户切换监听 + Vault 解锁后重试加载
+    ref.listen(authNotifierProvider, (prev, next) {
       final newId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+      final wasUnlocked = prev?.value == AuthState.unlocked;
+      final isUnlocked = next.value == AuthState.unlocked;
       if (_lastAccountId != newId) {
         _handleAccountSwitch(_lastAccountId, newId);
+      } else if (newId != null && isUnlocked && !wasUnlocked && !_hasRestoredStats) {
+        _retryLoadStats(newId);
       }
     });
 
@@ -357,6 +366,19 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
 
   /// 每日使用统计。
   List<LlmDailyUsage> get dailyStats => _manager.dailyStats;
+
+  /// Vault 解锁后重新尝试加载统计。
+  Future<void> _retryLoadStats(String accountId) async {
+    try {
+      final stats = await LlmConfigService.instance.getStats(accountId);
+      _manager.restoreStats(stats);
+      _hasRestoredStats = true;
+      SoloLog.d('LlmModelNotifier', 'Vault 解锁后统计恢复成功 '
+          'usage=${stats.usageCount} tokens=${stats.totalTokensUsed}');
+    } on Exception catch (e) {
+      SoloLog.w('LlmModelNotifier', 'Vault 解锁后统计恢复失败', e);
+    }
+  }
 
   /// 将统计异步持久化到指定账户的 Vault。
   ///
