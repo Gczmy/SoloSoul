@@ -164,15 +164,14 @@ class _HistoryEntryTile extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    Flexible(
-                      child: Text(
-                        formatFullTimestamp(entry.timestamp),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                          fontSize: 11,
-                        ),
+                    Text(
+                      formatFullTimestamp(entry.timestamp),
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        fontSize: 11,
                       ),
                     ),
                   ],
