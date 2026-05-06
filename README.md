@@ -74,8 +74,13 @@ SoloSoul/
 - 操作提示条 (Toast/Snackbar)
 - PasswordVerificationDialog (共享密码验证)
 
+**OCR 本地识别** ✅
+- 护照 MRZ 扫描 → 自动创建 Travel Passport
+- 通用文档/名片 OCR（Apple Vision on iOS/macOS, Rust ONNX on Android/Windows）
+- 完全本地处理，零网络依赖
+
 **跨平台构建** ✅
-- macOS Release: 43.7MB
+- macOS Release: ~63.8MB（含 ONNX 模型）
 
 ### Go 后端 (solosould) ✅
 
@@ -145,6 +150,10 @@ cd flutter
 # 安装依赖
 flutter pub get
 
+# 下载 OCR 模型（首次构建必需）
+# 模型文件通过 GitHub Release Assets 分发，不在仓库中
+# 详见 docs/OCR_INTEGRATION_DESIGN.md 获取下载脚本
+
 # 开发模式
 flutter run
 
@@ -186,10 +195,11 @@ npm run dev
 | 组件 | 技术 |
 |------|------|
 | Flutter 客户端 | Dart, Riverpod, flutter_riverpod |
-| Rust 核心 | Rust, Argon2id, AES-256-GCM, rusqlite |
+| Rust 核心 | Rust, Argon2id, AES-256-GCM, rusqlite, ONNX Runtime |
 | Go 后端 | Go, Gin |
 | Web UI | Next.js 15, React, Zustand |
 | 加密 | Argon2id (64MB, 3 iterations), AES-256-GCM |
+| OCR | PP-OCRv4 (ONNX) / Apple Vision (iOS/macOS)
 
 ---
 
@@ -204,6 +214,22 @@ npm run dev
 
 ---
 
+## OCR 模型文件
+
+OCR 功能依赖三个 ONNX 模型文件（共 ~15MB），已加入 `.gitignore`，通过 **GitHub Release Assets** 分发。
+
+| 模型 | 大小 | 用途 | 获取方式 |
+|------|------|------|---------|
+| `ppocrv4_det.onnx` | ~4.5MB | 文本检测 | Release Assets |
+| `ppocrv4_cls.onnx` | ~571KB | 方向分类 | Release Assets / paddle2onnx 转换 |
+| `ppocrv4_rec.onnx` | ~10MB | 文本识别 | Release Assets |
+
+首次构建前，将模型文件放置到 `flutter/assets/models/v1/` 目录下。
+
+详细下载脚本和转换指南见 [`docs/OCR_INTEGRATION_DESIGN.md`](docs/OCR_INTEGRATION_DESIGN.md)。
+
+---
+
 ## 文档
 
 | 文档 | 说明 |
@@ -212,6 +238,7 @@ npm run dev
 | [USER_GUIDE](docs/USER_GUIDE.md) | 用户指南 |
 | [CLIENT_ROADMAP](docs/CLIENT_ROADMAP.md) | 客户端路线图 |
 | [CHANGELOG](docs/CHANGELOG.md) | 变更日志 |
+| [OCR_INTEGRATION_DESIGN](docs/OCR_INTEGRATION_DESIGN.md) | OCR 集成技术设计文档 |
 
 ---
 
