@@ -219,6 +219,7 @@ class LlmModelManager {
 
   /// Unload the current model and release resources.
   Future<void> unload() async {
+    _service?.dispose();
     _service = null;
     _errorMessage = null;
     _currentModelName = '';

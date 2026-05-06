@@ -10,12 +10,12 @@
 | ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
 | P001 | P0     | 隐私漏洞   | `lib/presentation/providers/scan/local_search_provider.dart:220-245` | AI 映射时直接将扫描提取的敏感字段值（身份证、银行卡号等 critical 级）发送至 LLM，未调用 `LlmPrivacyFilter` | `[x]` 已修复 |
-| P002 | P1     | 资源泄漏   | `lib/core/services/llm/llm_service.dart:171-194,583-607` | `LlmCloudService` / `LlmLocalService` 持有 `http.Client` 但无 dispose，单例卸载时不关闭 | `[ ]` 待修复 |
-| P003 | P1     | UX 缺陷    | `lib/presentation/widgets/llm/llm_chat_panel.dart:120-146` | 发送消息后未清空输入框，用户可能重复发送相同内容 | `[ ]` 待修复 |
+| P002 | P1     | 资源泄漏   | `lib/core/services/llm/llm_service.dart:171-194,583-607` | `LlmCloudService` / `LlmLocalService` 持有 `http.Client` 但无 dispose，单例卸载时不关闭 | `[x]` 已修复 |
+| P003 | P1     | UX 缺陷    | `lib/presentation/widgets/llm/llm_chat_panel.dart:120-146` | 发送消息后未清空输入框，用户可能重复发送相同内容 | `[x]` 已修复 |
 | P004 | P1     | 性能瓶颈   | `lib/presentation/providers/llm/llm_chat_session_provider.dart:76-82` | 流式输出每个 chunk 都触发 `state = state.map(...)`，长文本时造成大量 widget rebuild | `[ ]` 待修复 |
-| P005 | P1     | 资源泄漏   | `lib/presentation/providers/llm/llm_model_provider.dart:247-277` | `streamChat` 云端 fallback 的 `StreamController` 与 `cancelStream()` 未关联，timer 无法终止 | `[ ]` 待修复 |
-| P006 | P1     | 隐私/日志  | `lib/core/services/llm/llm_config_service.dart:35-36,42-46,82-83,91-94` | 多处使用 `avoid_print` 输出 accountId、token 统计等隐私元数据 | `[ ]` 待修复 |
-| P007 | P1     | 隐私/日志  | `lib/presentation/providers/llm/llm_model_provider.dart:65-66,104,359,365,371` | 同样使用 `avoid_print` 输出日志，应统一替换为 `SoloLog` | `[ ]` 待修复 |
+| P005 | P1     | 资源泄漏   | `lib/presentation/providers/llm/llm_model_provider.dart:247-277` | `streamChat` 云端 fallback 的 `StreamController` 与 `cancelStream()` 未关联，timer 无法终止 | `[x]` 已修复 |
+| P006 | P1     | 隐私/日志  | `lib/core/services/llm/llm_config_service.dart:35-36,42-46,82-83,91-94` | 多处使用 `avoid_print` 输出 accountId、token 统计等隐私元数据 | `[x]` 已修复 |
+| P007 | P1     | 隐私/日志  | `lib/presentation/providers/llm/llm_model_provider.dart:65-66,104,359,365,371` | 同样使用 `avoid_print` 输出日志，应统一替换为 `SoloLog` | `[x]` 已修复 |
 | P008 | P1     | 安全设计   | `lib/core/services/llm/llm_config_models.dart:49` | `LlmCloudProfile.toJson()` 序列化 `apiKey`，违背"apiKey 不进入 JSON"的设计原则 | `[ ]` 待修复 |
 | P009 | P1     | 安全设计   | `lib/core/services/llm/llm_config_service.dart:48-73` | 自动迁移旧配置时将 legacy apiKey 写入 profile 并序列化存储 | `[ ]` 待修复 |
 | P010 | P1     | 健壮性     | `lib/core/services/llm/llm_service.dart:66-69` | `LlmMessage.fromJson` 强制类型转换无空值防护，无效 JSON 会抛 `TypeError` | `[ ]` 待修复 |
@@ -42,8 +42,8 @@
 
 ## 修复进度
 
-- 已完成：1 / 30
-- 当前处理：P001
+- 已完成：6 / 30
+- 当前处理：P002-P007
 
 ## 详细问题描述与修复指引
 

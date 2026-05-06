@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_usage_stats.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_notifier.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 
 // =============================================================================
@@ -26,6 +27,8 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   final LlmModelManager _manager = LlmModelManager.instance;
   StreamSubscription<LlmModelState>? _stateSub;
   StreamSubscription<String>? _activeStreamSub;
+  Timer? _typingTimer;
+  StreamController<String>? _fallbackController;
 
   /// 当前 provider 实例绑定的账户 ID，用于 dispose 时正确持久化。
   String? _lastAccountId;
@@ -48,6 +51,8 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
     ref.onDispose(() {
       _stateSub?.cancel();
       _activeStreamSub?.cancel();
+      _typingTimer?.cancel();
+      _fallbackController?.close();
       // 生命周期结束时尝试持久化统计（fire-and-forget）
       _persistStatsFor(_lastAccountId);
     });
@@ -62,8 +67,7 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
         _manager.restoreStats(stats);
         _hasRestoredStats = true;
       } on Exception catch (e) {
-        // ignore: avoid_print
-        print('[LlmModelNotifier] 统计恢复失败: $e');
+        SoloLog.w('LlmModelNotifier', '统计恢复失败', e);
         _hasRestoredStats = false;
       }
     } else {
@@ -100,8 +104,7 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
         _manager.restoreStats(stats);
         _hasRestoredStats = true;
       }).catchError((Object e) {
-        // ignore: avoid_print
-        print('[LlmModelNotifier] 账户切换统计加载失败: $e');
+        SoloLog.w('LlmModelNotifier', '账户切换统计加载失败', e);
         _hasRestoredStats = false;
       });
     }
@@ -247,7 +250,10 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
     final service = _manager.service;
     if (service is! LlmLocalService) {
       // 云端服务 fallback：先完整推理再逐字 emit，模拟流式效果
+      _fallbackController?.close();
+      _typingTimer?.cancel();
       final controller = StreamController<String>();
+      _fallbackController = controller;
       _activeStreamSub?.cancel();
       _manager.infer(prompt, maxTokens: maxTokens).then((result) {
         if (controller.isClosed) return;
@@ -255,6 +261,7 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
         final chars = result.characters.toList();
         var index = 0;
         Timer.periodic(const Duration(milliseconds: 30), (timer) {
+          _typingTimer = timer;
           if (controller.isClosed) {
             timer.cancel();
             return;
@@ -289,6 +296,10 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   void cancelStream() {
     _activeStreamSub?.cancel();
     _activeStreamSub = null;
+    _typingTimer?.cancel();
+    _typingTimer = null;
+    _fallbackController?.close();
+    _fallbackController = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -355,20 +366,17 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
     if (accountId == null) return;
     // 防御：若内存数据尚未从 Vault 恢复，禁止保存空数据覆盖旧数据
     if (stats == null && !_hasRestoredStats) {
-      // ignore: avoid_print
-      print('[LlmModelNotifier] 跳过持久化：内存数据尚未恢复');
+      SoloLog.d('LlmModelNotifier', '跳过持久化：内存数据尚未恢复');
       return;
     }
     try {
       final s = stats ?? _manager.buildStatsSnapshot();
-      // ignore: avoid_print
-      print('[LlmModelNotifier] 持久化统计 account=$accountId '
+      SoloLog.d('LlmModelNotifier', '持久化统计 account=$accountId '
           'usage=${s.usageCount} tokens=${s.totalTokensUsed} '
           'models=${s.perModelStats.length} days=${s.dailyStats.length}');
       await LlmConfigService.instance.setStats(accountId, s);
     } on Exception catch (e) {
-      // ignore: avoid_print
-      print('[LlmModelNotifier] 统计持久化失败: $e');
+      SoloLog.w('LlmModelNotifier', '统计持久化失败', e);
     }
   }
 

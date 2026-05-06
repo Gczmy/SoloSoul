@@ -141,6 +141,8 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
       return;
     }
 
+    // 获取 stream 成功后立即清空输入框，避免重复发送
+    _inputController.clear();
     // 交给 Provider 在后台消费，widget dispose 不影响
     await session.sendMessage(text, stream);
   }

@@ -4,6 +4,7 @@ import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_usage_stats.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:uuid/uuid.dart';
 
 // =============================================================================
@@ -32,15 +33,13 @@ class LlmConfigService {
   Future<_LlmConfig> _load(String accountId) async {
     final jsonStr = await _vault.loadSettingDecrypted(accountId);
     if (jsonStr == null) {
-      // ignore: avoid_print
-      print('[LlmConfigService._load] account=$accountId 无已存配置');
+      SoloLog.d('LlmConfigService', '_load account=$accountId 无已存配置');
       return const _LlmConfig();
     }
     try {
       final map = jsonDecode(jsonStr) as Map<String, dynamic>;
       final config = _LlmConfig.fromJson(map);
-      // ignore: avoid_print
-      print('[LlmConfigService._load] account=$accountId '
+      SoloLog.d('LlmConfigService', '_load account=$accountId '
           'usage=${config.usageCount} prompt=${config.totalPromptTokens} '
           'completion=${config.totalCompletionTokens} '
           'models=${config.perModelStats.length} days=${config.dailyStats.length}');
@@ -79,16 +78,14 @@ class LlmConfigService {
       }
       return config;
     } on Object catch (e, st) {
-      // ignore: avoid_print
-      print('[LlmConfigService._load] 配置解析失败，重置为默认: $e\n$st');
+      SoloLog.e('LlmConfigService', '_load 配置解析失败，重置为默认', e, st);
       return const _LlmConfig();
     }
   }
 
   Future<void> _save(String accountId, _LlmConfig config) async {
     final jsonData = jsonEncode(config.toJson());
-    // ignore: avoid_print
-    print('[LlmConfigService._save] account=$accountId '
+    SoloLog.d('LlmConfigService', '_save account=$accountId '
         'usage=${config.usageCount} prompt=${config.totalPromptTokens} '
         'completion=${config.totalCompletionTokens} '
         'models=${config.perModelStats.length} days=${config.dailyStats.length}');
@@ -469,8 +466,7 @@ List<T> _safeParseList<T>(
     try {
       result.add(parser(e));
     } on Object catch (err) {
-      // ignore: avoid_print
-      print('[LlmConfigService] 列表元素解析失败，跳过: $err');
+      SoloLog.w('LlmConfigService', '列表元素解析失败，跳过', err);
     }
   }
   return result;

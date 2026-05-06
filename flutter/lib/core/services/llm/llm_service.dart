@@ -155,6 +155,9 @@ abstract class LlmService {
   /// Returns [LlmTokenUsage.empty] if no inference has been performed yet,
   /// or if the underlying provider does not report token counts (e.g. stream).
   LlmTokenUsage get lastTokenUsage;
+
+  /// Release resources held by this service (e.g. HTTP clients).
+  void dispose();
 }
 
 // =============================================================================
@@ -195,6 +198,11 @@ class LlmCloudService implements LlmService {
 
   @override
   LlmTokenUsage get lastTokenUsage => _lastTokenUsage;
+
+  @override
+  void dispose() {
+    _client.close();
+  }
 
   // ---------------------------------------------------------------------------
   // Provider-specific request construction
@@ -608,6 +616,11 @@ class LlmLocalService implements LlmService {
 
   @override
   LlmTokenUsage get lastTokenUsage => _lastTokenUsage;
+
+  @override
+  void dispose() {
+    _client.close();
+  }
 
   String get _chatUrl => '$baseUrl/api/chat';
   String get _tagsUrl => '$baseUrl/api/tags';
