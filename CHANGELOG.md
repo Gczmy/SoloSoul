@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Liquid Glass UI Overhaul** — Complete cross-platform UI redesign using liquid glass material design. All 20+ protected pages, AppBars, cards, buttons, dialogs, and sidebar now use glass-morphism effects with Notion+Anytype bright color palette
 - **Login UI Refresh** — Redesigned login page with gradient background, decorative orbs, vertical centering, and hover effects on all interactive elements
 - **Back Navigation** — SoloGlassAppBar now supports `backRoute` for proper back button behavior on deep-linked pages
 
@@ -17,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sensitivity Lock Enforcement** — Locking sensitive access now simultaneously enforces data masking and collapses all expanded history records
 - **Sidebar Rename Bug** — Editing a custom page name no longer persists when navigating away; double-tap renamed to long-press for faster click response
 - **Sidebar Drag Performance** — Cached descendant lookups during drag-and-drop and simplified drag placeholder to reduce jank
+- **LLM Stats Persistence** — Skips LLM usage statistics persistence when vault is locked to prevent errors
+- **Object Editor Character Counter** — Fixed character counter showing literal text instead of actual number
+- **History Timestamp Alignment** — Full timestamps in history records are now right-aligned for consistency
 
 ### Refactored
 
