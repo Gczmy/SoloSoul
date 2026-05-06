@@ -83,8 +83,11 @@ fn sauvola_binarize(img: &GrayImage, window_size: u32, k: f32) -> GrayImage {
     let mut result = GrayImage::new(width, height);
 
     // 预计算积分图（均值和方差）加速
+    // 注意：integral_squared_image 使用 u64 避免溢出
+    // 2048x2048 图像的平方积分最大值 ≈ 2.7e11，远超 u32 上限
     let integral = imageproc::integral_image::integral_image(img);
-    let integral_sq = imageproc::integral_image::integral_squared_image(img);
+    let integral_sq: ImageBuffer<Luma<u64>, Vec<u64>> =
+        imageproc::integral_image::integral_squared_image(img);
 
     let _window_area = (window_size * window_size) as f32;
     let r = 128.0; // 标准动态范围的一半
@@ -99,7 +102,7 @@ fn sauvola_binarize(img: &GrayImage, window_size: u32, k: f32) -> GrayImage {
 
             // 从积分图快速计算窗口内均值和方差
             let sum = integral_sum(&integral, x0, y0, x1, y1);
-            let sum_sq = integral_sum(&integral_sq, x0, y0, x1, y1);
+            let sum_sq = integral_sum_u64(&integral_sq, x0, y0, x1, y1);
             let area = ((x1 - x0) * (y1 - y0)) as f32;
 
             let mean = sum / area;
@@ -118,7 +121,7 @@ fn sauvola_binarize(img: &GrayImage, window_size: u32, k: f32) -> GrayImage {
     result
 }
 
-/// 从积分图计算矩形区域和
+/// 从积分图计算矩形区域和（u32 版本）
 fn integral_sum(
     integral: &ImageBuffer<Luma<u32>, Vec<u32>>,
     x0: u32,
@@ -129,6 +132,19 @@ fn integral_sum(
     let get = |x: u32, y: u32| integral.get_pixel(x, y)[0] as f32;
 
     get(x1, y1) - get(x0, y1) - get(x1, y0) + get(x0, y0)
+}
+
+/// 从积分图计算矩形区域和（u64 版本，用于平方积分图）
+fn integral_sum_u64(
+    integral: &ImageBuffer<Luma<u64>, Vec<u64>>,
+    x0: u32,
+    y0: u32,
+    x1: u32,
+    y1: u32,
+) -> f32 {
+    let get = |x: u32, y: u32| integral.get_pixel(x, y)[0] as f64;
+
+    (get(x1, y1) - get(x0, y1) - get(x1, y0) + get(x0, y0)) as f32
 }
 
 /// 为 rec 模型准备输入：将单行文字图 resize 到固定高度 48，宽度按比例或 padding
