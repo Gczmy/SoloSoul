@@ -132,7 +132,7 @@ fn locate_by_projection(binary: &GrayImage) -> Option<Vec<Rect>> {
     }
 
     // 合并连续的行区域
-    let merged = merge_rows(&text_rows);
+    let merged = merge_rows(&text_rows, binary.width())?;
 
     // 垂直投影验证字符间距均匀性
     let v_proj = vertical_projection(binary, &merged);
@@ -157,9 +157,12 @@ fn locate_by_fixed_layout(gray: &GrayImage) -> Option<Vec<Rect>> {
 
     // MRZ 通常位于底部 25%~35% 区域
     let y = (h as f32 * 0.65) as i32;
-    let height = (h as f32 * 0.15) as i32;
+    let height = ((h as f32 * 0.15) as u32).max(1);
 
-    Some(vec![Rect::at(0, y).of_size(w, height as u32)])
+    // 确保 y 不超出图像边界，且 height 有效
+    let y = y.clamp(0, h.saturating_sub(height) as i32);
+
+    Some(vec![Rect::at(0, y).of_size(w, height)])
 }
 
 // ============================================================================
@@ -289,14 +292,16 @@ fn detect_line_peaks(projection: &[u32], min_peak_height: u32, min_gap: u32) -> 
 }
 
 /// 合并多个行区域为一个大的 ROI
-/// 注意：返回的 Rect 宽度为 0 表示使用图像全宽（由调用方处理）
-fn merge_rows(rows: &[(u32, u32)]) -> Rect {
+/// 返回的 Rect 宽度为图像全宽（调用方通过 split_text_lines 处理）
+fn merge_rows(rows: &[(u32, u32)], img_width: u32) -> Option<Rect> {
+    if rows.is_empty() {
+        return None;
+    }
     let min_y = rows.iter().map(|r| r.0).min().unwrap_or(0);
     let max_y = rows.iter().map(|r| r.1).max().unwrap_or(0);
-    let height = max_y - min_y;
+    let height = (max_y - min_y).max(1);
 
-    // 宽度暂时设为 0，由调用方根据图像宽度处理
-    Rect::at(0, min_y as i32).of_size(0, height)
+    Some(Rect::at(0, min_y as i32).of_size(img_width.max(1), height))
 }
 
 /// 验证垂直投影是否显示字符间距均匀（MRZ 等宽字符特征）
