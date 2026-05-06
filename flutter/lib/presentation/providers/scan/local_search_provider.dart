@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_field_mapping_parser.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_prompt_templates.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_background_service.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_import_service.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
@@ -216,10 +217,37 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
       final allCandidates = <ImportCandidate>[];
 
       for (final result in state.scanResults) {
-        // 构建文件内容预览和 schema 描述
+        // 隐私过滤：云端模式下 critical 字段禁止外发
+        final service = modelNotifier.service;
+        final isCloud = service is LlmCloudService;
+
+        var hasCritical = false;
+        for (final section in result.sections) {
+          for (final field in section.fields) {
+            if (field.sensitivity == SensitivityLevel.critical) {
+              hasCritical = true;
+              break;
+            }
+          }
+          if (hasCritical) break;
+        }
+
+        if (isCloud && hasCritical) {
+          // critical 数据不回传云端，回退到规则引擎映射
+          final candidates = importService.mapScanResult(result);
+          allCandidates.addAll(candidates);
+          continue;
+        }
+
+        // 构建文件内容预览和 schema 描述（sensitive 字段脱敏）
         final fileName = result.meta.sourceFile.split('/').last;
         final contentPreview = result.sections
-            .map((s) => s.fields.map((f) => '${f.key}: ${f.value}').join('\n'))
+            .map((s) => s.fields.map((f) {
+              final displayValue = f.sensitivity == SensitivityLevel.sensitive
+                  ? '[REDACTED_SENSITIVE]'
+                  : f.value;
+              return '${f.key}: $displayValue';
+            }).join('\n'))
             .join('\n---\n');
 
         // 简化 schema：列出所有出现的 section 和字段
