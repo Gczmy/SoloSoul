@@ -12,6 +12,7 @@ pub mod account;
 pub mod api;
 pub mod crypto;
 pub mod discovery;
+pub mod ocr;
 #[cfg(feature = "sandbox")]
 pub mod plugin;
 pub mod safe_storage;

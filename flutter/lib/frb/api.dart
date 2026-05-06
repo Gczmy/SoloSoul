@@ -10,7 +10,7 @@ part 'api.freezed.dart';
 
 // These functions are ignored because they are not marked as `pub`: `decrypt_profile_data_bytes`, `encrypt_profile_data_bytes`, `get_session_key`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DeriveKeyResult`, `FrbKdfPreset`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 /// Initialize the account manager with a base path.
 /// Must be called before any other vault operations.
@@ -207,6 +207,42 @@ Future<SyncResult> frbSyncResponder({
   deviceSalt: deviceSalt,
 );
 
+/// Phase 1 兼容：仅加载 rec 模型
+Future<void> frbOcrInit({required List<int> modelBytes}) =>
+    RustLib.instance.api.crateApiFrbOcrInit(modelBytes: modelBytes);
+
+/// Phase 2：加载 det + cls + rec 三个模型
+///
+/// `det_model_bytes`: det 模型字节（~4MB），空切片表示跳过
+/// `cls_model_bytes`: cls 模型字节（~1MB），空切片表示跳过
+/// `rec_model_bytes`: rec 模型字节（~8MB）
+Future<void> frbOcrInitV2({
+  required List<int> detModelBytes,
+  required List<int> clsModelBytes,
+  required List<int> recModelBytes,
+}) => RustLib.instance.api.crateApiFrbOcrInitV2(
+  detModelBytes: detModelBytes,
+  clsModelBytes: clsModelBytes,
+  recModelBytes: recModelBytes,
+);
+
+/// Extract raw MRZ lines from an image.
+Future<List<String>> frbOcrExtractMrzRaw({required List<int> imageData}) =>
+    RustLib.instance.api.crateApiFrbOcrExtractMrzRaw(imageData: imageData);
+
+/// 对任意图像执行通用 OCR 识别
+///
+/// 返回结构化结果，包含每个文本块的坐标、文本和置信度。
+Future<FrbOcrResult> frbOcrRecognize({required List<int> imageData}) =>
+    RustLib.instance.api.crateApiFrbOcrRecognize(imageData: imageData);
+
+/// Get the current OCR engine status.
+Future<OcrEngineStatus> frbOcrStatus() =>
+    RustLib.instance.api.crateApiFrbOcrStatus();
+
+/// Release OCR engine resources.
+Future<void> frbOcrRelease() => RustLib.instance.api.crateApiFrbOcrRelease();
+
 /// Account info from Rust vault
 @freezed
 sealed class AccountInfo with _$AccountInfo {
@@ -275,6 +311,37 @@ sealed class FormHistories with _$FormHistories {
   }) = _FormHistories;
 }
 
+/// 边界框（相对坐标 0.0~1.0）
+@freezed
+sealed class FrbBoundingBox with _$FrbBoundingBox {
+  const factory FrbBoundingBox({
+    required double x,
+    required double y,
+    required double width,
+    required double height,
+  }) = _FrbBoundingBox;
+}
+
+/// OCR 文本块
+@freezed
+sealed class FrbOcrBlock with _$FrbOcrBlock {
+  const factory FrbOcrBlock({
+    required String text,
+    required double confidence,
+    required FrbBoundingBox bbox,
+  }) = _FrbOcrBlock;
+}
+
+/// 通用 OCR 识别结果
+@freezed
+sealed class FrbOcrResult with _$FrbOcrResult {
+  const factory FrbOcrResult({
+    required String rawText,
+    required List<FrbOcrBlock> blocks,
+    required double confidence,
+  }) = _FrbOcrResult;
+}
+
 /// Loaded profile data returned from Rust
 @freezed
 sealed class LoadedProfile with _$LoadedProfile {
@@ -284,6 +351,18 @@ sealed class LoadedProfile with _$LoadedProfile {
     required Uint8List data,
     required int version,
   }) = _LoadedProfile;
+}
+
+/// OCR 引擎状态
+@freezed
+sealed class OcrEngineStatus with _$OcrEngineStatus {
+  const factory OcrEngineStatus({
+    required bool isLoaded,
+    required bool detLoaded,
+    required bool clsLoaded,
+    required bool recLoaded,
+    required BigInt uptimeSecs,
+  }) = _OcrEngineStatus;
 }
 
 /// Profile summary from Rust vault

@@ -1608,6 +1608,804 @@ as Map<String, Map<String, List<FieldHistoryEntry>>>,
 }
 
 /// @nodoc
+mixin _$FrbBoundingBox {
+
+ double get x; double get y; double get width; double get height;
+/// Create a copy of FrbBoundingBox
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FrbBoundingBoxCopyWith<FrbBoundingBox> get copyWith => _$FrbBoundingBoxCopyWithImpl<FrbBoundingBox>(this as FrbBoundingBox, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FrbBoundingBox&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,x,y,width,height);
+
+@override
+String toString() {
+  return 'FrbBoundingBox(x: $x, y: $y, width: $width, height: $height)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FrbBoundingBoxCopyWith<$Res>  {
+  factory $FrbBoundingBoxCopyWith(FrbBoundingBox value, $Res Function(FrbBoundingBox) _then) = _$FrbBoundingBoxCopyWithImpl;
+@useResult
+$Res call({
+ double x, double y, double width, double height
+});
+
+
+
+
+}
+/// @nodoc
+class _$FrbBoundingBoxCopyWithImpl<$Res>
+    implements $FrbBoundingBoxCopyWith<$Res> {
+  _$FrbBoundingBoxCopyWithImpl(this._self, this._then);
+
+  final FrbBoundingBox _self;
+  final $Res Function(FrbBoundingBox) _then;
+
+/// Create a copy of FrbBoundingBox
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? x = null,Object? y = null,Object? width = null,Object? height = null,}) {
+  return _then(_self.copyWith(
+x: null == x ? _self.x : x // ignore: cast_nullable_to_non_nullable
+as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
+as double,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [FrbBoundingBox].
+extension FrbBoundingBoxPatterns on FrbBoundingBox {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FrbBoundingBox value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FrbBoundingBox() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FrbBoundingBox value)  $default,){
+final _that = this;
+switch (_that) {
+case _FrbBoundingBox():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FrbBoundingBox value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FrbBoundingBox() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double x,  double y,  double width,  double height)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FrbBoundingBox() when $default != null:
+return $default(_that.x,_that.y,_that.width,_that.height);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double x,  double y,  double width,  double height)  $default,) {final _that = this;
+switch (_that) {
+case _FrbBoundingBox():
+return $default(_that.x,_that.y,_that.width,_that.height);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double x,  double y,  double width,  double height)?  $default,) {final _that = this;
+switch (_that) {
+case _FrbBoundingBox() when $default != null:
+return $default(_that.x,_that.y,_that.width,_that.height);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FrbBoundingBox implements FrbBoundingBox {
+  const _FrbBoundingBox({required this.x, required this.y, required this.width, required this.height});
+  
+
+@override final  double x;
+@override final  double y;
+@override final  double width;
+@override final  double height;
+
+/// Create a copy of FrbBoundingBox
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FrbBoundingBoxCopyWith<_FrbBoundingBox> get copyWith => __$FrbBoundingBoxCopyWithImpl<_FrbBoundingBox>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FrbBoundingBox&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,x,y,width,height);
+
+@override
+String toString() {
+  return 'FrbBoundingBox(x: $x, y: $y, width: $width, height: $height)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FrbBoundingBoxCopyWith<$Res> implements $FrbBoundingBoxCopyWith<$Res> {
+  factory _$FrbBoundingBoxCopyWith(_FrbBoundingBox value, $Res Function(_FrbBoundingBox) _then) = __$FrbBoundingBoxCopyWithImpl;
+@override @useResult
+$Res call({
+ double x, double y, double width, double height
+});
+
+
+
+
+}
+/// @nodoc
+class __$FrbBoundingBoxCopyWithImpl<$Res>
+    implements _$FrbBoundingBoxCopyWith<$Res> {
+  __$FrbBoundingBoxCopyWithImpl(this._self, this._then);
+
+  final _FrbBoundingBox _self;
+  final $Res Function(_FrbBoundingBox) _then;
+
+/// Create a copy of FrbBoundingBox
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? x = null,Object? y = null,Object? width = null,Object? height = null,}) {
+  return _then(_FrbBoundingBox(
+x: null == x ? _self.x : x // ignore: cast_nullable_to_non_nullable
+as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
+as double,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$FrbOcrBlock {
+
+ String get text; double get confidence; FrbBoundingBox get bbox;
+/// Create a copy of FrbOcrBlock
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FrbOcrBlockCopyWith<FrbOcrBlock> get copyWith => _$FrbOcrBlockCopyWithImpl<FrbOcrBlock>(this as FrbOcrBlock, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FrbOcrBlock&&(identical(other.text, text) || other.text == text)&&(identical(other.confidence, confidence) || other.confidence == confidence)&&(identical(other.bbox, bbox) || other.bbox == bbox));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,text,confidence,bbox);
+
+@override
+String toString() {
+  return 'FrbOcrBlock(text: $text, confidence: $confidence, bbox: $bbox)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FrbOcrBlockCopyWith<$Res>  {
+  factory $FrbOcrBlockCopyWith(FrbOcrBlock value, $Res Function(FrbOcrBlock) _then) = _$FrbOcrBlockCopyWithImpl;
+@useResult
+$Res call({
+ String text, double confidence, FrbBoundingBox bbox
+});
+
+
+$FrbBoundingBoxCopyWith<$Res> get bbox;
+
+}
+/// @nodoc
+class _$FrbOcrBlockCopyWithImpl<$Res>
+    implements $FrbOcrBlockCopyWith<$Res> {
+  _$FrbOcrBlockCopyWithImpl(this._self, this._then);
+
+  final FrbOcrBlock _self;
+  final $Res Function(FrbOcrBlock) _then;
+
+/// Create a copy of FrbOcrBlock
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? confidence = null,Object? bbox = null,}) {
+  return _then(_self.copyWith(
+text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,confidence: null == confidence ? _self.confidence : confidence // ignore: cast_nullable_to_non_nullable
+as double,bbox: null == bbox ? _self.bbox : bbox // ignore: cast_nullable_to_non_nullable
+as FrbBoundingBox,
+  ));
+}
+/// Create a copy of FrbOcrBlock
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$FrbBoundingBoxCopyWith<$Res> get bbox {
+  
+  return $FrbBoundingBoxCopyWith<$Res>(_self.bbox, (value) {
+    return _then(_self.copyWith(bbox: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [FrbOcrBlock].
+extension FrbOcrBlockPatterns on FrbOcrBlock {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FrbOcrBlock value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FrbOcrBlock() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FrbOcrBlock value)  $default,){
+final _that = this;
+switch (_that) {
+case _FrbOcrBlock():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FrbOcrBlock value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FrbOcrBlock() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  double confidence,  FrbBoundingBox bbox)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FrbOcrBlock() when $default != null:
+return $default(_that.text,_that.confidence,_that.bbox);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  double confidence,  FrbBoundingBox bbox)  $default,) {final _that = this;
+switch (_that) {
+case _FrbOcrBlock():
+return $default(_that.text,_that.confidence,_that.bbox);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  double confidence,  FrbBoundingBox bbox)?  $default,) {final _that = this;
+switch (_that) {
+case _FrbOcrBlock() when $default != null:
+return $default(_that.text,_that.confidence,_that.bbox);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FrbOcrBlock implements FrbOcrBlock {
+  const _FrbOcrBlock({required this.text, required this.confidence, required this.bbox});
+  
+
+@override final  String text;
+@override final  double confidence;
+@override final  FrbBoundingBox bbox;
+
+/// Create a copy of FrbOcrBlock
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FrbOcrBlockCopyWith<_FrbOcrBlock> get copyWith => __$FrbOcrBlockCopyWithImpl<_FrbOcrBlock>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FrbOcrBlock&&(identical(other.text, text) || other.text == text)&&(identical(other.confidence, confidence) || other.confidence == confidence)&&(identical(other.bbox, bbox) || other.bbox == bbox));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,text,confidence,bbox);
+
+@override
+String toString() {
+  return 'FrbOcrBlock(text: $text, confidence: $confidence, bbox: $bbox)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FrbOcrBlockCopyWith<$Res> implements $FrbOcrBlockCopyWith<$Res> {
+  factory _$FrbOcrBlockCopyWith(_FrbOcrBlock value, $Res Function(_FrbOcrBlock) _then) = __$FrbOcrBlockCopyWithImpl;
+@override @useResult
+$Res call({
+ String text, double confidence, FrbBoundingBox bbox
+});
+
+
+@override $FrbBoundingBoxCopyWith<$Res> get bbox;
+
+}
+/// @nodoc
+class __$FrbOcrBlockCopyWithImpl<$Res>
+    implements _$FrbOcrBlockCopyWith<$Res> {
+  __$FrbOcrBlockCopyWithImpl(this._self, this._then);
+
+  final _FrbOcrBlock _self;
+  final $Res Function(_FrbOcrBlock) _then;
+
+/// Create a copy of FrbOcrBlock
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? confidence = null,Object? bbox = null,}) {
+  return _then(_FrbOcrBlock(
+text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,confidence: null == confidence ? _self.confidence : confidence // ignore: cast_nullable_to_non_nullable
+as double,bbox: null == bbox ? _self.bbox : bbox // ignore: cast_nullable_to_non_nullable
+as FrbBoundingBox,
+  ));
+}
+
+/// Create a copy of FrbOcrBlock
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$FrbBoundingBoxCopyWith<$Res> get bbox {
+  
+  return $FrbBoundingBoxCopyWith<$Res>(_self.bbox, (value) {
+    return _then(_self.copyWith(bbox: value));
+  });
+}
+}
+
+/// @nodoc
+mixin _$FrbOcrResult {
+
+ String get rawText; List<FrbOcrBlock> get blocks; double get confidence;
+/// Create a copy of FrbOcrResult
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$FrbOcrResultCopyWith<FrbOcrResult> get copyWith => _$FrbOcrResultCopyWithImpl<FrbOcrResult>(this as FrbOcrResult, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FrbOcrResult&&(identical(other.rawText, rawText) || other.rawText == rawText)&&const DeepCollectionEquality().equals(other.blocks, blocks)&&(identical(other.confidence, confidence) || other.confidence == confidence));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,rawText,const DeepCollectionEquality().hash(blocks),confidence);
+
+@override
+String toString() {
+  return 'FrbOcrResult(rawText: $rawText, blocks: $blocks, confidence: $confidence)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $FrbOcrResultCopyWith<$Res>  {
+  factory $FrbOcrResultCopyWith(FrbOcrResult value, $Res Function(FrbOcrResult) _then) = _$FrbOcrResultCopyWithImpl;
+@useResult
+$Res call({
+ String rawText, List<FrbOcrBlock> blocks, double confidence
+});
+
+
+
+
+}
+/// @nodoc
+class _$FrbOcrResultCopyWithImpl<$Res>
+    implements $FrbOcrResultCopyWith<$Res> {
+  _$FrbOcrResultCopyWithImpl(this._self, this._then);
+
+  final FrbOcrResult _self;
+  final $Res Function(FrbOcrResult) _then;
+
+/// Create a copy of FrbOcrResult
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? rawText = null,Object? blocks = null,Object? confidence = null,}) {
+  return _then(_self.copyWith(
+rawText: null == rawText ? _self.rawText : rawText // ignore: cast_nullable_to_non_nullable
+as String,blocks: null == blocks ? _self.blocks : blocks // ignore: cast_nullable_to_non_nullable
+as List<FrbOcrBlock>,confidence: null == confidence ? _self.confidence : confidence // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [FrbOcrResult].
+extension FrbOcrResultPatterns on FrbOcrResult {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _FrbOcrResult value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _FrbOcrResult() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _FrbOcrResult value)  $default,){
+final _that = this;
+switch (_that) {
+case _FrbOcrResult():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _FrbOcrResult value)?  $default,){
+final _that = this;
+switch (_that) {
+case _FrbOcrResult() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String rawText,  List<FrbOcrBlock> blocks,  double confidence)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _FrbOcrResult() when $default != null:
+return $default(_that.rawText,_that.blocks,_that.confidence);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String rawText,  List<FrbOcrBlock> blocks,  double confidence)  $default,) {final _that = this;
+switch (_that) {
+case _FrbOcrResult():
+return $default(_that.rawText,_that.blocks,_that.confidence);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String rawText,  List<FrbOcrBlock> blocks,  double confidence)?  $default,) {final _that = this;
+switch (_that) {
+case _FrbOcrResult() when $default != null:
+return $default(_that.rawText,_that.blocks,_that.confidence);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _FrbOcrResult implements FrbOcrResult {
+  const _FrbOcrResult({required this.rawText, required final  List<FrbOcrBlock> blocks, required this.confidence}): _blocks = blocks;
+  
+
+@override final  String rawText;
+ final  List<FrbOcrBlock> _blocks;
+@override List<FrbOcrBlock> get blocks {
+  if (_blocks is EqualUnmodifiableListView) return _blocks;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_blocks);
+}
+
+@override final  double confidence;
+
+/// Create a copy of FrbOcrResult
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$FrbOcrResultCopyWith<_FrbOcrResult> get copyWith => __$FrbOcrResultCopyWithImpl<_FrbOcrResult>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FrbOcrResult&&(identical(other.rawText, rawText) || other.rawText == rawText)&&const DeepCollectionEquality().equals(other._blocks, _blocks)&&(identical(other.confidence, confidence) || other.confidence == confidence));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,rawText,const DeepCollectionEquality().hash(_blocks),confidence);
+
+@override
+String toString() {
+  return 'FrbOcrResult(rawText: $rawText, blocks: $blocks, confidence: $confidence)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$FrbOcrResultCopyWith<$Res> implements $FrbOcrResultCopyWith<$Res> {
+  factory _$FrbOcrResultCopyWith(_FrbOcrResult value, $Res Function(_FrbOcrResult) _then) = __$FrbOcrResultCopyWithImpl;
+@override @useResult
+$Res call({
+ String rawText, List<FrbOcrBlock> blocks, double confidence
+});
+
+
+
+
+}
+/// @nodoc
+class __$FrbOcrResultCopyWithImpl<$Res>
+    implements _$FrbOcrResultCopyWith<$Res> {
+  __$FrbOcrResultCopyWithImpl(this._self, this._then);
+
+  final _FrbOcrResult _self;
+  final $Res Function(_FrbOcrResult) _then;
+
+/// Create a copy of FrbOcrResult
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? rawText = null,Object? blocks = null,Object? confidence = null,}) {
+  return _then(_FrbOcrResult(
+rawText: null == rawText ? _self.rawText : rawText // ignore: cast_nullable_to_non_nullable
+as String,blocks: null == blocks ? _self._blocks : blocks // ignore: cast_nullable_to_non_nullable
+as List<FrbOcrBlock>,confidence: null == confidence ? _self.confidence : confidence // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$LoadedProfile {
 
  String get id; String get name; Uint8List get data; int get version;
@@ -1861,6 +2659,269 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
 as Uint8List,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as int,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$OcrEngineStatus {
+
+ bool get isLoaded; bool get detLoaded; bool get clsLoaded; bool get recLoaded; BigInt get uptimeSecs;
+/// Create a copy of OcrEngineStatus
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$OcrEngineStatusCopyWith<OcrEngineStatus> get copyWith => _$OcrEngineStatusCopyWithImpl<OcrEngineStatus>(this as OcrEngineStatus, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OcrEngineStatus&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded)&&(identical(other.detLoaded, detLoaded) || other.detLoaded == detLoaded)&&(identical(other.clsLoaded, clsLoaded) || other.clsLoaded == clsLoaded)&&(identical(other.recLoaded, recLoaded) || other.recLoaded == recLoaded)&&(identical(other.uptimeSecs, uptimeSecs) || other.uptimeSecs == uptimeSecs));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,isLoaded,detLoaded,clsLoaded,recLoaded,uptimeSecs);
+
+@override
+String toString() {
+  return 'OcrEngineStatus(isLoaded: $isLoaded, detLoaded: $detLoaded, clsLoaded: $clsLoaded, recLoaded: $recLoaded, uptimeSecs: $uptimeSecs)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $OcrEngineStatusCopyWith<$Res>  {
+  factory $OcrEngineStatusCopyWith(OcrEngineStatus value, $Res Function(OcrEngineStatus) _then) = _$OcrEngineStatusCopyWithImpl;
+@useResult
+$Res call({
+ bool isLoaded, bool detLoaded, bool clsLoaded, bool recLoaded, BigInt uptimeSecs
+});
+
+
+
+
+}
+/// @nodoc
+class _$OcrEngineStatusCopyWithImpl<$Res>
+    implements $OcrEngineStatusCopyWith<$Res> {
+  _$OcrEngineStatusCopyWithImpl(this._self, this._then);
+
+  final OcrEngineStatus _self;
+  final $Res Function(OcrEngineStatus) _then;
+
+/// Create a copy of OcrEngineStatus
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoaded = null,Object? detLoaded = null,Object? clsLoaded = null,Object? recLoaded = null,Object? uptimeSecs = null,}) {
+  return _then(_self.copyWith(
+isLoaded: null == isLoaded ? _self.isLoaded : isLoaded // ignore: cast_nullable_to_non_nullable
+as bool,detLoaded: null == detLoaded ? _self.detLoaded : detLoaded // ignore: cast_nullable_to_non_nullable
+as bool,clsLoaded: null == clsLoaded ? _self.clsLoaded : clsLoaded // ignore: cast_nullable_to_non_nullable
+as bool,recLoaded: null == recLoaded ? _self.recLoaded : recLoaded // ignore: cast_nullable_to_non_nullable
+as bool,uptimeSecs: null == uptimeSecs ? _self.uptimeSecs : uptimeSecs // ignore: cast_nullable_to_non_nullable
+as BigInt,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [OcrEngineStatus].
+extension OcrEngineStatusPatterns on OcrEngineStatus {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _OcrEngineStatus value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _OcrEngineStatus() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _OcrEngineStatus value)  $default,){
+final _that = this;
+switch (_that) {
+case _OcrEngineStatus():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _OcrEngineStatus value)?  $default,){
+final _that = this;
+switch (_that) {
+case _OcrEngineStatus() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoaded,  bool detLoaded,  bool clsLoaded,  bool recLoaded,  BigInt uptimeSecs)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _OcrEngineStatus() when $default != null:
+return $default(_that.isLoaded,_that.detLoaded,_that.clsLoaded,_that.recLoaded,_that.uptimeSecs);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoaded,  bool detLoaded,  bool clsLoaded,  bool recLoaded,  BigInt uptimeSecs)  $default,) {final _that = this;
+switch (_that) {
+case _OcrEngineStatus():
+return $default(_that.isLoaded,_that.detLoaded,_that.clsLoaded,_that.recLoaded,_that.uptimeSecs);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoaded,  bool detLoaded,  bool clsLoaded,  bool recLoaded,  BigInt uptimeSecs)?  $default,) {final _that = this;
+switch (_that) {
+case _OcrEngineStatus() when $default != null:
+return $default(_that.isLoaded,_that.detLoaded,_that.clsLoaded,_that.recLoaded,_that.uptimeSecs);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _OcrEngineStatus implements OcrEngineStatus {
+  const _OcrEngineStatus({required this.isLoaded, required this.detLoaded, required this.clsLoaded, required this.recLoaded, required this.uptimeSecs});
+  
+
+@override final  bool isLoaded;
+@override final  bool detLoaded;
+@override final  bool clsLoaded;
+@override final  bool recLoaded;
+@override final  BigInt uptimeSecs;
+
+/// Create a copy of OcrEngineStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$OcrEngineStatusCopyWith<_OcrEngineStatus> get copyWith => __$OcrEngineStatusCopyWithImpl<_OcrEngineStatus>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _OcrEngineStatus&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded)&&(identical(other.detLoaded, detLoaded) || other.detLoaded == detLoaded)&&(identical(other.clsLoaded, clsLoaded) || other.clsLoaded == clsLoaded)&&(identical(other.recLoaded, recLoaded) || other.recLoaded == recLoaded)&&(identical(other.uptimeSecs, uptimeSecs) || other.uptimeSecs == uptimeSecs));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,isLoaded,detLoaded,clsLoaded,recLoaded,uptimeSecs);
+
+@override
+String toString() {
+  return 'OcrEngineStatus(isLoaded: $isLoaded, detLoaded: $detLoaded, clsLoaded: $clsLoaded, recLoaded: $recLoaded, uptimeSecs: $uptimeSecs)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$OcrEngineStatusCopyWith<$Res> implements $OcrEngineStatusCopyWith<$Res> {
+  factory _$OcrEngineStatusCopyWith(_OcrEngineStatus value, $Res Function(_OcrEngineStatus) _then) = __$OcrEngineStatusCopyWithImpl;
+@override @useResult
+$Res call({
+ bool isLoaded, bool detLoaded, bool clsLoaded, bool recLoaded, BigInt uptimeSecs
+});
+
+
+
+
+}
+/// @nodoc
+class __$OcrEngineStatusCopyWithImpl<$Res>
+    implements _$OcrEngineStatusCopyWith<$Res> {
+  __$OcrEngineStatusCopyWithImpl(this._self, this._then);
+
+  final _OcrEngineStatus _self;
+  final $Res Function(_OcrEngineStatus) _then;
+
+/// Create a copy of OcrEngineStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoaded = null,Object? detLoaded = null,Object? clsLoaded = null,Object? recLoaded = null,Object? uptimeSecs = null,}) {
+  return _then(_OcrEngineStatus(
+isLoaded: null == isLoaded ? _self.isLoaded : isLoaded // ignore: cast_nullable_to_non_nullable
+as bool,detLoaded: null == detLoaded ? _self.detLoaded : detLoaded // ignore: cast_nullable_to_non_nullable
+as bool,clsLoaded: null == clsLoaded ? _self.clsLoaded : clsLoaded // ignore: cast_nullable_to_non_nullable
+as bool,recLoaded: null == recLoaded ? _self.recLoaded : recLoaded // ignore: cast_nullable_to_non_nullable
+as bool,uptimeSecs: null == uptimeSecs ? _self.uptimeSecs : uptimeSecs // ignore: cast_nullable_to_non_nullable
+as BigInt,
   ));
 }
 

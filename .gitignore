@@ -70,3 +70,4 @@ web/next-env.d.ts
 # Temp files
 *.tmp
 *.temp
+*.onnx

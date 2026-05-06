@@ -53,6 +53,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DiscoveredDevice dco_decode_discovered_device(dynamic raw);
 
   @protected
+  double dco_decode_f_32(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
 
   @protected
@@ -60,6 +63,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FormHistories dco_decode_form_histories(dynamic raw);
+
+  @protected
+  FrbBoundingBox dco_decode_frb_bounding_box(dynamic raw);
+
+  @protected
+  FrbOcrBlock dco_decode_frb_ocr_block(dynamic raw);
+
+  @protected
+  FrbOcrResult dco_decode_frb_ocr_result(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -75,6 +87,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<FieldHistoryEntry> dco_decode_list_field_history_entry(dynamic raw);
+
+  @protected
+  List<FrbOcrBlock> dco_decode_list_frb_ocr_block(dynamic raw);
 
   @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
@@ -94,6 +109,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   LoadedProfile dco_decode_loaded_profile(dynamic raw);
+
+  @protected
+  OcrEngineStatus dco_decode_ocr_engine_status(dynamic raw);
 
   @protected
   String? dco_decode_opt_String(dynamic raw);
@@ -196,6 +214,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DiscoveredDevice sse_decode_discovered_device(SseDeserializer deserializer);
 
   @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
 
   @protected
@@ -205,6 +226,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   FormHistories sse_decode_form_histories(SseDeserializer deserializer);
+
+  @protected
+  FrbBoundingBox sse_decode_frb_bounding_box(SseDeserializer deserializer);
+
+  @protected
+  FrbOcrBlock sse_decode_frb_ocr_block(SseDeserializer deserializer);
+
+  @protected
+  FrbOcrResult sse_decode_frb_ocr_result(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -226,6 +256,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<FrbOcrBlock> sse_decode_list_frb_ocr_block(SseDeserializer deserializer);
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
   @protected
@@ -245,6 +278,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   LoadedProfile sse_decode_loaded_profile(SseDeserializer deserializer);
+
+  @protected
+  OcrEngineStatus sse_decode_ocr_engine_status(SseDeserializer deserializer);
 
   @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
@@ -359,6 +395,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
 
   @protected
@@ -369,6 +408,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_form_histories(FormHistories self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_frb_bounding_box(
+    FrbBoundingBox self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_frb_ocr_block(FrbOcrBlock self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_frb_ocr_result(FrbOcrResult self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -395,6 +446,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_frb_ocr_block(
+    List<FrbOcrBlock> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
   @protected
@@ -417,6 +474,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_loaded_profile(LoadedProfile self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_ocr_engine_status(
+    OcrEngineStatus self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);

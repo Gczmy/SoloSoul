@@ -64,7 +64,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -35868931;
+  int get rustContentHash => -458798807;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -136,6 +136,24 @@ abstract class RustLibApi extends BaseApi {
   Future<List<DiscoveredDevice>> crateApiFrbMdnsDiscover({
     required BigInt timeoutMs,
   });
+
+  Future<List<String>> crateApiFrbOcrExtractMrzRaw({
+    required List<int> imageData,
+  });
+
+  Future<void> crateApiFrbOcrInit({required List<int> modelBytes});
+
+  Future<void> crateApiFrbOcrInitV2({
+    required List<int> detModelBytes,
+    required List<int> clsModelBytes,
+    required List<int> recModelBytes,
+  });
+
+  Future<FrbOcrResult> crateApiFrbOcrRecognize({required List<int> imageData});
+
+  Future<void> crateApiFrbOcrRelease();
+
+  Future<OcrEngineStatus> crateApiFrbOcrStatus();
 
   Future<String> crateApiFrbPing();
 
@@ -710,6 +728,187 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<List<String>> crateApiFrbOcrExtractMrzRaw({
+    required List<int> imageData,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(imageData, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbOcrExtractMrzRawConstMeta,
+        argValues: [imageData],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbOcrExtractMrzRawConstMeta =>
+      const TaskConstMeta(
+        debugName: "frb_ocr_extract_mrz_raw",
+        argNames: ["imageData"],
+      );
+
+  @override
+  Future<void> crateApiFrbOcrInit({required List<int> modelBytes}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(modelBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbOcrInitConstMeta,
+        argValues: [modelBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbOcrInitConstMeta =>
+      const TaskConstMeta(debugName: "frb_ocr_init", argNames: ["modelBytes"]);
+
+  @override
+  Future<void> crateApiFrbOcrInitV2({
+    required List<int> detModelBytes,
+    required List<int> clsModelBytes,
+    required List<int> recModelBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(detModelBytes, serializer);
+          sse_encode_list_prim_u_8_loose(clsModelBytes, serializer);
+          sse_encode_list_prim_u_8_loose(recModelBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbOcrInitV2ConstMeta,
+        argValues: [detModelBytes, clsModelBytes, recModelBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbOcrInitV2ConstMeta => const TaskConstMeta(
+    debugName: "frb_ocr_init_v2",
+    argNames: ["detModelBytes", "clsModelBytes", "recModelBytes"],
+  );
+
+  @override
+  Future<FrbOcrResult> crateApiFrbOcrRecognize({required List<int> imageData}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(imageData, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 21,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_frb_ocr_result,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiFrbOcrRecognizeConstMeta,
+        argValues: [imageData],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbOcrRecognizeConstMeta => const TaskConstMeta(
+    debugName: "frb_ocr_recognize",
+    argNames: ["imageData"],
+  );
+
+  @override
+  Future<void> crateApiFrbOcrRelease() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 22,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiFrbOcrReleaseConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbOcrReleaseConstMeta =>
+      const TaskConstMeta(debugName: "frb_ocr_release", argNames: []);
+
+  @override
+  Future<OcrEngineStatus> crateApiFrbOcrStatus() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_ocr_engine_status,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiFrbOcrStatusConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiFrbOcrStatusConstMeta =>
+      const TaskConstMeta(debugName: "frb_ocr_status", argNames: []);
+
+  @override
   Future<String> crateApiFrbPing() {
     return handler.executeNormal(
       NormalTask(
@@ -718,7 +917,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 24,
             port: port_,
           );
         },
@@ -750,7 +949,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 25,
             port: port_,
           );
         },
@@ -788,7 +987,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 26,
             port: port_,
           );
         },
@@ -826,7 +1025,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 27,
             port: port_,
           );
         },
@@ -855,7 +1054,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 28,
             port: port_,
           );
         },
@@ -882,7 +1081,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 29,
             port: port_,
           );
         },
@@ -914,7 +1113,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 30,
             port: port_,
           );
         },
@@ -1045,6 +1244,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double dco_decode_f_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as double;
+  }
+
+  @protected
   double dco_decode_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
@@ -1078,6 +1283,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  FrbBoundingBox dco_decode_frb_bounding_box(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return FrbBoundingBox(
+      x: dco_decode_f_32(arr[0]),
+      y: dco_decode_f_32(arr[1]),
+      width: dco_decode_f_32(arr[2]),
+      height: dco_decode_f_32(arr[3]),
+    );
+  }
+
+  @protected
+  FrbOcrBlock dco_decode_frb_ocr_block(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return FrbOcrBlock(
+      text: dco_decode_String(arr[0]),
+      confidence: dco_decode_f_32(arr[1]),
+      bbox: dco_decode_frb_bounding_box(arr[2]),
+    );
+  }
+
+  @protected
+  FrbOcrResult dco_decode_frb_ocr_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return FrbOcrResult(
+      rawText: dco_decode_String(arr[0]),
+      blocks: dco_decode_list_frb_ocr_block(arr[1]),
+      confidence: dco_decode_f_32(arr[2]),
+    );
+  }
+
+  @protected
   int dco_decode_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -1105,6 +1350,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<FieldHistoryEntry> dco_decode_list_field_history_entry(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_field_history_entry).toList();
+  }
+
+  @protected
+  List<FrbOcrBlock> dco_decode_list_frb_ocr_block(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_frb_ocr_block).toList();
   }
 
   @protected
@@ -1150,6 +1401,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       name: dco_decode_String(arr[1]),
       data: dco_decode_list_prim_u_8_strict(arr[2]),
       version: dco_decode_u_32(arr[3]),
+    );
+  }
+
+  @protected
+  OcrEngineStatus dco_decode_ocr_engine_status(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return OcrEngineStatus(
+      isLoaded: dco_decode_bool(arr[0]),
+      detLoaded: dco_decode_bool(arr[1]),
+      clsLoaded: dco_decode_bool(arr[2]),
+      recLoaded: dco_decode_bool(arr[3]),
+      uptimeSecs: dco_decode_u_64(arr[4]),
     );
   }
 
@@ -1458,6 +1724,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  double sse_decode_f_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getFloat32();
+  }
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getFloat64();
@@ -1486,6 +1758,47 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           deserializer,
         );
     return FormHistories(histories: var_histories);
+  }
+
+  @protected
+  FrbBoundingBox sse_decode_frb_bounding_box(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_x = sse_decode_f_32(deserializer);
+    var var_y = sse_decode_f_32(deserializer);
+    var var_width = sse_decode_f_32(deserializer);
+    var var_height = sse_decode_f_32(deserializer);
+    return FrbBoundingBox(
+      x: var_x,
+      y: var_y,
+      width: var_width,
+      height: var_height,
+    );
+  }
+
+  @protected
+  FrbOcrBlock sse_decode_frb_ocr_block(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_text = sse_decode_String(deserializer);
+    var var_confidence = sse_decode_f_32(deserializer);
+    var var_bbox = sse_decode_frb_bounding_box(deserializer);
+    return FrbOcrBlock(
+      text: var_text,
+      confidence: var_confidence,
+      bbox: var_bbox,
+    );
+  }
+
+  @protected
+  FrbOcrResult sse_decode_frb_ocr_result(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_rawText = sse_decode_String(deserializer);
+    var var_blocks = sse_decode_list_frb_ocr_block(deserializer);
+    var var_confidence = sse_decode_f_32(deserializer);
+    return FrbOcrResult(
+      rawText: var_rawText,
+      blocks: var_blocks,
+      confidence: var_confidence,
+    );
   }
 
   @protected
@@ -1542,6 +1855,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <FieldHistoryEntry>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_field_history_entry(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<FrbOcrBlock> sse_decode_list_frb_ocr_block(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <FrbOcrBlock>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_frb_ocr_block(deserializer));
     }
     return ans_;
   }
@@ -1606,6 +1933,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       name: var_name,
       data: var_data,
       version: var_version,
+    );
+  }
+
+  @protected
+  OcrEngineStatus sse_decode_ocr_engine_status(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_isLoaded = sse_decode_bool(deserializer);
+    var var_detLoaded = sse_decode_bool(deserializer);
+    var var_clsLoaded = sse_decode_bool(deserializer);
+    var var_recLoaded = sse_decode_bool(deserializer);
+    var var_uptimeSecs = sse_decode_u_64(deserializer);
+    return OcrEngineStatus(
+      isLoaded: var_isLoaded,
+      detLoaded: var_detLoaded,
+      clsLoaded: var_clsLoaded,
+      recLoaded: var_recLoaded,
+      uptimeSecs: var_uptimeSecs,
     );
   }
 
@@ -1912,6 +2256,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_f_32(double self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putFloat32(self);
+  }
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat64(self);
@@ -1935,6 +2285,34 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       self.histories,
       serializer,
     );
+  }
+
+  @protected
+  void sse_encode_frb_bounding_box(
+    FrbBoundingBox self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_32(self.x, serializer);
+    sse_encode_f_32(self.y, serializer);
+    sse_encode_f_32(self.width, serializer);
+    sse_encode_f_32(self.height, serializer);
+  }
+
+  @protected
+  void sse_encode_frb_ocr_block(FrbOcrBlock self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.text, serializer);
+    sse_encode_f_32(self.confidence, serializer);
+    sse_encode_frb_bounding_box(self.bbox, serializer);
+  }
+
+  @protected
+  void sse_encode_frb_ocr_result(FrbOcrResult self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.rawText, serializer);
+    sse_encode_list_frb_ocr_block(self.blocks, serializer);
+    sse_encode_f_32(self.confidence, serializer);
   }
 
   @protected
@@ -1985,6 +2363,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_field_history_entry(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_frb_ocr_block(
+    List<FrbOcrBlock> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_frb_ocr_block(item, serializer);
     }
   }
 
@@ -2044,6 +2434,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.name, serializer);
     sse_encode_list_prim_u_8_strict(self.data, serializer);
     sse_encode_u_32(self.version, serializer);
+  }
+
+  @protected
+  void sse_encode_ocr_engine_status(
+    OcrEngineStatus self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.isLoaded, serializer);
+    sse_encode_bool(self.detLoaded, serializer);
+    sse_encode_bool(self.clsLoaded, serializer);
+    sse_encode_bool(self.recLoaded, serializer);
+    sse_encode_u_64(self.uptimeSecs, serializer);
   }
 
   @protected

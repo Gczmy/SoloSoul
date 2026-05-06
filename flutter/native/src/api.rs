@@ -859,3 +859,140 @@ pub fn frb_sync_responder(
         error: result.error,
     })
 }
+
+// ============================================================================
+// OCR — Phase 1 (MRZ) + Phase 2 (General OCR)
+// ============================================================================
+
+/// OCR 引擎状态
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone)]
+pub struct OcrEngineStatus {
+    pub is_loaded: bool,
+    pub det_loaded: bool,
+    pub cls_loaded: bool,
+    pub rec_loaded: bool,
+    pub uptime_secs: u64,
+}
+
+/// 边界框（相对坐标 0.0~1.0）
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone)]
+pub struct FrbBoundingBox {
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+}
+
+/// OCR 文本块
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone)]
+pub struct FrbOcrBlock {
+    pub text: String,
+    pub confidence: f32,
+    pub bbox: FrbBoundingBox,
+}
+
+/// 通用 OCR 识别结果
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone)]
+pub struct FrbOcrResult {
+    pub raw_text: String,
+    pub blocks: Vec<FrbOcrBlock>,
+    pub confidence: f32,
+}
+
+// ----------------------------------------------------------------------------
+// 初始化
+// ----------------------------------------------------------------------------
+
+/// Phase 1 兼容：仅加载 rec 模型
+#[frb]
+pub fn frb_ocr_init(model_bytes: Vec<u8>) -> Result<(), String> {
+    crate::ocr::load_models_from_memory(&model_bytes)
+        .map_err(|e| e.to_string())
+}
+
+/// Phase 2：加载 det + cls + rec 三个模型
+///
+/// `det_model_bytes`: det 模型字节（~4MB），空切片表示跳过
+/// `cls_model_bytes`: cls 模型字节（~1MB），空切片表示跳过
+/// `rec_model_bytes`: rec 模型字节（~8MB）
+#[frb]
+pub fn frb_ocr_init_v2(
+    det_model_bytes: Vec<u8>,
+    cls_model_bytes: Vec<u8>,
+    rec_model_bytes: Vec<u8>,
+) -> Result<(), String> {
+    crate::ocr::load_models_from_memory_v2(&det_model_bytes, &cls_model_bytes, &rec_model_bytes)
+        .map_err(|e| e.to_string())
+}
+
+// ----------------------------------------------------------------------------
+// MRZ 识别（Phase 1）
+// ----------------------------------------------------------------------------
+
+/// Extract raw MRZ lines from an image.
+#[frb]
+pub fn frb_ocr_extract_mrz_raw(image_data: Vec<u8>) -> Result<Vec<String>, String> {
+    let img = image::load_from_memory(&image_data)
+        .map_err(|e| format!("Invalid image: {}", e))?;
+
+    crate::ocr::extract_mrz_lines(&img)
+        .map_err(|e| e.to_string())
+}
+
+// ----------------------------------------------------------------------------
+// 通用 OCR（Phase 2）
+// ----------------------------------------------------------------------------
+
+/// 对任意图像执行通用 OCR 识别
+///
+/// 返回结构化结果，包含每个文本块的坐标、文本和置信度。
+#[frb]
+pub fn frb_ocr_recognize(image_data: Vec<u8>) -> Result<FrbOcrResult, String> {
+    let img = image::load_from_memory(&image_data)
+        .map_err(|e| format!("Invalid image: {}", e))?;
+
+    let result = crate::ocr::recognize_image(&img)
+        .map_err(|e| e.to_string())?;
+
+    Ok(FrbOcrResult {
+        raw_text: result.raw_text,
+        blocks: result.blocks.into_iter().map(|b| FrbOcrBlock {
+            text: b.text,
+            confidence: b.confidence,
+            bbox: FrbBoundingBox {
+                x: b.bbox.x,
+                y: b.bbox.y,
+                width: b.bbox.width,
+                height: b.bbox.height,
+            },
+        }).collect(),
+        confidence: result.confidence,
+    })
+}
+
+// ----------------------------------------------------------------------------
+// 状态查询与资源管理
+// ----------------------------------------------------------------------------
+
+/// Get the current OCR engine status.
+#[frb]
+pub fn frb_ocr_status() -> OcrEngineStatus {
+    let status = crate::ocr::engine_status();
+    OcrEngineStatus {
+        is_loaded: status.is_loaded,
+        det_loaded: status.det_loaded,
+        cls_loaded: status.cls_loaded,
+        rec_loaded: status.rec_loaded,
+        uptime_secs: status.uptime_secs,
+    }
+}
+
+/// Release OCR engine resources.
+#[frb]
+pub fn frb_ocr_release() {
+    crate::ocr::unload_models();
+}
