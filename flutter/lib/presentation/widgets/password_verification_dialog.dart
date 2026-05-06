@@ -272,7 +272,11 @@ class PasswordVerificationDialogContentState
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                      icon: const Icon(Icons.help_outline, size: 20),
+                      icon: Icon(
+                        Icons.help_outline,
+                        size: 20,
+                        color: _hasError ? Colors.red.shade700 : null,
+                      ),
                       onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                       tooltip: 'Show password hint',
                     ),
@@ -282,6 +286,7 @@ class PasswordVerificationDialogContentState
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                       size: 20,
+                      color: _hasError ? Colors.red.shade700 : null,
                     ),
                     onPressed: () {
                       setState(() {
@@ -499,7 +504,11 @@ class BiometricPasswordDialogContentState
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                      icon: const Icon(Icons.help_outline, size: 20),
+                      icon: Icon(
+                        Icons.help_outline,
+                        size: 20,
+                        color: _hasError ? Colors.red.shade700 : null,
+                      ),
                       onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
                       tooltip: 'Show password hint',
                     ),
@@ -509,6 +518,7 @@ class BiometricPasswordDialogContentState
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                       size: 20,
+                      color: _hasError ? Colors.red.shade700 : null,
                     ),
                     onPressed: () {
                       setState(() {
