@@ -11,7 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Login Page UI Overhaul** — Complete visual redesign of the login page:
+- **Liquid Glass UI Overhaul (P0)** — Complete cross-platform UI redesign using `liquid_glass_widgets: ^0.10.6`. All 20+ protected pages, AppBars, cards, buttons, dialogs, text fields, and sidebar now use glass-morphism effects:
+  - `main.dart`: Integrated `LiquidGlassWidgets.initialize()` and `LiquidGlassWidgets.wrap()` at app root
+  - `app_theme.dart`: Rebuilt with Notion+Anytype bright color palette; defined `GlassThemeData` with light/dark variants
+  - `glass_adapters.dart`: New SoloSoul-specific glass adapter components — `SoloGlassAppBar`, `SoloGlassCard`, `SoloGlassTextField`, `SoloGlassButton`, `showSoloGlassDialog`
+  - `ScaffoldWithSidebar`: Wrapped with `AdaptiveLiquidGlassLayer` + `GlassBackdropScope`
+  - `AppSidebar`: Background replaced with `AdaptiveGlass` using `LiquidGlassSettings`
+  - `LoginPage` + sub-components: Glass-morphism logo orb, `GlassCard` content container, `GlassButton` actions
+  - `HomePage`: `GlassAppBar` + `GlassCard` status area + `GlassCard` quick actions
+  - `SectionCard` / `QuickActionTile`: Material `Card` → `GlassCard`
+  - Batch upgraded all 20+ protected page AppBars to `SoloGlassAppBar`
+- **Login Page UI Refresh** — Additional visual enhancements on top of Liquid Glass:
   - Gradient background with decorative color orbs for depth
   - Vertical centering via `LayoutBuilder` + `ConstrainedBox`
   - Subtitle "Your data, your control" for richer content hierarchy
@@ -30,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `_TreeTileDraggable` now caches `getDescendantIds` lookups within a drag session
   - `childWhenDragging` uses a lightweight `Container` placeholder instead of the full complex tile
   - Replaced `AnimatedContainer` in `DragTarget.builder` with a simple `Container` to avoid per-frame animation overhead
+- **LLM Stats Persistence** — `llm_config_service.dart` now skips LLM usage statistics persistence when vault is locked, preventing serialization errors on a null key
+- **Object Editor Character Counter** — Fixed character counter in `object_editor_page.dart` showing literal text (e.g. "0 / 0") instead of actual field length
+- **History Timestamp Alignment** — Full timestamps in `FieldHistoryDialog` / `FieldHistoryView` are now right-aligned for visual consistency
 
 ### Refactored
 
