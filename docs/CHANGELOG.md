@@ -9,9 +9,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.6] - 2026-05-06
 
+### Added
+
+- **LLM Integration (P0)** — Full AI chat interface with streaming responses, smart field mapping for object creation, and encrypted usage statistics persistence. Supports multiple providers with per-model configuration, usage tracking, and sparkline chart visualization in settings
+- **Local Search Import (P0)** — Import objects from local search results with automatic schema field mapping, batch validation, and CancelToken support to interrupt underlying scan I/O
+- **Multi-Device Sync** — FRB-based sync engine featuring CRDT data structures for conflict-free replicated data types, Noise protocol encryption for handshake security, and TCP transport layer. Includes dedicated sync UI for device pairing and connection management
+- **Rust Core Engine (Phases 1-5)** — Complete migration from Dart crypto fallback to unified Rust implementation:
+  - Phase 1: Unified encryption layer with Argon2id + AES-256-GCM
+  - Phase 2: Unified account management with UUID account IDs
+  - Phase 3: Eliminated Dart fallback, added KdfPreset configuration
+  - Phase 4: Typed FRB bindings replacing JSON relay pattern
+  - Phase 5: CRDT sync engine with Noise encryption and TCP transport
+- **Anytype-Inspired macOS Features** — Redesigned object workspace and editor interactions following Anytype UX patterns for spatial navigation and relation editing
+- **Full Operation Recording** — All user CRUD actions are logged via `OperationLogService` with before/after property snapshots, sensitivity levels, and proper `logSectionForTypeId` mapping for complete audit trails
+- **Comprehensive Test Coverage (Phases 1-11)** — Added extensive unit tests for LLM service, local import, auth notifiers, vault operations, sync engine, and widget behavior
+- **Structured Sensitive Debug Logging (P028)** — `DebugLogger` now tags sensitive data with structured sensitivity levels for safer diagnostic output
+- **Sync UI** — New settings section for managing multi-device synchronization with real-time connection status
+
 ### Fixed
 
+- **AI Privacy Protection (P001)** — Smart mapping now blocks critical and restricted sensitivity data from being transmitted to cloud LLM APIs, preventing privacy leakage
+- **Startup Black Screen (P0)** — Fixed native library loading race condition caused by incorrect `dlopen` path resolution on macOS app launch
+- **Unlock Flow Hangs** — Restructured async unlock sequence to prevent UI hangs caused by `verify_hash` encoding mismatches between old and new account formats. Added automatic `verify_hash` repair for corrupted Keychain entries
+- **Account Switch Security** — Password verification is now mandatory when switching accounts from settings, preventing unauthorized access via cached session tokens
 - **Password Dialog Error Icon Color** — When verifying identity for critical/sensitive fields, entering an incorrect password now correctly turns the hint (`help_outline`) and visibility toggle (`visibility_outlined`/`visibility_off_outlined`) icons red to match the error text, instead of leaving them white/default
+- **Security Audit (S001-S015)** — Path traversal validation on profile IDs, minimum PBKDF2 iteration enforcement, secure key material wipe after account creation, backup file permissions (0600), debug mode security hardening, and constant-time comparison migrated to Rust FFI
+- **Performance Audit (PF001-PF010)** — Batch delete for empty trash, O(n²) elimination in list operations, save/log debounce, TextEditingController leak fixes, and timer no-op prevention
+- **Code Quality Audit (D001-D011, P001-P055)** — Dead code cleanup, concrete exception types in catch clauses, mounted guards, duplicate code extraction, and removed empty setState calls
+- **LLM Stability (P002-P007, P016)** — Proper `http.Client` disposal, input field clearing, stream controller leak fixes, print-to-SoloLog migration, and max 5-file limit for AI mapping to prevent request storms
+- **LLM Type Safety (P004, P008-P011, P015)** — Debounced stream rebuilds, type-safe API key handling, proper comment alignment, and API key clearing on model switch
+- **Import Integrity** — Ensures imported objects contain all schema-defined fields with correct defaults; prevents stats loss when Vault is locked at startup
+
+### Refactored
+
+- **Widget Extraction (P010-P015, P023-P025, P034-P039, P043, P057-P059)** — Extracted 26+ widget classes from 8 oversized files:
+  - Settings page: 427 → 35 lines
+  - Profile page: 327 → ~50 lines
+  - Editor header, bottom save bar, property field rows, contact forms as standalone widgets
+- **LLM Service Modularization (P020)** — Split monolithic `llm_service.dart` into focused files: `llm_config_service.dart`, `llm_chat_service.dart`, `llm_mapping_service.dart`, `llm_stats_service.dart`
+- **Shared Utilities (Phase 0)** — Extracted `_verifyPassword`, `_postLoginSetup`, dialog overlay helpers, and page templates to eliminate duplication
+- **Login Flow (P045)** — Unified `_handleUnlock` and `_handleCreateAccount` post-login setup into shared `_postLoginSetup`
+- **Settings Dialogs (P031-P032)** — Extracted `_DebugActivationDialog` reducing dialog builder from 196 → 58 lines
 
 ## [1.4.5] - 2026-04-30
 
