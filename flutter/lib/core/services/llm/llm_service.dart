@@ -631,9 +631,15 @@ class LlmLocalService implements LlmService {
     _client.close();
   }
 
-  String get _chatUrl => '$baseUrl/api/chat';
-  String get _tagsUrl => '$baseUrl/api/tags';
-  String get _pullUrl => '$baseUrl/api/pull';
+  String get _normalizedBaseUrl {
+    return baseUrl.endsWith('/')
+        ? baseUrl.substring(0, baseUrl.length - 1)
+        : baseUrl;
+  }
+
+  String get _chatUrl => '$_normalizedBaseUrl/api/chat';
+  String get _tagsUrl => '$_normalizedBaseUrl/api/tags';
+  String get _pullUrl => '$_normalizedBaseUrl/api/pull';
 
   @override
   Future<String> infer(String prompt, {int maxTokens = 512}) async {
@@ -728,7 +734,9 @@ class LlmLocalService implements LlmService {
       'messages': messages.map((m) => m.toJson()).toList(),
       'options': {
         'temperature': temperature,
+        'top_p': topP,
         'num_predict': maxTokens,
+        'num_ctx': numCtx,
       },
       'stream': true,
     });

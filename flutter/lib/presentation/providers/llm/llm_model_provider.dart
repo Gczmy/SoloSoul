@@ -257,10 +257,10 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       _activeStreamSub?.cancel();
       _manager.infer(prompt, maxTokens: maxTokens).then((result) {
         if (controller.isClosed) return;
-        // 模拟打字机：每 30ms 发送一个 grapheme cluster（避免切开 surrogate pair）
+        // 模拟打字机：每 8ms 发送一个 grapheme cluster（避免切开 surrogate pair）
         final chars = result.characters.toList();
         var index = 0;
-        Timer.periodic(const Duration(milliseconds: 30), (timer) {
+        Timer.periodic(const Duration(milliseconds: 8), (timer) {
           _typingTimer = timer;
           if (controller.isClosed) {
             timer.cancel();

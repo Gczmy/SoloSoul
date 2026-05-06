@@ -42,6 +42,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
   final _scrollController = ScrollController();
   bool _isLoadingConfig = false;
   String? _loadError;
+  bool _scrollPending = false;
 
   Future<void> _loadModel() async {
     if (_isLoadingConfig) return;
@@ -106,6 +107,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
   }
 
   void _scrollToBottom() {
+    _scrollPending = false;
     Future.delayed(const Duration(milliseconds: 50), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -161,8 +163,9 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     final isSending = messages.any((m) => m.isStreaming);
     final backendStatus = _backendStatus(configAsync.value, isReady);
 
-    // AI 输出期间自动滚动到底部
-    if (isSending) {
+    // AI 输出期间自动滚动到底部（防重复添加 callback）
+    if (isSending && !_scrollPending) {
+      _scrollPending = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
 

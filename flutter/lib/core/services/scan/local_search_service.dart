@@ -40,11 +40,11 @@ class LocalSearchService {
   /// Content fingerprint regexes for personal information.
   static final Map<String, _Fingerprint> _kFingerprints = {
     'id_card': _Fingerprint(
-      pattern: RegExp(r'[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]'),
+      pattern: RegExp(r'(?<!\d)[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx](?!\d)'),
       sensitivity: SensitivityLevel.critical,
     ),
     'phone': _Fingerprint(
-      pattern: RegExp(r'1[3-9]\d{9}'),
+      pattern: RegExp(r'(?<!\d)1[3-9]\d{9}(?!\d)'),
       sensitivity: SensitivityLevel.sensitive,
     ),
     'email': _Fingerprint(
@@ -52,11 +52,11 @@ class LocalSearchService {
       sensitivity: SensitivityLevel.internal,
     ),
     'passport': _Fingerprint(
-      pattern: RegExp(r'[A-Z]\d{7,8}'),
+      pattern: RegExp(r'(?<![A-Z0-9])[A-Z]\d{7,8}(?![A-Z0-9])'),
       sensitivity: SensitivityLevel.critical,
     ),
     'bank_card': _Fingerprint(
-      pattern: RegExp(r'\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}'),
+      pattern: RegExp(r'(?<!\d)\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}(?!\d)'),
       sensitivity: SensitivityLevel.critical,
     ),
   };
@@ -159,7 +159,6 @@ class LocalSearchService {
     var foundCount = 0;
     var skippedCount = 0;
 
-    // Load cache
     final cache = ScanCacheService.instance;
     if (useCache) await cache.load();
 
@@ -173,55 +172,16 @@ class LocalSearchService {
         allPaths.add(file.path);
         onScanned?.call(file.path);
 
-        // Skip files exceeding per-extension size limit
-        final extLimitMb = sizeLimits[file.extension] ?? _kDefaultMaxFileSizeMb;
-        final extLimitBytes = extLimitMb * 1024 * 1024;
-        if (file.size > extLimitBytes) {
+        final skipReason = _shouldSkipFile(file, sizeLimits, cache, useCache, scanDepth);
+        if (skipReason != null) {
           skippedCount++;
-          cache.update(file.path, file.modifiedAt, file.size);
+          if (skipReason != 'cache') cache.update(file.path, file.modifiedAt, file.size);
           onSkipped?.call(file.path);
           onProgress?.call(scannedCount, foundCount, skippedCount, file.path);
           continue;
         }
 
-        // Skip unchanged files if cache is enabled
-        if (useCache && !cache.isChanged(file.path, file.modifiedAt, file.size)) {
-          skippedCount++;
-          onSkipped?.call(file.path);
-          onProgress?.call(scannedCount, foundCount, skippedCount, file.path);
-          continue;
-        }
-
-        // Skip if filename doesn't hint at personal info (unless full scan)
-        if (scanDepth != 'full' && !filenameHintsPersonal(file.name)) {
-          skippedCount++;
-          cache.update(file.path, file.modifiedAt, file.size);
-          onSkipped?.call(file.path);
-          onProgress?.call(scannedCount, foundCount, skippedCount, file.path);
-          continue;
-        }
-
-        ScanResult? result;
-        try {
-          if (scanDepth == 'filename') {
-            result = _scanFilenameOnly(file);
-          } else if (scanDepth == 'fingerprint') {
-            result = await _scanWithFingerprint(file)
-                .timeout(const Duration(seconds: 15));
-          } else {
-            result = await _scanFull(file)
-                .timeout(const Duration(seconds: 15));
-          }
-        } on TimeoutException {
-          // File parsing timed out — treat as skipped
-          skippedCount++;
-          cache.update(file.path, file.modifiedAt, file.size);
-          onSkipped?.call(file.path);
-          onProgress?.call(scannedCount, foundCount, skippedCount, file.path);
-          continue;
-        }
-
-        // Update cache regardless of whether content was found
+        final result = await _scanFile(file, scanDepth);
         cache.update(file.path, file.modifiedAt, file.size);
 
         if (result != null && result.sections.isNotEmpty) {
@@ -234,10 +194,43 @@ class LocalSearchService {
       }
     }
 
-    // Prune deleted files and save cache
     if (useCache) {
       cache.prune(allPaths);
       await cache.save();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // File-level helpers (extracted from scan() for readability)
+  // ---------------------------------------------------------------------------
+
+  /// Returns a skip reason string, or null if the file should be scanned.
+  static String? _shouldSkipFile(
+    ScannedFile file,
+    Map<String, int> sizeLimits,
+    ScanCacheService cache,
+    bool useCache,
+    String scanDepth,
+  ) {
+    final extLimitMb = sizeLimits[file.extension] ?? _kDefaultMaxFileSizeMb;
+    if (file.size > extLimitMb * 1024 * 1024) return 'size';
+    if (useCache && !cache.isChanged(file.path, file.modifiedAt, file.size)) return 'cache';
+    if (scanDepth != 'full' && !filenameHintsPersonal(file.name)) return 'filename';
+    return null;
+  }
+
+  /// Scan a single file according to [scanDepth]. Returns null on timeout.
+  static Future<ScanResult?> _scanFile(ScannedFile file, String scanDepth) async {
+    try {
+      if (scanDepth == 'filename') {
+        return _scanFilenameOnly(file);
+      } else if (scanDepth == 'fingerprint') {
+        return await _scanWithFingerprint(file).timeout(const Duration(seconds: 15));
+      } else {
+        return await _scanFull(file).timeout(const Duration(seconds: 15));
+      }
+    } on TimeoutException {
+      return null;
     }
   }
 
@@ -359,7 +352,7 @@ class LocalSearchService {
       }
     } on Exception catch (_) {
       // Fallback to generic
-      return _listFilesGeneric(rootPath, extensions);
+      return _listFilesGeneric(rootPath, extensions, maxFiles: maxFiles);
     }
 
     return results;
@@ -397,7 +390,7 @@ class LocalSearchService {
               modifiedAt: stat.modified.millisecondsSinceEpoch,
               extension: ext,
             ));
-            if (results.length >= 200) break; // Limit to prevent overload
+            if (results.length >= maxFiles) break; // Limit to prevent overload
           }
         }
       }
@@ -659,7 +652,7 @@ class LocalSearchService {
     }
 
     // SWIFT/BIC
-    final swiftMatch = RegExp(r'[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?').firstMatch(text);
+    final swiftMatch = RegExp(r'\b[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?\b').firstMatch(text);
     if (swiftMatch != null) {
       fields.add(ScanField(
         key: 'swiftBic',

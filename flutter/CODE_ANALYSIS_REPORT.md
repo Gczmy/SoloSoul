@@ -25,25 +25,25 @@
 | P014 | P1     | 可维护性   | `lib/presentation/widgets/llm/llm_chat_panel.dart:152-317` | `build()` 方法过长（164 行），应将子组件提取为独立 widget | `[x]` 已修复（提取 `_buildInputArea` 方法） |
 | P015 | P1     | 功能缺陷   | `lib/core/services/llm/llm_config_service.dart:169` | `updateCloudProfile` 中 apiKey 为空字符串时无法清空，会保留旧值 | `[x]` 已修复（引入 sentinel 区分"不修改"与"清空"） |
 | P016 | P1     | 性能/费用  | `lib/presentation/providers/scan/local_search_provider.dart:175-295` | `performAiMapping` 对每个 scan result 单独调用 LLM，无并发限制，大量文件时可能请求风暴 | `[x]` 已修复（限制最多 5 个文件使用 AI 映射，其余回退规则引擎） |
-| P017 | P2     | 健壮性     | `lib/core/services/llm/llm_service.dart:751` | `LlmLocalService` URL 拼接未处理 `baseUrl` 尾部斜杠 | `[ ]` 待修复 |
-| P018 | P2     | 一致性     | `lib/core/services/llm/llm_service.dart:640-692 vs 697-741` | `LlmLocalService` 流式与非流式请求 options 不一致（缺少 `top_p`、`num_ctx`） | `[ ]` 待修复 |
+| P017 | P2     | 健壮性     | `lib/core/services/llm/llm_service.dart:751` | `LlmLocalService` URL 拼接未处理 `baseUrl` 尾部斜杠 | `[x]` 已修复 |
+| P018 | P2     | 一致性     | `lib/core/services/llm/llm_service.dart:640-692 vs 697-741` | `LlmLocalService` 流式与非流式请求 options 不一致（缺少 `top_p`、`num_ctx`） | `[x]` 已修复 |
 | P019 | P2     | 可配置性   | `lib/core/services/llm/llm_service.dart:598` | 默认 `modelName` 硬编码 `'qwen2.5:1.5b'`，应从配置读取 | `[ ]` 待修复 |
 | P020 | P2     | 可维护性   | `lib/core/services/llm/llm_service.dart` 整体 | 文件 887 行包含 7 个类，应拆分为 `llm_message.dart`、`llm_cloud_service.dart`、`llm_local_service.dart` 等 | `[ ]` 待修复 |
 | P021 | P2     | 重复代码   | `lib/core/services/llm/llm_model_manager.dart:130-144,190-211` | `loadCloud` 与 `loadLocal` 中记录模型最后加载时间的逻辑完全重复 | `[ ]` 待修复 |
 | P022 | P2     | 国际化     | `lib/core/services/llm/llm_query_enhancer.dart:78-94,137-149` | Prompt 模板与同义词表仅支持中文，英文查询优化效果差 | `[ ]` 待修复 |
-| P023 | P2     | 误报风险   | `lib/core/services/scan/local_search_service.dart:42,46,54,55,59,60,651,662` | 正则指纹缺少边界锚定（`\b` / `(?<!\d)` / `(?!\d)`），容易在长数字串中误匹配 | `[ ]` 待修复 |
+| P023 | P2     | 误报风险   | `lib/core/services/scan/local_search_service.dart:42,46,54,55,59,60,651,662` | 正则指纹缺少边界锚定，容易在长数字串中误匹配 | `[x]` 已修复 |
 | P024 | P2     | 一致性     | `lib/core/services/scan/local_search_service.dart:298,388` | `_listFilesMacOS` fallback 未传 `maxFiles`；`_listFilesGeneric` 硬编码 200 限制与 500 不一致 | `[ ]` 待修复 |
-| P025 | P2     | 性能       | `lib/presentation/widgets/llm/llm_chat_panel.dart:163-165` | `build()` 中 `isSending` 时每次 rebuild 都添加 `addPostFrameCallback`，可能累积 | `[ ]` 待修复 |
+| P025 | P2     | 性能       | `lib/presentation/widgets/llm/llm_chat_panel.dart:163-165` | `build()` 中 `isSending` 时每次 rebuild 都添加 `addPostFrameCallback`，可能累积 | `[x]` 已修复 |
 | P026 | P2     | 资源控制   | `lib/core/services/scan/scan_background_service.dart:150-153` | `cancelScan()` 仅取消 stream 订阅，不中断底层 `Process.run` / `ContentParserService` IO | `[ ]` 待修复 |
-| P027 | P2     | UX         | `lib/presentation/providers/llm/llm_model_provider.dart:250-269` | 云端 fallback 打字机效果每 30ms 一个字符，512 tokens 中文约需 20 秒，过慢 | `[ ]` 待修复 |
-| P028 | P2     | 健壮性     | `lib/presentation/providers/llm/llm_chat_session_provider.dart:61-62` | 消息 ID 基于 `millisecondsSinceEpoch`，极端并发下可能冲突 | `[ ]` 待修复 |
+| P027 | P2     | UX         | `lib/presentation/providers/llm/llm_model_provider.dart:250-269` | 云端 fallback 打字机效果每 30ms 一个字符，512 tokens 中文约需 20 秒，过慢 | `[x]` 已修复（改为 8ms） |
+| P028 | P2     | 健壮性     | `lib/presentation/providers/llm/llm_chat_session_provider.dart:61-62` | 消息 ID 基于 `millisecondsSinceEpoch`，极端并发下可能冲突 | `[x]` 已修复（追加随机数） |
 | P029 | P2     | 安全设计   | `lib/core/services/scan/scan_import_service.dart:290-304` | `_preserveSensitivity` 对 `SelectProperty`/`MultiSelectProperty`/`RelationProperty` 未保留原敏感度 | `[ ]` 待修复 |
-| P030 | P2     | 健壮性     | `lib/core/services/llm/llm_config_service.dart:622` | `_LlmConfig.fromJson` 部分字段缺少安全解析，无效 JSON 字段类型可能触发异常 | `[ ]` 待修复 |
+| P030 | P2     | 健壮性     | `lib/core/services/llm/llm_config_service.dart:622` | `_LlmConfig.fromJson` 部分字段缺少安全解析，无效 JSON 字段类型可能触发异常 | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：14 / 30
-- 当前处理：P014
+- 已完成：23 / 30
+- 当前处理：P012-P013, P017-P018, P023-P030
 
 ## 详细问题描述与修复指引
 

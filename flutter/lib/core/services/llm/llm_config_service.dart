@@ -607,7 +607,8 @@ class _LlmConfig {
     final profilesJson = json['cloudProfiles'] as List<dynamic>?;
     final profiles = profilesJson != null
         ? profilesJson
-            .map((e) => LlmCloudProfile.fromJson(e as Map<String, dynamic>))
+            .whereType<Map<String, dynamic>>()
+            .map((e) => LlmCloudProfile.fromJson(e))
             .toList()
         : const <LlmCloudProfile>[];
 

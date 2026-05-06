@@ -289,78 +289,18 @@ class ScanImportService {
       }
 
       final parentSectionId = _findParentSectionId(typeId);
-
-      // Separate fields by action
-      final fieldsToWrite = candidate.fields.where((f) {
-        return f.userAction == ImportAction.autoFill ||
-            f.userAction == ImportAction.overwrite ||
-            f.userAction == ImportAction.createNew;
-      }).toList();
-
-      final fieldsToSkip = candidate.fields.where((f) {
-        return f.userAction == ImportAction.skip;
-      }).toList();
-
-      fieldsSkipped += fieldsToSkip.length;
+      final fieldsToWrite = _fieldsToWrite(candidate.fields);
+      fieldsSkipped += candidate.fields.length - fieldsToWrite.length;
 
       if (fieldsToWrite.isEmpty) continue;
 
-      // Build properties map
-      final properties = <String, PropertyValue>{};
-      for (final field in fieldsToWrite) {
-        final propertyId = field.targetPropertyId ?? field.source.key;
-        final sensitivity = field.source.sensitivity;
-        properties[propertyId] = TextProperty(
-          text: field.source.value,
-          sensitivity: sensitivity,
-        );
-        fieldsWritten++;
-      }
+      final properties = _buildProperties(fieldsToWrite, () => fieldsWritten++);
 
       if (candidate.existingObjectId != null) {
-        // Update existing object
-        final existing = UnifiedObjectService.instance.getObjectById(
-          _objects,
-          candidate.existingObjectId!,
-        );
-        if (existing != null) {
-          // Preserve original sensitivity levels when updating — the scan-detected
-          // sensitivity reflects the *content* (e.g. phone = sensitive) but the
-          // item's schema sensitivity (e.g. contact.value = internal) should not
-          // be overwritten, otherwise non-sensitive items start requiring password.
-          final mergedProperties = <String, PropertyValue>{
-            ...existing.properties,
-            for (final entry in properties.entries)
-              entry.key: _preserveSensitivity(
-                existing.properties[entry.key],
-                entry.value,
-              ),
-          };
-          await _objectNotifier.updateObject(
-            candidate.existingObjectId!,
-            properties: mergedProperties,
-          );
-          itemsUpdated++;
-        } else {
-          warnings.add('Existing object not found: ${candidate.existingObjectId}');
-        }
+        final updated = await _updateExisting(candidate, properties, warnings);
+        if (updated) itemsUpdated++;
       } else {
-        // Create new object (auto-creates missing section/page via createDefaultItem)
-        final name = candidate.source.display;
-        if (parentSectionId != null) {
-          await _objectNotifier.createDefaultItem(
-            sectionId: parentSectionId,
-            typeId: typeId,
-            name: name,
-            properties: properties,
-          );
-        } else {
-          await _objectNotifier.createObject(
-            name: name,
-            typeId: typeId,
-            properties: properties,
-          );
-        }
+        await _createNew(candidate, typeId, parentSectionId, properties);
         itemsCreated++;
       }
     }
@@ -372,6 +312,81 @@ class ScanImportService {
       fieldsSkipped: fieldsSkipped,
       warnings: warnings,
     );
+  }
+
+  List<ImportFieldCandidate> _fieldsToWrite(List<ImportFieldCandidate> fields) {
+    return fields.where((f) {
+      return f.userAction == ImportAction.autoFill ||
+          f.userAction == ImportAction.overwrite ||
+          f.userAction == ImportAction.createNew;
+    }).toList();
+  }
+
+  Map<String, PropertyValue> _buildProperties(
+    List<ImportFieldCandidate> fields,
+    void Function() onWrite,
+  ) {
+    final properties = <String, PropertyValue>{};
+    for (final field in fields) {
+      final propertyId = field.targetPropertyId ?? field.source.key;
+      properties[propertyId] = TextProperty(
+        text: field.source.value,
+        sensitivity: field.source.sensitivity,
+      );
+      onWrite();
+    }
+    return properties;
+  }
+
+  Future<bool> _updateExisting(
+    ImportCandidate candidate,
+    Map<String, PropertyValue> properties,
+    List<String> warnings,
+  ) async {
+    final existing = UnifiedObjectService.instance.getObjectById(
+      _objects,
+      candidate.existingObjectId!,
+    );
+    if (existing == null) {
+      warnings.add('Existing object not found: ${candidate.existingObjectId}');
+      return false;
+    }
+    final mergedProperties = <String, PropertyValue>{
+      ...existing.properties,
+      for (final entry in properties.entries)
+        entry.key: _preserveSensitivity(
+          existing.properties[entry.key],
+          entry.value,
+        ),
+    };
+    await _objectNotifier.updateObject(
+      candidate.existingObjectId!,
+      properties: mergedProperties,
+    );
+    return true;
+  }
+
+  Future<void> _createNew(
+    ImportCandidate candidate,
+    String typeId,
+    String? parentSectionId,
+    Map<String, PropertyValue> properties,
+  ) async {
+    final name = candidate.source.display;
+    if (parentSectionId != null) {
+      await _objectNotifier.createDefaultItem(
+        sectionId: parentSectionId,
+        typeId: typeId,
+        name: name,
+        properties: properties,
+      );
+    } else {
+      await _objectNotifier.createObject(
+        name: name,
+        typeId: typeId,
+        properties: properties,
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -431,9 +446,21 @@ class ScanImportService {
       NumberProperty(:final value) => NumberProperty(value: value, sensitivity: sensitivity),
       DateProperty(:final isoDate) => DateProperty(isoDate: isoDate, sensitivity: sensitivity),
       CheckboxProperty(:final checked) => CheckboxProperty(checked: checked, sensitivity: sensitivity),
-      SelectProperty() => imported,
-      MultiSelectProperty() => imported,
-      RelationProperty() => imported,
+      SelectProperty(:final options, :final selectedId) => SelectProperty(
+          options: options,
+          selectedId: selectedId,
+          sensitivity: sensitivity,
+        ),
+      MultiSelectProperty(:final options, :final selectedIds) => MultiSelectProperty(
+          options: options,
+          selectedIds: selectedIds,
+          sensitivity: sensitivity,
+        ),
+      RelationProperty(:final targetTypeId, :final targetObjectId) => RelationProperty(
+          targetTypeId: targetTypeId,
+          targetObjectId: targetObjectId,
+          sensitivity: sensitivity,
+        ),
       UrlProperty(:final url) => UrlProperty(url: url, sensitivity: sensitivity),
     };
   }

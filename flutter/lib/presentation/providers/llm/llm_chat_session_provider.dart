@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,11 +59,11 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
     if (hasStreamingMessage) return;
 
     // 1. 添加用户消息
-    final userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+    final userId = 'user_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
     state = [...state, LlmChatMessage(id: userId, text: text, isUser: true)];
 
     // 2. 添加空 AI 消息（等待流式填充）
-    final aiId = 'ai_${DateTime.now().millisecondsSinceEpoch}';
+    final aiId = 'ai_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
     state = [
       ...state,
       LlmChatMessage(id: aiId, text: '', isUser: false, isStreaming: true),
