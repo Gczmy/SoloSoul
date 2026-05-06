@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -73,6 +74,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: Text(title),
         actions: const [HeaderActionButtons()],
       ),

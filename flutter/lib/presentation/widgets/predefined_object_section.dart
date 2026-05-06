@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
-import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart';
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider;

@@ -12,12 +12,12 @@ export 'package:solosoul_flutter/presentation/providers/account_style_provider.d
         SensitivityResolver, sensitivityResolver, SensitivityDisplayMode;
 
 // Re-export field models from sensitivity_models.dart
-export 'package:solosoul_flutter/presentation/models/sensitivity_models.dart'
+export 'package:solosoul_flutter/core/models/sensitivity_models.dart'
     show FieldSensitivity, FieldRegistry, FormFieldRegistry, FormFieldRegistryNotifier,
         firstWhereOrNull, FieldIds;
 
 // Import models for internal use
-import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart'
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart'
     show FieldSensitivity, FieldRegistry, FormFieldRegistryNotifier, firstWhereOrNull;
 
 // Import accountStyleProvider for internal use within this file

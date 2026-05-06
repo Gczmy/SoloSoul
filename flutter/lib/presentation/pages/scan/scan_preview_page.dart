@@ -10,7 +10,7 @@ import 'package:solosoul_flutter/presentation/providers/scan/local_search_state.
 import 'package:solosoul_flutter/core/services/scan/scan_import_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
-import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart';
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
 
 // =============================================================================
 // Scan Preview Page
@@ -45,6 +45,7 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.localSearch,
         title: const Text('Preview & Confirm'),
         centerTitle: true,
         actions: [

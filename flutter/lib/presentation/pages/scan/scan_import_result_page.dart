@@ -20,9 +20,9 @@ class ScanImportResultPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: const Text('Import Complete'),
         centerTitle: true,
-        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Padding(

@@ -65,6 +65,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: const Text('Local Search Import'),
         centerTitle: true,
       ),

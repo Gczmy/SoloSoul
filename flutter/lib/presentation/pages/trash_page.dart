@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
@@ -90,7 +91,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         });
       }
       return Scaffold(
-        appBar: SoloGlassAppBar(title: const Text('Trash')),
+        appBar: SoloGlassAppBar(
+          backRoute: AppRoutes.home,
+          title: const Text('Trash'),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -538,6 +542,7 @@ class _TrashViewWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: const Text('Trash'),
         actions: const [HeaderActionButtons()],
       ),

@@ -18,6 +18,7 @@ class LlmChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: const Text('AI 对话'),
         centerTitle: true,
         actions: [

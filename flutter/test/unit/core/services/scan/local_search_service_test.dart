@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
 import 'package:solosoul_flutter/core/services/scan/local_search_service.dart';
 
 void main() {
@@ -46,6 +47,27 @@ void main() {
     });
 
     group('getDefaultSensitivity', () {
+      test('delegates to FieldRegistry as single source of truth', () {
+        // Verify that all fields in FieldRegistry are correctly resolved
+        for (final field in FieldRegistry.defaultFields) {
+          final parts = field.fieldId.split('.');
+          final sectionId = parts[0];
+          final propertyId = parts[1];
+          expect(
+            LocalSearchService.getDefaultSensitivity(sectionId, propertyId),
+            field.level,
+            reason: 'Field ${field.fieldId} should match FieldRegistry level',
+          );
+        }
+      });
+
+      test('falls back to public for unknown fields', () {
+        expect(
+          LocalSearchService.getDefaultSensitivity('unknown', 'field'),
+          SensitivityLevel.public,
+        );
+      });
+
       test('idCard.number is critical', () {
         expect(
           LocalSearchService.getDefaultSensitivity('idCard', 'number'),
@@ -71,6 +93,20 @@ void main() {
         expect(
           LocalSearchService.getDefaultSensitivity('bankAccount', 'accountNumber'),
           SensitivityLevel.critical,
+        );
+      });
+
+      test('contact.value is internal (previously mismatched)', () {
+        expect(
+          LocalSearchService.getDefaultSensitivity('contact', 'value'),
+          SensitivityLevel.internal,
+        );
+      });
+
+      test('education.gpa is internal (previously uncovered)', () {
+        expect(
+          LocalSearchService.getDefaultSensitivity('education', 'gpa'),
+          SensitivityLevel.internal,
         );
       });
     });

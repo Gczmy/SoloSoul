@@ -294,7 +294,7 @@ class ScanImportService {
 
       if (fieldsToWrite.isEmpty) continue;
 
-      final properties = _buildProperties(fieldsToWrite, () => fieldsWritten++);
+      final properties = _buildProperties(fieldsToWrite, candidate.source.section, () => fieldsWritten++);
       final completeProperties = _ensureSchemaFields(
         properties,
         typeId,
@@ -329,14 +329,21 @@ class ScanImportService {
 
   Map<String, PropertyValue> _buildProperties(
     List<ImportFieldCandidate> fields,
+    String sectionId,
     void Function() onWrite,
   ) {
     final properties = <String, PropertyValue>{};
     for (final field in fields) {
       final propertyId = field.targetPropertyId ?? field.source.key;
+      // 使用 Schema 定义的敏感度作为唯一真理来源
+      // 扫描检测的敏感度仅作为 UI 提示，不用于存储
+      final schemaSensitivity = LocalSearchService.getDefaultSensitivity(
+        sectionId,
+        propertyId,
+      );
       properties[propertyId] = TextProperty(
         text: field.source.value,
-        sensitivity: field.source.sensitivity,
+        sensitivity: schemaSensitivity,
       );
       onWrite();
     }

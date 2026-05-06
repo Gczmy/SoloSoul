@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sync_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
@@ -36,6 +37,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: const Text('Device Sync'),
         actions: const [
           HeaderActionButtons(),

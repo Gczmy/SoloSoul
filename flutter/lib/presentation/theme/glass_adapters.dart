@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 // =============================================================================
@@ -298,12 +299,22 @@ class SoloGlassCard extends StatelessWidget {
 }
 
 /// A SoloSoul-styled [GlassAppBar] that uses our color scheme.
+///
+/// When [leading] is null and [automaticallyImplyLeading] is true:
+/// - If the navigator can pop, shows a back button that calls [context.pop()].
+/// - If [backRoute] is provided and navigator cannot pop, shows a back button
+///   that navigates to [backRoute] via [context.go()].
 class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? title;
   final Widget? leading;
   final List<Widget>? actions;
   final bool centerTitle;
   final bool automaticallyImplyLeading;
+
+  /// Fallback route to navigate to when the navigator cannot pop.
+  /// Typically [AppRoutes.home] for pages reached via [context.go()].
+  final String? backRoute;
+
   @override
   final Size preferredSize;
 
@@ -314,22 +325,37 @@ class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.centerTitle = true,
     this.automaticallyImplyLeading = true,
+    this.backRoute,
     this.preferredSize = const Size.fromHeight(56.0),
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    final iconColor = isDark ? Colors.white : const Color(0xFF1F1F1F);
+
+    Widget? effectiveLeading = leading;
+    if (effectiveLeading == null && automaticallyImplyLeading) {
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) {
+        effectiveLeading = _BackButton(iconColor: iconColor);
+      } else if (backRoute != null) {
+        effectiveLeading = _BackButton(
+          iconColor: iconColor,
+          fallbackRoute: backRoute,
+        );
+      }
+    }
 
     return GlassAppBar(
       title: DefaultTextStyle.merge(
         style: TextStyle(
-          color: isDark ? Colors.white : const Color(0xFF1F1F1F),
+          color: iconColor,
           fontWeight: FontWeight.w600,
         ),
         child: title ?? const SizedBox.shrink(),
       ),
-      leading: leading,
+      leading: effectiveLeading,
       actions: actions,
       centerTitle: centerTitle,
       preferredSize: preferredSize,
@@ -339,6 +365,29 @@ class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         thickness: 20,
         glassColor: Color(0x1AFFFFFF),
       ),
+    );
+  }
+}
+
+/// Back button used by [SoloGlassAppBar] when [automaticallyImplyLeading] is enabled.
+class _BackButton extends StatelessWidget {
+  final Color iconColor;
+  final String? fallbackRoute;
+
+  const _BackButton({required this.iconColor, this.fallbackRoute});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back_ios_rounded, color: iconColor, size: 20),
+      tooltip: 'Back',
+      onPressed: () {
+        if (Navigator.of(context).canPop()) {
+          context.pop();
+        } else if (fallbackRoute != null) {
+          context.go(fallbackRoute!);
+        }
+      },
     );
   }
 }

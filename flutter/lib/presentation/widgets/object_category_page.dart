@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
@@ -23,6 +24,7 @@ class ObjectCategoryPage extends ConsumerWidget {
     return Scaffold(
       appBar: SoloGlassAppBar(
         title: Text(title),
+        backRoute: AppRoutes.home,
         actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(

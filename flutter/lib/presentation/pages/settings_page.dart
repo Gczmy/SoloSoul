@@ -220,7 +220,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const SoloGlassAppBar(
+      appBar: SoloGlassAppBar(
+        backRoute: AppRoutes.home,
         title: Text('Settings'),
         actions: [
           HeaderActionButtons(),

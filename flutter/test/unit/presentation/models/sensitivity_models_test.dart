@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
-import 'package:solosoul_flutter/presentation/models/sensitivity_models.dart';
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
 
 void main() {
   group('FieldRegistry consistency', () {

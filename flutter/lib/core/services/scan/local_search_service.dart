@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
 import 'package:solosoul_flutter/core/services/scan/content_parser_service.dart';
 import 'package:solosoul_flutter/core/services/scan/windows_search_service.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_cache_service.dart';
@@ -706,7 +707,7 @@ class LocalSearchService {
       fields.add(ScanField(
         key: 'value',
         value: phoneMatches.first.group(0)!,
-        sensitivity: SensitivityLevel.sensitive,
+        sensitivity: SensitivityLevel.internal,
         confidence: 0.95,
       ));
     }
@@ -815,26 +816,14 @@ class LocalSearchService {
   }
 
   /// Get default sensitivity for a field based on the registry.
+  /// Delegates to [FieldRegistry] as the single source of truth.
   static SensitivityLevel getDefaultSensitivity(String sectionId, String propertyId) {
     final fieldId = '$sectionId.$propertyId';
-    // Try to find in field registry
-    // For simplicity, use hardcoded mappings for common fields
-    const criticalFields = {
-      'idCard.number', 'passport.number', 'bankAccount.accountNumber',
-      'bankAccount.swiftBic', 'bankAccount.sortCode', 'bankAccount.routingNumber',
-      'card.cardNumber', 'card.cvv', 'taxId.taxIdNumber',
-    };
-    const sensitiveFields = {
-      'identity.dateOfBirth', 'identity.nationality',
-      'bankAccount.bankName', 'bankAccount.accountHolderName',
-      'card.expiryDate', 'card.holderName',
-      'passport.holderName', 'passport.dateOfBirth', 'passport.placeOfBirth',
-      'address.street', 'address.city', 'address.postalCode',
-    };
-
-    if (criticalFields.contains(fieldId)) return SensitivityLevel.critical;
-    if (sensitiveFields.contains(fieldId)) return SensitivityLevel.sensitive;
-    return SensitivityLevel.public;
+    final field = firstWhereOrNull(
+      FieldRegistry.defaultFields,
+      (f) => f.fieldId == fieldId,
+    );
+    return field?.level ?? SensitivityLevel.public;
   }
 }
 
