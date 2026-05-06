@@ -219,32 +219,10 @@ class CreateAccountForm extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Create Button — Liquid Glass
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: GlassButton.custom(
-            onTap: isLoading ? () {} : onCreateAccount,
-            width: double.infinity,
-            height: 52,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Text(
-                    'Create Account',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFF1F1F1F),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-          ),
+        _HoverableCreateButton(
+          isLoading: isLoading,
+          isDark: isDark,
+          onCreateAccount: onCreateAccount,
         )
             .animate()
             .fadeIn(delay: 400.ms, duration: 400.ms)
@@ -258,6 +236,86 @@ class CreateAccountForm extends StatelessWidget {
           child: const Text('Back to Account List'),
         ).animate().fadeIn(delay: 450.ms, duration: 400.ms),
       ],
+    );
+  }
+}
+
+/// Hoverable create account button with scale and shadow feedback.
+class _HoverableCreateButton extends StatefulWidget {
+  final bool isLoading;
+  final bool isDark;
+  final VoidCallback onCreateAccount;
+
+  const _HoverableCreateButton({
+    required this.isLoading,
+    required this.isDark,
+    required this.onCreateAccount,
+  });
+
+  @override
+  State<_HoverableCreateButton> createState() => _HoverableCreateButtonState();
+}
+
+class _HoverableCreateButtonState extends State<_HoverableCreateButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered && !widget.isLoading ? 1.03 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: _isHovered && !widget.isLoading
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(
+                        alpha: widget.isDark ? 0.4 : 0.25,
+                      ),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : [],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: GlassButton.custom(
+              onTap: widget.isLoading ? () {} : widget.onCreateAccount,
+              width: double.infinity,
+              height: 52,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+              child: widget.isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'Create Account',
+                      style: TextStyle(
+                        color: widget.isDark
+                            ? Colors.white
+                            : const Color(0xFF1F1F1F),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

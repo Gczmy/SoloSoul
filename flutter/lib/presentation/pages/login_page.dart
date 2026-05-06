@@ -620,93 +620,193 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final accountsAsync = ref.watch(accountsProvider);
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppTheme.darkBackground : AppTheme.lightBackground,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 60,
-            bottom: bottomPadding + 24,
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    const Color(0xFF0B1220),
+                    const Color(0xFF131D2E),
+                    const Color(0xFF0B1220),
+                  ]
+                : [
+                    const Color(0xFFF8FAFD),
+                    const Color(0xFFEDF2F9),
+                    const Color(0xFFF8FAFD),
+                  ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header Logo — Liquid Glass orb
-              Center(
-                child: GlassButton(
-                  icon: const Icon(
-                    Icons.lock_outline,
-                    color: Colors.white,
-                  ),
-                  onTap: () {},
-                  width: 80,
-                  height: 80,
-                  iconSize: 36,
-                  shape: const LiquidRoundedSuperellipse(borderRadius: 20),
-                  useOwnLayer: true,
-                  settings: const LiquidGlassSettings(
-                    thickness: 30,
-                    blur: 10,
-                    glassColor: Color(0x4D487CA5),
-                    refractiveIndex: 1.3,
-                    lightIntensity: 1.2,
+        ),
+        child: Stack(
+          children: [
+            // Decorative background orbs
+            Positioned(
+              top: 80,
+              left: -80,
+              child: Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withValues(
+                    alpha: isDark ? 0.12 : 0.07,
                   ),
                 ),
-              )
-                  .animate()
-                  .scale(
-                    begin: const Offset(0.8, 0.8),
-                    end: const Offset(1, 1),
-                    duration: 500.ms,
-                    curve: Curves.easeOutBack,
-                  )
-                  .fadeIn(),
-
-              const SizedBox(height: 32),
-
-              // Title
-              Text(
-                'SoloSoul',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+              ),
+            ),
+            Positioned(
+              bottom: 120,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.accentColor.withValues(
+                    alpha: isDark ? 0.1 : 0.05,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-
-              const SizedBox(height: 8),
-
-              // Content based on state — wrapped in GlassCard for depth
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: GlassCard(
-                  useOwnLayer: true,
-                  padding: const EdgeInsets.all(24),
-                  settings: isDark
-                      ? const LiquidGlassSettings(
-                          thickness: 30,
-                          blur: 12,
-                          glassColor: Color(0x26FFFFFF),
-                          refractiveIndex: 1.2,
-                          lightIntensity: 1.1,
-                        )
-                      : const LiquidGlassSettings(
-                          thickness: 20,
-                          blur: 10,
-                          glassColor: Color(0x18D2DCF0),
-                          refractiveIndex: 1.15,
-                          lightIntensity: 0.95,
+              ),
+            ),
+            Positioned(
+              top: 300,
+              right: 20,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.secondaryColor.withValues(
+                    alpha: isDark ? 0.08 : 0.04,
+                  ),
+                ),
+              ),
+            ),
+            // Main content
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 24,
+                          right: 24,
+                          top: 24,
+                          bottom: bottomPadding + 24,
                         ),
-                  child: _buildContent(
-                    selectedAccountId,
-                    accountsAsync,
-                    isDark,
-                  ),
-                ),
-              ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-            ],
-          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Header Logo — Liquid Glass orb
+                            Center(
+                              child: GlassButton(
+                                icon: const Icon(
+                                  Icons.lock_outline,
+                                  color: Colors.white,
+                                ),
+                                onTap: () {},
+                                width: 80,
+                                height: 80,
+                                iconSize: 36,
+                                shape: const LiquidRoundedSuperellipse(
+                                  borderRadius: 20,
+                                ),
+                                useOwnLayer: true,
+                                settings: const LiquidGlassSettings(
+                                  thickness: 30,
+                                  blur: 10,
+                                  glassColor: Color(0x4D487CA5),
+                                  refractiveIndex: 1.3,
+                                  lightIntensity: 1.2,
+                                ),
+                              ),
+                            )
+                                .animate()
+                                .scale(
+                                  begin: const Offset(0.8, 0.8),
+                                  end: const Offset(1, 1),
+                                  duration: 500.ms,
+                                  curve: Curves.easeOutBack,
+                                )
+                                .fadeIn(),
+
+                            const SizedBox(height: 32),
+
+                            // Title
+                            Text(
+                              'SoloSoul',
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              textAlign: TextAlign.center,
+                            ).animate().fadeIn(
+                              delay: 100.ms,
+                              duration: 400.ms,
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            // Subtitle
+                            Text(
+                              'Your data, your control',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              textAlign: TextAlign.center,
+                            ).animate().fadeIn(
+                              delay: 150.ms,
+                              duration: 400.ms,
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            // Content based on state — wrapped in GlassCard for depth
+                            GlassCard(
+                              useOwnLayer: true,
+                              padding: const EdgeInsets.all(24),
+                              settings: isDark
+                                  ? const LiquidGlassSettings(
+                                      thickness: 30,
+                                      blur: 12,
+                                      glassColor: Color(0x26FFFFFF),
+                                      refractiveIndex: 1.2,
+                                      lightIntensity: 1.1,
+                                    )
+                                  : const LiquidGlassSettings(
+                                      thickness: 20,
+                                      blur: 10,
+                                      glassColor: Color(0x18D2DCF0),
+                                      refractiveIndex: 1.15,
+                                      lightIntensity: 0.95,
+                                    ),
+                              child: _buildContent(
+                                selectedAccountId,
+                                accountsAsync,
+                                isDark,
+                              ),
+                            ).animate().fadeIn(
+                              delay: 200.ms,
+                              duration: 400.ms,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

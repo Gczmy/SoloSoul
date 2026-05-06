@@ -316,7 +316,7 @@ class _PasswordField extends StatelessWidget {
   }
 }
 
-class _UnlockButton extends StatelessWidget {
+class _UnlockButton extends StatefulWidget {
   final bool isLoading;
   final VoidCallback onUnlock;
 
@@ -326,40 +326,74 @@ class _UnlockButton extends StatelessWidget {
   });
 
   @override
+  State<_UnlockButton> createState() => _UnlockButtonState();
+}
+
+class _UnlockButtonState extends State<_UnlockButton> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: GlassButton.custom(
-        onTap: isLoading ? () {} : onUnlock,
-        width: double.infinity,
-        height: 52,
-        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-        child: isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                'Unlock',
-                style: TextStyle(
-                  color: isDark ? Colors.white : const Color(0xFF1F1F1F),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered && !widget.isLoading ? 1.03 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: _isHovered && !widget.isLoading
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(
+                        alpha: isDark ? 0.4 : 0.25,
+                      ),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : [],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: GlassButton.custom(
+              onTap: widget.isLoading ? () {} : widget.onUnlock,
+              width: double.infinity,
+              height: 52,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+              child: widget.isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'Unlock',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF1F1F1F),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _BiometricButton extends StatelessWidget {
+class _BiometricButton extends StatefulWidget {
   final String biometricType;
   final bool isLoading;
   final VoidCallback onBiometricUnlock;
@@ -371,36 +405,72 @@ class _BiometricButton extends StatelessWidget {
   });
 
   @override
+  State<_BiometricButton> createState() => _BiometricButtonState();
+}
+
+class _BiometricButtonState extends State<_BiometricButton> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: GlassButton.custom(
-        onTap: isLoading ? () {} : onBiometricUnlock,
-        width: double.infinity,
-        height: 48,
-        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-        style: GlassButtonStyle.transparent,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              biometricType == 'Face ID' ? Icons.face : Icons.fingerprint,
-              size: 22,
-              color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Use $biometricType',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered && !widget.isLoading ? 1.03 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: _isHovered && !widget.isLoading
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(
+                        alpha: isDark ? 0.35 : 0.2,
+                      ),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : [],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: GlassButton.custom(
+              onTap: widget.isLoading ? () {} : widget.onBiometricUnlock,
+              width: double.infinity,
+              height: 48,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+              style: GlassButtonStyle.transparent,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    widget.biometricType == 'Face ID'
+                        ? Icons.face
+                        : Icons.fingerprint,
+                    size: 22,
+                    color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Use ${widget.biometricType}',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
