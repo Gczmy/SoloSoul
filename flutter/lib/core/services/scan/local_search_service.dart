@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -14,6 +15,13 @@ import 'package:uuid/uuid.dart';
 // =============================================================================
 // Local Search Service
 // =============================================================================
+
+/// Simple cooperative cancellation token for long-running scan operations.
+class CancelToken {
+  bool _isCanceled = false;
+  bool get isCanceled => _isCanceled;
+  void cancel() => _isCanceled = true;
+}
 
 /// Scans local filesystem for files containing personal information.
 /// Uses layered search strategy to avoid full-disk scanning.
@@ -151,6 +159,7 @@ class LocalSearchService {
     void Function(String path)? onSkipped,
     bool useCache = true,
     Map<String, int>? maxFileSizeByExtension,
+    CancelToken? cancelToken,
   }) async* {
     final targetPaths = paths ?? await _resolveHotPaths();
     final targetExts = extensions ?? _kTargetExtensions;
@@ -165,9 +174,11 @@ class LocalSearchService {
     final allPaths = <String>{};
 
     for (final rootPath in targetPaths) {
-      final files = await _listFiles(rootPath, targetExts, maxFiles: _kMaxFilesPerPath);
+      if (cancelToken?.isCanceled ?? false) return;
+      final files = await _listFiles(rootPath, targetExts, maxFiles: _kMaxFilesPerPath, cancelToken: cancelToken);
 
       for (final file in files) {
+        if (cancelToken?.isCanceled ?? false) break;
         scannedCount++;
         allPaths.add(file.path);
         onScanned?.call(file.path);
@@ -181,6 +192,7 @@ class LocalSearchService {
           continue;
         }
 
+        if (cancelToken?.isCanceled ?? false) break;
         final result = await _scanFile(file, scanDepth);
         cache.update(file.path, file.modifiedAt, file.size);
 
@@ -290,16 +302,17 @@ class LocalSearchService {
     String rootPath,
     List<String> extensions, {
     int maxFiles = _kMaxFilesPerPath,
+    CancelToken? cancelToken,
   }) async {
     final results = <ScannedFile>[];
 
     // Use platform-specific fast listing
     if (Platform.isMacOS) {
-      results.addAll(await _listFilesMacOS(rootPath, extensions, maxFiles: maxFiles));
+      results.addAll(await _listFilesMacOS(rootPath, extensions, maxFiles: maxFiles, cancelToken: cancelToken));
     } else if (Platform.isWindows) {
-      results.addAll(await _listFilesWindows(rootPath, extensions, maxFiles: maxFiles));
+      results.addAll(await _listFilesWindows(rootPath, extensions, maxFiles: maxFiles, cancelToken: cancelToken));
     } else {
-      results.addAll(await _listFilesGeneric(rootPath, extensions, maxFiles: maxFiles));
+      results.addAll(await _listFilesGeneric(rootPath, extensions, maxFiles: maxFiles, cancelToken: cancelToken));
     }
 
     return results;
@@ -310,6 +323,7 @@ class LocalSearchService {
     String rootPath,
     List<String> extensions, {
     int maxFiles = _kMaxFilesPerPath,
+    CancelToken? cancelToken,
   }) async {
     final results = <ScannedFile>[];
 
@@ -321,7 +335,7 @@ class LocalSearchService {
     }
 
     try {
-      final result = await Process.run('find', [
+      final process = await Process.start('find', [
         rootPath,
         '-maxdepth',
         '3',
@@ -330,29 +344,44 @@ class LocalSearchService {
         '(',
         ...extArgs,
         ')',
-      ]).timeout(const Duration(seconds: 30));
+      ]);
 
-      if (result.exitCode == 0 && result.stdout is String) {
-        final lines = (result.stdout as String).trim().split('\n');
-        for (final line in lines) {
-          if (line.isEmpty) continue;
-          if (results.length >= maxFiles) break;
-          final file = File(line);
-          final stat = await file.stat();
-          if (stat.type == FileSystemEntityType.file) {
-            results.add(ScannedFile(
-              path: line,
-              name: line.split('/').last,
-              size: stat.size,
-              modifiedAt: stat.modified.millisecondsSinceEpoch,
-              extension: _extension(line),
-            ));
-          }
+      final stdoutLines = process.stdout.transform(utf8.decoder).transform(const LineSplitter());
+      await for (final line in stdoutLines) {
+        if (cancelToken?.isCanceled ?? false) {
+          process.kill();
+          return results;
         }
+        if (line.isEmpty) continue;
+        if (results.length >= maxFiles) {
+          process.kill();
+          break;
+        }
+        final file = File(line);
+        final stat = await file.stat();
+        if (stat.type == FileSystemEntityType.file) {
+          results.add(ScannedFile(
+            path: line,
+            name: line.split('/').last,
+            size: stat.size,
+            modifiedAt: stat.modified.millisecondsSinceEpoch,
+            extension: _extension(line),
+          ));
+        }
+      }
+
+      // Ensure process exits; kill if still running after stream ends.
+      if (cancelToken?.isCanceled ?? false) {
+        process.kill();
+      } else {
+        await process.exitCode.timeout(const Duration(seconds: 30), onTimeout: () {
+          process.kill();
+          return -1;
+        });
       }
     } on Exception catch (_) {
       // Fallback to generic
-      return _listFilesGeneric(rootPath, extensions, maxFiles: maxFiles);
+      return _listFilesGeneric(rootPath, extensions, maxFiles: maxFiles, cancelToken: cancelToken);
     }
 
     return results;
@@ -363,7 +392,9 @@ class LocalSearchService {
     String rootPath,
     List<String> extensions, {
     int maxFiles = _kMaxFilesPerPath,
+    CancelToken? cancelToken,
   }) async {
+    if (cancelToken?.isCanceled ?? false) return <ScannedFile>[];
     return WindowsSearchService.searchFiles(rootPath, extensions, maxFiles: maxFiles);
   }
 
@@ -372,6 +403,7 @@ class LocalSearchService {
     String rootPath,
     List<String> extensions, {
     int maxFiles = _kMaxFilesPerPath,
+    CancelToken? cancelToken,
   }) async {
     final results = <ScannedFile>[];
     final dir = Directory(rootPath);
@@ -379,6 +411,7 @@ class LocalSearchService {
 
     try {
       await for (final entity in dir.list(recursive: true, followLinks: false)) {
+        if (cancelToken?.isCanceled ?? false) break;
         if (entity is File) {
           final ext = _extension(entity.path).toLowerCase();
           if (extensions.contains(ext)) {

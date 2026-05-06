@@ -27,20 +27,36 @@ void main() {
       expect(manager.isReady, false);
     });
 
-    test('recordUsage increments counter', () {
-      expect(manager.usageCount, 0);
-      manager.recordUsage();
-      expect(manager.usageCount, 1);
-      manager.recordUsage();
-      expect(manager.usageCount, 2);
+    test('recordInference increments counter', () {
+      expect(manager.accountUsageCount, 0);
+      manager.recordInference(
+        modelName: 'test',
+        provider: 'test',
+        tokenUsage: const LlmTokenUsage(promptTokens: 10, completionTokens: 5, totalTokens: 15),
+      );
+      expect(manager.accountUsageCount, 1);
+      manager.recordInference(
+        modelName: 'test',
+        provider: 'test',
+        tokenUsage: const LlmTokenUsage(promptTokens: 10, completionTokens: 5, totalTokens: 15),
+      );
+      expect(manager.accountUsageCount, 2);
     });
 
     test('resetStats clears counter', () {
-      manager.recordUsage();
-      manager.recordUsage();
-      expect(manager.usageCount, 2);
+      manager.recordInference(
+        modelName: 'test',
+        provider: 'test',
+        tokenUsage: const LlmTokenUsage(promptTokens: 10, completionTokens: 5, totalTokens: 15),
+      );
+      manager.recordInference(
+        modelName: 'test',
+        provider: 'test',
+        tokenUsage: const LlmTokenUsage(promptTokens: 10, completionTokens: 5, totalTokens: 15),
+      );
+      expect(manager.accountUsageCount, 2);
       manager.resetStats();
-      expect(manager.usageCount, 0);
+      expect(manager.accountUsageCount, 0);
     });
 
     test('infer throws when not loaded', () async {

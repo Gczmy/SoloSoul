@@ -24,6 +24,7 @@ class ScanBackgroundService {
   ScanBackgroundService._();
 
   StreamSubscription<ScanResult>? _subscription;
+  CancelToken? _cancelToken;
 
   final _stateController = StreamController<LocalSearchState>.broadcast();
   LocalSearchState _currentState = const LocalSearchState();
@@ -51,6 +52,7 @@ class ScanBackgroundService {
     required Map<String, int> maxFileSizeByExtension,
   }) {
     if (_subscription != null) return;
+    _cancelToken = CancelToken();
 
     final results = <ScanResult>[];
     final scannedFiles = <String>[];
@@ -83,6 +85,7 @@ class ScanBackgroundService {
       extensions: extensions.isEmpty ? null : extensions,
       scanDepth: scanDepth,
       maxFileSizeByExtension: maxFileSizeByExtension,
+      cancelToken: _cancelToken,
       onProgress: (scanned, found, skipped, currentPath) {
         // Throttle state updates to avoid O(n²) list copying overhead.
         // UI updates every 50 files are sufficient for visual feedback.
@@ -118,6 +121,7 @@ class ScanBackgroundService {
           skippedFiles: skippedFiles,
         ));
         _subscription = null;
+        _cancelToken = null;
       },
       onError: (error) {
         _emit(_currentState.copyWith(
@@ -125,6 +129,7 @@ class ScanBackgroundService {
           scanError: error.toString(),
         ));
         _subscription = null;
+        _cancelToken = null;
       },
     );
   }
@@ -147,6 +152,8 @@ class ScanBackgroundService {
 
   /// Cancel the currently running scan.
   void cancelScan() {
+    _cancelToken?.cancel();
+    _cancelToken = null;
     _subscription?.cancel();
     _subscription = null;
     _emit(_currentState.copyWith(isScanning: false, wasCanceled: true));
@@ -157,6 +164,8 @@ class ScanBackgroundService {
   /// Preserves user configuration (paths, extensions, scan depth, size limits)
   /// so the user can scan again with the same settings.
   void reset() {
+    _cancelToken?.cancel();
+    _cancelToken = null;
     _subscription?.cancel();
     _subscription = null;
     _emit(_currentState.copyWith(

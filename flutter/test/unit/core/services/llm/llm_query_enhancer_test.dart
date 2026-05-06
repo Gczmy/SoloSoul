@@ -137,4 +137,10 @@ class _FakeLlmService implements LlmService {
 
   @override
   Future<void> testConnection() async {}
+
+  @override
+  LlmTokenUsage get lastTokenUsage => const LlmTokenUsage();
+
+  @override
+  void dispose() {}
 }

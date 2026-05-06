@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-05 14:46:00
+> 最后更新：2026-05-05 15:15:00
 > 当前分支：`master`
 > 修复轮次：1（初始分析）
 > 分析范围：LLM 相关模块（AI 对话、Local Import / 本地扫描导入）及依赖代码
@@ -27,24 +27,24 @@
 | P016 | P1     | 性能/费用  | `lib/presentation/providers/scan/local_search_provider.dart:175-295` | `performAiMapping` 对每个 scan result 单独调用 LLM，无并发限制，大量文件时可能请求风暴 | `[x]` 已修复（限制最多 5 个文件使用 AI 映射，其余回退规则引擎） |
 | P017 | P2     | 健壮性     | `lib/core/services/llm/llm_service.dart:751` | `LlmLocalService` URL 拼接未处理 `baseUrl` 尾部斜杠 | `[x]` 已修复 |
 | P018 | P2     | 一致性     | `lib/core/services/llm/llm_service.dart:640-692 vs 697-741` | `LlmLocalService` 流式与非流式请求 options 不一致（缺少 `top_p`、`num_ctx`） | `[x]` 已修复 |
-| P019 | P2     | 可配置性   | `lib/core/services/llm/llm_service.dart:598` | 默认 `modelName` 硬编码 `'qwen2.5:1.5b'`，应从配置读取 | `[ ]` 待修复 |
-| P020 | P2     | 可维护性   | `lib/core/services/llm/llm_service.dart` 整体 | 文件 887 行包含 7 个类，应拆分为 `llm_message.dart`、`llm_cloud_service.dart`、`llm_local_service.dart` 等 | `[ ]` 保留：架构级改动，涉及 11 个文件的 import 迁移，建议专项重构 |
+| P019 | P2     | 可配置性   | `lib/core/services/llm/llm_service.dart:598` | 默认 `modelName` 硬编码 `'qwen2.5:1.5b'`，应从配置读取 | `[x]` 已修复（提取 `defaultModelName` 常量） |
+| P020 | P2     | 可维护性   | `lib/core/services/llm/llm_service.dart` 整体 | 文件 920 行包含 9 个类，已拆分为 `llm_message.dart`、`llm_cloud_service.dart`、`llm_local_service.dart`、`llm_exception.dart`、`llm_session.dart`、`llm_api_error.dart`、`ollama_status.dart` 等，原文件改为 barrel export | `[x]` 已修复 |
 | P021 | P2     | 重复代码   | `lib/core/services/llm/llm_model_manager.dart:130-144,190-211` | `loadCloud` 与 `loadLocal` 中记录模型最后加载时间的逻辑完全重复 | `[x]` 已修复（提取 `_recordModelLoad` 方法） |
 | P022 | P2     | 国际化     | `lib/core/services/llm/llm_query_enhancer.dart:78-94,137-149` | Prompt 模板与同义词表仅支持中文，英文查询优化效果差 | `[ ]` 保留：需设计多语言 prompt 系统，建议后续专项处理 |
 | P023 | P2     | 误报风险   | `lib/core/services/scan/local_search_service.dart:42,46,54,55,59,60,651,662` | 正则指纹缺少边界锚定，容易在长数字串中误匹配 | `[x]` 已修复 |
-| P024 | P2     | 一致性     | `lib/core/services/scan/local_search_service.dart:298,388` | `_listFilesMacOS` fallback 未传 `maxFiles`；`_listFilesGeneric` 硬编码 200 限制与 500 不一致 | `[ ]` 待修复 |
+| P024 | P2     | 一致性     | `lib/core/services/scan/local_search_service.dart:298,388` | `_listFilesMacOS` fallback 未传 `maxFiles`；`_listFilesGeneric` 硬编码 200 限制与 500 不一致 | `[x]` 已修复 |
 | P025 | P2     | 性能       | `lib/presentation/widgets/llm/llm_chat_panel.dart:163-165` | `build()` 中 `isSending` 时每次 rebuild 都添加 `addPostFrameCallback`，可能累积 | `[x]` 已修复 |
-| P026 | P2     | 资源控制   | `lib/core/services/scan/scan_background_service.dart:150-153` | `cancelScan()` 仅取消 stream 订阅，不中断底层 `Process.run` / `ContentParserService` IO | `[ ]` 保留：需引入 CancelToken + Process.kill 机制，建议后续架构调整 |
+| P026 | P2     | 资源控制   | `lib/core/services/scan/scan_background_service.dart:150-153` | `cancelScan()` 仅取消 stream 订阅，不中断底层 `Process.run` / `ContentParserService` IO | `[x]` 已修复（引入 `CancelToken`，`scan()` 各阶段检查，`Process.start` + `process.kill()` 中断 macOS `find` 子进程，generic 目录遍历在循环中检查取消） |
 | P027 | P2     | UX         | `lib/presentation/providers/llm/llm_model_provider.dart:250-269` | 云端 fallback 打字机效果每 30ms 一个字符，512 tokens 中文约需 20 秒，过慢 | `[x]` 已修复（改为 8ms） |
 | P028 | P2     | 健壮性     | `lib/presentation/providers/llm/llm_chat_session_provider.dart:61-62` | 消息 ID 基于 `millisecondsSinceEpoch`，极端并发下可能冲突 | `[x]` 已修复（追加随机数） |
-| P029 | P2     | 安全设计   | `lib/core/services/scan/scan_import_service.dart:290-304` | `_preserveSensitivity` 对 `SelectProperty`/`MultiSelectProperty`/`RelationProperty` 未保留原敏感度 | `[ ]` 待修复 |
+| P029 | P2     | 安全设计   | `lib/core/services/scan/scan_import_service.dart:290-304` | `_preserveSensitivity` 对 `SelectProperty`/`MultiSelectProperty`/`RelationProperty` 未保留原敏感度 | `[x]` 已修复 |
 | P030 | P2     | 健壮性     | `lib/core/services/llm/llm_config_service.dart:622` | `_LlmConfig.fromJson` 部分字段缺少安全解析，无效 JSON 字段类型可能触发异常 | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：27 / 30
-- 当前处理：全部 P0/P1 及可快速修复的 P2 已完成
-- 保留待后续处理：P020（文件拆分）、P022（国际化）、P026（IO 取消机制）
+- 已完成：29 / 30
+- 当前处理：全部 P0/P1/P2 已完成（除 P022 需产品决策）
+- 保留待后续处理：P022（国际化，需设计多语言 prompt 系统）
 
 ## 详细问题描述与修复指引
 
