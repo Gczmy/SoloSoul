@@ -160,9 +160,10 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
 
     bool shouldMask = switch (fieldLevel) {
       SensitivityLevel.public => false,
-      SensitivityLevel.internal => isPrivacyModeOn,
+      // Internal fields: mask when privacy mode is ON or sensitive access is locked
+      SensitivityLevel.internal => isPrivacyModeOn || !hasRecentVerification,
       SensitivityLevel.sensitive => true,
-      // Critical fields: mask when privacy mode is ON, otherwise require verification
+      // Critical fields: mask when privacy mode is ON or sensitive access is locked
       SensitivityLevel.critical => isPrivacyModeOn || !hasRecentVerification,
     };
 
@@ -174,10 +175,13 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     // For restricted fields, check if recently verified - if so, auto-reveal
     // But if user explicitly hid it, respect their choice
     // Auto-mask: when privacy mode is ON, critical fields are never auto-revealed
-    final bool revealed = (fieldLevel == SensitivityLevel.critical &&
-        hasRecentVerification &&
-        !_userExplicitlyHid &&
-        !isPrivacyModeOn)
+    // Auto-mask: when sensitive access is locked, all masked fields are forced hidden
+    final bool revealed = !hasRecentVerification
+        ? false
+        : (fieldLevel == SensitivityLevel.critical &&
+            hasRecentVerification &&
+            !_userExplicitlyHid &&
+            !isPrivacyModeOn)
         ? true
         : _isRevealed;
     final String displayText = revealed ? widget.value : _maskedValue(widget.value);

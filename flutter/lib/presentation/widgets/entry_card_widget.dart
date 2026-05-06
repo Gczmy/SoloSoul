@@ -247,6 +247,20 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       },
     );
 
+    // Auto-collapse history when sensitive access is locked
+    ref.listen(
+      isSensitiveAccessGrantedProvider,
+      (previous, next) {
+        if (previous == true && next == false) {
+          Future.microtask(() {
+            if (context.mounted) {
+              ref.read(historyExpandedProvider(_historyKey).notifier).collapse();
+            }
+          });
+        }
+      },
+    );
+
     // Get EntryActionsContext for use inside UnifiedFormSection
     final actionsContext = EntryActionsContext.of(context);
 
