@@ -211,6 +211,166 @@ void main() {
       final service = LlmCloudService(apiKey: 'k', endpoint: 'https://api.example.com/v1/');
       expect(service.endpoint, 'https://api.example.com/v1/');
     });
+
+    String _anthropicSuccessResponse() {
+      return jsonEncode({
+        'content': [
+          {'type': 'text', 'text': 'Anthropic reply'}
+        ],
+        'model': 'claude-3-sonnet',
+        'stop_reason': 'end_turn',
+        'usage': {
+          'input_tokens': 10,
+          'output_tokens': 5,
+        },
+      });
+    }
+
+    test('uses x-api-key header for Anthropic provider', () async {
+      final client = createMockClient(
+        statusCode: 200,
+        responseBody: _anthropicSuccessResponse(),
+      );
+      final service = LlmCloudService(
+        apiKey: 'sk-ant-test',
+        provider: LlmCloudProviderType.anthropic,
+        client: client,
+      );
+
+      await service.infer('test');
+
+      expect(lastRequestHeaders['x-api-key'], 'sk-ant-test');
+      expect(lastRequestHeaders['anthropic-version'], '2023-06-01');
+    });
+
+    test('builds Anthropic request body with system prompt extracted', () async {
+      final client = createMockClient(
+        statusCode: 200,
+        responseBody: _anthropicSuccessResponse(),
+      );
+      final service = LlmCloudService(
+        apiKey: 'key',
+        provider: LlmCloudProviderType.anthropic,
+        client: client,
+      );
+
+      await service.inferMessages([
+        const LlmMessage(role: 'system', content: 'You are helpful'),
+        const LlmMessage(role: 'user', content: 'Hello'),
+      ]);
+
+      expect(lastRequestBody['system'], 'You are helpful');
+      final messages = lastRequestBody['messages'] as List<dynamic>;
+      expect(messages.length, 1);
+      expect(messages[0]['role'], 'user');
+    });
+
+    test('parses Anthropic response correctly', () async {
+      final client = createMockClient(
+        statusCode: 200,
+        responseBody: jsonEncode({
+          'content': [
+            {'type': 'text', 'text': 'Anthropic reply'}
+          ],
+          'model': 'claude-3-sonnet',
+          'stop_reason': 'end_turn',
+          'usage': {
+            'input_tokens': 10,
+            'output_tokens': 5,
+          },
+        }),
+      );
+      final service = LlmCloudService(
+        apiKey: 'key',
+        provider: LlmCloudProviderType.anthropic,
+        client: client,
+      );
+
+      final result = await service.infer('test');
+      expect(result, 'Anthropic reply');
+    });
+
+    test('throws on 500 server error', () async {
+      final client = createMockClient(statusCode: 500);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+
+      expect(
+        () => service.infer('test'),
+        throwsA(isA<LlmException>().having(
+          (e) => e.code,
+          'code',
+          LlmErrorCode.network,
+        )),
+      );
+    });
+
+    test('throws on 502 bad gateway', () async {
+      final client = createMockClient(statusCode: 502);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+
+      expect(
+        () => service.infer('test'),
+        throwsA(isA<LlmException>().having(
+          (e) => e.code,
+          'code',
+          LlmErrorCode.network,
+        )),
+      );
+    });
+
+    test('lastTokenUsage is updated after infer', () async {
+      final client = createMockClient(statusCode: 200);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+
+      expect(service.lastTokenUsage.totalTokens, 0);
+      await service.infer('test');
+      expect(service.lastTokenUsage.totalTokens, 7);
+    });
+
+    test('chatCompletion exposes full response', () async {
+      final client = createMockClient(statusCode: 200);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+
+      final response = await service.chatCompletion(
+        messages: const [LlmMessage(role: 'user', content: 'hi')],
+        maxTokens: 50,
+        temperature: 0.5,
+        topP: 0.9,
+      );
+
+      expect(response.content, 'Hello world');
+      expect(response.model, 'gpt-4o-mini');
+      expect(response.provider, 'cloud-openai');
+    });
+
+    test('streamChat yields OpenAI SSE chunks', () async {
+      final client = _MockStreamedClient([
+        'data: ${jsonEncode({'choices': [{'delta': {'content': 'Hello'}}]})}',
+        'data: ${jsonEncode({'choices': [{'delta': {'content': ' world'}}]})}',
+        'data: [DONE]',
+      ]);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+
+      final fragments = await service.streamChat('Hi').toList();
+      expect(fragments, ['Hello', ' world']);
+    });
+
+    test('streamChat throws on non-200 status', () async {
+      final client = _MockStreamedClientWithStatus(401, ['error']);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+
+      expect(
+        () => service.streamChat('Hi').toList(),
+        throwsA(isA<LlmException>()),
+      );
+    });
+
+    test('dispose closes client', () {
+      final client = createMockClient(statusCode: 200);
+      final service = LlmCloudService(apiKey: 'key', client: client);
+      // Just verify it does not throw
+      expect(service.dispose, returnsNormally);
+    });
   });
 
   group('LlmLocalService (Ollama)', () {
@@ -284,6 +444,99 @@ void main() {
       final fragments = await service.streamChat('Hi').toList();
       expect(fragments, ['Hello', ' world']);
     });
+
+    test('lastTokenUsage is updated after infer', () async {
+      final client = createMockClient(statusCode: 200);
+      final service = LlmLocalService(client: client);
+
+      expect(service.lastTokenUsage.totalTokens, 0);
+      await service.infer('Hello');
+      expect(service.lastTokenUsage.totalTokens, 5); // 3 + 2
+    });
+
+    test('dispose closes client', () {
+      final client = createMockClient(statusCode: 200);
+      final service = LlmLocalService(client: client);
+      expect(service.dispose, returnsNormally);
+    });
+
+    test('testConnection sends request', () async {
+      final client = createMockClient(statusCode: 200);
+      final service = LlmLocalService(client: client);
+      await service.testConnection();
+      // Should complete without throwing
+    });
+
+    test('throws on non-200 status', () async {
+      final client = createMockClient(statusCode: 404);
+      final service = LlmLocalService(client: client);
+
+      expect(
+        () => service.infer('Hello'),
+        throwsA(isA<LlmException>().having(
+          (e) => e.code,
+          'code',
+          LlmErrorCode.modelNotFound,
+        )),
+      );
+    });
+
+    test('throws timeout on delayed response', () async {
+      final client = MockClient((_) async {
+        await Future.delayed(const Duration(seconds: 10));
+        return http.Response('', 200);
+      });
+      final service = LlmLocalService(
+        timeout: const Duration(milliseconds: 50),
+        client: client,
+      );
+
+      expect(
+        () => service.infer('Hello'),
+        throwsA(isA<LlmException>().having(
+          (e) => e.code,
+          'code',
+          LlmErrorCode.timeout,
+        )),
+      );
+    });
+
+    test('streamChat skips malformed lines', () async {
+      final client = _MockStreamedClient([
+        jsonEncode({'message': {'content': 'Hello'}}),
+        'not-json',
+        jsonEncode({'message': {'content': ' world'}}),
+      ]);
+      final service = LlmLocalService(client: client);
+
+      final fragments = await service.streamChat('Hi').toList();
+      expect(fragments, ['Hello', ' world']);
+    });
+
+    test('pullModel yields status fragments', () async {
+      final client = _MockStreamedClient([
+        jsonEncode({'status': 'pulling manifest'}),
+        jsonEncode({'status': 'downloading'}),
+      ]);
+      final service = LlmLocalService(client: client);
+
+      final fragments = await service.pullModel().toList();
+      expect(fragments, ['pulling manifest', 'downloading']);
+    });
+
+    test('pullModel throws on non-200', () async {
+      final client = _MockStreamedClientWithStatus(404, ['error']);
+      final service = LlmLocalService(client: client);
+
+      expect(
+        () => service.pullModel().toList(),
+        throwsA(isA<LlmException>().having(
+          (e) => e.code,
+          'code',
+          LlmErrorCode.modelNotFound,
+        )),
+      );
+    });
   });
 
   group('LlmException', () {
@@ -305,5 +558,20 @@ class _MockStreamedClient extends http.BaseClient {
     final body = _lines.map((l) => utf8.encode('$l\n')).expand((b) => b).toList();
     final stream = Stream.fromIterable([body]);
     return http.StreamedResponse(stream, 200);
+  }
+}
+
+/// Mock streamed client that returns a custom status code.
+class _MockStreamedClientWithStatus extends http.BaseClient {
+  final int _statusCode;
+  final List<String> _lines;
+
+  _MockStreamedClientWithStatus(this._statusCode, this._lines);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final body = _lines.map((l) => utf8.encode('$l\n')).expand((b) => b).toList();
+    final stream = Stream.fromIterable([body]);
+    return http.StreamedResponse(stream, _statusCode);
   }
 }

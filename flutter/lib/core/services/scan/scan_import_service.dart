@@ -359,7 +359,7 @@ class ScanImportService {
     final mergedProperties = <String, PropertyValue>{
       ...existing.properties,
       for (final entry in properties.entries)
-        entry.key: _preserveSensitivity(
+        entry.key: preserveSensitivity(
           existing.properties[entry.key],
           entry.value,
         ),
@@ -462,7 +462,7 @@ class ScanImportService {
   /// When updating an existing item, preserve the original property's sensitivity
   /// level so that scan-detected content sensitivity (e.g. phone = sensitive)
   /// does not overwrite the schema-defined sensitivity (e.g. contact.value = internal).
-  static PropertyValue _preserveSensitivity(
+  static PropertyValue preserveSensitivity(
     PropertyValue? existing,
     PropertyValue imported,
   ) {
