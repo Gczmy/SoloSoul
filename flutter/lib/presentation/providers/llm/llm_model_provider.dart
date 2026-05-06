@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:characters/characters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_manager.dart';
@@ -29,10 +30,14 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   /// 当前 provider 实例绑定的账户 ID，用于 dispose 时正确持久化。
   String? _lastAccountId;
 
+  /// 标记当前内存中的统计数据是否已成功从 Vault 恢复。
+  /// 用于防止在数据尚未加载时就将空数据覆盖回 Vault。
+  bool _hasRestoredStats = false;
+
   @override
   Future<LlmModelState> build() async {
     // 监听单例状态流，任何内部状态变化自动同步到 Provider
-    _stateSub?.cancel();
+    await _stateSub?.cancel();
     _stateSub = _manager.stateStream.listen((newState) {
       if (state.hasValue && state.value != newState) {
         // ignore: unawaited_futures
@@ -47,26 +52,31 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       _persistStatsFor(_lastAccountId);
     });
 
-    // 账户切换监听：先保存旧账户，再加载新账户
-    ref.listen(authNotifierProvider, (_, __) {
-      final newId = ref.read(authNotifierProvider.notifier).selectedAccountId;
-      if (_lastAccountId != newId) {
-        _handleAccountSwitch(_lastAccountId, newId);
-      }
-    });
-
-    // 从加密 Vault 恢复使用统计
+    // 从加密 Vault 恢复使用统计（必须先完成，再设置账户切换监听，
+    // 否则 getStats 期间 auth 变化会触发 _handleAccountSwitch 保存空数据）
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     _lastAccountId = accountId;
     if (accountId != null) {
       try {
         final stats = await LlmConfigService.instance.getStats(accountId);
         _manager.restoreStats(stats);
+        _hasRestoredStats = true;
       } on Exception catch (e) {
         // ignore: avoid_print
         print('[LlmModelNotifier] 统计恢复失败: $e');
+        _hasRestoredStats = false;
       }
+    } else {
+      _hasRestoredStats = false;
     }
+
+    // 账户切换监听：在数据恢复完成后设置，避免竞态
+    ref.listen(authNotifierProvider, (_, __) {
+      final newId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+      if (_lastAccountId != newId) {
+        _handleAccountSwitch(_lastAccountId, newId);
+      }
+    });
 
     return _manager.state;
   }
@@ -77,24 +87,22 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   /// 防止加载新账户覆盖内存后，保存操作读到的是新账户数据。
   void _handleAccountSwitch(String? oldId, String? newId) {
     // 1. 同步快照旧账户统计（必须在内存被覆盖前捕获）
-    if (oldId != null) {
-      final oldStats = LlmUsageStats(
-        usageCount: _manager.usageCount,
-        totalTokensUsed: _manager.totalTokensUsed,
-        lastLoadTime: _manager.lastLoadTime,
-        lastUsedTime: _manager.lastUsedTime,
-      );
-      _persistStatsFor(oldId, oldStats);
+    // 防御：若内存尚未从 Vault 恢复，不要保存空数据覆盖旧数据
+    if (oldId != null && _hasRestoredStats) {
+      _persistStatsFor(oldId, _manager.buildStatsSnapshot());
     }
 
     // 2. 清空内存并加载新账户统计
     _manager.resetStats();
+    _hasRestoredStats = false;
     if (newId != null) {
       LlmConfigService.instance.getStats(newId).then((stats) {
         _manager.restoreStats(stats);
+        _hasRestoredStats = true;
       }).catchError((Object e) {
         // ignore: avoid_print
         print('[LlmModelNotifier] 账户切换统计加载失败: $e');
+        _hasRestoredStats = false;
       });
     }
     _lastAccountId = newId;
@@ -243,8 +251,8 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       _activeStreamSub?.cancel();
       _manager.infer(prompt, maxTokens: maxTokens).then((result) {
         if (controller.isClosed) return;
-        // 模拟打字机：每 30ms 发送一个字符
-        final chars = result.split('');
+        // 模拟打字机：每 30ms 发送一个 grapheme cluster（避免切开 surrogate pair）
+        final chars = result.characters.toList();
         var index = 0;
         Timer.periodic(const Duration(milliseconds: 30), (timer) {
           if (controller.isClosed) {
@@ -300,11 +308,29 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   // Usage Statistics
   // ---------------------------------------------------------------------------
 
-  /// 累计推理调用次数（当前会话）。
-  int get usageCount => _manager.usageCount;
+  /// Session 累计推理调用次数（本应用生命周期）。
+  int get sessionUsageCount => _manager.sessionUsageCount;
 
-  /// 累计消耗 Token 数（当前会话）。
-  int get totalTokensUsed => _manager.totalTokensUsed;
+  /// Session 累计 Prompt Token（本应用生命周期）。
+  int get sessionPromptTokens => _manager.sessionPromptTokens;
+
+  /// Session 累计 Completion Token（本应用生命周期）。
+  int get sessionCompletionTokens => _manager.sessionCompletionTokens;
+
+  /// Session 累计总 Token（本应用生命周期）。
+  int get sessionTotalTokens => _manager.sessionTotalTokens;
+
+  /// Account 累计推理调用次数（跨会话持久化）。
+  int get accountUsageCount => _manager.accountUsageCount;
+
+  /// Account 累计总 Token（跨会话持久化）。
+  int get accountTotalTokens => _manager.accountTotalTokens;
+
+  /// Account 累计 Prompt Token（跨会话持久化）。
+  int get accountPromptTokens => _manager.accountPromptTokens;
+
+  /// Account 累计 Completion Token（跨会话持久化）。
+  int get accountCompletionTokens => _manager.accountCompletionTokens;
 
   /// 最后加载时间。
   DateTime? get lastLoadTime => _manager.lastLoadTime;
@@ -312,19 +338,33 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   /// 最后使用时间。
   DateTime? get lastUsedTime => _manager.lastUsedTime;
 
+  /// 各模型使用统计（账户累计）。
+  List<LlmModelUsage> get perModelStats => _manager.perModelStats;
+
+  /// 各模型使用统计（本次会话）。
+  List<LlmModelUsage> get sessionPerModelStats => _manager.sessionPerModelStats;
+
+  /// 每日使用统计。
+  List<LlmDailyUsage> get dailyStats => _manager.dailyStats;
+
   /// 将统计异步持久化到指定账户的 Vault。
   ///
   /// [stats] 为 null 时从当前内存读取（用于常规保存）。
   /// 账户切换时应传入同步快照后的 [stats]，避免竞态。
   Future<void> _persistStatsFor(String? accountId, [LlmUsageStats? stats]) async {
     if (accountId == null) return;
+    // 防御：若内存数据尚未从 Vault 恢复，禁止保存空数据覆盖旧数据
+    if (stats == null && !_hasRestoredStats) {
+      // ignore: avoid_print
+      print('[LlmModelNotifier] 跳过持久化：内存数据尚未恢复');
+      return;
+    }
     try {
-      final s = stats ?? LlmUsageStats(
-        usageCount: _manager.usageCount,
-        totalTokensUsed: _manager.totalTokensUsed,
-        lastLoadTime: _manager.lastLoadTime,
-        lastUsedTime: _manager.lastUsedTime,
-      );
+      final s = stats ?? _manager.buildStatsSnapshot();
+      // ignore: avoid_print
+      print('[LlmModelNotifier] 持久化统计 account=$accountId '
+          'usage=${s.usageCount} tokens=${s.totalTokensUsed} '
+          'models=${s.perModelStats.length} days=${s.dailyStats.length}');
       await LlmConfigService.instance.setStats(accountId, s);
     } on Exception catch (e) {
       // ignore: avoid_print

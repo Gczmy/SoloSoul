@@ -31,10 +31,19 @@ class LlmConfigService {
 
   Future<_LlmConfig> _load(String accountId) async {
     final jsonStr = await _vault.loadSettingDecrypted(accountId);
-    if (jsonStr == null) return const _LlmConfig();
+    if (jsonStr == null) {
+      // ignore: avoid_print
+      print('[LlmConfigService._load] account=$accountId 无已存配置');
+      return const _LlmConfig();
+    }
     try {
       final map = jsonDecode(jsonStr) as Map<String, dynamic>;
       final config = _LlmConfig.fromJson(map);
+      // ignore: avoid_print
+      print('[LlmConfigService._load] account=$accountId '
+          'usage=${config.usageCount} prompt=${config.totalPromptTokens} '
+          'completion=${config.totalCompletionTokens} '
+          'models=${config.perModelStats.length} days=${config.dailyStats.length}');
       // 自动迁移：旧配置无 profiles 时，将单配置字段包装为第一个 Profile
       if (config.cloudProfiles.isEmpty &&
           (config._legacyCloudApiKey?.isNotEmpty == true ||
@@ -78,6 +87,11 @@ class LlmConfigService {
 
   Future<void> _save(String accountId, _LlmConfig config) async {
     final jsonData = jsonEncode(config.toJson());
+    // ignore: avoid_print
+    print('[LlmConfigService._save] account=$accountId '
+        'usage=${config.usageCount} prompt=${config.totalPromptTokens} '
+        'completion=${config.totalCompletionTokens} '
+        'models=${config.perModelStats.length} days=${config.dailyStats.length}');
     await _vault.saveSettingEncrypted(accountId, jsonData);
   }
 
@@ -415,9 +429,12 @@ class LlmConfigService {
     final config = await _load(accountId);
     return LlmUsageStats(
       usageCount: config.usageCount,
-      totalTokensUsed: config.totalTokensUsed,
+      totalPromptTokens: config.totalPromptTokens,
+      totalCompletionTokens: config.totalCompletionTokens,
       lastLoadTime: config._parseDt(config.statsLastLoadTime),
       lastUsedTime: config._parseDt(config.statsLastUsedTime),
+      perModelStats: config.perModelStats,
+      dailyStats: config.dailyStats,
     );
   }
 
@@ -425,16 +442,39 @@ class LlmConfigService {
     final config = await _load(accountId);
     await _save(accountId, config.copyWith(
       usageCount: stats.usageCount,
-      totalTokensUsed: stats.totalTokensUsed,
+      totalPromptTokens: stats.totalPromptTokens,
+      totalCompletionTokens: stats.totalCompletionTokens,
       statsLastLoadTime: stats.lastLoadTime?.toIso8601String(),
       statsLastUsedTime: stats.lastUsedTime?.toIso8601String(),
+      perModelStats: stats.perModelStats,
+      dailyStats: stats.dailyStats,
     ));
   }
+
 }
 
 // =============================================================================
 // Internal Config Model
 // =============================================================================
+
+/// 安全解析 JSON 列表，单个元素解析失败时跳过而非抛出。
+List<T> _safeParseList<T>(
+  dynamic json,
+  T Function(dynamic) parser,
+) {
+  final list = json as List<dynamic>?;
+  if (list == null) return const [];
+  final result = <T>[];
+  for (final e in list) {
+    try {
+      result.add(parser(e));
+    } on Object catch (err) {
+      // ignore: avoid_print
+      print('[LlmConfigService] 列表元素解析失败，跳过: $err');
+    }
+  }
+  return result;
+}
 
 class _LlmConfig {
   final LlmBackendType backendType;
@@ -452,11 +492,14 @@ class _LlmConfig {
   final List<LlmCloudProfile> cloudProfiles;
   final String? activeCloudProfileId;
 
-  // Usage stats fields
+  // Usage stats fields (account-level persisted)
   final int usageCount;
-  final int totalTokensUsed;
+  final int totalPromptTokens;
+  final int totalCompletionTokens;
   final String? statsLastLoadTime;
   final String? statsLastUsedTime;
+  final List<LlmModelUsage> perModelStats;
+  final List<LlmDailyUsage> dailyStats;
 
   const _LlmConfig({
     this.backendType = LlmBackendType.local,
@@ -470,9 +513,12 @@ class _LlmConfig {
     this.cloudProfiles = const [],
     this.activeCloudProfileId,
     this.usageCount = 0,
-    this.totalTokensUsed = 0,
+    this.totalPromptTokens = 0,
+    this.totalCompletionTokens = 0,
     this.statsLastLoadTime,
     this.statsLastUsedTime,
+    this.perModelStats = const [],
+    this.dailyStats = const [],
   })  : _legacyCloudApiKey = cloudApiKey,
         _legacyCloudEndpoint = cloudEndpoint,
         _legacyCloudModel = cloudModel;
@@ -501,9 +547,12 @@ class _LlmConfig {
     List<LlmCloudProfile>? cloudProfiles,
     Object? activeCloudProfileId = _sentinel,
     int? usageCount,
-    int? totalTokensUsed,
+    int? totalPromptTokens,
+    int? totalCompletionTokens,
     Object? statsLastLoadTime = _sentinel,
     Object? statsLastUsedTime = _sentinel,
+    List<LlmModelUsage>? perModelStats,
+    List<LlmDailyUsage>? dailyStats,
   }) {
     return _LlmConfig(
       backendType: backendType ?? this.backendType,
@@ -517,9 +566,12 @@ class _LlmConfig {
       cloudProfiles: cloudProfiles ?? this.cloudProfiles,
       activeCloudProfileId: activeCloudProfileId == _sentinel ? this.activeCloudProfileId : activeCloudProfileId as String?,
       usageCount: usageCount ?? this.usageCount,
-      totalTokensUsed: totalTokensUsed ?? this.totalTokensUsed,
+      totalPromptTokens: totalPromptTokens ?? this.totalPromptTokens,
+      totalCompletionTokens: totalCompletionTokens ?? this.totalCompletionTokens,
       statsLastLoadTime: statsLastLoadTime == _sentinel ? this.statsLastLoadTime : statsLastLoadTime as String?,
       statsLastUsedTime: statsLastUsedTime == _sentinel ? this.statsLastUsedTime : statsLastUsedTime as String?,
+      perModelStats: perModelStats ?? this.perModelStats,
+      dailyStats: dailyStats ?? this.dailyStats,
     );
   }
 
@@ -535,9 +587,12 @@ class _LlmConfig {
         'cloudProfiles': cloudProfiles.map((p) => p.toJson()).toList(),
         'activeCloudProfileId': activeCloudProfileId,
         'usageCount': usageCount,
-        'totalTokensUsed': totalTokensUsed,
+        'totalPromptTokens': totalPromptTokens,
+        'totalCompletionTokens': totalCompletionTokens,
         'statsLastLoadTime': statsLastLoadTime,
         'statsLastUsedTime': statsLastUsedTime,
+        'perModelStats': perModelStats.map((m) => m.toJson()).toList(),
+        'dailyStats': dailyStats.map((d) => d.toJson()).toList(),
       };
 
   factory _LlmConfig.fromJson(Map<String, dynamic> json) {
@@ -566,9 +621,18 @@ class _LlmConfig {
       cloudProfiles: profiles,
       activeCloudProfileId: json['activeCloudProfileId'] as String?,
       usageCount: json['usageCount'] as int? ?? 0,
-      totalTokensUsed: json['totalTokensUsed'] as int? ?? 0,
+      totalPromptTokens: json['totalPromptTokens'] as int? ?? (json['totalTokensUsed'] as int? ?? 0),
+      totalCompletionTokens: json['totalCompletionTokens'] as int? ?? 0,
       statsLastLoadTime: json['statsLastLoadTime'] as String?,
       statsLastUsedTime: json['statsLastUsedTime'] as String?,
+      perModelStats: _safeParseList(
+        json['perModelStats'],
+        (e) => LlmModelUsage.fromJson(e as Map<String, dynamic>),
+      ),
+      dailyStats: _safeParseList(
+        json['dailyStats'],
+        (e) => LlmDailyUsage.fromJson(e as Map<String, dynamic>),
+      ),
     );
   }
 }

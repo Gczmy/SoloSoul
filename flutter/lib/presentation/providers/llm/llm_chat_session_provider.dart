@@ -109,9 +109,12 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
     );
   }
 
-  /// 恢复会话：将任何遗留的流式消息标记为已完成。
+  /// 恢复会话：仅在 stream 已结束但消息仍遗留 isStreaming=true 时清理状态。
+  /// 若 stream 仍在活跃运行中（_streamSub != null），保持 isStreaming 不变，
+  /// 让 UI 继续显示加载状态，避免页面切换回来后错误显示"（未收到回复）"。
   void recover() {
     if (!hasStreamingMessage) return;
+    if (_streamSub != null) return; // stream 仍在运行，不中断
     state = state.map((m) {
       if (!m.isStreaming) return m;
       return m.copyWith(isStreaming: false);

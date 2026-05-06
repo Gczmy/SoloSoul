@@ -55,6 +55,9 @@ dependencies:
   json_annotation: ^4.9.0
   uuid: ^4.4.0
 
+  # String grapheme cluster support (fix UTF-16 surrogate split in stream fallback)
+  characters: ^1.4.0
+
   # Biometric authentication
   local_auth: ^2.3.0
 

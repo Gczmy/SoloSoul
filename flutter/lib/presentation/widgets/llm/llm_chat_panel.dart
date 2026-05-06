@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
@@ -41,6 +43,29 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
   bool _isLoadingConfig = false;
   String? _loadError;
 
+  Future<void> _loadModel() async {
+    if (_isLoadingConfig) return;
+    setState(() {
+      _isLoadingConfig = true;
+      _loadError = null;
+    });
+    try {
+      await ref.read(llmModelProvider.notifier).loadFromConfig();
+    } on LlmException catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e.message);
+      }
+    } on Exception catch (e) {
+      if (mounted) {
+        setState(() => _loadError = e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingConfig = false);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,29 +75,12 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     });
     // 面板初始化时自动加载已配置的模型（带防抖，避免重复调用）
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (_isLoadingConfig) return;
       final modelAsync = ref.read(llmModelProvider);
       final shouldLoad = !modelAsync.hasValue ||
           modelAsync.value == LlmModelState.unloaded ||
           modelAsync.value == LlmModelState.error;
       if (shouldLoad) {
-        _isLoadingConfig = true;
-        _loadError = null;
-        try {
-          await ref.read(llmModelProvider.notifier).loadFromConfig();
-        } on LlmException catch (e) {
-          if (mounted) {
-            setState(() => _loadError = e.message);
-          }
-        } on Exception catch (e) {
-          if (mounted) {
-            setState(() => _loadError = e.toString());
-          }
-        } finally {
-          if (mounted) {
-            setState(() => _isLoadingConfig = false);
-          }
-        }
+        await _loadModel();
       }
     });
   }
@@ -129,7 +137,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     try {
       stream = notifier.streamChat(text);
     } on Exception catch (e) {
-      session.sendMessage(text, Stream.error(e));
+      await session.sendMessage(text, Stream.error(e));
       return;
     }
 
@@ -194,8 +202,10 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
           child: messages.isEmpty
               ? _EmptyState(
                   theme: theme,
+                  configAsync: configAsync,
                   loadError: _loadError,
                   isLoading: _isLoadingConfig,
+                  onLoadModel: _loadModel,
                 )
               : ListView.builder(
                   controller: _scrollController,
@@ -380,17 +390,26 @@ class _ModelStatusChip extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   final ThemeData theme;
+  final AsyncValue<LlmConfigState> configAsync;
   final String? loadError;
   final bool isLoading;
+  final VoidCallback onLoadModel;
 
   const _EmptyState({
     required this.theme,
+    required this.configAsync,
     this.loadError,
     this.isLoading = false,
+    required this.onLoadModel,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasError = loadError != null && loadError!.isNotEmpty;
+    final config = configAsync.hasValue ? configAsync.value : null;
+    final isCloud = config?.backendType == LlmBackendType.cloud;
+    final loadLabel = isCloud ? '连接云端模型' : '启动本地模型';
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -408,24 +427,40 @@ class _EmptyState extends StatelessWidget {
               )
             else
               Icon(
-                loadError != null ? Icons.error_outline : Icons.chat_bubble_outline,
+                hasError ? Icons.error_outline : Icons.chat_bubble_outline,
                 size: 48,
-                color: loadError != null
+                color: hasError
                     ? theme.colorScheme.error
                     : theme.colorScheme.onSurfaceVariant,
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               isLoading
                   ? '正在加载模型配置…'
                   : (loadError ?? '开始与 AI 对话'),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: loadError != null
+                color: hasError
                     ? theme.colorScheme.error
                     : theme.colorScheme.onSurfaceVariant,
               ),
             ),
+            if (!isLoading) ...[
+              const SizedBox(height: 24),
+              // 手动启动模型按钮
+              FilledButton.icon(
+                onPressed: onLoadModel,
+                icon: Icon(isCloud ? Icons.cloud : Icons.computer),
+                label: Text(loadLabel),
+              ),
+              const SizedBox(height: 12),
+              // 跳转到配置页面
+              TextButton.icon(
+                onPressed: () => context.push(AppRoutes.llmConfig),
+                icon: const Icon(Icons.settings, size: 16),
+                label: const Text('前往 LLM 配置'),
+              ),
+            ],
           ],
         ),
       ),

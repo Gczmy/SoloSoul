@@ -23,8 +23,23 @@ class LlmModelManager {
   String? _errorMessage;
   DateTime? _lastLoadTime;
   DateTime? _lastUsedTime;
-  int _usageCount = 0;
-  int _totalTokensUsed = 0;
+
+  // Current model info for stats tracking
+  String _currentModelName = '';
+  String _currentProvider = '';
+
+  // Session-level stats (memory only, reset on app restart / account switch)
+  int _sessionUsageCount = 0;
+  int _sessionPromptTokens = 0;
+  int _sessionCompletionTokens = 0;
+  final Map<String, LlmModelUsage> _sessionPerModelStats = {};
+
+  // Account-level accumulated stats (loaded from / saved to Vault)
+  int _accountUsageCount = 0;
+  int _accountPromptTokens = 0;
+  int _accountCompletionTokens = 0;
+  final Map<String, LlmModelUsage> _perModelStats = {};
+  final List<LlmDailyUsage> _dailyStats = [];
 
   final _stateController = StreamController<LlmModelState>.broadcast();
 
@@ -36,18 +51,43 @@ class LlmModelManager {
   String? get errorMessage => _errorMessage;
   DateTime? get lastLoadTime => _lastLoadTime;
   DateTime? get lastUsedTime => _lastUsedTime;
-  int get usageCount => _usageCount;
 
   bool get isReady => _state == LlmModelState.loaded && _service != null;
-
-  /// Total tokens consumed across all inference calls in this session.
-  int get totalTokensUsed => _totalTokensUsed;
 
   /// Current active service, or null if not loaded.
   LlmService? get service => _service;
 
   /// 状态变更广播流。UI 层通过监听此流实现零延迟同步。
   Stream<LlmModelState> get stateStream => _stateController.stream;
+
+  // ---------------------------------------------------------------------------
+  // Current model info
+  // ---------------------------------------------------------------------------
+
+  String get currentModelName => _currentModelName;
+  String get currentProvider => _currentProvider;
+
+  // ---------------------------------------------------------------------------
+  // Session-level stats getters
+  // ---------------------------------------------------------------------------
+
+  int get sessionUsageCount => _sessionUsageCount;
+  int get sessionPromptTokens => _sessionPromptTokens;
+  int get sessionCompletionTokens => _sessionCompletionTokens;
+  int get sessionTotalTokens => _sessionPromptTokens + _sessionCompletionTokens;
+  List<LlmModelUsage> get sessionPerModelStats => List.unmodifiable(_sessionPerModelStats.values);
+
+  // ---------------------------------------------------------------------------
+  // Account-level stats getters
+  // ---------------------------------------------------------------------------
+
+  int get accountUsageCount => _accountUsageCount;
+  int get accountPromptTokens => _accountPromptTokens;
+  int get accountCompletionTokens => _accountCompletionTokens;
+  int get accountTotalTokens => _accountPromptTokens + _accountCompletionTokens;
+
+  List<LlmModelUsage> get perModelStats => List.unmodifiable(_perModelStats.values);
+  List<LlmDailyUsage> get dailyStats => List.unmodifiable(_dailyStats);
 
   // ---------------------------------------------------------------------------
   // Lifecycle
@@ -75,8 +115,33 @@ class LlmModelManager {
       );
       await cloud.testConnection();
       _service = cloud;
+      _currentModelName = model;
+      _currentProvider = provider.name;
       _errorMessage = null;
       await _transitionTo(LlmModelState.loaded);
+      // 记录该模型的最后加载时间（账户级 + 会话级）
+      final loadKey = '${provider.name}/$model';
+      final now = DateTime.now();
+      final existingLoad = _perModelStats[loadKey];
+      if (existingLoad != null) {
+        _perModelStats[loadKey] = existingLoad.copyWith(lastLoadTime: now);
+      } else {
+        _perModelStats[loadKey] = LlmModelUsage(
+          modelName: model,
+          provider: provider.name,
+          lastLoadTime: now,
+        );
+      }
+      final sessionExistingLoad = _sessionPerModelStats[loadKey];
+      if (sessionExistingLoad != null) {
+        _sessionPerModelStats[loadKey] = sessionExistingLoad.copyWith(lastLoadTime: now);
+      } else {
+        _sessionPerModelStats[loadKey] = LlmModelUsage(
+          modelName: model,
+          provider: provider.name,
+          lastLoadTime: now,
+        );
+      }
     } catch (e) {
       _service = null;
       _errorMessage = e.toString();
@@ -117,8 +182,33 @@ class LlmModelManager {
       }
 
       _service = local;
+      _currentModelName = modelName;
+      _currentProvider = 'ollama';
       _errorMessage = null;
       await _transitionTo(LlmModelState.loaded);
+      // 记录该模型的最后加载时间（账户级 + 会话级）
+      final loadKey = 'ollama/$modelName';
+      final now = DateTime.now();
+      final existingLoad = _perModelStats[loadKey];
+      if (existingLoad != null) {
+        _perModelStats[loadKey] = existingLoad.copyWith(lastLoadTime: now);
+      } else {
+        _perModelStats[loadKey] = LlmModelUsage(
+          modelName: modelName,
+          provider: 'ollama',
+          lastLoadTime: now,
+        );
+      }
+      final sessionExistingLoad = _sessionPerModelStats[loadKey];
+      if (sessionExistingLoad != null) {
+        _sessionPerModelStats[loadKey] = sessionExistingLoad.copyWith(lastLoadTime: now);
+      } else {
+        _sessionPerModelStats[loadKey] = LlmModelUsage(
+          modelName: modelName,
+          provider: 'ollama',
+          lastLoadTime: now,
+        );
+      }
     } catch (e) {
       _service = null;
       _errorMessage = e.toString();
@@ -131,6 +221,8 @@ class LlmModelManager {
   Future<void> unload() async {
     _service = null;
     _errorMessage = null;
+    _currentModelName = '';
+    _currentProvider = '';
     await _transitionTo(LlmModelState.unloaded);
   }
 
@@ -181,33 +273,138 @@ class LlmModelManager {
     }
   }
 
-  /// Record a usage event.
-  void recordUsage() {
-    _usageCount++;
+  /// Record a single inference event with model-specific and daily tracking.
+  void recordInference({
+    required String modelName,
+    required String provider,
+    required LlmTokenUsage tokenUsage,
+  }) {
+    // Session-level
+    _sessionUsageCount++;
+    _sessionPromptTokens += tokenUsage.promptTokens;
+    _sessionCompletionTokens += tokenUsage.completionTokens;
     _lastUsedTime = DateTime.now();
-  }
 
-  /// Record token consumption from the most recent inference.
-  void recordTokens(int tokens) {
-    _totalTokensUsed += tokens;
+    // Session-level per-model stats
+    final sessionKey = '$provider/$modelName';
+    final now = DateTime.now();
+    final existingSession = _sessionPerModelStats[sessionKey];
+    if (existingSession != null) {
+      _sessionPerModelStats[sessionKey] = existingSession.copyWith(
+        usageCount: existingSession.usageCount + 1,
+        promptTokens: existingSession.promptTokens + tokenUsage.promptTokens,
+        completionTokens: existingSession.completionTokens + tokenUsage.completionTokens,
+        lastUsedTime: now,
+      );
+    } else {
+      _sessionPerModelStats[sessionKey] = LlmModelUsage(
+        modelName: modelName,
+        provider: provider,
+        usageCount: 1,
+        promptTokens: tokenUsage.promptTokens,
+        completionTokens: tokenUsage.completionTokens,
+        lastUsedTime: now,
+      );
+    }
+
+    // Account-level totals
+    _accountUsageCount++;
+    _accountPromptTokens += tokenUsage.promptTokens;
+    _accountCompletionTokens += tokenUsage.completionTokens;
+
+    // Per-model stats
+    final key = '$provider/$modelName';
+    final existing = _perModelStats[key];
+    if (existing != null) {
+      _perModelStats[key] = existing.copyWith(
+        usageCount: existing.usageCount + 1,
+        promptTokens: existing.promptTokens + tokenUsage.promptTokens,
+        completionTokens: existing.completionTokens + tokenUsage.completionTokens,
+        lastUsedTime: DateTime.now(),
+      );
+    } else {
+      _perModelStats[key] = LlmModelUsage(
+        modelName: modelName,
+        provider: provider,
+        usageCount: 1,
+        promptTokens: tokenUsage.promptTokens,
+        completionTokens: tokenUsage.completionTokens,
+        lastUsedTime: DateTime.now(),
+      );
+    }
+
+    // Daily stats
+    final today = DateTime.now();
+    final todayKey = DateTime(today.year, today.month, today.day);
+    final modelKey = '$provider/$modelName';
+    final existingDayIndex = _dailyStats.indexWhere(
+      (d) => DateTime(d.date.year, d.date.month, d.date.day) == todayKey,
+    );
+    if (existingDayIndex >= 0) {
+      final existingDay = _dailyStats[existingDayIndex];
+      final updatedPerModel = Map<String, int>.from(existingDay.perModelTokens);
+      updatedPerModel[modelKey] = (updatedPerModel[modelKey] ?? 0) + tokenUsage.totalTokens;
+      _dailyStats[existingDayIndex] = existingDay.copyWith(
+        totalTokens: existingDay.totalTokens + tokenUsage.totalTokens,
+        usageCount: existingDay.usageCount + 1,
+        perModelTokens: updatedPerModel,
+      );
+    } else {
+      _dailyStats.add(LlmDailyUsage(
+        date: todayKey,
+        totalTokens: tokenUsage.totalTokens,
+        usageCount: 1,
+        perModelTokens: {modelKey: tokenUsage.totalTokens},
+      ));
+    }
   }
 
   /// Restore statistics from persisted data (e.g. after login).
   void restoreStats(LlmUsageStats stats) {
-    _usageCount = stats.usageCount;
-    _totalTokensUsed = stats.totalTokensUsed;
+    _accountUsageCount = stats.usageCount;
+    _accountPromptTokens = stats.totalPromptTokens;
+    _accountCompletionTokens = stats.totalCompletionTokens;
     if (stats.lastLoadTime != null) {
       _lastLoadTime = stats.lastLoadTime;
     }
     if (stats.lastUsedTime != null) {
       _lastUsedTime = stats.lastUsedTime;
     }
+    _perModelStats.clear();
+    for (final m in stats.perModelStats) {
+      _perModelStats['${m.provider}/${m.modelName}'] = m;
+    }
+    _dailyStats.clear();
+    _dailyStats.addAll(stats.dailyStats);
+  }
+
+  /// Build an [LlmUsageStats] snapshot for persistence.
+  LlmUsageStats buildStatsSnapshot() {
+    return LlmUsageStats(
+      usageCount: _accountUsageCount,
+      totalPromptTokens: _accountPromptTokens,
+      totalCompletionTokens: _accountCompletionTokens,
+      lastLoadTime: _lastLoadTime,
+      lastUsedTime: _lastUsedTime,
+      perModelStats: _perModelStats.values.toList(),
+      dailyStats: List.from(_dailyStats),
+      sessionUsageCount: _sessionUsageCount,
+      sessionPromptTokens: _sessionPromptTokens,
+      sessionCompletionTokens: _sessionCompletionTokens,
+    );
   }
 
   /// Reset usage statistics.
   void resetStats() {
-    _usageCount = 0;
-    _totalTokensUsed = 0;
+    _sessionUsageCount = 0;
+    _sessionPromptTokens = 0;
+    _sessionCompletionTokens = 0;
+    _sessionPerModelStats.clear();
+    _accountUsageCount = 0;
+    _accountPromptTokens = 0;
+    _accountCompletionTokens = 0;
+    _perModelStats.clear();
+    _dailyStats.clear();
     _lastUsedTime = null;
   }
 
@@ -226,8 +423,11 @@ class LlmModelManager {
       );
     }
     final result = await _service!.infer(prompt, maxTokens: maxTokens);
-    recordUsage();
-    recordTokens(_service!.lastTokenUsage.totalTokens);
+    recordInference(
+      modelName: _currentModelName,
+      provider: _currentProvider,
+      tokenUsage: _service!.lastTokenUsage,
+    );
     return result;
   }
 
@@ -240,8 +440,11 @@ class LlmModelManager {
       );
     }
     final result = await _service!.inferMessages(messages, maxTokens: maxTokens);
-    recordUsage();
-    recordTokens(_service!.lastTokenUsage.totalTokens);
+    recordInference(
+      modelName: _currentModelName,
+      provider: _currentProvider,
+      tokenUsage: _service!.lastTokenUsage,
+    );
     return result;
   }
 

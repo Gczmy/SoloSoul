@@ -222,10 +222,12 @@ GoRouter createRouter(WidgetRef ref) {
           GoRoute(
             path: AppRoutes.llmConfig,
             builder: (context, state) => const LlmConfigPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.llmStats,
-            builder: (context, state) => const LlmStatsPage(),
+            routes: [
+              GoRoute(
+                path: 'stats',
+                builder: (context, state) => const LlmStatsPage(),
+              ),
+            ],
           ),
           GoRoute(
             path: AppRoutes.llmChat,
