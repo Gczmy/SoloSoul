@@ -94,7 +94,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       } else {
         _propertyFields.add(_PropertyField(
           key: entry.key,
-          type: 'text',
+          type: _inferTypeFromValue(entry.value),
           sensitivity: sensitivity,
         ));
       }
@@ -108,7 +108,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         if (!existingKeys.contains(propDef.id)) {
           _propertyFields.add(_PropertyField(
             key: propDef.id,
-            type: 'text',
+            type: propDef.type.name,
             sensitivity: SensitivityLevel.public,
           ));
         }
@@ -132,9 +132,37 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _propertyFields.add(_PropertyField(key: 'Title', type: 'text', isDefaultName: true));
     for (final propDef in type.properties) {
       if (propDef.id != 'Title' && propDef.id != 'Item Name') {
-        _propertyFields.add(_PropertyField(key: propDef.id, type: 'text'));
+        _propertyFields.add(_PropertyField(
+          key: propDef.id,
+          type: propDef.type.name,
+        ));
       }
     }
+  }
+
+  /// 从现有 PropertyValue 推断其字符串类型标识。
+  static String _inferTypeFromValue(PropertyValue value) {
+    return switch (value) {
+      TextProperty() => 'text',
+      NumberProperty() => 'number',
+      DateProperty() => 'date',
+      CheckboxProperty() => 'checkbox',
+      SelectProperty() => 'select',
+      MultiSelectProperty() => 'multiSelect',
+      _ => 'text',
+    };
+  }
+
+  /// 根据类型字符串创建空的 PropertyValue（用于 Section Schema 定义）。
+  static PropertyValue _createEmptyPropertyValue(String type, SensitivityLevel sensitivity) {
+    return switch (type) {
+      'date' => DateProperty(isoDate: null, sensitivity: sensitivity),
+      'number' => NumberProperty(value: null, sensitivity: sensitivity),
+      'checkbox' => CheckboxProperty(checked: false, sensitivity: sensitivity),
+      'select' => SelectProperty(options: [], selectedId: null, sensitivity: sensitivity),
+      'multiSelect' => MultiSelectProperty(options: [], selectedIds: [], sensitivity: sensitivity),
+      _ => TextProperty(text: '', sensitivity: sensitivity),
+    };
   }
 
   @override
@@ -275,10 +303,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             sensitivity: SensitivityLevel.public,
           );
         } else {
-          properties[key] = TextProperty(
-            text: '',
-            sensitivity: field.sensitivity,
-          );
+          properties[key] = _createEmptyPropertyValue(field.type, field.sensitivity);
         }
       }
     }
@@ -746,6 +771,9 @@ class _PropertyFieldRow extends StatelessWidget {
               value: field.type,
               items: const [
                 DropdownMenuItem(value: 'text', child: Text('Text')),
+                DropdownMenuItem(value: 'date', child: Text('Date')),
+                DropdownMenuItem(value: 'number', child: Text('Number')),
+                DropdownMenuItem(value: 'checkbox', child: Text('Checkbox')),
               ],
               onChanged: (value) {
                 if (value != null) {

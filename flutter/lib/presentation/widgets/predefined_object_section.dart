@@ -12,6 +12,7 @@ import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
     show OperationLogService;
+import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
 
 /// A section widget for default pages that uses predefined UnifiedObject schemas.
@@ -96,9 +97,9 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     final prefix = _fieldPrefix(widget.typeId);
     final template = <String, PropertyValue>{
       for (final prop in typeDef.properties)
-        prop.id: TextProperty(
-          text: '',
-          sensitivity: _lookupSensitivity('$prefix.${prop.id}'),
+        prop.id: _emptyPropertyValueForType(
+          prop.type,
+          _lookupSensitivity('$prefix.${prop.id}'),
         ),
     };
 
@@ -134,10 +135,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
               final map = <String, String>{};
               for (final prop in typeDef.properties) {
                 final value = item.properties[prop.id];
-                map[prop.id] = switch (value) {
-                  TextProperty() => value.text,
-                  _ => '',
-                };
+                map[prop.id] = value != null ? propValueToString(value) : '';
               }
               return widget.displayItemBuilder!(item, map);
             }
@@ -233,6 +231,20 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
 
   /// Map typeId to LogSection for operation logging.
   LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
+
+  /// 根据 PropertyType 创建对应的空 PropertyValue。
+  static PropertyValue _emptyPropertyValueForType(PropertyType type, SensitivityLevel sensitivity) {
+    return switch (type) {
+      PropertyType.text => TextProperty(text: '', sensitivity: sensitivity),
+      PropertyType.number => NumberProperty(value: null, sensitivity: sensitivity),
+      PropertyType.date => DateProperty(isoDate: null, sensitivity: sensitivity),
+      PropertyType.checkbox => CheckboxProperty(checked: false, sensitivity: sensitivity),
+      PropertyType.select => SelectProperty(options: [], selectedId: null, sensitivity: sensitivity),
+      PropertyType.multiSelect => MultiSelectProperty(options: [], selectedIds: [], sensitivity: sensitivity),
+      PropertyType.relation => RelationProperty(targetObjectId: null, sensitivity: sensitivity),
+      PropertyType.url => UrlProperty(url: null, sensitivity: sensitivity),
+    };
+  }
 
   /// Look up sensitivity from FieldRegistry defaults.
   SensitivityLevel _lookupSensitivity(String fieldId) {

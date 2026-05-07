@@ -42,7 +42,7 @@ final class LocalSearchNotifierProvider
 }
 
 String _$localSearchNotifierHash() =>
-    r'3c3948d11da03574d38e84754f4a708acc4ec0e7';
+    r'1184c380ae407c9b94d9e6aed3c0fa80a2acd24f';
 
 abstract class _$LocalSearchNotifier extends $Notifier<LocalSearchState> {
   LocalSearchState build();

@@ -220,6 +220,27 @@ Map<String, dynamic> _$UrlPropertyToJson(UrlProperty instance) =>
       'sensitivity': _$SensitivityLevelEnumMap[instance.sensitivity]!,
     };
 
+Attachment _$AttachmentFromJson(Map<String, dynamic> json) => Attachment(
+  id: json['id'] as String,
+  fileId: json['fileId'] as String,
+  fileName: json['fileName'] as String,
+  mimeType: json['mimeType'] as String,
+  size: (json['size'] as num).toInt(),
+  thumbnail: json['thumbnail'] as String?,
+  createdAt: (json['createdAt'] as num).toInt(),
+);
+
+Map<String, dynamic> _$AttachmentToJson(Attachment instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'fileId': instance.fileId,
+      'fileName': instance.fileName,
+      'mimeType': instance.mimeType,
+      'size': instance.size,
+      'thumbnail': instance.thumbnail,
+      'createdAt': instance.createdAt,
+    };
+
 UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
     UnifiedObject(
       id: json['id'] as String,
@@ -242,6 +263,11 @@ UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
             ),
           ) ??
           const {},
+      attachments:
+          (json['attachments'] as List<dynamic>?)
+              ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       isDeleted: json['isDeleted'] as bool? ?? false,
       deletedAt: json['deletedAt'] == null
           ? null
@@ -261,6 +287,7 @@ Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
       'properties': instance.properties.map(
         (k, e) => MapEntry(k, const PropertyValueConverter().toJson(e)),
       ),
+      'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'isDeleted': instance.isDeleted,
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'createdAt': instance.createdAt,

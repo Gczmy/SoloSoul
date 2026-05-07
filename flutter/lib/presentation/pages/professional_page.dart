@@ -9,6 +9,7 @@ import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart'
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
+import 'package:solosoul_flutter/presentation/widgets/scan_document_button.dart';
 
 class ProfessionalPage extends ConsumerStatefulWidget {
   const ProfessionalPage({super.key});
@@ -32,20 +33,10 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
     return ObjectCategoryPage(
       title: 'Professional',
       sections: [
-            // Upload CV button at top
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showCVUploadDialog(context),
-                icon: const Icon(Icons.upload_file_outlined),
-                label: const Text('Upload CV / Resume'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ).animate().fadeIn(duration: 400.ms),
-            const SizedBox(height: 24),
+            const ScanDocumentButton(),
+            const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.education),
               sectionId: DefaultSectionIds.education,
               typeId: 'professional_education',
               title: 'Education',
@@ -79,6 +70,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.employment),
               sectionId: DefaultSectionIds.employment,
               typeId: 'professional_employment',
               title: 'Employment',
@@ -112,6 +104,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.award),
               sectionId: DefaultSectionIds.award,
               typeId: 'professional_award',
               title: 'Awards',
@@ -145,6 +138,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.skill),
               sectionId: DefaultSectionIds.skill,
               typeId: 'professional_skill',
               title: 'Skills',
@@ -178,6 +172,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.language),
               sectionId: DefaultSectionIds.language,
               typeId: 'professional_language',
               title: 'Languages',
@@ -213,21 +208,4 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
     );
   }
 
-  void _showCVUploadDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Upload CV'),
-        content: const Text(
-          'CV upload and parsing will be available in a future update.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 }

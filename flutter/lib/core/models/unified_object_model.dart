@@ -491,6 +491,71 @@ String _propValueToDisplay(PropertyValue value) {
 }
 
 // =============================================================================
+// Attachment (File metadata for encrypted local storage)
+// =============================================================================
+
+/// Metadata for an encrypted file attachment stored outside the Vault SQLite.
+/// The actual file content is encrypted via [RustVaultService.encryptBytes]
+/// and saved as `{fileId}.solo` on the local filesystem.
+@JsonSerializable(explicitToJson: true)
+class Attachment {
+  final String id;
+
+  /// File ID used to locate the encrypted `.solo` file on disk.
+  final String fileId;
+
+  /// Original file name (e.g. `IMG_12345.jpg`).
+  final String fileName;
+
+  /// MIME type (e.g. `image/jpeg`).
+  final String mimeType;
+
+  /// File size in bytes.
+  final int size;
+
+  /// Optional base64-encoded thumbnail or separate thumbnail fileId.
+  final String? thumbnail;
+
+  /// Creation timestamp (milliseconds since epoch).
+  final int createdAt;
+
+  const Attachment({
+    required this.id,
+    required this.fileId,
+    required this.fileName,
+    required this.mimeType,
+    required this.size,
+    this.thumbnail,
+    required this.createdAt,
+  });
+
+  factory Attachment.fromJson(Map<String, dynamic> json) =>
+      _$AttachmentFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AttachmentToJson(this);
+
+  Attachment copyWith({
+    String? id,
+    String? fileId,
+    String? fileName,
+    String? mimeType,
+    int? size,
+    String? thumbnail,
+    int? createdAt,
+  }) {
+    return Attachment(
+      id: id ?? this.id,
+      fileId: fileId ?? this.fileId,
+      fileName: fileName ?? this.fileName,
+      mimeType: mimeType ?? this.mimeType,
+      size: size ?? this.size,
+      thumbnail: thumbnail ?? this.thumbnail,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+}
+
+// =============================================================================
 // UnifiedObject & UnifiedObjectData
 // =============================================================================
 
@@ -520,6 +585,10 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   @PropertyValueConverter()
   final Map<String, PropertyValue> properties;
 
+  /// File attachments associated with this object.
+  /// Actual encrypted files are stored on disk via [AttachmentStorageService].
+  final List<Attachment> attachments;
+
   final bool isDeleted;
   final DateTime? deletedAt;
   final int createdAt;
@@ -533,6 +602,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     this.parentId,
     this.childrenIds = const [],
     this.properties = const {},
+    this.attachments = const [],
     this.isDeleted = false,
     this.deletedAt,
     required this.createdAt,
@@ -569,6 +639,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     String? parentId,
     List<String>? childrenIds,
     Map<String, PropertyValue>? properties,
+    List<Attachment>? attachments,
     bool? isDeleted,
     DateTime? deletedAt,
     int? createdAt,
@@ -582,6 +653,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       parentId: parentId ?? this.parentId,
       childrenIds: childrenIds ?? this.childrenIds,
       properties: properties ?? this.properties,
+      attachments: attachments ?? this.attachments,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,

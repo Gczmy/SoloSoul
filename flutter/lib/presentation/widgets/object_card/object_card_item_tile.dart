@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
+import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_history_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_properties_list.dart';
@@ -165,6 +166,10 @@ class ObjectCardItemTile extends ConsumerWidget {
                     onPressed: onDelete,
                     visualDensity: VisualDensity.compact,
                   ),
+                  if (item.attachments.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    _AttachmentButton(item: item),
+                  ],
                 ],
               ),
             ],
@@ -175,6 +180,61 @@ class ObjectCardItemTile extends ConsumerWidget {
           ],
           const Divider(height: 16),
         ],
+      ),
+    );
+  }
+}
+
+class _AttachmentButton extends ConsumerWidget {
+  final UnifiedObject item;
+
+  const _AttachmentButton({required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = item.attachments.length;
+    return IconButton(
+      icon: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Icon(Icons.attach_file, size: 20),
+          Positioned(
+            right: -6,
+            top: -6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.w500,
+                  height: 1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      tooltip: count == 1 ? '1 attachment' : '$count attachments',
+      onPressed: () => _showAttachments(context, ref),
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  void _showAttachments(BuildContext context, WidgetRef ref) {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AttachmentListSheet(
+        attachments: item.attachments,
+        accountId: accountId,
       ),
     );
   }

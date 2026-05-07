@@ -230,8 +230,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               }
 
               // Batch delete + single save
+              final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
               await notifier.permanentlyDeleteMultiple(
                 deletedObjects.map((o) => o.id).toList(),
+                accountId: accountId,
               );
 
               if (mounted) {
@@ -364,9 +366,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       ),
     );
     if (confirmed == true) {
+      final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
       await ref
           .read(unifiedObjectProvider.notifier)
-          .permanentlyDeleteObject(object.id);
+          .permanentlyDeleteObject(object.id, accountId: accountId);
       final logSection = _logSectionForTypeId(object.typeId ?? '');
       if (logSection != null) {
         final properties = <String, String>{

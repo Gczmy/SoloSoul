@@ -13,12 +13,19 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 /// - Public fields: Always shown as plaintext
 /// - Private fields: Plaintext when privacy shield is OFF, masked when ON
 /// - Restricted fields: Always masked, requires password verification to reveal
+///
+/// When [requireVerification] is false, critical fields behave like sensitive
+/// fields (tap to reveal, no password dialog). Useful in import preview pages
+/// where the user initiated the action themselves.
 class SensitiveValueWidget extends ConsumerStatefulWidget {
   final String fieldId;
   final String value;
   final Widget? child; // Optional custom display widget
   /// Optional explicit sensitivity level. When provided, overrides provider lookup.
   final SensitivityLevel? sensitivityLevel;
+  /// Whether critical fields require password verification before reveal.
+  /// Defaults to true. Set to false for user-initiated flows (e.g. import preview).
+  final bool requireVerification;
 
   const SensitiveValueWidget({
     super.key,
@@ -26,6 +33,7 @@ class SensitiveValueWidget extends ConsumerStatefulWidget {
     required this.value,
     this.child,
     this.sensitivityLevel,
+    this.requireVerification = true,
   });
 
   @override
@@ -73,11 +81,11 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
       return;
     }
 
-    // Check if this field requires verification
-    final level = ref.read(effectiveSensitivityProvider(widget.fieldId));
-    final isRestricted = level == SensitivityLevel.critical;
+    final SensitivityLevel fieldLevel = widget.sensitivityLevel ??
+        ref.read(effectiveSensitivityProvider(widget.fieldId));
+    final isRestricted = fieldLevel == SensitivityLevel.critical;
 
-    if (isRestricted) {
+    if (isRestricted && widget.requireVerification) {
       // Check if user was verified within the valid duration (1 minute)
       if (ref.read(isSensitiveAccessGrantedProvider)) {
         // Skip password dialog, just reveal
@@ -88,7 +96,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
         await _verifyAndReveal();
       }
     } else {
-      // Private fields in privacy mode - just reveal
+      // Private/sensitive fields in privacy mode - just reveal
       setState(() => _isRevealed = true);
       _startAutoHideTimer();
     }
@@ -164,7 +172,10 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
       SensitivityLevel.internal => isPrivacyModeOn || !hasRecentVerification,
       SensitivityLevel.sensitive => true,
       // Critical fields: mask when privacy mode is ON or sensitive access is locked
-      SensitivityLevel.critical => isPrivacyModeOn || !hasRecentVerification,
+      // When requireVerification is false, treat as sensitive (always mask, tap to reveal)
+      SensitivityLevel.critical => widget.requireVerification
+          ? isPrivacyModeOn || !hasRecentVerification
+          : true,
     };
 
     // Public fields: show plaintext without button
@@ -175,15 +186,18 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     // For restricted fields, check if recently verified - if so, auto-reveal
     // But if user explicitly hid it, respect their choice
     // Auto-mask: when privacy mode is ON, critical fields are never auto-revealed
-    // Auto-mask: when sensitive access is locked, all masked fields are forced hidden
-    final bool revealed = !hasRecentVerification
-        ? false
-        : (fieldLevel == SensitivityLevel.critical &&
-            hasRecentVerification &&
-            !_userExplicitlyHid &&
-            !isPrivacyModeOn)
-        ? true
-        : _isRevealed;
+    // Auto-mask: when sensitive access is locked, critical fields are forced hidden
+    // When requireVerification is false, critical behaves like sensitive (manual reveal only)
+    final bool revealed = switch (fieldLevel) {
+      SensitivityLevel.critical => widget.requireVerification
+          ? (!hasRecentVerification
+              ? false
+              : (isPrivacyModeOn
+                  ? _isRevealed
+                  : (!_userExplicitlyHid || _isRevealed)))
+          : _isRevealed,
+      _ => _isRevealed,
+    };
     final String displayText = revealed ? widget.value : _maskedValue(widget.value);
     final bool isMasked = !revealed;
     final IconData icon = _isVerifying

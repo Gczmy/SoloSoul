@@ -1,8 +1,13 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/core/utils/mrz_date_utils.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 // =============================================================================
@@ -26,19 +31,39 @@ class MrzVaultService {
   static Future<({bool success, String message})> saveMrzToVault(
     WidgetRef ref, {
     required MrzData mrzData,
+    Uint8List? imageBytes,
+    bool saveImage = false,
   }) async {
     final notifier = ref.read(unifiedObjectProvider.notifier);
     final docType = mrzData.documentType;
 
     if (docType.startsWith('P')) {
-      return _createPassport(notifier, mrzData);
+      return _createPassport(
+        ref,
+        notifier,
+        mrzData,
+        imageBytes: imageBytes,
+        saveImage: saveImage,
+      );
     } else if (docType.startsWith('I') ||
         docType.startsWith('C') ||
         docType.startsWith('A')) {
-      return _createIdCard(notifier, mrzData);
+      return _createIdCard(
+        ref,
+        notifier,
+        mrzData,
+        imageBytes: imageBytes,
+        saveImage: saveImage,
+      );
     } else {
       // 未知类型，默认当作护照处理
-      return _createPassport(notifier, mrzData);
+      return _createPassport(
+        ref,
+        notifier,
+        mrzData,
+        imageBytes: imageBytes,
+        saveImage: saveImage,
+      );
     }
   }
 
@@ -47,9 +72,12 @@ class MrzVaultService {
   // ---------------------------------------------------------------------------
 
   static Future<({bool success, String message})> _createPassport(
+    WidgetRef ref,
     UnifiedObjectNotifier notifier,
-    MrzData mrz,
-  ) async {
+    MrzData mrz, {
+    Uint8List? imageBytes,
+    bool saveImage = false,
+  }) async {
     final properties = <String, PropertyValue>{
       'title': TextProperty(
         text: mrz.documentType,
@@ -75,21 +103,21 @@ class MrzVaultService {
         text: mrz.nationality,
         sensitivity: SensitivityLevel.public,
       ),
-      'dateOfBirth': TextProperty(
-        text: mrz.dateOfBirth,
+      'dateOfBirth': DateProperty(
+        isoDate: parseMrzDate(mrz.dateOfBirth),
         sensitivity: SensitivityLevel.sensitive,
       ),
       'sex': TextProperty(
         text: mrz.sex,
         sensitivity: SensitivityLevel.public,
       ),
-      'expiryDate': TextProperty(
-        text: mrz.expiryDate,
+      'expiryDate': DateProperty(
+        isoDate: parseMrzDate(mrz.expiryDate),
         sensitivity: SensitivityLevel.sensitive,
       ),
     };
 
-    final success = await notifier.createObject(
+    final objectId = await notifier.createObjectAndReturnId(
       name: '${mrz.surname} ${mrz.givenNames}'.trim(),
       typeId: 'travel_passport',
       iconName: 'book',
@@ -97,10 +125,22 @@ class MrzVaultService {
       properties: properties,
     );
 
-    if (success) {
-      return (success: true, message: 'Passport saved: ${mrz.documentNumber}');
+    if (objectId == null) {
+      return (success: false, message: 'Failed to save passport');
     }
-    return (success: false, message: 'Failed to save passport');
+
+    // Save attachment if requested
+    if (saveImage && imageBytes != null) {
+      await _saveAttachment(
+        ref: ref,
+        notifier: notifier,
+        objectId: objectId,
+        fileName: 'passport_scan_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        bytes: imageBytes,
+      );
+    }
+
+    return (success: true, message: 'Passport saved: ${mrz.documentNumber}');
   }
 
   // ---------------------------------------------------------------------------
@@ -108,9 +148,12 @@ class MrzVaultService {
   // ---------------------------------------------------------------------------
 
   static Future<({bool success, String message})> _createIdCard(
+    WidgetRef ref,
     UnifiedObjectNotifier notifier,
-    MrzData mrz,
-  ) async {
+    MrzData mrz, {
+    Uint8List? imageBytes,
+    bool saveImage = false,
+  }) async {
     final properties = <String, PropertyValue>{
       'title': TextProperty(
         text: mrz.documentType,
@@ -128,21 +171,21 @@ class MrzVaultService {
         text: mrz.country,
         sensitivity: SensitivityLevel.public,
       ),
-      'dateOfBirth': TextProperty(
-        text: mrz.dateOfBirth,
+      'dateOfBirth': DateProperty(
+        isoDate: parseMrzDate(mrz.dateOfBirth),
         sensitivity: SensitivityLevel.sensitive,
       ),
       'sex': TextProperty(
         text: mrz.sex,
         sensitivity: SensitivityLevel.public,
       ),
-      'expiryDate': TextProperty(
-        text: mrz.expiryDate,
+      'expiryDate': DateProperty(
+        isoDate: parseMrzDate(mrz.expiryDate),
         sensitivity: SensitivityLevel.sensitive,
       ),
     };
 
-    final success = await notifier.createObject(
+    final objectId = await notifier.createObjectAndReturnId(
       name: '${mrz.surname} ${mrz.givenNames}'.trim(),
       typeId: 'profile_id_card',
       iconName: 'badge',
@@ -150,9 +193,54 @@ class MrzVaultService {
       properties: properties,
     );
 
-    if (success) {
-      return (success: true, message: 'ID Card saved: ${mrz.documentNumber}');
+    if (objectId == null) {
+      return (success: false, message: 'Failed to save ID card');
     }
-    return (success: false, message: 'Failed to save ID card');
+
+    // Save attachment if requested
+    if (saveImage && imageBytes != null) {
+      await _saveAttachment(
+        ref: ref,
+        notifier: notifier,
+        objectId: objectId,
+        fileName: 'id_card_scan_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        bytes: imageBytes,
+      );
+    }
+
+    return (success: true, message: 'ID Card saved: ${mrz.documentNumber}');
+  }
+
+  static Future<void> _saveAttachment({
+    required WidgetRef ref,
+    required UnifiedObjectNotifier notifier,
+    required String objectId,
+    required String fileName,
+    required Uint8List bytes,
+  }) async {
+    try {
+      final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+      if (accountId == null) {
+        SoloLog.w('MrzVaultService', 'No account selected, skipping attachment save');
+        return;
+      }
+
+      final attachment = await AttachmentStorageService().saveAttachment(
+        accountId: accountId,
+        fileName: fileName,
+        bytes: bytes,
+      );
+
+      final objects = ref.read(unifiedObjectProvider).objects;
+      final object = objects.firstWhere((o) => o.id == objectId);
+      final updated = object.copyWith(
+        attachments: [...object.attachments, attachment],
+      );
+
+      await notifier.updateObject(objectId, attachments: updated.attachments);
+      SoloLog.d('MrzVaultService', 'Attachment saved: ${attachment.fileName}');
+    } on Exception catch (e, st) {
+      SoloLog.e('MrzVaultService', 'Failed to save attachment', e, st);
+    }
   }
 }

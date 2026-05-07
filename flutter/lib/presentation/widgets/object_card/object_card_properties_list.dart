@@ -33,18 +33,19 @@ class ObjectCardPropertiesList extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 2),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 160),
+              Flexible(
                 child: SelectableText(
-                  wrapEveryNChars(formatLabel(entry.key), 12),
+                  '${wrapEveryNChars(formatLabel(entry.key), 12)}: ',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
+              const SizedBox(width: 4),
               if (isEmptyValue)
-                Expanded(
+                Flexible(
                   child: Text(
                     '(empty)',
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -54,7 +55,7 @@ class ObjectCardPropertiesList extends StatelessWidget {
                   ),
                 )
               else if (isSensitive)
-                Expanded(
+                Flexible(
                   child: SensitiveValueWidget(
                     fieldId: 'item.${item.id}.${entry.key}',
                     value: valueStr,
@@ -62,7 +63,7 @@ class ObjectCardPropertiesList extends StatelessWidget {
                   ),
                 )
               else
-                Expanded(
+                Flexible(
                   child: SelectableText(
                     valueStr,
                     style: theme.textTheme.bodyMedium,

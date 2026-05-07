@@ -250,10 +250,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
               ],
               ...object.properties.entries.map((e) {
                 final value = e.value;
-                final text = switch (value) {
-                  TextProperty() => value.text,
-                  _ => '',
-                };
+                final text = propValueToString(value);
                 final fieldId = fieldPrefix.isNotEmpty
                     ? '$fieldPrefix.${e.key}'
                     : e.key;

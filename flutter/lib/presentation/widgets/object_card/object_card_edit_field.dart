@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
+import 'package:solosoul_flutter/presentation/widgets/date_picker_form_field.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 const kMaxPropertyLength = 100;
@@ -25,8 +26,31 @@ class ObjectCardEditField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // DateProperty → 日期选择器
+    if (!isTitle && value is DateProperty) {
+      final dateProp = value as DateProperty;
+      return ValueListenableBuilder<TextEditingValue>(
+        valueListenable: controller ?? _dummyValueNotifier,
+        builder: (context, val, child) {
+          return DatePickerFormField(
+            label: isTitle ? 'Title' : formatLabel(propertyKey),
+            initialDate: val.text.isNotEmpty ? val.text : dateProp.isoDate,
+            sensitivity: dateProp.sensitivity,
+            onDateChanged: (newDate) {
+              controller?.text = newDate ?? '';
+            },
+          );
+        },
+      );
+    }
+
+    // CheckboxProperty → 复选框
     if (!isTitle && value is CheckboxProperty) {
-      final checked = (value as CheckboxProperty).checked;
+      // 从 controller.text 读取当前勾选状态，因为外部通过更新 controller 来同步
+      final controllerText = controller?.text.toLowerCase() ?? '';
+      final checked = controllerText == 'true' ||
+          controllerText == '1' ||
+          controllerText == 'yes';
       return Row(
         children: [
           Checkbox(
@@ -40,6 +64,7 @@ class ObjectCardEditField extends StatelessWidget {
       );
     }
 
+    // 其他类型 → 文本输入框
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [

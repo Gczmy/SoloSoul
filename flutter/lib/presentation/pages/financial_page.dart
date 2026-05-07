@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_helpers.dart';
+import 'package:solosoul_flutter/presentation/widgets/scan_document_button.dart';
 
 class FinancialPage extends ConsumerStatefulWidget {
   const FinancialPage({super.key});
@@ -33,7 +34,10 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
     return ObjectCategoryPage(
       title: 'Financial',
       sections: [
+            const ScanDocumentButton(),
+            const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.bankAccount),
               sectionId: DefaultSectionIds.bankAccount,
               typeId: 'financial_bank_account',
               title: 'Bank Accounts',
@@ -70,6 +74,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.card),
               sectionId: DefaultSectionIds.card,
               typeId: 'financial_card',
               title: 'Cards',
@@ -105,6 +110,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                 .slideX(begin: 0.05, end: 0),
             const SizedBox(height: 16),
             PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.taxId),
               sectionId: DefaultSectionIds.taxId,
               typeId: 'financial_tax_id',
               title: 'Tax Identification',

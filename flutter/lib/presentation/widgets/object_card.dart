@@ -126,7 +126,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   void _disposeControllers() {
     for (final c in _editControllers.values) {
-      c.text = '';
+      c.removeListener(_checkForChanges);
       c.dispose();
     }
     _editControllers.clear();
@@ -528,7 +528,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       NumberProperty() => NumberProperty(value: double.tryParse(newText), sensitivity: oldValue.sensitivity),
       DateProperty() => DateProperty(isoDate: newText, sensitivity: oldValue.sensitivity),
       CheckboxProperty() => CheckboxProperty(
-          checked: newText.toLowerCase() == 'true' || newText == '1' || newText == 'yes',
+          checked: newText.toLowerCase() == 'true' || newText.toLowerCase() == 'yes' || newText == '1',
           sensitivity: oldValue.sensitivity,
         ),
       SelectProperty() => oldValue,

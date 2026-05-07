@@ -709,6 +709,7 @@ class _ValueDisplayWidget extends StatelessWidget {
         fieldId: '${candidateIndex}_${source.key}',
         value: source.value,
         sensitivityLevel: source.sensitivity,
+        requireVerification: false,
       );
     }
 

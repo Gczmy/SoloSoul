@@ -18,6 +18,7 @@ class EntryActionBuilder {
     EntryActionsConfig config = const EntryActionsConfig(),
     bool isSensitive = false,
     Widget? historyAction,
+    Widget? attachmentAction,
   }) {
     final actions = <Widget>[];
 
@@ -72,6 +73,11 @@ class EntryActionBuilder {
               : onDelete,
         ),
       );
+    }
+
+    if (attachmentAction != null) {
+      actions.add(const SizedBox(width: 8));
+      actions.add(attachmentAction);
     }
 
     return actions;

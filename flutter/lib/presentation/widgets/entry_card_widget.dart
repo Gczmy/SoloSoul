@@ -9,6 +9,8 @@ import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
@@ -417,6 +419,45 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       _handleCopy(text);
     }
 
+    Widget? attachmentAction;
+    if (widget.item is UnifiedObject) {
+      final obj = widget.item as UnifiedObject;
+      if (obj.attachments.isNotEmpty) {
+        final count = obj.attachments.length;
+        attachmentAction = IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.attach_file, size: 20),
+              Positioned(
+                right: -6,
+                top: -6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.w500,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          tooltip: count == 1 ? '1 attachment' : '$count attachments',
+          onPressed: () => _showAttachments(context, obj),
+          visualDensity: VisualDensity.compact,
+        );
+      }
+    }
+
     return EntryActionBuilder.buildActions(
       context: context,
       ref: ref,
@@ -430,6 +471,20 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       ),
       isSensitive: isSensitive,
       historyAction: historyAction,
+      attachmentAction: attachmentAction,
+    );
+  }
+
+  void _showAttachments(BuildContext context, UnifiedObject obj) {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AttachmentListSheet(
+        attachments: obj.attachments,
+        accountId: accountId,
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
@@ -325,6 +326,79 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return _saveDebounced(operationDesc: 'Created object');
   }
 
+  /// Creates a new object and returns its ID on success, or null on failure.
+  /// This is identical to [createObject] but provides the generated object ID
+  /// for follow-up operations (e.g. attaching files).
+  Future<String?> createObjectAndReturnId({
+    required String name,
+    String? typeId,
+    String? parentId,
+    String? iconName,
+    Map<String, PropertyValue>? properties,
+  }) async {
+    var objects = state.objects;
+
+    // 防御：如果 parent 是预设 section 但不存在，自动创建（连带 page）
+    if (parentId != null && _service.getObjectById(objects, parentId) == null) {
+      final meta = getSectionMeta(parentId);
+      if (meta != null) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        // 确保 page 存在
+        final pageExists = _service.getObjectById(objects, meta.parentPageId) != null;
+        if (!pageExists) {
+          final page = UnifiedObject(
+            id: meta.parentPageId,
+            typeId: 'page',
+            name: pageNameFromId(meta.parentPageId),
+            iconName: 'article',
+            parentId: null,
+            childrenIds: const [],
+            properties: const {},
+            isDeleted: false,
+            deletedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          );
+          objects = _service.addObject(objects, page);
+        }
+        // 创建 section
+        final section = UnifiedObject(
+          id: parentId,
+          typeId: 'collection',
+          name: meta.name,
+          iconName: meta.iconName,
+          parentId: meta.parentPageId,
+          childrenIds: const [],
+          properties: const {},
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        objects = _service.addObject(objects, section);
+        objects = _service.addChild(objects, meta.parentPageId, parentId);
+      }
+    }
+
+    final object = _service.createObject(
+      name: name,
+      typeId: typeId,
+      parentId: parentId,
+      iconName: iconName,
+      properties: properties,
+    );
+
+    var updatedObjects = _service.addObject(objects, object);
+
+    if (parentId != null) {
+      updatedObjects = _service.addChild(updatedObjects, parentId, object.id);
+    }
+
+    state = state.copyWith(objects: updatedObjects);
+    final saved = await _saveDebounced(operationDesc: 'Created object');
+    return saved ? object.id : null;
+  }
+
   // ---------------------------------------------------------------------------
   // Update
   // ---------------------------------------------------------------------------
@@ -338,6 +412,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? parentId,
     Map<String, PropertyValue>? properties,
     List<String>? childrenIds,
+    List<Attachment>? attachments,
   }) async {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
@@ -350,6 +425,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       parentId: parentId,
       properties: properties,
       childrenIds: childrenIds,
+      attachments: attachments,
     );
 
     state = state.copyWith(
@@ -430,10 +506,24 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   }
 
   /// Permanently delete an object and all its descendants.
-  Future<bool> permanentlyDeleteObject(String id) async {
+  /// If [accountId] is provided, associated attachment files are also deleted.
+  Future<bool> permanentlyDeleteObject(String id, {String? accountId}) async {
     final object = _service.getObjectById(state.objects, id);
     final descendantIds = _service.getDescendantIds(state.objects, id);
     final idsToRemove = {id, ...descendantIds};
+
+    // Cleanup attachment files before removing from state
+    if (accountId != null) {
+      for (final removeId in idsToRemove) {
+        final obj = _service.getObjectById(state.objects, removeId);
+        if (obj != null && obj.attachments.isNotEmpty) {
+          await AttachmentStorageService().deleteAttachments(
+            accountId: accountId,
+            attachments: obj.attachments,
+          );
+        }
+      }
+    }
 
     var updatedObjects = state.objects
         .where((o) => !idsToRemove.contains(o.id))
@@ -451,13 +541,27 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
   /// Permanently delete multiple objects in a single save operation.
   /// More efficient than calling permanentlyDeleteObject in a loop.
-  Future<bool> permanentlyDeleteMultiple(List<String> ids) async {
+  /// If [accountId] is provided, associated attachment files are also deleted.
+  Future<bool> permanentlyDeleteMultiple(List<String> ids, {String? accountId}) async {
     if (ids.isEmpty) return true;
 
     final idsToRemove = <String>{};
     for (final id in ids) {
       idsToRemove.add(id);
       idsToRemove.addAll(_service.getDescendantIds(state.objects, id));
+    }
+
+    // Cleanup attachment files before removing from state
+    if (accountId != null) {
+      for (final removeId in idsToRemove) {
+        final obj = _service.getObjectById(state.objects, removeId);
+        if (obj != null && obj.attachments.isNotEmpty) {
+          await AttachmentStorageService().deleteAttachments(
+            accountId: accountId,
+            attachments: obj.attachments,
+          );
+        }
+      }
     }
 
     var updatedObjects = state.objects

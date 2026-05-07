@@ -20,6 +20,7 @@ import 'package:solosoul_flutter/presentation/widgets/predefined_object_section_
 
 import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
+import 'package:solosoul_flutter/presentation/widgets/scan_document_button.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -40,6 +41,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return ObjectCategoryPage(
       title: 'Profile',
       sections: [
+        const ScanDocumentButton(),
+        const SizedBox(height: 16),
         _IdentitySection(isPrivacyMode: isPrivacyMode),
         const SizedBox(height: 16),
         _ContactSection(isPrivacyMode: isPrivacyMode, dummyValueNotifier: _dummyValueNotifier),
@@ -101,6 +104,7 @@ class _IdentitySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PredefinedObjectSection(
+      key: const ValueKey(DefaultSectionIds.identity),
       sectionId: DefaultSectionIds.identity,
       typeId: 'profile_identity',
       title: 'Identity',
@@ -151,6 +155,7 @@ class _ContactSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PredefinedObjectSection(
+      key: const ValueKey(DefaultSectionIds.contact),
       sectionId: DefaultSectionIds.contact,
       typeId: 'profile_contact',
       title: 'Contact Information',
@@ -309,6 +314,7 @@ class _IdentityDocumentsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PredefinedObjectSection(
+      key: const ValueKey(DefaultSectionIds.idCard),
       sectionId: DefaultSectionIds.idCard,
       typeId: 'profile_id_card',
       title: 'Identity Documents',
@@ -355,6 +361,7 @@ class _AddressesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PredefinedObjectSection(
+      key: const ValueKey(DefaultSectionIds.address),
       sectionId: DefaultSectionIds.address,
       typeId: 'profile_address',
       title: 'Addresses',

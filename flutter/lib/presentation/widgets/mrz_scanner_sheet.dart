@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,8 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
   bool _isLoading = false;
   String? _errorMessage;
   MrzData? _mrzResult;
+  Uint8List? _imageBytes;
+  bool _saveImage = false;
 
   @override
   Widget build(BuildContext context) {
@@ -140,13 +143,15 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
         ),
         const SizedBox(height: 24),
         // 操作按钮
-        _ActionButton(
-          icon: Icons.camera_alt_outlined,
-          label: 'Take Photo',
-          description: 'Use camera to capture passport',
-          onTap: () => _pickImage(ImageSource.camera),
-        ),
-        const SizedBox(height: 12),
+        if (!Platform.isMacOS && !Platform.isWindows && !Platform.isLinux) ...[
+          _ActionButton(
+            icon: Icons.camera_alt_outlined,
+            label: 'Take Photo',
+            description: 'Use camera to capture passport',
+            onTap: () => _pickImage(ImageSource.camera),
+          ),
+          const SizedBox(height: 12),
+        ],
         _ActionButton(
           icon: Icons.photo_library_outlined,
           label: 'Choose from Gallery',
@@ -206,12 +211,25 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
     return Column(
       children: [
         MrzPreviewCard(mrzData: _mrzResult!),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+        CheckboxListTile(
+          title: const Text('Save this image to Vault'),
+          subtitle: const Text('Encrypted and stored locally'),
+          value: _saveImage,
+          onChanged: (v) => setState(() => _saveImage = v ?? false),
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => setState(() => _mrzResult = null),
+                onPressed: () => setState(() {
+                  _mrzResult = null;
+                  _imageBytes = null;
+                  _saveImage = false;
+                }),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Rescan'),
               ),
@@ -219,7 +237,13 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton.icon(
-                onPressed: () => Navigator.of(context).pop(_mrzResult),
+                onPressed: () => Navigator.of(context).pop(
+                  MrzScanResult(
+                    mrzData: _mrzResult!,
+                    imageBytes: _saveImage ? _imageBytes : null,
+                    saveImage: _saveImage,
+                  ),
+                ),
                 icon: const Icon(Icons.check),
                 label: const Text('Confirm'),
               ),
@@ -249,6 +273,7 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
 
     try {
       final bytes = await picked.readAsBytes();
+      _imageBytes = bytes;
       final mrz = await OcrService.extractMrz(Uint8List.fromList(bytes));
 
       if (mounted) {
