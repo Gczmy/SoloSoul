@@ -22,6 +22,12 @@ const _kDefaultSizeLimits = {
   '.json': 1,
   '.txt': 1,
   '.md': 1,
+  '.png': 5,
+  '.jpg': 5,
+  '.jpeg': 5,
+  '.webp': 5,
+  '.bmp': 5,
+  '.tiff': 10,
 };
 
 class ScanConfig {
@@ -34,7 +40,10 @@ class ScanConfig {
 
   const ScanConfig({
     this.paths = const [],
-    this.extensions = const ['.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.xlsx'],
+    this.extensions = const [
+      '.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.xlsx',
+      '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff',
+    ],
     this.scanDepth = 'fingerprint',
     this.maxFileSizeByExtension = _kDefaultSizeLimits,
     this.lastModified,
@@ -81,7 +90,8 @@ class ScanConfig {
       paths: List<String>.from(json['paths'] as List? ?? []),
       extensions: List<String>.from(
         json['extensions'] as List? ??
-            ['.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.xlsx'],
+            ['.txt', '.md', '.json', '.csv', '.pdf', '.docx', '.xlsx',
+             '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff'],
       ),
       scanDepth: json['scan_depth'] as String? ?? 'fingerprint',
       maxFileSizeByExtension: sizeLimits,

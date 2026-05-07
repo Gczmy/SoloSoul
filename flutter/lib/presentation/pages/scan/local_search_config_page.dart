@@ -24,6 +24,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
   ScanConfigNotifier? _scanConfigNotifier;
 
   static const List<_ExtensionOption> _kExtensionOptions = [
+    // Documents
     _ExtensionOption('.pdf', 'PDF', Icons.picture_as_pdf, defaultLimitMb: 5),
     _ExtensionOption('.docx', 'Word', Icons.description, defaultLimitMb: 1),
     _ExtensionOption('.xlsx', 'Excel', Icons.table_chart, defaultLimitMb: 1),
@@ -31,6 +32,13 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
     _ExtensionOption('.json', 'JSON', Icons.data_object, defaultLimitMb: 1),
     _ExtensionOption('.txt', 'Text', Icons.text_snippet, defaultLimitMb: 1),
     _ExtensionOption('.md', 'Markdown', Icons.edit_note, defaultLimitMb: 1),
+    // Images (with OCR)
+    _ExtensionOption('.png', 'PNG', Icons.image, defaultLimitMb: 5),
+    _ExtensionOption('.jpg', 'JPG', Icons.image, defaultLimitMb: 5),
+    _ExtensionOption('.jpeg', 'JPEG', Icons.image, defaultLimitMb: 5),
+    _ExtensionOption('.webp', 'WebP', Icons.image, defaultLimitMb: 5),
+    _ExtensionOption('.bmp', 'BMP', Icons.image, defaultLimitMb: 5),
+    _ExtensionOption('.tiff', 'TIFF', Icons.image, defaultLimitMb: 10),
   ];
 
   @override
@@ -64,9 +72,9 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
     final sizeLimits = searchState.maxFileSizeByExtension;
 
     return Scaffold(
-      appBar: SoloGlassAppBar(
+      appBar: const SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: const Text('Local Search Import'),
+        title: Text('Local Search Import'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
