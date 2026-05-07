@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -64,6 +65,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final searchState = ref.watch(localSearchProvider);
     final notifier = ref.read(localSearchProvider.notifier);
@@ -75,9 +77,9 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
     final sizeLimits = searchState.maxFileSizeByExtension;
 
     return Scaffold(
-      appBar: const SoloGlassAppBar(
+      appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: Text('Local Search Import'),
+        title: Text(l10n.localSearchTitle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -99,7 +101,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               ),
             ),
             const SizedBox(height: 32),
-            const _SectionTitle(icon: Icons.folder_outlined, title: 'Search Paths'),
+            _SectionTitle(icon: Icons.folder_outlined, title: l10n.localSearchPaths),
             const SizedBox(height: 12),
             _SearchPathsSection(
               useDefaultPaths: useDefaultPaths,
@@ -117,7 +119,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               onAddPath: _pickFolder,
             ),
             const SizedBox(height: 24),
-            const _SectionTitle(icon: Icons.file_present_outlined, title: 'File Types'),
+            _SectionTitle(icon: Icons.file_present_outlined, title: l10n.localSearchFileTypes),
             const SizedBox(height: 8),
             Text(
               'Tap to select. Long press to adjust size limit.',
@@ -142,28 +144,28 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               onShowSizeLimitDialog: _showSizeLimitDialog,
             ),
             const SizedBox(height: 24),
-            const _SectionTitle(icon: Icons.tune_outlined, title: 'Scan Depth'),
+            _SectionTitle(icon: Icons.tune_outlined, title: l10n.localSearchScanDepth),
             const SizedBox(height: 12),
             Card(
               child: Column(
                 children: [
                   RadioListTile<String>(
-                    title: const Text('Filename only'),
-                    subtitle: const Text('Fastest — only check filenames'),
+                    title: Text(l10n.localSearchFilenameOnly),
+                    subtitle: Text(l10n.localSearchFilenameOnlyDesc),
                     value: 'filename',
                     groupValue: scanDepth,
                     onChanged: (v) => notifier.setScanDepth(v!),
                   ),
                   RadioListTile<String>(
-                    title: const Text('Filename + Content fingerprint'),
-                    subtitle: const Text('Balanced — regex match on content'),
+                    title: Text(l10n.localSearchFingerprint),
+                    subtitle: Text(l10n.localSearchFingerprintDesc),
                     value: 'fingerprint',
                     groupValue: scanDepth,
                     onChanged: (v) => notifier.setScanDepth(v!),
                   ),
                   RadioListTile<String>(
-                    title: const Text('Full text parsing'),
-                    subtitle: const Text('Slowest — deep content analysis'),
+                    title: Text(l10n.localSearchFullText),
+                    subtitle: Text(l10n.localSearchFullTextDesc),
                     value: 'full',
                     groupValue: scanDepth,
                     onChanged: (v) => notifier.setScanDepth(v!),
@@ -240,6 +242,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
     final newValue = await showDialog<int>(
       context: context,
       builder: (ctx) {
+        final l10n = AppLocalizations.of(context);
         final theme = Theme.of(ctx);
         return StatefulBuilder(
           builder: (ctx, setState) {
@@ -274,11 +277,11 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancel),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.pop(ctx, value.round()),
-                  child: const Text('Save'),
+                  child: Text(l10n.commonSave),
                 ),
               ],
             );
@@ -426,12 +429,13 @@ class _SearchPathsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Column(
         children: [
           RadioListTile<bool>(
-            title: const Text('Use default paths'),
-            subtitle: const Text('Documents, Desktop, Downloads'),
+            title: Text(l10n.localSearchDefaultPaths),
+            subtitle: Text(l10n.localSearchDefaultPathsDesc),
             value: true,
             groupValue: useDefaultPaths,
             onChanged: (v) {
@@ -439,8 +443,8 @@ class _SearchPathsSection extends StatelessWidget {
             },
           ),
           RadioListTile<bool>(
-            title: const Text('Custom paths'),
-            subtitle: const Text('Select specific folders'),
+            title: Text(l10n.localSearchCustomPaths),
+            subtitle: Text(l10n.localSearchCustomPathsDesc),
             value: false,
             groupValue: useDefaultPaths,
             onChanged: (v) {
@@ -464,7 +468,7 @@ class _SearchPathsSection extends StatelessWidget {
                 )),
             ListTile(
               leading: const Icon(Icons.add),
-              title: const Text('Add folder'),
+              title: Text(l10n.localSearchAddFolder),
               onTap: onAddPath,
             ),
           ],
@@ -521,13 +525,14 @@ class _SearchActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: double.infinity,
       height: 48,
       child: FilledButton.icon(
         onPressed: isEnabled ? onStartScan : null,
         icon: const Icon(Icons.search),
-        label: const Text('Start Scan'),
+        label: Text(l10n.localSearchStartScan),
       ),
     );
   }

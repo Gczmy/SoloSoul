@@ -1053,4 +1053,157 @@ class AppLocalizationsEn extends AppLocalizations {
   String llmChatInferenceFailed(String error) {
     return 'Inference failed: $error';
   }
+
+  @override
+  String get sidebarHome => 'Home';
+
+  @override
+  String get sidebarSearch => 'Search';
+
+  @override
+  String get sidebarLocalImport => 'Local Import';
+
+  @override
+  String get sidebarProfile => 'Profile';
+
+  @override
+  String get sidebarTravel => 'Travel';
+
+  @override
+  String get sidebarFinancial => 'Financial';
+
+  @override
+  String get sidebarProfessional => 'Professional';
+
+  @override
+  String get sidebarAddPage => 'Add Page';
+
+  @override
+  String get sidebarLockVault => 'Lock Vault';
+
+  @override
+  String get sidebarTrash => 'Trash';
+
+  @override
+  String get sidebarSync => 'Sync';
+
+  @override
+  String get sidebarSettings => 'Settings';
+
+  @override
+  String get sidebarCollapse => 'Collapse';
+
+  @override
+  String get sidebarExpand => 'Expand';
+
+  @override
+  String get sidebarPages => 'PAGES';
+
+  @override
+  String get sidebarDropToMakeRootPage => 'Drop to make root page';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
+  String get localSearchTitle => 'Local Search Import';
+
+  @override
+  String get localSearchPaths => 'Search Paths';
+
+  @override
+  String get localSearchFileTypes => 'File Types';
+
+  @override
+  String get localSearchScanDepth => 'Scan Depth';
+
+  @override
+  String get localSearchFilenameOnly => 'Filename only';
+
+  @override
+  String get localSearchFilenameOnlyDesc => 'Fastest — only check filenames';
+
+  @override
+  String get localSearchFingerprint => 'Filename + Content fingerprint';
+
+  @override
+  String get localSearchFingerprintDesc => 'Balanced — regex match on content';
+
+  @override
+  String get localSearchFullText => 'Full text parsing';
+
+  @override
+  String get localSearchFullTextDesc => 'Slowest — deep content analysis';
+
+  @override
+  String get localSearchDefaultPaths => 'Use default paths';
+
+  @override
+  String get localSearchDefaultPathsDesc => 'Documents, Desktop, Downloads';
+
+  @override
+  String get localSearchCustomPaths => 'Custom paths';
+
+  @override
+  String get localSearchCustomPathsDesc => 'Select specific folders';
+
+  @override
+  String get localSearchAddFolder => 'Add folder';
+
+  @override
+  String get localSearchStartScan => 'Start Scan';
+
+  @override
+  String get localSearchScanning => 'Scanning...';
+
+  @override
+  String get localSearchScanned => 'Scanned';
+
+  @override
+  String get localSearchFound => 'Found';
+
+  @override
+  String get localSearchSkipped => 'Skipped';
+
+  @override
+  String get localSearchCancelScan => 'Cancel Scan';
+
+  @override
+  String get localSearchGoBack => 'Go Back';
+
+  @override
+  String get localSearchScanAgain => 'Scan Again';
+
+  @override
+  String get localSearchNoResults => 'No Results Found';
+
+  @override
+  String get scanImportComplete => 'Import Complete';
+
+  @override
+  String get scanImportGoHome => 'Go Home';
+
+  @override
+  String get scanImportCreated => 'Created';
+
+  @override
+  String get scanImportUpdated => 'Updated';
+
+  @override
+  String get scanImportFields => 'Fields';
+
+  @override
+  String get scanImportSkipped => 'Skipped';
+
+  @override
+  String get scanPreviewTitle => 'Preview & Confirm';
+
+  @override
+  String get scanPreviewNew => 'New';
+
+  @override
+  String get scanPreviewUpdate => 'Update';
+
+  @override
+  String get scanPreviewImportAction => 'Import action';
 }

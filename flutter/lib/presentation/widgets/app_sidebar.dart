@@ -104,7 +104,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       // Home
       NavTile(
         icon: Icons.home_outlined,
-        label: 'Home',
+        label: AppLocalizations.of(context).sidebarHome,
         expanded: _expanded,
         selected: location == AppRoutes.home,
         onTap: () => context.go(AppRoutes.home),
@@ -112,7 +112,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       // Search
       NavTile(
         icon: Icons.search,
-        label: 'Search',
+        label: AppLocalizations.of(context).sidebarSearch,
         expanded: _expanded,
         selected: location == AppRoutes.search,
         onTap: () => context.go(AppRoutes.search),
@@ -121,7 +121,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       if (kDebugMode)
         NavTile(
           icon: Icons.document_scanner_outlined,
-          label: 'Local Import',
+          label: AppLocalizations.of(context).sidebarLocalImport,
           expanded: _expanded,
           selected: location == AppRoutes.localSearch ||
               location == AppRoutes.localSearchProgress ||
@@ -143,28 +143,28 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       // Default pages
       NavTile(
         icon: Icons.person_outline,
-        label: 'Profile',
+        label: AppLocalizations.of(context).sidebarProfile,
         expanded: _expanded,
         selected: location == AppRoutes.profile,
         onTap: () => context.go(AppRoutes.profile),
       ),
       NavTile(
         icon: Icons.flight_outlined,
-        label: 'Travel',
+        label: AppLocalizations.of(context).sidebarTravel,
         expanded: _expanded,
         selected: location == AppRoutes.travel,
         onTap: () => context.go(AppRoutes.travel),
       ),
       NavTile(
         icon: Icons.account_balance_outlined,
-        label: 'Financial',
+        label: AppLocalizations.of(context).sidebarFinancial,
         expanded: _expanded,
         selected: location == AppRoutes.financial,
         onTap: () => context.go(AppRoutes.financial),
       ),
       NavTile(
         icon: Icons.work_outline,
-        label: 'Professional',
+        label: AppLocalizations.of(context).sidebarProfessional,
         expanded: _expanded,
         selected: location == AppRoutes.professional,
         onTap: () => context.go(AppRoutes.professional),
@@ -182,7 +182,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
           child: Row(
             children: [
               Text(
-                'PAGES',
+                AppLocalizations.of(context).sidebarPages,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
@@ -191,7 +191,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               ),
               const Spacer(),
               Tooltip(
-                message: 'Add Page',
+                message: AppLocalizations.of(context).sidebarAddPage,
                 child: InkWell(
                   onTap: () => setState(() => _isAddingPage = true),
                   borderRadius: BorderRadius.circular(6),
@@ -263,7 +263,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
               child: isHovering
                   ? Center(
                       child: Text(
-                        'Drop to make root page',
+                        AppLocalizations.of(context).sidebarDropToMakeRootPage,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w500,
@@ -395,7 +395,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         children: [
                           NavTile(
                             icon: Icons.lock_outline,
-                            label: 'Lock Vault',
+                            label: AppLocalizations.of(context).sidebarLockVault,
                             expanded: _expanded,
                             onTap: () async {
                               final confirmed = await showLockVaultDialog(context);
@@ -406,21 +406,21 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           ),
                           NavTile(
                             icon: Icons.delete_outline,
-                            label: 'Trash',
+                            label: AppLocalizations.of(context).sidebarTrash,
                             expanded: _expanded,
                             selected: location == AppRoutes.trash,
                             onTap: () => context.go(AppRoutes.trash),
                           ),
                           NavTile(
                             icon: Icons.sync,
-                            label: 'Sync',
+                            label: AppLocalizations.of(context).sidebarSync,
                             expanded: _expanded,
                             selected: location == AppRoutes.sync,
                             onTap: () => context.go(AppRoutes.sync),
                           ),
                           NavTile(
                             icon: Icons.settings_outlined,
-                            label: 'Settings',
+                            label: AppLocalizations.of(context).sidebarSettings,
                             expanded: _expanded,
                             selected: location == AppRoutes.settings ||
                                 location == AppRoutes.securitySettings ||

@@ -47,7 +47,7 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.localSearch,
-        title: const Text('Preview & Confirm'),
+        title: Text(AppLocalizations.of(context).scanPreviewTitle),
         centerTitle: true,
         actions: [
           // AI 智能映射按钮
@@ -243,12 +243,12 @@ class _CandidateCardState extends ConsumerState<_CandidateCard> {
                             const SizedBox(width: 8),
                             if (isNew)
                               _Badge(
-                                label: 'New',
+                                label: AppLocalizations.of(context).scanPreviewNew,
                                 color: theme.colorScheme.primary,
                               )
                             else
                               _Badge(
-                                label: 'Update',
+                                label: AppLocalizations.of(context).scanPreviewUpdate,
                                 color: theme.colorScheme.secondary,
                               ),
                           ],
@@ -454,7 +454,7 @@ class _ActionDropdown extends StatelessWidget {
       initialValue: currentAction,
       onSelected: onChanged,
       icon: Icon(iconData, color: iconColor, size: 20),
-      tooltip: 'Import action',
+      tooltip: AppLocalizations.of(context).scanPreviewImportAction,
       itemBuilder: (context) => [
         _buildMenuItem(ImportAction.autoFill, 'Auto-fill', Icons.auto_fix_high, theme),
         _buildMenuItem(ImportAction.createNew, 'Create new', Icons.add, theme),
@@ -535,7 +535,7 @@ class _ScanPreviewEmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           FilledButton(
             onPressed: () => context.pop(),
-            child: const Text('Back'),
+            child: Text(AppLocalizations.of(context).commonBack),
           ),
         ],
       ),

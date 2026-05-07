@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,10 +19,11 @@ class ScanImportResultPage extends ConsumerWidget {
     final result = state.importResult;
     final theme = Theme.of(context);
 
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: const SoloGlassAppBar(
+      appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: Text('Import Complete'),
+        title: Text(l10n.scanImportComplete),
         centerTitle: true,
       ),
       body: Center(
@@ -105,7 +107,7 @@ class ScanImportResultPage extends ConsumerWidget {
                       context.go(AppRoutes.home);
                     },
                     icon: const Icon(Icons.home),
-                    label: const Text('Go Home'),
+                    label: Text(l10n.scanImportGoHome),
                   ),
                   const SizedBox(width: 16),
                   OutlinedButton.icon(
@@ -114,7 +116,7 @@ class ScanImportResultPage extends ConsumerWidget {
                       context.pop();
                     },
                     icon: const Icon(Icons.close),
-                    label: const Text('Close'),
+                    label: Text(l10n.commonClose),
                   ),
                 ],
               ),
@@ -133,29 +135,30 @@ class _ResultGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     final items = [
       _GridItem(
-        label: 'Created',
+        label: l10n.scanImportCreated,
         value: '${result.itemsCreated}',
         icon: Icons.add_circle_outline,
         color: theme.colorScheme.primary,
       ),
       _GridItem(
-        label: 'Updated',
+        label: l10n.scanImportUpdated,
         value: '${result.itemsUpdated}',
         icon: Icons.update,
         color: theme.colorScheme.secondary,
       ),
       _GridItem(
-        label: 'Fields',
+        label: l10n.scanImportFields,
         value: '${result.fieldsWritten}',
         icon: Icons.check_circle_outline,
         color: theme.colorScheme.tertiary,
       ),
       _GridItem(
-        label: 'Skipped',
+        label: l10n.scanImportSkipped,
         value: '${result.fieldsSkipped}',
         icon: Icons.skip_next,
         color: theme.colorScheme.outline,

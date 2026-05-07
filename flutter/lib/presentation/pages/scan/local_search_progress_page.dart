@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,6 +28,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(localSearchProvider);
     final theme = Theme.of(context);
 
@@ -64,7 +66,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('Scanning...'),
+        title: Text(l10n.localSearchScanning),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -118,21 +120,21 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
                 alignment: WrapAlignment.center,
                 children: [
                   _StatButton(
-                    label: 'Scanned',
+                    label: l10n.localSearchScanned,
                     value: '${state.scannedCount}',
                     icon: Icons.folder_open,
                     files: state.scannedFiles,
                     color: theme.colorScheme.primary,
                   ),
                   _StatButton(
-                    label: 'Found',
+                    label: l10n.localSearchFound,
                     value: '${state.foundCount}',
                     icon: Icons.find_in_page,
                     files: state.foundFiles,
                     color: theme.colorScheme.tertiary,
                   ),
                   _StatButton(
-                    label: 'Skipped',
+                    label: l10n.localSearchSkipped,
                     value: '${state.skippedFiles.length}',
                     icon: Icons.skip_next,
                     files: state.skippedFiles,
@@ -173,7 +175,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
                     ref.read(localSearchProvider.notifier).cancelScan();
                   },
                   icon: const Icon(Icons.stop),
-                  label: const Text('Cancel Scan'),
+                  label: Text(l10n.localSearchCancelScan),
                 )
               else if (state.wasCanceled)
                 Row(
@@ -182,7 +184,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
                     OutlinedButton.icon(
                       onPressed: () => context.pop(),
                       icon: const Icon(Icons.arrow_back),
-                      label: const Text('Go Back'),
+                      label: Text(l10n.localSearchGoBack),
                     ),
                     const SizedBox(width: 16),
                     FilledButton.icon(
@@ -190,7 +192,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
                         ref.read(localSearchProvider.notifier).startScan();
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Scan Again'),
+                      label: Text(l10n.localSearchScanAgain),
                     ),
                   ],
                 ),

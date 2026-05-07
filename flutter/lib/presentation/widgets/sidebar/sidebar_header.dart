@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 class SidebarHeader extends StatelessWidget {
@@ -54,7 +55,7 @@ class SidebarHeader extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.chevron_left),
                         onPressed: onToggle,
-                        tooltip: 'Collapse',
+                        tooltip: AppLocalizations.of(context).sidebarCollapse,
                       ),
                     ],
                   ),
@@ -65,7 +66,7 @@ class SidebarHeader extends StatelessWidget {
               child: IconButton(
                 icon: const Icon(Icons.auto_awesome),
                 onPressed: onToggle,
-                tooltip: 'Expand',
+                tooltip: AppLocalizations.of(context).sidebarExpand,
               ),
             ),
     );

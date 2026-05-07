@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 // =============================================================================
 // Glass Adapters — SoloSoul-specific wrappers for liquid_glass_widgets
@@ -382,7 +383,7 @@ class _BackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(Icons.arrow_back_ios_rounded, color: iconColor, size: 20),
-      tooltip: 'Back',
+      tooltip: AppLocalizations.of(context).commonBack,
       onPressed: () {
         if (Navigator.of(context).canPop()) {
           context.pop();

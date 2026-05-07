@@ -1029,4 +1029,157 @@ class AppLocalizationsZh extends AppLocalizations {
   String llmChatInferenceFailed(String error) {
     return '推理失败：$error';
   }
+
+  @override
+  String get sidebarHome => '首页';
+
+  @override
+  String get sidebarSearch => '搜索';
+
+  @override
+  String get sidebarLocalImport => '本地导入';
+
+  @override
+  String get sidebarProfile => '个人资料';
+
+  @override
+  String get sidebarTravel => '旅行';
+
+  @override
+  String get sidebarFinancial => '财务';
+
+  @override
+  String get sidebarProfessional => '职业';
+
+  @override
+  String get sidebarAddPage => '添加页面';
+
+  @override
+  String get sidebarLockVault => '锁定保险库';
+
+  @override
+  String get sidebarTrash => '回收站';
+
+  @override
+  String get sidebarSync => '同步';
+
+  @override
+  String get sidebarSettings => '设置';
+
+  @override
+  String get sidebarCollapse => '收起';
+
+  @override
+  String get sidebarExpand => '展开';
+
+  @override
+  String get sidebarPages => '页面';
+
+  @override
+  String get sidebarDropToMakeRootPage => '拖拽至此处设为根页面';
+
+  @override
+  String get commonBack => '返回';
+
+  @override
+  String get localSearchTitle => '本地搜索导入';
+
+  @override
+  String get localSearchPaths => '搜索路径';
+
+  @override
+  String get localSearchFileTypes => '文件类型';
+
+  @override
+  String get localSearchScanDepth => '扫描深度';
+
+  @override
+  String get localSearchFilenameOnly => '仅文件名';
+
+  @override
+  String get localSearchFilenameOnlyDesc => '最快 — 仅检查文件名';
+
+  @override
+  String get localSearchFingerprint => '文件名 + 内容指纹';
+
+  @override
+  String get localSearchFingerprintDesc => '平衡 — 正则匹配内容';
+
+  @override
+  String get localSearchFullText => '全文解析';
+
+  @override
+  String get localSearchFullTextDesc => '最慢 — 深度内容分析';
+
+  @override
+  String get localSearchDefaultPaths => '使用默认路径';
+
+  @override
+  String get localSearchDefaultPathsDesc => '文档、桌面、下载';
+
+  @override
+  String get localSearchCustomPaths => '自定义路径';
+
+  @override
+  String get localSearchCustomPathsDesc => '选择特定文件夹';
+
+  @override
+  String get localSearchAddFolder => '添加文件夹';
+
+  @override
+  String get localSearchStartScan => '开始扫描';
+
+  @override
+  String get localSearchScanning => '扫描中...';
+
+  @override
+  String get localSearchScanned => '已扫描';
+
+  @override
+  String get localSearchFound => '发现';
+
+  @override
+  String get localSearchSkipped => '已跳过';
+
+  @override
+  String get localSearchCancelScan => '取消扫描';
+
+  @override
+  String get localSearchGoBack => '返回';
+
+  @override
+  String get localSearchScanAgain => '重新扫描';
+
+  @override
+  String get localSearchNoResults => '未找到结果';
+
+  @override
+  String get scanImportComplete => '导入完成';
+
+  @override
+  String get scanImportGoHome => '回到首页';
+
+  @override
+  String get scanImportCreated => '已创建';
+
+  @override
+  String get scanImportUpdated => '已更新';
+
+  @override
+  String get scanImportFields => '字段';
+
+  @override
+  String get scanImportSkipped => '已跳过';
+
+  @override
+  String get scanPreviewTitle => '预览并确认';
+
+  @override
+  String get scanPreviewNew => '新建';
+
+  @override
+  String get scanPreviewUpdate => '更新';
+
+  @override
+  String get scanPreviewImportAction => '导入操作';
 }

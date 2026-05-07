@@ -2017,6 +2017,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inference failed: {error}'**
   String llmChatInferenceFailed(String error);
+
+  /// No description provided for @sidebarHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get sidebarHome;
+
+  /// No description provided for @sidebarSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get sidebarSearch;
+
+  /// No description provided for @sidebarLocalImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Import'**
+  String get sidebarLocalImport;
+
+  /// No description provided for @sidebarProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get sidebarProfile;
+
+  /// No description provided for @sidebarTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get sidebarTravel;
+
+  /// No description provided for @sidebarFinancial.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial'**
+  String get sidebarFinancial;
+
+  /// No description provided for @sidebarProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional'**
+  String get sidebarProfessional;
+
+  /// No description provided for @sidebarAddPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Page'**
+  String get sidebarAddPage;
+
+  /// No description provided for @sidebarLockVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Vault'**
+  String get sidebarLockVault;
+
+  /// No description provided for @sidebarTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get sidebarTrash;
+
+  /// No description provided for @sidebarSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get sidebarSync;
+
+  /// No description provided for @sidebarSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get sidebarSettings;
+
+  /// No description provided for @sidebarCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get sidebarCollapse;
+
+  /// No description provided for @sidebarExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand'**
+  String get sidebarExpand;
+
+  /// No description provided for @sidebarPages.
+  ///
+  /// In en, this message translates to:
+  /// **'PAGES'**
+  String get sidebarPages;
+
+  /// No description provided for @sidebarDropToMakeRootPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to make root page'**
+  String get sidebarDropToMakeRootPage;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get commonBack;
+
+  /// No description provided for @localSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Search Import'**
+  String get localSearchTitle;
+
+  /// No description provided for @localSearchPaths.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Paths'**
+  String get localSearchPaths;
+
+  /// No description provided for @localSearchFileTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'File Types'**
+  String get localSearchFileTypes;
+
+  /// No description provided for @localSearchScanDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Depth'**
+  String get localSearchScanDepth;
+
+  /// No description provided for @localSearchFilenameOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Filename only'**
+  String get localSearchFilenameOnly;
+
+  /// No description provided for @localSearchFilenameOnlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fastest — only check filenames'**
+  String get localSearchFilenameOnlyDesc;
+
+  /// No description provided for @localSearchFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filename + Content fingerprint'**
+  String get localSearchFingerprint;
+
+  /// No description provided for @localSearchFingerprintDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced — regex match on content'**
+  String get localSearchFingerprintDesc;
+
+  /// No description provided for @localSearchFullText.
+  ///
+  /// In en, this message translates to:
+  /// **'Full text parsing'**
+  String get localSearchFullText;
+
+  /// No description provided for @localSearchFullTextDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowest — deep content analysis'**
+  String get localSearchFullTextDesc;
+
+  /// No description provided for @localSearchDefaultPaths.
+  ///
+  /// In en, this message translates to:
+  /// **'Use default paths'**
+  String get localSearchDefaultPaths;
+
+  /// No description provided for @localSearchDefaultPathsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents, Desktop, Downloads'**
+  String get localSearchDefaultPathsDesc;
+
+  /// No description provided for @localSearchCustomPaths.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom paths'**
+  String get localSearchCustomPaths;
+
+  /// No description provided for @localSearchCustomPathsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Select specific folders'**
+  String get localSearchCustomPathsDesc;
+
+  /// No description provided for @localSearchAddFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder'**
+  String get localSearchAddFolder;
+
+  /// No description provided for @localSearchStartScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Scan'**
+  String get localSearchStartScan;
+
+  /// No description provided for @localSearchScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning...'**
+  String get localSearchScanning;
+
+  /// No description provided for @localSearchScanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned'**
+  String get localSearchScanned;
+
+  /// No description provided for @localSearchFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found'**
+  String get localSearchFound;
+
+  /// No description provided for @localSearchSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get localSearchSkipped;
+
+  /// No description provided for @localSearchCancelScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Scan'**
+  String get localSearchCancelScan;
+
+  /// No description provided for @localSearchGoBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get localSearchGoBack;
+
+  /// No description provided for @localSearchScanAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Again'**
+  String get localSearchScanAgain;
+
+  /// No description provided for @localSearchNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No Results Found'**
+  String get localSearchNoResults;
+
+  /// No description provided for @scanImportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Complete'**
+  String get scanImportComplete;
+
+  /// No description provided for @scanImportGoHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Home'**
+  String get scanImportGoHome;
+
+  /// No description provided for @scanImportCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get scanImportCreated;
+
+  /// No description provided for @scanImportUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get scanImportUpdated;
+
+  /// No description provided for @scanImportFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields'**
+  String get scanImportFields;
+
+  /// No description provided for @scanImportSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get scanImportSkipped;
+
+  /// No description provided for @scanPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview & Confirm'**
+  String get scanPreviewTitle;
+
+  /// No description provided for @scanPreviewNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get scanPreviewNew;
+
+  /// No description provided for @scanPreviewUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get scanPreviewUpdate;
+
+  /// No description provided for @scanPreviewImportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import action'**
+  String get scanPreviewImportAction;
 }
 
 class _AppLocalizationsDelegate
