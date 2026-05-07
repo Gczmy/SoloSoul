@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Account list section for the login page.
@@ -26,6 +27,7 @@ class AccountListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     final displayAccounts = accountsExpanded || accounts.length <= 3
@@ -35,7 +37,7 @@ class AccountListSection extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Select an account to unlock',
+          AppLocalizations.of(context).loginSelectAccountToUnlock,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -71,8 +73,8 @@ class AccountListSection extends StatelessWidget {
               ),
               label: Text(
                 accountsExpanded
-                    ? 'Show less'
-                    : 'Show all ${accounts.length} accounts',
+                    ? l10n.loginShowLess
+                    : l10n.loginShowAllAccounts(accounts.length),
               ),
             ),
           ],
@@ -89,7 +91,7 @@ class AccountListSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No accounts yet',
+                  l10n.loginNoAccountsYet,
                   style: TextStyle(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
@@ -135,6 +137,7 @@ class _AccountListItemState extends State<_AccountListItem> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 
@@ -221,8 +224,8 @@ class _AccountListItemState extends State<_AccountListItem> {
                                   color: AppTheme.primaryColor,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  'Recent',
+                                child: Text(
+                                  l10n.loginRecent,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -235,7 +238,7 @@ class _AccountListItemState extends State<_AccountListItem> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Last accessed: ${widget.formatLastAccessed(widget.account.lastAccessed)}',
+                          l10n.loginLastAccessed(widget.formatLastAccessed(widget.account.lastAccessed)),
                           style: TextStyle(
                             color: theme.colorScheme.onSurfaceVariant,
                             fontSize: 13,
@@ -279,6 +282,7 @@ class _HoverableCreateAccountButtonState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -321,7 +325,7 @@ class _HoverableCreateAccountButtonState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Create New Account',
+                    l10n.loginCreateNewAccount,
                     style: TextStyle(
                       color: widget.isDark ? Colors.white : const Color(0xFF1F1F1F),
                       fontSize: 16,

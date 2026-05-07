@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider, unifiedObjectCacheProvider;
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
@@ -69,7 +70,8 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
         ? cache.workspaceChildren[widget.objectId] ?? []
         : cache.rootObjects.where((o) => o.typeId != 'page').toList();
 
-    final title = currentObject?.name ?? 'Objects';
+    final l10n = AppLocalizations.of(context);
+    final title = currentObject?.name ?? l10n.workspaceObjects;
     final isPage = currentObject?.typeId == 'page';
 
     return Scaffold(
@@ -143,7 +145,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
             FloatingActionButton.small(
               heroTag: 'delete_page',
               onPressed: () => _deleteCurrentObject(currentObject),
-              tooltip: 'Delete',
+              tooltip: l10n.workspaceDeleteSection,
               backgroundColor: Theme.of(context).colorScheme.errorContainer,
               foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
               child: const Icon(Icons.delete_outline),
@@ -152,7 +154,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
             FloatingActionButton.small(
               heroTag: 'edit_page',
               onPressed: () => _editObject(currentObject),
-              tooltip: 'Edit Page',
+              tooltip: l10n.workspaceEditPage,
               child: const Icon(Icons.edit_outlined),
             ),
             const SizedBox(width: 8),
@@ -161,7 +163,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
             FloatingActionButton.small(
               heroTag: 'reorder',
               onPressed: () => setState(() => _isReordering = !_isReordering),
-              tooltip: _isReordering ? 'Done' : 'Reorder',
+              tooltip: _isReordering ? l10n.workspaceDone : l10n.workspaceReorder,
               child: Icon(_isReordering ? Icons.check : Icons.reorder),
             ),
             const SizedBox(width: 8),
@@ -171,7 +173,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
             onPressed: () => isPage
                 ? _showPageAddMenu()
                 : _showAddSectionDialog(),
-            tooltip: 'Add',
+            tooltip: l10n.workspaceAdd,
             child: const Icon(Icons.add),
           ),
         ],
@@ -227,7 +229,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(object.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Section deleted')),
+          SnackBar(content: Text(AppLocalizations.of(context).workspaceSectionDeleted)),
         );
       }
     }
@@ -265,7 +267,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       if (mounted) {
         // Navigation is handled by build()'s auto-navigate when currentObject becomes null
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${object.name}" moved to trash')),
+          SnackBar(content: Text(AppLocalizations.of(context).workspaceMovedToTrash(object.name))),
         );
       }
     }
@@ -295,12 +297,12 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
           children: [
             ListTile(
               leading: const Icon(Icons.add),
-              title: const Text('Add Sub-Page'),
+              title: Text(AppLocalizations.of(context).workspaceAddSubPage),
               onTap: () => Navigator.pop(ctx, 'page'),
             ),
             ListTile(
               leading: const Icon(Icons.folder_outlined),
-              title: const Text('Add Section'),
+              title: Text(AppLocalizations.of(context).workspaceAddSection),
               onTap: () => Navigator.pop(ctx, 'section'),
             ),
           ],
@@ -343,7 +345,7 @@ class _AddSectionDialogState extends State<_AddSectionDialog> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('Add Section'),
+      title: Text(AppLocalizations.of(context).workspaceAddSectionDialog),
       constraints: const BoxConstraints(maxWidth: 320),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -352,14 +354,14 @@ class _AddSectionDialogState extends State<_AddSectionDialog> {
           TextField(
             controller: _nameController,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Name',
-              hintText: 'Enter section name',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).workspaceSectionName,
+              hintText: AppLocalizations.of(context).workspaceEnterSectionName,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Icon', style: theme.textTheme.titleSmall),
+          Text(AppLocalizations.of(context).workspaceIcon, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -403,7 +405,7 @@ class _AddSectionDialogState extends State<_AddSectionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context).commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -414,7 +416,7 @@ class _AddSectionDialogState extends State<_AddSectionDialog> {
               'icon': _iconName,
             });
           },
-          child: const Text('Add Section'),
+          child: Text(AppLocalizations.of(context).workspaceAddSectionButton),
         ),
       ],
     );

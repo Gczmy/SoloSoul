@@ -19,6 +19,7 @@ import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart' show getDeviceName;
 import 'package:solosoul_flutter/presentation/widgets/login/account_list_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/login/create_account_form.dart';
@@ -113,20 +114,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     if (!context.mounted) return;
 
+    final l10n = AppLocalizations.of(context);
     final latest = backups.first;
     final shouldRestore = await showSoloGlassDialog<bool>(
       context: context,
-      title: 'Data Recovery',
+      title: l10n.loginDataRecoveryTitle,
       message:
-          'Your vault appears to be empty, but a backup exists from ${latest.displayTime}. '
-          'Would you like to restore from this backup?',
+          l10n.loginDataRecoveryMessage(latest.displayTime),
       actions: [
         SoloGlassDialogAction(
-          label: 'Skip',
+          label: l10n.loginSkip,
           onPressed: () => Navigator.of(context).pop(false),
         ),
         SoloGlassDialogAction(
-          label: 'Restore Backup',
+          label: l10n.loginRestoreBackup,
           isPrimary: true,
           onPressed: () => Navigator.of(context).pop(true),
         ),
@@ -145,15 +146,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await storage.write(key: _restoreHandledKey(accountId), value: 'restored');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Restore successful. Your data is now available.'),
+            SnackBar(
+              content: Text(l10n.loginRestoreSuccess),
               duration: AppTheme.kPasswordHintDelay,
             ),
           );
         }
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Restore failed')),
+          SnackBar(content: Text(l10n.loginRestoreFailed)),
         );
       }
     } else if (shouldRestore == false) {
@@ -235,16 +236,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await BiometricCredentialService.instance.hasBiometricCredential(accountId) &&
         await BiometricCredentialService.instance.isDeviceKeyAvailable();
 
-    String biometricType = 'Biometric';
+    final l10n = AppLocalizations.of(context);
+    String biometricType = l10n.loginBiometricGeneric;
     if (availableBiometrics.isNotEmpty) {
       if (availableBiometrics.any((b) => b == BiometricType.face)) {
-        biometricType = 'Face ID';
+        biometricType = l10n.loginBiometricFaceId;
       } else if (availableBiometrics.any(
         (b) => b == BiometricType.fingerprint,
       )) {
-        biometricType = 'Touch ID';
+        biometricType = l10n.loginBiometricTouchId;
       } else if (availableBiometrics.any((b) => b == BiometricType.iris)) {
-        biometricType = 'Iris';
+        biometricType = l10n.loginBiometricIris;
       }
     }
 
@@ -262,7 +264,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       final success = await BiometricService.instance.authenticate(
-        reason: 'Unlock SoloSoul with $_biometricType',
+        reason: AppLocalizations.of(context).loginUnlockReason(_biometricType),
       );
 
       if (!success) {
@@ -270,7 +272,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           setState(() => _isLoading = false);
           showOverlaySnackBar(
             context,
-            content: 'Biometric authentication failed or was cancelled',
+            content: AppLocalizations.of(context).loginBiometricFailed,
             type: SnackBarType.error,
           );
         }
@@ -286,7 +288,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           setState(() => _isLoading = false);
           showOverlaySnackBar(
             context,
-            content: 'Failed to unlock vault. Please use your master password.',
+            content: AppLocalizations.of(context).loginUnlockFailedUsePassword,
             type: SnackBarType.error,
           );
         }
@@ -319,7 +321,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         setState(() => _isLoading = false);
         showOverlaySnackBar(
           context,
-          content: 'Biometric unlock error: $e',
+          content: '${AppLocalizations.of(context).commonError}: $e',
           type: SnackBarType.error,
         );
       }
@@ -346,13 +348,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  String _formatLastAccessed(DateTime? lastAccessed) {
-    if (lastAccessed == null) return 'Never';
+  String _formatLastAccessed(DateTime? lastAccessed, AppLocalizations l10n) {
+    if (lastAccessed == null) return l10n.loginNever;
     final now = DateTime.now();
     final diff = now.difference(lastAccessed);
-    if (diff.inDays == 0) return 'Today';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    if (diff.inDays == 0) return l10n.loginToday;
+    if (diff.inDays == 1) return l10n.loginYesterday;
+    if (diff.inDays < 7) return l10n.loginDaysAgo(diff.inDays);
     return '${lastAccessed.day}/${lastAccessed.month}/${lastAccessed.year}';
   }
 
@@ -421,7 +423,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       // Form validator showed the error - sync our flag so label/icon turn red too
       setState(() {
         _hasPasswordError = true;
-        _passwordErrorMessage = 'Password must be at least 8 characters';
+        _passwordErrorMessage = AppLocalizations.of(context).loginPasswordMinLength;
       });
       return;
     }
@@ -452,8 +454,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _isLoading = false;
         _hasPasswordError = isPasswordError;
         _passwordErrorMessage = isPasswordError
-            ? 'Invalid master password'
-            : 'Unlock failed: $specificError';
+            ? AppLocalizations.of(context).loginInvalidPassword
+            : AppLocalizations.of(context).loginUnlockFailed(specificError);
       });
       return;
     }
@@ -470,15 +472,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // Validation
     if (name.isEmpty) {
-      setState(() => _createError = 'Account name is required');
+      setState(() => _createError = AppLocalizations.of(context).loginAccountNameRequired);
       return;
     }
     if (password.length < 8) {
-      setState(() => _createError = 'Password must be at least 8 characters');
+      setState(() => _createError = AppLocalizations.of(context).loginPasswordMinLength);
       return;
     }
     if (password != confirm) {
-      setState(() => _createError = 'Passwords do not match');
+      setState(() => _createError = AppLocalizations.of(context).loginPasswordsDoNotMatch);
       return;
     }
 
@@ -502,7 +504,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!result.success || !mounted) {
       if (mounted) {
         setState(() {
-          _createError = result.error ?? 'Failed to create account';
+          _createError = result.error ?? AppLocalizations.of(context).loginCreateAccountFailed;
           _isLoading = false;
         });
       }
@@ -517,7 +519,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!unlockSuccess || !mounted) {
       if (mounted) {
         setState(() {
-          _createError = 'Failed to unlock vault. Please try again.';
+          _createError = AppLocalizations.of(context).loginUnlockVaultFailed;
           _isLoading = false;
         });
       }
@@ -596,7 +598,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Password Hint: $hint',
+                      AppLocalizations.of(context).loginPasswordHint(hint),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -919,10 +921,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               _accountsExpanded = false;
             });
           },
-          formatLastAccessed: _formatLastAccessed,
+          formatLastAccessed: (lastAccessed) => _formatLastAccessed(lastAccessed, AppLocalizations.of(context)),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => Center(child: Text('${AppLocalizations.of(context).commonError}: $error')),
       );
     }
   }

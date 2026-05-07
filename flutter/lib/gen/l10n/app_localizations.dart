@@ -188,6 +188,648 @@ abstract class AppLocalizations {
   /// **'中文 (Chinese)'**
   String get settingsLanguageChinese;
 
+  /// No description provided for @loginDataRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Recovery'**
+  String get loginDataRecoveryTitle;
+
+  /// No description provided for @loginDataRecoveryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vault appears to be empty, but a backup exists from {time}. Would you like to restore from this backup?'**
+  String loginDataRecoveryMessage(String time);
+
+  /// No description provided for @loginSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get loginSkip;
+
+  /// No description provided for @loginRestoreBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Backup'**
+  String get loginRestoreBackup;
+
+  /// No description provided for @loginRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore successful. Your data is now available.'**
+  String get loginRestoreSuccess;
+
+  /// No description provided for @loginRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore failed'**
+  String get loginRestoreFailed;
+
+  /// No description provided for @loginBiometricGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric'**
+  String get loginBiometricGeneric;
+
+  /// No description provided for @loginBiometricFaceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID'**
+  String get loginBiometricFaceId;
+
+  /// No description provided for @loginBiometricTouchId.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch ID'**
+  String get loginBiometricTouchId;
+
+  /// No description provided for @loginBiometricIris.
+  ///
+  /// In en, this message translates to:
+  /// **'Iris'**
+  String get loginBiometricIris;
+
+  /// No description provided for @loginUnlockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock SoloSoul with {biometricType}'**
+  String loginUnlockReason(String biometricType);
+
+  /// No description provided for @loginBiometricFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication failed or was cancelled'**
+  String get loginBiometricFailed;
+
+  /// No description provided for @loginUnlockFailedUsePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unlock vault. Please use your master password.'**
+  String get loginUnlockFailedUsePassword;
+
+  /// No description provided for @loginPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get loginPasswordMinLength;
+
+  /// No description provided for @loginInvalidPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid master password'**
+  String get loginInvalidPassword;
+
+  /// No description provided for @loginUnlockFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock failed: {message}'**
+  String loginUnlockFailed(String message);
+
+  /// No description provided for @loginAccountNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name is required'**
+  String get loginAccountNameRequired;
+
+  /// No description provided for @loginPasswordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get loginPasswordsDoNotMatch;
+
+  /// No description provided for @loginCreateAccountFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create account'**
+  String get loginCreateAccountFailed;
+
+  /// No description provided for @loginUnlockVaultFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unlock vault. Please try again.'**
+  String get loginUnlockVaultFailed;
+
+  /// No description provided for @loginPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Hint: {hint}'**
+  String loginPasswordHint(String hint);
+
+  /// No description provided for @loginNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get loginNever;
+
+  /// No description provided for @loginToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get loginToday;
+
+  /// No description provided for @loginYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get loginYesterday;
+
+  /// No description provided for @loginDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String loginDaysAgo(int count);
+
+  /// No description provided for @loginBackToAccountList.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Account List'**
+  String get loginBackToAccountList;
+
+  /// No description provided for @loginAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Name'**
+  String get loginAccountName;
+
+  /// No description provided for @loginAccountNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Personal, Work'**
+  String get loginAccountNameHint;
+
+  /// No description provided for @loginMasterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Password'**
+  String get loginMasterPassword;
+
+  /// No description provided for @loginEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get loginEnterPassword;
+
+  /// No description provided for @loginCreateStrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a strong password'**
+  String get loginCreateStrongPassword;
+
+  /// No description provided for @loginConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get loginConfirmPassword;
+
+  /// No description provided for @loginReenterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-enter your password'**
+  String get loginReenterPassword;
+
+  /// No description provided for @loginPasswordHintOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Hint (Optional)'**
+  String get loginPasswordHintOptional;
+
+  /// No description provided for @loginPasswordHintHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A hint to help you remember'**
+  String get loginPasswordHintHelp;
+
+  /// No description provided for @loginShowPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password hint'**
+  String get loginShowPasswordHint;
+
+  /// No description provided for @loginNoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts found'**
+  String get loginNoAccounts;
+
+  /// No description provided for @loginCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get loginCreateAccount;
+
+  /// No description provided for @loginLastAccessed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last accessed: {time}'**
+  String loginLastAccessed(String time);
+
+  /// No description provided for @loginAccountListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Account list empty'**
+  String get loginAccountListEmpty;
+
+  /// No description provided for @loginCreateFirstAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first account to get started'**
+  String get loginCreateFirstAccount;
+
+  /// No description provided for @loginSelectAccountToUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an account to unlock'**
+  String get loginSelectAccountToUnlock;
+
+  /// No description provided for @loginShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get loginShowLess;
+
+  /// No description provided for @loginShowAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count} accounts'**
+  String loginShowAllAccounts(int count);
+
+  /// No description provided for @loginNoAccountsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts yet'**
+  String get loginNoAccountsYet;
+
+  /// No description provided for @loginRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get loginRecent;
+
+  /// No description provided for @workspaceObjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Objects'**
+  String get workspaceObjects;
+
+  /// No description provided for @workspaceNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet'**
+  String get workspaceNoItems;
+
+  /// No description provided for @workspaceNoObjects.
+  ///
+  /// In en, this message translates to:
+  /// **'No objects yet'**
+  String get workspaceNoObjects;
+
+  /// No description provided for @workspaceAddFirstItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first item'**
+  String get workspaceAddFirstItem;
+
+  /// No description provided for @workspaceCreateFirstObject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first object to get started'**
+  String get workspaceCreateFirstObject;
+
+  /// No description provided for @workspaceDeletePage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Page'**
+  String get workspaceDeletePage;
+
+  /// No description provided for @workspaceDeleteSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Section'**
+  String get workspaceDeleteSection;
+
+  /// No description provided for @workspaceDeleteSectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String workspaceDeleteSectionConfirm(String name);
+
+  /// No description provided for @workspaceDeletePageConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? All {count} item(s) inside this page will also be moved to trash.'**
+  String workspaceDeletePageConfirm(String name, int count);
+
+  /// No description provided for @workspaceSectionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Section deleted'**
+  String get workspaceSectionDeleted;
+
+  /// No description provided for @workspaceMovedToTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" moved to trash'**
+  String workspaceMovedToTrash(String name);
+
+  /// No description provided for @workspaceAddSubPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sub-Page'**
+  String get workspaceAddSubPage;
+
+  /// No description provided for @workspaceAddSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Section'**
+  String get workspaceAddSection;
+
+  /// No description provided for @workspaceAddSectionDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Section'**
+  String get workspaceAddSectionDialog;
+
+  /// No description provided for @workspaceSectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get workspaceSectionName;
+
+  /// No description provided for @workspaceEnterSectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter section name'**
+  String get workspaceEnterSectionName;
+
+  /// No description provided for @workspaceIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get workspaceIcon;
+
+  /// No description provided for @objectEditorEditSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Section'**
+  String get objectEditorEditSection;
+
+  /// No description provided for @objectEditorNewSection.
+  ///
+  /// In en, this message translates to:
+  /// **'New Section'**
+  String get objectEditorNewSection;
+
+  /// No description provided for @objectEditorType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get objectEditorType;
+
+  /// No description provided for @objectEditorNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get objectEditorNameRequired;
+
+  /// No description provided for @objectEditorDuplicateProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate property names: {names}'**
+  String objectEditorDuplicateProperties(String names);
+
+  /// No description provided for @objectEditorSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save: {message}'**
+  String objectEditorSaveFailed(String message);
+
+  /// No description provided for @objectEditorIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get objectEditorIcon;
+
+  /// No description provided for @objectEditorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get objectEditorName;
+
+  /// No description provided for @objectEditorEnterSectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter section name'**
+  String get objectEditorEnterSectionName;
+
+  /// No description provided for @objectEditorSelectType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select type'**
+  String get objectEditorSelectType;
+
+  /// No description provided for @objectEditorNoParent.
+  ///
+  /// In en, this message translates to:
+  /// **'No parent (root)'**
+  String get objectEditorNoParent;
+
+  /// No description provided for @objectEditorItemProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Properties'**
+  String get objectEditorItemProperties;
+
+  /// No description provided for @objectEditorAddProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Property'**
+  String get objectEditorAddProperty;
+
+  /// No description provided for @objectEditorKeyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Key name'**
+  String get objectEditorKeyName;
+
+  /// No description provided for @objectEditorPropertyTypeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get objectEditorPropertyTypeText;
+
+  /// No description provided for @objectEditorPropertyTypeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get objectEditorPropertyTypeDate;
+
+  /// No description provided for @objectEditorPropertyTypeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get objectEditorPropertyTypeNumber;
+
+  /// No description provided for @objectEditorPropertyTypeCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkbox'**
+  String get objectEditorPropertyTypeCheckbox;
+
+  /// No description provided for @objectEditorSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity'**
+  String get objectEditorSensitivity;
+
+  /// No description provided for @objectEditorDeletePropertyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Property'**
+  String get objectEditorDeletePropertyTitle;
+
+  /// No description provided for @pageEditorNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get pageEditorNameRequired;
+
+  /// No description provided for @pageEditorEditPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Page'**
+  String get pageEditorEditPage;
+
+  /// No description provided for @pageEditorNewPage.
+  ///
+  /// In en, this message translates to:
+  /// **'New Page'**
+  String get pageEditorNewPage;
+
+  /// No description provided for @pageEditorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pageEditorName;
+
+  /// No description provided for @pageEditorEnterPageName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter page name'**
+  String get pageEditorEnterPageName;
+
+  /// No description provided for @pageEditorIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get pageEditorIcon;
+
+  /// No description provided for @pageEditorParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get pageEditorParent;
+
+  /// No description provided for @homeScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get homeScan;
+
+  /// No description provided for @homeQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get homeQuickActions;
+
+  /// No description provided for @homeEditQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit quick actions'**
+  String get homeEditQuickActions;
+
+  /// No description provided for @homeEditQuickActionsDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get homeEditQuickActionsDone;
+
+  /// No description provided for @homeSecurityStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Status'**
+  String get homeSecurityStatus;
+
+  /// No description provided for @searchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchTitle;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search fields...'**
+  String get searchHint;
+
+  /// No description provided for @profileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get profileType;
+
+  /// No description provided for @profileTypeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'email'**
+  String get profileTypeEmail;
+
+  /// No description provided for @profileTypePhone.
+  ///
+  /// In en, this message translates to:
+  /// **'phone'**
+  String get profileTypePhone;
+
+  /// No description provided for @objectEditorDeletePropertyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String objectEditorDeletePropertyConfirm(String name);
+
+  /// No description provided for @workspaceAddSectionButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Section'**
+  String get workspaceAddSectionButton;
+
+  /// No description provided for @workspaceEditPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Page'**
+  String get workspaceEditPage;
+
+  /// No description provided for @workspaceDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get workspaceDone;
+
+  /// No description provided for @workspaceReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get workspaceReorder;
+
+  /// No description provided for @workspaceAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get workspaceAdd;
+
+  /// No description provided for @loginCreateNewAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Account'**
+  String get loginCreateNewAccount;
+
   /// No description provided for @settingsAiChat.
   ///
   /// In en, this message translates to:

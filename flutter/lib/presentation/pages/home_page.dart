@@ -16,6 +16,7 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/home/dashed_placeholder.dart';
 
 import 'package:solosoul_flutter/presentation/widgets/home/add_button.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/add_quick_action_dialog.dart';
 import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/delete_badge.dart';
@@ -48,9 +49,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const SoloGlassAppBar(
-        title: Text('SoloSoul'),
-        actions: [HeaderActionButtons()],
+      appBar: SoloGlassAppBar(
+        title: Text(AppLocalizations.of(context).mainAppTitle),
+        actions: const [HeaderActionButtons()],
       ),
       body: _isEditingPage
           ? PageEditor(
@@ -63,7 +64,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           : FloatingActionButton.extended(
               onPressed: () => _showOcrScanner(context),
               icon: const Icon(Icons.document_scanner_outlined),
-              label: const Text('Scan'),
+              label: Text(AppLocalizations.of(context).homeScan),
             ),
     );
   }
@@ -410,7 +411,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Quick Actions', style: theme.textTheme.titleLarge),
+              Text(AppLocalizations.of(context).homeQuickActions, style: theme.textTheme.titleLarge),
               IconButton(
                 icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
@@ -419,7 +420,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
                     key: ValueKey(_isEditing),
                   ),
                 ),
-                tooltip: _isEditing ? 'Done' : 'Edit quick actions',
+                tooltip: _isEditing ? AppLocalizations.of(context).homeEditQuickActionsDone : AppLocalizations.of(context).homeEditQuickActions,
                 onPressed: _toggleEditMode,
               ),
             ],
@@ -458,7 +459,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
           const SizedBox(height: 32),
 
           // Security Status — Liquid Glass
-          Text('Security Status', style: theme.textTheme.titleLarge),
+          Text(AppLocalizations.of(context).homeSecurityStatus, style: theme.textTheme.titleLarge),
           const SizedBox(height: 16),
           GlassCard(
             useOwnLayer: true,

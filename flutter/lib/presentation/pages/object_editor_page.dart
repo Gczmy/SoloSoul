@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 
@@ -181,7 +182,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: Text(_isEditing ? 'Edit Section' : 'New Section'),
+        title: Text(_isEditing ? AppLocalizations.of(context).objectEditorEditSection : AppLocalizations.of(context).objectEditorNewSection),
       ),
       body: Stack(
         children: [
@@ -200,7 +201,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
                 // Type — only shown when creating a new object
                 if (!_isEditing) ...[
-                  Text('Type', style: theme.textTheme.titleMedium),
+                  Text(AppLocalizations.of(context).objectEditorType, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 12),
                   _TypeDropdown(
                     selectedTypeId: _selectedTypeId,
@@ -268,7 +269,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     if (_nameController.text.trim().isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Name is required')),
+          SnackBar(content: Text(AppLocalizations.of(context).objectEditorNameRequired)),
         );
       }
       return;
@@ -346,7 +347,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       DebugLogger.instance.logError('OBJECT_EDITOR', 'Failed to save object: $e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context).objectEditorSaveFailed(e.toString()))),
         );
       }
     }
@@ -374,10 +375,10 @@ class _ObjectEditorHeader extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('Icon', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).objectEditorIcon, style: theme.textTheme.titleMedium),
             const SizedBox(width: 16 + 56 + 16),
             Expanded(
-              child: Text('Name', style: theme.textTheme.titleMedium),
+              child: Text(AppLocalizations.of(context).objectEditorName, style: theme.textTheme.titleMedium),
             ),
           ],
         ),
@@ -424,8 +425,8 @@ class _ObjectEditorHeader extends StatelessWidget {
                   minLines: null,
                   maxLines: null,
                   textAlignVertical: TextAlignVertical.center,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter section name',
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).objectEditorEnterSectionName,
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   ),
@@ -458,15 +459,15 @@ class _TypeDropdown extends ConsumerWidget {
         : null;
 
     return InputDecorator(
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        hintText: 'Select type',
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        hintText: AppLocalizations.of(context).objectEditorSelectType,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
           value: effectiveTypeId,
-          hint: const Text('Select type'),
+          hint: Text(AppLocalizations.of(context).objectEditorSelectType),
           items: allTypes.map((type) {
             return DropdownMenuItem(
               value: type.id,
@@ -515,19 +516,19 @@ class ObjectParentDropdown extends ConsumerWidget {
         : null;
 
     return InputDecorator(
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        hintText: 'No parent (root)',
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        hintText: AppLocalizations.of(context).objectEditorNoParent,
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           isExpanded: true,
           value: effectiveParentId,
-          hint: const Text('No parent (root)'),
+          hint: Text(AppLocalizations.of(context).objectEditorNoParent),
           items: [
-            const DropdownMenuItem(
+            DropdownMenuItem(
               value: null,
-              child: Text('No parent (root)'),
+              child: Text(AppLocalizations.of(context).objectEditorNoParent),
             ),
             ...allObjects
                 .where((o) => !o.isDeleted && o.id != objectId && o.typeId == 'page')
@@ -579,7 +580,7 @@ class _BottomSaveBar extends StatelessWidget {
         child: Center(
           child: OutlinedButton(
             onPressed: onSave,
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context).commonSave),
           ),
         ),
       ),
@@ -609,11 +610,11 @@ class _PropertyFieldsSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('Item Properties', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).objectEditorItemProperties, style: theme.textTheme.titleMedium),
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.add, size: 20),
-              tooltip: 'Add Property',
+              tooltip: AppLocalizations.of(context).objectEditorAddProperty,
               onPressed: onAdd,
               visualDensity: VisualDensity.compact,
             ),
@@ -704,8 +705,8 @@ class _PropertyFieldRow extends StatelessWidget {
           controller: field.controller,
           maxLength: 24,
           buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-          decoration: const InputDecoration(
-            hintText: 'Key name',
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context).objectEditorKeyName,
             isDense: true,
             contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             border: OutlineInputBorder(),
@@ -769,11 +770,11 @@ class _PropertyFieldRow extends StatelessWidget {
             child: DropdownButton<String>(
               isDense: true,
               value: field.type,
-              items: const [
-                DropdownMenuItem(value: 'text', child: Text('Text')),
-                DropdownMenuItem(value: 'date', child: Text('Date')),
-                DropdownMenuItem(value: 'number', child: Text('Number')),
-                DropdownMenuItem(value: 'checkbox', child: Text('Checkbox')),
+              items: [
+                DropdownMenuItem(value: 'text', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeText)),
+                DropdownMenuItem(value: 'date', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeDate)),
+                DropdownMenuItem(value: 'number', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeNumber)),
+                DropdownMenuItem(value: 'checkbox', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeCheckbox)),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -789,7 +790,7 @@ class _PropertyFieldRow extends StatelessWidget {
       SizedBox(
         width: 72,
         child: PopupMenuButton<SensitivityLevel>(
-          tooltip: 'Sensitivity',
+          tooltip: AppLocalizations.of(context).objectEditorSensitivity,
           child: Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -824,22 +825,22 @@ class _PropertyFieldRow extends StatelessWidget {
       ),
       IconButton(
         icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
-        tooltip: 'Delete',
+        tooltip: AppLocalizations.of(context).commonDelete,
         onPressed: () async {
           final keyName = field.key.trim().isNotEmpty ? field.key.trim() : 'this property';
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Delete Property'),
-              content: Text('Are you sure you want to delete "$keyName"?'),
+              title: Text(AppLocalizations.of(context).objectEditorDeletePropertyTitle),
+              content: Text(AppLocalizations.of(context).objectEditorDeletePropertyConfirm(keyName)),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: Text(AppLocalizations.of(context).commonCancel),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+                  child: Text(AppLocalizations.of(context).commonDelete, style: const TextStyle(color: AppTheme.errorColor)),
                 ),
               ],
             ),

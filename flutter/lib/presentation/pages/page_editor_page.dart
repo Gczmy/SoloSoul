@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
@@ -65,7 +66,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
   void _savePage() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name is required')),
+        SnackBar(content: Text(AppLocalizations.of(context).pageEditorNameRequired)),
       );
       return;
     }
@@ -106,7 +107,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: Text(_isEditing ? 'Edit Page' : 'New Page'),
+        title: Text(_isEditing ? AppLocalizations.of(context).pageEditorEditPage : AppLocalizations.of(context).pageEditorNewPage),
       ),
       body: SingleChildScrollView(
         padding: AppTheme.kPagePadding,
@@ -114,19 +115,19 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Name
-            Text('Name', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).pageEditorName, style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                hintText: 'Enter page name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context).pageEditorEnterPageName,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 24),
 
             // Icon
-            Text('Icon', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).pageEditorIcon, style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             InkWell(
               onTap: () async {
@@ -162,7 +163,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
             const SizedBox(height: 24),
 
             // Parent
-            Text('Parent', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).pageEditorParent, style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
             ObjectParentDropdown(
               selectedParentId: _selectedParentId,
@@ -179,7 +180,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
             Center(
               child: OutlinedButton(
                 onPressed: _savePage,
-                child: const Text('Save'),
+                child: Text(AppLocalizations.of(context).commonSave),
               ),
             ),
             const SizedBox(height: 16),

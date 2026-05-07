@@ -54,6 +54,353 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsLanguageChinese => '中文 (Chinese)';
 
   @override
+  String get loginDataRecoveryTitle => '数据恢复';
+
+  @override
+  String loginDataRecoveryMessage(String time) {
+    return '您的保险库为空，但存在 $time 的备份。是否要恢复？';
+  }
+
+  @override
+  String get loginSkip => '跳过';
+
+  @override
+  String get loginRestoreBackup => '恢复备份';
+
+  @override
+  String get loginRestoreSuccess => '恢复成功。您的数据已可用。';
+
+  @override
+  String get loginRestoreFailed => '恢复失败';
+
+  @override
+  String get loginBiometricGeneric => '生物识别';
+
+  @override
+  String get loginBiometricFaceId => '面容 ID';
+
+  @override
+  String get loginBiometricTouchId => '触控 ID';
+
+  @override
+  String get loginBiometricIris => '虹膜';
+
+  @override
+  String loginUnlockReason(String biometricType) {
+    return '使用 $biometricType 解锁 SoloSoul';
+  }
+
+  @override
+  String get loginBiometricFailed => '生物识别失败或已取消';
+
+  @override
+  String get loginUnlockFailedUsePassword => '解锁失败。请使用主密码。';
+
+  @override
+  String get loginPasswordMinLength => '密码至少需要 8 个字符';
+
+  @override
+  String get loginInvalidPassword => '主密码无效';
+
+  @override
+  String loginUnlockFailed(String message) {
+    return '解锁失败: $message';
+  }
+
+  @override
+  String get loginAccountNameRequired => '账户名称必填';
+
+  @override
+  String get loginPasswordsDoNotMatch => '两次输入的密码不一致';
+
+  @override
+  String get loginCreateAccountFailed => '创建账户失败';
+
+  @override
+  String get loginUnlockVaultFailed => '解锁失败。请重试。';
+
+  @override
+  String loginPasswordHint(String hint) {
+    return '密码提示: $hint';
+  }
+
+  @override
+  String get loginNever => '从未';
+
+  @override
+  String get loginToday => '今天';
+
+  @override
+  String get loginYesterday => '昨天';
+
+  @override
+  String loginDaysAgo(int count) {
+    return '$count 天前';
+  }
+
+  @override
+  String get loginBackToAccountList => '返回账户列表';
+
+  @override
+  String get loginAccountName => '账户名称';
+
+  @override
+  String get loginAccountNameHint => '例如: 个人, 工作';
+
+  @override
+  String get loginMasterPassword => '主密码';
+
+  @override
+  String get loginEnterPassword => '输入您的密码';
+
+  @override
+  String get loginCreateStrongPassword => '创建一个强密码';
+
+  @override
+  String get loginConfirmPassword => '确认密码';
+
+  @override
+  String get loginReenterPassword => '重新输入您的密码';
+
+  @override
+  String get loginPasswordHintOptional => '密码提示（可选）';
+
+  @override
+  String get loginPasswordHintHelp => '帮助您记住密码的提示';
+
+  @override
+  String get loginShowPasswordHint => '显示密码提示';
+
+  @override
+  String get loginNoAccounts => '未找到账户';
+
+  @override
+  String get loginCreateAccount => '创建账户';
+
+  @override
+  String loginLastAccessed(String time) {
+    return '最后访问: $time';
+  }
+
+  @override
+  String get loginAccountListEmpty => '账户列表为空';
+
+  @override
+  String get loginCreateFirstAccount => '创建您的第一个账户以开始使用';
+
+  @override
+  String get loginSelectAccountToUnlock => '选择账户以解锁';
+
+  @override
+  String get loginShowLess => '收起';
+
+  @override
+  String loginShowAllAccounts(int count) {
+    return '显示全部 $count 个账户';
+  }
+
+  @override
+  String get loginNoAccountsYet => '暂无账户';
+
+  @override
+  String get loginRecent => '最近';
+
+  @override
+  String get workspaceObjects => '对象';
+
+  @override
+  String get workspaceNoItems => '暂无项目';
+
+  @override
+  String get workspaceNoObjects => '暂无对象';
+
+  @override
+  String get workspaceAddFirstItem => '添加第一个项目';
+
+  @override
+  String get workspaceCreateFirstObject => '创建您的第一个对象以开始使用';
+
+  @override
+  String get workspaceDeletePage => '删除页面';
+
+  @override
+  String get workspaceDeleteSection => '删除分区';
+
+  @override
+  String workspaceDeleteSectionConfirm(String name) {
+    return '确定要删除 \"$name\" 吗？';
+  }
+
+  @override
+  String workspaceDeletePageConfirm(String name, int count) {
+    return '确定要删除 \"$name\" 吗？此页面中的 $count 个项目也将移至回收站。';
+  }
+
+  @override
+  String get workspaceSectionDeleted => '分区已删除';
+
+  @override
+  String workspaceMovedToTrash(String name) {
+    return '\"$name\" 已移至回收站';
+  }
+
+  @override
+  String get workspaceAddSubPage => '添加子页面';
+
+  @override
+  String get workspaceAddSection => '添加分区';
+
+  @override
+  String get workspaceAddSectionDialog => '添加分区';
+
+  @override
+  String get workspaceSectionName => '名称';
+
+  @override
+  String get workspaceEnterSectionName => '输入分区名称';
+
+  @override
+  String get workspaceIcon => '图标';
+
+  @override
+  String get objectEditorEditSection => '编辑分区';
+
+  @override
+  String get objectEditorNewSection => '新建分区';
+
+  @override
+  String get objectEditorType => '类型';
+
+  @override
+  String get objectEditorNameRequired => '名称为必填项';
+
+  @override
+  String objectEditorDuplicateProperties(String names) {
+    return '重复的属性名称: $names';
+  }
+
+  @override
+  String objectEditorSaveFailed(String message) {
+    return '保存失败: $message';
+  }
+
+  @override
+  String get objectEditorIcon => '图标';
+
+  @override
+  String get objectEditorName => '名称';
+
+  @override
+  String get objectEditorEnterSectionName => '输入分区名称';
+
+  @override
+  String get objectEditorSelectType => '选择类型';
+
+  @override
+  String get objectEditorNoParent => '无父级（根）';
+
+  @override
+  String get objectEditorItemProperties => '项目属性';
+
+  @override
+  String get objectEditorAddProperty => '添加属性';
+
+  @override
+  String get objectEditorKeyName => '键名';
+
+  @override
+  String get objectEditorPropertyTypeText => '文本';
+
+  @override
+  String get objectEditorPropertyTypeDate => '日期';
+
+  @override
+  String get objectEditorPropertyTypeNumber => '数字';
+
+  @override
+  String get objectEditorPropertyTypeCheckbox => '复选框';
+
+  @override
+  String get objectEditorSensitivity => '敏感度';
+
+  @override
+  String get objectEditorDeletePropertyTitle => '删除属性';
+
+  @override
+  String get pageEditorNameRequired => '名称为必填项';
+
+  @override
+  String get pageEditorEditPage => '编辑页面';
+
+  @override
+  String get pageEditorNewPage => '新建页面';
+
+  @override
+  String get pageEditorName => '名称';
+
+  @override
+  String get pageEditorEnterPageName => '输入页面名称';
+
+  @override
+  String get pageEditorIcon => '图标';
+
+  @override
+  String get pageEditorParent => '父级';
+
+  @override
+  String get homeScan => '扫描';
+
+  @override
+  String get homeQuickActions => '快捷操作';
+
+  @override
+  String get homeEditQuickActions => '编辑快捷操作';
+
+  @override
+  String get homeEditQuickActionsDone => '完成';
+
+  @override
+  String get homeSecurityStatus => '安全状态';
+
+  @override
+  String get searchTitle => '搜索';
+
+  @override
+  String get searchHint => '搜索字段...';
+
+  @override
+  String get profileType => '类型';
+
+  @override
+  String get profileTypeEmail => '邮箱';
+
+  @override
+  String get profileTypePhone => '电话';
+
+  @override
+  String objectEditorDeletePropertyConfirm(String name) {
+    return '确定要删除 \"$name\" 吗？';
+  }
+
+  @override
+  String get workspaceAddSectionButton => '添加分区';
+
+  @override
+  String get workspaceEditPage => '编辑页面';
+
+  @override
+  String get workspaceDone => '完成';
+
+  @override
+  String get workspaceReorder => '重新排序';
+
+  @override
+  String get workspaceAdd => '添加';
+
+  @override
+  String get loginCreateNewAccount => '创建新账户';
+
+  @override
   String get settingsAiChat => 'AI 对话';
 
   @override

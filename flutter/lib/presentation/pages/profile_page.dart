@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -454,14 +455,14 @@ class _ContactForm extends StatelessWidget {
           vertical: 8,
         ),
       ),
-      items: const [
+      items: [
         DropdownMenuItem(
           value: 'email',
-          child: Text('email'),
+          child: Text(AppLocalizations.of(context).profileTypeEmail),
         ),
         DropdownMenuItem(
           value: 'phone',
-          child: Text('phone'),
+          child: Text(AppLocalizations.of(context).profileTypePhone),
         ),
       ],
       onChanged: (v) {
@@ -492,7 +493,7 @@ class _ContactForm extends StatelessWidget {
       children: [
         TextButton(
           onPressed: onCancel,
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context).commonCancel),
         ),
         const SizedBox(width: 8),
         FilledButton(

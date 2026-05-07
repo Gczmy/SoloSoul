@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +44,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: const Text('Search'),
+        title: Text(AppLocalizations.of(context).searchTitle),
       ),
       body: Column(
         children: [
@@ -53,7 +54,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               controller: _searchController,
               focusNode: _focusNode,
               decoration: InputDecoration(
-                hintText: 'Search fields...',
+                hintText: AppLocalizations.of(context).searchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
