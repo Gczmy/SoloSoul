@@ -41,19 +41,23 @@ pub fn extract_mrz_lines(img: &DynamicImage) -> Result<Vec<String>, OcrError> {
     // 步骤 4：逐行识别
     let rec_results = recognize_lines(&text_lines)?;
 
-    // 步骤 5：ICAO 后处理
+    // 步骤 5：ICAO 后处理 + 调试日志
     let mut mrz_lines = Vec::new();
-    for result in rec_results {
+    for (i, result) in rec_results.iter().enumerate() {
         let normalized = icao_normalize(&result.text);
+        eprintln!("[OCR-RUST] Line {}: raw='{}' normalized='{}' len={}", i, result.text, normalized, normalized.len());
         if !normalized.is_empty() {
             mrz_lines.push(normalized);
         }
     }
 
     // 步骤 6：长度校验和过滤
+    // 放宽条件：允许 ±2 误差，覆盖模糊/截断情况
     mrz_lines.retain(|line| {
         let len = line.len();
-        len == 30 || len == 36 || len == 44 // TD1 / TD2 / TD3
+        let ok = (28..=32).contains(&len) || (34..=38).contains(&len) || (42..=46).contains(&len);
+        eprintln!("[OCR-RUST] Filter check: '{}' len={} ok={}", line, len, ok);
+        ok
     });
 
     if mrz_lines.is_empty() {

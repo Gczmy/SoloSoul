@@ -35,13 +35,14 @@ pub const CLS_MEAN: [f32; 3] = [0.5, 0.5, 0.5];
 /// PP-OCR cls 模型归一化标准差
 pub const CLS_STD: [f32; 3] = [0.5, 0.5, 0.5];
 
-/// 图像预处理管道：输入任意图像 → 输出灰度二值化图
+/// 图像预处理管道：输入任意图像 → 输出灰度图（供 MRZ 识别使用）
 ///
+/// 注意：MRZ 识别直接使用灰度图而非二值化图。
+/// PP-OCRv4 rec 模型期望灰度输入，二值化反而会丢失字符信息。
 /// 步骤：
-/// 1. 转为灰度图
-/// 2. 高斯模糊去噪
-/// 3. Sauvola 局部自适应二值化（对反光/阴影鲁棒）
-/// 4. 尺寸归一化（长边 ≤ 2048，保持比例）
+/// 1. 尺寸归一化（长边 ≤ 2048，保持比例）
+/// 2. 转为灰度图
+/// 3. 轻度高斯模糊去噪
 pub fn preprocess_for_mrz(img: &DynamicImage) -> GrayImage {
     // 步骤 1：尺寸归一化（长边限制 2048，减少后续计算量）
     let (width, height) = (img.width(), img.height());
@@ -66,11 +67,7 @@ pub fn preprocess_for_mrz(img: &DynamicImage) -> GrayImage {
     let gray = resized.to_luma8();
 
     // 步骤 3：轻度高斯模糊去噪（sigma = 1.0）
-    let blurred = imageproc::filter::gaussian_blur_f32(&gray, 1.0);
-
-    // 步骤 4：Sauvola 局部自适应二值化
-    // 窗口大小 25x25，k=0.2，对反光/渐变背景鲁棒
-    sauvola_binarize(&blurred, 25, 0.2)
+    imageproc::filter::gaussian_blur_f32(&gray, 1.0)
 }
 
 /// Sauvola 局部自适应二值化

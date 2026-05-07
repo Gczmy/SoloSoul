@@ -133,14 +133,70 @@ class OcrService {
 
   /// 从图像中提取 MRZ 数据
   ///
+  /// 平台自动分发：
+  /// - iOS/macOS → Apple Vision（系统级，高精度）
+  /// - Android/Windows → Rust ONNX（PP-OCRv4）
+  ///
   /// [imageData] 为 PNG/JPEG 图像字节。
   /// 返回解析后的 [MrzData]，若识别失败则抛出相应异常。
   static Future<MrzData?> extractMrz(Uint8List imageData) async {
+    // iOS/macOS 优先使用 Apple Vision
+    if (Platform.isIOS || Platform.isMacOS) {
+      try {
+        final result = await AppleVisionOcr.recognizeText(imageData);
+        final lines = _blocksToLines(result);
+        final mrz = MrzParser.parse(lines);
+        if (mrz != null) {
+          SoloLog.d('OcrService',
+              'MRZ (Apple Vision): docType=${mrz.documentType}, docNo=${mrz.documentNumber}');
+          return mrz;
+        }
+        // 解析失败，继续 fallback
+      } on Exception catch (e) {
+        SoloLog.w('OcrService', 'Apple Vision MRZ failed, falling back to Rust: $e');
+      }
+    }
+
+    // Android/Windows 或 Apple Vision fallback → Rust ONNX
+    return _rustExtractMrz(imageData);
+  }
+
+  /// 将 Apple Vision 的 blocks 按 y 坐标分组为文本行
+  static List<String> _blocksToLines(OcrResult result) {
+    if (result.blocks.isEmpty) return [];
+
+    // 按 y 坐标排序，y 相近的分到同一行
+    final sorted = List<OcrBlock>.from(result.blocks)
+      ..sort((a, b) => a.bbox.y.compareTo(b.bbox.y));
+
+    final lines = <String>[];
+    final currentLine = StringBuffer();
+    double currentY = sorted.first.bbox.y;
+    const double yThreshold = 20.0; // 同一行的 y 坐标阈值
+
+    for (final block in sorted) {
+      if ((block.bbox.y - currentY).abs() > yThreshold) {
+        if (currentLine.isNotEmpty) {
+          lines.add(currentLine.toString().trim());
+        }
+        currentLine.clear();
+        currentY = block.bbox.y;
+      }
+      currentLine.write(block.text);
+    }
+    if (currentLine.isNotEmpty) {
+      lines.add(currentLine.toString().trim());
+    }
+
+    return lines;
+  }
+
+  static Future<MrzData?> _rustExtractMrz(Uint8List imageData) async {
     if (!_initialized) {
       try {
         await initialize();
       } on OcrException {
-        rethrow; // 保留原始错误信息（如模型缺失）
+        rethrow;
       } on Exception catch (e) {
         throw OcrException('OCR init failed before MRZ extraction: $e');
       }
