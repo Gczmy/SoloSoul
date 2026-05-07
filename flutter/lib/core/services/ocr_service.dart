@@ -64,8 +64,8 @@ class OcrService {
   static const String _recAssetPath =
       'assets/models/$_modelVersion/ppocrv4_rec.onnx';
 
-  static const Duration _mrzTimeout = Duration(seconds: 3);
-  static const Duration _generalTimeout = Duration(seconds: 5);
+  static const Duration _mrzTimeout = Duration(seconds: 10);
+  static const Duration _generalTimeout = Duration(seconds: 10);
 
   /// 初始化 OCR 引擎
   ///

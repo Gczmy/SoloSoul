@@ -22,7 +22,15 @@ pub fn extract_mrz_lines(img: &DynamicImage) -> Result<Vec<String>, OcrError> {
     let roi_regions = locate_mrz_region(&binary)?;
 
     // 步骤 3：行切分（水平投影）
-    let text_lines = split_text_lines(&binary, &roi_regions);
+    let mut text_lines = split_text_lines(&binary, &roi_regions);
+
+    // MRZ 最多 2 行（TD1/TD2/TD3），限制推理数量避免超时
+    const MAX_MRZ_LINES: usize = 4;
+    if text_lines.len() > MAX_MRZ_LINES {
+        // 优先保留图像底部的行（MRZ 通常在证件底部）
+        let start = text_lines.len().saturating_sub(MAX_MRZ_LINES);
+        text_lines = text_lines.split_off(start);
+    }
 
     if text_lines.is_empty() {
         return Err(OcrError::MrzNotFound {
