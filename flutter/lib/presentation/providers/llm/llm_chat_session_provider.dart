@@ -3,6 +3,11 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:solosoul_flutter/core/services/llm/chat_history_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/providers/auth/auth_notifier.dart';
+import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart' show AuthState;
+
 // =============================================================================
 // LLM Chat Session Provider
 // =============================================================================
@@ -37,6 +42,20 @@ class LlmChatMessage {
       isStreaming: isStreaming ?? this.isStreaming,
     );
   }
+
+  /// 转换为可序列化的数据对象。
+  ChatMessageData toData() => ChatMessageData(
+        id: id,
+        text: text,
+        isUser: isUser,
+      );
+
+  /// 从序列化数据对象恢复。
+  factory LlmChatMessage.fromData(ChatMessageData data) => LlmChatMessage(
+        id: data.id,
+        text: data.text,
+        isUser: data.isUser,
+      );
 }
 
 /// 管理 LLM 对话会话的消息列表。
@@ -44,13 +63,94 @@ class LlmChatMessage {
 /// **后台接收支持：** Stream 订阅由 Notifier 持有（生命周期与 Provider 一致），
 /// 切换页面后 widget 被 dispose 但 Provider 继续存活，stream 数据持续累积。
 /// 切回页面时 widget 从最新状态重建，直接显示后台已接收的内容。
+///
+/// **持久化支持：** 消息变更自动 debounce 保存到加密 Vault；
+/// 账号切换或 Vault 解锁时自动加载/清空。
 class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
   StreamSubscription<String>? _streamSub;
+  Timer? _saveTimer;
+  String? _lastLoadedAccountId;
+
+  static const _saveDebounce = Duration(seconds: 2);
 
   @override
-  List<LlmChatMessage> build() => [];
+  List<LlmChatMessage> build() {
+    // 监听认证状态：解锁时加载历史，锁定时清空
+    ref.listen(authNotifierProvider, (previous, next) {
+      final nextState = next.value;
+
+      if (nextState == AuthState.unlocked) {
+        // Vault 解锁后加载当前账号的历史记录
+        _loadHistoryAsync();
+      } else if (nextState == AuthState.locked) {
+        // Vault 锁定时清空内存中的消息（敏感数据不留在内存）
+        _saveTimer?.cancel();
+        _streamSub?.cancel();
+        _streamSub = null;
+        if (state.isNotEmpty) {
+          state = [];
+        }
+        _lastLoadedAccountId = null;
+      }
+    });
+
+    // 如果当前已经是解锁状态，立即异步加载
+    final currentState = ref.read(authNotifierProvider).value;
+    if (currentState == AuthState.unlocked) {
+      _loadHistoryAsync();
+    }
+
+    return [];
+  }
 
   bool get hasStreamingMessage => state.any((m) => m.isStreaming);
+
+  // ---------------------------------------------------------------------------
+  // Persistence
+  // ---------------------------------------------------------------------------
+
+  /// 异步加载当前账号的聊天历史。
+  Future<void> _loadHistoryAsync() async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null || accountId == _lastLoadedAccountId) return;
+
+    final history = await ChatHistoryService.instance.load(accountId);
+    if (history.isNotEmpty) {
+      _lastLoadedAccountId = accountId;
+      state = history
+          .map((data) => LlmChatMessage.fromData(data))
+          .toList();
+      SoloLog.d('LlmChatSession', 'loaded ${history.length} messages');
+    } else {
+      _lastLoadedAccountId = accountId;
+      if (state.isNotEmpty) {
+        state = [];
+      }
+    }
+  }
+
+  /// 立即保存当前消息列表。
+  Future<void> _saveHistory() async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
+    final persistable = state
+        .where((m) => !m.isStreaming)
+        .map((m) => m.toData())
+        .toList();
+
+    await ChatHistoryService.instance.save(accountId, persistable);
+  }
+
+  /// Debounced 保存：避免每次 state 变更都触发 Vault IO。
+  void _debouncedSave() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(_saveDebounce, _saveHistory);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Send Message
+  // ---------------------------------------------------------------------------
 
   /// 发送用户消息并开始消费 AI 流式响应。
   ///
@@ -61,6 +161,7 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
     // 1. 添加用户消息
     final userId = 'user_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
     state = [...state, LlmChatMessage(id: userId, text: text, isUser: true)];
+    _debouncedSave();
 
     // 2. 添加空 AI 消息（等待流式填充）
     final aiId = 'ai_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
@@ -103,6 +204,8 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
         debounceTimer?.cancel();
         flushState(finish: true);
         _streamSub = null;
+        // 流式输出完成，保存最终消息
+        _debouncedSave();
       },
       onError: (Object err) {
         debounceTimer?.cancel();
@@ -114,6 +217,8 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
           );
         }).toList();
         _streamSub = null;
+        // 错误也保存，保留上下文
+        _debouncedSave();
       },
     );
   }
@@ -133,7 +238,10 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
   void clear() {
     _streamSub?.cancel();
     _streamSub = null;
+    _saveTimer?.cancel();
     state = [];
+    // 保存空列表（覆盖删除旧数据）
+    _saveHistory();
   }
 }
 

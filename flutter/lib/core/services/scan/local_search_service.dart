@@ -3,12 +3,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'dart:typed_data';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
+import 'package:solosoul_flutter/core/services/ocr_service.dart';
 import 'package:solosoul_flutter/core/services/scan/content_parser_service.dart';
+import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 import 'package:solosoul_flutter/core/services/scan/windows_search_service.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_cache_service.dart';
 import 'package:uuid/uuid.dart';
@@ -37,6 +42,12 @@ class LocalSearchService {
   /// Target file extensions.
   static const List<String> _kTargetExtensions = [
     '.pdf', '.docx', '.xlsx', '.csv', '.json', '.txt', '.md',
+    '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff',
+  ];
+
+  /// Image file extensions (subset of _kTargetExtensions).
+  static const List<String> _kImageExtensions = [
+    '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff',
   ];
 
   /// Filename keywords that suggest personal information.
@@ -122,6 +133,14 @@ class LocalSearchService {
       'accountHolderName|持有人': 'accountHolderName',
       'routingNumber|routing': 'routingNumber',
     },
+    'idCard': {
+      'number|号码|编号|id': 'number',
+      'holderName|持有人|姓名|name': 'holderName',
+      'country|国家|签发国': 'country',
+      'dateOfBirth|出生日期|birth': 'dateOfBirth',
+      'sex|性别': 'sex',
+      'expiryDate|有效期|date of expiry': 'expiryDate',
+    },
   };
 
   // ---------------------------------------------------------------------------
@@ -148,6 +167,12 @@ class LocalSearchService {
     '.json': 1,
     '.txt': 1,
     '.md': 1,
+    '.png': 5,
+    '.jpg': 5,
+    '.jpeg': 5,
+    '.webp': 5,
+    '.bmp': 5,
+    '.tiff': 10,
   };
 
   static Stream<ScanResult> scan({
@@ -235,6 +260,11 @@ class LocalSearchService {
   /// Scan a single file according to [scanDepth]. Returns null on timeout.
   static Future<ScanResult?> _scanFile(ScannedFile file, String scanDepth) async {
     try {
+      // 图片文件走 OCR 识别路径
+      if (_kImageExtensions.contains(file.extension)) {
+        return await _scanImageFile(file).timeout(const Duration(seconds: 20));
+      }
+
       if (scanDepth == 'filename') {
         return _scanFilenameOnly(file);
       } else if (scanDepth == 'fingerprint') {
@@ -292,6 +322,146 @@ class LocalSearchService {
   static Future<ScanResult?> _scanFull(ScannedFile file) async {
     // Same as fingerprint for now; can be extended with NLP
     return _scanWithFingerprint(file);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Image OCR Scan
+  // ---------------------------------------------------------------------------
+
+  /// 对图片文件执行 OCR 识别，并智能判断是否为 MRZ 文档。
+  ///
+  /// 流程：
+  /// 1. 读取图片文件为 bytes
+  /// 2. 通用 OCR 识别文本
+  /// 3. 尝试从 OCR 结果中提取 MRZ 候选行并解析
+  /// 4. 若 MRZ 解析成功 → 生成 passport / idCard 类型的 ScanResult
+  /// 5. 若 MRZ 失败 → 将 OCR 文本作为普通文本进行 section 检测
+  static Future<ScanResult?> _scanImageFile(ScannedFile file) async {
+    try {
+      final fileHandle = File(file.path);
+      if (!await fileHandle.exists()) return null;
+
+      final bytes = await fileHandle.readAsBytes();
+      if (bytes.isEmpty) return null;
+
+      // 通用 OCR 识别
+      final ocrResult = await OcrService.recognizeText(Uint8List.fromList(bytes));
+      if (ocrResult.rawText.trim().isEmpty) return null;
+
+      // 尝试 MRZ 提取
+      final mrzLines = OcrService.extractMrzLinesFromResult(ocrResult);
+      if (mrzLines.isNotEmpty) {
+        final mrzData = MrzParser.parse(mrzLines);
+        if (mrzData != null) {
+          SoloLog.d('LocalSearchService',
+              'MRZ detected in image: ${file.name} type=${mrzData.documentType}');
+          return _buildMrzScanResult(file, mrzData);
+        }
+      }
+
+      // MRZ 未识别到，将 OCR 文本作为普通文档处理
+      SoloLog.d('LocalSearchService',
+          'No MRZ in image: ${file.name}, falling back to text detection');
+      return _buildTextScanResultFromOcr(file, ocrResult);
+    } on Exception catch (e) {
+      SoloLog.w('LocalSearchService', 'Image OCR failed: ${file.name}', e);
+      return null;
+    }
+  }
+
+  /// 从 MRZ 数据构建 ScanResult
+  static ScanResult _buildMrzScanResult(ScannedFile file, MrzData mrzData) {
+    final isPassport = mrzData.documentType.startsWith('P');
+    final sectionId = isPassport ? 'passport' : 'idCard';
+    final displayName = isPassport ? 'Passport' : 'ID Card';
+
+    final fields = <ScanField>[
+      ScanField(
+        key: 'number',
+        value: mrzData.documentNumber,
+        sensitivity: SensitivityLevel.critical,
+        confidence: mrzData.confidence,
+      ),
+      ScanField(
+        key: 'holderName',
+        value: '${mrzData.surname} ${mrzData.givenNames}'.trim(),
+        sensitivity: SensitivityLevel.public,
+        confidence: mrzData.confidence,
+      ),
+      ScanField(
+        key: 'country',
+        value: mrzData.country,
+        sensitivity: SensitivityLevel.public,
+        confidence: mrzData.confidence,
+      ),
+      ScanField(
+        key: 'dateOfBirth',
+        value: mrzData.dateOfBirth,
+        sensitivity: SensitivityLevel.sensitive,
+        confidence: mrzData.confidence,
+      ),
+      ScanField(
+        key: 'sex',
+        value: mrzData.sex,
+        sensitivity: SensitivityLevel.public,
+        confidence: mrzData.confidence,
+      ),
+      ScanField(
+        key: 'expiryDate',
+        value: mrzData.expiryDate,
+        sensitivity: SensitivityLevel.sensitive,
+        confidence: mrzData.confidence,
+      ),
+    ];
+
+    if (isPassport) {
+      fields.add(ScanField(
+        key: 'nationality',
+        value: mrzData.nationality,
+        sensitivity: SensitivityLevel.public,
+        confidence: mrzData.confidence,
+      ));
+    }
+
+    return ScanResult(
+      meta: ScanMeta(
+        scanId: const Uuid().v4(),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        sourceFile: file.path,
+        confidence: mrzData.confidence,
+        fileType: file.extension,
+      ),
+      sections: [
+        ScanSection(
+          section: sectionId,
+          display: displayName,
+          fields: fields,
+        ),
+      ],
+    );
+  }
+
+  /// 从通用 OCR 结果构建 ScanResult（将 OCR 文本当作普通文档文本处理）
+  static ScanResult? _buildTextScanResultFromOcr(
+    ScannedFile file,
+    OcrResult ocrResult,
+  ) {
+    final sections = _detectSections(ocrResult.rawText);
+    if (sections.isEmpty) return null;
+
+    final totalFields = sections.fold<int>(0, (sum, s) => sum + s.fields.length);
+    final confidence = min(ocrResult.confidence + (totalFields * 0.05), 1.0);
+
+    return ScanResult(
+      meta: ScanMeta(
+        scanId: const Uuid().v4(),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        sourceFile: file.path,
+        confidence: confidence,
+        fileType: file.extension,
+      ),
+      sections: sections,
+    );
   }
 
   // ---------------------------------------------------------------------------

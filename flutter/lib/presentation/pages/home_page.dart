@@ -17,7 +17,7 @@ import 'package:solosoul_flutter/presentation/widgets/home/dashed_placeholder.da
 
 import 'package:solosoul_flutter/presentation/widgets/home/add_button.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/add_quick_action_dialog.dart';
-import 'package:solosoul_flutter/core/models/ocr_result.dart';
+import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/delete_badge.dart';
 import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/page_editor.dart';
@@ -69,7 +69,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _showOcrScanner(BuildContext context) async {
-    await showModalBottomSheet<OcrResult?>(
+    await showModalBottomSheet<SmartOcrResult?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

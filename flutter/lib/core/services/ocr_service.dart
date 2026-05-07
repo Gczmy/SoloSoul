@@ -136,7 +136,7 @@ class OcrService {
     if (Platform.isIOS || Platform.isMacOS) {
       try {
         final result = await AppleVisionOcr.recognizeText(imageData);
-        final lines = _extractMrzLines(result);
+        final lines = extractMrzLinesFromResult(result);
 
         // MRZ 通常是底部的 2 行（TD3 护照）或 3 行（TD1 身份证）
         // 优先尝试最后 2 个 44 字符行（最可能是 TD3 护照）
@@ -164,11 +164,14 @@ class OcrService {
     return _rustExtractMrz(imageData);
   }
 
-  /// 从 Apple Vision 结果中提取 MRZ 候选行
+  /// 从通用 OCR 结果中提取 MRZ 候选行
   ///
   /// MRZ 只包含大写字母、数字和 `<`。从 rawText 和 blocks 中提取，
   /// 过滤掉含非法字符的片段，优先保留标准长度（44/36/30）的行。
-  static List<String> _extractMrzLines(OcrResult result) {
+  ///
+  /// 可用于通用 OCR 识别后的智能 MRZ 判断：先调用 [recognizeText]，
+  /// 再调用此方法尝试提取 MRZ，最后用 [MrzParser.parse] 解析。
+  static List<String> extractMrzLinesFromResult(OcrResult result) {
     final candidates = <String>{};
 
     // 辅助：从字符串中提取所有纯 MRZ 字符的连续片段

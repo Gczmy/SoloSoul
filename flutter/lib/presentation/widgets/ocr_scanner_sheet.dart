@@ -1,27 +1,34 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
+import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
+import 'package:solosoul_flutter/core/services/mrz_vault_service.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
+import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/ocr_result_preview.dart';
 
-/// 通用 OCR 扫描底部 Sheet
+/// 通用 OCR 扫描底部 Sheet（智能 MRZ 版）
 ///
-/// 提供相机/相册选图 → 通用 OCR 识别 → 预览确认的完整流程。
-/// Phase 2: 支持名片、文档、发票等任意文本图像。
-class OcrScannerSheet extends StatefulWidget {
+/// 提供相机/相册选图 → 通用 OCR 识别 → 智能判断是否为护照/ID卡 →
+/// 若检测到 MRZ 则展示结构化结果，否则展示通用文本。
+///
+/// 用户无感获得 MRZ 结构化体验。
+class OcrScannerSheet extends ConsumerStatefulWidget {
   const OcrScannerSheet({super.key});
 
   @override
-  State<OcrScannerSheet> createState() => _OcrScannerSheetState();
+  ConsumerState<OcrScannerSheet> createState() => _OcrScannerSheetState();
 }
 
-class _OcrScannerSheetState extends State<OcrScannerSheet> {
+class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   bool _isLoading = false;
   String? _errorMessage;
-  OcrResult? _ocrResult;
+  SmartOcrResult? _result;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +108,7 @@ class _OcrScannerSheetState extends State<OcrScannerSheet> {
       return _buildErrorState();
     }
 
-    if (_ocrResult != null) {
+    if (_result != null) {
       return _buildResultState();
     }
 
@@ -133,7 +140,8 @@ class _OcrScannerSheetState extends State<OcrScannerSheet> {
               Expanded(
                 child: Text(
                   'All recognition is done locally on your device. '
-                  'Images are never uploaded to any server.',
+                  'Images are never uploaded to any server. '
+                  'Passports and ID cards will be automatically detected.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
@@ -207,27 +215,74 @@ class _OcrScannerSheetState extends State<OcrScannerSheet> {
   }
 
   Widget _buildResultState() {
+    final result = _result!;
+
     return Column(
       children: [
-        OcrResultPreview(result: _ocrResult!),
+        // 智能检测提示徽章
+        if (result is SmartOcrMrzResult)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.verified_user_outlined,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Travel document detected',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+          ),
+
+        // 结果展示
+        if (result is SmartOcrMrzResult)
+          MrzPreviewCard(mrzData: result.mrzData)
+        else if (result is SmartOcrTextResult)
+          OcrResultPreview(result: result.ocrResult),
+
         const SizedBox(height: 20),
+
+        // 操作按钮
         Row(
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => setState(() => _ocrResult = null),
+                onPressed: () => setState(() => _result = null),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Rescan'),
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: () => Navigator.of(context).pop(_ocrResult),
-                icon: const Icon(Icons.check),
-                label: const Text('Confirm'),
+            if (result is SmartOcrMrzResult)
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => _saveMrzToVault(result.mrzData),
+                  icon: const Icon(Icons.save),
+                  label: const Text('Save'),
+                ),
+              )
+            else
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pop(_result),
+                  icon: const Icon(Icons.check),
+                  label: const Text('Confirm'),
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -253,12 +308,37 @@ class _OcrScannerSheetState extends State<OcrScannerSheet> {
 
     try {
       final bytes = await picked.readAsBytes();
-      final result = await OcrService.recognizeText(Uint8List.fromList(bytes));
+
+      // Step 1: 通用 OCR 识别
+      final ocrResult = await OcrService.recognizeText(Uint8List.fromList(bytes));
+      SoloLog.d('OcrScannerSheet',
+          'General OCR: ${ocrResult.blocks.length} blocks, confidence=${ocrResult.confidence}');
+
+      // Step 2: 从 OCR 结果中智能提取 MRZ 候选行
+      final mrzLines = OcrService.extractMrzLinesFromResult(ocrResult);
+      SoloLog.d('OcrScannerSheet', 'MRZ candidate lines: ${mrzLines.length}');
+
+      // Step 3: 尝试解析 MRZ
+      MrzData? mrzData;
+      if (mrzLines.isNotEmpty) {
+        mrzData = MrzParser.parse(mrzLines);
+        if (mrzData != null) {
+          SoloLog.d('OcrScannerSheet',
+              'MRZ parsed: docType=${mrzData.documentType}, docNo=${mrzData.documentNumber}');
+        }
+      }
 
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _ocrResult = result;
+          if (mrzData != null) {
+            _result = SmartOcrMrzResult(
+              mrzData: mrzData,
+              rawOcrResult: ocrResult,
+            );
+          } else {
+            _result = SmartOcrTextResult(ocrResult);
+          }
         });
       }
     } on OcrTextNotDetectedException {
@@ -283,6 +363,24 @@ class _OcrScannerSheetState extends State<OcrScannerSheet> {
           _isLoading = false;
           _errorMessage = e.toString();
         });
+      }
+    }
+  }
+
+  Future<void> _saveMrzToVault(MrzData mrzData) async {
+    final result = await MrzVaultService.saveMrzToVault(ref, mrzData: mrzData);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: result.success ? null : Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      if (result.success) {
+        Navigator.of(context).pop(_result);
       }
     }
   }
