@@ -47,17 +47,48 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
   /// Initialize scan config from persistent storage.
   /// Should be called once when the config page is first built.
   /// Awaits the async provider so the config is loaded even on cold start.
+  /// 所有支持的文件扩展名（用于检测配置是否完整）。
+  static const List<String> _kAllSupportedExtensions = [
+    '.pdf', '.docx', '.xlsx', '.csv', '.json', '.txt', '.md',
+    '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff',
+  ];
+
+  static const Map<String, int> _kDefaultSizeLimits = {
+    '.pdf': 5, '.docx': 1, '.xlsx': 1, '.csv': 1,
+    '.json': 1, '.txt': 1, '.md': 1,
+    '.png': 5, '.jpg': 5, '.jpeg': 5, '.webp': 5,
+    '.bmp': 5, '.tiff': 10,
+  };
+
   Future<void> initFromConfig() async {
     if (_initialized) return;
     _initialized = true;
 
     try {
       final config = await ref.read(scanConfigProvider.future);
+
+      // 自动补全缺失的扩展名（向后兼容：旧配置可能没有图片类型）
+      var extensions = config.extensions;
+      final missingExts = _kAllSupportedExtensions
+          .where((e) => !extensions.contains(e))
+          .toList();
+      if (missingExts.isNotEmpty) {
+        extensions = [...extensions, ...missingExts];
+      }
+
+      // 自动补全缺失的大小限制
+      var sizeLimits = Map<String, int>.from(config.maxFileSizeByExtension);
+      for (final entry in _kDefaultSizeLimits.entries) {
+        if (!sizeLimits.containsKey(entry.key)) {
+          sizeLimits[entry.key] = entry.value;
+        }
+      }
+
       state = state.copyWith(
         paths: config.paths,
-        extensions: config.extensions,
+        extensions: extensions,
         scanDepth: config.scanDepth,
-        maxFileSizeByExtension: config.maxFileSizeByExtension,
+        maxFileSizeByExtension: sizeLimits,
       );
     } on Exception catch (_) {
       // If loading fails, keep current state (defaults or background service state)
