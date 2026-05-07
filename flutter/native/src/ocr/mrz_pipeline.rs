@@ -43,9 +43,8 @@ pub fn extract_mrz_lines(img: &DynamicImage) -> Result<Vec<String>, OcrError> {
 
     // 步骤 5：ICAO 后处理 + 调试日志
     let mut mrz_lines = Vec::new();
-    for (i, result) in rec_results.iter().enumerate() {
+    for result in rec_results {
         let normalized = icao_normalize(&result.text);
-        eprintln!("[OCR-RUST] Line {}: raw='{}' normalized='{}' len={}", i, result.text, normalized, normalized.len());
         if !normalized.is_empty() {
             mrz_lines.push(normalized);
         }
@@ -55,9 +54,7 @@ pub fn extract_mrz_lines(img: &DynamicImage) -> Result<Vec<String>, OcrError> {
     // 放宽条件：允许 ±2 误差，覆盖模糊/截断情况
     mrz_lines.retain(|line| {
         let len = line.len();
-        let ok = (28..=32).contains(&len) || (34..=38).contains(&len) || (42..=46).contains(&len);
-        eprintln!("[OCR-RUST] Filter check: '{}' len={} ok={}", line, len, ok);
-        ok
+        (28..=32).contains(&len) || (34..=38).contains(&len) || (42..=46).contains(&len)
     });
 
     if mrz_lines.is_empty() {

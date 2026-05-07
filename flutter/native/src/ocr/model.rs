@@ -47,20 +47,16 @@ pub fn load_models_from_memory_v2(
     cls_bytes: &[u8],
     rec_bytes: &[u8],
 ) -> Result<(), OcrError> {
-    eprintln!("[OCR-RUST] init called: det={} cls={} rec={}", det_bytes.len(), cls_bytes.len(), rec_bytes.len());
-
     // 加载 det 模型（通用 OCR 需要，MRZ 不需要但 harmless）
     if !det_bytes.is_empty() && DET_SESSION.get().is_none() {
-        eprintln!("[OCR-RUST] Loading DET model ({} bytes)...", det_bytes.len());
         match ort::session::Session::builder()
             .and_then(|mut b| b.commit_from_memory(det_bytes))
         {
             Ok(session) => {
                 let _ = DET_SESSION.set(Mutex::new(session));
-                eprintln!("[OCR-RUST] DET model loaded OK");
             }
             Err(e) => {
-                eprintln!("[OCR-RUST] DET model load FAILED (non-fatal): {e}");
+                eprintln!("[OCR] DET model load failed (non-fatal): {e}");
             }
         }
     }
@@ -68,23 +64,20 @@ pub fn load_models_from_memory_v2(
     // 加载 cls 模型（方向分类，MRZ 不需要）
     // 该模型在当前 ort 版本下可能有兼容性问题，失败不阻塞
     if !cls_bytes.is_empty() && CLS_SESSION.get().is_none() {
-        eprintln!("[OCR-RUST] Loading CLS model ({} bytes)...", cls_bytes.len());
         match ort::session::Session::builder()
             .and_then(|mut b| b.commit_from_memory(cls_bytes))
         {
             Ok(session) => {
                 let _ = CLS_SESSION.set(Mutex::new(session));
-                eprintln!("[OCR-RUST] CLS model loaded OK");
             }
             Err(e) => {
-                eprintln!("[OCR-RUST] CLS model load FAILED (non-fatal): {e}");
+                eprintln!("[OCR] CLS model load failed (non-fatal): {e}");
             }
         }
     }
 
     // 加载 rec 模型（文字识别，MRZ 必需）
     if !rec_bytes.is_empty() && REC_SESSION.get().is_none() {
-        eprintln!("[OCR-RUST] Loading REC model ({} bytes)...", rec_bytes.len());
         let session = ort::session::Session::builder()
             .map_err(|e| OcrError::InferenceFailed(format!("REC session builder failed: {e}")))?
             .commit_from_memory(rec_bytes)
@@ -92,11 +85,7 @@ pub fn load_models_from_memory_v2(
         REC_SESSION
             .set(Mutex::new(session))
             .map_err(|_| OcrError::InferenceFailed("REC session already initialized".to_string()))?;
-        eprintln!("[OCR-RUST] REC model loaded OK");
     }
-
-    let status = engine_status();
-    eprintln!("[OCR-RUST] init done: det={} cls={} rec={}", status.det_loaded, status.cls_loaded, status.rec_loaded);
 
     // 仅当至少一个模型成功加载时设置初始化时间
     if INIT_TIME.get().is_none()
@@ -134,8 +123,6 @@ pub fn get_cls_session() -> Result<std::sync::MutexGuard<'static, ort::session::
 }
 
 pub fn get_rec_session() -> Result<std::sync::MutexGuard<'static, ort::session::Session>, OcrError> {
-    let has_session = REC_SESSION.get().is_some();
-    eprintln!("[OCR-RUST] get_rec_session: has_session={}", has_session);
     REC_SESSION
         .get()
         .ok_or(OcrError::ModelNotLoaded)?
