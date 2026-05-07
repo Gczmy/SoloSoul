@@ -190,12 +190,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         await ref.read(debugModeProvider.notifier).enableDebugMode();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Debug mode enabled'),
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Text(AppLocalizations.of(context).settingsDebugModeEnabled),
                 ],
               ),
               backgroundColor: AppTheme.successColor,
@@ -204,12 +204,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         }
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 12),
-                Text('Invalid password'),
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Text(AppLocalizations.of(context).settingsInvalidPassword),
               ],
             ),
             backgroundColor: Colors.red,
@@ -224,8 +224,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: Text('Settings'),
-        actions: [
+        title: Text(AppLocalizations.of(context).settingsTitle),
+        actions: const [
           HeaderActionButtons(),
         ],
       ),
@@ -420,15 +420,15 @@ class _AccessSettingsSection extends ConsumerWidget {
             if (success && context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Row(
+                  content: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.check_circle,
                         color: Colors.white,
                         size: 20,
                       ),
-                      SizedBox(width: 12),
-                      Text('Master password changed successfully'),
+                      const SizedBox(width: 12),
+                      Text(AppLocalizations.of(context).settingsPasswordChangedSuccess),
                     ],
                   ),
                   backgroundColor: AppTheme.successColor,
@@ -656,7 +656,7 @@ void _showComingSoon(BuildContext context, String feature) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('OK'),
+          child: Text(AppLocalizations.of(context).settingsOk),
         ),
       ],
     ),
@@ -893,18 +893,18 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
   Widget build(BuildContext context) {
     final biometricType = widget.faceIdEnabled ? 'Face ID' : 'Touch ID';
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.bug_report, color: AppTheme.primaryColor),
-          SizedBox(width: 12),
-          Text('Enable Debug Mode'),
+          const Icon(Icons.bug_report, color: AppTheme.primaryColor),
+          const SizedBox(width: 12),
+          Text(AppLocalizations.of(context).settingsEnableDebugMode),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Enter your master password to enable Debug Log.'),
+          Text(AppLocalizations.of(context).settingsEnableDebugModeDesc),
           if (widget.canUseBiometric) ...[
             const SizedBox(height: 16),
             SizedBox(
@@ -916,18 +916,18 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
                       ? Icons.face_outlined
                       : Icons.fingerprint_outlined,
                 ),
-                label: Text('Use $biometricType'),
+                label: Text(AppLocalizations.of(context).settingsUseBiometric(biometricType)),
               ),
             ),
             const SizedBox(height: 12),
-            const Row(
+            Row(
               children: [
-                Expanded(child: Divider()),
+                const Expanded(child: Divider()),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('or', style: TextStyle(color: Colors.grey)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(AppLocalizations.of(context).settingsOr, style: const TextStyle(color: Colors.grey)),
                 ),
-                Expanded(child: Divider()),
+                const Expanded(child: Divider()),
               ],
             ),
             const SizedBox(height: 12),
@@ -937,7 +937,7 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
             obscureText: _obscurePassword,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: 'Master Password',
+              labelText: AppLocalizations.of(context).settingsMasterPassword,
               prefixIcon: const Icon(Icons.lock_outline),
               border: const OutlineInputBorder(),
               errorText: _hasError ? _errorMessage : null,
@@ -968,7 +968,7 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
                         ),
                       );
                     },
-                    tooltip: 'Show password hint',
+                    tooltip: AppLocalizations.of(context).settingsShowPasswordHint,
                   ),
                   IconButton(
                     icon: Icon(
@@ -997,11 +997,11 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context).commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _passwordController.text),
-          child: const Text('Enable'),
+          child: Text(AppLocalizations.of(context).settingsEnable),
         ),
       ],
     );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
@@ -114,7 +115,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
         if (!_dialogShown) _verifyPassword();
       });
       return Scaffold(
-        appBar: SoloGlassAppBar(title: const Text('Sensitivity Settings')),
+        appBar: SoloGlassAppBar(title: Text(AppLocalizations.of(context).sensitivitySettingsTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -132,7 +133,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _verifyPassword,
-                child: const Text('Verify'),
+                child: Text(AppLocalizations.of(context).sensitivitySettingsVerify),
               ),
             ],
           ),
@@ -181,7 +182,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade700),
             const SizedBox(width: 8),
-            const Text('Confirm Downgrade'),
+            Text(AppLocalizations.of(context).sensitivitySettingsConfirmDowngrade),
           ],
         ),
         content: Column(
@@ -221,7 +222,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -237,7 +238,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
             style: FilledButton.styleFrom(
               backgroundColor: Colors.orange,
             ),
-            child: const Text('Confirm'),
+            child: Text(AppLocalizations.of(context).commonConfirm),
           ),
         ],
       ),
@@ -417,7 +418,7 @@ class _FieldListTile extends StatelessWidget {
               size: 20,
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            tooltip: 'Change sensitivity level',
+            tooltip: AppLocalizations.of(context).sensitivitySettingsChangeLevel,
             onSelected: (value) {
               if (value == 'upgrade' && onUpgrade != null) {
                 onUpgrade!(field.fieldId);
@@ -510,7 +511,7 @@ class _SensitivitySettingsView extends StatelessWidget {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('Sensitivity Settings'),
+        title: Text(AppLocalizations.of(context).sensitivitySettingsTitle),
         actions: const [
           HeaderActionButtons(),
         ],
@@ -526,7 +527,7 @@ class _SensitivitySettingsView extends StatelessWidget {
                     controller: searchController,
                     onChanged: onSearchChanged,
                     decoration: InputDecoration(
-                      hintText: 'Search fields...',
+                      hintText: AppLocalizations.of(context).sensitivitySettingsSearchHint,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: searchQuery.isNotEmpty
                           ? IconButton(
@@ -687,7 +688,7 @@ class _SensitivitySettingsView extends StatelessWidget {
                               const SizedBox(height: 8),
                               TextButton(
                                 onPressed: onClearSearch,
-                                child: const Text('Clear search'),
+                                child: Text(AppLocalizations.of(context).sensitivitySettingsClearSearch),
                               ),
                             ],
                           ),

@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sync_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
@@ -38,7 +39,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: const Text('Device Sync'),
+        title: Text(AppLocalizations.of(context).syncTitle),
         actions: const [
           HeaderActionButtons(),
         ],
@@ -163,7 +164,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     if (accountId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No active account for sync')),
+          SnackBar(content: Text(AppLocalizations.of(context).syncNoActiveAccount)),
         );
       }
       return;
@@ -184,7 +185,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
 
     if (address.isEmpty || pairingKeyHex.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter address and pairing key')),
+        SnackBar(content: Text(AppLocalizations.of(context).syncEnterAddressAndKey)),
       );
       return;
     }
@@ -192,7 +193,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     final pairingKey = _hexToBytes(pairingKeyHex);
     if (pairingKey == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid pairing key hex')),
+        SnackBar(content: Text(AppLocalizations.of(context).syncInvalidPairingKey)),
       );
       return;
     }
@@ -201,7 +202,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     if (accountId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No active account for sync')),
+          SnackBar(content: Text(AppLocalizations.of(context).syncNoActiveAccount)),
         );
       }
       return;
@@ -222,7 +223,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     await Clipboard.setData(ClipboardData(text: hex));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pairing key copied to clipboard')),
+        SnackBar(content: Text(AppLocalizations.of(context).syncPairingKeyCopied)),
       );
     }
   }
@@ -439,11 +440,11 @@ class _ManualConnectionCard extends StatelessWidget {
           children: [
             TextField(
               controller: addressController,
-              decoration: const InputDecoration(
-                labelText: 'Remote Address',
-                hintText: '192.168.1.5:9900',
-                prefixIcon: Icon(Icons.computer),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context).syncRemoteAddress,
+                hintText: AppLocalizations.of(context).syncRemoteAddressHint,
+                prefixIcon: const Icon(Icons.computer),
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.url,
             ),
@@ -451,8 +452,8 @@ class _ManualConnectionCard extends StatelessWidget {
             TextField(
               controller: pairingKeyController,
               decoration: InputDecoration(
-                labelText: 'Pairing Key (hex)',
-                hintText: 'Enter shared pairing key',
+                labelText: AppLocalizations.of(context).syncPairingKey,
+                hintText: AppLocalizations.of(context).syncPairingKeyHint,
                 prefixIcon: const Icon(Icons.vpn_key),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
@@ -514,7 +515,7 @@ class _PairingKeyCard extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onGenerateKey,
               icon: const Icon(Icons.key, size: 18),
-              label: const Text('Generate & Copy Key'),
+              label: Text(AppLocalizations.of(context).syncGenerateAndCopyKey),
             ),
           ],
         ),
@@ -641,7 +642,7 @@ class _SyncDialogState extends State<_SyncDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Sync with ${widget.device.name}'),
+      title: Text(AppLocalizations.of(context).syncWithDevice(widget.device.name)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -653,7 +654,7 @@ class _SyncDialogState extends State<_SyncDialog> {
           TextField(
             controller: _keyController,
             decoration: InputDecoration(
-              labelText: 'Pairing Key (hex)',
+              labelText: AppLocalizations.of(context).syncPairingKey,
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
@@ -670,7 +671,7 @@ class _SyncDialogState extends State<_SyncDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context).commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -678,14 +679,14 @@ class _SyncDialogState extends State<_SyncDialog> {
             final bytes = _hexToBytes(hex);
             if (bytes == null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Invalid pairing key hex')),
+                SnackBar(content: Text(AppLocalizations.of(context).syncInvalidPairingKey)),
               );
               return;
             }
             Navigator.pop(context);
             widget.onSync(bytes);
           },
-          child: const Text('Sync'),
+          child: Text(AppLocalizations.of(context).syncButton),
         ),
       ],
     );

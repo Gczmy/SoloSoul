@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 // ignore_for_file: use_build_context_synchronously
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/utils/log_section_utils.dart';
@@ -93,7 +94,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       return Scaffold(
         appBar: SoloGlassAppBar(
           backRoute: AppRoutes.home,
-          title: const Text('Trash'),
+          title: Text(AppLocalizations.of(context).trashTitle),
         ),
         body: Center(
           child: Column(
@@ -113,7 +114,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               FilledButton.icon(
                 onPressed: _verifyPassword,
                 icon: const Icon(Icons.lock_open),
-                label: const Text('Verify'),
+                label: Text(AppLocalizations.of(context).trashVerify),
               ),
             ],
           ),
@@ -151,7 +152,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade700),
             const SizedBox(width: 8),
-            const Text('Empty Trash'),
+            Text(AppLocalizations.of(context).trashEmptyTrash),
           ],
         ),
         content: Column(
@@ -195,7 +196,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -245,7 +246,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               }
             },
             style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
-            child: const Text('Empty Trash'),
+            child: Text(AppLocalizations.of(context).trashEmptyTrash),
           ),
         ],
       ),
@@ -256,11 +257,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.restore, color: AppTheme.primaryColor),
-            SizedBox(width: 8),
-            Text('Confirm Restore'),
+            const Icon(Icons.restore, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.of(context).trashConfirmRestore),
           ],
         ),
         content: Text(
@@ -270,11 +271,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Restore'),
+            child: Text(AppLocalizations.of(context).commonConfirm),
           ),
         ],
       ),
@@ -308,7 +309,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade700),
             const SizedBox(width: 8),
-            const Text('Confirm Permanent Delete'),
+            Text(AppLocalizations.of(context).trashConfirmPermanentDelete),
           ],
         ),
         content: Column(
@@ -352,7 +353,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -360,7 +361,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               backgroundColor: AppTheme.errorColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete Permanently'),
+            child: Text(AppLocalizations.of(context).commonDelete),
           ),
         ],
       ),
@@ -546,7 +547,7 @@ class _TrashViewWidget extends StatelessWidget {
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: const Text('Trash'),
+        title: Text(AppLocalizations.of(context).trashTitle),
         actions: const [HeaderActionButtons()],
       ),
       body: Column(
@@ -558,7 +559,7 @@ class _TrashViewWidget extends StatelessWidget {
               controller: searchController,
               onChanged: onSearchChanged,
               decoration: InputDecoration(
-                hintText: 'Search trash...',
+                hintText: AppLocalizations.of(context).trashSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: searchQuery.isNotEmpty
                     ? IconButton(

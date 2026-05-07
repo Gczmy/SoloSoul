@@ -788,6 +788,396 @@ abstract class AppLocalizations {
   /// **'phone'**
   String get profileTypePhone;
 
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsDebugModeEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug mode enabled'**
+  String get settingsDebugModeEnabled;
+
+  /// No description provided for @settingsInvalidPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid password'**
+  String get settingsInvalidPassword;
+
+  /// No description provided for @settingsPasswordChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Master password changed successfully'**
+  String get settingsPasswordChangedSuccess;
+
+  /// No description provided for @settingsOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get settingsOk;
+
+  /// No description provided for @settingsEnableDebugMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Debug Mode'**
+  String get settingsEnableDebugMode;
+
+  /// No description provided for @settingsEnableDebugModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to enable Debug Log.'**
+  String get settingsEnableDebugModeDesc;
+
+  /// No description provided for @settingsUseBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {biometricType}'**
+  String settingsUseBiometric(String biometricType);
+
+  /// No description provided for @settingsOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get settingsOr;
+
+  /// No description provided for @settingsMasterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Password'**
+  String get settingsMasterPassword;
+
+  /// No description provided for @settingsShowPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password hint'**
+  String get settingsShowPasswordHint;
+
+  /// No description provided for @settingsEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get settingsEnable;
+
+  /// No description provided for @securitySettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Settings'**
+  String get securitySettingsTitle;
+
+  /// No description provided for @securitySettingsBiometricFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric authentication failed or was cancelled'**
+  String get securitySettingsBiometricFailed;
+
+  /// No description provided for @securitySettingsBiometricEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric unlock enabled'**
+  String get securitySettingsBiometricEnabled;
+
+  /// No description provided for @securitySettingsResetToDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Defaults'**
+  String get securitySettingsResetToDefaults;
+
+  /// No description provided for @securitySettingsResetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Security Settings'**
+  String get securitySettingsResetTitle;
+
+  /// No description provided for @securitySettingsResetConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This will reset all security settings to their default values. Are you sure?'**
+  String get securitySettingsResetConfirm;
+
+  /// No description provided for @securitySettingsReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get securitySettingsReset;
+
+  /// No description provided for @securitySettingsNotImplemented.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature not yet implemented'**
+  String get securitySettingsNotImplemented;
+
+  /// No description provided for @sensitivitySettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity Settings'**
+  String get sensitivitySettingsTitle;
+
+  /// No description provided for @sensitivitySettingsVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get sensitivitySettingsVerify;
+
+  /// No description provided for @sensitivitySettingsConfirmDowngrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Downgrade'**
+  String get sensitivitySettingsConfirmDowngrade;
+
+  /// No description provided for @sensitivitySettingsChangeLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Change sensitivity level'**
+  String get sensitivitySettingsChangeLevel;
+
+  /// No description provided for @sensitivitySettingsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search fields...'**
+  String get sensitivitySettingsSearchHint;
+
+  /// No description provided for @sensitivitySettingsClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get sensitivitySettingsClearSearch;
+
+  /// No description provided for @trashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trashTitle;
+
+  /// No description provided for @trashVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get trashVerify;
+
+  /// No description provided for @trashEmptyTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Trash'**
+  String get trashEmptyTrash;
+
+  /// No description provided for @trashConfirmRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Restore'**
+  String get trashConfirmRestore;
+
+  /// No description provided for @trashRestoreConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore \"{name}\"?'**
+  String trashRestoreConfirm(String name);
+
+  /// No description provided for @trashConfirmPermanentDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Permanent Delete'**
+  String get trashConfirmPermanentDelete;
+
+  /// No description provided for @trashSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search trash...'**
+  String get trashSearchHint;
+
+  /// No description provided for @syncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Sync'**
+  String get syncTitle;
+
+  /// No description provided for @syncNoActiveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'No active account for sync'**
+  String get syncNoActiveAccount;
+
+  /// No description provided for @syncEnterAddressAndKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter address and pairing key'**
+  String get syncEnterAddressAndKey;
+
+  /// No description provided for @syncInvalidPairingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid pairing key hex'**
+  String get syncInvalidPairingKey;
+
+  /// No description provided for @syncPairingKeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing key copied to clipboard'**
+  String get syncPairingKeyCopied;
+
+  /// No description provided for @syncRemoteAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote Address'**
+  String get syncRemoteAddress;
+
+  /// No description provided for @syncRemoteAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'192.168.1.5:9900'**
+  String get syncRemoteAddressHint;
+
+  /// No description provided for @syncPairingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing Key (hex)'**
+  String get syncPairingKey;
+
+  /// No description provided for @syncPairingKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter shared pairing key'**
+  String get syncPairingKeyHint;
+
+  /// No description provided for @syncGenerateAndCopyKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate & Copy Key'**
+  String get syncGenerateAndCopyKey;
+
+  /// No description provided for @syncWithDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync with {name}'**
+  String syncWithDevice(String name);
+
+  /// No description provided for @syncButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get syncButton;
+
+  /// No description provided for @dataManagementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Management'**
+  String get dataManagementTitle;
+
+  /// No description provided for @dataManagementBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Now'**
+  String get dataManagementBackupNow;
+
+  /// No description provided for @dataManagementSpecialBackupLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Backup Limit Reached'**
+  String get dataManagementSpecialBackupLimit;
+
+  /// No description provided for @dataManagementNameBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Name Special Backup'**
+  String get dataManagementNameBackup;
+
+  /// No description provided for @dataManagementBackupNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Before Major Update'**
+  String get dataManagementBackupNameHint;
+
+  /// No description provided for @dataManagementBackupNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup name'**
+  String get dataManagementBackupNameLabel;
+
+  /// No description provided for @dataManagementCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get dataManagementCreate;
+
+  /// No description provided for @dataManagementRenameBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Special Backup'**
+  String get dataManagementRenameBackup;
+
+  /// No description provided for @dataManagementNewName.
+  ///
+  /// In en, this message translates to:
+  /// **'New name'**
+  String get dataManagementNewName;
+
+  /// No description provided for @dataManagementRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get dataManagementRename;
+
+  /// No description provided for @dataManagementRestoreBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Special Backup?'**
+  String get dataManagementRestoreBackupTitle;
+
+  /// No description provided for @dataManagementRestoreBackupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore special backup \"{name}\"?'**
+  String dataManagementRestoreBackupConfirm(String name);
+
+  /// No description provided for @dataManagementDeleteBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Special Backup?'**
+  String get dataManagementDeleteBackupTitle;
+
+  /// No description provided for @dataManagementDeleteBackupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete special backup \"{name}\"?'**
+  String dataManagementDeleteBackupConfirm(String name);
+
+  /// No description provided for @operationLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation Log'**
+  String get operationLogTitle;
+
+  /// No description provided for @operationLogVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get operationLogVerify;
+
+  /// No description provided for @operationLogClearLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Log'**
+  String get operationLogClearLogTitle;
+
+  /// No description provided for @operationLogClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get operationLogClear;
+
+  /// No description provided for @operationLogClearLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear log'**
+  String get operationLogClearLog;
+
+  /// No description provided for @operationLogSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search logs...'**
+  String get operationLogSearchHint;
+
   /// No description provided for @objectEditorDeletePropertyConfirm.
   ///
   /// In en, this message translates to:

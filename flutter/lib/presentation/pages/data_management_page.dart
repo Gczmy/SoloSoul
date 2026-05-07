@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -151,7 +152,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   Future<bool> _showConfirmDialog({
     required String title,
     required String content,
-    String confirmLabel = 'Confirm',
+    String? confirmLabel,
   }) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -161,11 +162,11 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(ctx).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(confirmLabel),
+            child: Text(confirmLabel ?? AppLocalizations.of(ctx).commonConfirm),
           ),
         ],
       ),
@@ -268,7 +269,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Special Backup Limit Reached'),
+            title: Text(AppLocalizations.of(context).dataManagementSpecialBackupLimit),
             content: const Text(
               'You can keep up to ${BackupService.maxSpecialBackupCount} special backups. '
               'Please delete an existing one before promoting.',
@@ -276,7 +277,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context).settingsOk),
               ),
             ],
           ),
@@ -290,27 +291,27 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Name Special Backup'),
+          title: Text(AppLocalizations.of(context).dataManagementNameBackup),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Before Major Update',
-              labelText: 'Backup name',
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).dataManagementBackupNameHint,
+              labelText: AppLocalizations.of(context).dataManagementBackupNameLabel,
             ),
             maxLength: 50,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 final text = controller.text.trim();
                 if (text.isNotEmpty) Navigator.of(ctx).pop(text);
               },
-              child: const Text('Save'),
+              child: Text(AppLocalizations.of(context).commonSave),
             ),
           ],
         );
@@ -362,7 +363,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Special Backup Limit Reached'),
+            title: Text(AppLocalizations.of(context).dataManagementSpecialBackupLimit),
             content: const Text(
               'You can keep up to ${BackupService.maxSpecialBackupCount} special backups. '
               'Please delete an existing one before creating a new special backup.',
@@ -370,7 +371,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context).settingsOk),
               ),
             ],
           ),
@@ -384,27 +385,27 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Name Special Backup'),
+          title: Text(AppLocalizations.of(context).dataManagementNameBackup),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Before Major Update',
-              labelText: 'Backup name',
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).dataManagementBackupNameHint,
+              labelText: AppLocalizations.of(context).dataManagementBackupNameLabel,
             ),
             maxLength: 50,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 final text = controller.text.trim();
                 if (text.isNotEmpty) Navigator.of(ctx).pop(text);
               },
-              child: const Text('Create'),
+              child: Text(AppLocalizations.of(context).dataManagementCreate),
             ),
           ],
         );
@@ -460,26 +461,26 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Rename Special Backup'),
+          title: Text(AppLocalizations.of(context).dataManagementRenameBackup),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'New name',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).dataManagementNewName,
             ),
             maxLength: 50,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             FilledButton(
               onPressed: () {
                 final text = controller.text.trim();
                 if (text.isNotEmpty) Navigator.of(ctx).pop(text);
               },
-              child: const Text('Rename'),
+              child: Text(AppLocalizations.of(context).dataManagementRename),
             ),
           ],
         );
@@ -515,19 +516,19 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restore Special Backup?'),
+        title: Text(AppLocalizations.of(context).dataManagementRestoreBackupTitle),
         content: Text(
-          'This will overwrite your current data with the special backup "${entry.fileName.replaceAll('.backup', '')}". '
+          '${AppLocalizations.of(context).dataManagementRestoreBackupConfirm(entry.fileName.replaceAll('.backup', ''))}\n'
           'A safety backup of the current state will be created first.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Restore'),
+            child: Text(AppLocalizations.of(context).commonConfirm),
           ),
         ],
       ),
@@ -570,12 +571,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Special Backup?'),
-        content: Text('Delete special backup "${entry.fileName.replaceAll('.backup', '')}"?'),
+        title: Text(AppLocalizations.of(context).dataManagementDeleteBackupTitle),
+        content: Text(AppLocalizations.of(context).dataManagementDeleteBackupConfirm(entry.fileName.replaceAll('.backup', ''))),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -583,7 +584,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context).commonDelete),
           ),
         ],
       ),
@@ -610,7 +611,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('Data Management'),
+        title: Text(AppLocalizations.of(context).dataManagementTitle),
         actions: [
           if (_isCreating || _isRestoring || _isCreatingSpecial)
             const Padding(
@@ -744,7 +745,7 @@ class _BackupSection extends StatelessWidget {
                           ),
                         )
                       : const Icon(Icons.backup, size: 18),
-                  label: const Text('Backup Now'),
+                  label: Text(AppLocalizations.of(context).dataManagementBackupNow),
                 ),
               ),
             ],
@@ -893,7 +894,7 @@ class _RestoreSection extends StatelessWidget {
               TextButton.icon(
                 onPressed: isCreatingSpecial ? null : onCreateSpecialBackup,
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Create'),
+                label: Text(AppLocalizations.of(context).dataManagementCreate),
               ),
             ],
           ),

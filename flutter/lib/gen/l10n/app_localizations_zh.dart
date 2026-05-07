@@ -378,6 +378,211 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileTypePhone => '电话';
 
   @override
+  String get settingsTitle => '设置';
+
+  @override
+  String get settingsDebugModeEnabled => '调试模式已启用';
+
+  @override
+  String get settingsInvalidPassword => '密码无效';
+
+  @override
+  String get settingsPasswordChangedSuccess => '主密码修改成功';
+
+  @override
+  String get settingsOk => '确定';
+
+  @override
+  String get settingsEnableDebugMode => '启用调试模式';
+
+  @override
+  String get settingsEnableDebugModeDesc => '输入主密码以启用调试日志。';
+
+  @override
+  String settingsUseBiometric(String biometricType) {
+    return '使用 $biometricType';
+  }
+
+  @override
+  String get settingsOr => '或';
+
+  @override
+  String get settingsMasterPassword => '主密码';
+
+  @override
+  String get settingsShowPasswordHint => '显示密码提示';
+
+  @override
+  String get settingsEnable => '启用';
+
+  @override
+  String get securitySettingsTitle => '安全设置';
+
+  @override
+  String get securitySettingsBiometricFailed => '生物识别失败或已取消';
+
+  @override
+  String get securitySettingsBiometricEnabled => '生物识别解锁已启用';
+
+  @override
+  String get securitySettingsResetToDefaults => '恢复默认';
+
+  @override
+  String get securitySettingsResetTitle => '重置安全设置';
+
+  @override
+  String get securitySettingsResetConfirm => '这将把所有安全设置恢复为默认值。确定吗？';
+
+  @override
+  String get securitySettingsReset => '重置';
+
+  @override
+  String get securitySettingsNotImplemented => '功能尚未实现';
+
+  @override
+  String get sensitivitySettingsTitle => '敏感度设置';
+
+  @override
+  String get sensitivitySettingsVerify => '验证';
+
+  @override
+  String get sensitivitySettingsConfirmDowngrade => '确认降级';
+
+  @override
+  String get sensitivitySettingsChangeLevel => '更改敏感度级别';
+
+  @override
+  String get sensitivitySettingsSearchHint => '搜索字段...';
+
+  @override
+  String get sensitivitySettingsClearSearch => '清除搜索';
+
+  @override
+  String get trashTitle => '回收站';
+
+  @override
+  String get trashVerify => '验证';
+
+  @override
+  String get trashEmptyTrash => '清空回收站';
+
+  @override
+  String get trashConfirmRestore => '确认恢复';
+
+  @override
+  String trashRestoreConfirm(String name) {
+    return '恢复 \"$name\"？';
+  }
+
+  @override
+  String get trashConfirmPermanentDelete => '确认永久删除';
+
+  @override
+  String get trashSearchHint => '搜索回收站...';
+
+  @override
+  String get syncTitle => '设备同步';
+
+  @override
+  String get syncNoActiveAccount => '没有用于同步的活跃账户';
+
+  @override
+  String get syncEnterAddressAndKey => '输入地址和配对密钥';
+
+  @override
+  String get syncInvalidPairingKey => '配对密钥无效';
+
+  @override
+  String get syncPairingKeyCopied => '配对密钥已复制到剪贴板';
+
+  @override
+  String get syncRemoteAddress => '远程地址';
+
+  @override
+  String get syncRemoteAddressHint => '192.168.1.5:9900';
+
+  @override
+  String get syncPairingKey => '配对密钥 (hex)';
+
+  @override
+  String get syncPairingKeyHint => '输入共享配对密钥';
+
+  @override
+  String get syncGenerateAndCopyKey => '生成并复制密钥';
+
+  @override
+  String syncWithDevice(String name) {
+    return '与 $name 同步';
+  }
+
+  @override
+  String get syncButton => '同步';
+
+  @override
+  String get dataManagementTitle => '数据管理';
+
+  @override
+  String get dataManagementBackupNow => '立即备份';
+
+  @override
+  String get dataManagementSpecialBackupLimit => '特殊备份数量已达上限';
+
+  @override
+  String get dataManagementNameBackup => '命名特殊备份';
+
+  @override
+  String get dataManagementBackupNameHint => '例如: 大更新前';
+
+  @override
+  String get dataManagementBackupNameLabel => '备份名称';
+
+  @override
+  String get dataManagementCreate => '创建';
+
+  @override
+  String get dataManagementRenameBackup => '重命名特殊备份';
+
+  @override
+  String get dataManagementNewName => '新名称';
+
+  @override
+  String get dataManagementRename => '重命名';
+
+  @override
+  String get dataManagementRestoreBackupTitle => '恢复特殊备份？';
+
+  @override
+  String dataManagementRestoreBackupConfirm(String name) {
+    return '恢复特殊备份 \"$name\"？';
+  }
+
+  @override
+  String get dataManagementDeleteBackupTitle => '删除特殊备份？';
+
+  @override
+  String dataManagementDeleteBackupConfirm(String name) {
+    return '删除特殊备份 \"$name\"？';
+  }
+
+  @override
+  String get operationLogTitle => '操作日志';
+
+  @override
+  String get operationLogVerify => '验证';
+
+  @override
+  String get operationLogClearLogTitle => '清空日志';
+
+  @override
+  String get operationLogClear => '清空';
+
+  @override
+  String get operationLogClearLog => '清空日志';
+
+  @override
+  String get operationLogSearchHint => '搜索日志...';
+
+  @override
   String objectEditorDeletePropertyConfirm(String name) {
     return '确定要删除 \"$name\" 吗？';
   }

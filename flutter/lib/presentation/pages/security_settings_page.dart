@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
@@ -49,6 +50,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
   }
 
   Future<void> _onBiometricsToggled(bool value) async {
+    final l10n = AppLocalizations.of(context);
     if (!value) {
       unawaited(_updateSettings(_settings.copyWith(biometricsEnabled: false)));
       setState(() => _biometricsEnabled = false);
@@ -67,12 +69,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
     if (!authenticated) {
       if (mounted) {
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: Colors.white, size: 20),
-                SizedBox(width: 12),
-                Text('Biometric authentication failed or was cancelled'),
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Text(l10n.securitySettingsBiometricFailed),
               ],
             ),
             behavior: SnackBarBehavior.floating,
@@ -113,12 +115,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
       );
     } else {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Text('Biometric unlock enabled'),
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 12),
+              Text(l10n.securitySettingsBiometricEnabled),
             ],
           ),
           behavior: SnackBarBehavior.floating,
@@ -134,7 +136,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('Security Settings'),
+        title: Text(AppLocalizations.of(context).securitySettingsTitle),
         actions: const [
           HeaderActionButtons(),
         ],
@@ -254,7 +256,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                     child: TextButton.icon(
                       onPressed: () => _showResetConfirmation(context),
                       icon: const Icon(Icons.restore, size: 18),
-                      label: const Text('Reset to Defaults'),
+                      label: Text(AppLocalizations.of(context).securitySettingsResetToDefaults),
                       style: TextButton.styleFrom(
                         foregroundColor: theme.colorScheme.error,
                       ),
@@ -299,16 +301,16 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Security Settings'),
-        content: const Text('This will reset all security settings to their default values. Are you sure?'),
+        title: Text(AppLocalizations.of(context).securitySettingsResetTitle),
+        content: Text(AppLocalizations.of(context).securitySettingsResetConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Reset'),
+            child: Text(AppLocalizations.of(context).securitySettingsReset),
           ),
         ],
       ),
@@ -326,17 +328,17 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
 
   void _showNotImplementedSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Row(
           children: [
-            Icon(Icons.info_outline, color: Colors.white, size: 20),
-            SizedBox(width: 12),
-            Text('Feature not yet implemented'),
+            const Icon(Icons.info_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).securitySettingsNotImplemented),
           ],
         ),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppTheme.primaryColor,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

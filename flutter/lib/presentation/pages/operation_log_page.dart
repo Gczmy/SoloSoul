@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/utils/auth_utils.dart';
@@ -56,7 +57,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
   Widget build(BuildContext context) {
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       return Scaffold(
-        appBar: SoloGlassAppBar(title: const Text('Operation Log')),
+        appBar: SoloGlassAppBar(title: Text(AppLocalizations.of(context).operationLogTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +75,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _verifyPassword,
-                child: const Text('Verify'),
+                child: Text(AppLocalizations.of(context).operationLogVerify),
               ),
             ],
           ),
@@ -112,21 +113,21 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Log'),
+        title: Text(AppLocalizations.of(context).operationLogClearLogTitle),
         content: const Text(
           'Are you sure you want to clear all operation history?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           TextButton(
             onPressed: () {
               OperationLogService.instance.clearEntries();
               Navigator.pop(context);
             },
-            child: const Text('Clear', style: TextStyle(color: AppTheme.errorColor)),
+            child: Text(AppLocalizations.of(context).operationLogClear, style: const TextStyle(color: AppTheme.errorColor)),
           ),
         ],
       ),
@@ -171,14 +172,14 @@ class _OperationLogView extends StatelessWidget {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('Operation Log'),
+        title: Text(AppLocalizations.of(context).operationLogTitle),
         actions: [
           const HeaderActionButtons(),
           if (entries.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: onConfirmClearLog,
-              tooltip: 'Clear log',
+              tooltip: AppLocalizations.of(context).operationLogClearLog,
             ),
         ],
       ),
@@ -191,7 +192,7 @@ class _OperationLogView extends StatelessWidget {
               controller: searchController,
               onChanged: onSearchChanged,
               decoration: InputDecoration(
-                hintText: 'Search logs...',
+                hintText: AppLocalizations.of(context).operationLogSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: searchQuery.isNotEmpty
                     ? IconButton(

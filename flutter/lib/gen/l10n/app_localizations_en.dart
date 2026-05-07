@@ -384,6 +384,215 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileTypePhone => 'phone';
 
   @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsDebugModeEnabled => 'Debug mode enabled';
+
+  @override
+  String get settingsInvalidPassword => 'Invalid password';
+
+  @override
+  String get settingsPasswordChangedSuccess =>
+      'Master password changed successfully';
+
+  @override
+  String get settingsOk => 'OK';
+
+  @override
+  String get settingsEnableDebugMode => 'Enable Debug Mode';
+
+  @override
+  String get settingsEnableDebugModeDesc =>
+      'Enter your master password to enable Debug Log.';
+
+  @override
+  String settingsUseBiometric(String biometricType) {
+    return 'Use $biometricType';
+  }
+
+  @override
+  String get settingsOr => 'or';
+
+  @override
+  String get settingsMasterPassword => 'Master Password';
+
+  @override
+  String get settingsShowPasswordHint => 'Show password hint';
+
+  @override
+  String get settingsEnable => 'Enable';
+
+  @override
+  String get securitySettingsTitle => 'Security Settings';
+
+  @override
+  String get securitySettingsBiometricFailed =>
+      'Biometric authentication failed or was cancelled';
+
+  @override
+  String get securitySettingsBiometricEnabled => 'Biometric unlock enabled';
+
+  @override
+  String get securitySettingsResetToDefaults => 'Reset to Defaults';
+
+  @override
+  String get securitySettingsResetTitle => 'Reset Security Settings';
+
+  @override
+  String get securitySettingsResetConfirm =>
+      'This will reset all security settings to their default values. Are you sure?';
+
+  @override
+  String get securitySettingsReset => 'Reset';
+
+  @override
+  String get securitySettingsNotImplemented => 'Feature not yet implemented';
+
+  @override
+  String get sensitivitySettingsTitle => 'Sensitivity Settings';
+
+  @override
+  String get sensitivitySettingsVerify => 'Verify';
+
+  @override
+  String get sensitivitySettingsConfirmDowngrade => 'Confirm Downgrade';
+
+  @override
+  String get sensitivitySettingsChangeLevel => 'Change sensitivity level';
+
+  @override
+  String get sensitivitySettingsSearchHint => 'Search fields...';
+
+  @override
+  String get sensitivitySettingsClearSearch => 'Clear search';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashVerify => 'Verify';
+
+  @override
+  String get trashEmptyTrash => 'Empty Trash';
+
+  @override
+  String get trashConfirmRestore => 'Confirm Restore';
+
+  @override
+  String trashRestoreConfirm(String name) {
+    return 'Restore \"$name\"?';
+  }
+
+  @override
+  String get trashConfirmPermanentDelete => 'Confirm Permanent Delete';
+
+  @override
+  String get trashSearchHint => 'Search trash...';
+
+  @override
+  String get syncTitle => 'Device Sync';
+
+  @override
+  String get syncNoActiveAccount => 'No active account for sync';
+
+  @override
+  String get syncEnterAddressAndKey => 'Enter address and pairing key';
+
+  @override
+  String get syncInvalidPairingKey => 'Invalid pairing key hex';
+
+  @override
+  String get syncPairingKeyCopied => 'Pairing key copied to clipboard';
+
+  @override
+  String get syncRemoteAddress => 'Remote Address';
+
+  @override
+  String get syncRemoteAddressHint => '192.168.1.5:9900';
+
+  @override
+  String get syncPairingKey => 'Pairing Key (hex)';
+
+  @override
+  String get syncPairingKeyHint => 'Enter shared pairing key';
+
+  @override
+  String get syncGenerateAndCopyKey => 'Generate & Copy Key';
+
+  @override
+  String syncWithDevice(String name) {
+    return 'Sync with $name';
+  }
+
+  @override
+  String get syncButton => 'Sync';
+
+  @override
+  String get dataManagementTitle => 'Data Management';
+
+  @override
+  String get dataManagementBackupNow => 'Backup Now';
+
+  @override
+  String get dataManagementSpecialBackupLimit => 'Special Backup Limit Reached';
+
+  @override
+  String get dataManagementNameBackup => 'Name Special Backup';
+
+  @override
+  String get dataManagementBackupNameHint => 'e.g. Before Major Update';
+
+  @override
+  String get dataManagementBackupNameLabel => 'Backup name';
+
+  @override
+  String get dataManagementCreate => 'Create';
+
+  @override
+  String get dataManagementRenameBackup => 'Rename Special Backup';
+
+  @override
+  String get dataManagementNewName => 'New name';
+
+  @override
+  String get dataManagementRename => 'Rename';
+
+  @override
+  String get dataManagementRestoreBackupTitle => 'Restore Special Backup?';
+
+  @override
+  String dataManagementRestoreBackupConfirm(String name) {
+    return 'Restore special backup \"$name\"?';
+  }
+
+  @override
+  String get dataManagementDeleteBackupTitle => 'Delete Special Backup?';
+
+  @override
+  String dataManagementDeleteBackupConfirm(String name) {
+    return 'Delete special backup \"$name\"?';
+  }
+
+  @override
+  String get operationLogTitle => 'Operation Log';
+
+  @override
+  String get operationLogVerify => 'Verify';
+
+  @override
+  String get operationLogClearLogTitle => 'Clear Log';
+
+  @override
+  String get operationLogClear => 'Clear';
+
+  @override
+  String get operationLogClearLog => 'Clear log';
+
+  @override
+  String get operationLogSearchHint => 'Search logs...';
+
+  @override
   String objectEditorDeletePropertyConfirm(String name) {
     return 'Are you sure you want to delete \"$name\"?';
   }
