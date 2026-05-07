@@ -125,7 +125,10 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       ),
     );
     } finally {
-      controller.dispose();
+      // 推迟 dispose 到下一帧，避免对话框退场动画期间 TextField 仍尝试访问已 dispose 的 controller
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.dispose();
+      });
     }
   }
 
