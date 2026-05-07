@@ -262,6 +262,50 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? iconName,
     Map<String, PropertyValue>? properties,
   }) async {
+    var objects = state.objects;
+
+    // 防御：如果 parent 是预设 section 但不存在，自动创建（连带 page）
+    if (parentId != null && _service.getObjectById(objects, parentId) == null) {
+      final meta = getSectionMeta(parentId);
+      if (meta != null) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        // 确保 page 存在
+        final pageExists = _service.getObjectById(objects, meta.parentPageId) != null;
+        if (!pageExists) {
+          final page = UnifiedObject(
+            id: meta.parentPageId,
+            typeId: 'page',
+            name: pageNameFromId(meta.parentPageId),
+            iconName: 'article',
+            parentId: null,
+            childrenIds: const [],
+            properties: const {},
+            isDeleted: false,
+            deletedAt: null,
+            createdAt: now,
+            updatedAt: now,
+          );
+          objects = _service.addObject(objects, page);
+        }
+        // 创建 section
+        final section = UnifiedObject(
+          id: parentId,
+          typeId: 'collection',
+          name: meta.name,
+          iconName: meta.iconName,
+          parentId: meta.parentPageId,
+          childrenIds: const [],
+          properties: const {},
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        objects = _service.addObject(objects, section);
+        objects = _service.addChild(objects, meta.parentPageId, parentId);
+      }
+    }
+
     final object = _service.createObject(
       name: name,
       typeId: typeId,
@@ -270,7 +314,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       properties: properties,
     );
 
-    var updatedObjects = _service.addObject(state.objects, object);
+    var updatedObjects = _service.addObject(objects, object);
 
     // If parent specified, add child reference to parent's childrenIds
     if (parentId != null) {
