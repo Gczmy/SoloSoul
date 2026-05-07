@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +8,7 @@ import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
 import 'package:solosoul_flutter/core/services/mrz_vault_service.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
+import 'package:solosoul_flutter/core/services/pdf_render_service.dart';
 import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
@@ -164,6 +166,13 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           label: 'Choose from Gallery',
           description: 'Select an existing photo',
           onTap: () => _pickImage(ImageSource.gallery),
+        ),
+        const SizedBox(height: 12),
+        _ActionButton(
+          icon: Icons.picture_as_pdf_outlined,
+          label: 'Select PDF',
+          description: 'Import a scanned document from PDF',
+          onTap: _pickPdf,
         ),
         const SizedBox(height: 24),
         // 提示
@@ -393,6 +402,105 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       }
     } on OcrException catch (e) {
       SoloLog.w('OcrScannerSheet', 'OCR error: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
+  Future<void> _pickPdf() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: false,
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final path = result.files.first.path;
+    if (path == null) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final bytes = await PdfRenderService().renderPage(
+        path,
+        pageNumber: 1,
+        dpi: 300,
+      );
+
+      if (bytes == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Failed to render PDF page. The file may be corrupted or password-protected.';
+          });
+        }
+        return;
+      }
+
+      final ocrResult = await OcrService.recognizeText(bytes);
+      final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
+
+      MrzData? mrzData;
+      if (mrzCandidates.isNotEmpty) {
+        final td3Lines = mrzCandidates.where((l) => l.length == 44).toList();
+        if (td3Lines.length >= 2) {
+          final lastTwo = td3Lines.sublist(td3Lines.length - 2);
+          mrzData = MrzParser.parse(lastTwo);
+        }
+        if (mrzData == null) {
+          final td1Lines = mrzCandidates.where((l) => l.length == 30).toList();
+          if (td1Lines.length >= 3) {
+            final lastThree = td1Lines.sublist(td1Lines.length - 3);
+            mrzData = MrzParser.parse(lastThree);
+          }
+        }
+        if (mrzData == null) {
+          final td2Lines = mrzCandidates.where((l) => l.length == 36).toList();
+          if (td2Lines.length >= 2) {
+            final lastTwo = td2Lines.sublist(td2Lines.length - 2);
+            mrzData = MrzParser.parse(lastTwo);
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          if (mrzData != null) {
+            _result = SmartOcrMrzResult(
+              mrzData: mrzData,
+              rawOcrResult: ocrResult,
+            );
+          } else {
+            _result = SmartOcrTextResult(ocrResult);
+          }
+        });
+      }
+    } on OcrTextNotDetectedException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'No text detected in the PDF. '
+              'Please try again with a clearer scanned document.';
+        });
+      }
+    } on OcrTimeoutException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Recognition timed out. Please try again with a clearer PDF.';
+        });
+      }
+    } on OcrException catch (e) {
+      SoloLog.w('OcrScannerSheet', 'PDF OCR error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
+import 'package:solosoul_flutter/core/services/pdf_render_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
 
@@ -158,6 +160,13 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
           description: 'Select an existing photo',
           onTap: () => _pickImage(ImageSource.gallery),
         ),
+        const SizedBox(height: 12),
+        _ActionButton(
+          icon: Icons.picture_as_pdf_outlined,
+          label: 'Select PDF',
+          description: 'Import a scanned document from PDF',
+          onTap: _pickPdf,
+        ),
         const SizedBox(height: 24),
         // 提示
         Text(
@@ -299,6 +308,76 @@ class _MrzScannerSheetState extends State<MrzScannerSheet> {
       }
     } on OcrException catch (e) {
       SoloLog.w('MrzScannerSheet', 'OCR error: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
+  Future<void> _pickPdf() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: false, // 我们只取路径，PdfRenderService 自行读取
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final path = result.files.first.path;
+    if (path == null) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // 将 PDF 第一页渲染为高分辨率图像
+      final bytes = await PdfRenderService().renderPage(
+        path,
+        pageNumber: 1,
+        dpi: 300,
+      );
+
+      if (bytes == null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Failed to render PDF page. The file may be corrupted or password-protected.';
+          });
+        }
+        return;
+      }
+
+      _imageBytes = bytes;
+      final mrz = await OcrService.extractMrz(bytes);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _mrzResult = mrz;
+        });
+      }
+    } on OcrMrzNotFoundException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Could not find the MRZ area in the PDF. '
+              'Please make sure the scanned passport page is clearly visible.';
+        });
+      }
+    } on OcrTimeoutException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Recognition timed out. Please try again with a clearer PDF.';
+        });
+      }
+    } on OcrException catch (e) {
+      SoloLog.w('MrzScannerSheet', 'PDF OCR error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
