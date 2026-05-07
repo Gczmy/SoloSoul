@@ -130,10 +130,12 @@ class _TravelPageState extends ConsumerState<TravelPage> {
       ),
     };
 
+    // 关键：parentId 必须设为 passport section，否则对象不会显示在 Travel 页面
     final success = await notifier.createObject(
       name: '${mrz.surname} ${mrz.givenNames}'.trim(),
       typeId: 'travel_passport',
       iconName: 'book',
+      parentId: DefaultSectionIds.passport,
       properties: properties,
     );
 
