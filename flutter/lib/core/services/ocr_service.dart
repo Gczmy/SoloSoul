@@ -86,8 +86,8 @@ class OcrService {
       final recData = await rootBundle.load(_recAssetPath);
       final recBytes = recData.buffer.asUint8List();
 
-      SoloLog.d('OcrService',
-          'Loading models: DET=${detBytes.length} bytes, CLS=${clsBytes.length} bytes, REC=${recBytes.length} bytes');
+      // ignore: avoid_print
+      print('[OCR-DART] Loading models: DET=${detBytes.length} CLS=${clsBytes.length} REC=${recBytes.length}');
 
       // 2. 通过 FFI 初始化 Rust ONNX Session
       await frbOcrInitV2(
@@ -95,18 +95,35 @@ class OcrService {
         clsModelBytes: clsBytes,
         recModelBytes: recBytes,
       );
+
+      // 诊断：确认 Rust 端实际加载了哪些模型
+      final status = await frbOcrStatus();
+      // ignore: avoid_print
+      print('[OCR-DART] status after init: det=${status.detLoaded} cls=${status.clsLoaded} rec=${status.recLoaded}');
+
+      if (!status.recLoaded) {
+        throw OcrException(
+          'REC model failed to load in Rust. '
+          'Status: det=${status.detLoaded} cls=${status.clsLoaded} rec=${status.recLoaded}'
+        );
+      }
+
       _initialized = true;
 
-      SoloLog.d('OcrService', 'OCR engine initialized successfully (Phase 2, det+cls+rec)');
+      // ignore: avoid_print
+      print('[OCR-DART] engine initialized OK');
     } catch (e) { // ignore: avoid_catches_without_on_clauses — catches both Exception and Error (e.g. FlutterError for missing assets)
+      // ignore: avoid_print
+      print('[OCR-DART] initialize FAILED: $e');
       final errStr = e.toString().toLowerCase();
       if (errStr.contains('unable to load asset') || errStr.contains('asset not found')) {
         // Asset 文件缺失（最常见原因：模型未下载或 pubspec 未声明）
-        SoloLog.e('OcrService', 'ONNX model asset not found. Did you download models? See README.md', e);
         throw OcrException(
           'ONNX model missing. Run `./download_models.sh` or see README.md for manual download instructions.'
         );
       }
+      // 其他异常（如 Rust 模型加载失败）必须重新抛出，不能静默吞掉
+      throw OcrException('Failed to initialize OCR engine: $e');
     }
   }
 
