@@ -1,18 +1,26 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_config_service.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_prompt_templates.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/mrz_vault_service.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
 import 'package:solosoul_flutter/core/services/pdf_render_service.dart';
 import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/extracted_fields_preview.dart';
 import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
 
@@ -34,6 +42,18 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   String? _errorMessage;
   SmartOcrResult? _result;
   Set<String> _selectedFieldKeys = {};
+
+  // LLM Assist 状态
+  bool _useLlmAssist = false;
+  String? _selectedModelId;
+  List<_LlmModelOption> _modelOptions = const [];
+  bool _isCheckingModels = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadModelOptions();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +175,10 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        // LLM 协助区域
+        _buildLlmAssistSection(),
+        const SizedBox(height: 8),
         // 操作按钮
         _ActionButton(
           icon: Icons.camera_alt_outlined,
@@ -358,10 +381,6 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           'MRZ candidate lines: ${mrzCandidates.length}, candidates=$mrzCandidates');
 
       // Step 3: 从候选行中精确筛选并尝试解析 MRZ
-      // MrzParser.parse 要求传入的 lines 恰好匹配标准格式：
-      // - TD3 护照: 2 行 × 44 字符
-      // - TD1 身份证: 3 行 × 30 字符
-      // - TD2: 2 行 × 36 字符
       MrzData? mrzData;
       if (mrzCandidates.isNotEmpty) {
         // 优先尝试 TD3 护照（2 行 × 44 字符）— 取最后 2 个 44 字符行
@@ -401,20 +420,44 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         }
       }
 
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          if (mrzData != null) {
+      final finalMrzData = mrzData;
+      if (finalMrzData != null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
             _result = SmartOcrMrzResult(
-              mrzData: mrzData,
+              mrzData: finalMrzData,
               rawOcrResult: ocrResult,
             );
-          } else {
-            final extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+          });
+        }
+      } else {
+        var extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+
+        // LLM 协助提取
+        if (_useLlmAssist && _selectedModelId != null) {
+          try {
+            final llmExtraction = await _performLlmExtraction(
+              rawText: ocrResult.rawText,
+              blocks: ocrResult.blocks,
+              modelId: _selectedModelId!,
+            );
+            if (llmExtraction != null) {
+              extraction = llmExtraction;
+            }
+          } on Exception catch (e) {
+            SoloLog.w('OcrScannerSheet',
+                'LLM extraction failed, fallback to rule engine: $e');
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
             _result = SmartOcrTextResult(ocrResult, extraction);
             _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
-          }
-        });
+          });
+        }
       }
     } on OcrTextNotDetectedException {
       if (mounted) {
@@ -511,20 +554,44 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         }
       }
 
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          if (mrzData != null) {
+      final finalMrzData = mrzData;
+      if (finalMrzData != null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
             _result = SmartOcrMrzResult(
-              mrzData: mrzData,
+              mrzData: finalMrzData,
               rawOcrResult: ocrResult,
             );
-          } else {
-            final extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+          });
+        }
+      } else {
+        var extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+
+        // LLM 协助提取
+        if (_useLlmAssist && _selectedModelId != null) {
+          try {
+            final llmExtraction = await _performLlmExtraction(
+              rawText: ocrResult.rawText,
+              blocks: ocrResult.blocks,
+              modelId: _selectedModelId!,
+            );
+            if (llmExtraction != null) {
+              extraction = llmExtraction;
+            }
+          } on Exception catch (e) {
+            SoloLog.w('OcrScannerSheet',
+                'LLM extraction failed, fallback to rule engine: $e');
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
             _result = SmartOcrTextResult(ocrResult, extraction);
             _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
-          }
-        });
+          });
+        }
       }
     } on OcrTextNotDetectedException {
       if (mounted) {
@@ -572,9 +639,387 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       }
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // LLM Assist Section
+  // ---------------------------------------------------------------------------
+
+  Widget _buildLlmAssistSection() {
+    final hasModels = _modelOptions.isNotEmpty;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text('使用 LLM 协助提取字段'),
+              subtitle: const Text('提高字段识别准确率'),
+              value: _useLlmAssist,
+              onChanged: (v) {
+                setState(() => _useLlmAssist = v ?? false);
+                if (_useLlmAssist && _modelOptions.isEmpty && !_isCheckingModels) {
+                  _loadModelOptions();
+                }
+              },
+            ),
+            if (_useLlmAssist) ...[
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              if (_isCheckingModels)
+                const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Center(
+                    child: SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else if (!hasModels)
+                _buildNoModelState()
+              else
+                _buildModelSelector(),
+            ],
+            // 常驻配置按钮
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => context.push(AppRoutes.llmConfig),
+                icon: const Icon(Icons.settings, size: 16),
+                label: const Text('LLM 配置'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoModelState() {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 16,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '未配置可用 LLM 模型',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          FilledButton.tonalIcon(
+            onPressed: () => context.push(AppRoutes.llmConfig),
+            icon: const Icon(Icons.arrow_forward, size: 16),
+            label: const Text('前往配置'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModelSelector() {
+    return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
+      value: _selectedModelId,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: '选择模型',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      items: _modelOptions.map((option) {
+        return DropdownMenuItem<String>(
+          value: option.id,
+          child: Row(
+            children: [
+              Icon(
+                Icons.circle,
+                size: 8,
+                color: option.isAvailable ? Colors.green : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                option.isLocal ? Icons.computer : Icons.cloud,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  option.displayName,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: option.isAvailable
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: (value) => setState(() => _selectedModelId = value),
+    );
+  }
+
+  Future<void> _loadModelOptions() async {
+    setState(() => _isCheckingModels = true);
+    try {
+      final configAsync = ref.read(llmConfigProvider);
+      if (!configAsync.hasValue) {
+        if (mounted) {
+          setState(() {
+            _modelOptions = const [];
+            _isCheckingModels = false;
+          });
+        }
+        return;
+      }
+      final config = configAsync.value!;
+      final options = <_LlmModelOption>[];
+
+      // Local models
+      final localModelName = config.localModelPath ?? LlmLocalService.defaultModelName;
+      final localService = LlmLocalService(modelName: localModelName);
+      final status = await localService.checkStatus();
+      if (status.installedModels.isNotEmpty) {
+        for (final model in status.installedModels) {
+          final isAvailable = status.serviceRunning && status.installedModels.contains(model);
+          options.add(_LlmModelOption(
+            id: 'local://$model',
+            displayName: model,
+            isLocal: true,
+            isAvailable: isAvailable,
+          ));
+        }
+      } else {
+        // Fallback: show configured model even if Ollama not running
+        options.add(_LlmModelOption(
+          id: 'local://$localModelName',
+          displayName: localModelName,
+          isLocal: true,
+          isAvailable: false,
+        ));
+      }
+
+      // Cloud profiles
+      for (final profile in config.cloudProfiles) {
+        String? apiKey;
+        try {
+          apiKey = await LlmConfigService.instance.getApiKeyByRef(profile.apiKeyRef);
+        } on Exception catch (_) {
+          apiKey = null;
+        }
+        final isAvailable = profile.endpoint.isNotEmpty &&
+            profile.model.isNotEmpty &&
+            (apiKey != null && apiKey.isNotEmpty);
+        options.add(_LlmModelOption(
+          id: 'cloud://${profile.id}',
+          displayName: '${profile.name} · ${profile.model}',
+          isLocal: false,
+          isAvailable: isAvailable,
+        ));
+      }
+
+      if (mounted) {
+        setState(() {
+          _modelOptions = options;
+          if (_selectedModelId == null && options.isNotEmpty) {
+            // Auto-select first available model, fallback to first option
+            final available = options.where((o) => o.isAvailable).toList();
+            _selectedModelId = available.isNotEmpty ? available.first.id : options.first.id;
+          }
+          _isCheckingModels = false;
+        });
+      }
+    } on Exception catch (e) {
+      SoloLog.w('OcrScannerSheet', 'Failed to load model options: $e');
+      if (mounted) {
+        setState(() {
+          _modelOptions = const [];
+          _isCheckingModels = false;
+        });
+      }
+    }
+  }
+
+  Future<ExtractionResult?> _performLlmExtraction({
+    required String rawText,
+    required List<OcrBlock> blocks,
+    required String modelId,
+  }) async {
+    // Save current global config for restoration
+    final configAsync = ref.read(llmConfigProvider);
+    if (!configAsync.hasValue) return null;
+    final previousConfig = configAsync.value!;
+
+    final configNotifier = ref.read(llmConfigProvider.notifier);
+    final modelNotifier = ref.read(llmModelProvider.notifier);
+
+    try {
+      // Activate selected model
+      if (modelId.startsWith('local://')) {
+        final modelName = modelId.substring(8);
+        await configNotifier.setBackendType(LlmBackendType.local);
+        await configNotifier.setLocalModelPath(modelName);
+      } else if (modelId.startsWith('cloud://')) {
+        final profileId = modelId.substring(8);
+        await configNotifier.setBackendType(LlmBackendType.cloud);
+        await configNotifier.setActiveCloudProfile(profileId);
+        // Ensure cloud consent; if not, fail gracefully
+        if (!previousConfig.cloudConsent) {
+          SoloLog.w('OcrScannerSheet', 'Cloud consent not granted, skipping LLM extraction');
+          return null;
+        }
+      }
+
+      // Load model
+      await modelNotifier.loadFromConfig();
+
+      // Build prompt
+      const fieldSchema = '''
+{
+  "fields": [
+    {"id": "name", "label": "姓名/名称", "type": "text"},
+    {"id": "phone", "label": "电话", "type": "text"},
+    {"id": "email", "label": "邮箱", "type": "text"},
+    {"id": "address", "label": "地址", "type": "text"},
+    {"id": "company", "label": "公司/机构", "type": "text"},
+    {"id": "title", "label": "职位/头衔", "type": "text"},
+    {"id": "date", "label": "日期", "type": "text"},
+    {"id": "amount", "label": "金额", "type": "text"},
+    {"id": "invoice_number", "label": "发票/单据号码", "type": "text"},
+    {"id": "website", "label": "网站/URL", "type": "text"},
+    {"id": "id_number", "label": "证件号码", "type": "text"}
+  ]
+}''';
+
+      final prompt = LlmPromptTemplates.structuredExtraction(
+        sourceText: rawText.length > 3000 ? rawText.substring(0, 3000) : rawText,
+        fieldSchemaJson: fieldSchema,
+      );
+
+      final response = await modelNotifier.infer(prompt, maxTokens: 1024);
+
+      // Parse JSON
+      final jsonText = _extractJson(response);
+      final json = jsonDecode(jsonText) as Map<String, dynamic>;
+      final extractedFieldsList = json['extracted_fields'] as List<dynamic>? ?? [];
+
+      final fields = <String, ExtractedField>{};
+      for (final item in extractedFieldsList) {
+        if (item is! Map<String, dynamic>) continue;
+        final propertyId = item['property_id']?.toString() ?? '';
+        final value = item['value']?.toString() ?? '';
+        if (propertyId.isEmpty || value.isEmpty) continue;
+
+        // Try to find matching OCR block for bbox
+        BoundingBox bbox = const BoundingBox(x: 0, y: 0, width: 0, height: 0);
+        OcrBlock? matchedBlock;
+        for (final block in blocks) {
+          if (block.text.contains(value) || value.contains(block.text)) {
+            matchedBlock = block;
+            break;
+          }
+        }
+        if (matchedBlock != null) {
+          bbox = matchedBlock.bbox;
+        }
+
+        fields[propertyId] = ExtractedField(value: value, bbox: bbox);
+      }
+
+      return ExtractionResult(
+        documentType: json['document_type']?.toString() ?? 'generic',
+        fields: fields,
+        rawText: rawText,
+      );
+    } on LlmException catch (e) {
+      SoloLog.w('OcrScannerSheet', 'LLM inference failed: ${e.message}');
+      return null;
+    } on FormatException catch (e) {
+      SoloLog.w('OcrScannerSheet', 'LLM response parse failed: $e');
+      return null;
+    } on Exception catch (e) {
+      SoloLog.w('OcrScannerSheet', 'LLM extraction unexpected error: $e');
+      return null;
+    } finally {
+      // Restore previous global config
+      try {
+        if (previousConfig.backendType == LlmBackendType.local) {
+          await configNotifier.setBackendType(LlmBackendType.local);
+          final localPath = previousConfig.localModelPath;
+          if (localPath != null && localPath.isNotEmpty) {
+            await configNotifier.setLocalModelPath(localPath);
+          }
+        } else {
+          await configNotifier.setBackendType(LlmBackendType.cloud);
+          final activeId = previousConfig.activeCloudProfileId;
+          if (activeId != null && activeId.isNotEmpty) {
+            await configNotifier.setActiveCloudProfile(activeId);
+          }
+        }
+        await modelNotifier.loadFromConfig();
+      } on Exception catch (e) {
+        SoloLog.w('OcrScannerSheet', 'Failed to restore LLM config: $e');
+      }
+    }
+  }
+
+  String _extractJson(String text) {
+    final codeBlockRe = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```');
+    final match = codeBlockRe.firstMatch(text);
+    if (match != null) {
+      return match.group(1)!.trim();
+    }
+    return text.trim();
+  }
 }
 
-/// 操作按钮组件
+// =============================================================================
+// LLM Model Option
+// =============================================================================
+
+class _LlmModelOption {
+  final String id;
+  final String displayName;
+  final bool isLocal;
+  final bool isAvailable;
+
+  const _LlmModelOption({
+    required this.id,
+    required this.displayName,
+    required this.isLocal,
+    required this.isAvailable,
+  });
+}
+
+// =============================================================================
+// Action Button
+// =============================================================================
+
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
