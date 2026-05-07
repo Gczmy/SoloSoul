@@ -315,13 +315,48 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           'General OCR: ${ocrResult.blocks.length} blocks, confidence=${ocrResult.confidence}');
 
       // Step 2: 从 OCR 结果中智能提取 MRZ 候选行
-      final mrzLines = OcrService.extractMrzLinesFromResult(ocrResult);
-      SoloLog.d('OcrScannerSheet', 'MRZ candidate lines: ${mrzLines.length}');
+      final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
+      SoloLog.d('OcrScannerSheet',
+          'MRZ candidate lines: ${mrzCandidates.length}, candidates=$mrzCandidates');
 
-      // Step 3: 尝试解析 MRZ
+      // Step 3: 从候选行中精确筛选并尝试解析 MRZ
+      // MrzParser.parse 要求传入的 lines 恰好匹配标准格式：
+      // - TD3 护照: 2 行 × 44 字符
+      // - TD1 身份证: 3 行 × 30 字符
+      // - TD2: 2 行 × 36 字符
       MrzData? mrzData;
-      if (mrzLines.isNotEmpty) {
-        mrzData = MrzParser.parse(mrzLines);
+      if (mrzCandidates.isNotEmpty) {
+        // 优先尝试 TD3 护照（2 行 × 44 字符）— 取最后 2 个 44 字符行
+        final td3Lines = mrzCandidates.where((l) => l.length == 44).toList();
+        if (td3Lines.length >= 2) {
+          final lastTwo = td3Lines.sublist(td3Lines.length - 2);
+          mrzData = MrzParser.parse(lastTwo);
+          SoloLog.d('OcrScannerSheet',
+              'Trying TD3 with ${lastTwo.length} lines: $lastTwo');
+        }
+
+        // 尝试 TD1 身份证（3 行 × 30 字符）— 取最后 3 个 30 字符行
+        if (mrzData == null) {
+          final td1Lines = mrzCandidates.where((l) => l.length == 30).toList();
+          if (td1Lines.length >= 3) {
+            final lastThree = td1Lines.sublist(td1Lines.length - 3);
+            mrzData = MrzParser.parse(lastThree);
+            SoloLog.d('OcrScannerSheet',
+                'Trying TD1 with ${lastThree.length} lines: $lastThree');
+          }
+        }
+
+        // 尝试 TD2（2 行 × 36 字符）— 取最后 2 个 36 字符行
+        if (mrzData == null) {
+          final td2Lines = mrzCandidates.where((l) => l.length == 36).toList();
+          if (td2Lines.length >= 2) {
+            final lastTwo = td2Lines.sublist(td2Lines.length - 2);
+            mrzData = MrzParser.parse(lastTwo);
+            SoloLog.d('OcrScannerSheet',
+                'Trying TD2 with ${lastTwo.length} lines: $lastTwo');
+          }
+        }
+
         if (mrzData != null) {
           SoloLog.d('OcrScannerSheet',
               'MRZ parsed: docType=${mrzData.documentType}, docNo=${mrzData.documentNumber}');

@@ -348,10 +348,30 @@ class LocalSearchService {
       final ocrResult = await OcrService.recognizeText(Uint8List.fromList(bytes));
       if (ocrResult.rawText.trim().isEmpty) return null;
 
-      // 尝试 MRZ 提取
-      final mrzLines = OcrService.extractMrzLinesFromResult(ocrResult);
-      if (mrzLines.isNotEmpty) {
-        final mrzData = MrzParser.parse(mrzLines);
+      // 尝试 MRZ 提取（从候选行中精确筛选标准格式行）
+      final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
+      MrzData? mrzData;
+      if (mrzCandidates.isNotEmpty) {
+        // TD3 护照: 2 行 × 44 字符
+        final td3Lines = mrzCandidates.where((l) => l.length == 44).toList();
+        if (td3Lines.length >= 2) {
+          mrzData = MrzParser.parse(td3Lines.sublist(td3Lines.length - 2));
+        }
+        // TD1 身份证: 3 行 × 30 字符
+        if (mrzData == null) {
+          final td1Lines = mrzCandidates.where((l) => l.length == 30).toList();
+          if (td1Lines.length >= 3) {
+            mrzData = MrzParser.parse(td1Lines.sublist(td1Lines.length - 3));
+          }
+        }
+        // TD2: 2 行 × 36 字符
+        if (mrzData == null) {
+          final td2Lines = mrzCandidates.where((l) => l.length == 36).toList();
+          if (td2Lines.length >= 2) {
+            mrzData = MrzParser.parse(td2Lines.sublist(td2Lines.length - 2));
+          }
+        }
+
         if (mrzData != null) {
           SoloLog.d('LocalSearchService',
               'MRZ detected in image: ${file.name} type=${mrzData.documentType}');
