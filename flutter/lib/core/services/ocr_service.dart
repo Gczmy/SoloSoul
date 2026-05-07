@@ -143,17 +143,25 @@ class OcrService {
     // iOS/macOS 优先使用 Apple Vision
     if (Platform.isIOS || Platform.isMacOS) {
       try {
+        // ignore: avoid_print
+        print('[OCR-DART] Trying Apple Vision for MRZ...');
         final result = await AppleVisionOcr.recognizeText(imageData);
-        final lines = _blocksToLines(result);
+        // ignore: avoid_print
+        print('[OCR-DART] Apple Vision: ${result.blocks.length} blocks, rawText="${result.rawText.substring(0, result.rawText.length.clamp(0, 200))}"');
+        final lines = _extractMrzLines(result);
+        // ignore: avoid_print
+        print('[OCR-DART] Extracted ${lines.length} MRZ candidate lines: $lines');
         final mrz = MrzParser.parse(lines);
         if (mrz != null) {
-          SoloLog.d('OcrService',
-              'MRZ (Apple Vision): docType=${mrz.documentType}, docNo=${mrz.documentNumber}');
+          // ignore: avoid_print
+          print('[OCR-DART] MRZ parsed OK (Apple Vision): docType=${mrz.documentType}');
           return mrz;
         }
-        // 解析失败，继续 fallback
+        // ignore: avoid_print
+        print('[OCR-DART] Apple Vision MRZ parse failed, falling back to Rust');
       } on Exception catch (e) {
-        SoloLog.w('OcrService', 'Apple Vision MRZ failed, falling back to Rust: $e');
+        // ignore: avoid_print
+        print('[OCR-DART] Apple Vision MRZ error: $e');
       }
     }
 
@@ -161,34 +169,59 @@ class OcrService {
     return _rustExtractMrz(imageData);
   }
 
-  /// 将 Apple Vision 的 blocks 按 y 坐标分组为文本行
-  static List<String> _blocksToLines(OcrResult result) {
-    if (result.blocks.isEmpty) return [];
+  /// 从 Apple Vision 结果中提取 MRZ 候选行
+  ///
+  /// 策略：
+  /// 1. 从 rawText 中按正则提取 44/36/30 字符的行（TD3/TD2/TD1）
+  /// 2. 从 blocks 中提取底部 2-3 行（MRZ 通常在证件底部）
+  /// 3. 合并去重后返回
+  static List<String> _extractMrzLines(OcrResult result) {
+    final candidates = <String>{};
 
-    // 按 y 坐标排序，y 相近的分到同一行
-    final sorted = List<OcrBlock>.from(result.blocks)
-      ..sort((a, b) => a.bbox.y.compareTo(b.bbox.y));
-
-    final lines = <String>[];
-    final currentLine = StringBuffer();
-    double currentY = sorted.first.bbox.y;
-    const double yThreshold = 20.0; // 同一行的 y 坐标阈值
-
-    for (final block in sorted) {
-      if ((block.bbox.y - currentY).abs() > yThreshold) {
-        if (currentLine.isNotEmpty) {
-          lines.add(currentLine.toString().trim());
-        }
-        currentLine.clear();
-        currentY = block.bbox.y;
+    // 策略 1：rawText 正则提取（移除所有空白后匹配标准长度）
+    final cleaned = result.rawText.replaceAll(RegExp(r'\s'), '').toUpperCase();
+    for (final len in [44, 36, 30]) {
+      final regex = RegExp('[A-Z0-9<]{$len}');
+      for (final match in regex.allMatches(cleaned)) {
+        candidates.add(match.group(0)!);
       }
-      currentLine.write(block.text);
-    }
-    if (currentLine.isNotEmpty) {
-      lines.add(currentLine.toString().trim());
     }
 
-    return lines;
+    // 策略 2：blocks 按 Y 坐标分组，取底部行
+    if (result.blocks.isNotEmpty) {
+      final sorted = List<OcrBlock>.from(result.blocks)
+        ..sort((a, b) => a.bbox.y.compareTo(b.bbox.y));
+
+      final lines = <String>[];
+      final currentLine = StringBuffer();
+      double currentY = sorted.first.bbox.y;
+      const double yThreshold = 8.0; // 更小的阈值，精确分行
+
+      for (final block in sorted) {
+        if ((block.bbox.y - currentY).abs() > yThreshold) {
+          if (currentLine.isNotEmpty) {
+            lines.add(currentLine.toString().trim());
+          }
+          currentLine.clear();
+          currentY = block.bbox.y;
+        }
+        currentLine.write(block.text);
+      }
+      if (currentLine.isNotEmpty) {
+        lines.add(currentLine.toString().trim());
+      }
+
+      // 取最后 3 行（MRZ 通常在底部）
+      final bottomLines = lines.length <= 3 ? lines : lines.sublist(lines.length - 3);
+      for (final line in bottomLines) {
+        final normalized = line.replaceAll(RegExp(r'\s'), '').toUpperCase();
+        if (normalized.length >= 30) {
+          candidates.add(normalized);
+        }
+      }
+    }
+
+    return candidates.toList();
   }
 
   static Future<MrzData?> _rustExtractMrz(Uint8List imageData) async {
