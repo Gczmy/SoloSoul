@@ -151,12 +151,36 @@ class OcrService {
         final lines = _extractMrzLines(result);
         // ignore: avoid_print
         print('[OCR-DART] Extracted ${lines.length} MRZ candidate lines: $lines');
-        final mrz = MrzParser.parse(lines);
-        if (mrz != null) {
+
+        // MRZ 通常是底部的 2 行（TD3 护照）或 3 行（TD1 身份证）
+        // 优先尝试最后 2 个 44 字符行（最可能是 TD3 护照）
+        final td3Candidates = lines.where((l) => l.length == 44).toList();
+        if (td3Candidates.length >= 2) {
+          final lastTwo = td3Candidates.sublist(td3Candidates.length - 2);
           // ignore: avoid_print
-          print('[OCR-DART] MRZ parsed OK (Apple Vision): docType=${mrz.documentType}');
-          return mrz;
+          print('[OCR-DART] Trying TD3 with: $lastTwo');
+          final mrz = MrzParser.parse(lastTwo);
+          if (mrz != null) {
+            // ignore: avoid_print
+            print('[OCR-DART] MRZ parsed OK (Apple Vision TD3): docType=${mrz.documentType}');
+            return mrz;
+          }
         }
+
+        // 尝试最后 3 个 30 字符行（TD1 身份证）
+        final td1Candidates = lines.where((l) => l.length == 30).toList();
+        if (td1Candidates.length >= 3) {
+          final lastThree = td1Candidates.sublist(td1Candidates.length - 3);
+          // ignore: avoid_print
+          print('[OCR-DART] Trying TD1 with: $lastThree');
+          final mrz = MrzParser.parse(lastThree);
+          if (mrz != null) {
+            // ignore: avoid_print
+            print('[OCR-DART] MRZ parsed OK (Apple Vision TD1): docType=${mrz.documentType}');
+            return mrz;
+          }
+        }
+
         // ignore: avoid_print
         print('[OCR-DART] Apple Vision MRZ parse failed, falling back to Rust');
       } on Exception catch (e) {
