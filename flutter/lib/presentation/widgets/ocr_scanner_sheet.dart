@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -162,17 +163,10 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         ),
         const SizedBox(height: 12),
         _ActionButton(
-          icon: Icons.photo_library_outlined,
-          label: 'Choose from Gallery',
-          description: 'Select an existing photo',
-          onTap: () => _pickImage(ImageSource.gallery),
-        ),
-        const SizedBox(height: 12),
-        _ActionButton(
-          icon: Icons.picture_as_pdf_outlined,
-          label: 'Select PDF',
-          description: 'Import a scanned document from PDF',
-          onTap: _pickPdf,
+          icon: Icons.folder_open_outlined,
+          label: 'Select Document',
+          description: 'Photo, scan, or PDF file',
+          onTap: _pickDocument,
         ),
         const SizedBox(height: 24),
         // 提示
@@ -411,17 +405,21 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
     }
   }
 
-  Future<void> _pickPdf() async {
+  Future<void> _pickDocument() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf'],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
       withData: false,
     );
 
     if (result == null || result.files.isEmpty) return;
 
-    final path = result.files.first.path;
+    final file = result.files.first;
+    final path = file.path;
     if (path == null) return;
+
+    final ext = file.extension?.toLowerCase() ?? '';
+    final isPdf = ext == 'pdf';
 
     setState(() {
       _isLoading = true;
@@ -429,20 +427,25 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
     });
 
     try {
-      final bytes = await PdfRenderService().renderPage(
-        path,
-        pageNumber: 1,
-        dpi: 300,
-      );
-
-      if (bytes == null) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = 'Failed to render PDF page. The file may be corrupted or password-protected.';
-          });
+      final Uint8List bytes;
+      if (isPdf) {
+        final rendered = await PdfRenderService().renderPage(
+          path,
+          pageNumber: 1,
+          dpi: 300,
+        );
+        if (rendered == null) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _errorMessage = 'Failed to render PDF page. The file may be corrupted or password-protected.';
+            });
+          }
+          return;
         }
-        return;
+        bytes = rendered;
+      } else {
+        bytes = await File(path).readAsBytes();
       }
 
       final ocrResult = await OcrService.recognizeText(bytes);
@@ -488,19 +491,22 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No text detected in the PDF. '
-              'Please try again with a clearer scanned document.';
+          _errorMessage = isPdf
+              ? 'No text detected in the PDF. Please try again with a clearer scanned document.'
+              : 'No text detected in the image. Please try again with a clearer photo of the document.';
         });
       }
     } on OcrTimeoutException {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Recognition timed out. Please try again with a clearer PDF.';
+          _errorMessage = isPdf
+              ? 'Recognition timed out. Please try again with a clearer PDF.'
+              : 'Recognition timed out. Please try again with a clearer image.';
         });
       }
     } on OcrException catch (e) {
-      SoloLog.w('OcrScannerSheet', 'PDF OCR error: $e');
+      SoloLog.w('OcrScannerSheet', 'Document OCR error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
