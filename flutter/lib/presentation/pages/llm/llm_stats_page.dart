@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 
 import 'package:flutter/material.dart';
@@ -40,14 +41,14 @@ class LlmStatsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('使用统计'),
+        title: Text(AppLocalizations.of(context).llmStatsTitle),
         centerTitle: true,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Current model info
-          _SectionTitle(title: '当前模型', theme: theme),
+          _SectionTitle(title: AppLocalizations.of(context).llmStatsCurrentModel, theme: theme),
           _ModelInfoCard(
             modelAsync: modelAsync,
             configAsync: configAsync,
@@ -56,7 +57,7 @@ class LlmStatsPage extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Session stats
-          _SectionTitle(title: '本次会话统计', theme: theme),
+          _SectionTitle(title: AppLocalizations.of(context).llmStatsSessionStats, theme: theme),
           _StatsGrid(
             usageCount: sessionUsage,
             totalTokens: sessionTokens,
@@ -70,7 +71,7 @@ class LlmStatsPage extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Account lifetime stats
-          _SectionTitle(title: '账户累计统计', theme: theme),
+          _SectionTitle(title: AppLocalizations.of(context).llmStatsAccountStats, theme: theme),
           _AccountStatsCard(
             usageCount: accountUsage,
             totalTokens: accountTokens,
@@ -81,7 +82,7 @@ class LlmStatsPage extends ConsumerWidget {
 
           // Token breakdown (prompt vs completion)
           if (sessionTokens > 0 || accountTokens > 0) ...[
-            _SectionTitle(title: 'Token 构成', theme: theme),
+            _SectionTitle(title: AppLocalizations.of(context).llmStatsTokenBreakdown, theme: theme),
             _TokenBreakdownCard(
               sessionPrompt: sessionPrompt,
               sessionCompletion: sessionCompletion,
@@ -94,14 +95,14 @@ class LlmStatsPage extends ConsumerWidget {
 
           // Daily sparkline
           if (daily.isNotEmpty) ...[
-            _SectionTitle(title: '每日 Token 趋势（最近 14 天）', theme: theme),
+            _SectionTitle(title: AppLocalizations.of(context).llmStatsDailyTrend, theme: theme),
             _DailySparklineCard(daily: daily, theme: theme),
             const SizedBox(height: 24),
           ],
 
           // Per-model usage
           if (perModel.isNotEmpty) ...[
-            _SectionTitle(title: '模型使用占比', theme: theme),
+            _SectionTitle(title: AppLocalizations.of(context).llmStatsModelUsage, theme: theme),
             _ModelUsageCard(perModel: perModel, theme: theme),
             const SizedBox(height: 24),
           ],
@@ -111,7 +112,7 @@ class LlmStatsPage extends ConsumerWidget {
             onPressed: () => _confirmReset(context, ref),
             icon: Icon(Icons.restart_alt, color: theme.colorScheme.error),
             label: Text(
-              '重置统计',
+              AppLocalizations.of(context).llmStatsReset,
               style: TextStyle(color: theme.colorScheme.error),
             ),
             style: OutlinedButton.styleFrom(
@@ -128,19 +129,19 @@ class LlmStatsPage extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('重置统计'),
-        content: const Text('确认重置所有使用统计吗？此操作不可撤销。'),
+        title: Text(AppLocalizations.of(context).llmStatsReset),
+        content: Text(AppLocalizations.of(context).llmStatsResetConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
-            child: const Text('重置'),
+            child: Text(AppLocalizations.of(context).llmStatsReset),
           ),
         ],
       ),
@@ -150,7 +151,7 @@ class LlmStatsPage extends ConsumerWidget {
       await ref.read(llmModelProvider.notifier).resetStats();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('统计已重置')),
+          SnackBar(content: Text(AppLocalizations.of(context).llmStatsResetSuccess)),
         );
       }
     }
@@ -174,10 +175,10 @@ class _ModelInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String backendLabel = '未知';
+    String backendLabel = AppLocalizations.of(context).llmStatsUnknown;
     String modelName = '—';
     String providerLabel = '—';
-    String statusLabel = '未加载';
+    String statusLabel = AppLocalizations.of(context).llmStatsNotLoaded;
     Color statusColor = theme.colorScheme.outline;
 
     if (modelAsync.hasValue) {
@@ -193,7 +194,9 @@ class _ModelInfoCard extends StatelessWidget {
 
     if (configAsync.hasValue) {
       final config = configAsync.value!;
-      backendLabel = config.backendType == LlmBackendType.cloud ? '云端 API' : '本地模型 (Ollama)';
+      backendLabel = config.backendType == LlmBackendType.cloud
+          ? AppLocalizations.of(context).llmConfigBackendCloud
+          : AppLocalizations.of(context).llmStatsLocalModelOllama;
       if (config.backendType == LlmBackendType.cloud) {
         final profile = config.activeCloudProfile;
         if (profile != null) {
@@ -243,9 +246,9 @@ class _ModelInfoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            _InfoRow(label: '模型', value: modelName),
+            _InfoRow(label: AppLocalizations.of(context).llmStatsModelLabel, value: modelName),
             const SizedBox(height: 4),
-            _InfoRow(label: '提供商', value: providerLabel),
+            _InfoRow(label: AppLocalizations.of(context).llmStatsProviderLabel, value: providerLabel),
           ],
         ),
       ),
@@ -291,7 +294,7 @@ class _StatsGrid extends StatelessWidget {
 
     final tile1 = _StatTile(
       icon: Icons.chat_bubble_outline,
-      label: '对话次数',
+      label: AppLocalizations.of(context).llmStatsConversationCount,
       value: usageCount.toString(),
       modelUsages: modelUsages,
       modelValue: (m) => m.usageCount.toString(),
@@ -299,7 +302,7 @@ class _StatsGrid extends StatelessWidget {
     );
     final tile2 = _StatTile(
       icon: Icons.token,
-      label: 'Token 消耗',
+      label: AppLocalizations.of(context).llmStatsTokenConsumption,
       value: _formatTokens(totalTokens),
       modelUsages: modelUsages,
       modelValue: (m) => _formatTokens(m.totalTokens),
@@ -307,7 +310,7 @@ class _StatsGrid extends StatelessWidget {
     );
     final tile3 = _StatTile(
       icon: Icons.download_done,
-      label: '最后加载',
+      label: AppLocalizations.of(context).llmStatsLastLoaded,
       value: formatDate(lastLoadTime),
       modelUsages: modelUsages,
       modelValue: (m) => formatDate(m.lastLoadTime),
@@ -316,7 +319,7 @@ class _StatsGrid extends StatelessWidget {
     );
     final tile4 = _StatTile(
       icon: Icons.schedule,
-      label: '最后使用',
+      label: AppLocalizations.of(context).llmStatsLastUsed,
       value: formatDate(lastUsedTime),
       modelUsages: modelUsages,
       modelValue: (m) => formatDate(m.lastUsedTime),
@@ -388,7 +391,7 @@ class _AccountStatsCard extends StatelessWidget {
               Expanded(
                 child: _AccountStatItem(
                   icon: Icons.chat_bubble_outline,
-                  label: '累计对话',
+                  label: AppLocalizations.of(context).llmStatsTotalConversations,
                   value: usageCount.toString(),
                   modelUsages: modelUsages,
                   modelValue: (m) => m.usageCount.toString(),
@@ -402,7 +405,7 @@ class _AccountStatsCard extends StatelessWidget {
               Expanded(
                 child: _AccountStatItem(
                   icon: Icons.token,
-                  label: '累计 Token',
+                  label: AppLocalizations.of(context).llmStatsTotalTokens,
                   value: _formatTokens(totalTokens),
                   modelUsages: modelUsages,
                   modelValue: (m) => _formatTokens(m.totalTokens),
@@ -534,7 +537,7 @@ class _TokenBreakdownCard extends StatelessWidget {
           children: [
             // Session
             Text(
-              '本次会话',
+              AppLocalizations.of(context).llmStatsSession,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.primary,
@@ -551,7 +554,7 @@ class _TokenBreakdownCard extends StatelessWidget {
             const SizedBox(height: 16),
             // Account
             Text(
-              '账户累计',
+              AppLocalizations.of(context).llmStatsAccountTotal,
               style: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.primary,
@@ -634,7 +637,7 @@ class _TokenBar extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              '共 ${_formatTokens(total)}',
+              AppLocalizations.of(context).llmStatsTotalFormatted(_formatTokens(total)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -705,7 +708,7 @@ class _DailySparklineCard extends StatelessWidget {
       }
     } else {
       series.add(_Series(
-        name: '全部模型',
+        name: AppLocalizations.of(context).llmStatsAllModels,
         values: last14.map((d) => d.totalTokens.toDouble()).toList(),
       ));
     }
@@ -939,7 +942,7 @@ class _ModelUsageCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
-              '共 ${perModel.length} 个模型 · 累计 ${_formatTokens(totalTokens)} tokens',
+              AppLocalizations.of(context).llmStatsModelSummary(perModel.length, _formatTokens(totalTokens)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -984,7 +987,7 @@ class _ModelUsageCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${m.provider} · ${_formatTokens(m.totalTokens)} tokens · ${m.usageCount} 次调用',
+                    AppLocalizations.of(context).llmStatsModelDetail(m.provider, _formatTokens(m.totalTokens), m.usageCount),
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

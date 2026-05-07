@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
@@ -79,9 +80,9 @@ class _DeleteAccountDialogContentState
                 Icon(Icons.info_outline,
                     color: Colors.red.shade700, size: 20),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    '删除账户后，该账号的所有数据都会被清空，确定要删除吗？',
+                    AppLocalizations.of(context).settingsDeleteAccountWarning,
                     style: TextStyle(color: Colors.red, fontSize: 13),
                   ),
                 ),

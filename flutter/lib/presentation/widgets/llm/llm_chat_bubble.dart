@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 
 // =============================================================================
@@ -192,7 +193,9 @@ class _CopyButtonState extends State<_CopyButton> {
             ),
             const SizedBox(width: 4),
             Text(
-              _copied ? '已复制' : '复制',
+              _copied
+                  ? AppLocalizations.of(context).llmCopied
+                  : AppLocalizations.of(context).llmCopy,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: _copied
                     ? theme.colorScheme.primary

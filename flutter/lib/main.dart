@@ -1,6 +1,7 @@
 import 'dart:async' show Future, Timer, unawaited;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +22,8 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/frb/frb_generated.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/providers/language_provider.dart';
 
 void main() {
   // 仅做最基本的 Flutter 绑定，立即显示启动画面
@@ -142,7 +145,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 16),
                   const Text(
-                    '启动失败',
+                    'Launch failed',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -224,7 +227,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
               ),
               const SizedBox(height: 8),
               const Text(
-                '独奏生命数据，重塑数字原点',
+                'Orchestrate your life data, reshape your digital origin',
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 40),
@@ -429,6 +432,17 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
               darkTheme: AppTheme.darkTheme,
               themeMode: ThemeMode.system,
               routerConfig: _router,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('zh'),
+              ],
+              locale: ref.watch(languageProvider).value,
             ),
           ),
         ),

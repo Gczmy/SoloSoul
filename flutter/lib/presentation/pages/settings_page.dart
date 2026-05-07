@@ -34,6 +34,8 @@ import 'package:solosoul_flutter/presentation/widgets/settings/delete_account_di
 import 'package:solosoul_flutter/presentation/widgets/settings/settings_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/slogan_chip.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/providers/language_provider.dart';
 
 part 'settings_page.g.dart';
 
@@ -537,6 +539,7 @@ class _LLMSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
       title: 'AI Assistant',
       icon: Icons.psychology_outlined,
@@ -549,8 +552,8 @@ class _LLMSettingsSection extends ConsumerWidget {
         ),
         SettingsTile(
           icon: Icons.chat_bubble_outline,
-          title: 'AI 对话',
-          subtitle: '与本地或云端模型聊天',
+          title: l10n.settingsAiChat,
+          subtitle: l10n.settingsAiChatSubtitle,
           onTap: () => context.push(AppRoutes.llmChat),
         ),
       ],
@@ -563,10 +566,26 @@ class _AppInfoSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
       title: 'About',
       icon: Icons.info_outlined,
       children: [
+        Consumer(
+          builder: (context, ref, _) {
+            final locale = ref.watch(languageProvider).value;
+            final languageLabel = locale?.languageCode == 'zh'
+                ? l10n.settingsLanguageChinese
+                : l10n.settingsLanguageEnglish;
+            return SettingsTile(
+              icon: Icons.language_outlined,
+              title: l10n.settingsLanguage,
+              subtitle: languageLabel,
+              onTap: () => _showLanguagePicker(context, ref),
+            );
+          },
+        ),
+        const Divider(height: 1),
         Consumer(
           builder: (context, ref, _) {
             final packageInfo = ref.watch(packageInfoProvider);
@@ -644,6 +663,70 @@ void _showComingSoon(BuildContext context, String feature) {
   );
 }
 
+void _showLanguagePicker(BuildContext context, WidgetRef ref) {
+  final l10n = AppLocalizations.of(context);
+  final currentCode = ref.read(languageProvider).value?.languageCode ?? 'en';
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => Container(
+      decoration: BoxDecoration(
+        color: Theme.of(ctx).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(ctx).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Text(
+                l10n.settingsLanguage,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Text('🇺🇸', style: TextStyle(fontSize: 20)),
+              title: Text(l10n.settingsLanguageEnglish),
+              trailing: currentCode == 'en'
+                  ? Icon(Icons.check, color: Theme.of(ctx).colorScheme.primary)
+                  : null,
+              onTap: () {
+                ref.read(languageProvider.notifier).setLanguage('en');
+                Navigator.pop(ctx);
+              },
+            ),
+            const Divider(height: 1, indent: 56),
+            ListTile(
+              leading: const Text('🇨🇳', style: TextStyle(fontSize: 20)),
+              title: Text(l10n.settingsLanguageChinese),
+              trailing: currentCode == 'zh'
+                  ? Icon(Icons.check, color: Theme.of(ctx).colorScheme.primary)
+                  : null,
+              onTap: () {
+                ref.read(languageProvider.notifier).setLanguage('zh');
+                Navigator.pop(ctx);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 void _showVersionSheet(BuildContext context, WidgetRef ref) {
   final packageInfo = ref.read(packageInfoProvider);
   showModalBottomSheet(
@@ -681,6 +764,7 @@ class _SoloSoulAdSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -721,7 +805,7 @@ class _SoloSoulAdSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'SoloSoul 独灵',
+                      l10n.mainAppTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,

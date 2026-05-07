@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +36,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       final config = ref.read(llmConfigProvider).value;
       if (config == null) {
         setState(() {
-          _testResult = '配置未加载';
+          _testResult = AppLocalizations.of(context).llmConfigNotLoaded;
           _testSuccess = false;
         });
         return;
@@ -54,31 +55,42 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
         final status = await service.checkStatus();
         if (!status.serviceRunning) {
           setState(() {
-            _testResult = 'Ollama 服务未运行\n请确认已安装并启动 Ollama';
+            _testResult = AppLocalizations.of(context).llmConfigOllamaNotRunning;
             _testSuccess = false;
           });
         } else if (!status.modelAvailable) {
           setState(() {
-            _testResult = 'Ollama 运行中，但模型 ${config.localModelPath ?? 'qwen2.5:1.5b'} 未安装\n'
-                '已安装模型: ${status.installedModels.join(', ')}';
+            _testResult = AppLocalizations.of(context).llmConfigOllamaModelNotInstalled(
+                config.localModelPath ?? 'qwen2.5:1.5b',
+                status.installedModels.join(', '),
+              );
             _testSuccess = false;
           });
         } else {
           await service.testConnection();
           setState(() {
-            _testResult = '本地模型连接成功！';
+            _testResult = AppLocalizations.of(context).llmConfigLocalSuccess;
             _testSuccess = true;
           });
         }
       }
     } on LlmException catch (e) {
+      final l10n = AppLocalizations.of(context);
+      final errorMsg = switch (e.code) {
+        LlmErrorCode.configNotLoaded => l10n.llmErrorConfigNotLoaded,
+        LlmErrorCode.cloudConfigIncomplete => l10n.llmErrorCloudConfigIncomplete,
+        LlmErrorCode.noActiveProfile => l10n.llmErrorNoActiveCloudProfile,
+        LlmErrorCode.apiKeyMissing => l10n.llmErrorApiKeyEmpty,
+        LlmErrorCode.unauthorized => l10n.llmErrorApiKeyEmpty,
+        _ => e.message,
+      };
       setState(() {
-        _testResult = '连接失败: ${e.message}';
+        _testResult = errorMsg;
         _testSuccess = false;
       });
     } on Exception catch (e) {
       setState(() {
-        _testResult = '未知错误: $e';
+        _testResult = 'Unknown error: $e';
         _testSuccess = false;
       });
     } finally {
@@ -119,7 +131,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
           } on Exception catch (e) {
             if (ctx.mounted) {
               ScaffoldMessenger.of(ctx).showSnackBar(
-                SnackBar(content: Text('保存失败: $e')),
+                SnackBar(content: Text(AppLocalizations.of(ctx).llmConfigSaveFailed(e.toString()))),
               );
             }
           }
@@ -132,14 +144,14 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除配置'),
-        content: Text('确认删除 "${profile.name}" 吗？此操作不可撤销。'),
+        title: Text(AppLocalizations.of(context).llmConfigDeleteTitle),
+        content: Text(AppLocalizations.of(ctx).llmConfigDeleteConfirm(profile.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context).commonCancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
-            child: const Text('删除'),
+            child: Text(AppLocalizations.of(context).commonDelete),
           ),
         ],
       ),
@@ -156,12 +168,12 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: const Text('LLM 设置'),
+        title: Text(AppLocalizations.of(context).llmConfigTitle),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Chip(
-              label: const Text('实验性功能', style: TextStyle(fontSize: 12)),
+              label: Text(AppLocalizations.of(context).llmConfigExperimental, style: TextStyle(fontSize: 12)),
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               side: BorderSide.none,
             ),
@@ -170,13 +182,13 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       ),
       body: asyncConfig.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('加载失败: $e')),
+        error: (e, _) => Center(child: Text(AppLocalizations.of(context).llmConfigLoadFailed(e.toString()))),
         data: (config) {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               // Backend selection
-              const _SectionTitle(title: '推理后端'),
+              _SectionTitle(title: AppLocalizations.of(context).llmConfigInferenceBackend),
               _BackendSelector(
                 current: config.backendType,
                 onChanged: notifier.setBackendType,
@@ -185,10 +197,10 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
               // Local model settings
               if (config.backendType == LlmBackendType.local) ...[
-                const _SectionTitle(title: '本地模型 (Ollama)'),
+                _SectionTitle(title: AppLocalizations.of(context).llmStatsLocalModelOllama),
                 _TextFieldCard(
                   controller: TextEditingController(text: config.localModelPath ?? 'qwen2.5:1.5b'),
-                  label: '模型名称',
+                  label: AppLocalizations.of(context).llmConfigModelName,
                   hint: 'qwen2.5:1.5b, llama3.2, deepseek-r1:1.5b...',
                   onChanged: (value) {
                     notifier.setLocalModelPath(value);
@@ -197,20 +209,18 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                 const SizedBox(height: 8),
                 Card(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: const Padding(
-                    padding: EdgeInsets.all(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '使用说明',
+                          AppLocalizations.of(context).llmConfigInstructions,
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         SizedBox(height: 4),
                         Text(
-                          '1. 安装 Ollama: https://ollama.com\n'
-                          '2. 拉取模型: ollama pull qwen2.5:1.5b\n'
-                          '3. 保持 Ollama 在后台运行',
+                          AppLocalizations.of(context).llmConfigInstructionsOllama,
                           style: TextStyle(fontSize: 13),
                         ),
                       ],
@@ -222,7 +232,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
               // Cloud API profiles
               if (config.backendType == LlmBackendType.cloud) ...[
-                const _SectionTitle(title: '云端配置'),
+                _SectionTitle(title: AppLocalizations.of(context).llmConfigCloudConfig),
                 if (config.cloudProfiles.isEmpty)
                   const _EmptyProfilesState()
                 else
@@ -240,17 +250,16 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                 FilledButton.icon(
                   onPressed: () => _showProfileEditor(),
                   icon: const Icon(Icons.add),
-                  label: const Text('新增配置'),
+                  label: Text(AppLocalizations.of(context).llmConfigAddProfile),
                 ),
                 const SizedBox(height: 16),
 
                 // Privacy consent
                 Card(
                   child: CheckboxListTile(
-                    title: const Text('同意云端处理'),
-                    subtitle: const Text(
-                      '我确认当前批次不含 critical 级别字段，'
-                      '并同意将数据发送至指定的企业/私有 API 端点。',
+                    title: Text(AppLocalizations.of(context).llmConfigCloudConsent),
+                    subtitle: Text(
+                      AppLocalizations.of(context).llmConfigCloudConsentDesc,
                     ),
                     value: config.cloudConsent,
                     onChanged: (v) => notifier.setCloudConsent(v ?? false),
@@ -265,8 +274,8 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                 clipBehavior: Clip.antiAlias,
                 child: ListTile(
                   leading: Icon(Icons.bar_chart, color: Theme.of(context).colorScheme.primary),
-                  title: const Text('使用统计'),
-                  subtitle: const Text('查看 Token 消耗、对话次数等'),
+                  title: Text(AppLocalizations.of(context).llmStatsTitle),
+                  subtitle: Text(AppLocalizations.of(context).llmConfigStatsSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.llmStats),
                 ),
@@ -283,7 +292,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.play_arrow),
-                label: Text(_isTesting ? '测试中...' : '测试连接'),
+                label: Text(_isTesting ? AppLocalizations.of(context).llmConfigTesting : AppLocalizations.of(context).llmConfigTestConnection),
               ),
 
               // Test result
@@ -394,12 +403,12 @@ class _ProfileCard extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit, size: 18),
-                    tooltip: '编辑',
+                    tooltip: AppLocalizations.of(context).commonEdit,
                     onPressed: onEdit,
                   ),
                   IconButton(
                     icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
-                    tooltip: '删除',
+                    tooltip: AppLocalizations.of(context).commonDelete,
                     onPressed: onDelete,
                   ),
                 ],
@@ -411,12 +420,12 @@ class _ProfileCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '模型: ${profile.model}',
+                      AppLocalizations.of(context).llmConfigModelInfo(profile.model),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '端点: ${profile.endpoint}',
+                      AppLocalizations.of(context).llmConfigEndpointInfo(profile.endpoint),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -456,14 +465,14 @@ class _EmptyProfilesState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '暂无云端配置',
+              AppLocalizations.of(context).llmConfigNoProfiles,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              '点击下方按钮创建第一个云端 API 配置',
+              AppLocalizations.of(context).llmConfigNoProfilesHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -542,19 +551,19 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入配置名称')),
+        SnackBar(content: Text(AppLocalizations.of(context).llmConfigNameRequired)),
       );
       return;
     }
     if (widget.profile == null && apiKey.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('新增配置时必须填写 API Key')),
+        SnackBar(content: Text(AppLocalizations.of(context).llmConfigApiKeyRequired)),
       );
       return;
     }
     if (endpoint.isEmpty || model.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Endpoint 和 Model 不能为空')),
+        SnackBar(content: Text(AppLocalizations.of(context).llmConfigEndpointModelRequired)),
       );
       return;
     }
@@ -606,7 +615,7 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
           Row(
             children: [
               Text(
-                isEditing ? '编辑配置' : '新增配置',
+                isEditing ? AppLocalizations.of(context).llmConfigEditProfile : AppLocalizations.of(context).llmConfigAddProfile,
                 style: theme.textTheme.titleLarge,
               ),
               const Spacer(),
@@ -619,9 +628,9 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
           const SizedBox(height: 16),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              labelText: '配置名称',
-              hintText: '例如：OpenAI 生产环境',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).llmConfigProfileName,
+              hintText: AppLocalizations.of(context).llmConfigProfileNameHint,
               border: OutlineInputBorder(),
             ),
           ),
@@ -634,13 +643,13 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
           TextField(
             controller: _apiKeyController,
             decoration: InputDecoration(
-              labelText: isEditing ? 'API Key（已配置）' : 'API Key *',
+              labelText: isEditing ? AppLocalizations.of(context).llmConfigApiKeySet : AppLocalizations.of(context).llmConfigApiKeyNew,
               hintText: isEditing
-                  ? '输入新值以替换现有密钥'
+                  ? AppLocalizations.of(context).llmConfigApiKeyHintNew
                   : (_provider == LlmCloudProviderType.anthropic
                       ? 'sk-ant-api03-...'
                       : 'sk-...'),
-              helperText: isEditing ? '留空将保持现有密钥不变' : null,
+              helperText: isEditing ? AppLocalizations.of(context).llmConfigApiKeyHintKeep : null,
               border: const OutlineInputBorder(),
             ),
             obscureText: true,
@@ -681,7 +690,7 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : Text(isEditing ? '保存修改' : '创建配置'),
+                : Text(isEditing ? AppLocalizations.of(context).llmConfigSave : AppLocalizations.of(context).llmConfigCreate),
           ),
           const SizedBox(height: 8),
         ],
@@ -722,15 +731,15 @@ class _BackendSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<LlmBackendType>(
-      segments: const [
+      segments: [
         ButtonSegment(
           value: LlmBackendType.local,
-          label: Text('本地模型'),
+          label: Text(AppLocalizations.of(context).llmConfigBackendLocal),
           icon: Icon(Icons.computer),
         ),
         ButtonSegment(
           value: LlmBackendType.cloud,
-          label: Text('云端 API'),
+          label: Text(AppLocalizations.of(context).llmConfigBackendCloud),
           icon: Icon(Icons.cloud),
         ),
       ],

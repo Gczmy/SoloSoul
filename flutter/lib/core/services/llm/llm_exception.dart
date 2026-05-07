@@ -16,4 +16,8 @@ enum LlmErrorCode {
   rateLimited,
   privacyBlocked,
   modelNotFound,
+  configNotLoaded,
+  cloudConfigIncomplete,
+  noActiveProfile,
+  apiKeyMissing,
 }

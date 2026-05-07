@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -103,16 +104,16 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
     final state = ref.read(localSearchProvider);
     if (state.aiMappingStatus.isError && state.aiMappingError != null) {
       final error = state.aiMappingError!;
-      final isConfigError = error.contains('配置') ||
+      final isConfigError = error.contains('configure') ||
           error.contains('API Key') ||
-          error.contains('权限不足');
+          error.contains('permission');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error),
           backgroundColor: Theme.of(context).colorScheme.error,
           action: isConfigError
               ? SnackBarAction(
-                  label: '去配置',
+                  label: AppLocalizations.of(context).scanGoToConfig,
                   onPressed: () => context.push(AppRoutes.llmConfig),
                 )
               : null,
@@ -120,7 +121,7 @@ class _ScanPreviewPageState extends ConsumerState<ScanPreviewPage> {
       );
     } else if (state.aiMappingStatus.isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AI 智能映射完成')),
+        SnackBar(content: Text(AppLocalizations.of(context).scanAiMappingComplete)),
       );
     }
   }
@@ -170,7 +171,7 @@ class _AiMappingButton extends StatelessWidget {
     }
 
     return Tooltip(
-      message: 'AI 智能映射',
+      message: AppLocalizations.of(context).scanAiMapping,
       child: IconButton(
         icon: Icon(Icons.auto_fix_high, color: theme.colorScheme.primary),
         onPressed: onPressed,

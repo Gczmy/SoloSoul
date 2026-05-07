@@ -219,10 +219,10 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
         await ref.read(llmModelProvider.notifier).loadFromConfig();
       } on LlmException catch (e) {
         final errorMsg = switch (e.code) {
-          LlmErrorCode.unauthorized => 'API Key 无效或权限不足，请先配置 LLM',
-          LlmErrorCode.modelNotFound => '模型未加载，请先配置 LLM',
-          LlmErrorCode.network => '网络连接失败，请检查网络后重试',
-          _ => '模型加载失败: ${e.message}',
+          LlmErrorCode.unauthorized => 'API Key is invalid or permission denied. Please configure LLM first.',
+          LlmErrorCode.modelNotFound => 'Model not loaded. Please configure LLM first.',
+          LlmErrorCode.network => 'Network connection failed. Please check your network and try again.',
+          _ => 'Model loading failed: ${e.message}',
         };
         state = state.copyWith(
           aiMappingStatus: AiMappingStatus.error,
@@ -305,13 +305,13 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
         final prompt = LlmPromptTemplates.fieldMapping(
           fileName: fileName,
           contentPreview: contentPreview.isEmpty
-              ? '(文件内容为空或无法预览)'
+              ? '(File content is empty or cannot be previewed)'
               : contentPreview.substring(
                   0,
                   contentPreview.length > 2000 ? 2000 : contentPreview.length,
                 ),
           schemaJson: schemaBuffer.isEmpty
-              ? '(无可用字段)'
+              ? '(No available fields)'
               : schemaBuffer.toString(),
         );
 
@@ -340,13 +340,13 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
       );
     } on LlmException catch (e) {
       final errorMsg = switch (e.code) {
-        LlmErrorCode.timeout => '模型响应超时，已回退到规则引擎',
-        LlmErrorCode.modelNotFound => '模型未加载，请先配置 LLM',
-        LlmErrorCode.network => '网络连接失败，已回退到规则引擎',
-        LlmErrorCode.unauthorized => 'API Key 无效或权限不足，已回退到规则引擎',
-        LlmErrorCode.rateLimited => '请求频率超限，已回退到规则引擎',
-        LlmErrorCode.privacyBlocked => '隐私策略阻止了请求，已回退到规则引擎',
-        _ => 'AI 映射失败: ${e.message}',
+        LlmErrorCode.timeout => 'Model response timed out. Fallback to rule engine.',
+        LlmErrorCode.modelNotFound => 'Model not loaded. Fallback to rule engine.',
+        LlmErrorCode.network => 'Network connection failed. Fallback to rule engine.',
+        LlmErrorCode.unauthorized => 'API Key is invalid or permission denied. Fallback to rule engine.',
+        LlmErrorCode.rateLimited => 'Request rate limited. Fallback to rule engine.',
+        LlmErrorCode.privacyBlocked => 'Privacy policy blocked the request. Fallback to rule engine.',
+        _ => 'AI mapping failed: ${e.message}',
       };
 
       _fallbackToRuleEngine(importService, previousSelection, errorMsg);
@@ -354,13 +354,13 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
       _fallbackToRuleEngine(
         importService,
         previousSelection,
-        '模型返回格式错误，已回退到规则引擎',
+        'Model returned invalid format. Fallback to rule engine.',
       );
     } on Exception catch (e) {
       _fallbackToRuleEngine(
         importService,
         previousSelection,
-        'AI 映射失败: $e',
+        'AI mapping failed: $e',
       );
     }
   }

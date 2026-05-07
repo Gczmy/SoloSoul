@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
@@ -19,12 +20,12 @@ class LlmChatPage extends StatelessWidget {
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: const Text('AI 对话'),
+        title: Text(AppLocalizations.of(context).llmChatTitle),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'LLM 配置',
+            tooltip: AppLocalizations.of(context).llmConfigTitle,
             onPressed: () => context.push(AppRoutes.llmConfig),
           ),
         ],

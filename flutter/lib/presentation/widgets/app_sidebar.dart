@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -131,7 +132,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       // AI Chat
       NavTile(
         icon: Icons.chat_bubble_outline,
-        label: 'AI 对话',
+        label: AppLocalizations.of(context).sidebarAiChat,
         expanded: _expanded,
         selected: location == AppRoutes.llmChat,
         onTap: () => context.go(AppRoutes.llmChat),

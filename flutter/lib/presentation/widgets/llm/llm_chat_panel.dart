@@ -4,13 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_exception.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_chat_session_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/llm/llm_chat_bubble.dart';
+
+String _localizeError(LlmException e, AppLocalizations l10n) {
+  return switch (e.code) {
+    LlmErrorCode.configNotLoaded => l10n.llmErrorConfigNotLoaded,
+    LlmErrorCode.cloudConfigIncomplete => l10n.llmErrorCloudConfigIncomplete,
+    LlmErrorCode.noActiveProfile => l10n.llmErrorNoActiveCloudProfile,
+    LlmErrorCode.apiKeyMissing => l10n.llmErrorApiKeyEmpty,
+    LlmErrorCode.unauthorized => l10n.llmErrorApiKeyEmpty,
+    _ => e.message,
+  };
+}
 
 // =============================================================================
 // LLM Chat Panel
@@ -41,7 +54,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
   final _inputController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isLoadingConfig = false;
-  String? _loadError;
+  LlmException? _loadError;
   bool _scrollPending = false;
 
   Future<void> _loadModel() async {
@@ -54,11 +67,11 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
       await ref.read(llmModelProvider.notifier).loadFromConfig();
     } on LlmException catch (e) {
       if (mounted) {
-        setState(() => _loadError = e.message);
+        setState(() => _loadError = e);
       }
     } on Exception catch (e) {
       if (mounted) {
-        setState(() => _loadError = e.toString());
+        setState(() => _loadError = LlmException(e.toString()));
       }
     } finally {
       if (mounted) {
@@ -93,17 +106,17 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     super.dispose();
   }
 
-  ({IconData icon, String label})? _backendStatus(LlmConfigState? config, bool isReady) {
+  ({IconData icon, String label})? _backendStatus(LlmConfigState? config, bool isReady, AppLocalizations l10n) {
     if (config == null) return null;
     final icon = config.backendType == LlmBackendType.cloud
         ? Icons.cloud_outlined
         : Icons.computer_outlined;
-    final source = config.backendType == LlmBackendType.cloud ? '云端' : '本地';
+    final source = config.backendType == LlmBackendType.cloud ? l10n.llmChatBackendCloud : l10n.llmChatBackendLocal;
     final model = config.backendType == LlmBackendType.cloud
         ? (config.activeCloudProfile?.model ?? config.cloudModel)
         : (config.localModelPath ?? 'qwen2.5:1.5b');
-    final status = isReady ? '就绪' : '未就绪';
-    return (icon: icon, label: '$source · ${model.isNotEmpty ? model : '未配置'} · $status');
+    final status = isReady ? l10n.llmChatStatusReady : l10n.llmChatStatusNotReady;
+    return (icon: icon, label: '$source · ${model.isNotEmpty ? model : l10n.llmChatModelNotConfigured} · $status');
   }
 
   void _scrollToBottom() {
@@ -123,10 +136,11 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
 
+    final l10n = AppLocalizations.of(context);
     final modelState = ref.read(llmModelProvider);
     if (!modelState.hasValue || modelState.value != LlmModelState.loaded) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('模型尚未加载，请先配置 LLM')),
+        SnackBar(content: Text(l10n.llmChatModelNotLoaded)),
       );
       return;
     }
@@ -156,12 +170,13 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final modelAsync = ref.watch(llmModelProvider);
     final configAsync = ref.watch(llmConfigProvider);
     final messages = ref.watch(llmChatSessionProvider);
     final isReady = modelAsync.value == LlmModelState.loaded;
     final isSending = messages.any((m) => m.isStreaming);
-    final backendStatus = _backendStatus(configAsync.value, isReady);
+    final backendStatus = _backendStatus(configAsync.value, isReady, l10n);
 
     // AI 输出期间自动滚动到底部（防重复添加 callback）
     if (isSending && !_scrollPending) {
@@ -194,7 +209,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: '清除会话',
+                    tooltip: AppLocalizations.of(context).llmChatClearSession,
                     onPressed: messages.isEmpty ? null : _clearSession,
                   ),
                 ],
@@ -243,15 +258,15 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     // AI 消息
     if (msg.isStreaming && msg.text.isEmpty) {
       // 刚开始流式输出，尚无文本
-      return const Row(
+      return Row(
         children: [
-          SizedBox(
+          const SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          SizedBox(width: 8),
-          Text('正在思考…'),
+          const SizedBox(width: 8),
+          Text(AppLocalizations.of(context).llmChatThinking),
         ],
       );
     }
@@ -259,7 +274,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     if (!msg.isStreaming && msg.text.isEmpty) {
       // 流式结束但未收到任何内容
       return Text(
-        '（未收到回复）',
+        AppLocalizations.of(context).llmChatNoResponse,
         style: theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.error,
           fontStyle: FontStyle.italic,
@@ -337,7 +352,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
                     decoration: InputDecoration(
-                      hintText: isReady ? '输入消息...' : '模型未就绪',
+                      hintText: isReady ? AppLocalizations.of(context).llmChatInputHintReady : AppLocalizations.of(context).llmChatInputHintNotReady,
                       filled: true,
                       fillColor: theme.colorScheme.surfaceContainerHighest,
                       contentPadding: const EdgeInsets.symmetric(
@@ -386,6 +401,7 @@ class _ModelStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Chip(
       visualDensity: VisualDensity.compact,
       avatar: Icon(
@@ -394,7 +410,7 @@ class _ModelStatusChip extends StatelessWidget {
         color: isReady ? theme.colorScheme.primary : theme.colorScheme.error,
       ),
       label: Text(
-        isReady ? '就绪' : '未就绪',
+        isReady ? l10n.llmChatStatusReady : l10n.llmChatStatusNotReady,
         style: theme.textTheme.labelSmall,
       ),
     );
@@ -404,7 +420,7 @@ class _ModelStatusChip extends StatelessWidget {
 class _EmptyState extends StatelessWidget {
   final ThemeData theme;
   final AsyncValue<LlmConfigState> configAsync;
-  final String? loadError;
+  final LlmException? loadError;
   final bool isLoading;
   final VoidCallback onLoadModel;
 
@@ -418,10 +434,11 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasError = loadError != null && loadError!.isNotEmpty;
+    final hasError = loadError != null;
     final config = configAsync.hasValue ? configAsync.value : null;
     final isCloud = config?.backendType == LlmBackendType.cloud;
-    final loadLabel = isCloud ? '连接云端模型' : '启动本地模型';
+    final l10n = AppLocalizations.of(context);
+    final loadLabel = isCloud ? l10n.llmChatConnectCloudModel : l10n.llmChatStartLocalModel;
 
     return Center(
       child: Padding(
@@ -449,8 +466,8 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               isLoading
-                  ? '正在加载模型配置…'
-                  : (loadError ?? '开始与 AI 对话'),
+                  ? l10n.llmChatLoadingConfig
+                  : (loadError != null ? _localizeError(loadError!, l10n) : l10n.llmChatStartConversation),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: hasError
@@ -471,7 +488,7 @@ class _EmptyState extends StatelessWidget {
               TextButton.icon(
                 onPressed: () => context.push(AppRoutes.llmConfig),
                 icon: const Icon(Icons.settings, size: 16),
-                label: const Text('前往 LLM 配置'),
+                label: Text(l10n.llmChatGoToConfig),
               ),
             ],
           ],

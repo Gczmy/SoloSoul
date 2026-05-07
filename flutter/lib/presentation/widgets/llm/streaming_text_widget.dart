@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 // =============================================================================
 // Streaming Text Widget
@@ -118,7 +119,7 @@ class _StreamingTextWidgetState extends State<StreamingTextWidget> {
 
     if (_hasError) {
       return Text(
-        '⚠️ 推理出错: $_errorMessage',
+        '⚠️ ${AppLocalizations.of(context).llmInferenceError}: $_errorMessage',
         style: textStyle?.copyWith(color: theme.colorScheme.error),
       );
     }

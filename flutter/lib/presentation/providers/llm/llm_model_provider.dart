@@ -132,8 +132,8 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
     final configAsync = ref.read(llmConfigProvider);
     if (!configAsync.hasValue) {
       throw const LlmException(
-        'LLM 配置尚未加载',
-        code: LlmErrorCode.unknown,
+        'LLM configuration not loaded',
+        code: LlmErrorCode.configNotLoaded,
       );
     }
 
@@ -142,17 +142,17 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
     if (config.backendType == LlmBackendType.cloud) {
       if (!config.canUseCloud) {
         throw const LlmException(
-          '云端配置不完整：请检查 API Key 和隐私同意',
-          code: LlmErrorCode.unauthorized,
+          'Cloud configuration incomplete: please check API Key and privacy consent',
+          code: LlmErrorCode.cloudConfigIncomplete,
         );
       }
       final profile = config.activeCloudProfile;
       if (profile == null) {
-        throw const LlmException('没有激活的云端配置', code: LlmErrorCode.unknown);
+        throw const LlmException('No active cloud configuration', code: LlmErrorCode.noActiveProfile);
       }
       final apiKey = await LlmConfigService.instance.getApiKeyByRef(profile.apiKeyRef);
       if (apiKey == null || apiKey.isEmpty) {
-        throw const LlmException('API Key 为空', code: LlmErrorCode.unauthorized);
+        throw const LlmException('API Key is empty', code: LlmErrorCode.apiKeyMissing);
       }
       await _manager.loadCloud(
         apiKey: apiKey,
@@ -190,22 +190,22 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   Future<String> testActiveCloudConnection() async {
     final config = ref.read(llmConfigProvider).value;
     if (config == null) {
-      throw const LlmException('配置未加载', code: LlmErrorCode.unknown);
+      throw const LlmException('Configuration not loaded', code: LlmErrorCode.configNotLoaded);
     }
     if (!config.canUseCloud) {
       throw const LlmException(
-        '云端配置不完整：请检查 API Key、模型配置和隐私同意',
-        code: LlmErrorCode.unauthorized,
+        'Cloud configuration incomplete: please check API Key, model config and privacy consent',
+        code: LlmErrorCode.cloudConfigIncomplete,
       );
     }
     final profile = config.activeCloudProfile;
     if (profile == null) {
-      throw const LlmException('没有激活的云端配置', code: LlmErrorCode.unknown);
+      throw const LlmException('No active cloud configuration', code: LlmErrorCode.noActiveProfile);
     }
 
     final apiKey = await LlmConfigService.instance.getApiKeyByRef(profile.apiKeyRef);
     if (apiKey == null || apiKey.isEmpty) {
-      throw const LlmException('API Key 为空，请重新配置', code: LlmErrorCode.unauthorized);
+      throw const LlmException('API Key is empty, please reconfigure', code: LlmErrorCode.apiKeyMissing);
     }
 
     final service = LlmCloudService(
@@ -218,9 +218,9 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
 
     try {
       await service.testConnection();
-      return '${profile.providerType.label} 连接成功！模型: ${profile.model}';
-    } on LlmException catch (e) {
-      throw LlmException('${profile.providerType.label} 连接失败: ${e.message}', code: e.code);
+      return '${profile.providerType.label} connected successfully! Model: ${profile.model}';
+    } on LlmException {
+      rethrow;
     }
   }
 

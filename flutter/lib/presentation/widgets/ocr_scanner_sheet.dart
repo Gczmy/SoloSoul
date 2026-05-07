@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +22,7 @@ import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/extracted_fields_preview.dart';
 import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
 
@@ -180,13 +182,16 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         _buildLlmAssistSection(),
         const SizedBox(height: 8),
         // 操作按钮
-        _ActionButton(
-          icon: Icons.camera_alt_outlined,
-          label: 'Take Photo',
-          description: 'Use camera to capture document',
-          onTap: () => _pickImage(ImageSource.camera),
-        ),
-        const SizedBox(height: 12),
+        if (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android) ...[
+          _ActionButton(
+            icon: Icons.camera_alt_outlined,
+            label: 'Take Photo',
+            description: 'Use camera to capture document',
+            onTap: () => _pickImage(ImageSource.camera),
+          ),
+          const SizedBox(height: 12),
+        ],
         _ActionButton(
           icon: Icons.folder_open_outlined,
           label: 'Select Document',
@@ -658,8 +663,8 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               controlAffinity: ListTileControlAffinity.leading,
-              title: const Text('使用 LLM 协助提取字段'),
-              subtitle: const Text('提高字段识别准确率'),
+              title: Text(AppLocalizations.of(context).ocrLlmAssist),
+              subtitle: Text(AppLocalizations.of(context).ocrLlmAssistSubtitle),
               value: _useLlmAssist,
               onChanged: (v) {
                 setState(() => _useLlmAssist = v ?? false);
@@ -693,7 +698,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               child: TextButton.icon(
                 onPressed: () => context.push(AppRoutes.llmConfig),
                 icon: const Icon(Icons.settings, size: 16),
-                label: const Text('LLM 配置'),
+                label: Text(AppLocalizations.of(context).ocrLlmConfig),
               ),
             ),
           ],
@@ -718,7 +723,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '未配置可用 LLM 模型',
+                  AppLocalizations.of(context).ocrNoModelAvailable,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
                     fontSize: 13,
@@ -731,7 +736,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           FilledButton.tonalIcon(
             onPressed: () => context.push(AppRoutes.llmConfig),
             icon: const Icon(Icons.arrow_forward, size: 16),
-            label: const Text('前往配置'),
+            label: Text(AppLocalizations.of(context).ocrGoToConfig),
           ),
         ],
       ),
@@ -743,8 +748,8 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       // ignore: deprecated_member_use
       value: _selectedModelId,
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: '选择模型',
+      decoration: InputDecoration(
+        labelText: AppLocalizations.of(context).ocrModelSelectorLabel,
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
