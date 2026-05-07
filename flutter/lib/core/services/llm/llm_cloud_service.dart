@@ -272,15 +272,15 @@ class LlmCloudService implements LlmService {
 
       switch (response.statusCode) {
         case 401:
-          throw LlmException('API Key 无效: ${apiError.message}', code: LlmErrorCode.unauthorized);
+          throw LlmException('Invalid API Key: ${apiError.message}', code: LlmErrorCode.unauthorized);
         case 429:
-          throw LlmException('请求频率超限: ${apiError.message}', code: LlmErrorCode.rateLimited);
+          throw LlmException('Rate limit exceeded: ${apiError.message}', code: LlmErrorCode.rateLimited);
         case 500:
         case 502:
         case 503:
-          throw LlmException('服务端错误 (${response.statusCode}): ${apiError.message}', code: LlmErrorCode.network);
+          throw LlmException('Server error (${response.statusCode}): ${apiError.message}', code: LlmErrorCode.network);
         default:
-          throw LlmException('API 错误 (${response.statusCode}): ${apiError.message}', code: LlmErrorCode.unknown);
+          throw LlmException('API error (${response.statusCode}): ${apiError.message}', code: LlmErrorCode.unknown);
       }
     }
 
@@ -318,7 +318,7 @@ class LlmCloudService implements LlmService {
       final errorBody = _safeDecode(bodyStr);
       final apiError = _parseError(errorBody, streamedResponse.statusCode);
       throw LlmException(
-        '流式请求失败 (${streamedResponse.statusCode}): ${apiError.message}',
+        'Streaming request failed (${streamedResponse.statusCode}): ${apiError.message}',
         code: LlmErrorCode.network,
       );
     }
@@ -351,7 +351,7 @@ class LlmCloudService implements LlmService {
         // 错误检查（两种格式都可能在流中返回错误）
         if (json['error'] != null || json['type'] == 'error') {
           final apiError = _parseError(json, streamedResponse.statusCode);
-          throw LlmException('流式错误: ${apiError.message}', code: LlmErrorCode.unknown);
+          throw LlmException('Streaming error: ${apiError.message}', code: LlmErrorCode.unknown);
         }
 
         final chunk = _parseStreamEvent(json, currentEvent);
