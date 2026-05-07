@@ -19,9 +19,9 @@ class ScanImportResultPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: SoloGlassAppBar(
+      appBar: const SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: const Text('Import Complete'),
+        title: Text('Import Complete'),
         centerTitle: true,
       ),
       body: Center(
