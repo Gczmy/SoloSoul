@@ -171,23 +171,35 @@ class OcrService {
 
   /// 从 Apple Vision 结果中提取 MRZ 候选行
   ///
-  /// 策略：
-  /// 1. 从 rawText 中按正则提取 44/36/30 字符的行（TD3/TD2/TD1）
-  /// 2. 从 blocks 中提取底部 2-3 行（MRZ 通常在证件底部）
-  /// 3. 合并去重后返回
+  /// MRZ 只包含大写字母、数字和 `<`。从 rawText 和 blocks 中提取，
+  /// 过滤掉含非法字符的片段，优先保留标准长度（44/36/30）的行。
   static List<String> _extractMrzLines(OcrResult result) {
     final candidates = <String>{};
 
-    // 策略 1：rawText 正则提取（移除所有空白后匹配标准长度）
-    final cleaned = result.rawText.replaceAll(RegExp(r'\s'), '').toUpperCase();
-    for (final len in [44, 36, 30]) {
-      final regex = RegExp('[A-Z0-9<]{$len}');
-      for (final match in regex.allMatches(cleaned)) {
-        candidates.add(match.group(0)!);
+    // 辅助：从字符串中提取所有纯 MRZ 字符的连续片段
+    void extractFragments(String text) {
+      final normalized = text.toUpperCase();
+      // 匹配连续的 [A-Z0-9<]
+      final matches = RegExp(r'[A-Z0-9<]+').allMatches(normalized);
+      for (final m in matches) {
+        final frag = m.group(0)!;
+        // 只保留长度 ≥ 30 的片段（MRZ 最短 30）
+        if (frag.length >= 30) {
+          candidates.add(frag);
+        }
+        // 如果片段更长，尝试提取尾部标准长度子串
+        for (final len in [44, 36, 30]) {
+          if (frag.length >= len) {
+            candidates.add(frag.substring(frag.length - len));
+          }
+        }
       }
     }
 
-    // 策略 2：blocks 按 Y 坐标分组，取底部行
+    // 从 rawText 提取
+    extractFragments(result.rawText);
+
+    // 从 blocks 提取（底部行优先）
     if (result.blocks.isNotEmpty) {
       final sorted = List<OcrBlock>.from(result.blocks)
         ..sort((a, b) => a.bbox.y.compareTo(b.bbox.y));
@@ -195,12 +207,12 @@ class OcrService {
       final lines = <String>[];
       final currentLine = StringBuffer();
       double currentY = sorted.first.bbox.y;
-      const double yThreshold = 8.0; // 更小的阈值，精确分行
+      const double yThreshold = 8.0;
 
       for (final block in sorted) {
         if ((block.bbox.y - currentY).abs() > yThreshold) {
           if (currentLine.isNotEmpty) {
-            lines.add(currentLine.toString().trim());
+            lines.add(currentLine.toString());
           }
           currentLine.clear();
           currentY = block.bbox.y;
@@ -208,20 +220,23 @@ class OcrService {
         currentLine.write(block.text);
       }
       if (currentLine.isNotEmpty) {
-        lines.add(currentLine.toString().trim());
+        lines.add(currentLine.toString());
       }
 
-      // 取最后 3 行（MRZ 通常在底部）
-      final bottomLines = lines.length <= 3 ? lines : lines.sublist(lines.length - 3);
+      // 优先处理底部行（MRZ 通常在底部）
+      final bottomLines = lines.length <= 4 ? lines : lines.sublist(lines.length - 4);
       for (final line in bottomLines) {
-        final normalized = line.replaceAll(RegExp(r'\s'), '').toUpperCase();
-        if (normalized.length >= 30) {
-          candidates.add(normalized);
-        }
+        extractFragments(line);
       }
     }
 
-    return candidates.toList();
+    // 过滤：只保留标准长度（允许 ±1 误差用于模糊匹配）
+    return candidates.where((s) {
+      final len = s.length;
+      return (len >= 29 && len <= 32) ||
+             (len >= 35 && len <= 38) ||
+             (len >= 43 && len <= 46);
+    }).toList();
   }
 
   static Future<MrzData?> _rustExtractMrz(Uint8List imageData) async {
