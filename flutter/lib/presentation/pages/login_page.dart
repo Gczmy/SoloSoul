@@ -16,6 +16,7 @@ import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
+import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart' show getDeviceName;
@@ -56,7 +57,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _confirmPasswordController = TextEditingController();
   final _passwordHintController = TextEditingController();
 
-  /// 若 Vault 数据为空但存在备份，提示用户恢复
+  static const _restoreHandledKeyPrefix = 'restore_prompt_handled_v1';
+
+  String _restoreHandledKey(String accountId) => '${_restoreHandledKeyPrefix}_$accountId';
+
+  /// 若 Vault 数据为空但存在备份，提示用户恢复。
+  /// 用户跳过或恢复后记录标志，避免每次登录重复提示。
   Future<void> _promptRestoreIfEmpty(
     BuildContext context,
     WidgetRef ref,
@@ -64,6 +70,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   ) async {
     if (accountId == null) return;
     if (!context.mounted) return;
+
+    // 检查是否已处理过恢复提示（跳过或恢复）
+    final storage = FallbackSecureStorage();
+    final handled = await storage.read(key: _restoreHandledKey(accountId));
+    if (handled == 'skipped' || handled == 'restored') {
+      SoloLog.d('LOGIN', 'Restore prompt already handled ($handled), skipping');
+      return;
+    }
 
     final profile = ref.read(profileNotifierProvider).value;
     final unifiedData = ref.read(unifiedObjectProvider);
@@ -77,18 +91,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       'objects=$objectCount, active=$activeCount',
     );
 
-    // 保守策略：只要 Vault 中有 profile 数据（包括旧格式），就不提示恢复
-    // 避免旧账号因迁移时序或格式问题导致误报
+    // 保守策略：只要 Vault 中有有效数据，就不提示恢复
     if (profile != null) {
       if (profile.unifiedObjects != null && activeCount > 0) {
         return; // 有有效数据，无需恢复
       }
       if (profile.unifiedObjects != null && activeCount == 0) {
-        // unifiedObjects 存在但为空（可能是新账号或空 section），继续检查备份
+        // unifiedObjects 存在但为空，继续检查备份
       }
       if (profile.unifiedObjects == null) {
-        // 旧格式数据（无 unified_objects 字段），profile 存在但无法通过新模型读取
-        // 为避免误报，不提示恢复（legacy migration 已移除，旧数据无法自动恢复）
         SoloLog.w(
           'LOGIN',
           'Legacy profile detected without unified_objects, skipping restore prompt',
@@ -128,17 +139,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         latest.fileName,
       );
       if (success && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Restore successful. Please restart the app.'),
-            duration: AppTheme.kPasswordHintDelay,
-          ),
-        );
+        // 恢复成功：重新加载数据到 provider，无需重启
+        await ref.read(profileNotifierProvider.notifier).loadProfile();
+        await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
+        await storage.write(key: _restoreHandledKey(accountId), value: 'restored');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Restore successful. Your data is now available.'),
+              duration: AppTheme.kPasswordHintDelay,
+            ),
+          );
+        }
       } else if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Restore failed')),
         );
       }
+    } else if (shouldRestore == false) {
+      // 用户明确跳过，记录标志防止重复提示
+      await storage.write(key: _restoreHandledKey(accountId), value: 'skipped');
     }
   }
 
@@ -200,6 +220,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _checkBiometrics() async {
+    // Ensure security settings and biometric credential service are ready
+    await SecurityService.instance.loadSettings();
+    await BiometricCredentialService.instance.initialize();
+
     final biometric = BiometricService.instance;
     final available = await biometric.isAvailable();
     final settings = SecurityService.instance.settings;
@@ -509,6 +533,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     // Rebuild to show password input for the selected account
     // (build() uses ref.read for authNotifier, not ref.watch)
     if (mounted) setState(() {});
+    // Recheck biometric availability for the newly selected account
+    await _checkBiometrics();
   }
 
   Future<void> _backToAccountList() async {

@@ -1,4 +1,5 @@
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
+import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
 
 // ============================================================================
 // 智能 OCR 结果模型
@@ -17,7 +18,10 @@ sealed class SmartOcrResult {
 class SmartOcrTextResult extends SmartOcrResult {
   final OcrResult ocrResult;
 
-  const SmartOcrTextResult(this.ocrResult);
+  /// 规则引擎推断出的结构化字段（0MB 提取器链）
+  final ExtractionResult extraction;
+
+  const SmartOcrTextResult(this.ocrResult, this.extraction);
 }
 
 /// 结构化MRZ识别结果（护照/ID卡等旅行证件）

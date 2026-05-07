@@ -18,7 +18,7 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 /// }
 /// ```
 class UserPreferencesService {
-  static const _key = 'user_preferences_v1';
+  static const _keyPrefix = 'user_preferences_v1';
   static UserPreferencesService? _instance;
 
   final _storage = FallbackSecureStorage();
@@ -30,24 +30,28 @@ class UserPreferencesService {
     return _instance!;
   }
 
+  String _storageKey(String accountId) => '${_keyPrefix}_$accountId';
+
   // ---------------------------------------------------------------------------
   // Quick Actions
   // ---------------------------------------------------------------------------
 
   /// Persist the ordered list of quick-action route paths.
-  Future<void> saveQuickActions(List<String> routes) async {
+  /// [accountId] ensures data is isolated per-account.
+  Future<void> saveQuickActions(List<String> routes, String accountId) async {
     final json = jsonEncode({'quick_action_routes': routes});
     final payload = await _encrypt(json);
-    await _storage.write(key: _key, value: payload);
+    await _storage.write(key: _storageKey(accountId), value: payload);
   }
 
   /// Load the ordered list of quick-action route paths.
+  /// [accountId] ensures data is isolated per-account.
   /// Returns an empty list when nothing has been saved yet.
-  Future<List<String>> loadQuickActions() async {
-    final payload = await _storage.read(key: _key);
+  Future<List<String>> loadQuickActions(String accountId) async {
+    final payload = await _storage.read(key: _storageKey(accountId));
     if (payload == null || payload.isEmpty) return [];
 
-    final json = await _decrypt(payload);
+    final json = await _decrypt(payload, accountId);
     if (json == null || json.isEmpty) return [];
 
     try {
@@ -76,14 +80,15 @@ class UserPreferencesService {
       if (encrypted.isEmpty) return plaintext;
 
       return 'enc:${base64Encode(encrypted)}';
-    } on Exception {
+    } on Object {
       return plaintext;
     }
   }
 
   /// Decrypts a payload produced by [_encrypt].
   /// Handles both encrypted ('enc:...') and plain JSON payloads.
-  Future<String?> _decrypt(String payload) async {
+  /// On failure, clears the stale data so it doesn't recur on every launch.
+  Future<String?> _decrypt(String payload, String accountId) async {
     if (!payload.startsWith('enc:')) {
       return payload;
     }
@@ -92,9 +97,11 @@ class UserPreferencesService {
       final combined = base64Decode(payload.substring(4));
       final decrypted = await frb.frbDecryptBytes(data: combined);
       return utf8.decode(decrypted);
-    } on Exception {
+    } on Object {
       // FRB handles both SOLO blob and legacy Dart formats.
-      // If it fails, the data is unrecoverable without the original key.
+      // If decryption fails (e.g. account switched or password changed),
+      // clear the stale encrypted data to prevent repeated errors.
+      await _storage.write(key: _storageKey(accountId), value: null);
       return null;
     }
   }

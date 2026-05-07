@@ -41,7 +41,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return ObjectCategoryPage(
       title: 'Profile',
       sections: [
-        const ScanDocumentButton(),
+        const ScanDocumentButton(parentId: DefaultSectionIds.contact),
         const SizedBox(height: 16),
         _IdentitySection(isPrivacyMode: isPrivacyMode),
         const SizedBox(height: 16),

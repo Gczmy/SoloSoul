@@ -116,7 +116,10 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   }
 
   Future<void> _loadQuickActions() async {
-    final savedRoutes = await UserPreferencesService.instance.loadQuickActions();
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
+    final savedRoutes = await UserPreferencesService.instance.loadQuickActions(accountId);
     if (savedRoutes.isEmpty) return;
     if (!mounted) return;
 
@@ -155,8 +158,11 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   }
 
   Future<void> _persistQuickActions() async {
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) return;
+
     final routes = _actions.map((a) => a.route).toList();
-    await UserPreferencesService.instance.saveQuickActions(routes);
+    await UserPreferencesService.instance.saveQuickActions(routes, accountId);
   }
 
   @override

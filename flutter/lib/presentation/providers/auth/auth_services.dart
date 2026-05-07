@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
+import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
@@ -237,9 +238,40 @@ class PasswordService {
       await profileStorage.saveProfile(accountId, currentProfile);
     }
 
-    // Step 7: Clear biometric credential — old session key is no longer valid
-    await BiometricCredentialService.instance.clearBiometricCredential(accountId);
-    SoloLog.d('PasswordService', 'Biometric credential cleared for $accountId after password change');
+    // Step 6: Migrate encrypted metadata (scan config, settings, field histories,
+    // operation logs) to new session key. These were encrypted with the old key
+    // and would fail to decrypt after password change without re-encryption.
+    final migrated = await RustVaultService.instance.migrateMetadataAfterPasswordChange(accountId);
+    if (!migrated) {
+      SoloLog.w('PasswordService',
+          'Some metadata entries could not be migrated after password change for $accountId');
+    }
+
+    // Step 7: Re-save biometric credential with new password if biometric was enabled.
+    // This ensures users can still use Touch ID / Face ID after password change
+    // without manually re-enabling it.
+    final settings = SecurityService.instance.settings;
+    if (settings.biometricsEnabled || settings.faceIdEnabled) {
+      await BiometricCredentialService.instance.initialize();
+      final saved = await BiometricCredentialService.instance.saveBiometricCredential(
+        accountId,
+        newPassword,
+      );
+      if (saved) {
+        SoloLog.d('PasswordService',
+            'Biometric credential re-saved with new password for $accountId');
+      } else {
+        SoloLog.w('PasswordService',
+            'Failed to re-save biometric credential after password change for $accountId');
+        // Clear stale credential so user isn't stuck with a broken biometric
+        await BiometricCredentialService.instance.clearBiometricCredential(accountId);
+      }
+    } else {
+      // Biometric not enabled — clear any stale credential
+      await BiometricCredentialService.instance.clearBiometricCredential(accountId);
+      SoloLog.d('PasswordService',
+          'Biometric credential cleared for $accountId after password change (not enabled)');
+    }
 
     // Step 8: Update password hint if provided
     if (newPasswordHint != null) {

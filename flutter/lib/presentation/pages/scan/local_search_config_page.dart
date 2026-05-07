@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -206,10 +209,19 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
   }
 
   Future<void> _pickFolder() async {
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => const FolderPickerDialog(),
-    );
+    String? result;
+
+    // macOS/iOS 沙盒限制：纯 Dart 的 Directory.list() 无法访问用户目录，
+    // 必须使用系统原生的 NSOpenPanel / UIDocumentPicker。
+    if (Platform.isMacOS || Platform.isIOS) {
+      result = await FilePicker.getDirectoryPath();
+    } else {
+      result = await showDialog<String>(
+        context: context,
+        builder: (ctx) => const FolderPickerDialog(),
+      );
+    }
+
     if (result == null) return; // User cancelled
     if (!mounted) return;
     final currentPaths = ref.read(localSearchProvider).paths;

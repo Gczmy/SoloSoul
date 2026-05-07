@@ -22,7 +22,7 @@
 
 /* Begin PBXBuildFile section */
 		07F3B045F39890D2BEB642B4 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C26DE479841816E09A08FA22 /* Pods_RunnerTests.framework */; };
-		32B9E9BA2F923FDE00A569E7 /* Runner/Frameworks/libsolosoul_core.dylib in Copy Dylib to Frameworks */ = {isa = PBXBuildFile; fileRef = S0L0C0R3DYL1B000000000002 /* Runner/Frameworks/libsolosoul_core.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		32B9E9BA2F923FDE00A569E7 /* libsolosoul_core.dylib in Copy Dylib to Frameworks */ = {isa = PBXBuildFile; fileRef = S0L0C0R3DYL1B000000000002 /* libsolosoul_core.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
@@ -30,7 +30,7 @@
 		33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F42044A3C60003C045 /* MainMenu.xib */; };
 		33CC11132044BFA00003C045 /* MainFlutterWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC11122044BFA00003C045 /* MainFlutterWindow.swift */; };
 		3686830C923AC1CEAE951D8E /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1D5A6722F0541037CC8D80 /* Pods_Runner.framework */; };
-		S0L0C0R3DYL1B000000000001 /* Runner/Frameworks/libsolosoul_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = S0L0C0R3DYL1B000000000002 /* Runner/Frameworks/libsolosoul_core.dylib */; };
+		S0L0C0R3DYL1B000000000001 /* libsolosoul_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = S0L0C0R3DYL1B000000000002 /* libsolosoul_core.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,7 +67,7 @@
 			dstPath = Contents/Frameworks;
 			dstSubfolderSpec = 10;
 			files = (
-				32B9E9BA2F923FDE00A569E7 /* Runner/Frameworks/libsolosoul_core.dylib in Copy Dylib to Frameworks */,
+				32B9E9BA2F923FDE00A569E7 /* libsolosoul_core.dylib in Copy Dylib to Frameworks */,
 			);
 			name = "Copy Dylib to Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -102,7 +102,7 @@
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		B2E4A12BA7852D33D3988128 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		C26DE479841816E09A08FA22 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		S0L0C0R3DYL1B000000000002 /* Runner/Frameworks/libsolosoul_core.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = Runner/Frameworks/libsolosoul_core.dylib; sourceTree = "<group>"; };
+		S0L0C0R3DYL1B000000000002 /* libsolosoul_core.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = Runner/Frameworks/libsolosoul_core.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,7 +119,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3686830C923AC1CEAE951D8E /* Pods_Runner.framework in Frameworks */,
-				S0L0C0R3DYL1B000000000001 /* Runner/Frameworks/libsolosoul_core.dylib in Frameworks */,
+				S0L0C0R3DYL1B000000000001 /* libsolosoul_core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,7 +207,7 @@
 			children = (
 				3C1D5A6722F0541037CC8D80 /* Pods_Runner.framework */,
 				C26DE479841816E09A08FA22 /* Pods_RunnerTests.framework */,
-				S0L0C0R3DYL1B000000000002 /* Runner/Frameworks/libsolosoul_core.dylib */,
+				S0L0C0R3DYL1B000000000002 /* libsolosoul_core.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -449,13 +449,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

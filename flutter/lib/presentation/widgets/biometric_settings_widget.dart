@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
@@ -180,7 +181,19 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       final accountId = authNotifier.selectedAccountId;
       await securityService.setBiometricsEnabled(true);
       if (accountId != null) {
-        await BiometricCredentialService.instance.saveBiometricCredential(accountId, password);
+        // Ensure deviceKey is initialized before saving credential
+        await BiometricCredentialService.instance.initialize();
+        final saved = await BiometricCredentialService.instance.saveBiometricCredential(accountId, password);
+        if (!saved) {
+          SoloLog.w('BiometricSettings', 'Failed to save biometric credential');
+          if (!mounted) return;
+          setState(() {
+            _biometricEnabled = false;
+            _error = 'Failed to save biometric credential. Please try again.';
+          });
+          unawaited(securityService.setBiometricsEnabled(false));
+          return;
+        }
       }
       if (!mounted) return;
       setState(() {
@@ -275,7 +288,19 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       final accountId = authNotifier.selectedAccountId;
       await securityService.setFaceIdEnabled(true);
       if (accountId != null) {
-        await BiometricCredentialService.instance.saveBiometricCredential(accountId, password);
+        // Ensure deviceKey is initialized before saving credential
+        await BiometricCredentialService.instance.initialize();
+        final saved = await BiometricCredentialService.instance.saveBiometricCredential(accountId, password);
+        if (!saved) {
+          SoloLog.w('BiometricSettings', 'Failed to save Face ID credential');
+          if (!mounted) return;
+          setState(() {
+            _faceIdEnabled = false;
+            _error = 'Failed to save Face ID credential. Please try again.';
+          });
+          unawaited(securityService.setFaceIdEnabled(false));
+          return;
+        }
       }
       if (!mounted) return;
       setState(() {

@@ -7,13 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
+import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
 import 'package:solosoul_flutter/core/services/mrz_vault_service.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
 import 'package:solosoul_flutter/core/services/pdf_render_service.dart';
 import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/widgets/extracted_fields_preview.dart';
 import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
-import 'package:solosoul_flutter/presentation/widgets/ocr_result_preview.dart';
 
 /// 通用 OCR 扫描底部 Sheet（智能 MRZ 版）
 ///
@@ -32,6 +33,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   bool _isLoading = false;
   String? _errorMessage;
   SmartOcrResult? _result;
+  Set<String> _selectedFieldKeys = {};
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +146,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
                 child: Text(
                   'All recognition is done locally on your device. '
                   'Images are never uploaded to any server. '
-                  'Passports and ID cards will be automatically detected.',
+                  'Travel documents and ID cards will be automatically detected.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
@@ -165,7 +167,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         _ActionButton(
           icon: Icons.folder_open_outlined,
           label: 'Select Document',
-          description: 'Photo, scan, or PDF file',
+          description: 'Photo or PDF file',
           onTap: _pickDocument,
         ),
         const SizedBox(height: 24),
@@ -255,7 +257,19 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         if (result is SmartOcrMrzResult)
           MrzPreviewCard(mrzData: result.mrzData)
         else if (result is SmartOcrTextResult)
-          OcrResultPreview(result: result.ocrResult),
+          ExtractedFieldsPreview(
+            result: result.extraction,
+            selectedKeys: _selectedFieldKeys,
+            onToggle: (key) {
+              setState(() {
+                if (_selectedFieldKeys.contains(key)) {
+                  _selectedFieldKeys.remove(key);
+                } else {
+                  _selectedFieldKeys.add(key);
+                }
+              });
+            },
+          ),
 
         const SizedBox(height: 20),
 
@@ -281,9 +295,30 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
             else
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(_result),
-                  icon: const Icon(Icons.check),
-                  label: const Text('Confirm'),
+                  onPressed: () {
+                    if (_result is SmartOcrTextResult) {
+                      final textResult = _result as SmartOcrTextResult;
+                      final filteredFields = <String, ExtractedField>{};
+                      for (final key in _selectedFieldKeys) {
+                        if (textResult.extraction.fields.containsKey(key)) {
+                          filteredFields[key] = textResult.extraction.fields[key]!;
+                        }
+                      }
+                      final filtered = SmartOcrTextResult(
+                        textResult.ocrResult,
+                        ExtractionResult(
+                          documentType: textResult.extraction.documentType,
+                          fields: filteredFields,
+                          rawText: textResult.extraction.rawText,
+                        ),
+                      );
+                      Navigator.of(context).pop(filtered);
+                    } else {
+                      Navigator.of(context).pop(_result);
+                    }
+                  },
+                  icon: const Icon(Icons.download),
+                  label: const Text('Import'),
                 ),
               ),
           ],
@@ -375,7 +410,9 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               rawOcrResult: ocrResult,
             );
           } else {
-            _result = SmartOcrTextResult(ocrResult);
+            final extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+            _result = SmartOcrTextResult(ocrResult, extraction);
+            _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
           }
         });
       }
@@ -483,7 +520,9 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               rawOcrResult: ocrResult,
             );
           } else {
-            _result = SmartOcrTextResult(ocrResult);
+            final extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+            _result = SmartOcrTextResult(ocrResult, extraction);
+            _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
           }
         });
       }

@@ -65,7 +65,7 @@ class RustVaultService {
   Future<Uint8List?> decryptBytes(Uint8List combined) async {
     try {
       return await frb.frbDecryptBytes(data: combined);
-    } on Exception {
+    } on Object {
       return null;
     }
   }
@@ -82,7 +82,7 @@ class RustVaultService {
       await frb.frbInitAccountManager(basePath: basePath);
       _vaultRoot = basePath;
       SoloLog.d('RustVault', 'initAccountManager (FRB) succeeded: $basePath');
-    } on Exception catch (e, st) {
+    } on Object catch (e, st) {
       SoloLog.e('RustVault', 'initAccountManager (FRB) failed', e, st);
       return false;
     }
@@ -249,7 +249,7 @@ class RustVaultService {
           }
         }
       }
-    } on Exception {
+    } on Object {
       // Non-fatal — devices may just be empty
     }
 
@@ -375,7 +375,8 @@ class RustVaultService {
       try {
         final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
         return utf8.decode(decrypted);
-      } on Exception {
+      } on Object catch (e) {
+        SoloLog.w('RustVault', 'Scan config decryption failed (likely stale key after password change): $e');
         return null;
       }
     }
@@ -458,7 +459,8 @@ class RustVaultService {
       try {
         final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
         return utf8.decode(decrypted);
-      } on Exception {
+      } on Object catch (e) {
+        SoloLog.w('RustVault', 'Scan config decryption failed (likely stale key after password change): $e');
         return null;
       }
     }
@@ -471,6 +473,51 @@ class RustVaultService {
   /// [accountId] - Account ID
   ///
   /// Returns true on success
+  // ===========================================================================
+  // Metadata migration helpers (called after password change)
+  // ===========================================================================
+
+  /// Re-encrypt all metadata entries for an account after password change.
+  /// Loads each encrypted metadata block, decrypts with old key, re-encrypts
+  /// with current (new) key, and saves back.
+  ///
+  /// Returns true if all entries were migrated successfully.
+  Future<bool> migrateMetadataAfterPasswordChange(String accountId) async {
+    final migratedScanConfig = await _migrateScanConfig(accountId);
+    final migratedSettings = await _migrateAccountSettings(accountId);
+    final migratedFieldHistories = await _migrateFieldHistories(accountId);
+
+    SoloLog.d('RustVault',
+        'Metadata migration: scanConfig=$migratedScanConfig, '
+        'settings=$migratedSettings, fieldHistories=$migratedFieldHistories');
+
+    return migratedScanConfig && migratedSettings && migratedFieldHistories;
+  }
+
+  Future<bool> _migrateScanConfig(String accountId) async {
+    final decrypted = await loadScanConfigDecrypted(accountId);
+    if (decrypted == null) return true; // nothing to migrate
+    return saveScanConfigEncrypted(accountId, decrypted);
+  }
+
+  Future<bool> _migrateAccountSettings(String accountId) async {
+    final decrypted = await loadSettingDecrypted(accountId);
+    if (decrypted == null) return true;
+    try {
+      await saveSettingEncrypted(accountId, decrypted);
+      return true;
+    } on Object catch (e) {
+      SoloLog.w('RustVault', 'Failed to re-encrypt settings for $accountId: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _migrateFieldHistories(String accountId) async {
+    final decrypted = await loadFieldHistoriesDecrypted(accountId);
+    if (decrypted == null) return true;
+    return saveFieldHistoriesEncrypted(accountId, decrypted);
+  }
+
   Future<bool> deleteScanConfig(String accountId) async {
     final result = NativeVaultService.instance.request(
       'delete_scan_config',
@@ -496,7 +543,7 @@ class RustVaultService {
     try {
       await frb.frbEncryptBytes(data: Uint8List.fromList([0]));
       SoloLog.d('RustVault', 'DIAG: FRB encrypt success (vault unlocked in FRB)');
-    } on Exception catch (e) {
+    } on Object catch (e) {
       SoloLog.d('RustVault', 'DIAG: FRB encrypt failed: $e');
     }
     final cffiUnlocked = isVaultUnlocked();
@@ -552,7 +599,8 @@ class RustVaultService {
       try {
         final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
         return utf8.decode(decrypted);
-      } on Exception {
+      } on Object catch (e) {
+        SoloLog.w('RustVault', 'Scan config decryption failed (likely stale key after password change): $e');
         return null;
       }
     }

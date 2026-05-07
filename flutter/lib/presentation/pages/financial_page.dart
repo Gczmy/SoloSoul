@@ -34,7 +34,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
     return ObjectCategoryPage(
       title: 'Financial',
       sections: [
-            const ScanDocumentButton(),
+            const ScanDocumentButton(parentId: DefaultSectionIds.taxId),
             const SizedBox(height: 16),
             PredefinedObjectSection(
               key: const ValueKey(DefaultSectionIds.bankAccount),

@@ -33,7 +33,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
     return ObjectCategoryPage(
       title: 'Professional',
       sections: [
-            const ScanDocumentButton(),
+            const ScanDocumentButton(parentId: DefaultSectionIds.employment),
             const SizedBox(height: 16),
             PredefinedObjectSection(
               key: const ValueKey(DefaultSectionIds.education),

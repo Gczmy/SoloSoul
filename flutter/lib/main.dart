@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
+import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
@@ -260,8 +261,9 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Load security settings at startup
-    SecurityService.instance.loadSettings();
+    // Load security settings and initialize biometric credential service at startup
+    unawaited(SecurityService.instance.loadSettings());
+    unawaited(BiometricCredentialService.instance.initialize());
 
     // 检测 App 版本变化，若升级则标记待备份
     _checkAppVersion();

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -410,59 +412,62 @@ Future<T?> showSoloGlassDialog<T>({
   return showDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
+    barrierColor: isDark
+        ? const Color(0x66000000)
+        : const Color(0x26000000),
     builder: (context) => Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 320),
-        child: GlassCard(
-          useOwnLayer: true,
-          settings: isDark
-              ? const LiquidGlassSettings(
-                  thickness: 30,
-                  blur: 10,
-                  glassColor: Color(0x33FFFFFF),
-                )
-              : const LiquidGlassSettings(
-                  thickness: 20,
-                  blur: 8,
-                  glassColor: Color(0x2DD2DCF0),
-                ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (title != null) ...[
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (message != null) ...[
-                Text(
-                  message,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: messageColor,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (content != null) ...[
-                content,
-                const SizedBox(height: 8),
-              ],
-              const SizedBox(height: 16),
-              _buildActions(context, actions, isDark),
-            ],
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xCC1C1C1E)
+                    : const Color(0xCCFFFFFF),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (title != null) ...[
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (message != null) ...[
+                    Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: messageColor,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (content != null) ...[
+                    content,
+                    const SizedBox(height: 8),
+                  ],
+                  const SizedBox(height: 16),
+                  _buildActions(context, actions, isDark),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -486,15 +491,21 @@ Widget _buildActions(
               onTap: action.onPressed,
               height: 44,
               shape: const LiquidRoundedSuperellipse(borderRadius: 10),
-              child: Text(
-                action.label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight:
-                      action.isPrimary ? FontWeight.bold : FontWeight.w600,
-                  color: action.isDestructive
-                      ? const Color(0xFFC4554D)
-                      : textColor,
+              child: Center(
+                child: Text(
+                  action.label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight:
+                        action.isPrimary ? FontWeight.bold : FontWeight.w600,
+                    color: action.isDestructive
+                        ? const Color(0xFFC4554D)
+                        : textColor,
+                  ),
                 ),
               ),
             ),
@@ -515,14 +526,20 @@ Widget _buildActions(
           onTap: action.onPressed,
           height: 44,
           shape: const LiquidRoundedSuperellipse(borderRadius: 10),
-          child: Text(
-            action.label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: action.isPrimary ? FontWeight.bold : FontWeight.w600,
-              color: action.isDestructive
-                  ? const Color(0xFFC4554D)
-                  : textColor,
+          child: Center(
+            child: Text(
+              action.label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: action.isPrimary ? FontWeight.bold : FontWeight.w600,
+                color: action.isDestructive
+                    ? const Color(0xFFC4554D)
+                    : textColor,
+              ),
             ),
           ),
         ),

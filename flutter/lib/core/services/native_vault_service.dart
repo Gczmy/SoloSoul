@@ -412,7 +412,7 @@ class NativeVaultService {
   Future<T?> _wrapFrb<T>(String name, Future<T?> Function() call) async {
     try {
       return await call();
-    } on Exception catch (e) {
+    } on Object catch (e) {
       _log('FRB $name failed: $e');
       return null;
     }
@@ -422,7 +422,7 @@ class NativeVaultService {
   Future<bool> _wrapFrbBool(String name, Future<bool> Function() call) async {
     try {
       return await call();
-    } on Exception catch (e) {
+    } on Object catch (e) {
       _log('FRB $name failed: $e');
       return false;
     }

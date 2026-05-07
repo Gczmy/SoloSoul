@@ -34,7 +34,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
       title: 'Travel',
       sections: [
         const SizedBox(height: 8),
-        const ScanDocumentButton(),
+        const ScanDocumentButton(parentId: DefaultSectionIds.passport),
         const SizedBox(height: 16),
             PredefinedObjectSection(
               key: const ValueKey(DefaultSectionIds.passport),

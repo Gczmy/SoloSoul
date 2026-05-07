@@ -268,8 +268,9 @@ class BackupService {
       // 2. 创建保护性备份（覆盖数据前）
       await createBackup(accountId);
 
-      await ProfileStorageService.instance.saveProfile(accountId, profile);
-      return true;
+      // 3. 保存恢复的数据到 Vault
+      final saved = await ProfileStorageService.instance.saveProfile(accountId, profile);
+      return saved;
     } on Exception catch (_) {
       return false;
     }
@@ -451,8 +452,8 @@ class BackupService {
       // 创建保护性备份（覆盖数据前）
       await createBackup(accountId);
 
-      await ProfileStorageService.instance.saveProfile(accountId, profile);
-      return true;
+      final saved = await ProfileStorageService.instance.saveProfile(accountId, profile);
+      return saved;
     } on Exception catch (_) {
       return false;
     }

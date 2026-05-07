@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -144,8 +145,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         break;
       }
     }
-    if (_hasChanges != changed) {
-      setState(() => _hasChanges = changed);
+    if (_hasChanges != changed && mounted) {
+      // 延迟到下一帧 setState，避免在祖先 widget 的 build 阶段直接调用
+      //（例如父级在 build 中初始化 TextEditingController.text 时会触发 listener）
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _hasChanges = changed);
+        }
+      });
     }
   }
 

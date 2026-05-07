@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'ocr_result.g.dart';
@@ -105,20 +104,4 @@ class MrzData {
   Map<String, dynamic> toJson() => _$MrzDataToJson(this);
 }
 
-// ============================================================================
-// MRZ Scan Result (includes optional image bytes for vault storage)
-// ============================================================================
 
-/// Wrapper for MRZ scan outcome, including the original image bytes
-/// and whether the user wants to save the image to the vault.
-class MrzScanResult {
-  final MrzData mrzData;
-  final Uint8List? imageBytes;
-  final bool saveImage;
-
-  const MrzScanResult({
-    required this.mrzData,
-    this.imageBytes,
-    this.saveImage = false,
-  });
-}
