@@ -270,6 +270,8 @@
   "llmChatInputHintReady": "输入消息...",
   "llmChatInputHintNotReady": "模型未就绪",
   "llmChatStatusReady": "就绪",
+  "llmChatStatusLoading": "加载中",
+  "llmChatStatusError": "错误",
   "llmChatStatusNotReady": "未就绪",
   "llmChatLoadingConfig": "正在加载模型配置…",
   "llmChatStartConversation": "开始与 AI 对话",
@@ -304,5 +306,23 @@
   "scanAiMapping": "AI 智能映射",
   "llmStatsTotalFormatted": "共 {total}",
   "llmStatsModelSummary": "共 {count} 个模型 · 累计 {total} tokens",
-  "llmStatsModelDetail": "{provider} · {total} tokens · {count} 次调用"
+  "llmStatsModelDetail": "{provider} · {total} tokens · {count} 次调用",
+  "ocrFieldName": "姓名/名称",
+  "ocrFieldPhone": "电话",
+  "ocrFieldEmail": "邮箱",
+  "ocrFieldAddress": "地址",
+  "ocrFieldCompany": "公司/机构",
+  "ocrFieldTitle": "职位/头衔",
+  "ocrFieldDate": "日期",
+  "ocrFieldAmount": "金额",
+  "ocrFieldInvoiceNumber": "发票/单据号码",
+  "ocrFieldWebsite": "网站/URL",
+  "ocrFieldIdNumber": "证件号码",
+  "llmChatEmptyResponse": "模型未返回任何内容，请检查配置或重试",
+  "llmChatInferenceFailed": "推理失败：{error}",
+  "@llmChatInferenceFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  }
 }

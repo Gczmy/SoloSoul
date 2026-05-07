@@ -183,7 +183,13 @@ class _ModelInfoCard extends StatelessWidget {
 
     if (modelAsync.hasValue) {
       final state = modelAsync.value!;
-      statusLabel = state.label;
+      final l10n = AppLocalizations.of(context);
+      statusLabel = switch (state) {
+        LlmModelState.unloaded => l10n.llmStatsNotLoaded,
+        LlmModelState.loading => l10n.llmChatStatusLoading,
+        LlmModelState.loaded => l10n.llmChatStatusReady,
+        LlmModelState.error => l10n.llmChatStatusError,
+      };
       statusColor = switch (state) {
         LlmModelState.loaded => theme.colorScheme.primary,
         LlmModelState.loading => theme.colorScheme.tertiary,

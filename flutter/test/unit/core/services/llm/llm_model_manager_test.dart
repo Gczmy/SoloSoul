@@ -98,10 +98,10 @@ void main() {
     });
 
     test('LlmModelState labels are Chinese', () {
-      expect(LlmModelState.unloaded.label, '未加载');
-      expect(LlmModelState.loading.label, '加载中');
-      expect(LlmModelState.loaded.label, '就绪');
-      expect(LlmModelState.error.label, '错误');
+      expect(LlmModelState.unloaded.label, 'Unloaded');
+      expect(LlmModelState.loading.label, 'Loading');
+      expect(LlmModelState.loaded.label, 'Ready');
+      expect(LlmModelState.error.label, 'Error');
     });
 
     test('loadCloud transitions to error on bad API key', () async {

@@ -1718,6 +1718,18 @@ abstract class AppLocalizations {
   /// **'Ready'**
   String get llmChatStatusReady;
 
+  /// No description provided for @llmChatStatusLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get llmChatStatusLoading;
+
+  /// No description provided for @llmChatStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get llmChatStatusError;
+
   /// No description provided for @llmChatStatusNotReady.
   ///
   /// In en, this message translates to:
@@ -1927,6 +1939,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{provider} · {total} tokens · {count} calls'**
   String llmStatsModelDetail(String provider, String total, int count);
+
+  /// No description provided for @ocrFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get ocrFieldName;
+
+  /// No description provided for @ocrFieldPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get ocrFieldPhone;
+
+  /// No description provided for @ocrFieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get ocrFieldEmail;
+
+  /// No description provided for @ocrFieldAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get ocrFieldAddress;
+
+  /// No description provided for @ocrFieldCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company/Organization'**
+  String get ocrFieldCompany;
+
+  /// No description provided for @ocrFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title/Position'**
+  String get ocrFieldTitle;
+
+  /// No description provided for @ocrFieldDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get ocrFieldDate;
+
+  /// No description provided for @ocrFieldAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get ocrFieldAmount;
+
+  /// No description provided for @ocrFieldInvoiceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice/Document Number'**
+  String get ocrFieldInvoiceNumber;
+
+  /// No description provided for @ocrFieldWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website/URL'**
+  String get ocrFieldWebsite;
+
+  /// No description provided for @ocrFieldIdNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Number'**
+  String get ocrFieldIdNumber;
+
+  /// No description provided for @llmChatEmptyResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'The model returned no content. Please check the configuration or try again.'**
+  String get llmChatEmptyResponse;
+
+  /// No description provided for @llmChatInferenceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Inference failed: {error}'**
+  String llmChatInferenceFailed(String error);
 }
 
 class _AppLocalizationsDelegate

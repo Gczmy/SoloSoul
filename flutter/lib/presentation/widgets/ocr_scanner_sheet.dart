@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -357,6 +356,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    final l10n = AppLocalizations.of(context);
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: source,
@@ -446,6 +446,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               rawText: ocrResult.rawText,
               blocks: ocrResult.blocks,
               modelId: _selectedModelId!,
+              l10n: l10n,
             );
             if (llmExtraction != null) {
               extraction = llmExtraction;
@@ -491,6 +492,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Future<void> _pickDocument() async {
+    final l10n = AppLocalizations.of(context);
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
@@ -580,6 +582,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               rawText: ocrResult.rawText,
               blocks: ocrResult.blocks,
               modelId: _selectedModelId!,
+              l10n: l10n,
             );
             if (llmExtraction != null) {
               extraction = llmExtraction;
@@ -750,8 +753,8 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       isExpanded: true,
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context).ocrModelSelectorLabel,
-        border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       items: _modelOptions.map((option) {
         return DropdownMenuItem<String>(
@@ -874,6 +877,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
     required String rawText,
     required List<OcrBlock> blocks,
     required String modelId,
+    required AppLocalizations l10n,
   }) async {
     // Save current global config for restoration
     final configAsync = ref.read(llmConfigProvider);
@@ -904,20 +908,20 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       await modelNotifier.loadFromConfig();
 
       // Build prompt
-      const fieldSchema = '''
+      final fieldSchema = '''
 {
   "fields": [
-    {"id": "name", "label": "姓名/名称", "type": "text"},
-    {"id": "phone", "label": "电话", "type": "text"},
-    {"id": "email", "label": "邮箱", "type": "text"},
-    {"id": "address", "label": "地址", "type": "text"},
-    {"id": "company", "label": "公司/机构", "type": "text"},
-    {"id": "title", "label": "职位/头衔", "type": "text"},
-    {"id": "date", "label": "日期", "type": "text"},
-    {"id": "amount", "label": "金额", "type": "text"},
-    {"id": "invoice_number", "label": "发票/单据号码", "type": "text"},
-    {"id": "website", "label": "网站/URL", "type": "text"},
-    {"id": "id_number", "label": "证件号码", "type": "text"}
+    {"id": "name", "label": "${l10n.ocrFieldName}", "type": "text"},
+    {"id": "phone", "label": "${l10n.ocrFieldPhone}", "type": "text"},
+    {"id": "email", "label": "${l10n.ocrFieldEmail}", "type": "text"},
+    {"id": "address", "label": "${l10n.ocrFieldAddress}", "type": "text"},
+    {"id": "company", "label": "${l10n.ocrFieldCompany}", "type": "text"},
+    {"id": "title", "label": "${l10n.ocrFieldTitle}", "type": "text"},
+    {"id": "date", "label": "${l10n.ocrFieldDate}", "type": "text"},
+    {"id": "amount", "label": "${l10n.ocrFieldAmount}", "type": "text"},
+    {"id": "invoice_number", "label": "${l10n.ocrFieldInvoiceNumber}", "type": "text"},
+    {"id": "website", "label": "${l10n.ocrFieldWebsite}", "type": "text"},
+    {"id": "id_number", "label": "${l10n.ocrFieldIdNumber}", "type": "text"}
   ]
 }''';
 

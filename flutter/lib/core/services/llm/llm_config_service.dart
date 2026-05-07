@@ -52,7 +52,7 @@ class LlmConfigService {
         final ref = const Uuid().v4();
         final migratedProfile = LlmCloudProfile(
           id: const Uuid().v4(),
-          name: '默认配置',
+          name: 'Default Configuration',
           providerType: config.cloudProviderType,
           apiKeyRef: ref,
           apiKey: config._legacyCloudApiKey ?? '',
@@ -232,7 +232,7 @@ class LlmConfigService {
   ) async {
     final config = await _load(accountId);
     if (!config.cloudProfiles.any((p) => p.id == profileId)) {
-      throw Exception('配置不存在');
+      throw Exception('Configuration does not exist');
     }
     await _save(accountId, config.copyWith(activeCloudProfileId: profileId));
   }

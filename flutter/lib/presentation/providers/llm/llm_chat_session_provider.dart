@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:solosoul_flutter/core/services/llm/chat_history_service.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_notifier.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart' show AuthState;
@@ -155,7 +156,7 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
   /// 发送用户消息并开始消费 AI 流式响应。
   ///
   /// Stream 订阅由 Notifier 本地持有，widget dispose 不影响后台接收。
-  Future<void> sendMessage(String text, Stream<String> stream) async {
+  Future<void> sendMessage(String text, Stream<String> stream, {required AppLocalizations l10n}) async {
     if (hasStreamingMessage) return;
 
     // 1. 添加用户消息
@@ -183,7 +184,7 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
         if (m.id != aiId) return m;
         if (finish && buffer.isEmpty) {
           return m.copyWith(
-            text: '（模型未返回任何内容，请检查配置或重试）',
+            text: l10n.llmChatEmptyResponse,
             isStreaming: false,
           );
         }
@@ -212,7 +213,7 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
         state = state.map((m) {
           if (m.id != aiId) return m;
           return m.copyWith(
-            text: '推理失败: $err',
+            text: l10n.llmChatInferenceFailed(err.toString()),
             isStreaming: false,
           );
         }).toList();

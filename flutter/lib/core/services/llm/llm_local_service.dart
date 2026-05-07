@@ -103,14 +103,14 @@ class LlmLocalService implements LlmService {
           )
           .timeout(timeout);
     } on TimeoutException {
-      throw const LlmException('Ollama 请求超时', code: LlmErrorCode.timeout);
+      throw const LlmException('Ollama request timed out', code: LlmErrorCode.timeout);
     } on Exception catch (e) {
-      throw LlmException('无法连接到 Ollama: $e', code: LlmErrorCode.network);
+      throw LlmException('Failed to connect to Ollama: $e', code: LlmErrorCode.network);
     }
 
     if (response.statusCode != 200) {
       throw LlmException(
-        'Ollama 错误 (${response.statusCode}): ${response.body}',
+        'Ollama error (${response.statusCode}): ${response.body}',
         code: LlmErrorCode.modelNotFound,
       );
     }
@@ -165,7 +165,7 @@ class LlmLocalService implements LlmService {
     if (streamedResponse.statusCode != 200) {
       final bodyStr = await streamedResponse.stream.bytesToString();
       throw LlmException(
-        'Ollama 流式错误 (${streamedResponse.statusCode}): $bodyStr',
+        'Ollama streaming error (${streamedResponse.statusCode}): $bodyStr',
         code: LlmErrorCode.modelNotFound,
       );
     }
@@ -237,7 +237,7 @@ class LlmLocalService implements LlmService {
     if (streamedResponse.statusCode != 200) {
       final bodyStr = await streamedResponse.stream.bytesToString();
       throw LlmException(
-        '拉取模型失败 (${streamedResponse.statusCode}): $bodyStr',
+        'Failed to pull model (${streamedResponse.statusCode}): $bodyStr',
         code: LlmErrorCode.modelNotFound,
       );
     }

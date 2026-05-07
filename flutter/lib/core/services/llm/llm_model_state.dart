@@ -37,13 +37,13 @@ extension LlmModelStateExtension on LlmModelState {
   String get label {
     switch (this) {
       case LlmModelState.unloaded:
-        return '未加载';
+        return 'Unloaded';
       case LlmModelState.loading:
-        return '加载中';
+        return 'Loading';
       case LlmModelState.loaded:
-        return '就绪';
+        return 'Ready';
       case LlmModelState.error:
-        return '错误';
+        return 'Error';
     }
   }
 }

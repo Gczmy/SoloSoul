@@ -873,6 +873,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmChatStatusReady => '就绪';
 
   @override
+  String get llmChatStatusLoading => '加载中';
+
+  @override
+  String get llmChatStatusError => '错误';
+
+  @override
   String get llmChatStatusNotReady => '未就绪';
 
   @override
@@ -981,5 +987,46 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String llmStatsModelDetail(String provider, String total, int count) {
     return '$provider · $total tokens · $count 次调用';
+  }
+
+  @override
+  String get ocrFieldName => '姓名/名称';
+
+  @override
+  String get ocrFieldPhone => '电话';
+
+  @override
+  String get ocrFieldEmail => '邮箱';
+
+  @override
+  String get ocrFieldAddress => '地址';
+
+  @override
+  String get ocrFieldCompany => '公司/机构';
+
+  @override
+  String get ocrFieldTitle => '职位/头衔';
+
+  @override
+  String get ocrFieldDate => '日期';
+
+  @override
+  String get ocrFieldAmount => '金额';
+
+  @override
+  String get ocrFieldInvoiceNumber => '发票/单据号码';
+
+  @override
+  String get ocrFieldWebsite => '网站/URL';
+
+  @override
+  String get ocrFieldIdNumber => '证件号码';
+
+  @override
+  String get llmChatEmptyResponse => '模型未返回任何内容，请检查配置或重试';
+
+  @override
+  String llmChatInferenceFailed(String error) {
+    return '推理失败：$error';
   }
 }

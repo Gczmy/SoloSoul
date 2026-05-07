@@ -8,7 +8,6 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
-import 'package:solosoul_flutter/core/services/llm/llm_exception.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_chat_session_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
@@ -153,14 +152,14 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     try {
       stream = notifier.streamChat(text);
     } on Exception catch (e) {
-      await session.sendMessage(text, Stream.error(e));
+      await session.sendMessage(text, Stream.error(e), l10n: l10n);
       return;
     }
 
     // 获取 stream 成功后立即清空输入框，避免重复发送
     _inputController.clear();
     // 交给 Provider 在后台消费，widget dispose 不影响
-    await session.sendMessage(text, stream);
+    await session.sendMessage(text, stream, l10n: l10n);
   }
 
   void _clearSession() {

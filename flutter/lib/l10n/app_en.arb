@@ -360,6 +360,8 @@
   "llmChatInputHintReady": "Type a message...",
   "llmChatInputHintNotReady": "Model not ready",
   "llmChatStatusReady": "Ready",
+  "llmChatStatusLoading": "Loading",
+  "llmChatStatusError": "Error",
   "llmChatStatusNotReady": "Not ready",
   "llmChatLoadingConfig": "Loading model configuration...",
   "llmChatStartConversation": "Start chatting with AI",
@@ -412,6 +414,24 @@
       "provider": { "type": "String" },
       "total": { "type": "String" },
       "count": { "type": "int" }
+    }
+  },
+  "ocrFieldName": "Name",
+  "ocrFieldPhone": "Phone",
+  "ocrFieldEmail": "Email",
+  "ocrFieldAddress": "Address",
+  "ocrFieldCompany": "Company/Organization",
+  "ocrFieldTitle": "Title/Position",
+  "ocrFieldDate": "Date",
+  "ocrFieldAmount": "Amount",
+  "ocrFieldInvoiceNumber": "Invoice/Document Number",
+  "ocrFieldWebsite": "Website/URL",
+  "ocrFieldIdNumber": "ID Number",
+  "llmChatEmptyResponse": "The model returned no content. Please check the configuration or try again.",
+  "llmChatInferenceFailed": "Inference failed: {error}",
+  "@llmChatInferenceFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
     }
   }
 }

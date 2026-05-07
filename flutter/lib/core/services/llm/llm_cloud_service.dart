@@ -115,11 +115,11 @@ class LlmCloudService implements LlmService {
       case LlmCloudProviderType.openai:
         final choices = json['choices'] as List<dynamic>?;
         if (choices == null || choices.isEmpty) {
-          throw const LlmException('API 返回空 choices', code: LlmErrorCode.unknown);
+          throw const LlmException('API returned empty choices', code: LlmErrorCode.unknown);
         }
         final first = choices.first;
         if (first is! Map<String, dynamic>) {
-          throw const LlmException('API 返回无效 choice 格式', code: LlmErrorCode.unknown);
+          throw const LlmException('API returned invalid choice format', code: LlmErrorCode.unknown);
         }
         final message = first['message'];
         final messageMap = message is Map<String, dynamic> ? message : null;
@@ -137,7 +137,7 @@ class LlmCloudService implements LlmService {
       case LlmCloudProviderType.anthropic:
         final contentList = json['content'] as List<dynamic>?;
         if (contentList == null || contentList.isEmpty) {
-          throw const LlmException('API 返回空 content', code: LlmErrorCode.unknown);
+          throw const LlmException('API returned empty content', code: LlmErrorCode.unknown);
         }
         // Anthropic 格式：content 为 block 数组，text 类型块持有实际回复文本
         final textParts = <String>[];
@@ -181,7 +181,7 @@ class LlmCloudService implements LlmService {
         final rawError = json['error'];
         final errorObj = rawError is Map<String, dynamic> ? rawError : null;
         return LlmApiError(
-          message: errorObj?['message']?.toString() ?? '未知错误',
+          message: errorObj?['message']?.toString() ?? 'Unknown error',
           type: errorObj?['type']?.toString() ?? 'unknown',
           statusCode: statusCode,
         );
@@ -190,7 +190,7 @@ class LlmCloudService implements LlmService {
         final rawError = json['error'];
         final errorObj = rawError is Map<String, dynamic> ? rawError : null;
         return LlmApiError(
-          message: errorObj?['message']?.toString() ?? '未知错误',
+          message: errorObj?['message']?.toString() ?? 'Unknown error',
           type: errorObj?['type']?.toString() ?? 'unknown',
           statusCode: statusCode,
         );
@@ -258,11 +258,11 @@ class LlmCloudService implements LlmService {
           )
           .timeout(timeout);
     } on TimeoutException {
-      throw const LlmException('请求超时', code: LlmErrorCode.timeout);
+      throw const LlmException('Request timed out', code: LlmErrorCode.timeout);
     } on FormatException catch (e) {
-      throw LlmException('无效的 endpoint URL: $e', code: LlmErrorCode.network);
+      throw LlmException('Invalid endpoint URL: $e', code: LlmErrorCode.network);
     } on Exception catch (e) {
-      throw LlmException('网络请求失败: $e', code: LlmErrorCode.network);
+      throw LlmException('Network request failed: $e', code: LlmErrorCode.network);
     }
 
     // Status-code mapping

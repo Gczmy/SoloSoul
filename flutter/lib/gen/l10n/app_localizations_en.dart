@@ -893,6 +893,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmChatStatusReady => 'Ready';
 
   @override
+  String get llmChatStatusLoading => 'Loading';
+
+  @override
+  String get llmChatStatusError => 'Error';
+
+  @override
   String get llmChatStatusNotReady => 'Not ready';
 
   @override
@@ -1004,5 +1010,47 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String llmStatsModelDetail(String provider, String total, int count) {
     return '$provider · $total tokens · $count calls';
+  }
+
+  @override
+  String get ocrFieldName => 'Name';
+
+  @override
+  String get ocrFieldPhone => 'Phone';
+
+  @override
+  String get ocrFieldEmail => 'Email';
+
+  @override
+  String get ocrFieldAddress => 'Address';
+
+  @override
+  String get ocrFieldCompany => 'Company/Organization';
+
+  @override
+  String get ocrFieldTitle => 'Title/Position';
+
+  @override
+  String get ocrFieldDate => 'Date';
+
+  @override
+  String get ocrFieldAmount => 'Amount';
+
+  @override
+  String get ocrFieldInvoiceNumber => 'Invoice/Document Number';
+
+  @override
+  String get ocrFieldWebsite => 'Website/URL';
+
+  @override
+  String get ocrFieldIdNumber => 'ID Number';
+
+  @override
+  String get llmChatEmptyResponse =>
+      'The model returned no content. Please check the configuration or try again.';
+
+  @override
+  String llmChatInferenceFailed(String error) {
+    return 'Inference failed: $error';
   }
 }

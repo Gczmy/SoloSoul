@@ -147,13 +147,13 @@ class LlmModelManager {
         final status = await local.checkStatus();
         if (!status.serviceRunning) {
           throw const LlmException(
-            'Ollama 服务未运行，请先启动 Ollama',
+            'Ollama service is not running. Please start Ollama first.',
             code: LlmErrorCode.modelNotFound,
           );
         }
         if (!status.modelAvailable) {
           throw LlmException(
-            '本地模型 $modelName 未安装，请先执行 ollama pull $modelName',
+            'Local model $modelName is not installed. Please run ollama pull $modelName first.',
             code: LlmErrorCode.modelNotFound,
           );
         }
@@ -375,7 +375,7 @@ class LlmModelManager {
   Future<String> infer(String prompt, {int maxTokens = 512}) async {
     if (_service == null || _state != LlmModelState.loaded) {
       throw const LlmException(
-        '模型未加载',
+        'Model not loaded',
         code: LlmErrorCode.modelNotFound,
       );
     }
@@ -392,7 +392,7 @@ class LlmModelManager {
   Future<String> inferMessages(List<LlmMessage> messages, {int maxTokens = 512}) async {
     if (_service == null || _state != LlmModelState.loaded) {
       throw const LlmException(
-        '模型未加载',
+        'Model not loaded',
         code: LlmErrorCode.modelNotFound,
       );
     }

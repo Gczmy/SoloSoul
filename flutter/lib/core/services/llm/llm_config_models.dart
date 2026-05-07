@@ -59,7 +59,7 @@ class LlmCloudProfile {
   factory LlmCloudProfile.fromJson(Map<String, dynamic> json) {
     return LlmCloudProfile(
       id: json['id'] as String? ?? const Uuid().v4(),
-      name: json['name'] as String? ?? '未命名配置',
+      name: json['name'] as String? ?? 'Unnamed Configuration',
       providerType: LlmCloudProviderTypeExtension.fromJson(
         json['providerType'] as String?,
       ),

@@ -50,7 +50,7 @@ void main() {
     test('fromJson assigns defaults for missing fields', () {
       final restored = LlmCloudProfile.fromJson({});
       expect(restored.id, isNotEmpty); // UUID fallback
-      expect(restored.name, '未命名配置');
+      expect(restored.name, 'Unnamed Configuration');
       expect(restored.providerType, LlmCloudProviderType.openai);
       expect(restored.apiKeyRef, isNotEmpty);
       expect(restored.apiKey, '');

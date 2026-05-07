@@ -24,8 +24,8 @@ class LlmPrivacyFilter {
         return PrivacyBlockReason(
           fieldKey: entry.key,
           sensitivity: level,
-          message: '字段 "${entry.key}" 敏感度为 ${level.label}，'
-              '根据隐私策略禁止上传至云端 LLM。',
+          message: 'Field "${entry.key}" has sensitivity level ${level.label}. '
+              'Uploading to cloud LLM is prohibited by privacy policy.',
         );
       }
     }
