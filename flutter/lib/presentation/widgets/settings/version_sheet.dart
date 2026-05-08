@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
@@ -144,29 +145,42 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                         loading: () => '...',
                         error: (_, __) => '1.0.0',
                       );
-                      final isUpToDate = latestVersion != '...' &&
-                          latestVersion != l10n.versionUnavailable &&
-                          currentVersion == latestVersion;
-                      return VersionInfoTile(
-                        icon: isUpToDate
-                            ? Icons.check_circle_outline
-                            : Icons.update_outlined,
-                        title: AppLocalizations.of(context).versionUpdateStatus,
-                        value: isUpToDate ? l10n.versionUpToDate : l10n.versionUpdateAvailable,
+                      final updateAvailable = _isUpdateAvailable(
+                        currentVersion,
+                        latestVersion,
+                      );
+                      return Column(
+                        children: [
+                          VersionInfoTile(
+                            icon: updateAvailable
+                                ? Icons.update_outlined
+                                : Icons.check_circle_outline,
+                            title: AppLocalizations.of(context).versionUpdateStatus,
+                            value: updateAvailable
+                                ? AppLocalizations.of(context).versionUpdateAvailable
+                                : AppLocalizations.of(context).versionUpToDate,
+                          ),
+                          if (updateAvailable)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _launchReleasesPage,
+                                  icon: const Icon(Icons.open_in_new, size: 16),
+                                  label: Text(l10n.versionUpdateAvailable),
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     },
                   ),
                   const Divider(height: 1),
                   VersionInfoTile(
-                    icon: Icons.phone_android,
+                    icon: Platform.isMacOS ? Icons.laptop_mac : Icons.phone_android,
                     title: AppLocalizations.of(context).versionPlatform,
-                    value:
-                        Platform.isMacOS
-                            ? 'macOS'
-                            : (Platform.operatingSystem.isNotEmpty
-                                ? Platform.operatingSystem[0].toUpperCase() +
-                                    Platform.operatingSystem.substring(1)
-                                : l10n.settingsUnknown),
+                    value: l10n.settingsUnknown,
                   ),
                 ],
               ),
@@ -176,5 +190,33 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
         ],
       ),
     );
+  }
+
+  static void _launchReleasesPage() {
+    const url = 'https://github.com/Gczmy/SoloSoul_code/releases';
+    if (Platform.isMacOS) {
+      Process.run('open', [url]);
+    } else {
+      Clipboard.setData(const ClipboardData(text: url));
+    }
+  }
+
+  /// Compare two semantic version strings (e.g. '1.3.0' vs '1.4.0').
+  /// Returns true if [latest] is a higher version than [current].
+  static bool _isUpdateAvailable(String current, String latest) {
+    if (latest == '...') return false;
+    try {
+      final c = current.split('.').map(int.tryParse).toList();
+      final l = latest.split('.').map(int.tryParse).toList();
+      for (var i = 0; i < c.length || i < l.length; i++) {
+        final cv = i < c.length ? (c[i] ?? 0) : 0;
+        final lv = i < l.length ? (l[i] ?? 0) : 0;
+        if (lv > cv) return true;
+        if (cv > lv) return false;
+      }
+    } on Exception {
+      return latest != current;
+    }
+    return false;
   }
 }
