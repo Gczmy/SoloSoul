@@ -1141,5 +1141,6 @@
   "fieldDone": "已完成",
   "fieldDueDate": "截止日期",
   "commonYes": "是",
-  "commonNo": "否"
+  "commonNo": "否",
+  "datePickerSelectDate": "选择日期"
 }

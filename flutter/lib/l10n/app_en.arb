@@ -1527,5 +1527,6 @@
   "fieldDone": "Done",
   "fieldDueDate": "Due Date",
   "commonYes": "Yes",
-  "commonNo": "No"
+  "commonNo": "No",
+  "datePickerSelectDate": "Select date"
 }

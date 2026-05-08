@@ -2583,4 +2583,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commonNo => '否';
+
+  @override
+  String get datePickerSelectDate => '选择日期';
 }

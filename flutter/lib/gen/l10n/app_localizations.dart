@@ -4915,6 +4915,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get commonNo;
+
+  /// No description provided for @datePickerSelectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get datePickerSelectDate;
 }
 
 class _AppLocalizationsDelegate

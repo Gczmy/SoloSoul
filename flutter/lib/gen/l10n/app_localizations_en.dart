@@ -2648,4 +2648,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonNo => 'No';
+
+  @override
+  String get datePickerSelectDate => 'Select date';
 }

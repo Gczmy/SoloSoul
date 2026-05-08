@@ -26,7 +26,7 @@ class DatePickerFormField extends StatelessWidget {
     required this.onDateChanged,
   });
 
-  Future<void> _pickDate(BuildContext context) async {
+  Future<void> _pickDate(BuildContext context, AppLocalizations l10n) async {
     final initial = parseIsoDate(initialDate ?? '');
     final now = DateTime.now();
 
@@ -36,8 +36,8 @@ class DatePickerFormField extends StatelessWidget {
       firstDate: DateTime(1900),
       lastDate: DateTime(2100),
       helpText: label,
-      cancelText: 'Cancel',
-      confirmText: 'OK',
+      cancelText: l10n.commonCancel,
+      confirmText: l10n.settingsOk,
     );
 
     if (picked != null) {
@@ -61,7 +61,7 @@ class DatePickerFormField extends StatelessWidget {
       children: [
         Expanded(
           child: InkWell(
-            onTap: () => _pickDate(context),
+            onTap: () => _pickDate(context, l10n),
             onLongPress: hasDate ? _clearDate : null,
             borderRadius: BorderRadius.circular(8),
             child: InputDecorator(
@@ -77,7 +77,7 @@ class DatePickerFormField extends StatelessWidget {
                     : const Icon(Icons.calendar_today, size: 18),
               ),
               child: Text(
-                hasDate ? initialDate! : 'Select date',
+                hasDate ? initialDate! : l10n.datePickerSelectDate,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: hasDate
                       ? theme.colorScheme.onSurface
