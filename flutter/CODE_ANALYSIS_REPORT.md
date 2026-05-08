@@ -19,7 +19,7 @@
 | O002 | P1     | 优化       | `lib/presentation/widgets/ocr_scanner_sheet.dart` | 1093 行（超 800 行限制） | `[ ]` 待修复 |
 | O003 | P1     | 优化       | `lib/presentation/widgets/object_card.dart` | 1084 行（超 800 行限制） | `[ ]` 待修复 |
 | O018 | P1     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart:376` | 使用已弃用的 Radio groupValue/onChanged API | `[ ]` 待修复 |
-| O019 | P1     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart:78` + `login_page.dart:239` | async gap 后使用 BuildContext 未检查 mounted | `[ ]` 待修复 |
+| O019 | P1     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart:78` + `login_page.dart:239` | async gap 后使用 BuildContext 未检查 mounted | `[x]` 已添加 mounted 检查 |
 | S003 | P2     | 安全       | `lib/presentation/providers/auth/auth_storage.dart:142` | 密码复杂度缺少特殊字符要求 | `[ ]` 待修复 |
 | S004 | P2     | 安全       | `lib/core/services/ocr_service.dart:90,159` | OCR 日志未通过 DebugLogger 门控 | `[ ]` 待修复 |
 | S005 | P2     | 安全       | `lib/core/services/llm/llm_config_service.dart:25` | API Key 在整个会话期间存于内存 | `[ ]` 待修复 |
@@ -47,7 +47,7 @@
 
 ## 修复进度
 
-- 已完成：5 / 35
+- 已完成：6 / 35
 - 当前处理：无
 
 ## 安全正面发现

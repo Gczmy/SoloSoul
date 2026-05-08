@@ -27,6 +27,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
   bool _testSuccess = false;
 
   Future<void> _testConnection() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _isTesting = true;
       _testResult = null;
@@ -36,7 +37,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       final config = ref.read(llmConfigProvider).value;
       if (config == null) {
         setState(() {
-          _testResult = AppLocalizations.of(context).llmConfigNotLoaded;
+          _testResult = l10n.llmConfigNotLoaded;
           _testSuccess = false;
         });
         return;
@@ -44,6 +45,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
       if (config.backendType == LlmBackendType.cloud) {
         final result = await ref.read(llmModelProvider.notifier).testActiveCloudConnection();
+        if (!mounted) return;
         setState(() {
           _testResult = result;
           _testSuccess = true;
@@ -53,14 +55,15 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
           modelName: config.localModelPath ?? 'qwen2.5:1.5b',
         );
         final status = await service.checkStatus();
+        if (!mounted) return;
         if (!status.serviceRunning) {
           setState(() {
-            _testResult = AppLocalizations.of(context).llmConfigOllamaNotRunning;
+            _testResult = l10n.llmConfigOllamaNotRunning;
             _testSuccess = false;
           });
         } else if (!status.modelAvailable) {
           setState(() {
-            _testResult = AppLocalizations.of(context).llmConfigOllamaModelNotInstalled(
+            _testResult = l10n.llmConfigOllamaModelNotInstalled(
                 config.localModelPath ?? 'qwen2.5:1.5b',
                 status.installedModels.join(', '),
               );
@@ -68,14 +71,15 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
           });
         } else {
           await service.testConnection();
+          if (!mounted) return;
           setState(() {
-            _testResult = AppLocalizations.of(context).llmConfigLocalSuccess;
+            _testResult = l10n.llmConfigLocalSuccess;
             _testSuccess = true;
           });
         }
       }
     } on LlmException catch (e) {
-      final l10n = AppLocalizations.of(context);
+      if (!mounted) return;
       final errorMsg = switch (e.code) {
         LlmErrorCode.configNotLoaded => l10n.llmErrorConfigNotLoaded,
         LlmErrorCode.cloudConfigIncomplete => l10n.llmErrorCloudConfigIncomplete,
@@ -89,12 +93,13 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
         _testSuccess = false;
       });
     } on Exception catch (e) {
+      if (!mounted) return;
       setState(() {
         _testResult = 'Unknown error: $e';
         _testSuccess = false;
       });
     } finally {
-      setState(() => _isTesting = false);
+      if (mounted) setState(() => _isTesting = false);
     }
   }
 

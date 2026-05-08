@@ -236,6 +236,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         await BiometricCredentialService.instance.hasBiometricCredential(accountId) &&
         await BiometricCredentialService.instance.isDeviceKeyAvailable();
 
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context);
     String biometricType = l10n.loginBiometricGeneric;
     if (availableBiometrics.isNotEmpty) {
