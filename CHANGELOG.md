@@ -2,6 +2,15 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [1.4.9] - 2026-05-08
+
+### Fixed
+
+- **LLM Config Page** — Fixed redirecting to home page in release mode. `AppRoutes.llmConfig` was incorrectly included in `debugOnlyRoutes` guard set in `app_router.dart`, causing the redirect to return `AppRoutes.home` in non-debug builds.
+- **Local Search & Scan Routes** — Removed the entire `debugOnlyRoutes` guard block. `localSearch`, `localSearchProgress`, `scanPreview`, `scanImportResult` are now accessible in production builds.
+
+## [1.4.8] - 2026-05-08
+
 ## [1.4.8] - 2026-05-08
 
 ### Added
