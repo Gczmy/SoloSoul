@@ -2495,4 +2495,157 @@ class AppLocalizationsEn extends AppLocalizations {
   String professionalFormatLanguage(String data) {
     return 'Language\n$data';
   }
+
+  @override
+  String get fieldFullName => 'Full Name';
+
+  @override
+  String get fieldGivenName => 'Given Name';
+
+  @override
+  String get fieldFamilyName => 'Family Name';
+
+  @override
+  String get fieldDateOfBirth => 'Date of Birth';
+
+  @override
+  String get fieldGender => 'Gender';
+
+  @override
+  String get fieldNationality => 'Nationality';
+
+  @override
+  String get fieldTitle => 'Title';
+
+  @override
+  String get fieldType => 'Type';
+
+  @override
+  String get fieldValue => 'Value';
+
+  @override
+  String get fieldNumber => 'Number';
+
+  @override
+  String get fieldIdCardNumber => 'ID Card Number';
+
+  @override
+  String get fieldIssueDate => 'Issue Date';
+
+  @override
+  String get fieldExpiryDate => 'Expiry Date';
+
+  @override
+  String get fieldHolderName => 'Holder Name';
+
+  @override
+  String get fieldCountry => 'Country';
+
+  @override
+  String get fieldStreet => 'Street';
+
+  @override
+  String get fieldCity => 'City';
+
+  @override
+  String get fieldState => 'State';
+
+  @override
+  String get fieldPostalCode => 'Postal Code';
+
+  @override
+  String get fieldPassportNumber => 'Passport Number';
+
+  @override
+  String get fieldIssuingCountry => 'Issuing Country';
+
+  @override
+  String get fieldVisaNumber => 'Visa Number';
+
+  @override
+  String get fieldEntryDate => 'Entry Date';
+
+  @override
+  String get fieldExitDate => 'Exit Date';
+
+  @override
+  String get fieldBankName => 'Bank Name';
+
+  @override
+  String get fieldAccountNumber => 'Account Number';
+
+  @override
+  String get fieldSwiftCode => 'SWIFT Code';
+
+  @override
+  String get fieldIban => 'IBAN';
+
+  @override
+  String get fieldCardNumber => 'Card Number';
+
+  @override
+  String get fieldCardholderName => 'Cardholder Name';
+
+  @override
+  String get fieldCvv => 'CVV';
+
+  @override
+  String get fieldTaxIdNumber => 'Tax ID Number';
+
+  @override
+  String get fieldInstitution => 'Institution';
+
+  @override
+  String get fieldDegree => 'Degree';
+
+  @override
+  String get fieldFieldOfStudy => 'Field of Study';
+
+  @override
+  String get fieldStartDate => 'Start Date';
+
+  @override
+  String get fieldEndDate => 'End Date';
+
+  @override
+  String get fieldCompany => 'Company';
+
+  @override
+  String get fieldPosition => 'Position';
+
+  @override
+  String get fieldCategory => 'Category';
+
+  @override
+  String get fieldLevel => 'Level';
+
+  @override
+  String get fieldLanguage => 'Language';
+
+  @override
+  String get fieldProficiency => 'Proficiency';
+
+  @override
+  String get fieldOrganization => 'Organization';
+
+  @override
+  String get fieldPhone => 'Phone';
+
+  @override
+  String get fieldEmail => 'Email';
+
+  @override
+  String get fieldContent => 'Content';
+
+  @override
+  String get fieldDone => 'Done';
+
+  @override
+  String get fieldDueDate => 'Due Date';
+
+  @override
+  String get commonYes => 'Yes';
+
+  @override
+  String get commonNo => 'No';
 }

@@ -2430,4 +2430,157 @@ class AppLocalizationsZh extends AppLocalizations {
   String professionalFormatLanguage(String data) {
     return '语言\n$data';
   }
+
+  @override
+  String get fieldFullName => '全名';
+
+  @override
+  String get fieldGivenName => '名字';
+
+  @override
+  String get fieldFamilyName => '姓氏';
+
+  @override
+  String get fieldDateOfBirth => '出生日期';
+
+  @override
+  String get fieldGender => '性别';
+
+  @override
+  String get fieldNationality => '国籍';
+
+  @override
+  String get fieldTitle => '标题';
+
+  @override
+  String get fieldType => '类型';
+
+  @override
+  String get fieldValue => '值';
+
+  @override
+  String get fieldNumber => '号码';
+
+  @override
+  String get fieldIdCardNumber => '身份证号码';
+
+  @override
+  String get fieldIssueDate => '签发日期';
+
+  @override
+  String get fieldExpiryDate => '过期日期';
+
+  @override
+  String get fieldHolderName => '持有人姓名';
+
+  @override
+  String get fieldCountry => '国家';
+
+  @override
+  String get fieldStreet => '街道';
+
+  @override
+  String get fieldCity => '城市';
+
+  @override
+  String get fieldState => '州/省';
+
+  @override
+  String get fieldPostalCode => '邮政编码';
+
+  @override
+  String get fieldPassportNumber => '护照号码';
+
+  @override
+  String get fieldIssuingCountry => '签发国';
+
+  @override
+  String get fieldVisaNumber => '签证号码';
+
+  @override
+  String get fieldEntryDate => '入境日期';
+
+  @override
+  String get fieldExitDate => '离境日期';
+
+  @override
+  String get fieldBankName => '银行名称';
+
+  @override
+  String get fieldAccountNumber => '账号';
+
+  @override
+  String get fieldSwiftCode => 'SWIFT 代码';
+
+  @override
+  String get fieldIban => 'IBAN';
+
+  @override
+  String get fieldCardNumber => '卡号';
+
+  @override
+  String get fieldCardholderName => '持卡人姓名';
+
+  @override
+  String get fieldCvv => 'CVV';
+
+  @override
+  String get fieldTaxIdNumber => '税号';
+
+  @override
+  String get fieldInstitution => '机构';
+
+  @override
+  String get fieldDegree => '学位';
+
+  @override
+  String get fieldFieldOfStudy => '专业领域';
+
+  @override
+  String get fieldStartDate => '开始日期';
+
+  @override
+  String get fieldEndDate => '结束日期';
+
+  @override
+  String get fieldCompany => '公司';
+
+  @override
+  String get fieldPosition => '职位';
+
+  @override
+  String get fieldCategory => '类别';
+
+  @override
+  String get fieldLevel => '等级';
+
+  @override
+  String get fieldLanguage => '语言';
+
+  @override
+  String get fieldProficiency => '熟练度';
+
+  @override
+  String get fieldOrganization => '组织';
+
+  @override
+  String get fieldPhone => '电话';
+
+  @override
+  String get fieldEmail => '邮箱';
+
+  @override
+  String get fieldContent => '内容';
+
+  @override
+  String get fieldDone => '已完成';
+
+  @override
+  String get fieldDueDate => '截止日期';
+
+  @override
+  String get commonYes => '是';
+
+  @override
+  String get commonNo => '否';
 }

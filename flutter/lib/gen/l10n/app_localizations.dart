@@ -4609,6 +4609,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language\n{data}'**
   String professionalFormatLanguage(String data);
+
+  /// No description provided for @fieldFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fieldFullName;
+
+  /// No description provided for @fieldGivenName.
+  ///
+  /// In en, this message translates to:
+  /// **'Given Name'**
+  String get fieldGivenName;
+
+  /// No description provided for @fieldFamilyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Name'**
+  String get fieldFamilyName;
+
+  /// No description provided for @fieldDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get fieldDateOfBirth;
+
+  /// No description provided for @fieldGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get fieldGender;
+
+  /// No description provided for @fieldNationality.
+  ///
+  /// In en, this message translates to:
+  /// **'Nationality'**
+  String get fieldNationality;
+
+  /// No description provided for @fieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get fieldTitle;
+
+  /// No description provided for @fieldType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get fieldType;
+
+  /// No description provided for @fieldValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get fieldValue;
+
+  /// No description provided for @fieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get fieldNumber;
+
+  /// No description provided for @fieldIdCardNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Card Number'**
+  String get fieldIdCardNumber;
+
+  /// No description provided for @fieldIssueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue Date'**
+  String get fieldIssueDate;
+
+  /// No description provided for @fieldExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Date'**
+  String get fieldExpiryDate;
+
+  /// No description provided for @fieldHolderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Holder Name'**
+  String get fieldHolderName;
+
+  /// No description provided for @fieldCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get fieldCountry;
+
+  /// No description provided for @fieldStreet.
+  ///
+  /// In en, this message translates to:
+  /// **'Street'**
+  String get fieldStreet;
+
+  /// No description provided for @fieldCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fieldCity;
+
+  /// No description provided for @fieldState.
+  ///
+  /// In en, this message translates to:
+  /// **'State'**
+  String get fieldState;
+
+  /// No description provided for @fieldPostalCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Postal Code'**
+  String get fieldPostalCode;
+
+  /// No description provided for @fieldPassportNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport Number'**
+  String get fieldPassportNumber;
+
+  /// No description provided for @fieldIssuingCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuing Country'**
+  String get fieldIssuingCountry;
+
+  /// No description provided for @fieldVisaNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa Number'**
+  String get fieldVisaNumber;
+
+  /// No description provided for @fieldEntryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Date'**
+  String get fieldEntryDate;
+
+  /// No description provided for @fieldExitDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Date'**
+  String get fieldExitDate;
+
+  /// No description provided for @fieldBankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name'**
+  String get fieldBankName;
+
+  /// No description provided for @fieldAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get fieldAccountNumber;
+
+  /// No description provided for @fieldSwiftCode.
+  ///
+  /// In en, this message translates to:
+  /// **'SWIFT Code'**
+  String get fieldSwiftCode;
+
+  /// No description provided for @fieldIban.
+  ///
+  /// In en, this message translates to:
+  /// **'IBAN'**
+  String get fieldIban;
+
+  /// No description provided for @fieldCardNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Number'**
+  String get fieldCardNumber;
+
+  /// No description provided for @fieldCardholderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardholder Name'**
+  String get fieldCardholderName;
+
+  /// No description provided for @fieldCvv.
+  ///
+  /// In en, this message translates to:
+  /// **'CVV'**
+  String get fieldCvv;
+
+  /// No description provided for @fieldTaxIdNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ID Number'**
+  String get fieldTaxIdNumber;
+
+  /// No description provided for @fieldInstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'Institution'**
+  String get fieldInstitution;
+
+  /// No description provided for @fieldDegree.
+  ///
+  /// In en, this message translates to:
+  /// **'Degree'**
+  String get fieldDegree;
+
+  /// No description provided for @fieldFieldOfStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Field of Study'**
+  String get fieldFieldOfStudy;
+
+  /// No description provided for @fieldStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get fieldStartDate;
+
+  /// No description provided for @fieldEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get fieldEndDate;
+
+  /// No description provided for @fieldCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get fieldCompany;
+
+  /// No description provided for @fieldPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get fieldPosition;
+
+  /// No description provided for @fieldCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get fieldCategory;
+
+  /// No description provided for @fieldLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get fieldLevel;
+
+  /// No description provided for @fieldLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get fieldLanguage;
+
+  /// No description provided for @fieldProficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Proficiency'**
+  String get fieldProficiency;
+
+  /// No description provided for @fieldOrganization.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get fieldOrganization;
+
+  /// No description provided for @fieldPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get fieldPhone;
+
+  /// No description provided for @fieldEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get fieldEmail;
+
+  /// No description provided for @fieldContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get fieldContent;
+
+  /// No description provided for @fieldDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get fieldDone;
+
+  /// No description provided for @fieldDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Due Date'**
+  String get fieldDueDate;
+
+  /// No description provided for @commonYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get commonYes;
+
+  /// No description provided for @commonNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get commonNo;
 }
 
 class _AppLocalizationsDelegate

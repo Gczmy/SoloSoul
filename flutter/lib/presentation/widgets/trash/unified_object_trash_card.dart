@@ -4,6 +4,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
@@ -269,7 +270,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              formatFieldLabel(e.key),
+                              translateFieldLabel(e.key, l10n),
                               style: Theme.of(ctx)
                                   .textTheme
                                   .labelSmall

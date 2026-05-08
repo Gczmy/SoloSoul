@@ -70,7 +70,7 @@ class OperationTile extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            formatFieldLabel(e.key),
+                            translateFieldLabel(e.key, l10n),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),

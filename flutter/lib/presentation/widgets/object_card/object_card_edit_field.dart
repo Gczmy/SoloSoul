@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/date_picker_form_field.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -34,7 +35,7 @@ class ObjectCardEditField extends StatelessWidget {
         valueListenable: controller ?? _dummyValueNotifier,
         builder: (context, val, child) {
           return DatePickerFormField(
-            label: isTitle ? AppLocalizations.of(context).commonTitle : formatLabel(propertyKey),
+            label: isTitle ? AppLocalizations.of(context).commonTitle : translateFieldLabel(propertyKey, AppLocalizations.of(context)),
             initialDate: val.text.isNotEmpty ? val.text : dateProp.isoDate,
             sensitivity: dateProp.sensitivity,
             onDateChanged: (newDate) {
@@ -58,7 +59,7 @@ class ObjectCardEditField extends StatelessWidget {
             value: checked,
             onChanged: onCheckboxChanged,
           ),
-          Text(formatLabel(propertyKey)),
+          Text(translateFieldLabel(propertyKey, AppLocalizations.of(context))),
           const SizedBox(width: 8),
           SensitivityTag(level: value!.sensitivity),
         ],
@@ -75,7 +76,7 @@ class ObjectCardEditField extends StatelessWidget {
             maxLength: kMaxPropertyLength,
             buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
             decoration: InputDecoration(
-              labelText: isTitle ? AppLocalizations.of(context).commonTitle : formatLabel(propertyKey),
+              labelText: isTitle ? AppLocalizations.of(context).commonTitle : translateFieldLabel(propertyKey, AppLocalizations.of(context)),
               border: const OutlineInputBorder(),
               suffixIcon: !isTitle && value != null
                   ? Padding(
