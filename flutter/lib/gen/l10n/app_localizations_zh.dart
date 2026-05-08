@@ -87,7 +87,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String loginUnlockReason(String biometricType) {
-    return '使用 $biometricType 解锁 SoloSoul';
+    return '使用 $biometricType';
   }
 
   @override
