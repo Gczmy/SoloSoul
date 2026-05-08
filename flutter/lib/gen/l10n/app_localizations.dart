@@ -4933,6 +4933,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Property Snapshot'**
   String get operationLogPropertySnapshot;
+
+  /// No description provided for @dataMgmtVaultDataSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault data size'**
+  String get dataMgmtVaultDataSize;
+
+  /// No description provided for @dataMgmtAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get dataMgmtAppVersion;
+
+  /// No description provided for @dataMgmtRestoreOverwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'This will overwrite your current data with the backup from {time}. A safety backup of the current state will be created first.'**
+  String dataMgmtRestoreOverwrite(String time);
+
+  /// No description provided for @dataMgmtRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore successful. Please restart the app.'**
+  String get dataMgmtRestoreSuccess;
+
+  /// No description provided for @dataMgmtRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore failed'**
+  String get dataMgmtRestoreFailed;
+
+  /// No description provided for @dataMgmtDeleteBackupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete backup from {time}?'**
+  String dataMgmtDeleteBackupConfirm(String time);
+
+  /// No description provided for @dataMgmtBackupCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created successfully'**
+  String get dataMgmtBackupCreated;
+
+  /// No description provided for @dataMgmtBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed'**
+  String get dataMgmtBackupFailed;
+
+  /// No description provided for @dataMgmtBackupError.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup error: {error}'**
+  String dataMgmtBackupError(String error);
+
+  /// No description provided for @dataMgmtBackupDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup deleted'**
+  String get dataMgmtBackupDeleted;
+
+  /// No description provided for @dataMgmtOperationCreatedBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Created backup'**
+  String get dataMgmtOperationCreatedBackup;
+
+  /// No description provided for @dataMgmtOperationRestoredBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored backup'**
+  String get dataMgmtOperationRestoredBackup;
+
+  /// No description provided for @dataMgmtOperationDeletedBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted backup'**
+  String get dataMgmtOperationDeletedBackup;
+
+  /// No description provided for @dataMgmtOperationPromotedBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Promoted backup to special'**
+  String get dataMgmtOperationPromotedBackup;
+
+  /// No description provided for @dataMgmtOperationCreatedSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Created special backup'**
+  String get dataMgmtOperationCreatedSpecial;
+
+  /// No description provided for @dataMgmtOperationRenamedSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed special backup'**
+  String get dataMgmtOperationRenamedSpecial;
+
+  /// No description provided for @dataMgmtOperationRestoredSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored special backup'**
+  String get dataMgmtOperationRestoredSpecial;
+
+  /// No description provided for @dataMgmtSpecialBackupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as special backup \"{name}\"'**
+  String dataMgmtSpecialBackupSaved(String name);
+
+  /// No description provided for @dataMgmtSpecialBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save as special backup'**
+  String get dataMgmtSpecialBackupFailed;
+
+  /// No description provided for @dataMgmtSpecialBackupCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Special backup \"{name}\" created'**
+  String dataMgmtSpecialBackupCreated(String name);
+
+  /// No description provided for @dataMgmtSpecialBackupCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Special backup failed'**
+  String get dataMgmtSpecialBackupCreateFailed;
+
+  /// No description provided for @dataMgmtRenamedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed to \"{name}\"'**
+  String dataMgmtRenamedTo(String name);
+
+  /// No description provided for @dataMgmtSpecialBackupLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can keep up to {max} special backups. Please delete an existing one before creating a new special backup.'**
+  String dataMgmtSpecialBackupLimit(int max);
+
+  /// No description provided for @dataMgmtSpecialBackupPromoteLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can keep up to {max} special backups. Please delete an existing one before promoting.'**
+  String dataMgmtSpecialBackupPromoteLimit(int max);
+
+  /// No description provided for @dataMgmtSafetyBackupNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'A safety backup of the current state will be created first.'**
+  String get dataMgmtSafetyBackupNotice;
+
+  /// No description provided for @dataMgmtSpecialBackupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Special backup restored. Please restart the app.'**
+  String get dataMgmtSpecialBackupRestored;
+
+  /// No description provided for @dataMgmtOperationDeletedSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted special backup'**
+  String get dataMgmtOperationDeletedSpecial;
+
+  /// No description provided for @dataMgmtVaultSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault size: '**
+  String get dataMgmtVaultSize;
+
+  /// No description provided for @dataMgmtBackupEncryptionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are encrypted with your vault key. Auto-backup runs on every unlock.'**
+  String get dataMgmtBackupEncryptionDesc;
+
+  /// No description provided for @dataMgmtRegularBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular Backups'**
+  String get dataMgmtRegularBackups;
+
+  /// No description provided for @dataMgmtNoBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups yet'**
+  String get dataMgmtNoBackups;
 }
 
 class _AppLocalizationsDelegate

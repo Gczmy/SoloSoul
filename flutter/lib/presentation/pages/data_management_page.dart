@@ -35,7 +35,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   double _specialBackupProgress = 0.0;
 
   String? _accountId;
-  String _vaultDataSize = 'Unknown';
+  // Initialized with localized fallback in _init()
+  String _vaultDataSize = '';
   String? _appVersion;
 
   @override
@@ -98,6 +99,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   // -------------------------------------------------------------------------
 
   Future<void> _createBackup() async {
+    final l10n = AppLocalizations.of(context);
     if (_accountId == null) return;
     setState(() {
       _isCreating = true;
@@ -116,22 +118,22 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (fileName != null) {
         await _loadBackups();
         if (!mounted) return;
-        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created backup'));
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation(l10n.dataMgmtOperationCreatedBackup));
         OperationNotification.show(
           context,
-          message: const OperationMessage(
+          message: OperationMessage(
             type: OperationType.create,
             section: 'backup',
-            customMessage: 'Backup created successfully',
+            customMessage: l10n.dataMgmtBackupCreated,
           ),
         );
       } else {
         OperationNotification.show(
           context,
-          message: const OperationMessage(
+          message: OperationMessage(
             type: OperationType.delete,
             section: 'backup',
-            customMessage: 'Backup failed',
+            customMessage: l10n.dataMgmtBackupFailed,
           ),
         );
       }
@@ -143,7 +145,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         message: OperationMessage(
           type: OperationType.purge,
           section: 'backup',
-          customMessage: 'Backup error: $e',
+          customMessage: l10n.dataMgmtBackupError(e.toString()),
         ),
       );
     }
@@ -175,12 +177,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   }
 
   Future<void> _restoreBackup(BackupEntry entry) async {
+    final l10n = AppLocalizations.of(context);
     if (_accountId == null) return;
     final confirmed = await _showConfirmDialog(
       title: AppLocalizations.of(context).dataMgmtRestoreBackup,
-      content: 'This will overwrite your current data with the backup from ${entry.displayTime}. '
-          'A safety backup of the current state will be created first.',
-      confirmLabel: 'Restore',
+      content: l10n.dataMgmtRestoreOverwrite(entry.displayTime),
+      confirmLabel: l10n.dataManagementRestoreBackupTooltip,
     );
     if (!confirmed || !mounted) return;
 
@@ -194,23 +196,23 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success) {
       await _loadAllBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored backup'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationRestoredBackup));
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.restore,
           section: 'backup',
-          customMessage: 'Restore successful. Please restart the app.',
+          customMessage: AppLocalizations.of(context).dataMgmtRestoreSuccess,
         ),
         duration: AppTheme.kPasswordHintDelay,
       );
     } else {
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.purge,
           section: 'backup',
-          customMessage: 'Restore failed',
+          customMessage: AppLocalizations.of(context).dataMgmtRestoreFailed,
         ),
       );
     }
@@ -222,8 +224,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     // Step 1: Confirm deletion
     final confirmed = await _showConfirmDialog(
       title: AppLocalizations.of(context).dataMgmtDeleteBackup,
-      content: 'Delete backup from ${entry.displayTime}?',
-      confirmLabel: 'Delete',
+      content: AppLocalizations.of(context).dataMgmtDeleteBackupConfirm(entry.displayTime),
+      confirmLabel: AppLocalizations.of(context).commonDelete,
     );
     if (!confirmed) return;
     if (!mounted) return;
@@ -247,13 +249,13 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success && mounted) {
       await _loadBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted backup'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationDeletedBackup));
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.purge,
           section: 'backup',
-          customMessage: 'Backup deleted',
+          customMessage: AppLocalizations.of(context).dataMgmtBackupDeleted,
         ),
       );
     }
@@ -270,9 +272,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(AppLocalizations.of(context).dataManagementSpecialBackupLimit),
-            content: const Text(
-              'You can keep up to ${BackupService.maxSpecialBackupCount} special backups. '
-              'Please delete an existing one before promoting.',
+            content: Text(
+              AppLocalizations.of(context).dataMgmtSpecialBackupPromoteLimit(BackupService.maxSpecialBackupCount),
             ),
             actions: [
               TextButton(
@@ -331,23 +332,23 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (!mounted) return;
       await _loadSpecialBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Promoted backup to special'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationPromotedBackup));
       OperationNotification.show(
         context,
         message: OperationMessage(
           type: OperationType.create,
           section: 'backup',
-          customMessage: 'Saved as special backup "$name"',
+          customMessage: AppLocalizations.of(context).dataMgmtSpecialBackupSaved(name),
         ),
       );
     } else {
       if (!mounted) return;
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.delete,
           section: 'backup',
-          customMessage: 'Failed to save as special backup',
+          customMessage: AppLocalizations.of(context).dataMgmtSpecialBackupFailed,
         ),
       );
     }
@@ -364,9 +365,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(AppLocalizations.of(context).dataManagementSpecialBackupLimit),
-            content: const Text(
-              'You can keep up to ${BackupService.maxSpecialBackupCount} special backups. '
-              'Please delete an existing one before creating a new special backup.',
+            content: Text(
+              AppLocalizations.of(context).dataMgmtSpecialBackupLimit(BackupService.maxSpecialBackupCount),
             ),
             actions: [
               TextButton(
@@ -433,22 +433,22 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (fileName != null) {
       await _loadSpecialBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created special backup'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationCreatedSpecial));
       OperationNotification.show(
         context,
         message: OperationMessage(
           type: OperationType.create,
           section: 'backup',
-          customMessage: 'Special backup "$name" created',
+          customMessage: AppLocalizations.of(context).dataMgmtSpecialBackupCreated(name),
         ),
       );
     } else {
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.delete,
           section: 'backup',
-          customMessage: 'Special backup failed',
+          customMessage: AppLocalizations.of(context).dataMgmtSpecialBackupCreateFailed,
         ),
       );
     }
@@ -500,13 +500,13 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (!mounted) return;
       await _loadSpecialBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Renamed special backup'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationRenamedSpecial));
       OperationNotification.show(
         context,
         message: OperationMessage(
           type: OperationType.update,
           section: 'backup',
-          customMessage: 'Renamed to "$newName"',
+          customMessage: AppLocalizations.of(context).dataMgmtRenamedTo(newName),
         ),
       );
     }
@@ -519,7 +519,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         title: Text(AppLocalizations.of(context).dataManagementRestoreBackupTitle),
         content: Text(
           '${AppLocalizations.of(context).dataManagementRestoreBackupConfirm(entry.fileName.replaceAll('.backup', ''))}\n'
-          'A safety backup of the current state will be created first.',
+          '${AppLocalizations.of(context).dataMgmtSafetyBackupNotice}',
         ),
         actions: [
           TextButton(
@@ -545,23 +545,23 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success) {
       await _loadAllBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored special backup'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationRestoredSpecial));
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.restore,
           section: 'backup',
-          customMessage: 'Special backup restored. Please restart the app.',
+          customMessage: AppLocalizations.of(context).dataMgmtSpecialBackupRestored,
         ),
         duration: AppTheme.kPasswordHintDelay,
       );
     } else {
       OperationNotification.show(
         context,
-        message: const OperationMessage(
+        message: OperationMessage(
           type: OperationType.purge,
           section: 'backup',
-          customMessage: 'Restore failed',
+          customMessage: AppLocalizations.of(context).dataMgmtRestoreFailed,
         ),
       );
     }
@@ -597,7 +597,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     );
     if (success && mounted) {
       await _loadSpecialBackups();
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted special backup'));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationDeletedSpecial));
     }
   }
 
@@ -675,13 +675,14 @@ class _VaultInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           Text(
-            'Vault size: ',
+            l10n.dataMgmtVaultSize,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -765,7 +766,7 @@ class _BackupSection extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Backups are encrypted with your vault key. Auto-backup runs on every unlock.',
+                  AppLocalizations.of(context).dataMgmtBackupEncryptionDesc,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -785,7 +786,7 @@ class _BackupSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Regular Backups',
+                  AppLocalizations.of(context).dataMgmtRegularBackups,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -808,7 +809,7 @@ class _BackupSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No backups yet',
+                  AppLocalizations.of(context).dataMgmtNoBackups,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

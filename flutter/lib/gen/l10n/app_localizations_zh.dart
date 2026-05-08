@@ -2592,4 +2592,113 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get operationLogPropertySnapshot => '属性快照';
+
+  @override
+  String get dataMgmtVaultDataSize => '保险库数据大小';
+
+  @override
+  String get dataMgmtAppVersion => '应用版本';
+
+  @override
+  String dataMgmtRestoreOverwrite(String time) {
+    return '这将用 $time 的备份覆盖您当前的数据。系统将首先创建当前状态的安全备份。';
+  }
+
+  @override
+  String get dataMgmtRestoreSuccess => '恢复成功。请重启应用。';
+
+  @override
+  String get dataMgmtRestoreFailed => '恢复失败';
+
+  @override
+  String dataMgmtDeleteBackupConfirm(String time) {
+    return '删除 $time 的备份？';
+  }
+
+  @override
+  String get dataMgmtBackupCreated => '备份创建成功';
+
+  @override
+  String get dataMgmtBackupFailed => '备份失败';
+
+  @override
+  String dataMgmtBackupError(String error) {
+    return '备份错误：$error';
+  }
+
+  @override
+  String get dataMgmtBackupDeleted => '备份已删除';
+
+  @override
+  String get dataMgmtOperationCreatedBackup => '创建了备份';
+
+  @override
+  String get dataMgmtOperationRestoredBackup => '恢复了备份';
+
+  @override
+  String get dataMgmtOperationDeletedBackup => '删除了备份';
+
+  @override
+  String get dataMgmtOperationPromotedBackup => '将备份升级为特殊备份';
+
+  @override
+  String get dataMgmtOperationCreatedSpecial => '创建了特殊备份';
+
+  @override
+  String get dataMgmtOperationRenamedSpecial => '重命名了特殊备份';
+
+  @override
+  String get dataMgmtOperationRestoredSpecial => '恢复了特殊备份';
+
+  @override
+  String dataMgmtSpecialBackupSaved(String name) {
+    return '已保存为特殊备份 \"$name\"';
+  }
+
+  @override
+  String get dataMgmtSpecialBackupFailed => '保存为特殊备份失败';
+
+  @override
+  String dataMgmtSpecialBackupCreated(String name) {
+    return '特殊备份 \"$name\" 已创建';
+  }
+
+  @override
+  String get dataMgmtSpecialBackupCreateFailed => '特殊备份创建失败';
+
+  @override
+  String dataMgmtRenamedTo(String name) {
+    return '已重命名为 \"$name\"';
+  }
+
+  @override
+  String dataMgmtSpecialBackupLimit(int max) {
+    return '最多可保留 $max 个特殊备份。请先删除一个现有备份后再创建新的特殊备份。';
+  }
+
+  @override
+  String dataMgmtSpecialBackupPromoteLimit(int max) {
+    return '最多可保留 $max 个特殊备份。请先删除一个现有备份后再升级。';
+  }
+
+  @override
+  String get dataMgmtSafetyBackupNotice => '系统将首先创建当前状态的安全备份。';
+
+  @override
+  String get dataMgmtSpecialBackupRestored => '特殊备份已恢复。请重启应用。';
+
+  @override
+  String get dataMgmtOperationDeletedSpecial => '删除了特殊备份';
+
+  @override
+  String get dataMgmtVaultSize => '保险库大小：';
+
+  @override
+  String get dataMgmtBackupEncryptionDesc => '备份使用您的保险库密钥加密。每次解锁时自动运行备份。';
+
+  @override
+  String get dataMgmtRegularBackups => '常规备份';
+
+  @override
+  String get dataMgmtNoBackups => '暂无备份';
 }

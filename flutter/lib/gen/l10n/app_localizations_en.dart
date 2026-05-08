@@ -2657,4 +2657,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get operationLogPropertySnapshot => 'Property Snapshot';
+
+  @override
+  String get dataMgmtVaultDataSize => 'Vault data size';
+
+  @override
+  String get dataMgmtAppVersion => 'App version';
+
+  @override
+  String dataMgmtRestoreOverwrite(String time) {
+    return 'This will overwrite your current data with the backup from $time. A safety backup of the current state will be created first.';
+  }
+
+  @override
+  String get dataMgmtRestoreSuccess =>
+      'Restore successful. Please restart the app.';
+
+  @override
+  String get dataMgmtRestoreFailed => 'Restore failed';
+
+  @override
+  String dataMgmtDeleteBackupConfirm(String time) {
+    return 'Delete backup from $time?';
+  }
+
+  @override
+  String get dataMgmtBackupCreated => 'Backup created successfully';
+
+  @override
+  String get dataMgmtBackupFailed => 'Backup failed';
+
+  @override
+  String dataMgmtBackupError(String error) {
+    return 'Backup error: $error';
+  }
+
+  @override
+  String get dataMgmtBackupDeleted => 'Backup deleted';
+
+  @override
+  String get dataMgmtOperationCreatedBackup => 'Created backup';
+
+  @override
+  String get dataMgmtOperationRestoredBackup => 'Restored backup';
+
+  @override
+  String get dataMgmtOperationDeletedBackup => 'Deleted backup';
+
+  @override
+  String get dataMgmtOperationPromotedBackup => 'Promoted backup to special';
+
+  @override
+  String get dataMgmtOperationCreatedSpecial => 'Created special backup';
+
+  @override
+  String get dataMgmtOperationRenamedSpecial => 'Renamed special backup';
+
+  @override
+  String get dataMgmtOperationRestoredSpecial => 'Restored special backup';
+
+  @override
+  String dataMgmtSpecialBackupSaved(String name) {
+    return 'Saved as special backup \"$name\"';
+  }
+
+  @override
+  String get dataMgmtSpecialBackupFailed => 'Failed to save as special backup';
+
+  @override
+  String dataMgmtSpecialBackupCreated(String name) {
+    return 'Special backup \"$name\" created';
+  }
+
+  @override
+  String get dataMgmtSpecialBackupCreateFailed => 'Special backup failed';
+
+  @override
+  String dataMgmtRenamedTo(String name) {
+    return 'Renamed to \"$name\"';
+  }
+
+  @override
+  String dataMgmtSpecialBackupLimit(int max) {
+    return 'You can keep up to $max special backups. Please delete an existing one before creating a new special backup.';
+  }
+
+  @override
+  String dataMgmtSpecialBackupPromoteLimit(int max) {
+    return 'You can keep up to $max special backups. Please delete an existing one before promoting.';
+  }
+
+  @override
+  String get dataMgmtSafetyBackupNotice =>
+      'A safety backup of the current state will be created first.';
+
+  @override
+  String get dataMgmtSpecialBackupRestored =>
+      'Special backup restored. Please restart the app.';
+
+  @override
+  String get dataMgmtOperationDeletedSpecial => 'Deleted special backup';
+
+  @override
+  String get dataMgmtVaultSize => 'Vault size: ';
+
+  @override
+  String get dataMgmtBackupEncryptionDesc =>
+      'Backups are encrypted with your vault key. Auto-backup runs on every unlock.';
+
+  @override
+  String get dataMgmtRegularBackups => 'Regular Backups';
+
+  @override
+  String get dataMgmtNoBackups => 'No backups yet';
 }

@@ -627,22 +627,34 @@ class _AppInfoSection extends ConsumerWidget {
           icon: Icons.description_outlined,
           title: l10n.settingsPrivacyPolicy,
           subtitle: l10n.settingsPrivacyPolicyDesc,
-          onTap: () => showLegalDocumentSheet(
-            context: context,
-            title: l10n.settingsPrivacyPolicy,
-            assetPath: 'assets/docs/PRIVACY_POLICY.md',
-          ),
+          onTap: () {
+            final locale = Localizations.localeOf(context);
+            final isZh = locale.languageCode == 'zh';
+            showLegalDocumentSheet(
+              context: context,
+              title: l10n.settingsPrivacyPolicy,
+              assetPath: isZh
+                  ? 'assets/docs/PRIVACY_POLICY_zh.md'
+                  : 'assets/docs/PRIVACY_POLICY.md',
+            );
+          },
         ),
         const Divider(height: 1),
         SettingsTile(
           icon: Icons.article_outlined,
           title: l10n.settingsTermsOfService,
           subtitle: l10n.settingsTermsOfServiceDesc,
-          onTap: () => showLegalDocumentSheet(
-            context: context,
-            title: l10n.settingsTermsOfService,
-            assetPath: 'assets/docs/TERMS_OF_SERVICE.md',
-          ),
+          onTap: () {
+            final locale = Localizations.localeOf(context);
+            final isZh = locale.languageCode == 'zh';
+            showLegalDocumentSheet(
+              context: context,
+              title: l10n.settingsTermsOfService,
+              assetPath: isZh
+                  ? 'assets/docs/TERMS_OF_SERVICE_zh.md'
+                  : 'assets/docs/TERMS_OF_SERVICE.md',
+            );
+          },
         ),
       ],
     ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);
