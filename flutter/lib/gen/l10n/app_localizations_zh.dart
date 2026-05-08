@@ -1433,7 +1433,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sensitivityVerifyPassword => '请输入主密码以访问敏感度设置。';
 
   @override
-  String get sensitivityCritical => '关键';
+  String get sensitivityCritical => '受限';
 
   @override
   String get sensitivityCriticalDesc => '最高敏感度 - 始终遮罩，需要验证';
@@ -2586,4 +2586,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get datePickerSelectDate => '选择日期';
+
+  @override
+  String get headerSensitiveAccessLocked => '敏感访问已锁定';
 }

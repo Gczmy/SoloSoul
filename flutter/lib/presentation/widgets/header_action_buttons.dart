@@ -25,7 +25,7 @@ class HeaderActionButtons extends ConsumerWidget {
         ref.read(sensitivePageAccessProvider.notifier).clear();
         showOverlaySnackBar(
           context,
-          content: 'Sensitive access locked',
+          content: l10n.headerSensitiveAccessLocked,
           type: SnackBarType.info,
         );
       },

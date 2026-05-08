@@ -461,7 +461,7 @@
   "securityAutoClearDelay": "自动清除延迟",
   "securityAutoClearDesc": "复制敏感数据后清除剪贴板",
   "sensitivityVerifyPassword": "请输入主密码以访问敏感度设置。",
-  "sensitivityCritical": "关键",
+  "sensitivityCritical": "受限",
   "sensitivityCriticalDesc": "最高敏感度 - 始终遮罩，需要验证",
   "sensitivitySensitive": "敏感",
   "sensitivitySensitiveDesc": "需要保护的个人信​​息",
@@ -1142,5 +1142,6 @@
   "fieldDueDate": "截止日期",
   "commonYes": "是",
   "commonNo": "否",
-  "datePickerSelectDate": "选择日期"
+  "datePickerSelectDate": "选择日期",
+  "headerSensitiveAccessLocked": "敏感访问已锁定"
 }

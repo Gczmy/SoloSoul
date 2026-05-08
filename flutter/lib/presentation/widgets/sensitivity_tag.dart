@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 
 /// Helper to get sensitivity level color
@@ -15,20 +16,6 @@ Color getSensitivityColor(SensitivityLevel level) {
   }
 }
 
-/// Helper to get sensitivity level label
-String getSensitivityLabel(SensitivityLevel level) {
-  switch (level) {
-    case SensitivityLevel.critical:
-      return 'Critical';
-    case SensitivityLevel.sensitive:
-      return 'Sensitive';
-    case SensitivityLevel.internal:
-      return 'Internal';
-    case SensitivityLevel.public:
-      return 'Public';
-  }
-}
-
 /// Widget that shows a sensitivity level tag
 class SensitivityTag extends StatelessWidget {
   final SensitivityLevel level;
@@ -37,6 +24,7 @@ class SensitivityTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final color = getSensitivityColor(level);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -46,7 +34,7 @@ class SensitivityTag extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
-        getSensitivityLabel(level),
+        level.localizedLabel(l10n),
         style: TextStyle(
           color: color,
           fontSize: 10,

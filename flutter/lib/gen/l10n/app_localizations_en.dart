@@ -1462,7 +1462,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter your master password to access sensitivity settings.';
 
   @override
-  String get sensitivityCritical => 'Critical';
+  String get sensitivityCritical => 'Restricted';
 
   @override
   String get sensitivityCriticalDesc =>
@@ -2651,4 +2651,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get datePickerSelectDate => 'Select date';
+
+  @override
+  String get headerSensitiveAccessLocked => 'Sensitive access locked';
 }

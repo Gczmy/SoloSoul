@@ -1,3 +1,4 @@
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 /// Sensitivity levels for data classification.
@@ -62,5 +63,25 @@ extension SensitivityLevelExtension on SensitivityLevel {
       case SensitivityLevel.critical:
         return 'Maximum protection required, always masked';
     }
+  }
+
+  /// Localized human-readable label for UI display.
+  String localizedLabel(AppLocalizations l10n) {
+    return switch (this) {
+      SensitivityLevel.public => l10n.sensitivityPublic,
+      SensitivityLevel.internal => l10n.sensitivityInternal,
+      SensitivityLevel.sensitive => l10n.sensitivitySensitive,
+      SensitivityLevel.critical => l10n.sensitivityCritical,
+    };
+  }
+
+  /// Localized description for help text and tooltips.
+  String localizedDescription(AppLocalizations l10n) {
+    return switch (this) {
+      SensitivityLevel.public => l10n.sensitivityPublicDesc,
+      SensitivityLevel.internal => l10n.sensitivityInternalDesc,
+      SensitivityLevel.sensitive => l10n.sensitivitySensitiveDesc,
+      SensitivityLevel.critical => l10n.sensitivityCriticalDesc,
+    };
   }
 }

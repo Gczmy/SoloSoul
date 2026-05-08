@@ -2825,7 +2825,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensitivityCritical.
   ///
   /// In en, this message translates to:
-  /// **'Critical'**
+  /// **'Restricted'**
   String get sensitivityCritical;
 
   /// No description provided for @sensitivityCriticalDesc.
@@ -4921,6 +4921,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select date'**
   String get datePickerSelectDate;
+
+  /// No description provided for @headerSensitiveAccessLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive access locked'**
+  String get headerSensitiveAccessLocked;
 }
 
 class _AppLocalizationsDelegate

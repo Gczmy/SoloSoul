@@ -688,7 +688,7 @@
   "securityAutoClearDelay": "Auto-Clear Delay",
   "securityAutoClearDesc": "Clear clipboard after copying sensitive data",
   "sensitivityVerifyPassword": "Enter your master password to access sensitivity settings.",
-  "sensitivityCritical": "Critical",
+  "sensitivityCritical": "Restricted",
   "sensitivityCriticalDesc": "Maximum sensitivity - always masked, requires verification",
   "sensitivitySensitive": "Sensitive",
   "sensitivitySensitiveDesc": "Personal information requiring protection",
@@ -1528,5 +1528,6 @@
   "fieldDueDate": "Due Date",
   "commonYes": "Yes",
   "commonNo": "No",
-  "datePickerSelectDate": "Select date"
+  "datePickerSelectDate": "Select date",
+  "headerSensitiveAccessLocked": "Sensitive access locked"
 }
