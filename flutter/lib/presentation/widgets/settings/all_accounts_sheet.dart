@@ -22,7 +22,7 @@ class AllAccountsSheet extends StatelessWidget {
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
-  IconData _getDeviceIcon(String deviceName) => getDeviceIcon(deviceName);
+
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +170,7 @@ class AllAccountsSheet extends StatelessWidget {
                           if (account.recentDevices.isNotEmpty) ...[
                             const SizedBox(width: 8),
                             Icon(
-                              _getDeviceIcon(
+                              getDeviceIcon(
                                 account.recentDevices.first.deviceName,
                               ),
                               size: 18,

@@ -17,7 +17,7 @@ class CurrentAccountSheet extends StatelessWidget {
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
-  IconData _getDeviceIcon(String deviceName) => getDeviceIcon(deviceName);
+
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +139,7 @@ class CurrentAccountSheet extends StatelessWidget {
                       child: Row(
                         children: [
                           Icon(
-                            _getDeviceIcon(device.deviceName),
+                            getDeviceIcon(device.deviceName),
                             size: 18,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

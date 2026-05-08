@@ -34,7 +34,7 @@
 | O008 | P2     | 优化       | `lib/presentation/pages/login_page.dart` | 931 行（超 800 行限制） | `[ ]` 待修复 |
 | O009 | P2     | 优化       | `lib/presentation/pages/object_editor_page.dart` | 859 行（超 800 行限制） | `[ ]` 待修复 |
 | O010 | P2     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart` | 822 行（超 800 行限制） | `[ ]` 待修复 |
-| O011 | P2     | 优化       | `all_accounts_sheet.dart:25` / `current_account_sheet.dart:20` | 重复的 `_getDeviceIcon` 包装方法 | `[ ]` 待修复 |
+| O011 | P2     | 优化       | `all_accounts_sheet.dart:25` / `current_account_sheet.dart:20` | 重复的 `_getDeviceIcon` 包装方法 | `[x]` 已删除重复方法，直接调用 getDeviceIcon() |
 | O012 | P2     | 优化       | `lib/presentation/widgets/operation_tile.dart:13` | `_showDetailDialog` 方法 107 行 | `[ ]` 待修复 |
 | O013 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:148` | `_confirmEmptyTrash` 方法 108 行 | `[ ]` 待修复 |
 | O014 | P2     | 优化       | `lib/presentation/widgets/ocr_scanner_sheet.dart:251` | `_buildResultState` 方法 109 行 | `[ ]` 待修复 |
@@ -47,7 +47,7 @@
 
 ## 修复进度
 
-- 已完成：8 / 35
+- 已完成：9 / 35
 - 当前处理：无
 
 ## 安全正面发现
