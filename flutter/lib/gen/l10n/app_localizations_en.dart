@@ -2650,6 +2650,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonNo => 'No';
 
   @override
+  String get fieldCountryCode => 'Country Code';
+
+  @override
+  String get fieldPlaceOfIssue => 'Place of Issue';
+
+  @override
+  String get fieldPlaceOfBirth => 'Place of Birth';
+
+  @override
+  String get fieldSex => 'Sex';
+
+  @override
+  String get fieldAuthority => 'Authority';
+
+  @override
+  String get fieldVisaType => 'Visa Type';
+
+  @override
+  String get fieldDestination => 'Destination';
+
+  @override
+  String get fieldTravelType => 'Travel Type';
+
+  @override
+  String get fieldDepartureCity => 'Departure City';
+
+  @override
+  String get fieldDepartureTime => 'Departure Time';
+
+  @override
+  String get fieldArrivalTime => 'Arrival Time';
+
+  @override
+  String get fieldFlightNumber => 'Flight Number';
+
+  @override
+  String get fieldTicketPrice => 'Ticket Price';
+
+  @override
+  String get fieldAirline => 'Airline';
+
+  @override
+  String get fieldCurrency => 'Currency';
+
+  @override
+  String get fieldSwiftBic => 'SWIFT/BIC';
+
+  @override
+  String get fieldSortCode => 'Sort Code';
+
+  @override
+  String get fieldCardType => 'Card Type';
+
+  @override
+  String get fieldTaxIdType => 'Tax ID Type';
+
+  @override
+  String get fieldIssuingAuthority => 'Issuing Authority';
+
+  @override
+  String get fieldDegreeCustom => 'Custom Degree';
+
+  @override
+  String get fieldField => 'Field of Study';
+
+  @override
+  String get fieldResponsibilities => 'Responsibilities';
+
+  @override
+  String get fieldIssuer => 'Issuer';
+
+  @override
+  String get fieldDescription => 'Description';
+
+  @override
+  String get fieldName => 'Name';
+
+  @override
   String get datePickerSelectDate => 'Select date';
 
   @override

@@ -2078,7 +2078,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get debugLogActiveNotice => '调试模式已激活。正在记录日志。';
 
   @override
-  String get homeVaultUnlocked => 'Vault 已解锁';
+  String get homeVaultUnlocked => '保险库已解锁';
 
   @override
   String get homeOnline => '在线';
@@ -2142,7 +2142,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get localSearchScanLocalFiles => '扫描本地文件';
 
   @override
-  String get localSearchDescription => '在本地文件中搜索个人信息并导入到您的 Vault 中。';
+  String get localSearchDescription => '在本地文件中搜索个人信息并导入到您的保险库中。';
 
   @override
   String get localSearchSelectHint => '点击选择，长按调整大小限制。';
@@ -2583,6 +2583,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commonNo => '否';
+
+  @override
+  String get fieldCountryCode => '国家代码';
+
+  @override
+  String get fieldPlaceOfIssue => '签发地点';
+
+  @override
+  String get fieldPlaceOfBirth => '出生地点';
+
+  @override
+  String get fieldSex => '性别';
+
+  @override
+  String get fieldAuthority => '签发机关';
+
+  @override
+  String get fieldVisaType => '签证类型';
+
+  @override
+  String get fieldDestination => '目的地';
+
+  @override
+  String get fieldTravelType => '旅行类型';
+
+  @override
+  String get fieldDepartureCity => '出发城市';
+
+  @override
+  String get fieldDepartureTime => '出发时间';
+
+  @override
+  String get fieldArrivalTime => '到达时间';
+
+  @override
+  String get fieldFlightNumber => '航班号';
+
+  @override
+  String get fieldTicketPrice => '票价';
+
+  @override
+  String get fieldAirline => '航空公司';
+
+  @override
+  String get fieldCurrency => '货币';
+
+  @override
+  String get fieldSwiftBic => 'SWIFT/BIC';
+
+  @override
+  String get fieldSortCode => '排序码';
+
+  @override
+  String get fieldCardType => '卡片类型';
+
+  @override
+  String get fieldTaxIdType => '税务识别号类型';
+
+  @override
+  String get fieldIssuingAuthority => '签发机关';
+
+  @override
+  String get fieldDegreeCustom => '自定义学位信息';
+
+  @override
+  String get fieldField => '专业领域';
+
+  @override
+  String get fieldResponsibilities => '工作职能';
+
+  @override
+  String get fieldIssuer => '颁奖方';
+
+  @override
+  String get fieldDescription => '详细信息';
+
+  @override
+  String get fieldName => '名称';
 
   @override
   String get datePickerSelectDate => '选择日期';

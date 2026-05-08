@@ -4916,6 +4916,162 @@ abstract class AppLocalizations {
   /// **'No'**
   String get commonNo;
 
+  /// No description provided for @fieldCountryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Country Code'**
+  String get fieldCountryCode;
+
+  /// No description provided for @fieldPlaceOfIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Place of Issue'**
+  String get fieldPlaceOfIssue;
+
+  /// No description provided for @fieldPlaceOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Place of Birth'**
+  String get fieldPlaceOfBirth;
+
+  /// No description provided for @fieldSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get fieldSex;
+
+  /// No description provided for @fieldAuthority.
+  ///
+  /// In en, this message translates to:
+  /// **'Authority'**
+  String get fieldAuthority;
+
+  /// No description provided for @fieldVisaType.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa Type'**
+  String get fieldVisaType;
+
+  /// No description provided for @fieldDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get fieldDestination;
+
+  /// No description provided for @fieldTravelType.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Type'**
+  String get fieldTravelType;
+
+  /// No description provided for @fieldDepartureCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure City'**
+  String get fieldDepartureCity;
+
+  /// No description provided for @fieldDepartureTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure Time'**
+  String get fieldDepartureTime;
+
+  /// No description provided for @fieldArrivalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival Time'**
+  String get fieldArrivalTime;
+
+  /// No description provided for @fieldFlightNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight Number'**
+  String get fieldFlightNumber;
+
+  /// No description provided for @fieldTicketPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Price'**
+  String get fieldTicketPrice;
+
+  /// No description provided for @fieldAirline.
+  ///
+  /// In en, this message translates to:
+  /// **'Airline'**
+  String get fieldAirline;
+
+  /// No description provided for @fieldCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get fieldCurrency;
+
+  /// No description provided for @fieldSwiftBic.
+  ///
+  /// In en, this message translates to:
+  /// **'SWIFT/BIC'**
+  String get fieldSwiftBic;
+
+  /// No description provided for @fieldSortCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort Code'**
+  String get fieldSortCode;
+
+  /// No description provided for @fieldCardType.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Type'**
+  String get fieldCardType;
+
+  /// No description provided for @fieldTaxIdType.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ID Type'**
+  String get fieldTaxIdType;
+
+  /// No description provided for @fieldIssuingAuthority.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuing Authority'**
+  String get fieldIssuingAuthority;
+
+  /// No description provided for @fieldDegreeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Degree'**
+  String get fieldDegreeCustom;
+
+  /// No description provided for @fieldField.
+  ///
+  /// In en, this message translates to:
+  /// **'Field of Study'**
+  String get fieldField;
+
+  /// No description provided for @fieldResponsibilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Responsibilities'**
+  String get fieldResponsibilities;
+
+  /// No description provided for @fieldIssuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuer'**
+  String get fieldIssuer;
+
+  /// No description provided for @fieldDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get fieldDescription;
+
+  /// No description provided for @fieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get fieldName;
+
   /// No description provided for @datePickerSelectDate.
   ///
   /// In en, this message translates to:
