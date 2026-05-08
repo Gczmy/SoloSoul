@@ -241,16 +241,23 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                 if (config.cloudProfiles.isEmpty)
                   const _EmptyProfilesState()
                 else
-                  ...config.cloudProfiles.map((profile) {
-                    final isActive = profile.id == config.activeCloudProfileId;
-                    return _ProfileCard(
-                      profile: profile,
-                      isActive: isActive,
-                      onActivate: () => notifier.setActiveCloudProfile(profile.id),
-                      onEdit: () => _showProfileEditor(profile: profile),
-                      onDelete: () => _deleteProfile(profile),
-                    );
-                  }),
+                  RadioGroup<String>(
+                    groupValue: config.activeCloudProfileId,
+                    onChanged: (id) {
+                      if (id != null) notifier.setActiveCloudProfile(id);
+                    },
+                    child: Column(
+                      children: config.cloudProfiles.map((profile) {
+                        return _ProfileCard(
+                          profile: profile,
+                          isActive: profile.id == config.activeCloudProfileId,
+                          onActivate: () => notifier.setActiveCloudProfile(profile.id),
+                          onEdit: () => _showProfileEditor(profile: profile),
+                          onDelete: () => _deleteProfile(profile),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: () => _showProfileEditor(),
@@ -378,8 +385,6 @@ class _ProfileCard extends StatelessWidget {
                 children: [
                   Radio<String>(
                     value: profile.id,
-                    groupValue: isActive ? profile.id : '',
-                    onChanged: (_) => onActivate(),
                   ),
                   const SizedBox(width: 8),
                   Container(
