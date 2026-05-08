@@ -2589,4 +2589,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get headerSensitiveAccessLocked => '敏感访问已锁定';
+
+  @override
+  String get operationLogPropertySnapshot => '属性快照';
 }

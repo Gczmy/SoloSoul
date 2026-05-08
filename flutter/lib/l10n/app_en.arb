@@ -1529,5 +1529,7 @@
   "commonYes": "Yes",
   "commonNo": "No",
   "datePickerSelectDate": "Select date",
-  "headerSensitiveAccessLocked": "Sensitive access locked"
+  "headerSensitiveAccessLocked": "Sensitive access locked",
+  "operationLogPropertySnapshot": "Property Snapshot",
+  "commonEmpty": "(empty)"
 }

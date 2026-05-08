@@ -1143,5 +1143,7 @@
   "commonYes": "是",
   "commonNo": "否",
   "datePickerSelectDate": "选择日期",
-  "headerSensitiveAccessLocked": "敏感访问已锁定"
+  "headerSensitiveAccessLocked": "敏感访问已锁定",
+  "operationLogPropertySnapshot": "属性快照",
+  "commonEmpty": "（空）"
 }

@@ -2654,4 +2654,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get headerSensitiveAccessLocked => 'Sensitive access locked';
+
+  @override
+  String get operationLogPropertySnapshot => 'Property Snapshot';
 }

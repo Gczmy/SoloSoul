@@ -4927,6 +4927,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sensitive access locked'**
   String get headerSensitiveAccessLocked;
+
+  /// No description provided for @operationLogPropertySnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Snapshot'**
+  String get operationLogPropertySnapshot;
 }
 
 class _AppLocalizationsDelegate

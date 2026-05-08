@@ -47,63 +47,13 @@ class OperationTile extends StatelessWidget {
                 const Divider(),
                 const SizedBox(height: 8),
                 Text(
-                  'Property Snapshot',
+                  l10n.operationLogPropertySnapshot,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...entry.properties!.entries.map((e) {
-                  final levelName = entry.propertyLevels?[e.key];
-                  final level = levelName != null
-                      ? SensitivityLevel.values.firstWhere(
-                          (l) => l.name == levelName,
-                          orElse: () => SensitivityLevel.public,
-                        )
-                      : SensitivityLevel.public;
-                  final levelColor = _sensitivityColor(level);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            translateFieldLabel(e.key, l10n),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            e.value.isEmpty ? '(empty)' : e.value,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: levelColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: levelColor.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Text(
-                            level.label,
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: levelColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+                ..._buildPropertyList(context),
               ],
             ],
           ),
@@ -172,6 +122,59 @@ class OperationTile extends StatelessWidget {
       default:
         return entry.action;
     }
+  }
+
+  List<Widget> _buildPropertyList(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return entry.properties!.entries.map((e) {
+      final levelName = entry.propertyLevels?[e.key];
+      final level = levelName != null
+          ? SensitivityLevel.values.firstWhere(
+              (l) => l.name == levelName,
+              orElse: () => SensitivityLevel.public,
+            )
+          : SensitivityLevel.public;
+      final levelColor = _sensitivityColor(level);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(
+                translateFieldLabel(e.key, l10n),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Text(
+                e.value.isEmpty ? l10n.commonEmpty : e.value,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: levelColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: levelColor.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                level.localizedLabel(l10n),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: levelColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
   IconData _deviceIcon(String device) {

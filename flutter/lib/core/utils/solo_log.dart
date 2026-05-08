@@ -17,6 +17,21 @@ class SoloLog {
   /// Internal stopwatch for timing operations
   static final Map<String, Stopwatch> _stopwatches = {};
 
+  /// Max age for abandoned timers before cleanup (10 minutes).
+  static const _maxTimerAgeMs = 10 * 60 * 1000;
+
+  /// Clean up abandoned timers that were never ended.
+  /// Call periodically or on app lifecycle events.
+  static void cleanupStaleTimers() {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _stopwatches.removeWhere((key, sw) {
+      if (!sw.isRunning) return true; // already stopped
+      // Remove if started more than _maxTimerAgeMs ago
+      return (now - sw.elapsedMilliseconds > _maxTimerAgeMs) ||
+          sw.elapsedMilliseconds > _maxTimerAgeMs * 2;
+    });
+  }
+
   static void _consolePrint(String level, String tag, String message) {
     // Gate on user-activated debug mode, not kDebugMode,
     // to prevent sensitive logs reaching console in debug/profile builds.

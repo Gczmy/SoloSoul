@@ -201,56 +201,57 @@ class _TrashPageState extends ConsumerState<TrashPage> {
             child: Text(AppLocalizations.of(context).commonCancel),
           ),
           FilledButton(
-            onPressed: () async {
-              final snackBarContext = context;
-              Navigator.pop(snackBarContext);
-
-              // Permanently delete all soft-deleted unified objects in one batch
-              final deletedObjects = ref.read(deletedObjectsProvider);
-              final notifier = ref.read(unifiedObjectProvider.notifier);
-
-              // Log operations first (before objects are removed)
-              for (final obj in deletedObjects) {
-                final logSection = _logSectionForTypeId(obj.typeId ?? '');
-                if (logSection != null) {
-                  final properties = <String, String>{};
-                  final propertyLevels = <String, String>{};
-                  for (final entry in obj.properties.entries) {
-                    properties[entry.key] = propValueToString(entry.value);
-                    propertyLevels[entry.key] = entry.value.sensitivity.name;
-                  }
-                  final entry = OperationLogger.logCustomSection(
-                    section: logSection.value,
-                    action: LogAction.purge,
-                    description: '${AppLocalizations.of(context).trashPermanentlyDeleted}${obj.name}',
-                    properties: properties,
-                    propertyLevels: propertyLevels,
-                  );
-                  await OperationLogService.instance.addEntry(entry);
-                }
-              }
-
-              // Batch delete + single save
-              final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
-              await notifier.permanentlyDeleteMultiple(
-                deletedObjects.map((o) => o.id).toList(),
-                accountId: accountId,
-              );
-
-              if (mounted) {
-                showOverlaySnackBar(
-                  snackBarContext,
-                  content: AppLocalizations.of(context).trashEmptyComplete(itemCount),
-                  type: SnackBarType.error,
-                );
-              }
-            },
+            onPressed: () => _performEmptyTrash(context, itemCount),
             style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
             child: Text(AppLocalizations.of(context).trashEmptyTrash),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _performEmptyTrash(BuildContext dialogContext, int itemCount) async {
+    Navigator.pop(dialogContext);
+    final l10n = AppLocalizations.of(context);
+
+    final deletedObjects = ref.read(deletedObjectsProvider);
+    final notifier = ref.read(unifiedObjectProvider.notifier);
+
+    // Log operations first (before objects are removed)
+    for (final obj in deletedObjects) {
+      final logSection = _logSectionForTypeId(obj.typeId ?? '');
+      if (logSection != null) {
+        final properties = <String, String>{};
+        final propertyLevels = <String, String>{};
+        for (final entry in obj.properties.entries) {
+          properties[entry.key] = propValueToString(entry.value);
+          propertyLevels[entry.key] = entry.value.sensitivity.name;
+        }
+        final opEntry = OperationLogger.logCustomSection(
+          section: logSection.value,
+          action: LogAction.purge,
+          description: '${l10n.trashPermanentlyDeleted}${obj.name}',
+          properties: properties,
+          propertyLevels: propertyLevels,
+        );
+        await OperationLogService.instance.addEntry(opEntry);
+      }
+    }
+
+    // Batch delete + single save
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    await notifier.permanentlyDeleteMultiple(
+      deletedObjects.map((o) => o.id).toList(),
+      accountId: accountId,
+    );
+
+    if (mounted) {
+      showOverlaySnackBar(
+        context,
+        content: l10n.trashEmptyComplete(itemCount),
+        type: SnackBarType.error,
+      );
+    }
   }
 
   Future<void> _confirmRestoreUnifiedObject(UnifiedObject object) async {

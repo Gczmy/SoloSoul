@@ -20,8 +20,20 @@ class ProfileStorageService {
   // Reference to Rust vault service
   final RustVaultService _rustVault = RustVaultService.instance;
 
-  // In-memory cache of last loaded profile per account
+  // In-memory cache of last loaded profile per account (max 3 entries).
+  static const _maxCacheSize = 3;
   final Map<String, ProfileData> _profileCache = {};
+  final List<String> _cacheOrder = []; // LRU: most recently used first
+
+  void _addToCache(String accountId, ProfileData profile) {
+    _cacheOrder.remove(accountId);
+    _cacheOrder.insert(0, accountId);
+    _profileCache[accountId] = profile;
+    // Evict oldest entries beyond max size
+    while (_cacheOrder.length > _maxCacheSize) {
+      _profileCache.remove(_cacheOrder.removeLast());
+    }
+  }
 
   ProfileStorageService._();
 
@@ -162,7 +174,7 @@ class ProfileStorageService {
           }),
         );
       }
-      _profileCache[accountId] = profile;
+      _addToCache(accountId, profile);
       return profile;
     } on RemoteError catch (e) {
       DebugLogger.instance.logError(
@@ -194,7 +206,7 @@ class ProfileStorageService {
         return false;
       }
 
-      _profileCache[accountId] = profile;
+      _addToCache(accountId, profile);
       return true;
     } on Exception catch (e) {
       DebugLogger.instance
