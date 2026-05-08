@@ -128,7 +128,7 @@ Future<String?> showPasswordVerificationDialog({
       barrierDismissible: false,
       barrierLabel: 'Dialog',
       pageBuilder: (context, anim1, anim2) => Center(
-        child: SizedBox(width: 360, child: dialogBuilder),
+        child: SizedBox(width: 480, child: dialogBuilder),
       ),
     );
   }
@@ -144,7 +144,7 @@ Future<String?> showPasswordVerificationDialog({
     barrierDismissible: false,
     barrierLabel: 'Dialog',
     pageBuilder: (context, anim1, anim2) => Center(
-      child: SizedBox(width: 360, child: passwordDialogContent),
+      child: SizedBox(width: 480, child: passwordDialogContent),
     ),
   );
 }
@@ -239,7 +239,7 @@ class PasswordVerificationDialogContentState
         ],
       ),
       content: SizedBox(
-        width: 360,
+        width: 480,
         child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +449,7 @@ class BiometricPasswordDialogContentState
         ],
       ),
       content: SizedBox(
-        width: 360,
+        width: 480,
         child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
