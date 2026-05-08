@@ -86,8 +86,7 @@ class OcrService {
       final recData = await rootBundle.load(_recAssetPath);
       final recBytes = recData.buffer.asUint8List();
 
-      // ignore: avoid_print
-      print('[OCR-DART] Loading models: DET=${detBytes.length} CLS=${clsBytes.length} REC=${recBytes.length}');
+      SoloLog.d('OCR', 'Loading models: DET=${detBytes.length} CLS=${clsBytes.length} REC=${recBytes.length}');
 
       // 2. 通过 FFI 初始化 Rust ONNX Session
       await frbOcrInitV2(
@@ -155,8 +154,7 @@ class OcrService {
           if (mrz != null) return mrz;
         }
       } on Exception catch (e) {
-        // ignore: avoid_print
-        print('[OCR-DART] Apple Vision MRZ error: $e');
+        SoloLog.w('OCR', 'Apple Vision MRZ error: $e');
       }
     }
 

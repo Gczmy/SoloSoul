@@ -212,14 +212,12 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               for (final obj in deletedObjects) {
                 final logSection = _logSectionForTypeId(obj.typeId ?? '');
                 if (logSection != null) {
-                  final properties = <String, String>{
-                    for (final entry in obj.properties.entries)
-                      entry.key: propValueToString(entry.value),
-                  };
-                  final propertyLevels = <String, String>{
-                    for (final entry in obj.properties.entries)
-                      entry.key: entry.value.sensitivity.name,
-                  };
+                  final properties = <String, String>{};
+                  final propertyLevels = <String, String>{};
+                  for (final entry in obj.properties.entries) {
+                    properties[entry.key] = propValueToString(entry.value);
+                    propertyLevels[entry.key] = entry.value.sensitivity.name;
+                  }
                   final entry = OperationLogger.logCustomSection(
                     section: logSection.value,
                     action: LogAction.purge,

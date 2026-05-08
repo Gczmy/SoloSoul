@@ -21,12 +21,12 @@
 | O018 | P1     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart:376` | 使用已弃用的 Radio groupValue/onChanged API | `[x]` 已迁移到 RadioGroup |
 | O019 | P1     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart:78` + `login_page.dart:239` | async gap 后使用 BuildContext 未检查 mounted | `[x]` 已添加 mounted 检查 |
 | S003 | P2     | 安全       | `lib/presentation/providers/auth/auth_storage.dart:142` | 密码复杂度缺少特殊字符要求 | `[ ]` 待修复 |
-| S004 | P2     | 安全       | `lib/core/services/ocr_service.dart:90,159` | OCR 日志未通过 DebugLogger 门控 | `[ ]` 待修复 |
+| S004 | P2     | 安全       | `lib/core/services/ocr_service.dart:90,159` | OCR 日志未通过 DebugLogger 门控 | `[x]` 已替换为 SoloLog |
 | S005 | P2     | 安全       | `lib/core/services/llm/llm_config_service.dart:25` | API Key 在整个会话期间存于内存 | `[ ]` 待修复 |
 | P002 | P2     | 性能       | `lib/core/services/profile_storage_service.dart:24` | Profile 缓存无界增长 | `[ ]` 待修复 |
 | P003 | P2     | 性能       | `lib/core/services/llm/llm_config_service.dart` | LLM 配置每次访问都从 Vault 解密 | `[ ]` 待修复 |
-| D003 | P2     | 死代码     | `lib/presentation/widgets/llm/streaming_text_widget.dart` | 未被引用的 Widget | `[ ]` 待修复 |
-| D004 | P2     | 死代码     | `lib/presentation/widgets/ocr_result_preview.dart` | 未被引用的 Widget | `[ ]` 待修复 |
+| D003 | P2     | 死代码     | `lib/presentation/widgets/llm/streaming_text_widget.dart` | 未被引用的 Widget | `[x]` 已删除 |
+| D004 | P2     | 死代码     | `lib/presentation/widgets/ocr_result_preview.dart` | 未被引用的 Widget | `[x]` 已删除 |
 | O004 | P2     | 优化       | `lib/core/services/scan/local_search_service.dart` | 1026 行（超 800 行限制） | `[ ]` 待修复 |
 | O005 | P2     | 优化       | `lib/presentation/pages/settings_page.dart` | 1013 行（超 800 行限制） | `[ ]` 待修复 |
 | O006 | P2     | 优化       | `lib/presentation/pages/data_management_page.dart` | 949 行（超 800 行限制） | `[ ]` 待修复 |
@@ -39,15 +39,15 @@
 | O013 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:148` | `_confirmEmptyTrash` 方法 108 行 | `[ ]` 待修复 |
 | O014 | P2     | 优化       | `lib/presentation/widgets/ocr_scanner_sheet.dart:251` | `_buildResultState` 方法 109 行 | `[ ]` 待修复 |
 | O015 | P2     | 优化       | `lib/presentation/widgets/change_password_dialog.dart:196` | 5 个连续 early-return 可用提取方法简化 | `[ ]` 待修复 |
-| O016 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:215` | 两个相邻循环遍历同一集合可合并 | `[ ]` 待修复 |
-| O017 | P2     | 优化       | `lib/presentation/providers/llm/llm_model_provider.dart:89` | 4 部分布尔表达式过密 | `[ ]` 待修复 |
+| O016 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:215` | 两个相邻循环遍历同一集合可合并 | `[x]` 已合并为单次遍历 |
+| O017 | P2     | 优化       | `lib/presentation/providers/llm/llm_model_provider.dart:89` | 4 部分布尔表达式过密 | `[x]` 已提取为命名变量 |
 | S006 | P3     | 性能       | `lib/core/utils/solo_log.dart:18` | 废弃计时器内存泄漏 | `[ ]` 待修复 |
 | P004 | P3     | 性能       | `lib/core/services/native_vault_service.dart:52` | 启动时尝试 5+ 个路径加载原生库 | `[ ]` 待修复 |
 | O020 | P3     | 优化       | 多处 | 6 处可添加 `const` 关键字 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：9 / 35
+- 已完成：14 / 35
 - 当前处理：无
 
 ## 安全正面发现

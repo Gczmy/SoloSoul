@@ -86,8 +86,11 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       final isUnlocked = next.value == AuthState.unlocked;
       if (_lastAccountId != newId) {
         _handleAccountSwitch(_lastAccountId, newId);
-      } else if (newId != null && isUnlocked && !wasUnlocked && !_hasRestoredStats) {
-        _retryLoadStats(newId);
+      } else {
+        final shouldRetryStats = newId != null && isUnlocked && !wasUnlocked && !_hasRestoredStats;
+        if (shouldRetryStats) {
+          _retryLoadStats(newId);
+        }
       }
     });
 
