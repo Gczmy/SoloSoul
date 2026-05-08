@@ -14,12 +14,12 @@ class SearchEmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search, size: 64, color: theme.colorScheme.outline),
+          Icon(Icons.search, size: 64, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             l10n.searchEnterMinChars,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.outline,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -51,19 +51,19 @@ class SearchNoResultsState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 64, color: theme.colorScheme.outline),
+          Icon(Icons.search_off, size: 64, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             l10n.searchNoResultsBody,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.outline,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.searchAdjustFilters,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
