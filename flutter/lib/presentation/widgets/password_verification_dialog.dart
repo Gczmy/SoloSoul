@@ -238,7 +238,9 @@ class PasswordVerificationDialogContentState
           Text(AppLocalizations.of(context).dialogVerifyIdentity),
         ],
       ),
-      content: Column(
+      content: SizedBox(
+        width: 720,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -312,6 +314,7 @@ class PasswordVerificationDialogContentState
             onSubmitted: (_) => _verify(),
           ),
         ],
+      ),
       ),
       actions: [
         TextButton(
@@ -445,7 +448,9 @@ class BiometricPasswordDialogContentState
           Text(AppLocalizations.of(context).dialogVerifyIdentity),
         ],
       ),
-      content: Column(
+      content: SizedBox(
+        width: 720,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -545,6 +550,7 @@ class BiometricPasswordDialogContentState
             onSubmitted: (_) => _verify(),
           ),
         ],
+      ),
       ),
       actions: [
         TextButton(
