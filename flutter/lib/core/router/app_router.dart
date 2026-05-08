@@ -85,20 +85,7 @@ GoRouter createRouter(WidgetRef ref) {
         return null;
       }
 
-      // Debug-only routes (local import)
-      if (!kDebugMode) {
-        const debugOnlyRoutes = {
-          AppRoutes.localSearch,
-          AppRoutes.localSearchProgress,
-          AppRoutes.scanPreview,
-          AppRoutes.scanImportResult,
-        };
-        if (debugOnlyRoutes.contains(currentPath)) {
-          return AppRoutes.home;
-        }
-      }
-
-      // All other routes require authentication
+      // All routes require authentication
       if (!isUnlocked) {
         return AppRoutes.login;
       }
