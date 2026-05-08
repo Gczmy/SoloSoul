@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/pages/travel_page.dart';
 
 void main() {
@@ -21,9 +22,11 @@ void main() {
   group('TravelPage Widget Tests', () {
     testWidgets('renders travel page with scaffold', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -35,9 +38,11 @@ void main() {
 
     testWidgets('has app bar with Travel title', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -50,9 +55,11 @@ void main() {
 
     testWidgets('shows OCR scan button', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -65,9 +72,11 @@ void main() {
 
     testWidgets('shows Passports section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -80,9 +89,11 @@ void main() {
 
     testWidgets('shows Visas section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -95,9 +106,11 @@ void main() {
 
     testWidgets('shows Travel History section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -112,9 +125,11 @@ void main() {
   group('TravelPage OCR Dialog Tests', () {
     testWidgets('shows OCR dialog when scan button tapped', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -135,9 +150,11 @@ void main() {
 
     testWidgets('can dismiss OCR dialog with OK button', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );
@@ -161,9 +178,11 @@ void main() {
 
     testWidgets('OCR dialog has correct structure', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: TravelPage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const TravelPage(),
           ),
         ),
       );

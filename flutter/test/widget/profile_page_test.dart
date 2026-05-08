@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/pages/profile_page.dart';
 
 void main() {
@@ -21,9 +22,11 @@ void main() {
   group('ProfilePage Widget Tests', () {
     testWidgets('renders profile page with scaffold', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -35,9 +38,11 @@ void main() {
 
     testWidgets('has app bar with Profile title', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -50,9 +55,11 @@ void main() {
 
     testWidgets('shows Identity Profile label', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -64,9 +71,11 @@ void main() {
 
     testWidgets('shows encryption notice', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -79,9 +88,11 @@ void main() {
 
     testWidgets('shows lock icon in security notice', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -93,9 +104,11 @@ void main() {
 
     testWidgets('has CircleAvatar for profile', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -107,9 +120,11 @@ void main() {
 
     testWidgets('shows default avatar character when no name', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -124,9 +139,11 @@ void main() {
   group('ProfilePage Sections Tests', () {
     testWidgets('shows Contact Information section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -138,9 +155,11 @@ void main() {
 
     testWidgets('shows Identity Documents section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );
@@ -152,9 +171,11 @@ void main() {
 
     testWidgets('shows Addresses section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
           child: MaterialApp(
-            home: ProfilePage(),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ProfilePage(),
           ),
         ),
       );

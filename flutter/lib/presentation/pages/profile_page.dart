@@ -39,8 +39,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
+    final l10n = AppLocalizations.of(context);
     return ObjectCategoryPage(
-      title: 'Profile',
+      title: l10n.profileTitle,
       sections: [
         const ScanDocumentButton(parentId: DefaultSectionIds.contact),
         const SizedBox(height: 16),
@@ -104,11 +105,12 @@ class _IdentitySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return PredefinedObjectSection(
       key: const ValueKey(DefaultSectionIds.identity),
       sectionId: DefaultSectionIds.identity,
       typeId: 'profile_identity',
-      title: 'Identity',
+      title: l10n.profileIdentity,
       icon: Icons.person_outlined,
       maxVisibleItems: 1,
       displayItemBuilder: (item, itemMap) =>
@@ -155,11 +157,12 @@ class _ContactSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return PredefinedObjectSection(
       key: const ValueKey(DefaultSectionIds.contact),
       sectionId: DefaultSectionIds.contact,
       typeId: 'profile_contact',
-      title: 'Contact Information',
+      title: l10n.profileContactInfo,
       icon: Icons.contact_mail_outlined,
       maxVisibleItems: 3,
       customFormBuilder: (context, theme, controllers, mode, onSubmit, onCancel, sensitivities) {
@@ -314,11 +317,12 @@ class _IdentityDocumentsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return PredefinedObjectSection(
       key: const ValueKey(DefaultSectionIds.idCard),
       sectionId: DefaultSectionIds.idCard,
       typeId: 'profile_id_card',
-      title: 'Identity Documents',
+      title: l10n.profileIdentityDocuments,
       icon: Icons.badge_outlined,
       maxVisibleItems: 3,
       displayItemBuilder: (item, itemMap) =>
@@ -361,11 +365,12 @@ class _AddressesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return PredefinedObjectSection(
       key: const ValueKey(DefaultSectionIds.address),
       sectionId: DefaultSectionIds.address,
       typeId: 'profile_address',
-      title: 'Addresses',
+      title: l10n.profileAddresses,
       icon: Icons.location_on_outlined,
       maxVisibleItems: 3,
       displayItemBuilder: (item, itemMap) =>
@@ -427,6 +432,7 @@ class _ContactForm extends StatelessWidget {
     }
     final valueSensitivity = sensitivities['value'] ?? SensitivityLevel.public;
 
+    final l10n = AppLocalizations.of(context);
     return Column(
   crossAxisAlignment: CrossAxisAlignment.start,
   children: [
@@ -439,7 +445,7 @@ class _ContactForm extends StatelessWidget {
     const SizedBox(height: 12),
     _CountedTextField(
       controller: controllers['title'],
-      label: 'Title',
+      label: l10n.profileTitleLabel,
       hint: 'e.g., Gmail, Work',
       dummyValueNotifier: dummyValueNotifier,
     ),
@@ -447,9 +453,9 @@ class _ContactForm extends StatelessWidget {
     DropdownButtonFormField<String>(
       initialValue:
           selectedType.isEmpty ? 'email' : selectedType,
-      decoration: const InputDecoration(
-        labelText: 'Type',
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: l10n.profileTypeLabel,
+        border: const OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 8,
@@ -472,7 +478,7 @@ class _ContactForm extends StatelessWidget {
     const SizedBox(height: 12),
     _CountedTextField(
       controller: controllers['value'],
-      label: 'Value',
+      label: l10n.profileValueLabel,
       suffixIcon: Padding(
         padding: const EdgeInsets.only(right: 12),
         child: Align(

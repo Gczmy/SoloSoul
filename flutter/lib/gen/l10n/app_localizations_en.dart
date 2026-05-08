@@ -1091,6 +1091,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sidebarSettings => 'Settings';
 
   @override
+  String get sidebarSecurity => 'Security';
+
+  @override
+  String get sidebarOperationLog => 'Operation Log';
+
+  @override
+  String get sidebarSensitivity => 'Sensitivity';
+
+  @override
   String get sidebarCollapse => 'Collapse';
 
   @override
@@ -1104,6 +1113,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonBack => 'Back';
+
+  @override
+  String get homeTitle => 'Home';
+
+  @override
+  String get homeEndToEndEncrypted => 'End-to-End Encrypted';
+
+  @override
+  String get homeEncryptionDesc => 'AES-256-GCM + Argon2id';
+
+  @override
+  String get homeLocalStorage => 'Local Storage';
+
+  @override
+  String get homeLocalStorageDesc => 'Data encrypted and stored locally';
+
+  @override
+  String get homeZeroKnowledge => 'Zero Knowledge';
+
+  @override
+  String get homeZeroKnowledgeDesc => 'Master password never stored';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get profileIdentity => 'Identity';
+
+  @override
+  String get profileContactInfo => 'Contact Information';
+
+  @override
+  String get profileIdentityDocuments => 'Identity Documents';
+
+  @override
+  String get profileAddresses => 'Addresses';
+
+  @override
+  String get profileTitleLabel => 'Title';
+
+  @override
+  String get profileTypeLabel => 'Type';
+
+  @override
+  String get profileValueLabel => 'Value';
+
+  @override
+  String get travelTitle => 'Travel';
+
+  @override
+  String get travelPassports => 'Passports';
+
+  @override
+  String get travelVisas => 'Visas';
+
+  @override
+  String get travelHistory => 'Travel History';
+
+  @override
+  String get financialTitle => 'Financial';
+
+  @override
+  String get financialBankAccounts => 'Bank Accounts';
+
+  @override
+  String get financialCards => 'Cards';
+
+  @override
+  String get financialTaxIdentification => 'Tax Identification';
+
+  @override
+  String get professionalTitle => 'Professional';
+
+  @override
+  String get professionalEducation => 'Education';
+
+  @override
+  String get professionalEmployment => 'Employment';
+
+  @override
+  String get professionalAwards => 'Awards';
+
+  @override
+  String get professionalSkills => 'Skills';
+
+  @override
+  String get professionalLanguages => 'Languages';
 
   @override
   String get localSearchTitle => 'Local Search Import';

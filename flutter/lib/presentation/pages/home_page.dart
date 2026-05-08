@@ -30,6 +30,22 @@ import 'package:solosoul_flutter/presentation/widgets/home/security_item.dart';
 // HomePage — Dashboard with quick actions + inline page editor (Liquid Glass)
 // =============================================================================
 
+String _localizedLabel(String route, AppLocalizations l10n) {
+  return switch (route) {
+    AppRoutes.profile => l10n.sidebarProfile,
+    AppRoutes.travel => l10n.sidebarTravel,
+    AppRoutes.financial => l10n.sidebarFinancial,
+    AppRoutes.professional => l10n.sidebarProfessional,
+    AppRoutes.trash => l10n.sidebarTrash,
+    AppRoutes.settings => l10n.sidebarSettings,
+    AppRoutes.securitySettings => l10n.sidebarSecurity,
+    AppRoutes.operationLog => l10n.sidebarOperationLog,
+    AppRoutes.sensitivitySettings => l10n.sidebarSensitivity,
+    AppRoutes.search => l10n.sidebarSearch,
+    _ => '',
+  };
+}
+
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -308,6 +324,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final authState = ref.watch(authNotifierProvider.select((a) => a.value));
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
@@ -479,27 +496,27 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
                     refractiveIndex: 1.15,
                     lightIntensity: 1.0,
                   ),
-            child: const Column(
+            child: Column(
               children: [
                 SecurityItem(
                   icon: Icons.check_circle,
                   color: AppTheme.successColor,
-                  title: 'End-to-End Encrypted',
-                  subtitle: 'AES-256-GCM + Argon2id',
+                  title: l10n.homeEndToEndEncrypted,
+                  subtitle: l10n.homeEncryptionDesc,
                 ),
-                Divider(height: 24),
+                const Divider(height: 24),
                 SecurityItem(
                   icon: Icons.check_circle,
                   color: AppTheme.successColor,
-                  title: 'Local Storage',
-                  subtitle: 'Data encrypted and stored locally',
+                  title: l10n.homeLocalStorage,
+                  subtitle: l10n.homeLocalStorageDesc,
                 ),
-                Divider(height: 24),
+                const Divider(height: 24),
                 SecurityItem(
                   icon: Icons.check_circle,
                   color: AppTheme.successColor,
-                  title: 'Zero Knowledge',
-                  subtitle: 'Master password never stored',
+                  title: l10n.homeZeroKnowledge,
+                  subtitle: l10n.homeZeroKnowledgeDesc,
                 ),
               ],
             ),
@@ -549,9 +566,10 @@ class _ActionSlotWidget extends StatelessWidget {
       );
     }
 
+    final l10n = AppLocalizations.of(context);
     return QuickActionTile(
       icon: action.icon,
-      label: action.label,
+      label: _localizedLabel(action.route, l10n),
       color: action.color,
       onTap: onTap,
     );
@@ -591,7 +609,7 @@ class _EditingCardWidget extends StatelessWidget {
                   height: 90,
                   child: QuickActionTile(
                     icon: action.icon,
-                    label: action.label,
+                    label: _localizedLabel(action.route, AppLocalizations.of(context)),
                     color: action.color,
                   ),
                 ),

@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -31,7 +32,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
         SensitivityDisplayMode.hidePrivate;
 
     return ObjectCategoryPage(
-      title: 'Travel',
+      title: AppLocalizations.of(context).travelTitle,
       sections: [
         const SizedBox(height: 8),
         const ScanDocumentButton(parentId: DefaultSectionIds.passport),
@@ -40,7 +41,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
               key: const ValueKey(DefaultSectionIds.passport),
               sectionId: DefaultSectionIds.passport,
               typeId: 'travel_passport',
-              title: 'Passports',
+              title: AppLocalizations.of(context).travelPassports,
               icon: Icons.flight_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (passport, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -75,7 +76,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
               key: const ValueKey(DefaultSectionIds.visa),
               sectionId: DefaultSectionIds.visa,
               typeId: 'travel_visa',
-              title: 'Visas',
+              title: AppLocalizations.of(context).travelVisas,
               icon: Icons.assignment_ind_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (visa, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -110,7 +111,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
               key: const ValueKey(DefaultSectionIds.travelHistory),
               sectionId: DefaultSectionIds.travelHistory,
               typeId: 'travel_history',
-              title: 'Travel History',
+              title: AppLocalizations.of(context).travelHistory,
               icon: Icons.history_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(

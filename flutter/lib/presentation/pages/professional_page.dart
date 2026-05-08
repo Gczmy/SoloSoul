@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -31,7 +32,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
         SensitivityDisplayMode.hidePrivate;
 
     return ObjectCategoryPage(
-      title: 'Professional',
+      title: AppLocalizations.of(context).professionalTitle,
       sections: [
             const ScanDocumentButton(parentId: DefaultSectionIds.employment),
             const SizedBox(height: 16),
@@ -39,7 +40,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.education),
               sectionId: DefaultSectionIds.education,
               typeId: 'professional_education',
-              title: 'Education',
+              title: AppLocalizations.of(context).professionalEducation,
               icon: Icons.school_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -73,7 +74,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.employment),
               sectionId: DefaultSectionIds.employment,
               typeId: 'professional_employment',
-              title: 'Employment',
+              title: AppLocalizations.of(context).professionalEmployment,
               icon: Icons.work_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -107,7 +108,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.award),
               sectionId: DefaultSectionIds.award,
               typeId: 'professional_award',
-              title: 'Awards',
+              title: AppLocalizations.of(context).professionalAwards,
               icon: Icons.emoji_events_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -141,7 +142,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.skill),
               sectionId: DefaultSectionIds.skill,
               typeId: 'professional_skill',
-              title: 'Skills',
+              title: AppLocalizations.of(context).professionalSkills,
               icon: Icons.star_outline,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -175,7 +176,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.language),
               sectionId: DefaultSectionIds.language,
               typeId: 'professional_language',
-              title: 'Languages',
+              title: AppLocalizations.of(context).professionalLanguages,
               icon: Icons.translate,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -32,7 +33,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
         SensitivityDisplayMode.hidePrivate;
 
     return ObjectCategoryPage(
-      title: 'Financial',
+      title: AppLocalizations.of(context).financialTitle,
       sections: [
             const ScanDocumentButton(parentId: DefaultSectionIds.taxId),
             const SizedBox(height: 16),
@@ -40,7 +41,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               key: const ValueKey(DefaultSectionIds.bankAccount),
               sectionId: DefaultSectionIds.bankAccount,
               typeId: 'financial_bank_account',
-              title: 'Bank Accounts',
+              title: AppLocalizations.of(context).financialBankAccounts,
               icon: Icons.account_balance_outlined,
               maxVisibleItems: 3,
               displayItemBuilder:
@@ -77,7 +78,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               key: const ValueKey(DefaultSectionIds.card),
               sectionId: DefaultSectionIds.card,
               typeId: 'financial_card',
-              title: 'Cards',
+              title: AppLocalizations.of(context).financialCards,
               icon: Icons.credit_card_outlined,
               maxVisibleItems: 3,
               displayItemBuilder:
@@ -113,7 +114,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               key: const ValueKey(DefaultSectionIds.taxId),
               sectionId: DefaultSectionIds.taxId,
               typeId: 'financial_tax_id',
-              title: 'Tax Identification',
+              title: AppLocalizations.of(context).financialTaxIdentification,
               icon: Icons.receipt_long_outlined,
               maxVisibleItems: 3,
               displayItemBuilder:

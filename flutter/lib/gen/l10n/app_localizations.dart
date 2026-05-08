@@ -2090,6 +2090,24 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get sidebarSettings;
 
+  /// No description provided for @sidebarSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get sidebarSecurity;
+
+  /// No description provided for @sidebarOperationLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation Log'**
+  String get sidebarOperationLog;
+
+  /// No description provided for @sidebarSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity'**
+  String get sidebarSensitivity;
+
   /// No description provided for @sidebarCollapse.
   ///
   /// In en, this message translates to:
@@ -2119,6 +2137,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get commonBack;
+
+  /// No description provided for @homeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeTitle;
+
+  /// No description provided for @homeEndToEndEncrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-End Encrypted'**
+  String get homeEndToEndEncrypted;
+
+  /// No description provided for @homeEncryptionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'AES-256-GCM + Argon2id'**
+  String get homeEncryptionDesc;
+
+  /// No description provided for @homeLocalStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Storage'**
+  String get homeLocalStorage;
+
+  /// No description provided for @homeLocalStorageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Data encrypted and stored locally'**
+  String get homeLocalStorageDesc;
+
+  /// No description provided for @homeZeroKnowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero Knowledge'**
+  String get homeZeroKnowledge;
+
+  /// No description provided for @homeZeroKnowledgeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Master password never stored'**
+  String get homeZeroKnowledgeDesc;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profileIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get profileIdentity;
+
+  /// No description provided for @profileContactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get profileContactInfo;
+
+  /// No description provided for @profileIdentityDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Documents'**
+  String get profileIdentityDocuments;
+
+  /// No description provided for @profileAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get profileAddresses;
+
+  /// No description provided for @profileTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get profileTitleLabel;
+
+  /// No description provided for @profileTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get profileTypeLabel;
+
+  /// No description provided for @profileValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get profileValueLabel;
+
+  /// No description provided for @travelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get travelTitle;
+
+  /// No description provided for @travelPassports.
+  ///
+  /// In en, this message translates to:
+  /// **'Passports'**
+  String get travelPassports;
+
+  /// No description provided for @travelVisas.
+  ///
+  /// In en, this message translates to:
+  /// **'Visas'**
+  String get travelVisas;
+
+  /// No description provided for @travelHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel History'**
+  String get travelHistory;
+
+  /// No description provided for @financialTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial'**
+  String get financialTitle;
+
+  /// No description provided for @financialBankAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Accounts'**
+  String get financialBankAccounts;
+
+  /// No description provided for @financialCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get financialCards;
+
+  /// No description provided for @financialTaxIdentification.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Identification'**
+  String get financialTaxIdentification;
+
+  /// No description provided for @professionalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional'**
+  String get professionalTitle;
+
+  /// No description provided for @professionalEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get professionalEducation;
+
+  /// No description provided for @professionalEmployment.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment'**
+  String get professionalEmployment;
+
+  /// No description provided for @professionalAwards.
+  ///
+  /// In en, this message translates to:
+  /// **'Awards'**
+  String get professionalAwards;
+
+  /// No description provided for @professionalSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills'**
+  String get professionalSkills;
+
+  /// No description provided for @professionalLanguages.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get professionalLanguages;
 
   /// No description provided for @localSearchTitle.
   ///

@@ -1067,6 +1067,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sidebarSettings => '设置';
 
   @override
+  String get sidebarSecurity => '安全';
+
+  @override
+  String get sidebarOperationLog => '操作日志';
+
+  @override
+  String get sidebarSensitivity => '敏感度';
+
+  @override
   String get sidebarCollapse => '收起';
 
   @override
@@ -1080,6 +1089,93 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get commonBack => '返回';
+
+  @override
+  String get homeTitle => '首页';
+
+  @override
+  String get homeEndToEndEncrypted => '端到端加密';
+
+  @override
+  String get homeEncryptionDesc => 'AES-256-GCM + Argon2id';
+
+  @override
+  String get homeLocalStorage => '本地存储';
+
+  @override
+  String get homeLocalStorageDesc => '数据加密并存储在本地';
+
+  @override
+  String get homeZeroKnowledge => '零知识架构';
+
+  @override
+  String get homeZeroKnowledgeDesc => '主密码永不存储';
+
+  @override
+  String get profileTitle => '个人资料';
+
+  @override
+  String get profileIdentity => '身份信息';
+
+  @override
+  String get profileContactInfo => '联系信息';
+
+  @override
+  String get profileIdentityDocuments => '身份证件';
+
+  @override
+  String get profileAddresses => '地址';
+
+  @override
+  String get profileTitleLabel => '标题';
+
+  @override
+  String get profileTypeLabel => '类型';
+
+  @override
+  String get profileValueLabel => '值';
+
+  @override
+  String get travelTitle => '旅行';
+
+  @override
+  String get travelPassports => '护照';
+
+  @override
+  String get travelVisas => '签证';
+
+  @override
+  String get travelHistory => '旅行记录';
+
+  @override
+  String get financialTitle => '财务';
+
+  @override
+  String get financialBankAccounts => '银行账户';
+
+  @override
+  String get financialCards => '卡片';
+
+  @override
+  String get financialTaxIdentification => '税务识别号';
+
+  @override
+  String get professionalTitle => '职业';
+
+  @override
+  String get professionalEducation => '教育';
+
+  @override
+  String get professionalEmployment => '就业';
+
+  @override
+  String get professionalAwards => '奖项';
+
+  @override
+  String get professionalSkills => '技能';
+
+  @override
+  String get professionalLanguages => '语言';
 
   @override
   String get localSearchTitle => '本地搜索导入';
