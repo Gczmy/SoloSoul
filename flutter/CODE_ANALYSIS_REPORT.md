@@ -12,9 +12,9 @@
 | S001 | P1     | 安全       | `lib/core/services/scan/windows_search_service.dart:86` | PowerShell 命令注入：用户路径直接拼接到命令中 | `[ ]` 待修复 |
 | S002 | P1     | 安全       | `lib/core/services/fallback_secure_storage.dart:55` | 明文回退存储：敏感数据可能未加密写入文件 | `[ ]` 待修复 |
 | P001 | P1     | 性能       | `lib/core/services/scan/scan_background_service.dart:29` | StreamController 泄漏：从未调用 close() | `[ ]` 待修复 |
-| D001 | P1     | 死代码     | `lib/core/services/llm/llm_privacy_filter.dart` | 整个文件未被引用 | `[ ]` 待修复 |
-| D002 | P1     | 死代码     | `lib/core/services/llm/llm_query_enhancer.dart` | 整个文件未被引用 | `[ ]` 待修复 |
-| D005 | P1     | 死代码     | `lib/presentation/providers/llm/llm_stub_provider.dart` | 整个文件未被引用 | `[ ]` 待修复 |
+| D001 | P1     | 死代码     | `lib/core/services/llm/llm_privacy_filter.dart` | 整个文件未被引用 | `[x]` 已删除 |
+| D002 | P1     | 死代码     | `lib/core/services/llm/llm_query_enhancer.dart` | 整个文件未被引用 | `[x]` 已删除 |
+| D005 | P1     | 死代码     | `lib/presentation/providers/llm/llm_stub_provider.dart` | 整个文件未被引用 | `[x]` 已删除 |
 | O001 | P1     | 优化       | `lib/presentation/pages/llm/llm_stats_page.dart` | 1165 行（超 800 行限制） | `[ ]` 待修复 |
 | O002 | P1     | 优化       | `lib/presentation/widgets/ocr_scanner_sheet.dart` | 1093 行（超 800 行限制） | `[ ]` 待修复 |
 | O003 | P1     | 优化       | `lib/presentation/widgets/object_card.dart` | 1084 行（超 800 行限制） | `[ ]` 待修复 |
@@ -47,7 +47,7 @@
 
 ## 修复进度
 
-- 已完成：0 / 35
+- 已完成：3 / 35
 - 当前处理：无
 
 ## 安全正面发现
