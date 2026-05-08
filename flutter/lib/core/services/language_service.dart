@@ -37,6 +37,21 @@ class LanguageService {
     return _cached!;
   }
 
+  /// 检查用户是否曾手动设置过语言偏好。
+  Future<bool> hasStoredPreference() async {
+    try {
+      const storage = FlutterSecureStorage();
+      return await storage.read(key: _key) != null;
+    } on Exception {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        return prefs.containsKey(_key);
+      } on Exception {
+        return false;
+      }
+    }
+  }
+
   /// 写入语言代码。
   Future<void> setLanguage(String languageCode) async {
     _cached = languageCode;
