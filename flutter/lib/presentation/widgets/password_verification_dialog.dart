@@ -123,10 +123,13 @@ Future<String?> showPasswordVerificationDialog({
       biometricService: biometricService,
       securityService: securityService,
     );
-    return showDialog<String>(
+    return showGeneralDialog<String>(
       context: dialogContext,
       barrierDismissible: false,
-      builder: (dialogContext) => SizedBox(width: 360, child: dialogBuilder),
+      barrierLabel: 'Dialog',
+      pageBuilder: (context, anim1, anim2) => Center(
+        child: SizedBox(width: 360, child: dialogBuilder),
+      ),
     );
   }
 
@@ -136,10 +139,13 @@ Future<String?> showPasswordVerificationDialog({
     passwordHint: passwordHint,
     onVerify: onVerify,
   );
-  return showDialog<String>(
+  return showGeneralDialog<String>(
     context: dialogContext,
     barrierDismissible: false,
-    builder: (dialogContext) => SizedBox(width: 360, child: passwordDialogContent),
+    barrierLabel: 'Dialog',
+    pageBuilder: (context, anim1, anim2) => Center(
+      child: SizedBox(width: 360, child: passwordDialogContent),
+    ),
   );
 }
 
