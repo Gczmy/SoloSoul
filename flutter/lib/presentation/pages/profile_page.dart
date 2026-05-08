@@ -456,7 +456,7 @@ class _ContactForm extends StatelessWidget {
       decoration: InputDecoration(
         labelText: l10n.profileTypeLabel,
         border: const OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(
+        contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 8,
         ),

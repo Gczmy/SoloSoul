@@ -226,7 +226,7 @@ class _AccountListItemState extends State<_AccountListItem> {
                                 ),
                                 child: Text(
                                   l10n.loginRecent,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,

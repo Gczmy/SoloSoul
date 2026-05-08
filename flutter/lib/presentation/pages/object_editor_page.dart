@@ -427,8 +427,8 @@ class _ObjectEditorHeader extends StatelessWidget {
                   textAlignVertical: TextAlignVertical.center,
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context).objectEditorEnterSectionName,
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   ),
                 ),
               ),
@@ -708,8 +708,8 @@ class _PropertyFieldRow extends StatelessWidget {
           decoration: InputDecoration(
             hintText: AppLocalizations.of(context).objectEditorKeyName,
             isDense: true,
-            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            border: OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            border: const OutlineInputBorder(),
           ),
           onChanged: (value) {
             field.key = value;

@@ -43,11 +43,11 @@
 | O017 | P2     | 优化       | `lib/presentation/providers/llm/llm_model_provider.dart:89` | 4 部分布尔表达式过密 | `[x]` 已提取为命名变量 |
 | S006 | P3     | 性能       | `lib/core/utils/solo_log.dart:18` | 废弃计时器内存泄漏 | `[ ]` 待修复 |
 | P004 | P3     | 性能       | `lib/core/services/native_vault_service.dart:52` | 启动时尝试 5+ 个路径加载原生库 | `[ ]` 待修复 |
-| O020 | P3     | 优化       | 多处 | 6 处可添加 `const` 关键字 | `[ ]` 待修复 |
+| O020 | P3     | 优化       | 多处 | 6 处可添加 `const` 关键字 | `[x]` 已添加 const |
 
 ## 修复进度
 
-- 已完成：14 / 35
+- 已完成：15 / 35
 - 当前处理：无
 
 ## 安全正面发现
