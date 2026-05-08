@@ -126,7 +126,7 @@ Future<String?> showPasswordVerificationDialog({
     return showDialog<String>(
       context: dialogContext,
       barrierDismissible: false,
-      builder: (dialogContext) => dialogBuilder,
+      builder: (dialogContext) => SizedBox(width: 360, child: dialogBuilder),
     );
   }
 
@@ -139,7 +139,7 @@ Future<String?> showPasswordVerificationDialog({
   return showDialog<String>(
     context: dialogContext,
     barrierDismissible: false,
-    builder: (dialogContext) => passwordDialogContent,
+    builder: (dialogContext) => SizedBox(width: 360, child: passwordDialogContent),
   );
 }
 
