@@ -48,7 +48,7 @@ class _DeleteAccountDialogContentState
     if (!success) {
       setState(() {
         _isDeleting = false;
-        _errorMessage = 'Invalid password';
+        _errorMessage = AppLocalizations.of(context).deleteAccountInvalidPassword;
       });
       return;
     }
@@ -62,8 +62,9 @@ class _DeleteAccountDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Center(child: Text('Delete Account')),
+      title: Center(child: Text(l10n.settingsDeleteAccount)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,8 +83,8 @@ class _DeleteAccountDialogContentState
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    AppLocalizations.of(context).settingsDeleteAccountWarning,
-                    style: TextStyle(color: Colors.red, fontSize: 13),
+                    l10n.settingsDeleteAccountWarning,
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
                   ),
                 ),
               ],
@@ -99,7 +100,7 @@ class _DeleteAccountDialogContentState
               enabled: !_isDeleting,
               onChanged: (_) => setState(() => _errorMessage = null),
               decoration: InputDecoration(
-                labelText: 'Enter password to confirm',
+                labelText: l10n.deleteAccountEnterPassword,
                 errorText: _errorMessage,
                 errorStyle: TextStyle(
                   color: Colors.red.shade700,
@@ -131,7 +132,7 @@ class _DeleteAccountDialogContentState
                 ),
               ),
               validator: (v) =>
-                  v == null || v.isEmpty ? 'Password is required' : null,
+                  v == null || v.isEmpty ? l10n.deleteAccountPasswordRequired : null,
             ),
           ),
         ],
@@ -141,7 +142,7 @@ class _DeleteAccountDialogContentState
           onPressed: _isDeleting
               ? null
               : () => Navigator.pop(widget.dialogContext, false),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _isDeleting ? null : _handleDelete,
@@ -153,7 +154,7 @@ class _DeleteAccountDialogContentState
                   child: CircularProgressIndicator(
                       strokeWidth: 2, color: Colors.white),
                 )
-              : const Text('Delete Account'),
+              : Text(l10n.settingsDeleteAccount),
         ),
       ],
     );

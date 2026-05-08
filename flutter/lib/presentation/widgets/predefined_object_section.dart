@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
     show OperationLogService;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
 
 /// A section widget for default pages that uses predefined UnifiedObject schemas.
@@ -90,7 +91,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     // Load predefined schema from registry
     final typeDef = ObjectTypeRegistry.getType(widget.typeId);
     if (typeDef == null) {
-      return _PredefinedErrorWidget(message: 'Unknown type: ${widget.typeId}');
+      return _PredefinedErrorWidget(message: AppLocalizations.of(context).predefinedUnknownType(widget.typeId));
     }
 
     // Build template from schema + FieldRegistry sensitivity

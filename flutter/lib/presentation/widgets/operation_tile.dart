@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import '../models/operation_log_models.dart';
 
 class OperationTile extends StatelessWidget {
@@ -10,6 +11,7 @@ class OperationTile extends StatelessWidget {
   const OperationTile({super.key, required this.entry});
 
   void _showDetailDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hasProperties = entry.properties != null && entry.properties!.isNotEmpty;
 
     showDialog(
@@ -19,7 +21,7 @@ class OperationTile extends StatelessWidget {
           children: [
             Icon(_actionIcon, color: _actionColor(context)),
             const SizedBox(width: 8),
-            const Expanded(child: Text('Operation Details')),
+            Expanded(child: Text(l10n.operationDetails)),
           ],
         ),
         content: SingleChildScrollView(
@@ -27,19 +29,19 @@ class OperationTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _DetailRow(label: 'Timestamp', value: _formatFullTimestamp(entry.timestamp)),
+              _DetailRow(label: l10n.operationLabelTimestamp, value: _formatFullTimestamp(entry.timestamp)),
               const SizedBox(height: 12),
-              _DetailRow(label: 'Action', value: _actionLabel),
+              _DetailRow(label: l10n.operationLabelAction, value: _actionLabel),
               const SizedBox(height: 12),
-              _DetailRow(label: 'Section', value: entry.section.toUpperCase()),
+              _DetailRow(label: l10n.operationLabelSection, value: entry.section.toUpperCase()),
               if (entry.fieldPath != null) ...[
                 const SizedBox(height: 12),
-                _DetailRow(label: 'Field Path', value: entry.fieldPath!),
+                _DetailRow(label: l10n.operationLabelFieldPath, value: entry.fieldPath!),
               ],
               const SizedBox(height: 12),
-              _DetailRow(label: 'Description', value: entry.description),
+              _DetailRow(label: l10n.operationLabelDescription, value: entry.description),
               const SizedBox(height: 12),
-              _DetailRow(label: 'Device', value: _getDeviceLabel(entry.device)),
+              _DetailRow(label: l10n.operationLabelDevice, value: _getDeviceLabel(entry.device)),
               if (hasProperties) ...[
                 const SizedBox(height: 16),
                 const Divider(),
@@ -109,7 +111,7 @@ class OperationTile extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l10n.commonClose),
           ),
         ],
       ),
@@ -235,6 +237,7 @@ class OperationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Card(
@@ -341,7 +344,7 @@ class OperationTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.info_outline, size: 20),
               onPressed: () => _showDetailDialog(context),
-              tooltip: 'View details',
+              tooltip: l10n.operationViewDetails,
               visualDensity: VisualDensity.compact,
             ),
           ],

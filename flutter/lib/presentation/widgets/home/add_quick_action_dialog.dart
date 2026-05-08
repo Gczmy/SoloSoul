@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/quick_action.dart';
 
 class AddQuickActionDialog extends StatelessWidget {
@@ -8,18 +9,19 @@ class AddQuickActionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final defaultActions = actions.where((a) => !a.isCustom).toList();
     final customActions = actions.where((a) => a.isCustom).toList();
 
     return AlertDialog(
-      title: const Text('Add Quick Action'),
+      title: Text(l10n.dialogAddQuickAction),
       content: SizedBox(
         width: double.maxFinite,
         child: ListView(
           shrinkWrap: true,
           children: [
             if (defaultActions.isNotEmpty) ...[
-              const _SectionHeader(title: 'Default Pages'),
+              _SectionHeader(title: l10n.homeDefaultPages),
               ...defaultActions.map((action) => _ActionListTile(
                     action: action,
                     onTap: () => Navigator.pop(context, action),
@@ -27,7 +29,7 @@ class AddQuickActionDialog extends StatelessWidget {
             ],
             if (customActions.isNotEmpty) ...[
               if (defaultActions.isNotEmpty) const SizedBox(height: 16),
-              const _SectionHeader(title: 'Customized Pages'),
+              _SectionHeader(title: l10n.homeCustomizedPages),
               ...customActions.map((action) => _ActionListTile(
                     action: action,
                     onTap: () => Navigator.pop(context, action),
@@ -39,7 +41,7 @@ class AddQuickActionDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
       ],
     );

@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/models/search_models.dart' show SearchResultItem;
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// Search result tile widget displaying a single search result with sensitivity handling.
 class SearchResultTile extends ConsumerWidget {
@@ -19,6 +20,7 @@ class SearchResultTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     // Watch revealed fields and sensitive access so rebuild happens when fields are revealed
     final revealedFields = ref.watch(
@@ -86,7 +88,7 @@ class SearchResultTile extends ConsumerWidget {
                 if (showMasked)
                   TextButton.icon(
                     icon: const Icon(Icons.visibility_off, size: 16),
-                    label: const Text('Reveal'),
+                    label: Text(l10n.searchReveal),
                     onPressed: onReveal,
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -109,8 +111,8 @@ class SearchResultTile extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Text(
                       result.sensitivityLevel == SensitivityLevel.critical
-                          ? 'Restricted - password required to view'
-                          : 'Private - reveal to view',
+                          ? l10n.searchRestrictedHint
+                          : l10n.searchPrivateHint,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.outline,
                       ),

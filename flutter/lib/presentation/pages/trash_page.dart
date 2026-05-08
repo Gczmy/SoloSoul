@@ -67,7 +67,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     final result = await showPasswordVerificationDialog(
       context: context,
       ref: ref,
-      message: 'Enter your master password to view the trash.',
+      message: AppLocalizations.of(context).trashVerifyPassword,
       passwordHint: selectedAccount?.passwordHint,
       onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
@@ -82,6 +82,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // Show password verification dialog if not yet verified
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       // Auto-prompt only on first build; after cancellation show Verify button
@@ -94,7 +95,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       return Scaffold(
         appBar: SoloGlassAppBar(
           backRoute: AppRoutes.home,
-          title: Text(AppLocalizations.of(context).trashTitle),
+          title: Text(l10n.trashTitle),
         ),
         body: Center(
           child: Column(
@@ -114,7 +115,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               FilledButton.icon(
                 onPressed: _verifyPassword,
                 icon: const Icon(Icons.lock_open),
-                label: Text(AppLocalizations.of(context).trashVerify),
+                label: Text(l10n.trashVerify),
               ),
             ],
           ),
@@ -222,7 +223,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                   final entry = OperationLogger.logCustomSection(
                     section: logSection.value,
                     action: LogAction.purge,
-                    description: 'Permanently deleted ${obj.name}',
+                    description: '${AppLocalizations.of(context).trashPermanentlyDeleted}${obj.name}',
                     properties: properties,
                     propertyLevels: propertyLevels,
                   );
@@ -287,7 +288,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.restore,
-          description: 'Restored ${object.name}',
+          description: '${AppLocalizations.of(context).trashRestored}${object.name}',
         );
         await OperationLogService.instance.addEntry(entry);
       }
@@ -384,7 +385,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.purge,
-          description: 'Permanently deleted ${object.name}',
+          description: '${AppLocalizations.of(context).trashPermanentlyDeleted}${object.name}',
           properties: properties,
           propertyLevels: propertyLevels,
         );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 
@@ -26,6 +27,7 @@ class ObjectCardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final icon = UnifiedObjectService.getIconFromName(object.iconName);
 
@@ -54,7 +56,7 @@ class ObjectCardHeader extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 18),
               onPressed: onEdit,
-              tooltip: 'Edit',
+              tooltip: l10n.commonEdit,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,
@@ -63,7 +65,7 @@ class ObjectCardHeader extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.delete_outline, size: 18),
             onPressed: onDelete,
-            tooltip: 'Delete',
+            tooltip: l10n.commonDelete,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             visualDensity: VisualDensity.compact,
@@ -75,7 +77,7 @@ class ObjectCardHeader extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit_note, size: 18),
               onPressed: onEdit,
-              tooltip: 'Edit Section',
+              tooltip: l10n.pageEditorEditSectionTitle,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,
@@ -84,7 +86,7 @@ class ObjectCardHeader extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.add, size: 18),
               onPressed: onAddItem,
-              tooltip: 'Add Item',
+              tooltip: l10n.objectCardAddItem,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,

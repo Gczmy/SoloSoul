@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
@@ -24,6 +25,7 @@ mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
   /// Auto-dismisses after 4 seconds.
   void showHintOverlay(String hint) {
     disposeOverlay();
+    final l10n = AppLocalizations.of(context);
 
     final overlay = Overlay.of(context);
     _hintOverlayEntry = OverlayEntry(
@@ -53,7 +55,7 @@ mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Password Hint: $hint',
+                      l10n.biometricPasswordHint(hint),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -217,6 +219,7 @@ class PasswordVerificationDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isPasswordEmpty = _controller.text.isEmpty;
 
     return AlertDialog(
@@ -224,7 +227,7 @@ class PasswordVerificationDialogContentState
         children: [
           Icon(Icons.lock_outline, color: Colors.orange.shade700),
           const SizedBox(width: 8),
-          const Text('Verify Identity'),
+          Text(l10n.dialogVerifyIdentity),
         ],
       ),
       content: Column(
@@ -258,7 +261,7 @@ class PasswordVerificationDialogContentState
             obscureText: _obscurePassword,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: 'Master Password',
+              labelText: l10n.loginMasterPassword,
               prefixIcon: const Icon(Icons.key),
               errorText: _hasError ? _errorMessage : null,
               errorStyle: TextStyle(
@@ -278,7 +281,7 @@ class PasswordVerificationDialogContentState
                         color: _hasError ? Colors.red.shade700 : null,
                       ),
                       onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
-                      tooltip: 'Show password hint',
+                      tooltip: l10n.settingsShowPasswordHint,
                     ),
                   IconButton(
                     icon: Icon(
@@ -293,7 +296,7 @@ class PasswordVerificationDialogContentState
                         _obscurePassword = !_obscurePassword;
                       });
                     },
-                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                    tooltip: _obscurePassword ? l10n.commonShowPassword : l10n.commonHidePassword,
                   ),
                 ],
               ),
@@ -305,7 +308,7 @@ class PasswordVerificationDialogContentState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: isPasswordEmpty ? null : _verify,
@@ -315,7 +318,7 @@ class PasswordVerificationDialogContentState
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Verify'),
+              : Text(l10n.commonConfirm),
         ),
       ],
     );
@@ -420,6 +423,7 @@ class BiometricPasswordDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isPasswordEmpty = _controller.text.isEmpty;
     final biometricType = widget.securityService.settings.faceIdEnabled
         ? 'Face ID'
@@ -430,7 +434,7 @@ class BiometricPasswordDialogContentState
         children: [
           Icon(Icons.lock_outline, color: Colors.orange.shade700),
           const SizedBox(width: 8),
-          const Text('Verify Identity'),
+          Text(l10n.dialogVerifyIdentity),
         ],
       ),
       content: Column(
@@ -468,7 +472,7 @@ class BiometricPasswordDialogContentState
                       ? Icons.face_outlined
                       : Icons.fingerprint_outlined,
                 ),
-                label: Text('Use $biometricType'),
+                label: Text(l10n.dialogUseBiometric(biometricType)),
               ),
             ),
             const SizedBox(height: 12),
@@ -490,7 +494,7 @@ class BiometricPasswordDialogContentState
             obscureText: _obscurePassword,
             autofocus: _isBiometricVerified,
             decoration: InputDecoration(
-              labelText: 'Master Password',
+              labelText: l10n.loginMasterPassword,
               prefixIcon: const Icon(Icons.key),
               errorText: _hasError ? _errorMessage : null,
               errorStyle: TextStyle(
@@ -510,7 +514,7 @@ class BiometricPasswordDialogContentState
                         color: _hasError ? Colors.red.shade700 : null,
                       ),
                       onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
-                      tooltip: 'Show password hint',
+                      tooltip: l10n.settingsShowPasswordHint,
                     ),
                   IconButton(
                     icon: Icon(
@@ -525,7 +529,7 @@ class BiometricPasswordDialogContentState
                         _obscurePassword = !_obscurePassword;
                       });
                     },
-                    tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                    tooltip: _obscurePassword ? l10n.commonShowPassword : l10n.commonHidePassword,
                   ),
                 ],
               ),
@@ -537,7 +541,7 @@ class BiometricPasswordDialogContentState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: isPasswordEmpty ? null : _verify,
@@ -547,7 +551,7 @@ class BiometricPasswordDialogContentState
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Verify'),
+              : Text(l10n.commonConfirm),
         ),
       ],
     );

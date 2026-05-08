@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// MRZ 结果预览卡片
 ///
@@ -45,36 +46,36 @@ class MrzPreviewCard extends StatelessWidget {
             const Divider(height: 24),
             // 信息字段
             _InfoRow(
-              label: 'Document Type',
+              label: AppLocalizations.of(context).mrzDocumentType,
               value: _formatDocType(mrzData.documentType),
             ),
             _InfoRow(
-              label: 'Document Number',
+              label: AppLocalizations.of(context).mrzDocumentNumber,
               value: mrzData.documentNumber,
               isSensitive: true,
             ),
             _InfoRow(
-              label: 'Surname',
+              label: AppLocalizations.of(context).mrzSurname,
               value: mrzData.surname,
             ),
             _InfoRow(
-              label: 'Given Names',
+              label: AppLocalizations.of(context).mrzGivenNames,
               value: mrzData.givenNames,
             ),
             _InfoRow(
-              label: 'Nationality',
+              label: AppLocalizations.of(context).mrzNationality,
               value: mrzData.nationality,
             ),
             _InfoRow(
-              label: 'Date of Birth',
+              label: AppLocalizations.of(context).mrzDateOfBirth,
               value: _formatDate(mrzData.dateOfBirth),
             ),
             _InfoRow(
-              label: 'Sex',
+              label: AppLocalizations.of(context).mrzSex,
               value: _formatSex(mrzData.sex),
             ),
             _InfoRow(
-              label: 'Expiry Date',
+              label: AppLocalizations.of(context).mrzExpiryDate,
               value: _formatDate(mrzData.expiryDate),
             ),
             // 原始行（可折叠）

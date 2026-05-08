@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/utils/mrz_date_utils.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
 // =============================================================================
@@ -51,6 +52,7 @@ class DatePickerFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final hasDate = initialDate != null && initialDate!.isNotEmpty;
 
@@ -70,7 +72,7 @@ class DatePickerFormField extends StatelessWidget {
                     ? IconButton(
                         icon: const Icon(Icons.clear, size: 18),
                         onPressed: _clearDate,
-                        tooltip: 'Clear date',
+                        tooltip: l10n.datePickerClear,
                       )
                     : const Icon(Icons.calendar_today, size: 18),
               ),

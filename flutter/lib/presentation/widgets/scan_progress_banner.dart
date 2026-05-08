@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/scan/local_search_provider.dart';
 
 // =============================================================================
@@ -20,6 +21,7 @@ class ScanProgressBanner extends ConsumerWidget {
     // Local import is a debug-only feature for now.
     if (!kDebugMode) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(localSearchProvider);
     final theme = Theme.of(context);
     final isScanning = state.isScanning;
@@ -69,11 +71,11 @@ class ScanProgressBanner extends ConsumerWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _Stat(label: 'Scanned', value: state.scannedCount),
+                            _Stat(label: l10n.localSearchScanned, value: state.scannedCount),
                             const SizedBox(width: 16),
-                            _Stat(label: 'Found', value: state.foundCount),
+                            _Stat(label: l10n.localSearchFound, value: state.foundCount),
                             const SizedBox(width: 16),
-                            _Stat(label: 'Skipped', value: state.skippedFiles.length),
+                            _Stat(label: l10n.localSearchSkipped, value: state.skippedFiles.length),
                           ],
                         ),
                       ),
@@ -84,7 +86,7 @@ class ScanProgressBanner extends ConsumerWidget {
                           Icons.stop_circle_outlined,
                           color: theme.colorScheme.error,
                         ),
-                        tooltip: 'Stop scan',
+                        tooltip: l10n.scanStopScan,
                         onPressed: () {
                           ref.read(localSearchProvider.notifier).cancelScan();
                         },

@@ -625,7 +625,7 @@ class _EditingCardWidget extends StatelessWidget {
                 },
                 child: QuickActionTile(
                   icon: action.icon,
-                  label: action.label,
+                  label: _localizedLabel(action.route, AppLocalizations.of(context)),
                   color: action.color,
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
@@ -116,7 +117,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final password = await showPasswordVerificationDialog(
       context: context,
       ref: ref,
-      message: 'Restricted field. Enter your master password to view.',
+      message: AppLocalizations.of(context).sensitiveRestrictedMessage,
       passwordHint: selectedAccount?.passwordHint,
       onVerify: authNotifier.verifyPasswordForSensitiveData,
     );

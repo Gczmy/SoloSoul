@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart';
 import 'settings_common.dart';
@@ -87,19 +88,19 @@ class CurrentAccountSheet extends StatelessWidget {
                 // Account info items with icons
                 InfoTile(
                   icon: Icons.calendar_today_outlined,
-                  title: 'Created',
+                  title: AppLocalizations.of(context).accountCreated,
                   value: _formatDateTime(account.createdAt),
                 ),
                 const Divider(height: 1),
                 InfoTile(
                   icon: Icons.login_outlined,
-                  title: 'Last Login',
+                  title: AppLocalizations.of(context).accountLastLogin,
                   value: _formatDateTime(account.lastLoginAt),
                 ),
                 const Divider(height: 1),
                 InfoTile(
                   icon: Icons.update_outlined,
-                  title: 'Last Operation',
+                  title: AppLocalizations.of(context).accountLastOperation,
                   value: account.lastOperationDesc ?? 'No recent operations',
                   subtitle: account.lastOperationAt != null
                       ? _formatDateTime(account.lastOperationAt)
@@ -108,7 +109,7 @@ class CurrentAccountSheet extends StatelessWidget {
                 const Divider(height: 1),
                 InfoTile(
                   icon: Icons.devices_outlined,
-                  title: 'Login Devices',
+                  title: AppLocalizations.of(context).accountLoginDevices,
                   value: account.recentDevices.isEmpty
                       ? 'No devices recorded'
                       : '${account.recentDevices.length} device(s)',

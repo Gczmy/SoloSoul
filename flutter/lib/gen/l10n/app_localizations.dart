@@ -1031,7 +1031,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncPairingKey.
   ///
   /// In en, this message translates to:
-  /// **'Pairing Key (hex)'**
+  /// **'Pairing Key'**
   String get syncPairingKey;
 
   /// No description provided for @syncPairingKeyHint.
@@ -2515,6 +2515,1164 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import action'**
   String get scanPreviewImportAction;
+
+  /// No description provided for @settingsAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsAccount;
+
+  /// No description provided for @settingsCurrentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Account'**
+  String get settingsCurrentAccount;
+
+  /// No description provided for @settingsAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get settingsAllAccounts;
+
+  /// No description provided for @settingsDataManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Management'**
+  String get settingsDataManagement;
+
+  /// No description provided for @settingsErrorLoadingAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading accounts'**
+  String get settingsErrorLoadingAccounts;
+
+  /// No description provided for @settingsPleaseRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Please restart the app'**
+  String get settingsPleaseRestart;
+
+  /// No description provided for @settingsAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access'**
+  String get settingsAccess;
+
+  /// No description provided for @settingsLockVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Vault'**
+  String get settingsLockVault;
+
+  /// No description provided for @settingsLockVaultDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock now and require password'**
+  String get settingsLockVaultDesc;
+
+  /// No description provided for @settingsChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Master Password'**
+  String get settingsChangePassword;
+
+  /// No description provided for @settingsChangePasswordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your vault password'**
+  String get settingsChangePasswordDesc;
+
+  /// No description provided for @settingsSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get settingsSecurity;
+
+  /// No description provided for @settingsAutoLockPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Lock & Privacy'**
+  String get settingsAutoLockPrivacy;
+
+  /// No description provided for @settingsAutoLockPrivacyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure timeout and privacy settings'**
+  String get settingsAutoLockPrivacyDesc;
+
+  /// No description provided for @settingsVerifyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to access security settings.'**
+  String get settingsVerifyPassword;
+
+  /// No description provided for @settingsSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity Level Settings'**
+  String get settingsSensitivity;
+
+  /// No description provided for @settingsSensitivityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure field sensitivity'**
+  String get settingsSensitivityDesc;
+
+  /// No description provided for @settingsOperationLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation Log'**
+  String get settingsOperationLog;
+
+  /// No description provided for @settingsOperationLogDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View activity history'**
+  String get settingsOperationLogDesc;
+
+  /// No description provided for @settingsSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get settingsSync;
+
+  /// No description provided for @settingsCloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get settingsCloudSync;
+
+  /// No description provided for @settingsNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get settingsNotConfigured;
+
+  /// No description provided for @settingsOfflineMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Mode'**
+  String get settingsOfflineMode;
+
+  /// No description provided for @settingsOfflineModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data only'**
+  String get settingsOfflineModeDesc;
+
+  /// No description provided for @settingsAiAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get settingsAiAssistant;
+
+  /// No description provided for @settingsLlmConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'LLM Configuration'**
+  String get settingsLlmConfig;
+
+  /// No description provided for @settingsLlmConfigDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Local model or cloud API'**
+  String get settingsLlmConfigDesc;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
+
+  /// No description provided for @settingsDebugLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Log'**
+  String get settingsDebugLog;
+
+  /// No description provided for @settingsDebugLogDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View debug log'**
+  String get settingsDebugLogDesc;
+
+  /// No description provided for @settingsPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get settingsPrivacyPolicy;
+
+  /// No description provided for @settingsPrivacyPolicyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View our privacy policy'**
+  String get settingsPrivacyPolicyDesc;
+
+  /// No description provided for @settingsTermsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get settingsTermsOfService;
+
+  /// No description provided for @settingsTermsOfServiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'View terms of service'**
+  String get settingsTermsOfServiceDesc;
+
+  /// No description provided for @settingsLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get settingsLocal;
+
+  /// No description provided for @settingsPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get settingsPrivate;
+
+  /// No description provided for @settingsUniversal.
+  ///
+  /// In en, this message translates to:
+  /// **'Universal'**
+  String get settingsUniversal;
+
+  /// No description provided for @securityVaultSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault Security'**
+  String get securityVaultSecurity;
+
+  /// No description provided for @securityAutoLockDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Lock Delay'**
+  String get securityAutoLockDelay;
+
+  /// No description provided for @securityAutoLockDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock vault after inactivity'**
+  String get securityAutoLockDesc;
+
+  /// No description provided for @securityBiometricUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric Unlock'**
+  String get securityBiometricUnlock;
+
+  /// No description provided for @securityPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get securityPrivacy;
+
+  /// No description provided for @securityAppPrivacyScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'App Privacy Screen'**
+  String get securityAppPrivacyScreen;
+
+  /// No description provided for @securityAppPrivacyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide content in app switcher'**
+  String get securityAppPrivacyDesc;
+
+  /// No description provided for @securityLockOnBlur.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock on Window Blur'**
+  String get securityLockOnBlur;
+
+  /// No description provided for @securityLockOnBlurDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock when switching apps'**
+  String get securityLockOnBlurDesc;
+
+  /// No description provided for @securityClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard'**
+  String get securityClipboard;
+
+  /// No description provided for @securityAutoClearDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Clear Delay'**
+  String get securityAutoClearDelay;
+
+  /// No description provided for @securityAutoClearDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear clipboard after copying sensitive data'**
+  String get securityAutoClearDesc;
+
+  /// No description provided for @sensitivityVerifyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to access sensitivity settings.'**
+  String get sensitivityVerifyPassword;
+
+  /// No description provided for @sensitivityCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get sensitivityCritical;
+
+  /// No description provided for @sensitivityCriticalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum sensitivity - always masked, requires verification'**
+  String get sensitivityCriticalDesc;
+
+  /// No description provided for @sensitivitySensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive'**
+  String get sensitivitySensitive;
+
+  /// No description provided for @sensitivitySensitiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal information requiring protection'**
+  String get sensitivitySensitiveDesc;
+
+  /// No description provided for @sensitivityInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal'**
+  String get sensitivityInternal;
+
+  /// No description provided for @sensitivityInternalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal use only - can be hidden by display settings'**
+  String get sensitivityInternalDesc;
+
+  /// No description provided for @sensitivityPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get sensitivityPublic;
+
+  /// No description provided for @sensitivityPublicDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest sensitivity - always visible'**
+  String get sensitivityPublicDesc;
+
+  /// No description provided for @syncSynchronizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronizing...'**
+  String get syncSynchronizing;
+
+  /// No description provided for @syncDeviceDiscovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Discovery'**
+  String get syncDeviceDiscovery;
+
+  /// No description provided for @syncManualConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Connection'**
+  String get syncManualConnection;
+
+  /// No description provided for @syncLastSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Sync'**
+  String get syncLastSync;
+
+  /// No description provided for @syncStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get syncStatus;
+
+  /// No description provided for @syncDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get syncDirection;
+
+  /// No description provided for @syncData.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get syncData;
+
+  /// No description provided for @syncError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get syncError;
+
+  /// No description provided for @trashVerifyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to view the trash.'**
+  String get trashVerifyPassword;
+
+  /// No description provided for @trashRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored '**
+  String get trashRestored;
+
+  /// No description provided for @trashPermanentlyDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently deleted '**
+  String get trashPermanentlyDeleted;
+
+  /// No description provided for @operationLogVerifyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to view the operation log.'**
+  String get operationLogVerifyPassword;
+
+  /// No description provided for @dataMgmtRestoreBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Backup?'**
+  String get dataMgmtRestoreBackup;
+
+  /// No description provided for @dataMgmtDeleteBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Backup?'**
+  String get dataMgmtDeleteBackup;
+
+  /// No description provided for @dataMgmtConfirmDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to confirm backup deletion.'**
+  String get dataMgmtConfirmDeletion;
+
+  /// No description provided for @llmApiEndpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'API Endpoint'**
+  String get llmApiEndpoint;
+
+  /// No description provided for @llmModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get llmModel;
+
+  /// No description provided for @llmAnthropicVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Anthropic API Version'**
+  String get llmAnthropicVersion;
+
+  /// No description provided for @llmOpenAI.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenAI'**
+  String get llmOpenAI;
+
+  /// No description provided for @llmAnthropic.
+  ///
+  /// In en, this message translates to:
+  /// **'Anthropic'**
+  String get llmAnthropic;
+
+  /// No description provided for @searchUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get searchUnlock;
+
+  /// No description provided for @searchDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get searchDeleted;
+
+  /// No description provided for @searchReveal.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal'**
+  String get searchReveal;
+
+  /// No description provided for @searchRestrictedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted - password required to view'**
+  String get searchRestrictedHint;
+
+  /// No description provided for @searchPrivateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Private - reveal to view'**
+  String get searchPrivateHint;
+
+  /// No description provided for @sensitivityRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted'**
+  String get sensitivityRestricted;
+
+  /// No description provided for @commonAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get commonAdd;
+
+  /// No description provided for @commonCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get commonCopy;
+
+  /// No description provided for @dialogCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Password'**
+  String get dialogCurrentPassword;
+
+  /// No description provided for @dialogNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get dialogNewPassword;
+
+  /// No description provided for @dialogConfirmNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New Password'**
+  String get dialogConfirmNewPassword;
+
+  /// No description provided for @dialogChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get dialogChange;
+
+  /// No description provided for @dialogLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock'**
+  String get dialogLock;
+
+  /// No description provided for @dialogVerifyIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Identity'**
+  String get dialogVerifyIdentity;
+
+  /// No description provided for @dialogDeleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Item'**
+  String get dialogDeleteItem;
+
+  /// No description provided for @dialogDeleteSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Section?'**
+  String get dialogDeleteSection;
+
+  /// No description provided for @dialogDeleteSectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This section and its items will be moved to trash.'**
+  String get dialogDeleteSectionConfirm;
+
+  /// No description provided for @biometricTestTouchId.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Touch ID'**
+  String get biometricTestTouchId;
+
+  /// No description provided for @biometricTestFaceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Face ID'**
+  String get biometricTestFaceId;
+
+  /// No description provided for @dialogAddQuickAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Quick Action'**
+  String get dialogAddQuickAction;
+
+  /// No description provided for @homePageEditorSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Sections'**
+  String get homePageEditorSections;
+
+  /// No description provided for @homePageEditorIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get homePageEditorIcon;
+
+  /// No description provided for @homePageEditorSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Section Title'**
+  String get homePageEditorSectionTitle;
+
+  /// No description provided for @settingsDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get settingsDeleteAccount;
+
+  /// No description provided for @settingsDebugLogCopyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Logs to Clipboard'**
+  String get settingsDebugLogCopyTitle;
+
+  /// No description provided for @settingsDebugLogCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Sanitized logs copied to clipboard'**
+  String get settingsDebugLogCopied;
+
+  /// No description provided for @settingsDebugLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Log'**
+  String get settingsDebugLogTitle;
+
+  /// No description provided for @dialogSelectFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select This Folder'**
+  String get dialogSelectFolder;
+
+  /// No description provided for @iconPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Icon'**
+  String get iconPickerTitle;
+
+  /// No description provided for @operationDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation Details'**
+  String get operationDetails;
+
+  /// No description provided for @trashHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get trashHistory;
+
+  /// No description provided for @dialogUseBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Use {biometricType}'**
+  String dialogUseBiometric(String biometricType);
+
+  /// No description provided for @dialogDeleteItemConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"?'**
+  String dialogDeleteItemConfirm(String name);
+
+  /// No description provided for @entryHistoryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'History({count})'**
+  String entryHistoryCount(int count);
+
+  /// No description provided for @biometricPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Hint: {hint}'**
+  String biometricPasswordHint(String hint);
+
+  /// No description provided for @settingsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get settingsUnknown;
+
+  /// No description provided for @settingsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get settingsActive;
+
+  /// No description provided for @settingsCloudSyncSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync setup'**
+  String get settingsCloudSyncSetup;
+
+  /// No description provided for @settingsComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature will be available in a future update.'**
+  String get settingsComingSoon;
+
+  /// No description provided for @settingsTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Local Digital Twin. Privacy-First Universal Identity.'**
+  String get settingsTagline;
+
+  /// No description provided for @settingsVerifyIdentityDebug.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity to enable debug mode'**
+  String get settingsVerifyIdentityDebug;
+
+  /// No description provided for @loginNoPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No password hint available'**
+  String get loginNoPasswordHint;
+
+  /// No description provided for @commonVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get commonVerify;
+
+  /// No description provided for @commonRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get commonRefresh;
+
+  /// No description provided for @commonShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get commonShowLess;
+
+  /// No description provided for @debugLogCopyToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to clipboard'**
+  String get debugLogCopyToClipboard;
+
+  /// No description provided for @debugLogDisable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable debug mode'**
+  String get debugLogDisable;
+
+  /// No description provided for @debugLogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No debug logs available.'**
+  String get debugLogEmpty;
+
+  /// No description provided for @deleteAccountEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password to confirm'**
+  String get deleteAccountEnterPassword;
+
+  /// No description provided for @deleteAccountPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get deleteAccountPasswordRequired;
+
+  /// No description provided for @deleteAccountInvalidPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid password'**
+  String get deleteAccountInvalidPassword;
+
+  /// No description provided for @pageEditorPageTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Page title'**
+  String get pageEditorPageTitleHint;
+
+  /// No description provided for @pageEditorSaveFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the page first to add sections'**
+  String get pageEditorSaveFirst;
+
+  /// No description provided for @pageEditorNoSections.
+  ///
+  /// In en, this message translates to:
+  /// **'No sections yet'**
+  String get pageEditorNoSections;
+
+  /// No description provided for @pageEditorEnterSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter section title'**
+  String get pageEditorEnterSectionTitle;
+
+  /// No description provided for @pageEditorEditSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Section'**
+  String get pageEditorEditSectionTitle;
+
+  /// No description provided for @folderPickerGoUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Go up'**
+  String get folderPickerGoUp;
+
+  /// No description provided for @headerLockSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Sensitivity Access'**
+  String get headerLockSensitivity;
+
+  /// No description provided for @datePickerClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date'**
+  String get datePickerClear;
+
+  /// No description provided for @entryCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy All'**
+  String get entryCopyAll;
+
+  /// No description provided for @entryNoHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get entryNoHistory;
+
+  /// No description provided for @operationViewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get operationViewDetails;
+
+  /// No description provided for @scanStopScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop scan'**
+  String get scanStopScan;
+
+  /// No description provided for @settingsNoHintAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No hint available'**
+  String get settingsNoHintAvailable;
+
+  /// No description provided for @sensitiveRestrictedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted field. Enter your master password to view.'**
+  String get sensitiveRestrictedMessage;
+
+  /// No description provided for @syncUnknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown error'**
+  String get syncUnknownError;
+
+  /// No description provided for @syncScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning...'**
+  String get syncScanning;
+
+  /// No description provided for @syncScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get syncScan;
+
+  /// No description provided for @syncSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing...'**
+  String get syncSyncing;
+
+  /// No description provided for @syncConnectSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect & Sync'**
+  String get syncConnectSync;
+
+  /// No description provided for @scanMappingBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'AI+Rule'**
+  String get scanMappingBoth;
+
+  /// No description provided for @scanMappingAi.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get scanMappingAi;
+
+  /// No description provided for @mrzDocumentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Type'**
+  String get mrzDocumentType;
+
+  /// No description provided for @mrzDocumentNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Number'**
+  String get mrzDocumentNumber;
+
+  /// No description provided for @mrzSurname.
+  ///
+  /// In en, this message translates to:
+  /// **'Surname'**
+  String get mrzSurname;
+
+  /// No description provided for @mrzGivenNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Given Names'**
+  String get mrzGivenNames;
+
+  /// No description provided for @mrzNationality.
+  ///
+  /// In en, this message translates to:
+  /// **'Nationality'**
+  String get mrzNationality;
+
+  /// No description provided for @mrzDateOfBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get mrzDateOfBirth;
+
+  /// No description provided for @mrzSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get mrzSex;
+
+  /// No description provided for @mrzExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Date'**
+  String get mrzExpiryDate;
+
+  /// No description provided for @changePasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum 8 characters'**
+  String get changePasswordMinLength;
+
+  /// No description provided for @operationActionCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get operationActionCreate;
+
+  /// No description provided for @operationActionUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get operationActionUpdate;
+
+  /// No description provided for @operationActionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get operationActionDelete;
+
+  /// No description provided for @operationActionRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get operationActionRestore;
+
+  /// No description provided for @operationActionPurge.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge'**
+  String get operationActionPurge;
+
+  /// No description provided for @operationPlatformAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Android'**
+  String get operationPlatformAndroid;
+
+  /// No description provided for @operationPlatformWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get operationPlatformWeb;
+
+  /// No description provided for @operationLabelTimestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Timestamp'**
+  String get operationLabelTimestamp;
+
+  /// No description provided for @operationLabelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get operationLabelAction;
+
+  /// No description provided for @operationLabelSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get operationLabelSection;
+
+  /// No description provided for @operationLabelFieldPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Path'**
+  String get operationLabelFieldPath;
+
+  /// No description provided for @operationLabelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get operationLabelDescription;
+
+  /// No description provided for @operationLabelDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get operationLabelDevice;
+
+  /// No description provided for @versionCurrentVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Version'**
+  String get versionCurrentVersion;
+
+  /// No description provided for @versionLatestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Version'**
+  String get versionLatestVersion;
+
+  /// No description provided for @versionUpdateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Status'**
+  String get versionUpdateStatus;
+
+  /// No description provided for @versionPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform'**
+  String get versionPlatform;
+
+  /// No description provided for @accountCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get accountCreated;
+
+  /// No description provided for @accountLastLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Login'**
+  String get accountLastLogin;
+
+  /// No description provided for @accountLastOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Operation'**
+  String get accountLastOperation;
+
+  /// No description provided for @accountLoginDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Devices'**
+  String get accountLoginDevices;
+
+  /// No description provided for @homeDefaultPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Pages'**
+  String get homeDefaultPages;
+
+  /// No description provided for @homeCustomizedPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Customized Pages'**
+  String get homeCustomizedPages;
+
+  /// No description provided for @trashDetailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get trashDetailLabel;
+
+  /// No description provided for @trashRestoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get trashRestoreLabel;
+
+  /// No description provided for @trashPurgeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purge'**
+  String get trashPurgeLabel;
+
+  /// No description provided for @commonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get commonTitle;
+
+  /// No description provided for @predefinedUnknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown type: {type}'**
+  String predefinedUnknownType(String type);
+
+  /// No description provided for @commonShowPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get commonShowPassword;
+
+  /// No description provided for @commonHidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get commonHidePassword;
+
+  /// No description provided for @objectCardAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Item'**
+  String get objectCardAddItem;
+
+  /// No description provided for @dataManagementRestoreBackupTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get dataManagementRestoreBackupTooltip;
+
+  /// No description provided for @dataManagementSpecialBackupTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as special backup'**
+  String get dataManagementSpecialBackupTooltip;
 }
 
 class _AppLocalizationsDelegate

@@ -502,7 +502,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncRemoteAddressHint => '192.168.1.5:9900';
 
   @override
-  String get syncPairingKey => '配对密钥 (hex)';
+  String get syncPairingKey => '配对密钥';
 
   @override
   String get syncPairingKeyHint => '输入共享配对密钥';
@@ -1278,4 +1278,593 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get scanPreviewImportAction => '导入操作';
+
+  @override
+  String get settingsAccount => '账户';
+
+  @override
+  String get settingsCurrentAccount => '当前账户';
+
+  @override
+  String get settingsAllAccounts => '所有账户';
+
+  @override
+  String get settingsDataManagement => '数据管理';
+
+  @override
+  String get settingsErrorLoadingAccounts => '加载账户出错';
+
+  @override
+  String get settingsPleaseRestart => '请重启应用';
+
+  @override
+  String get settingsAccess => '访问';
+
+  @override
+  String get settingsLockVault => '锁定保险库';
+
+  @override
+  String get settingsLockVaultDesc => '立即锁定并需要密码';
+
+  @override
+  String get settingsChangePassword => '更改主密码';
+
+  @override
+  String get settingsChangePasswordDesc => '更新您的保险库密码';
+
+  @override
+  String get settingsSecurity => '安全';
+
+  @override
+  String get settingsAutoLockPrivacy => '自动锁定与隐私';
+
+  @override
+  String get settingsAutoLockPrivacyDesc => '配置超时和隐私设置';
+
+  @override
+  String get settingsVerifyPassword => '请输入主密码以访问安全设置。';
+
+  @override
+  String get settingsSensitivity => '敏感度设置';
+
+  @override
+  String get settingsSensitivityDesc => '配置字段敏感度';
+
+  @override
+  String get settingsOperationLog => '操作日志';
+
+  @override
+  String get settingsOperationLogDesc => '查看活动历史';
+
+  @override
+  String get settingsSync => '同步';
+
+  @override
+  String get settingsCloudSync => '云同步';
+
+  @override
+  String get settingsNotConfigured => '未配置';
+
+  @override
+  String get settingsOfflineMode => '离线模式';
+
+  @override
+  String get settingsOfflineModeDesc => '仅本地数据';
+
+  @override
+  String get settingsAiAssistant => 'AI 助手';
+
+  @override
+  String get settingsLlmConfig => 'LLM 配置';
+
+  @override
+  String get settingsLlmConfigDesc => '本地模型或云端 API';
+
+  @override
+  String get settingsAbout => '关于';
+
+  @override
+  String get settingsVersion => '版本';
+
+  @override
+  String get settingsDebugLog => '调试日志';
+
+  @override
+  String get settingsDebugLogDesc => '查看调试日志';
+
+  @override
+  String get settingsPrivacyPolicy => '隐私政策';
+
+  @override
+  String get settingsPrivacyPolicyDesc => '查看我们的隐私政策';
+
+  @override
+  String get settingsTermsOfService => '服务条款';
+
+  @override
+  String get settingsTermsOfServiceDesc => '查看服务条款';
+
+  @override
+  String get settingsLocal => '本地';
+
+  @override
+  String get settingsPrivate => '私有';
+
+  @override
+  String get settingsUniversal => '通用';
+
+  @override
+  String get securityVaultSecurity => '保险库安全';
+
+  @override
+  String get securityAutoLockDelay => '自动锁定延迟';
+
+  @override
+  String get securityAutoLockDesc => '不活动后锁定保险库';
+
+  @override
+  String get securityBiometricUnlock => '生物识别解锁';
+
+  @override
+  String get securityPrivacy => '隐私';
+
+  @override
+  String get securityAppPrivacyScreen => '应用隐私屏幕';
+
+  @override
+  String get securityAppPrivacyDesc => '在应用切换器中隐藏内容';
+
+  @override
+  String get securityLockOnBlur => '窗口失焦时锁定';
+
+  @override
+  String get securityLockOnBlurDesc => '切换应用时锁定';
+
+  @override
+  String get securityClipboard => '剪贴板';
+
+  @override
+  String get securityAutoClearDelay => '自动清除延迟';
+
+  @override
+  String get securityAutoClearDesc => '复制敏感数据后清除剪贴板';
+
+  @override
+  String get sensitivityVerifyPassword => '请输入主密码以访问敏感度设置。';
+
+  @override
+  String get sensitivityCritical => '关键';
+
+  @override
+  String get sensitivityCriticalDesc => '最高敏感度 - 始终遮罩，需要验证';
+
+  @override
+  String get sensitivitySensitive => '敏感';
+
+  @override
+  String get sensitivitySensitiveDesc => '需要保护的个人信​​息';
+
+  @override
+  String get sensitivityInternal => '内部';
+
+  @override
+  String get sensitivityInternalDesc => '仅供内部使用 - 可被显示设置隐藏';
+
+  @override
+  String get sensitivityPublic => '公开';
+
+  @override
+  String get sensitivityPublicDesc => '最低敏感度 - 始终可见';
+
+  @override
+  String get syncSynchronizing => '同步中...';
+
+  @override
+  String get syncDeviceDiscovery => '设备发现';
+
+  @override
+  String get syncManualConnection => '手动连接';
+
+  @override
+  String get syncLastSync => '上次同步';
+
+  @override
+  String get syncStatus => '状态';
+
+  @override
+  String get syncDirection => '方向';
+
+  @override
+  String get syncData => '数据';
+
+  @override
+  String get syncError => '错误';
+
+  @override
+  String get trashVerifyPassword => '请输入主密码以查看回收站。';
+
+  @override
+  String get trashRestored => '已恢复 ';
+
+  @override
+  String get trashPermanentlyDeleted => '已永久删除 ';
+
+  @override
+  String get operationLogVerifyPassword => '请输入主密码以查看操作日志。';
+
+  @override
+  String get dataMgmtRestoreBackup => '恢复备份？';
+
+  @override
+  String get dataMgmtDeleteBackup => '删除备份？';
+
+  @override
+  String get dataMgmtConfirmDeletion => '请输入主密码以确认删除备份。';
+
+  @override
+  String get llmApiEndpoint => 'API 端点';
+
+  @override
+  String get llmModel => '模型';
+
+  @override
+  String get llmAnthropicVersion => 'Anthropic API 版本';
+
+  @override
+  String get llmOpenAI => 'OpenAI';
+
+  @override
+  String get llmAnthropic => 'Anthropic';
+
+  @override
+  String get searchUnlock => '解锁';
+
+  @override
+  String get searchDeleted => '已删除';
+
+  @override
+  String get searchReveal => '显示';
+
+  @override
+  String get searchRestrictedHint => '受限 - 需要密码查看';
+
+  @override
+  String get searchPrivateHint => '私密 - 点击显示';
+
+  @override
+  String get sensitivityRestricted => '受限';
+
+  @override
+  String get commonAdd => '添加';
+
+  @override
+  String get commonCopy => '复制';
+
+  @override
+  String get dialogCurrentPassword => '当前密码';
+
+  @override
+  String get dialogNewPassword => '新密码';
+
+  @override
+  String get dialogConfirmNewPassword => '确认新密码';
+
+  @override
+  String get dialogChange => '修改';
+
+  @override
+  String get dialogLock => '锁定';
+
+  @override
+  String get dialogVerifyIdentity => '验证身份';
+
+  @override
+  String get dialogDeleteItem => '删除项目';
+
+  @override
+  String get dialogDeleteSection => '删除分区？';
+
+  @override
+  String get dialogDeleteSectionConfirm => '该分区及其项目将被移至回收站。';
+
+  @override
+  String get biometricTestTouchId => '测试 Touch ID';
+
+  @override
+  String get biometricTestFaceId => '测试 Face ID';
+
+  @override
+  String get dialogAddQuickAction => '添加快捷操作';
+
+  @override
+  String get homePageEditorSections => '分区';
+
+  @override
+  String get homePageEditorIcon => '图标';
+
+  @override
+  String get homePageEditorSectionTitle => '分区标题';
+
+  @override
+  String get settingsDeleteAccount => '删除账户';
+
+  @override
+  String get settingsDebugLogCopyTitle => '复制日志到剪贴板';
+
+  @override
+  String get settingsDebugLogCopied => '已复制脱敏日志到剪贴板';
+
+  @override
+  String get settingsDebugLogTitle => '调试日志';
+
+  @override
+  String get dialogSelectFolder => '选择此文件夹';
+
+  @override
+  String get iconPickerTitle => '选择图标';
+
+  @override
+  String get operationDetails => '操作详情';
+
+  @override
+  String get trashHistory => '历史';
+
+  @override
+  String dialogUseBiometric(String biometricType) {
+    return '使用$biometricType';
+  }
+
+  @override
+  String dialogDeleteItemConfirm(String name) {
+    return '确定要删除\"$name\"吗？';
+  }
+
+  @override
+  String entryHistoryCount(int count) {
+    return '历史($count)';
+  }
+
+  @override
+  String biometricPasswordHint(String hint) {
+    return '密码提示：$hint';
+  }
+
+  @override
+  String get settingsUnknown => '未知';
+
+  @override
+  String get settingsActive => '活跃';
+
+  @override
+  String get settingsCloudSyncSetup => '云同步设置';
+
+  @override
+  String get settingsComingSoon => '此功能将在未来更新中提供。';
+
+  @override
+  String get settingsTagline => '您的本地数字孪生。隐私优先的通用身份。';
+
+  @override
+  String get settingsVerifyIdentityDebug => '验证身份以启用调试模式';
+
+  @override
+  String get loginNoPasswordHint => '无密码提示';
+
+  @override
+  String get commonVerify => '验证';
+
+  @override
+  String get commonRefresh => '刷新';
+
+  @override
+  String get commonShowLess => '收起';
+
+  @override
+  String get debugLogCopyToClipboard => '复制到剪贴板';
+
+  @override
+  String get debugLogDisable => '禁用调试模式';
+
+  @override
+  String get debugLogEmpty => '暂无调试日志';
+
+  @override
+  String get deleteAccountEnterPassword => '输入密码以确认';
+
+  @override
+  String get deleteAccountPasswordRequired => '密码为必填项';
+
+  @override
+  String get deleteAccountInvalidPassword => '密码无效';
+
+  @override
+  String get pageEditorPageTitleHint => '页面标题';
+
+  @override
+  String get pageEditorSaveFirst => '请先保存页面以添加分区';
+
+  @override
+  String get pageEditorNoSections => '暂无分区';
+
+  @override
+  String get pageEditorEnterSectionTitle => '输入分区标题';
+
+  @override
+  String get pageEditorEditSectionTitle => '编辑分区';
+
+  @override
+  String get folderPickerGoUp => '上一级';
+
+  @override
+  String get headerLockSensitivity => '锁定敏感信息访问';
+
+  @override
+  String get datePickerClear => '清除日期';
+
+  @override
+  String get entryCopyAll => '复制全部';
+
+  @override
+  String get entryNoHistory => '暂无历史记录';
+
+  @override
+  String get operationViewDetails => '查看详情';
+
+  @override
+  String get scanStopScan => '停止扫描';
+
+  @override
+  String get settingsNoHintAvailable => '无可用提示';
+
+  @override
+  String get sensitiveRestrictedMessage => '受限字段。请输入主密码查看。';
+
+  @override
+  String get syncUnknownError => '未知错误';
+
+  @override
+  String get syncScanning => '扫描中...';
+
+  @override
+  String get syncScan => '扫描';
+
+  @override
+  String get syncSyncing => '同步中...';
+
+  @override
+  String get syncConnectSync => '连接并同步';
+
+  @override
+  String get scanMappingBoth => 'AI+规则';
+
+  @override
+  String get scanMappingAi => 'AI';
+
+  @override
+  String get mrzDocumentType => '证件类型';
+
+  @override
+  String get mrzDocumentNumber => '证件号码';
+
+  @override
+  String get mrzSurname => '姓氏';
+
+  @override
+  String get mrzGivenNames => '名字';
+
+  @override
+  String get mrzNationality => '国籍';
+
+  @override
+  String get mrzDateOfBirth => '出生日期';
+
+  @override
+  String get mrzSex => '性别';
+
+  @override
+  String get mrzExpiryDate => '有效期';
+
+  @override
+  String get changePasswordMinLength => '最少8个字符';
+
+  @override
+  String get operationActionCreate => '创建';
+
+  @override
+  String get operationActionUpdate => '更新';
+
+  @override
+  String get operationActionDelete => '删除';
+
+  @override
+  String get operationActionRestore => '恢复';
+
+  @override
+  String get operationActionPurge => '彻底删除';
+
+  @override
+  String get operationPlatformAndroid => '安卓';
+
+  @override
+  String get operationPlatformWeb => '网页';
+
+  @override
+  String get operationLabelTimestamp => '时间戳';
+
+  @override
+  String get operationLabelAction => '操作';
+
+  @override
+  String get operationLabelSection => '分区';
+
+  @override
+  String get operationLabelFieldPath => '字段路径';
+
+  @override
+  String get operationLabelDescription => '描述';
+
+  @override
+  String get operationLabelDevice => '设备';
+
+  @override
+  String get versionCurrentVersion => '当前版本';
+
+  @override
+  String get versionLatestVersion => '最新版本';
+
+  @override
+  String get versionUpdateStatus => '更新状态';
+
+  @override
+  String get versionPlatform => '平台';
+
+  @override
+  String get accountCreated => '创建时间';
+
+  @override
+  String get accountLastLogin => '最后登录';
+
+  @override
+  String get accountLastOperation => '最后操作';
+
+  @override
+  String get accountLoginDevices => '登录设备';
+
+  @override
+  String get homeDefaultPages => '默认页面';
+
+  @override
+  String get homeCustomizedPages => '自定义页面';
+
+  @override
+  String get trashDetailLabel => '详情';
+
+  @override
+  String get trashRestoreLabel => '恢复';
+
+  @override
+  String get trashPurgeLabel => '彻底删除';
+
+  @override
+  String get commonTitle => '标题';
+
+  @override
+  String predefinedUnknownType(String type) {
+    return '未知类型：$type';
+  }
+
+  @override
+  String get commonShowPassword => '显示密码';
+
+  @override
+  String get commonHidePassword => '隐藏密码';
+
+  @override
+  String get objectCardAddItem => '添加项目';
+
+  @override
+  String get dataManagementRestoreBackupTooltip => '恢复';
+
+  @override
+  String get dataManagementSpecialBackupTooltip => '保存为特殊备份';
 }

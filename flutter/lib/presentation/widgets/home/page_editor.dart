@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -119,17 +120,18 @@ class _PageEditorState extends ConsumerState<PageEditor> {
   }
 
   Future<void> _deleteSection(String sectionId) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Section?'),
-        content: const Text('This section and its items will be moved to trash.'),
+        title: Text(l10n.dialogDeleteSection),
+        content: Text(l10n.dialogDeleteSectionConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -143,12 +145,13 @@ class _PageEditorState extends ConsumerState<PageEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final page = _existingPage;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: Text(page != null ? 'Edit Page' : 'New Page'),
+        title: Text(page != null ? l10n.pageEditorEditPage : l10n.pageEditorNewPage),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: widget.onClose,
@@ -162,7 +165,7 @@ class _PageEditorState extends ConsumerState<PageEditor> {
           else
             TextButton(
               onPressed: _savePage,
-              child: const Text('Save'),
+              child: Text(l10n.commonSave),
             ),
         ],
       ),
@@ -183,8 +186,8 @@ class _PageEditorState extends ConsumerState<PageEditor> {
                   child: TextField(
                     controller: _titleController,
                     style: theme.textTheme.headlineSmall,
-                    decoration: const InputDecoration(
-                      hintText: 'Page title',
+                    decoration: InputDecoration(
+                      hintText: l10n.pageEditorPageTitleHint,
                       border: InputBorder.none,
                     ),
                   ),
@@ -198,11 +201,11 @@ class _PageEditorState extends ConsumerState<PageEditor> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Sections', style: theme.textTheme.titleLarge),
+                Text(l10n.homePageEditorSections, style: theme.textTheme.titleLarge),
                 FilledButton.icon(
                   onPressed: page != null ? _addSection : null,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add Section'),
+                  label: Text(l10n.workspaceAddSectionButton),
                 ),
               ],
             ),
@@ -210,7 +213,7 @@ class _PageEditorState extends ConsumerState<PageEditor> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Save the page first to add sections',
+                  l10n.pageEditorSaveFirst,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
@@ -230,7 +233,7 @@ class _PageEditorState extends ConsumerState<PageEditor> {
                       Icon(Icons.folder_open, size: 48, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(height: 12),
                       Text(
-                        'No sections yet',
+                        l10n.pageEditorNoSections,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -302,9 +305,10 @@ class _SectionDialogState extends State<SectionDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return AlertDialog(
-      title: Text(widget.initialTitle == null ? 'Add Section' : 'Edit Section'),
+      title: Text(widget.initialTitle == null ? l10n.workspaceAddSectionButton : l10n.pageEditorEditSectionTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,14 +316,14 @@ class _SectionDialogState extends State<SectionDialog> {
           TextField(
             controller: _titleController,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Section Title',
-              hintText: 'Enter section title',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.homePageEditorSectionTitle,
+              hintText: l10n.pageEditorEnterSectionTitle,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Icon', style: theme.textTheme.titleSmall),
+          Text(l10n.homePageEditorIcon, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           IconPicker(
             iconName: _iconName,
@@ -330,7 +334,7 @@ class _SectionDialogState extends State<SectionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -340,7 +344,7 @@ class _SectionDialogState extends State<SectionDialog> {
               'icon': _iconName,
             });
           },
-          child: const Text('Save'),
+          child: Text(l10n.commonSave),
         ),
       ],
     );

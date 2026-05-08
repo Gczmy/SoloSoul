@@ -26,6 +26,7 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 part 'entry_card_widget.g.dart';
 
@@ -221,6 +222,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final history = _history;
     final hasHistory = history != null;
     final fields = _buildFields();
@@ -317,7 +319,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                   ),
                 ],
               ),
-        tooltip: hasHist ? 'History ($count)' : 'No history yet',
+        tooltip: hasHist ? l10n.entryHistoryCount(count) : l10n.entryNoHistory,
         onPressed: hasHist
             ? () => _handleHistoryPress(isSensitive)
             : () {
@@ -370,7 +372,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                       isExpanded ? Icons.expand_less : Icons.history,
                       size: 16,
                     ),
-                    label: Text('History(${history?.entries.length ?? 0})'),
+                    label: Text(l10n.entryHistoryCount(history?.entries.length ?? 0)),
                     onPressed: () => _handleHistoryPress(isSensitive),
                   ),
                 ],

@@ -9,6 +9,7 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/models/search_models.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// Search notifier
 class SearchNotifier extends Notifier<SearchState> {
@@ -83,7 +84,7 @@ class SearchNotifier extends Notifier<SearchState> {
         final password = await showPasswordVerificationDialog(
           context: context,
           ref: ref,
-          message: 'Restricted field. Enter your master password to view.',
+          message: AppLocalizations.of(context).sensitiveRestrictedMessage,
           onVerify: (password) async {
             final authNotifier = ref.read(authNotifierProvider.notifier);
             return authNotifier.verifyPasswordForSensitiveData(password);

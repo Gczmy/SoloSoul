@@ -132,6 +132,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -149,8 +150,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Vault Security Section
-                  const _SectionHeader(
-                    title: 'Vault Security',
+                  _SectionHeader(
+                    title: l10n.securityVaultSecurity,
                     icon: Icons.lock_outlined,
                   ),
                   const SizedBox(height: 12),
@@ -158,8 +159,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                     children: [
                       _DropdownSetting(
                         icon: Icons.timer_outlined,
-                        title: 'Auto-Lock Delay',
-                        subtitle: 'Lock vault after inactivity',
+                        title: l10n.securityAutoLockDelay,
+                        subtitle: l10n.securityAutoLockDesc,
                         value: _settings.autoLockDelayMinutes,
                         options: SecuritySettings.autoLockDelayOptions,
                         labels: const ['1 min', '5 min', '15 min', '30 min', 'Never'],
@@ -173,7 +174,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                       const Divider(height: 1),
                       _SwitchSetting(
                         icon: Icons.fingerprint,
-                        title: 'Biometric Unlock',
+                        title: l10n.securityBiometricUnlock,
                         subtitle: _biometricsAvailable
                             ? 'Use Face ID / Touch ID to unlock'
                             : 'Biometrics not available on this device',
@@ -187,8 +188,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                   const SizedBox(height: 24),
 
                   // Privacy Section
-                  const _SectionHeader(
-                    title: 'Privacy',
+                  _SectionHeader(
+                    title: l10n.securityPrivacy,
                     icon: Icons.visibility_off_outlined,
                   ),
                   const SizedBox(height: 12),
@@ -196,8 +197,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                     children: [
                       _SwitchSetting(
                         icon: Icons.blur_on,
-                        title: 'App Privacy Screen',
-                        subtitle: 'Hide content in app switcher',
+                        title: l10n.securityAppPrivacyScreen,
+                        subtitle: l10n.securityAppPrivacyDesc,
                         value: _settings.privacyScreenEnabled,
                         onTap: () {
                           _showNotImplementedSnackBar(context);
@@ -209,8 +210,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                       const Divider(height: 1),
                       _SwitchSetting(
                         icon: Icons.window_outlined,
-                        title: 'Lock on Window Blur',
-                        subtitle: 'Lock when switching apps',
+                        title: l10n.securityLockOnBlur,
+                        subtitle: l10n.securityLockOnBlurDesc,
                         value: _settings.lockOnWindowBlur,
                         onTap: () {
                           _showNotImplementedSnackBar(context);
@@ -225,8 +226,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                   const SizedBox(height: 24),
 
                   // Clipboard Section
-                  const _SectionHeader(
-                    title: 'Clipboard',
+                  _SectionHeader(
+                    title: l10n.securityClipboard,
                     icon: Icons.content_paste_outlined,
                   ),
                   const SizedBox(height: 12),
@@ -234,8 +235,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                     children: [
                       _DropdownSetting(
                         icon: Icons.timer_outlined,
-                        title: 'Auto-Clear Delay',
-                        subtitle: 'Clear clipboard after copying sensitive data',
+                        title: l10n.securityAutoClearDelay,
+                        subtitle: l10n.securityAutoClearDesc,
                         value: _settings.clipboardClearDelaySeconds,
                         options: SecuritySettings.clipboardClearDelayOptions,
                         labels: const ['30 sec', '1 min', '2 min', 'Never'],

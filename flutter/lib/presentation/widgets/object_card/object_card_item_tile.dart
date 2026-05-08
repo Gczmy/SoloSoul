@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -39,6 +40,7 @@ class ObjectCardItemTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final history = ref.watch(
       fieldHistoriesProvider.select(
@@ -125,13 +127,13 @@ class ObjectCardItemTile extends ConsumerWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.copy_all, size: 20),
-                    tooltip: 'Copy',
+                    tooltip: l10n.commonCopy,
                     onPressed: onCopy,
                     visualDensity: VisualDensity.compact,
                   ),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit',
+                    tooltip: l10n.commonEdit,
                     onPressed: onStartEdit,
                     visualDensity: VisualDensity.compact,
                   ),
@@ -155,14 +157,14 @@ class ObjectCardItemTile extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    tooltip: hasHist ? 'History ($count)' : 'No history yet',
+                    tooltip: hasHist ? l10n.entryHistoryCount(count) : l10n.entryNoHistory,
                     onPressed: handleHistoryPress,
                     visualDensity: VisualDensity.compact,
                   ),
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Delete',
+                    tooltip: l10n.commonDelete,
                     onPressed: onDelete,
                     visualDensity: VisualDensity.compact,
                   ),

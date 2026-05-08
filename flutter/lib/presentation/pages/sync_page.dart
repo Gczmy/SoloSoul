@@ -33,6 +33,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final syncState = ref.watch(syncProvider);
 
@@ -53,7 +54,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             if (syncState.status == SyncStatus.syncing)
               _StatusBanner(
                 icon: Icons.sync,
-                message: 'Synchronizing...',
+                message: l10n.syncSynchronizing,
                 color: theme.colorScheme.primary,
               )
             else if (syncState.status == SyncStatus.success)
@@ -67,15 +68,15 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             else if (syncState.status == SyncStatus.error)
               _StatusBanner(
                 icon: Icons.error_outline,
-                message: syncState.errorMessage ?? 'Unknown error',
+                message: syncState.errorMessage ?? l10n.syncUnknownError,
                 color: theme.colorScheme.error,
               ),
 
             const SizedBox(height: 16),
 
             // Device Discovery Section
-            const _SectionHeader(
-              title: 'Device Discovery',
+            _SectionHeader(
+              title: l10n.syncDeviceDiscovery,
               icon: Icons.radar,
             ),
             const SizedBox(height: 12),
@@ -90,8 +91,8 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             const SizedBox(height: 24),
 
             // Manual Connection Section
-            const _SectionHeader(
-              title: 'Manual Connection',
+            _SectionHeader(
+              title: l10n.syncManualConnection,
               icon: Icons.link,
             ),
             const SizedBox(height: 12),
@@ -108,8 +109,8 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             const SizedBox(height: 24),
 
             // Pairing Key Section
-            const _SectionHeader(
-              title: 'Pairing Key',
+            _SectionHeader(
+              title: l10n.syncPairingKey,
               icon: Icons.vpn_key,
             ),
             const SizedBox(height: 12),
@@ -121,8 +122,8 @@ class _SyncPageState extends ConsumerState<SyncPage> {
 
             // Last Sync Result
             if (syncState.lastResult != null) ...[
-              const _SectionHeader(
-                title: 'Last Sync',
+              _SectionHeader(
+                title: l10n.syncLastSync,
                 icon: Icons.history,
               ),
               const SizedBox(height: 12),
@@ -348,7 +349,7 @@ class _DiscoveryCard extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.search, size: 18),
-                  label: Text(isDiscovering ? 'Scanning...' : 'Scan'),
+                  label: Text(isDiscovering ? AppLocalizations.of(context).syncScanning : AppLocalizations.of(context).syncScan),
                 ),
               ],
             ),
@@ -480,7 +481,7 @@ class _ManualConnectionCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.sync, size: 18),
-                label: Text(isSyncing ? 'Syncing...' : 'Connect & Sync'),
+                label: Text(isSyncing ? AppLocalizations.of(context).syncSyncing : AppLocalizations.of(context).syncConnectSync),
               ),
             ),
           ],
@@ -531,6 +532,7 @@ class _SyncResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -538,26 +540,26 @@ class _SyncResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _ResultRow(
-              label: 'Status',
+              label: l10n.syncStatus,
               value: result.success ? 'Success' : 'Failed',
               icon: result.success ? Icons.check_circle : Icons.error_outline,
             ),
             const SizedBox(height: 8),
             _ResultRow(
-              label: 'Direction',
+              label: l10n.syncDirection,
               value: _directionText(result.direction),
               icon: _directionIcon(result.direction),
             ),
             const SizedBox(height: 8),
             _ResultRow(
-              label: 'Data',
+              label: l10n.syncData,
               value: '${result.bytesSent} sent / ${result.bytesReceived} received',
               icon: Icons.swap_vert,
             ),
             if (result.error != null && result.error!.isNotEmpty) ...[
               const SizedBox(height: 8),
               _ResultRow(
-                label: 'Error',
+                label: l10n.syncError,
                 value: result.error!,
                 icon: Icons.error_outline,
               ),

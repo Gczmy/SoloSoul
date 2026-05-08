@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// Create account form for the login page.
 /// Displays account name, password, confirm password, hint fields and action buttons.
@@ -45,6 +46,7 @@ class CreateAccountForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
 
@@ -64,10 +66,10 @@ class CreateAccountForm extends StatelessWidget {
         TextFormField(
               controller: nameController,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Account Name',
-                hintText: 'e.g., Personal, Work',
-                prefixIcon: Icon(Icons.person_outline),
+              decoration: InputDecoration(
+                labelText: l10n.loginAccountName,
+                hintText: l10n.loginAccountNameHint,
+                prefixIcon: const Icon(Icons.person_outline),
               ),
             )
             .animate()
@@ -83,8 +85,8 @@ class CreateAccountForm extends StatelessWidget {
               focusNode: passwordFocusNode,
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: 'Master Password',
-                hintText: 'Create a strong password',
+                labelText: l10n.loginMasterPassword,
+                hintText: l10n.loginCreateStrongPassword,
                 labelStyle: TextStyle(
                   color: isPasswordFocused ? AppTheme.primaryColor : null,
                 ),
@@ -117,8 +119,8 @@ class CreateAccountForm extends StatelessWidget {
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => onCreateAccount(),
               decoration: InputDecoration(
-                labelText: 'Confirm Password',
-                hintText: 'Re-enter your password',
+                labelText: l10n.loginConfirmPassword,
+                hintText: l10n.loginReenterPassword,
                 labelStyle: TextStyle(
                   color: isConfirmPasswordFocused
                       ? AppTheme.primaryColor
@@ -154,10 +156,10 @@ class CreateAccountForm extends StatelessWidget {
               controller: hintController,
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => onCreateAccount(),
-              decoration: const InputDecoration(
-                labelText: 'Password Hint (Optional)',
-                hintText: 'A hint to help you remember',
-                prefixIcon: Icon(Icons.help_outline),
+              decoration: InputDecoration(
+                labelText: l10n.loginPasswordHintOptional,
+                hintText: l10n.loginPasswordHintHelp,
+                prefixIcon: const Icon(Icons.help_outline),
               ),
             )
             .animate()
@@ -233,7 +235,7 @@ class CreateAccountForm extends StatelessWidget {
         // Back to Account List
         TextButton(
           onPressed: onBack,
-          child: const Text('Back to Account List'),
+          child: Text(l10n.loginBackToAccountList),
         ).animate().fadeIn(delay: 450.ms, duration: 400.ms),
       ],
     );

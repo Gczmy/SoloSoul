@@ -286,7 +286,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     final duplicates = keyCounts.entries.where((e) => e.value > 1).map((e) => e.key).toList();
     if (duplicates.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Duplicate property names: ${duplicates.join(', ')}')),
+        SnackBar(content: Text(AppLocalizations.of(context).objectEditorDuplicateProperties(duplicates.join(', ')))),
       );
       return;
     }

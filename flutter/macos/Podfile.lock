@@ -13,6 +13,9 @@ PODS:
     - FlutterMacOS
   - pdfx (1.0.0):
     - FlutterMacOS
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
@@ -22,6 +25,7 @@ DEPENDENCIES:
   - local_auth_darwin (from `Flutter/ephemeral/.symlinks/plugins/local_auth_darwin/darwin`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - pdfx (from `Flutter/ephemeral/.symlinks/plugins/pdfx/macos`)
+  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
   file_picker:
@@ -38,6 +42,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   pdfx:
     :path: Flutter/ephemeral/.symlinks/plugins/pdfx/macos
+  shared_preferences_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
 
 SPEC CHECKSUMS:
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
@@ -47,6 +53,7 @@ SPEC CHECKSUMS:
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   pdfx: 1e79f57f7a6ce2f4a4c30f21fa54d3dc82441b51
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 

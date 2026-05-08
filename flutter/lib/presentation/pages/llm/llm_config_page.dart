@@ -173,7 +173,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Chip(
-              label: Text(AppLocalizations.of(context).llmConfigExperimental, style: TextStyle(fontSize: 12)),
+              label: Text(AppLocalizations.of(context).llmConfigExperimental, style: const TextStyle(fontSize: 12)),
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               side: BorderSide.none,
             ),
@@ -216,12 +216,12 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                       children: [
                         Text(
                           AppLocalizations.of(context).llmConfigInstructions,
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           AppLocalizations.of(context).llmConfigInstructionsOllama,
-                          style: TextStyle(fontSize: 13),
+                          style: const TextStyle(fontSize: 13),
                         ),
                       ],
                     ),
@@ -598,6 +598,7 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isEditing = widget.profile != null;
 
@@ -631,7 +632,7 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
             decoration: InputDecoration(
               labelText: AppLocalizations.of(context).llmConfigProfileName,
               hintText: AppLocalizations.of(context).llmConfigProfileNameHint,
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
@@ -657,27 +658,27 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: _endpointController,
-            decoration: const InputDecoration(
-              labelText: 'API Endpoint',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.llmApiEndpoint,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _modelController,
-            decoration: const InputDecoration(
-              labelText: 'Model',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.llmModel,
+              border: const OutlineInputBorder(),
             ),
           ),
           if (_provider == LlmCloudProviderType.anthropic) ...[
             const SizedBox(height: 12),
             TextField(
               controller: _versionController,
-              decoration: const InputDecoration(
-                labelText: 'Anthropic API Version',
+              decoration: InputDecoration(
+                labelText: l10n.llmAnthropicVersion,
                 hintText: '2023-06-01',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -735,12 +736,12 @@ class _BackendSelector extends StatelessWidget {
         ButtonSegment(
           value: LlmBackendType.local,
           label: Text(AppLocalizations.of(context).llmConfigBackendLocal),
-          icon: Icon(Icons.computer),
+          icon: const Icon(Icons.computer),
         ),
         ButtonSegment(
           value: LlmBackendType.cloud,
           label: Text(AppLocalizations.of(context).llmConfigBackendCloud),
-          icon: Icon(Icons.cloud),
+          icon: const Icon(Icons.cloud),
         ),
       ],
       selected: {current},
@@ -762,17 +763,18 @@ class _CloudProviderSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SegmentedButton<LlmCloudProviderType>(
-      segments: const [
+      segments: [
         ButtonSegment(
           value: LlmCloudProviderType.openai,
-          label: Text('OpenAI'),
-          icon: Icon(Icons.cloud_queue),
+          label: Text(l10n.llmOpenAI),
+          icon: const Icon(Icons.cloud_queue),
         ),
         ButtonSegment(
           value: LlmCloudProviderType.anthropic,
-          label: Text('Anthropic'),
-          icon: Icon(Icons.smart_toy),
+          label: Text(l10n.llmAnthropic),
+          icon: const Icon(Icons.smart_toy),
         ),
       ],
       selected: {current},

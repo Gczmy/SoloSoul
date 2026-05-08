@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme, SnackBarType, showOverlaySnackBar;
 
@@ -9,6 +10,7 @@ class HeaderActionButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     // Only show when sensitive access is currently granted
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       return const SizedBox.shrink();
@@ -27,7 +29,7 @@ class HeaderActionButtons extends ConsumerWidget {
           type: SnackBarType.info,
         );
       },
-      tooltip: 'Lock Sensitivity Access',
+      tooltip: l10n.headerLockSensitivity,
     );
   }
 }

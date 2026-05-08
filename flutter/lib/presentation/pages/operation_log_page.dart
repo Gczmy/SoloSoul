@@ -49,15 +49,16 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
     await verifyPasswordAndGrantAccess(
       context: context,
       ref: ref,
-      message: 'Enter your master password to view the operation log.',
+      message: AppLocalizations.of(context).operationLogVerifyPassword,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       return Scaffold(
-        appBar: SoloGlassAppBar(title: Text(AppLocalizations.of(context).operationLogTitle)),
+        appBar: SoloGlassAppBar(title: Text(l10n.operationLogTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -75,7 +76,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _verifyPassword,
-                child: Text(AppLocalizations.of(context).operationLogVerify),
+                child: Text(l10n.operationLogVerify),
               ),
             ],
           ),

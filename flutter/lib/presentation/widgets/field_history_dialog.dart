@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
@@ -91,6 +92,7 @@ class FieldHistoryDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final entries = history?.entries ?? [];
     final reversedEntries = entries.reversed.toList(); // Most recent first
@@ -139,7 +141,7 @@ class FieldHistoryDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(l10n.commonClose),
         ),
       ],
     );

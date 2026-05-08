@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// Biometric settings and unlock management widget
 class BiometricSettingsWidget extends ConsumerStatefulWidget {
@@ -56,6 +57,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
   }
 
   Future<String?> _showPasswordDialog(String message, {String? passwordHint}) async {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController();
     try {
       bool obscure = true;
@@ -65,7 +67,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Master Password'),
+          title: Text(l10n.settingsMasterPassword),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -76,7 +78,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
                 obscureText: obscure,
                 autofocus: true,
                 decoration: InputDecoration(
-                  labelText: 'Master Password',
+                  labelText: l10n.settingsMasterPassword,
                   prefixIcon: const Icon(Icons.key),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -87,7 +89,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
                             ? () {
                                 ScaffoldMessenger.of(ctx).showSnackBar(
                                   SnackBar(
-                                    content: Text('Password Hint: $hint'),
+                                    content: Text(l10n.biometricPasswordHint(hint)),
                                     behavior: SnackBarBehavior.floating,
                                     backgroundColor: AppTheme.primaryColor,
                                     duration: const Duration(seconds: 4),
@@ -95,7 +97,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
                                 );
                               }
                             : null,
-                        tooltip: hint != null && hint.isNotEmpty ? 'Show password hint' : 'No hint available',
+                        tooltip: hint != null && hint.isNotEmpty ? l10n.settingsShowPasswordHint : l10n.settingsNoHintAvailable,
                       ),
                       IconButton(
                         icon: Icon(
@@ -114,11 +116,11 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, controller.text),
-              child: const Text('Confirm'),
+              child: Text(l10n.commonConfirm),
             ),
           ],
         ),
@@ -360,6 +362,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -398,8 +401,8 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         ],
         _BiometricToggleTile(
           icon: Icons.fingerprint_outlined,
-          title: 'Touch ID',
-          subtitle: 'Use Touch ID to unlock',
+          title: l10n.loginBiometricTouchId,
+          subtitle: l10n.settingsUseBiometric('Touch ID'),
           value: _biometricEnabled,
           onChanged: _toggleBiometric,
         ),
@@ -410,15 +413,15 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
             child: TextButton.icon(
               onPressed: _testBiometric,
               icon: const Icon(Icons.verified_outlined, size: 16),
-              label: const Text('Test Touch ID'),
+              label: Text(l10n.biometricTestTouchId),
             ),
           ),
         ],
         const SizedBox(height: 8),
         _BiometricToggleTile(
           icon: Icons.face_outlined,
-          title: 'Face ID',
-          subtitle: 'Use Face ID to unlock',
+          title: l10n.loginBiometricFaceId,
+          subtitle: l10n.settingsUseBiometric('Face ID'),
           value: _faceIdEnabled,
           onChanged: _toggleFaceId,
         ),
@@ -429,7 +432,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
             child: TextButton.icon(
               onPressed: _testBiometric,
               icon: const Icon(Icons.verified_outlined, size: 16),
-              label: const Text('Test Face ID'),
+              label: Text(l10n.biometricTestFaceId),
             ),
           ),
         ],

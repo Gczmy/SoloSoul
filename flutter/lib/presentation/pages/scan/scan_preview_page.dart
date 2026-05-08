@@ -376,7 +376,7 @@ class _FieldRow extends StatelessWidget {
                     if (field.mappingSource == 'llm' || field.mappingSource == 'both') ...[
                       const SizedBox(width: 8),
                       _Badge(
-                        label: field.mappingSource == 'both' ? 'AI+Rule' : 'AI',
+                        label: field.mappingSource == 'both' ? AppLocalizations.of(context).scanMappingBoth : AppLocalizations.of(context).scanMappingAi,
                         color: theme.colorScheme.tertiary,
                       ),
                       if (field.mappingConfidence < 1.0) ...[
@@ -678,7 +678,7 @@ class _ScanPreviewBottomBar extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.download),
-                  label: Text('Import ($selectedCount)'),
+                  label: Text('${AppLocalizations.of(context).commonImport} ($selectedCount)'),
                 ),
               ],
             ),

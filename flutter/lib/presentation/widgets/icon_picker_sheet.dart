@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 
 /// Predefined icon names available for selection across the app.
@@ -39,6 +40,7 @@ class IconPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return SafeArea(
@@ -48,7 +50,7 @@ class IconPickerSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Choose Icon', style: theme.textTheme.titleLarge),
+            Text(l10n.iconPickerTitle, style: theme.textTheme.titleLarge),
             const SizedBox(height: 16),
             Wrap(
               spacing: 12,

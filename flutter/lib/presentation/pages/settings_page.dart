@@ -281,11 +281,12 @@ class _AccountSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final accountsAsync = ref.watch(accountsProvider);
     final authNotifier = ref.read(authNotifierProvider.notifier);
 
     return SectionCard(
-      title: 'Account',
+      title: l10n.settingsAccount,
       icon: Icons.account_circle_outlined,
       children: [
         accountsAsync.when(
@@ -301,7 +302,7 @@ class _AccountSettingsSection extends ConsumerWidget {
               children: [
                 SettingsTile(
                   icon: Icons.person_outline,
-                  title: 'Current Account',
+                  title: l10n.settingsCurrentAccount,
                   subtitle: currentAccount?.name ?? selectedId ?? 'Unknown',
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -337,7 +338,7 @@ class _AccountSettingsSection extends ConsumerWidget {
                 const Divider(height: 1),
                 SettingsTile(
                   icon: Icons.people_outline,
-                  title: 'All Accounts',
+                  title: l10n.settingsAllAccounts,
                   subtitle: '${accounts.length} account(s)',
                   onTap: () {
                     showModalBottomSheet(
@@ -364,7 +365,7 @@ class _AccountSettingsSection extends ConsumerWidget {
                 const Divider(height: 1),
                 SettingsTile(
                   icon: Icons.storage_outlined,
-                  title: 'Data Management',
+                  title: l10n.settingsDataManagement,
                   subtitle: vaultDataSize,
                   onTap: () => context.push(AppRoutes.dataManagement),
                 ),
@@ -375,10 +376,10 @@ class _AccountSettingsSection extends ConsumerWidget {
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (_, __) => const SettingsTile(
+          error: (_, __) => SettingsTile(
             icon: Icons.error_outline,
-            title: 'Error loading accounts',
-            subtitle: 'Please restart the app',
+            title: l10n.settingsErrorLoadingAccounts,
+            subtitle: l10n.settingsPleaseRestart,
           ),
         ),
       ],
@@ -391,14 +392,15 @@ class _AccessSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
-      title: 'Access',
+      title: l10n.settingsAccess,
       icon: Icons.lock_outlined,
       children: [
         SettingsTile(
           icon: Icons.lock_open_outlined,
-          title: 'Lock Vault',
-          subtitle: 'Lock now and require password',
+          title: l10n.settingsLockVault,
+          subtitle: l10n.settingsLockVaultDesc,
           onTap: () async {
             final confirmed = await showLockVaultDialog(context);
             if (confirmed == true && context.mounted) {
@@ -410,8 +412,8 @@ class _AccessSettingsSection extends ConsumerWidget {
         const Divider(height: 1),
         SettingsTile(
           icon: Icons.password_outlined,
-          title: 'Change Master Password',
-          subtitle: 'Update your vault password',
+          title: l10n.settingsChangePassword,
+          subtitle: l10n.settingsChangePasswordDesc,
           onTap: () async {
             final success = await showChangePasswordDialog(
               context: context,
@@ -454,21 +456,22 @@ class _SecuritySettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
-      title: 'Security',
+      title: l10n.settingsSecurity,
       icon: Icons.shield_outlined,
       children: [
         SettingsTile(
           icon: Icons.lock_clock_outlined,
-          title: 'Auto-Lock & Privacy',
-          subtitle: 'Configure timeout and privacy settings',
+          title: l10n.settingsAutoLockPrivacy,
+          subtitle: l10n.settingsAutoLockPrivacyDesc,
           onTap: () async {
             final authNotifier = ref.read(authNotifierProvider.notifier);
             final selectedAccount = authNotifier.selectedAccount;
             final result = await showPasswordVerificationDialog(
               context: context,
               ref: ref,
-              message: 'Enter your master password to access security settings.',
+              message: l10n.settingsVerifyPassword,
               passwordHint: selectedAccount?.passwordHint,
               onVerify: authNotifier.verifyPasswordForSensitiveData,
             );
@@ -484,15 +487,15 @@ class _SecuritySettingsSection extends ConsumerWidget {
         const Divider(height: 1),
         SettingsTile(
           icon: Icons.security_outlined,
-          title: 'Sensitivity Level Settings',
-          subtitle: 'Configure field sensitivity',
+          title: l10n.settingsSensitivity,
+          subtitle: l10n.settingsSensitivityDesc,
           onTap: () => context.push(AppRoutes.sensitivitySettings),
         ),
         const Divider(height: 1),
         SettingsTile(
           icon: Icons.history,
-          title: 'Operation Log',
-          subtitle: 'View activity history',
+          title: l10n.settingsOperationLog,
+          subtitle: l10n.settingsOperationLogDesc,
           onTap: () => context.push(AppRoutes.operationLog),
         ),
       ],
@@ -505,25 +508,26 @@ class _SyncSettingsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
-      title: 'Sync',
+      title: l10n.settingsSync,
       icon: Icons.sync_outlined,
       children: [
         SettingsTile(
           icon: Icons.cloud_outlined,
-          title: 'Cloud Sync',
-          subtitle: 'Not configured',
+          title: l10n.settingsCloudSync,
+          subtitle: l10n.settingsNotConfigured,
           trailing: Switch(
             value: false,
             onChanged: (value) => _showComingSoon(context, 'Cloud sync setup'),
           ),
         ),
         const Divider(height: 1),
-        const SettingsTile(
+        SettingsTile(
           icon: Icons.wifi_off_outlined,
-          title: 'Offline Mode',
-          subtitle: 'Local data only',
-          trailing: Icon(
+          title: l10n.settingsOfflineMode,
+          subtitle: l10n.settingsOfflineModeDesc,
+          trailing: const Icon(
             Icons.check_circle,
             color: AppTheme.successColor,
             size: 20,
@@ -541,13 +545,13 @@ class _LLMSettingsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return SectionCard(
-      title: 'AI Assistant',
+      title: l10n.settingsAiAssistant,
       icon: Icons.psychology_outlined,
       children: [
         SettingsTile(
           icon: Icons.smart_toy_outlined,
-          title: 'LLM Configuration',
-          subtitle: 'Local model or cloud API',
+          title: l10n.settingsLlmConfig,
+          subtitle: l10n.settingsLlmConfigDesc,
           onTap: () => context.push(AppRoutes.llmConfig),
         ),
         SettingsTile(
@@ -568,7 +572,7 @@ class _AppInfoSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return SectionCard(
-      title: 'About',
+      title: l10n.settingsAbout,
       icon: Icons.info_outlined,
       children: [
         Consumer(
@@ -591,7 +595,7 @@ class _AppInfoSection extends ConsumerWidget {
             final packageInfo = ref.watch(packageInfoProvider);
             return SettingsTile(
               icon: Icons.code,
-              title: 'Version',
+              title: l10n.settingsVersion,
               subtitle: packageInfo.when(
                 data: (info) => info.version,
                 loading: () => '...',
@@ -610,8 +614,8 @@ class _AppInfoSection extends ConsumerWidget {
                 const Divider(height: 1),
                 SettingsTile(
                   icon: Icons.bug_report_outlined,
-                  title: 'Debug Log',
-                  subtitle: 'View debug log',
+                  title: l10n.settingsDebugLog,
+                  subtitle: l10n.settingsDebugLogDesc,
                   onTap: () => _showDebugLogSheet(context, ref),
                 ),
               ],
@@ -621,22 +625,22 @@ class _AppInfoSection extends ConsumerWidget {
         const Divider(height: 1),
         SettingsTile(
           icon: Icons.description_outlined,
-          title: 'Privacy Policy',
-          subtitle: 'View our privacy policy',
+          title: l10n.settingsPrivacyPolicy,
+          subtitle: l10n.settingsPrivacyPolicyDesc,
           onTap: () => showLegalDocumentSheet(
             context: context,
-            title: 'Privacy Policy',
+            title: l10n.settingsPrivacyPolicy,
             assetPath: 'assets/docs/PRIVACY_POLICY.md',
           ),
         ),
         const Divider(height: 1),
         SettingsTile(
           icon: Icons.article_outlined,
-          title: 'Terms of Service',
-          subtitle: 'View terms of service',
+          title: l10n.settingsTermsOfService,
+          subtitle: l10n.settingsTermsOfServiceDesc,
           onTap: () => showLegalDocumentSheet(
             context: context,
-            title: 'Terms of Service',
+            title: l10n.settingsTermsOfService,
             assetPath: 'assets/docs/TERMS_OF_SERVICE.md',
           ),
         ),
@@ -823,22 +827,22 @@ class _SoloSoulAdSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Row(
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SloganChip(
                     icon: Icons.location_on_outlined,
-                    label: 'Local',
+                    label: l10n.settingsLocal,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   SloganChip(
                     icon: Icons.lock_outline,
-                    label: 'Private',
+                    label: l10n.settingsPrivate,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   SloganChip(
                     icon: Icons.person_outline,
-                    label: 'Universal',
+                    label: l10n.settingsUniversal,
                   ),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 
 /// Dialog for changing the master password
@@ -24,12 +25,13 @@ Future<bool> showChangePasswordDialog({
     barrierDismissible: false,
     builder: (dialogContext) => StatefulBuilder(
       builder: (dialogContext, setDialogState) {
+        final l10n = AppLocalizations.of(dialogContext);
         return AlertDialog(
           title: Row(
             children: [
               Icon(Icons.lock_outline, color: Colors.indigo.shade700),
               const SizedBox(width: 8),
-              const Text('Change Master Password'),
+              Text(l10n.settingsChangePassword),
             ],
           ),
           content: SingleChildScrollView(
@@ -64,7 +66,7 @@ Future<bool> showChangePasswordDialog({
                   controller: currentPasswordController,
                   obscureText: obscureCurrent,
                   decoration: InputDecoration(
-                    labelText: 'Current Password',
+                    labelText: l10n.dialogCurrentPassword,
                     prefixIcon: const Icon(Icons.key),
                     suffixIcon: IconButton(
                       icon: Icon(obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -91,9 +93,9 @@ Future<bool> showChangePasswordDialog({
                   controller: newPasswordController,
                   obscureText: obscureNew,
                   decoration: InputDecoration(
-                    labelText: 'New Password',
+                    labelText: l10n.dialogNewPassword,
                     prefixIcon: const Icon(Icons.vpn_key),
-                    hintText: 'Minimum 8 characters',
+                    hintText: l10n.changePasswordMinLength,
                     suffixIcon: IconButton(
                       icon: Icon(obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setDialogState(() => obscureNew = !obscureNew),
@@ -119,7 +121,7 @@ Future<bool> showChangePasswordDialog({
                   controller: confirmPasswordController,
                   obscureText: obscureConfirm,
                   decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
+                    labelText: l10n.dialogConfirmNewPassword,
                     prefixIcon: const Icon(Icons.vpn_key),
                     suffixIcon: IconButton(
                       icon: Icon(obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -144,10 +146,10 @@ Future<bool> showChangePasswordDialog({
                 // New Password Hint (Optional)
                 TextField(
                   controller: newPasswordHintController,
-                  decoration: const InputDecoration(
-                    labelText: 'New Password Hint (Optional)',
-                    prefixIcon: Icon(Icons.help_outline),
-                    hintText: 'A hint to help you remember',
+                  decoration: InputDecoration(
+                    labelText: l10n.loginPasswordHintOptional,
+                    prefixIcon: const Icon(Icons.help_outline),
+                    hintText: l10n.loginPasswordHintHelp,
                   ),
                 ),
 
@@ -180,7 +182,7 @@ Future<bool> showChangePasswordDialog({
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             ElevatedButton(
               onPressed: isLoading
@@ -241,7 +243,7 @@ Future<bool> showChangePasswordDialog({
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Change'),
+                  : Text(l10n.dialogChange),
             ),
           ],
         );

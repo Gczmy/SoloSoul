@@ -512,7 +512,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncRemoteAddressHint => '192.168.1.5:9900';
 
   @override
-  String get syncPairingKey => 'Pairing Key (hex)';
+  String get syncPairingKey => 'Pairing Key';
 
   @override
   String get syncPairingKeyHint => 'Enter shared pairing key';
@@ -1302,4 +1302,608 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanPreviewImportAction => 'Import action';
+
+  @override
+  String get settingsAccount => 'Account';
+
+  @override
+  String get settingsCurrentAccount => 'Current Account';
+
+  @override
+  String get settingsAllAccounts => 'All Accounts';
+
+  @override
+  String get settingsDataManagement => 'Data Management';
+
+  @override
+  String get settingsErrorLoadingAccounts => 'Error loading accounts';
+
+  @override
+  String get settingsPleaseRestart => 'Please restart the app';
+
+  @override
+  String get settingsAccess => 'Access';
+
+  @override
+  String get settingsLockVault => 'Lock Vault';
+
+  @override
+  String get settingsLockVaultDesc => 'Lock now and require password';
+
+  @override
+  String get settingsChangePassword => 'Change Master Password';
+
+  @override
+  String get settingsChangePasswordDesc => 'Update your vault password';
+
+  @override
+  String get settingsSecurity => 'Security';
+
+  @override
+  String get settingsAutoLockPrivacy => 'Auto-Lock & Privacy';
+
+  @override
+  String get settingsAutoLockPrivacyDesc =>
+      'Configure timeout and privacy settings';
+
+  @override
+  String get settingsVerifyPassword =>
+      'Enter your master password to access security settings.';
+
+  @override
+  String get settingsSensitivity => 'Sensitivity Level Settings';
+
+  @override
+  String get settingsSensitivityDesc => 'Configure field sensitivity';
+
+  @override
+  String get settingsOperationLog => 'Operation Log';
+
+  @override
+  String get settingsOperationLogDesc => 'View activity history';
+
+  @override
+  String get settingsSync => 'Sync';
+
+  @override
+  String get settingsCloudSync => 'Cloud Sync';
+
+  @override
+  String get settingsNotConfigured => 'Not configured';
+
+  @override
+  String get settingsOfflineMode => 'Offline Mode';
+
+  @override
+  String get settingsOfflineModeDesc => 'Local data only';
+
+  @override
+  String get settingsAiAssistant => 'AI Assistant';
+
+  @override
+  String get settingsLlmConfig => 'LLM Configuration';
+
+  @override
+  String get settingsLlmConfigDesc => 'Local model or cloud API';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsVersion => 'Version';
+
+  @override
+  String get settingsDebugLog => 'Debug Log';
+
+  @override
+  String get settingsDebugLogDesc => 'View debug log';
+
+  @override
+  String get settingsPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get settingsPrivacyPolicyDesc => 'View our privacy policy';
+
+  @override
+  String get settingsTermsOfService => 'Terms of Service';
+
+  @override
+  String get settingsTermsOfServiceDesc => 'View terms of service';
+
+  @override
+  String get settingsLocal => 'Local';
+
+  @override
+  String get settingsPrivate => 'Private';
+
+  @override
+  String get settingsUniversal => 'Universal';
+
+  @override
+  String get securityVaultSecurity => 'Vault Security';
+
+  @override
+  String get securityAutoLockDelay => 'Auto-Lock Delay';
+
+  @override
+  String get securityAutoLockDesc => 'Lock vault after inactivity';
+
+  @override
+  String get securityBiometricUnlock => 'Biometric Unlock';
+
+  @override
+  String get securityPrivacy => 'Privacy';
+
+  @override
+  String get securityAppPrivacyScreen => 'App Privacy Screen';
+
+  @override
+  String get securityAppPrivacyDesc => 'Hide content in app switcher';
+
+  @override
+  String get securityLockOnBlur => 'Lock on Window Blur';
+
+  @override
+  String get securityLockOnBlurDesc => 'Lock when switching apps';
+
+  @override
+  String get securityClipboard => 'Clipboard';
+
+  @override
+  String get securityAutoClearDelay => 'Auto-Clear Delay';
+
+  @override
+  String get securityAutoClearDesc =>
+      'Clear clipboard after copying sensitive data';
+
+  @override
+  String get sensitivityVerifyPassword =>
+      'Enter your master password to access sensitivity settings.';
+
+  @override
+  String get sensitivityCritical => 'Critical';
+
+  @override
+  String get sensitivityCriticalDesc =>
+      'Maximum sensitivity - always masked, requires verification';
+
+  @override
+  String get sensitivitySensitive => 'Sensitive';
+
+  @override
+  String get sensitivitySensitiveDesc =>
+      'Personal information requiring protection';
+
+  @override
+  String get sensitivityInternal => 'Internal';
+
+  @override
+  String get sensitivityInternalDesc =>
+      'Internal use only - can be hidden by display settings';
+
+  @override
+  String get sensitivityPublic => 'Public';
+
+  @override
+  String get sensitivityPublicDesc => 'Lowest sensitivity - always visible';
+
+  @override
+  String get syncSynchronizing => 'Synchronizing...';
+
+  @override
+  String get syncDeviceDiscovery => 'Device Discovery';
+
+  @override
+  String get syncManualConnection => 'Manual Connection';
+
+  @override
+  String get syncLastSync => 'Last Sync';
+
+  @override
+  String get syncStatus => 'Status';
+
+  @override
+  String get syncDirection => 'Direction';
+
+  @override
+  String get syncData => 'Data';
+
+  @override
+  String get syncError => 'Error';
+
+  @override
+  String get trashVerifyPassword =>
+      'Enter your master password to view the trash.';
+
+  @override
+  String get trashRestored => 'Restored ';
+
+  @override
+  String get trashPermanentlyDeleted => 'Permanently deleted ';
+
+  @override
+  String get operationLogVerifyPassword =>
+      'Enter your master password to view the operation log.';
+
+  @override
+  String get dataMgmtRestoreBackup => 'Restore Backup?';
+
+  @override
+  String get dataMgmtDeleteBackup => 'Delete Backup?';
+
+  @override
+  String get dataMgmtConfirmDeletion =>
+      'Enter your master password to confirm backup deletion.';
+
+  @override
+  String get llmApiEndpoint => 'API Endpoint';
+
+  @override
+  String get llmModel => 'Model';
+
+  @override
+  String get llmAnthropicVersion => 'Anthropic API Version';
+
+  @override
+  String get llmOpenAI => 'OpenAI';
+
+  @override
+  String get llmAnthropic => 'Anthropic';
+
+  @override
+  String get searchUnlock => 'Unlock';
+
+  @override
+  String get searchDeleted => 'Deleted';
+
+  @override
+  String get searchReveal => 'Reveal';
+
+  @override
+  String get searchRestrictedHint => 'Restricted - password required to view';
+
+  @override
+  String get searchPrivateHint => 'Private - reveal to view';
+
+  @override
+  String get sensitivityRestricted => 'Restricted';
+
+  @override
+  String get commonAdd => 'Add';
+
+  @override
+  String get commonCopy => 'Copy';
+
+  @override
+  String get dialogCurrentPassword => 'Current Password';
+
+  @override
+  String get dialogNewPassword => 'New Password';
+
+  @override
+  String get dialogConfirmNewPassword => 'Confirm New Password';
+
+  @override
+  String get dialogChange => 'Change';
+
+  @override
+  String get dialogLock => 'Lock';
+
+  @override
+  String get dialogVerifyIdentity => 'Verify Identity';
+
+  @override
+  String get dialogDeleteItem => 'Delete Item';
+
+  @override
+  String get dialogDeleteSection => 'Delete Section?';
+
+  @override
+  String get dialogDeleteSectionConfirm =>
+      'This section and its items will be moved to trash.';
+
+  @override
+  String get biometricTestTouchId => 'Test Touch ID';
+
+  @override
+  String get biometricTestFaceId => 'Test Face ID';
+
+  @override
+  String get dialogAddQuickAction => 'Add Quick Action';
+
+  @override
+  String get homePageEditorSections => 'Sections';
+
+  @override
+  String get homePageEditorIcon => 'Icon';
+
+  @override
+  String get homePageEditorSectionTitle => 'Section Title';
+
+  @override
+  String get settingsDeleteAccount => 'Delete Account';
+
+  @override
+  String get settingsDebugLogCopyTitle => 'Copy Logs to Clipboard';
+
+  @override
+  String get settingsDebugLogCopied => 'Sanitized logs copied to clipboard';
+
+  @override
+  String get settingsDebugLogTitle => 'Debug Log';
+
+  @override
+  String get dialogSelectFolder => 'Select This Folder';
+
+  @override
+  String get iconPickerTitle => 'Choose Icon';
+
+  @override
+  String get operationDetails => 'Operation Details';
+
+  @override
+  String get trashHistory => 'History';
+
+  @override
+  String dialogUseBiometric(String biometricType) {
+    return 'Use $biometricType';
+  }
+
+  @override
+  String dialogDeleteItemConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"?';
+  }
+
+  @override
+  String entryHistoryCount(int count) {
+    return 'History($count)';
+  }
+
+  @override
+  String biometricPasswordHint(String hint) {
+    return 'Password Hint: $hint';
+  }
+
+  @override
+  String get settingsUnknown => 'Unknown';
+
+  @override
+  String get settingsActive => 'Active';
+
+  @override
+  String get settingsCloudSyncSetup => 'Cloud sync setup';
+
+  @override
+  String get settingsComingSoon =>
+      'This feature will be available in a future update.';
+
+  @override
+  String get settingsTagline =>
+      'Your Local Digital Twin. Privacy-First Universal Identity.';
+
+  @override
+  String get settingsVerifyIdentityDebug =>
+      'Verify your identity to enable debug mode';
+
+  @override
+  String get loginNoPasswordHint => 'No password hint available';
+
+  @override
+  String get commonVerify => 'Verify';
+
+  @override
+  String get commonRefresh => 'Refresh';
+
+  @override
+  String get commonShowLess => 'Show less';
+
+  @override
+  String get debugLogCopyToClipboard => 'Copy to clipboard';
+
+  @override
+  String get debugLogDisable => 'Disable debug mode';
+
+  @override
+  String get debugLogEmpty => 'No debug logs available.';
+
+  @override
+  String get deleteAccountEnterPassword => 'Enter password to confirm';
+
+  @override
+  String get deleteAccountPasswordRequired => 'Password is required';
+
+  @override
+  String get deleteAccountInvalidPassword => 'Invalid password';
+
+  @override
+  String get pageEditorPageTitleHint => 'Page title';
+
+  @override
+  String get pageEditorSaveFirst => 'Save the page first to add sections';
+
+  @override
+  String get pageEditorNoSections => 'No sections yet';
+
+  @override
+  String get pageEditorEnterSectionTitle => 'Enter section title';
+
+  @override
+  String get pageEditorEditSectionTitle => 'Edit Section';
+
+  @override
+  String get folderPickerGoUp => 'Go up';
+
+  @override
+  String get headerLockSensitivity => 'Lock Sensitivity Access';
+
+  @override
+  String get datePickerClear => 'Clear date';
+
+  @override
+  String get entryCopyAll => 'Copy All';
+
+  @override
+  String get entryNoHistory => 'No history yet';
+
+  @override
+  String get operationViewDetails => 'View details';
+
+  @override
+  String get scanStopScan => 'Stop scan';
+
+  @override
+  String get settingsNoHintAvailable => 'No hint available';
+
+  @override
+  String get sensitiveRestrictedMessage =>
+      'Restricted field. Enter your master password to view.';
+
+  @override
+  String get syncUnknownError => 'Unknown error';
+
+  @override
+  String get syncScanning => 'Scanning...';
+
+  @override
+  String get syncScan => 'Scan';
+
+  @override
+  String get syncSyncing => 'Syncing...';
+
+  @override
+  String get syncConnectSync => 'Connect & Sync';
+
+  @override
+  String get scanMappingBoth => 'AI+Rule';
+
+  @override
+  String get scanMappingAi => 'AI';
+
+  @override
+  String get mrzDocumentType => 'Document Type';
+
+  @override
+  String get mrzDocumentNumber => 'Document Number';
+
+  @override
+  String get mrzSurname => 'Surname';
+
+  @override
+  String get mrzGivenNames => 'Given Names';
+
+  @override
+  String get mrzNationality => 'Nationality';
+
+  @override
+  String get mrzDateOfBirth => 'Date of Birth';
+
+  @override
+  String get mrzSex => 'Sex';
+
+  @override
+  String get mrzExpiryDate => 'Expiry Date';
+
+  @override
+  String get changePasswordMinLength => 'Minimum 8 characters';
+
+  @override
+  String get operationActionCreate => 'Create';
+
+  @override
+  String get operationActionUpdate => 'Update';
+
+  @override
+  String get operationActionDelete => 'Delete';
+
+  @override
+  String get operationActionRestore => 'Restore';
+
+  @override
+  String get operationActionPurge => 'Purge';
+
+  @override
+  String get operationPlatformAndroid => 'Android';
+
+  @override
+  String get operationPlatformWeb => 'Web';
+
+  @override
+  String get operationLabelTimestamp => 'Timestamp';
+
+  @override
+  String get operationLabelAction => 'Action';
+
+  @override
+  String get operationLabelSection => 'Section';
+
+  @override
+  String get operationLabelFieldPath => 'Field Path';
+
+  @override
+  String get operationLabelDescription => 'Description';
+
+  @override
+  String get operationLabelDevice => 'Device';
+
+  @override
+  String get versionCurrentVersion => 'Current Version';
+
+  @override
+  String get versionLatestVersion => 'Latest Version';
+
+  @override
+  String get versionUpdateStatus => 'Update Status';
+
+  @override
+  String get versionPlatform => 'Platform';
+
+  @override
+  String get accountCreated => 'Created';
+
+  @override
+  String get accountLastLogin => 'Last Login';
+
+  @override
+  String get accountLastOperation => 'Last Operation';
+
+  @override
+  String get accountLoginDevices => 'Login Devices';
+
+  @override
+  String get homeDefaultPages => 'Default Pages';
+
+  @override
+  String get homeCustomizedPages => 'Customized Pages';
+
+  @override
+  String get trashDetailLabel => 'Details';
+
+  @override
+  String get trashRestoreLabel => 'Restore';
+
+  @override
+  String get trashPurgeLabel => 'Purge';
+
+  @override
+  String get commonTitle => 'Title';
+
+  @override
+  String predefinedUnknownType(String type) {
+    return 'Unknown type: $type';
+  }
+
+  @override
+  String get commonShowPassword => 'Show password';
+
+  @override
+  String get commonHidePassword => 'Hide password';
+
+  @override
+  String get objectCardAddItem => 'Add Item';
+
+  @override
+  String get dataManagementRestoreBackupTooltip => 'Restore';
+
+  @override
+  String get dataManagementSpecialBackupTooltip => 'Save as special backup';
 }

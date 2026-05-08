@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// Password input section for the login page.
 /// Displays the selected account, password field, unlock button, and biometric option.
@@ -192,6 +193,7 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return TextFormField(
@@ -201,8 +203,8 @@ class _PasswordField extends StatelessWidget {
       textInputAction: TextInputAction.done,
       onFieldSubmitted: (_) => onUnlock(),
       decoration: InputDecoration(
-        labelText: 'Master Password',
-        hintText: 'Enter your password',
+        labelText: l10n.loginMasterPassword,
+        hintText: l10n.loginEnterPassword,
         labelStyle: TextStyle(
           color: hasError
               ? Colors.red.shade700
@@ -282,7 +284,7 @@ class _PasswordField extends StatelessWidget {
               onPressed: () => onShowPasswordHint(
                 selectedAccount.passwordHint ?? 'No password hint available',
               ),
-              tooltip: 'Show password hint',
+              tooltip: l10n.settingsShowPasswordHint,
             ),
             IconButton(
               constraints: const BoxConstraints(),

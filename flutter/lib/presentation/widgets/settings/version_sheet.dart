@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/pages/settings_page.dart'
     show latestVersionProvider;
 import 'settings_common.dart';
@@ -103,7 +104,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                     onTap: _handleCurrentVersionTap,
                     child: VersionInfoTile(
                       icon: Icons.info_outline,
-                      title: 'Current Version',
+                      title: AppLocalizations.of(context).versionCurrentVersion,
                       value: widget.packageInfo.when(
                         data: (info) => '${info.version}${_tapCount > 0 ? ' ($_tapCount)' : ''}',
                         loading: () => '...',
@@ -131,7 +132,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                   const Divider(height: 1),
                   VersionInfoTile(
                     icon: Icons.cloud_download_outlined,
-                    title: 'Latest Version',
+                    title: AppLocalizations.of(context).versionLatestVersion,
                     value: latestVersion,
                   ),
                   const Divider(height: 1),
@@ -149,7 +150,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                         icon: isUpToDate
                             ? Icons.check_circle_outline
                             : Icons.update_outlined,
-                        title: 'Update Status',
+                        title: AppLocalizations.of(context).versionUpdateStatus,
                         value: isUpToDate ? 'Up to date' : 'Update available',
                       );
                     },
@@ -157,7 +158,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                   const Divider(height: 1),
                   VersionInfoTile(
                     icon: Icons.phone_android,
-                    title: 'Platform',
+                    title: AppLocalizations.of(context).versionPlatform,
                     value:
                         Platform.isMacOS
                             ? 'macOS'

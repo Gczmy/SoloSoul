@@ -204,10 +204,11 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
   }
 
   void _showNoResultsDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('No Results Found'),
+        title: Text(l10n.localSearchNoResults),
         content: const Text(
           'No personal information was found in the scanned files. '
           'Try using "Full text parsing" mode or adding more folders.',
@@ -218,7 +219,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
               Navigator.of(ctx).pop();
               context.pop();
             },
-            child: const Text('OK'),
+            child: Text(l10n.settingsOk),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
@@ -28,6 +29,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final deletedAt = object.deletedAt;
     final daysRemaining = deletedAt != null
@@ -141,7 +143,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                       _ActionButtonWidget(
                         narrow: narrow,
                         icon: Icons.info_outline,
-                        label: 'Details',
+                        label: l10n.trashDetailLabel,
                         onPressed: () => _showDetailDialog(context, ref),
                       ),
                       const SizedBox(width: 4),
@@ -163,14 +165,14 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                       _ActionButtonWidget(
                         narrow: narrow,
                         icon: Icons.restore_from_trash,
-                        label: 'Restore',
+                        label: l10n.trashRestoreLabel,
                         onPressed: onRestore,
                       ),
                       const SizedBox(width: 4),
                       _ActionButtonWidget(
                         narrow: narrow,
                         icon: Icons.delete_forever,
-                        label: 'Purge',
+                        label: l10n.trashPurgeLabel,
                         onPressed: onPurge,
                         color: AppTheme.errorColor,
                       ),
@@ -188,6 +190,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
 
 
   void _showDetailDialog(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final fieldPrefix = fieldPrefixForTypeId(object.typeId ?? '');
     final deletedAt = object.deletedAt;
     showDialog(
@@ -296,7 +299,7 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: Text(l10n.commonClose),
           ),
         ],
       ),
@@ -335,6 +338,7 @@ class _HistoryButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hasHist = count > 0;
     final iconColor = hasHist
         ? null
@@ -377,7 +381,7 @@ class _HistoryButtonWidget extends StatelessWidget {
                 ),
         padding: const EdgeInsets.all(2),
         constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-        tooltip: hasHist ? 'History ($count)' : 'No history yet',
+        tooltip: hasHist ? l10n.entryHistoryCount(count) : l10n.entryNoHistory,
       );
     }
 
@@ -390,7 +394,7 @@ class _HistoryButtonWidget extends StatelessWidget {
                 type: SnackBarType.info,
               ),
       icon: stackIcon,
-      label: const Text('History'),
+      label: Text(l10n.trashHistory),
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         minimumSize: Size.zero,

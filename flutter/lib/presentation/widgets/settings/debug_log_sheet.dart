@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart'
     show DebugLogger, LogLevel, LogEntry;
@@ -35,10 +36,11 @@ class DebugLogSheetState extends State<DebugLogSheet> {
   }
 
   Future<void> _copyToClipboard() async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Copy Logs to Clipboard'),
+        title: Text(l10n.settingsDebugLogCopyTitle),
         content: const Text(
           'Logs will be sanitized before copying, but clipboard content '
           'is accessible to all apps on this device.\n\n'
@@ -47,11 +49,11 @@ class DebugLogSheetState extends State<DebugLogSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Copy'),
+            child: Text(l10n.commonCopy),
           ),
         ],
       ),
@@ -63,11 +65,11 @@ class DebugLogSheetState extends State<DebugLogSheet> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
-            SizedBox(width: 12),
-            Text('Sanitized logs copied to clipboard'),
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Text(l10n.settingsDebugLogCopied),
           ],
         ),
         backgroundColor: AppTheme.successColor,
@@ -83,6 +85,7 @@ class DebugLogSheetState extends State<DebugLogSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Container(
@@ -135,13 +138,13 @@ class DebugLogSheetState extends State<DebugLogSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Debug Log', style: theme.textTheme.titleLarge),
+                Text(l10n.settingsDebugLogTitle, style: theme.textTheme.titleLarge),
                 Row(
                   children: [
                     IconButton(
                       icon: const Icon(Icons.refresh),
                       onPressed: _loadLog,
-                      tooltip: 'Refresh',
+                      tooltip: l10n.commonRefresh,
                     ),
                     IconButton(
                       icon: const Icon(Icons.copy),
@@ -149,7 +152,7 @@ class DebugLogSheetState extends State<DebugLogSheet> {
                         await _copyToClipboard();
                         if (context.mounted) Navigator.pop(context);
                       },
-                      tooltip: 'Copy to clipboard',
+                      tooltip: l10n.debugLogCopyToClipboard,
                     ),
                     IconButton(
                       icon: const Icon(Icons.power_settings_new),
@@ -157,7 +160,7 @@ class DebugLogSheetState extends State<DebugLogSheet> {
                         await widget.onDisableDebugMode();
                         if (context.mounted) Navigator.pop(context);
                       },
-                      tooltip: 'Disable debug mode',
+                      tooltip: l10n.debugLogDisable,
                       color: Colors.red,
                     ),
                   ],
@@ -218,7 +221,7 @@ class _LogTextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
       return Text(
-        'No debug logs available.',
+        AppLocalizations.of(context).debugLogEmpty,
         style: TextStyle(
           fontFamily: 'monospace',
           fontSize: 11,

@@ -104,7 +104,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     await verifyPasswordAndGrantAccess(
       context: context,
       ref: ref,
-      message: 'Enter your master password to access sensitivity settings.',
+      message: AppLocalizations.of(context).sensitivityVerifyPassword,
     );
   }
 
@@ -501,6 +501,7 @@ class _SensitivitySettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final publicFields = sections[SensitivityLevel.public]!;
     final internalFields = sections[SensitivityLevel.internal]!;
     final sensitiveFields = sections[SensitivityLevel.sensitive]!;
@@ -609,8 +610,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Critical Section (Highest)
                       if (criticalFields.isNotEmpty)
                         _SensitivitySection(
-                          title: 'Critical',
-                          subtitle: 'Maximum sensitivity - always masked, requires verification',
+                          title: l10n.sensitivityCritical,
+                          subtitle: l10n.sensitivityCriticalDesc,
                           icon: Icons.shield,
                           color: Colors.red.shade900,
                           fields: criticalFields,
@@ -624,8 +625,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Sensitive Section
                       if (sensitiveFields.isNotEmpty)
                         _SensitivitySection(
-                          title: 'Sensitive',
-                          subtitle: 'Personal information requiring protection',
+                          title: l10n.sensitivitySensitive,
+                          subtitle: l10n.sensitivitySensitiveDesc,
                           icon: Icons.visibility_off,
                           color: Colors.orange,
                           fields: sensitiveFields,
@@ -640,8 +641,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Internal Section
                       if (internalFields.isNotEmpty)
                         _SensitivitySection(
-                          title: 'Internal',
-                          subtitle: 'Internal use only - can be hidden by display settings',
+                          title: l10n.sensitivityInternal,
+                          subtitle: l10n.sensitivityInternalDesc,
                           icon: Icons.visibility,
                           color: Colors.blue,
                           fields: internalFields,
@@ -656,8 +657,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Public Section (Lowest)
                       if (publicFields.isNotEmpty)
                         _SensitivitySection(
-                          title: 'Public',
-                          subtitle: 'Lowest sensitivity - always visible',
+                          title: l10n.sensitivityPublic,
+                          subtitle: l10n.sensitivityPublicDesc,
                           icon: Icons.public,
                           color: Colors.green,
                           fields: publicFields,

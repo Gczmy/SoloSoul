@@ -115,15 +115,16 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Widget _buildContent() {
+    final l10n = AppLocalizations.of(context);
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(40),
+      return Padding(
+        padding: const EdgeInsets.all(40),
         child: Center(
           child: Column(
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Recognizing text...'),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(l10n.ocrRecognizing),
             ],
           ),
         ),
@@ -185,7 +186,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
             defaultTargetPlatform == TargetPlatform.android) ...[
           _ActionButton(
             icon: Icons.camera_alt_outlined,
-            label: 'Take Photo',
+            label: AppLocalizations.of(context).ocrTakePhoto,
             description: 'Use camera to capture document',
             onTap: () => _pickImage(ImageSource.camera),
           ),
@@ -193,7 +194,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         ],
         _ActionButton(
           icon: Icons.folder_open_outlined,
-          label: 'Select Document',
+          label: AppLocalizations.of(context).ocrSelectDocument,
           description: 'Photo or PDF file',
           onTap: _pickDocument,
         ),
@@ -213,6 +214,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Widget _buildErrorState() {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -239,7 +241,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           FilledButton.icon(
             onPressed: () => setState(() => _errorMessage = null),
             icon: const Icon(Icons.refresh),
-            label: const Text('Try Again'),
+            label: Text(l10n.ocrTryAgain),
           ),
         ],
       ),
@@ -247,6 +249,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Widget _buildResultState() {
+    final l10n = AppLocalizations.of(context);
     final result = _result!;
 
     return Column(
@@ -307,7 +310,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               child: OutlinedButton.icon(
                 onPressed: () => setState(() => _result = null),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Rescan'),
+                label: Text(l10n.ocrRescan),
               ),
             ),
             const SizedBox(width: 12),
@@ -316,7 +319,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
                 child: FilledButton.icon(
                   onPressed: () => _saveMrzToVault(result.mrzData),
                   icon: const Icon(Icons.save),
-                  label: const Text('Save'),
+                  label: Text(l10n.commonSave),
                 ),
               )
             else
@@ -345,7 +348,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
                     }
                   },
                   icon: const Icon(Icons.download),
-                  label: const Text('Import'),
+                  label: Text(l10n.commonImport),
                 ),
               ),
           ],

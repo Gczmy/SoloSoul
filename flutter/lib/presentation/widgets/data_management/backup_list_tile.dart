@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/presentation/utils/format_utils.dart';
 
@@ -24,6 +25,7 @@ class BackupListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     if (isSpecial) {
@@ -45,17 +47,17 @@ class BackupListTile extends StatelessWidget {
           children: [
             IconButton(
               icon: const Icon(Icons.edit, size: 18),
-              tooltip: 'Rename',
+              tooltip: l10n.dataManagementRename,
               onPressed: onRename,
             ),
             IconButton(
               icon: const Icon(Icons.restore, size: 18),
-              tooltip: 'Restore',
+              tooltip: l10n.dataManagementRestoreBackupTooltip,
               onPressed: isRestoring ? null : onRestore,
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
-              tooltip: 'Delete',
+              tooltip: l10n.commonDelete,
               style: IconButton.styleFrom(
                 foregroundColor: theme.colorScheme.error,
                 overlayColor: theme.colorScheme.error.withValues(alpha: 0.1),
@@ -86,17 +88,17 @@ class BackupListTile extends StatelessWidget {
               size: 20,
               color: theme.colorScheme.secondary,
             ),
-            tooltip: 'Save as special backup',
+            tooltip: l10n.dataManagementSpecialBackupTooltip,
             onPressed: onPromote,
           ),
           IconButton(
             icon: const Icon(Icons.restore, size: 20),
-            tooltip: 'Restore',
+            tooltip: l10n.dataManagementRestoreBackupTooltip,
             onPressed: isRestoring ? null : onRestore,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, size: 20),
-            tooltip: 'Delete',
+            tooltip: l10n.commonDelete,
             style: IconButton.styleFrom(
               foregroundColor: theme.colorScheme.error,
               overlayColor: theme.colorScheme.error.withValues(alpha: 0.1),

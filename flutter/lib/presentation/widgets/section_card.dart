@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 class CollapsibleSectionCard extends StatefulWidget {
   final String title;
@@ -49,6 +50,7 @@ class _CollapsibleSectionCardState extends State<CollapsibleSectionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return GlassCard(
@@ -76,7 +78,7 @@ class _CollapsibleSectionCardState extends State<CollapsibleSectionCard> {
                   onPressed: widget.onAction,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip: 'Add',
+                  tooltip: l10n.commonAdd,
                 ),
             ],
           ),
@@ -152,6 +154,7 @@ class SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return GlassCard(
@@ -184,7 +187,7 @@ class SectionCard extends StatelessWidget {
                   onPressed: onAction,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip: 'Add',
+                  tooltip: l10n.commonAdd,
                 ),
             ],
           ),

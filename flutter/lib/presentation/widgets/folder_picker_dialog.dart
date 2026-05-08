@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 // =============================================================================
 // Folder Picker Dialog
@@ -89,6 +90,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Dialog(
@@ -131,7 +133,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_upward, size: 18),
-                    tooltip: 'Go up',
+                    tooltip: l10n.folderPickerGoUp,
                     onPressed: _goUp,
                   ),
                   const SizedBox(width: 4),
@@ -171,12 +173,12 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancel),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () => Navigator.of(context).pop(_currentPath),
-                  child: const Text('Select This Folder'),
+                  child: Text(l10n.dialogSelectFolder),
                 ),
               ],
             ),

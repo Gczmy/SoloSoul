@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/entry_configs.dart';
 export 'package:solosoul_flutter/core/models/entry_configs.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart'
     show authNotifierProvider, sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -20,13 +21,14 @@ class EntryActionBuilder {
     Widget? historyAction,
     Widget? attachmentAction,
   }) {
+    final l10n = AppLocalizations.of(context);
     final actions = <Widget>[];
 
     if (config.showCopy) {
       actions.add(
         buildButton(
           icon: Icons.copy_all,
-          tooltip: 'Copy All',
+          tooltip: l10n.entryCopyAll,
           onPressed: isSensitive
               ? () => _handleWithVerification(
                   context: context,
@@ -42,7 +44,7 @@ class EntryActionBuilder {
       actions.add(
         buildButton(
           icon: Icons.edit_outlined,
-          tooltip: 'Edit',
+          tooltip: l10n.commonEdit,
           onPressed: isSensitive
               ? () => _handleWithVerification(
                   context: context,
@@ -63,7 +65,7 @@ class EntryActionBuilder {
       actions.add(
         buildButton(
           icon: Icons.delete_outline,
-          tooltip: 'Delete',
+          tooltip: l10n.commonDelete,
           onPressed: isSensitive
               ? () => _handleWithVerification(
                   context: context,

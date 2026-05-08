@@ -22,6 +22,7 @@ import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_it
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 
 /// Card displaying a Section and its Items.
@@ -321,6 +322,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Future<void> _deleteItem(String itemId) async {
+    final l10n = AppLocalizations.of(context);
     final item = ref.read(objectByIdProvider(itemId));
     if (item == null) return;
 
@@ -330,16 +332,16 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       builder: (context) {
         final theme = Theme.of(context);
         return AlertDialog(
-          title: const Text('Delete Item'),
-          content: Text('Are you sure you want to delete "$itemName"?'),
+          title: Text(l10n.dialogDeleteItem),
+          content: Text(l10n.dialogDeleteItemConfirm(itemName)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(l10n.commonCancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
+              child: Text(l10n.commonDelete, style: TextStyle(color: theme.colorScheme.error)),
             ),
           ],
         );
@@ -550,22 +552,23 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   void _deleteObject() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Section'),
+        title: Text(l10n.dialogDeleteSection),
         content: Text(
-          'Are you sure you want to delete "${widget.object.name}"?',
+          l10n.dialogDeleteItemConfirm(widget.object.name),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -575,7 +578,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(widget.object.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Section deleted')),
+          SnackBar(content: Text(l10n.workspaceSectionDeleted)),
         );
       }
     }
@@ -905,6 +908,7 @@ class _NewItemFormWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     if (customFormBuilder != null) {
@@ -959,12 +963,12 @@ class _NewItemFormWidget extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: onCancel,
-                child: const Text('Cancel'),
+                child: Text(l10n.commonCancel),
               ),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: hasChanges ? onSave : null,
-                child: const Text('Add'),
+                child: Text(l10n.commonAdd),
               ),
             ],
           ),
@@ -1008,6 +1012,7 @@ class _ItemEditModeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     if (customFormBuilder != null) {
@@ -1062,12 +1067,12 @@ class _ItemEditModeWidget extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: onCancel,
-                child: const Text('Cancel'),
+                child: Text(l10n.commonCancel),
               ),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: hasChanges ? onSave : null,
-                child: const Text('Save'),
+                child: Text(l10n.commonSave),
               ),
             ],
           ),

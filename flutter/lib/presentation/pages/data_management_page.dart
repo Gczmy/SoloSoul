@@ -177,7 +177,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   Future<void> _restoreBackup(BackupEntry entry) async {
     if (_accountId == null) return;
     final confirmed = await _showConfirmDialog(
-      title: 'Restore Backup?',
+      title: AppLocalizations.of(context).dataMgmtRestoreBackup,
       content: 'This will overwrite your current data with the backup from ${entry.displayTime}. '
           'A safety backup of the current state will be created first.',
       confirmLabel: 'Restore',
@@ -221,7 +221,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
     // Step 1: Confirm deletion
     final confirmed = await _showConfirmDialog(
-      title: 'Delete Backup?',
+      title: AppLocalizations.of(context).dataMgmtDeleteBackup,
       content: 'Delete backup from ${entry.displayTime}?',
       confirmLabel: 'Delete',
     );
@@ -234,7 +234,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     final password = await showPasswordVerificationDialog(
       context: context,
       ref: ref,
-      message: 'Enter your master password to confirm backup deletion.',
+      message: AppLocalizations.of(context).dataMgmtConfirmDeletion,
       passwordHint: selectedAccount?.passwordHint,
       onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
@@ -607,11 +607,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final totalSize = _backups.fold<int>(0, (s, e) => s + e.sizeBytes);
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: Text(AppLocalizations.of(context).dataManagementTitle),
+        title: Text(l10n.dataManagementTitle),
         actions: [
           if (_isCreating || _isRestoring || _isCreatingSpecial)
             const Padding(

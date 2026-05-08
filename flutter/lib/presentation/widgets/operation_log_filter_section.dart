@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/operation_filter_chip.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 class OperationLogFilterSection extends ConsumerWidget {
   final VoidCallback onClearAll;
@@ -30,6 +31,7 @@ class OperationLogFilterSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final actionFilters = ref.watch(logActionFilterProvider);
     final deviceFilters = ref.watch(logDeviceFilterProvider);
@@ -60,7 +62,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                   child: Row(
                     children: [
                       OperationFilterChip(
-                        label: 'Create',
+                        label: l10n.operationActionCreate,
                         icon: Icons.add_circle_outline,
                         isSelected: actionFilters.contains('create'),
                         color: AppTheme.successColor,
@@ -68,7 +70,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'Update',
+                        label: l10n.operationActionUpdate,
                         icon: Icons.edit_outlined,
                         isSelected: actionFilters.contains('update'),
                         color: AppTheme.primaryColor,
@@ -76,7 +78,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'Delete',
+                        label: l10n.operationActionDelete,
                         icon: Icons.delete_outline,
                         isSelected: actionFilters.contains('delete'),
                         color: Colors.orange.shade700,
@@ -84,7 +86,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'Restore',
+                        label: l10n.operationActionRestore,
                         icon: Icons.restore,
                         isSelected: actionFilters.contains('restore'),
                         color: Colors.blue,
@@ -92,7 +94,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'Purge',
+                        label: l10n.operationActionPurge,
                         icon: Icons.delete_forever,
                         isSelected: actionFilters.contains('purge'),
                         color: AppTheme.errorColor,
@@ -136,7 +138,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'Android',
+                        label: l10n.operationPlatformAndroid,
                         icon: Icons.phone_android,
                         isSelected: deviceFilters.contains('android'),
                         color: Colors.grey.shade700,
@@ -144,7 +146,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'Web',
+                        label: l10n.operationPlatformWeb,
                         icon: Icons.web,
                         isSelected: deviceFilters.contains('web'),
                         color: Colors.grey.shade700,
@@ -158,7 +160,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                 TextButton.icon(
                   onPressed: onClearAll,
                   icon: const Icon(Icons.clear_all, size: 16),
-                  label: const Text('Clear'),
+                  label: Text(l10n.operationLogClear),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: Size.zero,

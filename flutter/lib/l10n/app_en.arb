@@ -21,7 +21,11 @@
   "loginDataRecoveryTitle": "Data Recovery",
   "loginDataRecoveryMessage": "Your vault appears to be empty, but a backup exists from {time}. Would you like to restore from this backup?",
   "@loginDataRecoveryMessage": {
-    "placeholders": { "time": { "type": "String" } }
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "loginSkip": "Skip",
   "loginRestoreBackup": "Restore Backup",
@@ -33,7 +37,11 @@
   "loginBiometricIris": "Iris",
   "loginUnlockReason": "Unlock SoloSoul with {biometricType}",
   "@loginUnlockReason": {
-    "placeholders": { "biometricType": { "type": "String" } }
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
   },
   "loginBiometricFailed": "Biometric authentication failed or was cancelled",
   "loginUnlockFailedUsePassword": "Failed to unlock vault. Please use your master password.",
@@ -41,7 +49,11 @@
   "loginInvalidPassword": "Invalid master password",
   "loginUnlockFailed": "Unlock failed: {message}",
   "@loginUnlockFailed": {
-    "placeholders": { "message": { "type": "String" } }
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   "loginAccountNameRequired": "Account name is required",
   "loginPasswordsDoNotMatch": "Passwords do not match",
@@ -49,14 +61,22 @@
   "loginUnlockVaultFailed": "Failed to unlock vault. Please try again.",
   "loginPasswordHint": "Password Hint: {hint}",
   "@loginPasswordHint": {
-    "placeholders": { "hint": { "type": "String" } }
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
   },
   "loginNever": "Never",
   "loginToday": "Today",
   "loginYesterday": "Yesterday",
   "loginDaysAgo": "{count} days ago",
   "@loginDaysAgo": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "loginBackToAccountList": "Back to Account List",
   "loginAccountName": "Account Name",
@@ -73,7 +93,11 @@
   "loginCreateAccount": "Create Account",
   "loginLastAccessed": "Last accessed: {time}",
   "@loginLastAccessed": {
-    "placeholders": { "time": { "type": "String" } }
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "loginAccountListEmpty": "Account list empty",
   "loginCreateFirstAccount": "Create your first account to get started",
@@ -81,7 +105,11 @@
   "loginShowLess": "Show less",
   "loginShowAllAccounts": "Show all {count} accounts",
   "@loginShowAllAccounts": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "loginNoAccountsYet": "No accounts yet",
   "loginRecent": "Recent",
@@ -94,19 +122,31 @@
   "workspaceDeleteSection": "Delete Section",
   "workspaceDeleteSectionConfirm": "Are you sure you want to delete \"{name}\"?",
   "@workspaceDeleteSectionConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "workspaceDeletePageConfirm": "Are you sure you want to delete \"{name}\"? All {count} item(s) inside this page will also be moved to trash.",
   "@workspaceDeletePageConfirm": {
     "placeholders": {
-      "name": { "type": "String" },
-      "count": { "type": "int" }
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "workspaceSectionDeleted": "Section deleted",
   "workspaceMovedToTrash": "\"{name}\" moved to trash",
   "@workspaceMovedToTrash": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "workspaceAddSubPage": "Add Sub-Page",
   "workspaceAddSection": "Add Section",
@@ -120,11 +160,19 @@
   "objectEditorNameRequired": "Name is required",
   "objectEditorDuplicateProperties": "Duplicate property names: {names}",
   "@objectEditorDuplicateProperties": {
-    "placeholders": { "names": { "type": "String" } }
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
   },
   "objectEditorSaveFailed": "Failed to save: {message}",
   "@objectEditorSaveFailed": {
-    "placeholders": { "message": { "type": "String" } }
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   "objectEditorIcon": "Icon",
   "objectEditorName": "Name",
@@ -166,7 +214,11 @@
   "settingsEnableDebugModeDesc": "Enter your master password to enable Debug Log.",
   "settingsUseBiometric": "Use {biometricType}",
   "@settingsUseBiometric": {
-    "placeholders": { "biometricType": { "type": "String" } }
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
   },
   "settingsOr": "or",
   "settingsMasterPassword": "Master Password",
@@ -192,7 +244,11 @@
   "trashConfirmRestore": "Confirm Restore",
   "trashRestoreConfirm": "Restore \"{name}\"?",
   "@trashRestoreConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "trashConfirmPermanentDelete": "Confirm Permanent Delete",
   "trashSearchHint": "Search trash...",
@@ -203,12 +259,16 @@
   "syncPairingKeyCopied": "Pairing key copied to clipboard",
   "syncRemoteAddress": "Remote Address",
   "syncRemoteAddressHint": "192.168.1.5:9900",
-  "syncPairingKey": "Pairing Key (hex)",
+  "syncPairingKey": "Pairing Key",
   "syncPairingKeyHint": "Enter shared pairing key",
   "syncGenerateAndCopyKey": "Generate & Copy Key",
   "syncWithDevice": "Sync with {name}",
   "@syncWithDevice": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "syncButton": "Sync",
   "dataManagementTitle": "Data Management",
@@ -224,12 +284,20 @@
   "dataManagementRestoreBackupTitle": "Restore Special Backup?",
   "dataManagementRestoreBackupConfirm": "Restore special backup \"{name}\"?",
   "@dataManagementRestoreBackupConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "dataManagementDeleteBackupTitle": "Delete Special Backup?",
   "dataManagementDeleteBackupConfirm": "Delete special backup \"{name}\"?",
   "@dataManagementDeleteBackupConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "operationLogTitle": "Operation Log",
   "operationLogVerify": "Verify",
@@ -239,7 +307,11 @@
   "operationLogSearchHint": "Search logs...",
   "objectEditorDeletePropertyConfirm": "Are you sure you want to delete \"{name}\"?",
   "@objectEditorDeletePropertyConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "workspaceAddSectionButton": "Add Section",
   "workspaceEditPage": "Edit Page",
@@ -263,32 +335,56 @@
   "llmConfigOllamaModelNotInstalled": "Ollama is running, but model {model} is not installed\nInstalled models: {models}",
   "@llmConfigOllamaModelNotInstalled": {
     "placeholders": {
-      "model": { "type": "String" },
-      "models": { "type": "String" }
+      "model": {
+        "type": "String"
+      },
+      "models": {
+        "type": "String"
+      }
     }
   },
   "llmConfigLocalSuccess": "Local model connected successfully!",
   "llmConfigConnectionFailed": "Connection failed: {message}",
   "@llmConfigConnectionFailed": {
-    "placeholders": { "message": { "type": "String" } }
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigUnknownError": "Unknown error: {message}",
   "@llmConfigUnknownError": {
-    "placeholders": { "message": { "type": "String" } }
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigSaveFailed": "Save failed: {message}",
   "@llmConfigSaveFailed": {
-    "placeholders": { "message": { "type": "String" } }
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigDeleteTitle": "Delete Configuration",
   "llmConfigDeleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
   "@llmConfigDeleteConfirm": {
-    "placeholders": { "name": { "type": "String" } }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigExperimental": "Experimental",
   "llmConfigLoadFailed": "Load failed: {message}",
   "@llmConfigLoadFailed": {
-    "placeholders": { "message": { "type": "String" } }
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigInferenceBackend": "Inference Backend",
   "llmConfigModelName": "Model Name",
@@ -303,11 +399,19 @@
   "llmConfigTestConnection": "Test Connection",
   "llmConfigModelInfo": "Model: {model}",
   "@llmConfigModelInfo": {
-    "placeholders": { "model": { "type": "String" } }
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigEndpointInfo": "Endpoint: {endpoint}",
   "@llmConfigEndpointInfo": {
-    "placeholders": { "endpoint": { "type": "String" } }
+    "placeholders": {
+      "endpoint": {
+        "type": "String"
+      }
+    }
   },
   "llmConfigNoProfiles": "No cloud configurations yet",
   "llmConfigNoProfilesHint": "Tap the button below to create your first cloud API configuration",
@@ -399,21 +503,35 @@
   "scanAiMapping": "AI Smart Mapping",
   "llmStatsTotalFormatted": "Total: {total}",
   "@llmStatsTotalFormatted": {
-    "placeholders": { "total": { "type": "String" } }
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
   },
   "llmStatsModelSummary": "{count} models · Total {total} tokens",
   "@llmStatsModelSummary": {
     "placeholders": {
-      "count": { "type": "int" },
-      "total": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "String"
+      }
     }
   },
   "llmStatsModelDetail": "{provider} · {total} tokens · {count} calls",
   "@llmStatsModelDetail": {
     "placeholders": {
-      "provider": { "type": "String" },
-      "total": { "type": "String" },
-      "count": { "type": "int" }
+      "provider": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "ocrFieldName": "Name",
@@ -431,7 +549,9 @@
   "llmChatInferenceFailed": "Inference failed: {error}",
   "@llmChatInferenceFailed": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "sidebarHome": "Home",
@@ -454,11 +574,7 @@
   "sidebarPages": "PAGES",
   "sidebarDropToMakeRootPage": "Drop to make root page",
   "commonBack": "Back",
-  "commonSave": "Save",
-  "commonClose": "Close",
   "homeTitle": "Home",
-  "homeQuickActions": "Quick Actions",
-  "homeSecurityStatus": "Security Status",
   "homeEndToEndEncrypted": "End-to-End Encrypted",
   "homeEncryptionDesc": "AES-256-GCM + Argon2id",
   "homeLocalStorage": "Local Storage",
@@ -487,7 +603,6 @@
   "professionalAwards": "Awards",
   "professionalSkills": "Skills",
   "professionalLanguages": "Languages",
-  "commonClose": "Close",
   "localSearchTitle": "Local Search Import",
   "localSearchPaths": "Search Paths",
   "localSearchFileTypes": "File Types",
@@ -521,5 +636,233 @@
   "scanPreviewTitle": "Preview & Confirm",
   "scanPreviewNew": "New",
   "scanPreviewUpdate": "Update",
-  "scanPreviewImportAction": "Import action"
+  "scanPreviewImportAction": "Import action",
+  "settingsAccount": "Account",
+  "settingsCurrentAccount": "Current Account",
+  "settingsAllAccounts": "All Accounts",
+  "settingsDataManagement": "Data Management",
+  "settingsErrorLoadingAccounts": "Error loading accounts",
+  "settingsPleaseRestart": "Please restart the app",
+  "settingsAccess": "Access",
+  "settingsLockVault": "Lock Vault",
+  "settingsLockVaultDesc": "Lock now and require password",
+  "settingsChangePassword": "Change Master Password",
+  "settingsChangePasswordDesc": "Update your vault password",
+  "settingsSecurity": "Security",
+  "settingsAutoLockPrivacy": "Auto-Lock & Privacy",
+  "settingsAutoLockPrivacyDesc": "Configure timeout and privacy settings",
+  "settingsVerifyPassword": "Enter your master password to access security settings.",
+  "settingsSensitivity": "Sensitivity Level Settings",
+  "settingsSensitivityDesc": "Configure field sensitivity",
+  "settingsOperationLog": "Operation Log",
+  "settingsOperationLogDesc": "View activity history",
+  "settingsSync": "Sync",
+  "settingsCloudSync": "Cloud Sync",
+  "settingsNotConfigured": "Not configured",
+  "settingsOfflineMode": "Offline Mode",
+  "settingsOfflineModeDesc": "Local data only",
+  "settingsAiAssistant": "AI Assistant",
+  "settingsLlmConfig": "LLM Configuration",
+  "settingsLlmConfigDesc": "Local model or cloud API",
+  "settingsAbout": "About",
+  "settingsVersion": "Version",
+  "settingsDebugLog": "Debug Log",
+  "settingsDebugLogDesc": "View debug log",
+  "settingsPrivacyPolicy": "Privacy Policy",
+  "settingsPrivacyPolicyDesc": "View our privacy policy",
+  "settingsTermsOfService": "Terms of Service",
+  "settingsTermsOfServiceDesc": "View terms of service",
+  "settingsLocal": "Local",
+  "settingsPrivate": "Private",
+  "settingsUniversal": "Universal",
+  "securityVaultSecurity": "Vault Security",
+  "securityAutoLockDelay": "Auto-Lock Delay",
+  "securityAutoLockDesc": "Lock vault after inactivity",
+  "securityBiometricUnlock": "Biometric Unlock",
+  "securityPrivacy": "Privacy",
+  "securityAppPrivacyScreen": "App Privacy Screen",
+  "securityAppPrivacyDesc": "Hide content in app switcher",
+  "securityLockOnBlur": "Lock on Window Blur",
+  "securityLockOnBlurDesc": "Lock when switching apps",
+  "securityClipboard": "Clipboard",
+  "securityAutoClearDelay": "Auto-Clear Delay",
+  "securityAutoClearDesc": "Clear clipboard after copying sensitive data",
+  "sensitivityVerifyPassword": "Enter your master password to access sensitivity settings.",
+  "sensitivityCritical": "Critical",
+  "sensitivityCriticalDesc": "Maximum sensitivity - always masked, requires verification",
+  "sensitivitySensitive": "Sensitive",
+  "sensitivitySensitiveDesc": "Personal information requiring protection",
+  "sensitivityInternal": "Internal",
+  "sensitivityInternalDesc": "Internal use only - can be hidden by display settings",
+  "sensitivityPublic": "Public",
+  "sensitivityPublicDesc": "Lowest sensitivity - always visible",
+  "syncSynchronizing": "Synchronizing...",
+  "syncDeviceDiscovery": "Device Discovery",
+  "syncManualConnection": "Manual Connection",
+  "syncLastSync": "Last Sync",
+  "syncStatus": "Status",
+  "syncDirection": "Direction",
+  "syncData": "Data",
+  "syncError": "Error",
+  "trashVerifyPassword": "Enter your master password to view the trash.",
+  "trashRestored": "Restored ",
+  "trashPermanentlyDeleted": "Permanently deleted ",
+  "operationLogVerifyPassword": "Enter your master password to view the operation log.",
+  "dataMgmtRestoreBackup": "Restore Backup?",
+  "dataMgmtDeleteBackup": "Delete Backup?",
+  "dataMgmtConfirmDeletion": "Enter your master password to confirm backup deletion.",
+  "llmApiEndpoint": "API Endpoint",
+  "llmModel": "Model",
+  "llmAnthropicVersion": "Anthropic API Version",
+  "llmOpenAI": "OpenAI",
+  "llmAnthropic": "Anthropic",
+  "searchUnlock": "Unlock",
+  "searchDeleted": "Deleted",
+  "searchReveal": "Reveal",
+  "searchRestrictedHint": "Restricted - password required to view",
+  "searchPrivateHint": "Private - reveal to view",
+  "sensitivityRestricted": "Restricted",
+  "commonAdd": "Add",
+  "commonCopy": "Copy",
+  "dialogCurrentPassword": "Current Password",
+  "dialogNewPassword": "New Password",
+  "dialogConfirmNewPassword": "Confirm New Password",
+  "dialogChange": "Change",
+  "dialogLock": "Lock",
+  "dialogVerifyIdentity": "Verify Identity",
+  "dialogDeleteItem": "Delete Item",
+  "dialogDeleteSection": "Delete Section?",
+  "dialogDeleteSectionConfirm": "This section and its items will be moved to trash.",
+  "biometricTestTouchId": "Test Touch ID",
+  "biometricTestFaceId": "Test Face ID",
+  "dialogAddQuickAction": "Add Quick Action",
+  "homePageEditorSections": "Sections",
+  "homePageEditorIcon": "Icon",
+  "homePageEditorSectionTitle": "Section Title",
+  "settingsDeleteAccount": "Delete Account",
+  "settingsDebugLogCopyTitle": "Copy Logs to Clipboard",
+  "settingsDebugLogCopied": "Sanitized logs copied to clipboard",
+  "settingsDebugLogTitle": "Debug Log",
+  "dialogSelectFolder": "Select This Folder",
+  "iconPickerTitle": "Choose Icon",
+  "operationDetails": "Operation Details",
+  "trashHistory": "History",
+  "dialogUseBiometric": "Use {biometricType}",
+  "@dialogUseBiometric": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "dialogDeleteItemConfirm": "Are you sure you want to delete \"{name}\"?",
+  "@dialogDeleteItemConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "entryHistoryCount": "History({count})",
+  "@entryHistoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "biometricPasswordHint": "Password Hint: {hint}",
+  "@biometricPasswordHint": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsUnknown": "Unknown",
+  "settingsActive": "Active",
+  "settingsCloudSyncSetup": "Cloud sync setup",
+  "settingsComingSoon": "This feature will be available in a future update.",
+  "settingsTagline": "Your Local Digital Twin. Privacy-First Universal Identity.",
+  "settingsVerifyIdentityDebug": "Verify your identity to enable debug mode",
+  "loginNoPasswordHint": "No password hint available",
+  "commonVerify": "Verify",
+  "commonRefresh": "Refresh",
+  "commonShowLess": "Show less",
+  "debugLogCopyToClipboard": "Copy to clipboard",
+  "debugLogDisable": "Disable debug mode",
+  "debugLogEmpty": "No debug logs available.",
+  "deleteAccountEnterPassword": "Enter password to confirm",
+  "deleteAccountPasswordRequired": "Password is required",
+  "deleteAccountInvalidPassword": "Invalid password",
+  "pageEditorPageTitleHint": "Page title",
+  "pageEditorSaveFirst": "Save the page first to add sections",
+  "pageEditorNoSections": "No sections yet",
+  "pageEditorEnterSectionTitle": "Enter section title",
+  "pageEditorEditSectionTitle": "Edit Section",
+  "folderPickerGoUp": "Go up",
+  "headerLockSensitivity": "Lock Sensitivity Access",
+  "datePickerClear": "Clear date",
+  "entryCopyAll": "Copy All",
+  "entryNoHistory": "No history yet",
+  "operationViewDetails": "View details",
+  "scanStopScan": "Stop scan",
+  "settingsNoHintAvailable": "No hint available",
+  "sensitiveRestrictedMessage": "Restricted field. Enter your master password to view.",
+  "syncUnknownError": "Unknown error",
+  "syncScanning": "Scanning...",
+  "syncScan": "Scan",
+  "syncSyncing": "Syncing...",
+  "syncConnectSync": "Connect & Sync",
+  "scanMappingBoth": "AI+Rule",
+  "scanMappingAi": "AI",
+  "mrzDocumentType": "Document Type",
+  "mrzDocumentNumber": "Document Number",
+  "mrzSurname": "Surname",
+  "mrzGivenNames": "Given Names",
+  "mrzNationality": "Nationality",
+  "mrzDateOfBirth": "Date of Birth",
+  "mrzSex": "Sex",
+  "mrzExpiryDate": "Expiry Date",
+  "changePasswordMinLength": "Minimum 8 characters",
+  "operationActionCreate": "Create",
+  "operationActionUpdate": "Update",
+  "operationActionDelete": "Delete",
+  "operationActionRestore": "Restore",
+  "operationActionPurge": "Purge",
+  "operationPlatformAndroid": "Android",
+  "operationPlatformWeb": "Web",
+  "operationLabelTimestamp": "Timestamp",
+  "operationLabelAction": "Action",
+  "operationLabelSection": "Section",
+  "operationLabelFieldPath": "Field Path",
+  "operationLabelDescription": "Description",
+  "operationLabelDevice": "Device",
+  "versionCurrentVersion": "Current Version",
+  "versionLatestVersion": "Latest Version",
+  "versionUpdateStatus": "Update Status",
+  "versionPlatform": "Platform",
+  "accountCreated": "Created",
+  "accountLastLogin": "Last Login",
+  "accountLastOperation": "Last Operation",
+  "accountLoginDevices": "Login Devices",
+  "homeDefaultPages": "Default Pages",
+  "homeCustomizedPages": "Customized Pages",
+  "trashDetailLabel": "Details",
+  "trashRestoreLabel": "Restore",
+  "trashPurgeLabel": "Purge",
+  "commonTitle": "Title",
+  "predefinedUnknownType": "Unknown type: {type}",
+  "@predefinedUnknownType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "commonShowPassword": "Show password",
+  "commonHidePassword": "Hide password",
+  "objectCardAddItem": "Add Item",
+  "dataManagementRestoreBackupTooltip": "Restore",
+  "dataManagementSpecialBackupTooltip": "Save as special backup"
 }

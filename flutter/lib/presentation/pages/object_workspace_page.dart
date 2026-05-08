@@ -204,22 +204,23 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
   }
 
   void _deleteObject(UnifiedObject object) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Section'),
+        title: Text(l10n.workspaceDeleteSection),
         content: Text(
           'Are you sure you want to delete "${object.name}"?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
@@ -236,6 +237,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
   }
 
   void _deleteCurrentObject(UnifiedObject object) async {
+    final l10n = AppLocalizations.of(context);
     final descendantCount = UnifiedObjectService.instance
         .getDescendantIds(ref.read(unifiedObjectProvider).objects, object.id)
         .length;
@@ -243,7 +245,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(object.typeId == 'page' ? 'Delete Page' : 'Delete Section'),
+        title: Text(object.typeId == 'page' ? l10n.workspaceDeletePage : l10n.workspaceDeleteSection),
         content: Text(
           'Are you sure you want to delete "${object.name}"?'
           '${descendantCount > 0 ? '\n\nAll $descendantCount item(s) inside this ${object.typeId == 'page' ? 'page' : 'section'} will also be moved to trash.' : ''}',
@@ -251,12 +253,12 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.commonDelete),
           ),
         ],
       ),
