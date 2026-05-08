@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/llm/empty_profiles_state.dart';
 
 // =============================================================================
 // LLM Config Page
@@ -239,7 +240,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
               if (config.backendType == LlmBackendType.cloud) ...[
                 _SectionTitle(title: AppLocalizations.of(context).llmConfigCloudConfig),
                 if (config.cloudProfiles.isEmpty)
-                  const _EmptyProfilesState()
+                  const EmptyProfilesState()
                 else
                   RadioGroup<String>(
                     groupValue: config.activeCloudProfileId,
@@ -455,44 +456,6 @@ class _ProfileCard extends StatelessWidget {
 // =============================================================================
 // Empty State
 // =============================================================================
-
-class _EmptyProfilesState extends StatelessWidget {
-  const _EmptyProfilesState();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      color: theme.colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Icon(
-              Icons.cloud_off,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              AppLocalizations.of(context).llmConfigNoProfiles,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              AppLocalizations.of(context).llmConfigNoProfilesHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // =============================================================================
 // Profile Editor BottomSheet

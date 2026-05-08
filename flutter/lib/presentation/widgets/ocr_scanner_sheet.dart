@@ -300,57 +300,60 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
 
         const SizedBox(height: 20),
 
-        // 操作按钮
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => setState(() => _result = null),
-                icon: const Icon(Icons.refresh),
-                label: Text(l10n.ocrRescan),
-              ),
-            ),
-            const SizedBox(width: 12),
-            if (result is SmartOcrMrzResult)
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _saveMrzToVault(result.mrzData),
-                  icon: const Icon(Icons.save),
-                  label: Text(l10n.commonSave),
-                ),
-              )
-            else
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () {
-                    if (_result is SmartOcrTextResult) {
-                      final textResult = _result as SmartOcrTextResult;
-                      final filteredFields = <String, ExtractedField>{};
-                      for (final key in _selectedFieldKeys) {
-                        if (textResult.extraction.fields.containsKey(key)) {
-                          filteredFields[key] = textResult.extraction.fields[key]!;
-                        }
-                      }
-                      final filtered = SmartOcrTextResult(
-                        textResult.ocrResult,
-                        ExtractionResult(
-                          documentType: textResult.extraction.documentType,
-                          fields: filteredFields,
-                          rawText: textResult.extraction.rawText,
-                        ),
-                      );
-                      Navigator.of(context).pop(filtered);
-                    } else {
-                      Navigator.of(context).pop(_result);
-                    }
-                  },
-                  icon: const Icon(Icons.download),
-                  label: Text(l10n.commonImport),
-                ),
-              ),
-          ],
-        ),
+        _buildResultActions(context, l10n, result),
         const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildResultActions(BuildContext context, AppLocalizations l10n, dynamic result) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => setState(() => _result = null),
+            icon: const Icon(Icons.refresh),
+            label: Text(l10n.ocrRescan),
+          ),
+        ),
+        const SizedBox(width: 12),
+        if (result is SmartOcrMrzResult)
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () => _saveMrzToVault(result.mrzData),
+              icon: const Icon(Icons.save),
+              label: Text(l10n.commonSave),
+            ),
+          )
+        else
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () {
+                if (_result is SmartOcrTextResult) {
+                  final textResult = _result as SmartOcrTextResult;
+                  final filteredFields = <String, ExtractedField>{};
+                  for (final key in _selectedFieldKeys) {
+                    if (textResult.extraction.fields.containsKey(key)) {
+                      filteredFields[key] = textResult.extraction.fields[key]!;
+                    }
+                  }
+                  final filtered = SmartOcrTextResult(
+                    textResult.ocrResult,
+                    ExtractionResult(
+                      documentType: textResult.extraction.documentType,
+                      fields: filteredFields,
+                      rawText: textResult.extraction.rawText,
+                    ),
+                  );
+                  Navigator.of(context).pop(filtered);
+                } else {
+                  Navigator.of(context).pop(_result);
+                }
+              },
+              icon: const Icon(Icons.download),
+              label: Text(l10n.commonImport),
+            ),
+          ),
       ],
     );
   }

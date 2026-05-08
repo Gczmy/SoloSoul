@@ -26,14 +26,20 @@ class LlmConfigService {
   /// **绝不序列化**，仅在应用生命周期内存在内存中。
   final Map<String, String> _apiKeyVault = {};
 
+  /// In-memory config cache to avoid repeated Vault decryption.
+  final Map<String, _LlmConfig> _configCache = {};
+
   // ---------------------------------------------------------------------------
   // Load / Save
   // ---------------------------------------------------------------------------
 
   Future<_LlmConfig> _load(String accountId) async {
+    final cached = _configCache[accountId];
+    if (cached != null) return cached;
     final jsonStr = await _vault.loadSettingDecrypted(accountId);
     if (jsonStr == null) {
       SoloLog.d('LlmConfigService', '_load account=$accountId 无已存配置');
+      _configCache[accountId] = const _LlmConfig();
       return const _LlmConfig();
     }
     try {
@@ -70,6 +76,7 @@ class LlmConfigService {
         );
         // 保存迁移后的配置，确保下次加载时 id 一致
         await _save(accountId, migrated);
+        _configCache[accountId] = migrated;
         return migrated;
       }
       // 从加密配置中恢复 API Key 到内存保险库
@@ -78,14 +85,18 @@ class LlmConfigService {
           _apiKeyVault[p.apiKeyRef] = p.apiKey;
         }
       }
+      _configCache[accountId] = config;
       return config;
     } on Object catch (e, st) {
       SoloLog.e('LlmConfigService', '_load 配置解析失败，重置为默认', e, st);
+      _configCache[accountId] = const _LlmConfig();
       return const _LlmConfig();
     }
   }
 
   Future<void> _save(String accountId, _LlmConfig config) async {
+    // Update cache directly — avoids re-decryption on next _load.
+    _configCache[accountId] = config;
     // Guard: 若 Vault 未解锁，跳过持久化以避免 Unhandled Exception。
     // LLM 统计属于非关键数据，可在下次 Vault 解锁时重新恢复。
     if (!_vault.isVaultUnlocked()) {

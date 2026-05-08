@@ -24,7 +24,7 @@
 | S004 | P2     | 安全       | `lib/core/services/ocr_service.dart:90,159` | OCR 日志未通过 DebugLogger 门控 | `[x]` 已替换为 SoloLog |
 | S005 | P2     | 安全       | `lib/core/services/llm/llm_config_service.dart:25` | API Key 在整个会话期间存于内存 | `[ ]` 待修复 |
 | P002 | P2     | 性能       | `lib/core/services/profile_storage_service.dart:24` | Profile 缓存无界增长 | `[x]` 已添加 LRU 淘汰（max 3） |
-| P003 | P2     | 性能       | `lib/core/services/llm/llm_config_service.dart` | LLM 配置每次访问都从 Vault 解密 | `[ ]` 待修复 |
+| P003 | P2     | 性能       | `lib/core/services/llm/llm_config_service.dart` | LLM 配置每次访问都从 Vault 解密 | `[x]` 已添加 _configCache 内存缓存 |
 | D003 | P2     | 死代码     | `lib/presentation/widgets/llm/streaming_text_widget.dart` | 未被引用的 Widget | `[x]` 已删除 |
 | D004 | P2     | 死代码     | `lib/presentation/widgets/ocr_result_preview.dart` | 未被引用的 Widget | `[x]` 已删除 |
 | O004 | P2     | 优化       | `lib/core/services/scan/local_search_service.dart` | 1026 行（超 800 行限制） | `[ ]` 待修复 |
@@ -33,11 +33,11 @@
 | O007 | P2     | 优化       | `lib/presentation/providers/unified_object_provider.dart` | 936 行（超 800 行限制） | `[ ]` 待修复 |
 | O008 | P2     | 优化       | `lib/presentation/pages/login_page.dart` | 931 行（超 800 行限制） | `[ ]` 待修复 |
 | O009 | P2     | 优化       | `lib/presentation/pages/object_editor_page.dart` | 859 行（超 800 行限制） | `[ ]` 待修复 |
-| O010 | P2     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart` | 822 行（超 800 行限制） | `[ ]` 待修复 |
+| O010 | P2     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart` | 822→795 行 | `[x]` 已提取 EmptyProfilesState |
 | O011 | P2     | 优化       | `all_accounts_sheet.dart:25` / `current_account_sheet.dart:20` | 重复的 `_getDeviceIcon` 包装方法 | `[x]` 已删除重复方法，直接调用 getDeviceIcon() |
 | O012 | P2     | 优化       | `lib/presentation/widgets/operation_tile.dart:13` | `_showDetailDialog` 方法 107 行 | `[x]` 已提取 _buildPropertyList 方法 |
 | O013 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:148` | `_confirmEmptyTrash` 方法 108 行 | `[x]` 已提取 _performEmptyTrash 方法 |
-| O014 | P2     | 优化       | `lib/presentation/widgets/ocr_scanner_sheet.dart:251` | `_buildResultState` 方法 109 行 | `[ ]` 待修复 |
+| O014 | P2     | 优化       | `lib/presentation/widgets/ocr_scanner_sheet.dart:251` | `_buildResultState` 方法 109 行 | `[x]` 已提取 _buildResultActions |
 | O015 | P2     | 优化       | `lib/presentation/widgets/change_password_dialog.dart:196` | 5 个连续 early-return 可用提取方法简化 | `[x]` 可接受原样（每个校验条件不同，代码清晰） |
 | O016 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:215` | 两个相邻循环遍历同一集合可合并 | `[x]` 已合并为单次遍历 |
 | O017 | P2     | 优化       | `lib/presentation/providers/llm/llm_model_provider.dart:89` | 4 部分布尔表达式过密 | `[x]` 已提取为命名变量 |
@@ -47,7 +47,7 @@
 
 ## 修复进度
 
-- 已完成：19 / 35
+- 已完成：22 / 35
 - 当前处理：无
 
 ## 安全正面发现
