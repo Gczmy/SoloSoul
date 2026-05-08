@@ -47,6 +47,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   // Original image data for attachment saving
   Uint8List? _originalImageBytes;
   String? _originalImageName;
+  bool _saveAttachment = true;
 
   // LLM Assist 状态
   bool _useLlmAssist = false;
@@ -301,6 +302,22 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               });
             },
           ),
+
+        // Save attachment checkbox (MRZ result only)
+        if (result is SmartOcrMrzResult && _originalImageBytes != null) ...[
+          const SizedBox(height: 12),
+          CheckboxListTile(
+            dense: true,
+            value: _saveAttachment,
+            onChanged: (v) => setState(() => _saveAttachment = v!),
+            title: Text(
+              l10n.scanAttachFile,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+        ],
 
         const SizedBox(height: 20),
 
@@ -644,7 +661,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       ref,
       mrzData: mrzData,
       imageBytes: _originalImageBytes,
-      saveImage: _originalImageBytes != null,
+      saveImage: _saveAttachment && _originalImageBytes != null,
     );
 
     if (mounted) {
