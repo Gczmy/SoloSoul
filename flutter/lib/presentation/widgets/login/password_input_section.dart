@@ -55,7 +55,7 @@ class PasswordInputSection extends StatelessWidget {
         ),
         const SizedBox(height: 32),
         Text(
-          'Enter Master Password',
+          AppLocalizations.of(context).loginEnterMasterPassword,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -63,7 +63,7 @@ class PasswordInputSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Unlock your vault',
+          AppLocalizations.of(context).loginUnlockYourVault,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -282,7 +282,7 @@ class _PasswordField extends StatelessWidget {
                         : theme.colorScheme.onSurfaceVariant,
               ),
               onPressed: () => onShowPasswordHint(
-                selectedAccount.passwordHint ?? 'No password hint available',
+                selectedAccount.passwordHint ?? AppLocalizations.of(context).loginNoPasswordHint,
               ),
               tooltip: l10n.settingsShowPasswordHint,
             ),
@@ -307,10 +307,10 @@ class _PasswordField extends StatelessWidget {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your password';
+          return AppLocalizations.of(context).loginPleaseEnterPassword;
         }
         if (value.length < 8) {
-          return 'Password must be at least 8 characters';
+          return AppLocalizations.of(context).loginPasswordMinLength;
         }
         return null;
       },
@@ -380,7 +380,7 @@ class _UnlockButtonState extends State<_UnlockButton> {
                       ),
                     )
                   : Text(
-                      'Unlock',
+                      AppLocalizations.of(context).loginUnlockButton,
                       style: TextStyle(
                         color: isDark ? Colors.white : const Color(0xFF1F1F1F),
                         fontSize: 16,
@@ -454,7 +454,7 @@ class _BiometricButtonState extends State<_BiometricButton> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    widget.biometricType == 'Face ID'
+                    widget.biometricType == AppLocalizations.of(context).loginBiometricFaceId
                         ? Icons.face
                         : Icons.fingerprint,
                     size: 22,
@@ -462,7 +462,7 @@ class _BiometricButtonState extends State<_BiometricButton> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Use ${widget.biometricType}',
+                    AppLocalizations.of(context).loginUnlockReason(widget.biometricType),
                     style: TextStyle(
                       color: isDark ? Colors.white70 : const Color(0xFF6B6B6B),
                       fontSize: 15,

@@ -1178,5 +1178,12 @@
   "dataMgmtRegularBackups": "常规备份",
   "dataMgmtNoBackups": "暂无备份",
   "dataMgmtOperationRestoredSpecial": "恢复了特殊备份",
-  "loginDataYourControl": "您的数据，由您掌控"
+  "loginDataYourControl": "您的数据，由您掌控",
+  "loginEnterMasterPassword": "输入主密码",
+  "loginUnlockYourVault": "解锁您的保险库",
+  "loginUnlockButton": "解锁",
+  "loginNoPasswordRecovery": "没有密码恢复机制。如果您忘记了主密码，将无法访问您的数据。",
+  "loginPleaseEnterPassword": "请输入您的密码",
+  "securityBiometricUnlockSubtitle": "使用面容 ID / 触控 ID 解锁",
+  "securityBiometricNotAvailable": "此设备不支持生物识别"
 }

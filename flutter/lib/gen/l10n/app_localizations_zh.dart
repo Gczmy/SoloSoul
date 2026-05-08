@@ -2704,4 +2704,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get loginDataYourControl => '您的数据，由您掌控';
+
+  @override
+  String get loginEnterMasterPassword => '输入主密码';
+
+  @override
+  String get loginUnlockYourVault => '解锁您的保险库';
+
+  @override
+  String get loginUnlockButton => '解锁';
+
+  @override
+  String get loginNoPasswordRecovery => '没有密码恢复机制。如果您忘记了主密码，将无法访问您的数据。';
+
+  @override
+  String get loginPleaseEnterPassword => '请输入您的密码';
+
+  @override
+  String get securityBiometricUnlockSubtitle => '使用面容 ID / 触控 ID 解锁';
+
+  @override
+  String get securityBiometricNotAvailable => '此设备不支持生物识别';
 }

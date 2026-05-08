@@ -2773,4 +2773,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginDataYourControl => 'Your data, your control';
+
+  @override
+  String get loginEnterMasterPassword => 'Enter Master Password';
+
+  @override
+  String get loginUnlockYourVault => 'Unlock your vault';
+
+  @override
+  String get loginUnlockButton => 'Unlock';
+
+  @override
+  String get loginNoPasswordRecovery =>
+      'There is no password recovery. If you forget your master password, your data cannot be accessed.';
+
+  @override
+  String get loginPleaseEnterPassword => 'Please enter your password';
+
+  @override
+  String get securityBiometricUnlockSubtitle =>
+      'Use Face ID / Touch ID to unlock';
+
+  @override
+  String get securityBiometricNotAvailable =>
+      'Biometrics not available on this device';
 }

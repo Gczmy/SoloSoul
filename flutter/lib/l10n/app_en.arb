@@ -1572,5 +1572,12 @@
   "dataMgmtRegularBackups": "Regular Backups",
   "dataMgmtNoBackups": "No backups yet",
   "dataMgmtOperationRestoredSpecial": "Restored special backup",
-  "loginDataYourControl": "Your data, your control"
+  "loginDataYourControl": "Your data, your control",
+  "loginEnterMasterPassword": "Enter Master Password",
+  "loginUnlockYourVault": "Unlock your vault",
+  "loginUnlockButton": "Unlock",
+  "loginNoPasswordRecovery": "There is no password recovery. If you forget your master password, your data cannot be accessed.",
+  "loginPleaseEnterPassword": "Please enter your password",
+  "securityBiometricUnlockSubtitle": "Use Face ID / Touch ID to unlock",
+  "securityBiometricNotAvailable": "Biometrics not available on this device"
 }

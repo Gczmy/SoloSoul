@@ -176,8 +176,8 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                         icon: Icons.fingerprint,
                         title: l10n.securityBiometricUnlock,
                         subtitle: _biometricsAvailable
-                            ? 'Use Face ID / Touch ID to unlock'
-                            : 'Biometrics not available on this device',
+                            ? l10n.securityBiometricUnlockSubtitle
+                            : l10n.securityBiometricNotAvailable,
                         value: _biometricsEnabled,
                         enabled: _biometricsAvailable,
                         onChanged: (value) => _onBiometricsToggled(value),

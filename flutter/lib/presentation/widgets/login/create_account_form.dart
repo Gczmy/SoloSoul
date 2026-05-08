@@ -53,7 +53,7 @@ class CreateAccountForm extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Create New Account',
+          AppLocalizations.of(context).loginCreateNewAccount,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -210,7 +210,7 @@ class CreateAccountForm extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'There is no password recovery. If you forget your master password, your data cannot be accessed.',
+                  AppLocalizations.of(context).loginNoPasswordRecovery,
                   style: TextStyle(color: Colors.orange.shade900, fontSize: 13),
                 ),
               ),
@@ -305,7 +305,7 @@ class _HoverableCreateButtonState extends State<_HoverableCreateButton> {
                       ),
                     )
                   : Text(
-                      'Create Account',
+                      AppLocalizations.of(context).loginCreateAccount,
                       style: TextStyle(
                         color: widget.isDark
                             ? Colors.white

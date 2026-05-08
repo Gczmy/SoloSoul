@@ -5125,6 +5125,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your data, your control'**
   String get loginDataYourControl;
+
+  /// No description provided for @loginEnterMasterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Master Password'**
+  String get loginEnterMasterPassword;
+
+  /// No description provided for @loginUnlockYourVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock your vault'**
+  String get loginUnlockYourVault;
+
+  /// No description provided for @loginUnlockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get loginUnlockButton;
+
+  /// No description provided for @loginNoPasswordRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no password recovery. If you forget your master password, your data cannot be accessed.'**
+  String get loginNoPasswordRecovery;
+
+  /// No description provided for @loginPleaseEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get loginPleaseEnterPassword;
+
+  /// No description provided for @securityBiometricUnlockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Face ID / Touch ID to unlock'**
+  String get securityBiometricUnlockSubtitle;
+
+  /// No description provided for @securityBiometricNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics not available on this device'**
+  String get securityBiometricNotAvailable;
 }
 
 class _AppLocalizationsDelegate
