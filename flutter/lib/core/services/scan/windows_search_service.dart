@@ -80,11 +80,20 @@ class WindowsSearchService {
     List<String> extensions, {
     int maxFiles = 500,
   }) async {
+    // Validate path against injection — PowerShell command uses string
+    // interpolation so we must reject metacharacters before building cmd.
+    if (!_isSafePath(rootPath)) {
+      SoloLog.w('WindowsSearch', 'Rejected unsafe path: $rootPath');
+      return [];
+    }
+
     final results = <ScannedFile>[];
 
     try {
+      // Escape double-quotes in the validated path for PowerShell.
+      final safePath = rootPath.replaceAll('"', '`"');
       final extList = extensions.map((e) => '*$e').join(',');
-      final cmd = 'Get-ChildItem -Path "$rootPath" -Recurse -Include $extList '
+      final cmd = 'Get-ChildItem -Path "$safePath" -Recurse -Include $extList '
           '-File -ErrorAction SilentlyContinue | Select-Object -First 200 | '
           r'ForEach-Object { "$($_.FullName)|$($_.Length)|$($_.LastWriteTimeUtc.Ticks)" }';
       final result = await Process.run('powershell', [
@@ -146,5 +155,12 @@ class WindowsSearchService {
   static String _extension(String path) {
     final idx = path.lastIndexOf('.');
     return idx >= 0 ? path.substring(idx).toLowerCase() : '';
+  }
+
+  /// Reject paths containing PowerShell metacharacters to prevent injection.
+  static bool _isSafePath(String path) {
+    // Allow only alphanumeric, common path separators, whitespace, and
+    // standard Windows path characters (colon for drive letter, etc.).
+    return RegExp(r'^[a-zA-Z0-9_:\\\/\.\-\s]+$').hasMatch(path);
   }
 }
