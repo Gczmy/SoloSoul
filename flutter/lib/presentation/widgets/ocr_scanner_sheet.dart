@@ -44,6 +44,10 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   SmartOcrResult? _result;
   Set<String> _selectedFieldKeys = {};
 
+  // Original image data for attachment saving
+  Uint8List? _originalImageBytes;
+  String? _originalImageName;
+
   // LLM Assist 状态
   bool _useLlmAssist = false;
   String? _selectedModelId;
@@ -377,6 +381,9 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
 
     try {
       final bytes = await picked.readAsBytes();
+      // Store for potential attachment saving
+      _originalImageBytes = bytes;
+      _originalImageName = picked.name;
 
       // Step 1: 通用 OCR 识别
       final ocrResult = await OcrService.recognizeText(Uint8List.fromList(bytes));
@@ -633,7 +640,12 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Future<void> _saveMrzToVault(MrzData mrzData) async {
-    final result = await MrzVaultService.saveMrzToVault(ref, mrzData: mrzData);
+    final result = await MrzVaultService.saveMrzToVault(
+      ref,
+      mrzData: mrzData,
+      imageBytes: _originalImageBytes,
+      saveImage: _originalImageBytes != null,
+    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
