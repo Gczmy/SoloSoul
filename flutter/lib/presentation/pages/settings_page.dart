@@ -713,7 +713,7 @@ void _showLanguagePicker(BuildContext context, WidgetRef ref) {
             ),
             const Divider(height: 1),
             ListTile(
-              leading: const Text('🇺🇸', style: TextStyle(fontSize: 20)),
+              leading: const Icon(Icons.language, size: 24),
               title: Text(l10n.settingsLanguageEnglish),
               trailing: currentCode == 'en'
                   ? Icon(Icons.check, color: Theme.of(ctx).colorScheme.primary)
@@ -725,7 +725,7 @@ void _showLanguagePicker(BuildContext context, WidgetRef ref) {
             ),
             const Divider(height: 1, indent: 56),
             ListTile(
-              leading: const Text('🇨🇳', style: TextStyle(fontSize: 20)),
+              leading: const Icon(Icons.language, size: 24),
               title: Text(l10n.settingsLanguageChinese),
               trailing: currentCode == 'zh'
                   ? Icon(Icons.check, color: Theme.of(ctx).colorScheme.primary)
