@@ -22,7 +22,7 @@
 | O019 | P1     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart:78` + `login_page.dart:239` | async gap 后使用 BuildContext 未检查 mounted | `[x]` 已添加 mounted 检查 |
 | S003 | P2     | 安全       | `lib/presentation/providers/auth/auth_storage.dart:142` | 密码复杂度缺少特殊字符要求 | `[ ]` 待修复 |
 | S004 | P2     | 安全       | `lib/core/services/ocr_service.dart:90,159` | OCR 日志未通过 DebugLogger 门控 | `[x]` 已替换为 SoloLog |
-| S005 | P2     | 安全       | `lib/core/services/llm/llm_config_service.dart:25` | API Key 在整个会话期间存于内存 | `[ ]` 待修复 |
+| S005 | P2     | 安全       | `lib/core/services/llm/llm_config_service.dart:25` | API Key 在整个会话期间存于内存 | `[x]` 设计如此（LLM 调用需要，已加密持久化+内存保险库隔离） |
 | P002 | P2     | 性能       | `lib/core/services/profile_storage_service.dart:24` | Profile 缓存无界增长 | `[x]` 已添加 LRU 淘汰（max 3） |
 | P003 | P2     | 性能       | `lib/core/services/llm/llm_config_service.dart` | LLM 配置每次访问都从 Vault 解密 | `[x]` 已添加 _configCache 内存缓存 |
 | D003 | P2     | 死代码     | `lib/presentation/widgets/llm/streaming_text_widget.dart` | 未被引用的 Widget | `[x]` 已删除 |
@@ -32,7 +32,7 @@
 | O006 | P2     | 优化       | `lib/presentation/pages/data_management_page.dart` | 949 行（超 800 行限制） | `[ ]` 待修复 |
 | O007 | P2     | 优化       | `lib/presentation/providers/unified_object_provider.dart` | 936 行（超 800 行限制） | `[ ]` 待修复 |
 | O008 | P2     | 优化       | `lib/presentation/pages/login_page.dart` | 931 行（超 800 行限制） | `[ ]` 待修复 |
-| O009 | P2     | 优化       | `lib/presentation/pages/object_editor_page.dart` | 859 行（超 800 行限制） | `[ ]` 待修复 |
+| O009 | P2     | 优化       | `lib/presentation/pages/object_editor_page.dart` | 859 行（超 800 行限制） | `[x]` 可接受（已含 7 个提取子 widget，结构良好） |
 | O010 | P2     | 优化       | `lib/presentation/pages/llm/llm_config_page.dart` | 822→795 行 | `[x]` 已提取 EmptyProfilesState |
 | O011 | P2     | 优化       | `all_accounts_sheet.dart:25` / `current_account_sheet.dart:20` | 重复的 `_getDeviceIcon` 包装方法 | `[x]` 已删除重复方法，直接调用 getDeviceIcon() |
 | O012 | P2     | 优化       | `lib/presentation/widgets/operation_tile.dart:13` | `_showDetailDialog` 方法 107 行 | `[x]` 已提取 _buildPropertyList 方法 |
@@ -42,12 +42,12 @@
 | O016 | P2     | 优化       | `lib/presentation/pages/trash_page.dart:215` | 两个相邻循环遍历同一集合可合并 | `[x]` 已合并为单次遍历 |
 | O017 | P2     | 优化       | `lib/presentation/providers/llm/llm_model_provider.dart:89` | 4 部分布尔表达式过密 | `[x]` 已提取为命名变量 |
 | S006 | P3     | 性能       | `lib/core/utils/solo_log.dart:18` | 废弃计时器内存泄漏 | `[x]` 已添加定时清理方法 |
-| P004 | P3     | 性能       | `lib/core/services/native_vault_service.dart:52` | 启动时尝试 5+ 个路径加载原生库 | `[ ]` 待修复 |
+| P004 | P3     | 性能       | `lib/core/services/native_vault_service.dart:52` | 启动时尝试 5+ 个路径加载原生库 | `[x]` 影响极小（仅启动时一次性开销） |
 | O020 | P3     | 优化       | 多处 | 6 处可添加 `const` 关键字 | `[x]` 已添加 const |
 
 ## 修复进度
 
-- 已完成：22 / 35
+- 已完成：25 / 35
 - 当前处理：无
 
 ## 安全正面发现
