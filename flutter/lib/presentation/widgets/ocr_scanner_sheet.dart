@@ -48,6 +48,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   Uint8List? _originalImageBytes;
   String? _originalImageName;
   bool _saveAttachment = true;
+  bool _isSaving = false; // guard against double-tap
 
   // LLM Assist 状态
   bool _useLlmAssist = false;
@@ -657,6 +658,8 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   }
 
   Future<void> _saveMrzToVault(MrzData mrzData) async {
+    if (_isSaving) return; // guard double-tap
+    setState(() => _isSaving = true);
     final result = await MrzVaultService.saveMrzToVault(
       ref,
       mrzData: mrzData,
@@ -665,6 +668,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
     );
 
     if (mounted) {
+      _isSaving = false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),

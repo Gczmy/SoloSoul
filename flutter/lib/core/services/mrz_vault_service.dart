@@ -37,7 +37,15 @@ class MrzVaultService {
     final notifier = ref.read(unifiedObjectProvider.notifier);
     final docType = mrzData.documentType;
 
-    if (docType.startsWith('P')) {
+    if (docType.startsWith('V')) {
+      return _createVisa(
+        ref,
+        notifier,
+        mrzData,
+        imageBytes: imageBytes,
+        saveImage: saveImage,
+      );
+    } else if (docType.startsWith('P')) {
       return _createPassport(
         ref,
         notifier,
@@ -141,6 +149,73 @@ class MrzVaultService {
     }
 
     return (success: true, message: 'Passport saved: ${mrz.documentNumber}');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Visa
+  // ---------------------------------------------------------------------------
+
+  static Future<({bool success, String message})> _createVisa(
+    WidgetRef ref,
+    UnifiedObjectNotifier notifier,
+    MrzData mrz, {
+    Uint8List? imageBytes,
+    bool saveImage = false,
+  }) async {
+    final properties = <String, PropertyValue>{
+      'title': TextProperty(
+        text: mrz.documentType,
+        sensitivity: SensitivityLevel.public,
+      ),
+      'country': TextProperty(
+        text: mrz.country,
+        sensitivity: SensitivityLevel.public,
+      ),
+      'visaType': TextProperty(
+        text: mrz.documentType,
+        sensitivity: SensitivityLevel.public,
+      ),
+      'number': TextProperty(
+        text: mrz.documentNumber,
+        sensitivity: SensitivityLevel.critical,
+      ),
+      'holderName': TextProperty(
+        text: '${mrz.surname} ${mrz.givenNames}'.trim(),
+        sensitivity: SensitivityLevel.public,
+      ),
+      'issueDate': DateProperty(
+        isoDate: parseMrzDate(mrz.dateOfBirth),
+        sensitivity: SensitivityLevel.internal,
+      ),
+      'expiryDate': DateProperty(
+        isoDate: parseMrzDate(mrz.expiryDate),
+        sensitivity: SensitivityLevel.internal,
+      ),
+    };
+
+    final objectId = await notifier.createObjectAndReturnId(
+      name: 'Visa ${mrz.country}',
+      typeId: 'travel_visa',
+      iconName: 'assignment_ind',
+      parentId: DefaultSectionIds.visa,
+      properties: properties,
+    );
+
+    if (objectId == null) {
+      return (success: false, message: 'Failed to save visa');
+    }
+
+    if (saveImage && imageBytes != null) {
+      await _saveAttachment(
+        ref: ref,
+        notifier: notifier,
+        objectId: objectId,
+        fileName: 'visa_scan_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        bytes: imageBytes,
+      );
+    }
+
+    return (success: true, message: 'Visa saved: ${mrz.documentNumber}');
   }
 
   // ---------------------------------------------------------------------------
