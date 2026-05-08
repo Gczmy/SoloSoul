@@ -456,6 +456,10 @@ class AccountManager {
         _selectedAccountInfo = result.account;
         _accountsVersion++;
         SecureAccountStorage.secureWipe(result.sessionKey!);
+        // Persist hint to Rust vault for reliable retrieval on next login
+        if (passwordHint != null && passwordHint.isNotEmpty) {
+          unawaited(_storage.updatePasswordHint(_selectedAccountId!, passwordHint));
+        }
         return (success: true, error: null);
       } else if (result.error != null) {
         return (success: false, error: result.error);
@@ -475,6 +479,10 @@ class AccountManager {
       lastAccessed: DateTime.now(),
       createdAt: DateTime.now(),
     );
+    // Persist hint to Rust vault for reliable retrieval on next login
+    if (passwordHint != null && passwordHint.isNotEmpty) {
+      unawaited(_storage.updatePasswordHint(_selectedAccountId!, passwordHint));
+    }
     _accountsVersion++;
     return (success: true, error: null);
   }
