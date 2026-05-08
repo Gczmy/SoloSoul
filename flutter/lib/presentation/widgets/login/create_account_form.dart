@@ -52,6 +52,19 @@ class CreateAccountForm extends StatelessWidget {
 
     return Column(
       children: [
+        // Back button — top-left with arrow
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back, size: 20),
+            label: Text(l10n.loginBackToAccountList),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Text(
           AppLocalizations.of(context).loginCreateNewAccount,
           style: theme.textTheme.titleLarge?.copyWith(
@@ -230,13 +243,6 @@ class CreateAccountForm extends StatelessWidget {
             .fadeIn(delay: 400.ms, duration: 400.ms)
             .slideY(begin: 0.2, end: 0),
 
-        const SizedBox(height: 12),
-
-        // Back to Account List
-        TextButton(
-          onPressed: onBack,
-          child: Text(l10n.loginBackToAccountList),
-        ).animate().fadeIn(delay: 450.ms, duration: 400.ms),
       ],
     );
   }

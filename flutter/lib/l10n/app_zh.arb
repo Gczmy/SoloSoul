@@ -25,7 +25,7 @@
   "loginBiometricFaceId": "面容 ID",
   "loginBiometricTouchId": "触控 ID",
   "loginBiometricIris": "虹膜",
-  "loginUnlockReason": "使用 {biometricType} 解锁 SoloSoul",
+  "loginUnlockReason": "使用 {biometricType}",
   "loginBiometricFailed": "生物识别失败或已取消",
   "loginUnlockFailedUsePassword": "解锁失败。请使用主密码。",
   "loginPasswordMinLength": "密码至少需要 8 个字符",
