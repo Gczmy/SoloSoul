@@ -109,8 +109,8 @@ class _CollapsibleSectionCardState extends State<CollapsibleSectionCard> {
                     const SizedBox(width: 4),
                     Text(
                       _isExpanded
-                          ? 'Show less'
-                          : 'Show $_hiddenCount more',
+                          ? l10n.commonShowLess
+                          : l10n.commonShowMore(_hiddenCount),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w500,

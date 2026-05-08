@@ -17,9 +17,7 @@ Future<bool?> showLockVaultDialog(BuildContext context) {
             Text(l10n.sidebarLockVault),
           ],
         ),
-        content: const Text(
-          'Locking the vault will require your master password to unlock again.',
-        ),
+        content: Text(l10n.lockVaultMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),

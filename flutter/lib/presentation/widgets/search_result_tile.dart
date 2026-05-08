@@ -62,7 +62,7 @@ class SearchResultTile extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'Deleted',
+                      l10n.searchDeleted,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: Colors.grey,
                       ),

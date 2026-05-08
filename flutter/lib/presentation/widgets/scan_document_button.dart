@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
 import 'package:solosoul_flutter/core/services/mrz_vault_service.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_sheet.dart';
@@ -50,14 +51,14 @@ class ScanDocumentButton extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Scan Document',
+                      AppLocalizations.of(context).ocrScanDocument,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Scan passport, ID card, or any document',
+                      AppLocalizations.of(context).ocrScanDescription,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -119,24 +120,25 @@ class ScanDocumentButton extends ConsumerWidget {
     WidgetRef ref,
     SmartOcrTextResult result,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final notifier = ref.read(unifiedObjectProvider.notifier);
     final rawText = result.ocrResult.rawText;
     final extraction = result.extraction;
-    if (rawText.trim().isEmpty) return (false, 'No text detected');
+    if (rawText.trim().isEmpty) return (false, l10n.ocrNoTextDetected);
 
     return switch (extraction.documentType) {
       'business_card' => (
-          await _saveBusinessCard(notifier, extraction, rawText),
-          'Business card saved',
+          await _saveBusinessCard(notifier, extraction, rawText, l10n),
+          l10n.ocrBusinessCardSaved,
         ),
       'invoice' => (
-          await _saveInvoice(notifier, extraction, rawText),
-          'Invoice saved',
+          await _saveInvoice(notifier, extraction, rawText, l10n),
+          l10n.ocrInvoiceSaved,
         ),
-      'resume' => await _saveResume(notifier, extraction, rawText),
+      'resume' => await _saveResume(notifier, extraction, rawText, l10n),
       _ => (
-          await _saveGenericDocument(notifier, rawText),
-          'Document saved as a note',
+          await _saveGenericDocument(notifier, rawText, l10n),
+          l10n.ocrDocumentSavedAsNote,
         ),
     };
   }
@@ -145,9 +147,10 @@ class ScanDocumentButton extends ConsumerWidget {
     UnifiedObjectNotifier notifier,
     ExtractionResult extraction,
     String rawText,
+    AppLocalizations l10n,
   ) async {
     final fields = extraction.fields;
-    final name = fields['name']?.value ?? 'Business Card';
+    final name = fields['name']?.value ?? l10n.ocrBusinessCard;
     return notifier.createObject(
       name: name,
       typeId: 'contact',
@@ -176,12 +179,13 @@ class ScanDocumentButton extends ConsumerWidget {
     UnifiedObjectNotifier notifier,
     ExtractionResult extraction,
     String rawText,
+    AppLocalizations l10n,
   ) async {
     final fields = extraction.fields;
     final invNo = fields['invoice_number']?.value;
     final total = fields['total']?.value;
-    var name = 'Invoice';
-    if (invNo != null) name = 'Invoice $invNo';
+    var name = l10n.ocrInvoice;
+    if (invNo != null) name = '${l10n.ocrInvoice} $invNo';
     if (total != null) name = '$name — $total';
 
     return notifier.createObject(
@@ -211,9 +215,10 @@ class ScanDocumentButton extends ConsumerWidget {
     UnifiedObjectNotifier notifier,
     ExtractionResult extraction,
     String rawText,
+    AppLocalizations l10n,
   ) async {
     final fields = extraction.fields;
-    final name = fields['name']?.value ?? 'Resume';
+    final name = fields['name']?.value ?? l10n.ocrResume;
     var successCount = 0;
     var failCount = 0;
 
@@ -402,10 +407,10 @@ class ScanDocumentButton extends ConsumerWidget {
 
     final saved = successCount > 0;
     final message = switch ((successCount, failCount)) {
-      (0, 0) => 'No resume sections detected',
-      (1, 0) => 'Resume saved',
-      (_, 0) => 'Resume saved with $successCount sections',
-      (_, _) => 'Saved $successCount sections, $failCount failed',
+      (0, 0) => l10n.ocrNoResumeSections,
+      (1, 0) => l10n.ocrResumeSaved,
+      (_, 0) => l10n.ocrResumeSavedSections(successCount),
+      (_, _) => l10n.ocrSavedSectionsFailed(successCount, failCount),
     };
     return (saved, message);
   }
@@ -413,10 +418,11 @@ class ScanDocumentButton extends ConsumerWidget {
   Future<bool> _saveGenericDocument(
     UnifiedObjectNotifier notifier,
     String rawText,
+    AppLocalizations l10n,
   ) async {
     var name = rawText.trim().replaceAll('\n', ' ');
     if (name.length > 30) name = '${name.substring(0, 30).trimRight()}...';
-    if (name.isEmpty) name = 'Scanned Document';
+    if (name.isEmpty) name = l10n.ocrScannedDocument;
 
     return notifier.createObject(
       name: name,

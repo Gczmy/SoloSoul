@@ -70,7 +70,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Password Required',
+                l10n.operationLogPasswordRequired,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
@@ -115,8 +115,8 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context).operationLogClearLogTitle),
-        content: const Text(
-          'Are you sure you want to clear all operation history?',
+        content: Text(
+          AppLocalizations.of(context).operationLogClearConfirm,
         ),
         actions: [
           TextButton(
@@ -219,7 +219,7 @@ class _OperationLogView extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Found ${filteredEntries.length} result${filteredEntries.length == 1 ? '' : 's'}',
+                  AppLocalizations.of(context).operationLogFoundResults(filteredEntries.length),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -239,7 +239,7 @@ class _OperationLogView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          searchQuery.isNotEmpty ? 'No matching entries' : 'No matching entries',
+                          AppLocalizations.of(context).operationLogNoMatching,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -247,8 +247,8 @@ class _OperationLogView extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           searchQuery.isNotEmpty
-                              ? 'Try a different search term'
-                              : 'Try adjusting your filters',
+                              ? AppLocalizations.of(context).operationLogTryDifferent
+                              : AppLocalizations.of(context).operationLogAdjustFilters,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -311,7 +311,7 @@ class _OperationLogFilterHeader extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Filters',
+              AppLocalizations.of(context).operationLogFilters,
               style: theme.textTheme.titleSmall?.copyWith(
                 color: hasActiveFilters
                     ? theme.colorScheme.primary

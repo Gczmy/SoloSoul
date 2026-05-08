@@ -29,7 +29,7 @@ class ObjectTile extends StatelessWidget {
     final theme = Theme.of(context);
     final icon = UnifiedObjectService.getIconFromName(object.iconName);
     final type = ObjectTypeRegistry.getType(object.typeId ?? '');
-    final typeLabel = type?.name ?? object.typeId ?? 'Object';
+    final typeLabel = type?.name ?? object.typeId ?? l10n.commonObject;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),

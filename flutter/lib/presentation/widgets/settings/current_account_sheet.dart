@@ -11,8 +11,8 @@ class CurrentAccountSheet extends StatelessWidget {
 
   const CurrentAccountSheet({super.key, required this.account});
 
-  String _formatDateTime(DateTime? dt) {
-    if (dt == null) return 'N/A';
+  String _formatDateTime(DateTime? dt, {required String naFallback}) {
+    if (dt == null) return naFallback;
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
@@ -21,6 +21,7 @@ class CurrentAccountSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Container(
@@ -73,7 +74,7 @@ class CurrentAccountSheet extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Account ID: ${account.id}',
+                            l10n.accountIdLabel(account.id),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -89,21 +90,21 @@ class CurrentAccountSheet extends StatelessWidget {
                 InfoTile(
                   icon: Icons.calendar_today_outlined,
                   title: AppLocalizations.of(context).accountCreated,
-                  value: _formatDateTime(account.createdAt),
+                  value: _formatDateTime(account.createdAt, naFallback: l10n.commonNA),
                 ),
                 const Divider(height: 1),
                 InfoTile(
                   icon: Icons.login_outlined,
                   title: AppLocalizations.of(context).accountLastLogin,
-                  value: _formatDateTime(account.lastLoginAt),
+                  value: _formatDateTime(account.lastLoginAt, naFallback: l10n.commonNA),
                 ),
                 const Divider(height: 1),
                 InfoTile(
                   icon: Icons.update_outlined,
                   title: AppLocalizations.of(context).accountLastOperation,
-                  value: account.lastOperationDesc ?? 'No recent operations',
+                  value: account.lastOperationDesc ?? l10n.accountNoRecentOps,
                   subtitle: account.lastOperationAt != null
-                      ? _formatDateTime(account.lastOperationAt)
+                      ? _formatDateTime(account.lastOperationAt, naFallback: l10n.commonNA)
                       : null,
                 ),
                 const Divider(height: 1),
@@ -111,8 +112,8 @@ class CurrentAccountSheet extends StatelessWidget {
                   icon: Icons.devices_outlined,
                   title: AppLocalizations.of(context).accountLoginDevices,
                   value: account.recentDevices.isEmpty
-                      ? 'No devices recorded'
-                      : '${account.recentDevices.length} device(s)',
+                      ? l10n.accountNoDevices
+                      : l10n.accountDeviceCount(account.recentDevices.length),
                 ),
               ],
             ),
@@ -127,7 +128,7 @@ class CurrentAccountSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Recent Devices',
+                    l10n.accountRecentDevices,
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -151,7 +152,7 @@ class CurrentAccountSheet extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            _formatDateTime(device.lastUsed),
+                            _formatDateTime(device.lastUsed, naFallback: l10n.commonNA),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

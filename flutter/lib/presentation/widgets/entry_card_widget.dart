@@ -112,7 +112,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     if (mounted) {
       showOverlaySnackBar(
         context,
-        content: 'Copied to clipboard',
+        content: AppLocalizations.of(context).commonCopiedToClipboard,
         type: SnackBarType.success,
       );
     }
@@ -319,13 +319,13 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                   ),
                 ],
               ),
-        tooltip: hasHist ? l10n.entryHistoryCount(count) : l10n.entryNoHistory,
+        tooltip: hasHist ? AppLocalizations.of(context).entryHistoryCount(count) : AppLocalizations.of(context).entryNoHistory,
         onPressed: hasHist
             ? () => _handleHistoryPress(isSensitive)
             : () {
                 showOverlaySnackBar(
                   context,
-                  content: 'No history available',
+                  content: AppLocalizations.of(context).entryNoHistory,
                   type: SnackBarType.info,
                 );
               },
@@ -372,7 +372,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
                       isExpanded ? Icons.expand_less : Icons.history,
                       size: 16,
                     ),
-                    label: Text(l10n.entryHistoryCount(history?.entries.length ?? 0)),
+                    label: Text(AppLocalizations.of(context).entryHistoryCount(history?.entries.length ?? 0)),
                     onPressed: () => _handleHistoryPress(isSensitive),
                   ),
                 ],
@@ -453,7 +453,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
               ),
             ],
           ),
-          tooltip: count == 1 ? '1 attachment' : '$count attachments',
+          tooltip: AppLocalizations.of(context).entryAttachments(count),
           onPressed: () => _showAttachments(context, obj),
           visualDensity: VisualDensity.compact,
         );

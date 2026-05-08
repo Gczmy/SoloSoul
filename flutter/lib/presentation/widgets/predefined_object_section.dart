@@ -77,6 +77,7 @@ class PredefinedObjectSection extends ConsumerStatefulWidget {
 class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSection> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // Query from unified object state directly (avoid generated provider dependency)
     final allObjects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
     final objectMap = {for (final o in allObjects) o.id: o};
@@ -91,7 +92,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     // Load predefined schema from registry
     final typeDef = ObjectTypeRegistry.getType(widget.typeId);
     if (typeDef == null) {
-      return _PredefinedErrorWidget(message: AppLocalizations.of(context).predefinedUnknownType(widget.typeId));
+      return _PredefinedErrorWidget(message: l10n.predefinedUnknownType(widget.typeId));
     }
 
     // Build template from schema + FieldRegistry sensitivity
@@ -126,7 +127,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
         for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
           if (props[key]?.isNotEmpty == true) return props[key]!;
         }
-        return 'Untitled';
+        return l10n.commonUntitled;
       },
       showEditActions: false,
       showAddButton: true,
@@ -183,7 +184,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
           final entry = OperationLogger.logCustomSection(
             section: logSection.value,
             action: LogAction.delete,
-            description: 'Deleted ${widget.title}: ${item?.name ?? ''}',
+            description: l10n.predefinedDeletedItem(widget.title, item?.name ?? ''),
           );
           await OperationLogService.instance.addEntry(entry);
         }
@@ -266,10 +267,11 @@ class _PredefinedErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Text(
-        'Error: $message',
+        l10n.commonErrorWithMessage(message),
         style: const TextStyle(color: Colors.red),
       ),
     );

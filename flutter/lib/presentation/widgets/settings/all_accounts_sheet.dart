@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart';
@@ -17,8 +18,8 @@ class AllAccountsSheet extends StatelessWidget {
     required this.onSelectAccount,
   });
 
-  String _formatDateTime(DateTime? dt) {
-    if (dt == null) return 'N/A';
+  String _formatDateTime(DateTime? dt, {required String naFallback}) {
+    if (dt == null) return naFallback;
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
   }
 
@@ -26,6 +27,7 @@ class AllAccountsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Container(
@@ -59,7 +61,7 @@ class AllAccountsSheet extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'All Accounts',
+                  l10n.settingsAllAccountsTitle,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -145,8 +147,8 @@ class AllAccountsSheet extends StatelessWidget {
                                             4,
                                           ),
                                         ),
-                                        child: const Text(
-                                          'Active',
+                                        child: Text(
+                                          l10n.settingsActive,
                                           style: TextStyle(
                                             color: AppTheme.successColor,
                                             fontSize: 10,
@@ -159,7 +161,7 @@ class AllAccountsSheet extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Last login: ${_formatDateTime(account.lastLoginAt)}',
+                                  l10n.accountLastLoginLabel(_formatDateTime(account.lastLoginAt, naFallback: l10n.commonNA)),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),

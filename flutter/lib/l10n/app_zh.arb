@@ -637,5 +637,458 @@
   "commonHidePassword": "隐藏密码",
   "objectCardAddItem": "添加项目",
   "dataManagementRestoreBackupTooltip": "恢复",
-  "dataManagementSpecialBackupTooltip": "保存为特殊备份"
+  "dataManagementSpecialBackupTooltip": "保存为特殊备份",
+  "passwordVerificationRestricted": "受限字段。请输入主密码以继续。",
+  "passwordVerificationInvalid": "密码无效",
+  "trashPasswordRequired": "需要密码",
+  "trashEmptyConfirm": "确定要永久删除回收站中的全部 {count} 个项目吗？",
+  "@trashEmptyConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashEmptyWarning": "此操作不可撤销。所有项目将被永久删除。",
+  "trashEmptyComplete": "已永久删除全部 {count} 个项目",
+  "@trashEmptyComplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashRestoreConfirmBody": "确定要恢复\"{name}\"吗？",
+  "@trashRestoreConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashRestoredItem": "已恢复\"{name}\"",
+  "@trashRestoredItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPermanentDeleteConfirm": "确定要永久删除\"{name}\"吗？",
+  "@trashPermanentDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPermanentDeleteWarning": "此操作不可撤销。该项目将被永久删除。",
+  "trashPermanentDeletedItem": "已永久删除\"{name}\"",
+  "@trashPermanentDeletedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashEmpty": "回收站为空",
+  "trashNoMatching": "无匹配项目",
+  "trashDeletedAppear": "已删除的项目将显示在此处",
+  "trashAdjustSearch": "尝试调整搜索条件",
+  "trashFoundResults": "找到 {count} 条结果",
+  "@trashFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashNoResults": "未找到结果",
+  "trashTotalItems": "回收站中共 {count} 个项目",
+  "@trashTotalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashSectionTitle": "页面与对象",
+  "trashAutoPurgeNotice": "回收站中的项目在30天后将被永久删除",
+  "trashEmptyTrashButton": "清空回收站",
+  "operationLogPasswordRequired": "需要密码",
+  "operationLogClearConfirm": "确定要清除所有操作历史吗？",
+  "operationLogFoundResults": "找到 {count} 条结果",
+  "@operationLogFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "operationLogNoMatching": "无匹配条目",
+  "operationLogTryDifferent": "尝试其他搜索词",
+  "operationLogAdjustFilters": "尝试调整筛选条件",
+  "operationLogFilters": "筛选条件",
+  "sensitivityPasswordRequired": "需要密码",
+  "sensitivityDowngradeWarning": "您正在将\"{name}\"降级到更低的敏感度级别。",
+  "@sensitivityDowngradeWarning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityDowngradeConfirm": "此字段将以更少的保护可见。继续？",
+  "sensitivityMovedToPrivate": "\"{name}\"已移至私有",
+  "@sensitivityMovedToPrivate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityNoFields": "此分区无字段",
+  "sensitivityKeepHighest": "保持最高级别",
+  "sensitivityMoveHigher": "移至更高级别",
+  "sensitivityKeepLowest": "保持最低级别",
+  "sensitivityMoveLower": "移至更低级别",
+  "sensitivityMovedHigher": "\"{name}\"已移至更高敏感度",
+  "@sensitivityMovedHigher": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityFoundResults": "找到 {count} 条结果",
+  "@sensitivityFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sensitivityNoResults": "未找到结果",
+  "sensitivityAdjustHint": "调整每个字段的敏感度级别。受限字段需要额外验证才能查看。",
+  "sensitivityNoFieldsMatch": "无匹配\"{name}\"的字段",
+  "@sensitivityNoFieldsMatch": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityFieldsConfigured": "已配置 {count} 个字段",
+  "@sensitivityFieldsConfigured": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sensitivityTotalFields": "共 {count} 个字段",
+  "@sensitivityTotalFields": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonNA": "不适用",
+  "accountIdLabel": "账户 ID：{id}",
+  "@accountIdLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "accountNoRecentOps": "无最近操作",
+  "accountNoDevices": "无设备记录",
+  "accountRecentDevices": "最近设备",
+  "settingsAllAccountsTitle": "全部账户",
+  "accountLastLoginLabel": "最后登录：{time}",
+  "@accountLastLoginLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "versionUnavailable": "不可用",
+  "versionUpToDate": "已是最新",
+  "versionUpdateAvailable": "有可用更新",
+  "settingsAccountCount": "{count} 个账户",
+  "@settingsAccountCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debugLogSanitizeWarning": "日志将在复制前进行脱敏处理，但剪贴板内容可被此设备上的所有应用访问。\n\n使用后应清除剪贴板。",
+  "debugLogActiveNotice": "调试模式已激活。正在记录日志。",
+  "homeVaultUnlocked": "Vault 已解锁",
+  "homeOnline": "在线",
+  "homeOffline": "离线",
+  "searchEnterMinChars": "输入至少2个字符进行搜索",
+  "searchNoResultsBody": "未找到结果",
+  "searchAdjustFilters": "尝试调整筛选条件或搜索词",
+  "syncComplete": "同步完成",
+  "syncFailed": "同步失败：{error}",
+  "@syncFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncDirectionPushed": "已推送本地更改",
+  "syncDirectionPulled": "已拉取远程更改",
+  "syncDirectionMerged": "已合并双方更改",
+  "syncDirectionNoChange": "已同步",
+  "syncDiscoveryHint": "扫描本地网络中的 SoloSoul 设备",
+  "syncFoundDevices": "发现 {count} 台设备",
+  "@syncFoundDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncPairingKeyHint": "生成共享配对密钥以建立设备间的安全连接。两台设备必须使用相同的密钥。",
+  "syncTestFailed": "失败",
+  "syncDirectionPush": "推送",
+  "syncDirectionPull": "拉取",
+  "syncDirectionMergedShort": "已合并",
+  "syncDirectionNoChangeShort": "无更改",
+  "localSearchScanLocalFiles": "扫描本地文件",
+  "localSearchDescription": "在本地文件中搜索个人信息并导入到您的 Vault 中。",
+  "localSearchSelectHint": "点击选择，长按调整大小限制",
+  "localSearchPrivacyNotice": "所有扫描均在本地进行。数据不会离开您的设备。导入前您将预览所有结果。",
+  "localSearchSkipLargerThan": "跳过大于以下大小的 {label} 文件：",
+  "@localSearchSkipLargerThan": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "localSearchScanningFiles": "正在扫描文件...",
+  "localSearchScanCanceled": "扫描已取消",
+  "localSearchScanComplete": "扫描完成",
+  "localSearchNoResultsBody": "扫描文件中未发现个人信息。请尝试使用\"全文解析\"模式或添加更多文件夹。",
+  "localSearchNoFiles": "无文件",
+  "scanDeselectAll": "取消全选",
+  "ocrScanDescription": "扫描护照、身份证或任何文档",
+  "ocrNoTextDetected": "未检测到文本",
+  "ocrBusinessCardSaved": "名片已保存",
+  "ocrInvoiceSaved": "发票已保存",
+  "ocrDocumentSavedAsNote": "文档已保存为笔记",
+  "ocrBusinessCard": "名片",
+  "ocrInvoice": "发票",
+  "ocrResume": "简历",
+  "ocrNoResumeSections": "未检测到简历章节",
+  "ocrResumeSaved": "简历已保存",
+  "ocrResumeSavedSections": "简历已保存，包含 {count} 个章节",
+  "@ocrResumeSavedSections": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrSavedSectionsFailed": "已保存 {success} 个章节，{fail} 个失败",
+  "@ocrSavedSectionsFailed": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrScannedDocument": "扫描文档",
+  "ocrUseCamera": "使用相机拍摄文档",
+  "ocrPhotoOrPdf": "照片或PDF文件",
+  "commonShowMore": "显示另外 {count} 项",
+  "@commonShowMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonCopiedToClipboard": "已复制到剪贴板",
+  "commonUntitled": "无标题",
+  "predefinedDeletedItem": "已删除 {title}：{name}",
+  "@predefinedDeletedItem": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commonErrorWithMessage": "错误：{message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "commonObject": "对象",
+  "fieldHistoryLatest": "最新",
+  "commonEmpty": "（空）",
+  "lockVaultMessage": "锁定保险库后需要主密码才能解锁。",
+  "changePasswordWarning": "修改密码将使用新密钥重新加密您的所有数据。",
+  "changePasswordCurrentRequired": "请输入当前密码",
+  "changePasswordNewRequired": "请输入新密码",
+  "changePasswordMustDiffer": "新密码必须与当前密码不同",
+  "changePasswordFailed": "密码修改失败",
+  "entryAttachments": "{count, plural, =1{1 个附件} other{{count} 个附件}}",
+  "@entryAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileEncryptionDesc": "您的数据使用 AES-256-GCM 加密",
+  "financialEncryptionDesc": "您的财务数据使用 AES-256-GCM 加密",
+  "llmStatsPrompt": "提示词 {tokens}",
+  "@llmStatsPrompt": {
+    "placeholders": {
+      "tokens": {
+        "type": "String"
+      }
+    }
+  },
+  "llmStatsCompletion": "补全 {tokens}",
+  "@llmStatsCompletion": {
+    "placeholders": {
+      "tokens": {
+        "type": "String"
+      }
+    }
+  },
+  "llmProviderOllama": "Ollama",
+  "homeNoMorePages": "没有更多页面可添加",
+  "homeDefaultAccountName": "账户",
+  "syncEnterPairingKey": "输入从另一台设备共享的配对密钥。",
+  "ocrNoTextDetectedImage": "图像中未检测到文本。请使用更清晰的文档照片重试。",
+  "ocrNoTextDetectedPdf": "PDF 中未检测到文本。请使用更清晰的扫描文档重试。",
+  "ocrRecognitionTimeoutImage": "识别超时。请使用更清晰的图像重试。",
+  "ocrRecognitionTimeoutPdf": "识别超时。请使用更清晰的 PDF 重试。",
+  "ocrPdfRenderFailed": "无法渲染 PDF 页面。文件可能已损坏或受密码保护。",
+  "versionUnavailable": "不可用",
+  "versionUpToDate": "已是最新",
+  "versionUpdateAvailable": "有可用更新",
+  "settingsAllAccountsTitle": "全部账户",
+  "accountIdLabel": "账户 ID：{id}",
+  "accountNoRecentOps": "无最近操作",
+  "accountNoDevices": "无设备记录",
+  "accountRecentDevices": "最近设备",
+  "accountLastLoginLabel": "最后登录：{time}",
+  "commonNA": "不适用",
+  "debugLogSanitizeWarning": "日志将在复制前脱敏，但剪贴板内容对其他应用可见。使用后应清除剪贴板。",
+  "debugLogActiveNotice": "调试模式已激活。正在记录日志。",
+  "commonCopiedToClipboard": "已复制到剪贴板",
+  "commonUntitled": "无标题",
+  "commonObject": "对象",
+  "commonShowMore": "显示另外 {count} 项",
+  "commonErrorWithMessage": "错误：{message}",
+  "commonAddItem": "添加项目",
+  "profileAddContact": "添加联系人",
+  "profileEditContact": "编辑联系人",
+  "commonAddButton": "添加",
+  "profileIdCard": "身份证",
+  "profileAddress": "地址",
+  "scanDeselectAll": "取消全选",
+  "localSearchScanningFiles": "正在扫描文件...",
+  "localSearchScanCanceled": "扫描已取消",
+  "localSearchScanComplete": "扫描完成",
+  "localSearchNoFiles": "无文件",
+  "localSearchPrivacyNotice": "所有扫描均在本地进行。数据不会离开您的设备。导入前您将预览所有结果。",
+  "localSearchSelectHint": "点击选择，长按调整大小限制。",
+  "localSearchSkipLargerThan": "跳过大于以下大小的 {label} 文件：",
+  "syncScanHint": "扫描本地网络中的 SoloSoul 设备。",
+  "syncPairingHint": "生成共享配对密钥以建立设备间的安全连接。两台设备必须使用相同的密钥。",
+  "syncFoundDevices": "发现 {count} 台设备",
+  "syncFailed": "同步失败：{error}",
+  "syncComplete": "同步完成",
+  "syncDirectionPush": "推送",
+  "syncDirectionPushed": "已推送本地更改",
+  "syncDirectionPulled": "已拉取远程更改",
+  "syncDirectionMerged": "已合并双方更改",
+  "syncDirectionNoChange": "已同步",
+  "syncTestSuccess": "成功",
+  "syncTestFailed": "失败",
+  "trashPasswordRequired": "需要密码",
+  "trashEmptyConfirm": "确定要永久删除回收站中的全部 {count} 个项目吗？",
+  "trashEmptyWarning": "此操作不可撤销。所有项目将被永久删除。",
+  "trashPermanentDeleteWarning": "此操作不可撤销。该项目将被永久删除。",
+  "trashEmptyComplete": "已永久删除全部 {count} 个项目",
+  "trashRestoreConfirmBody": "确定要恢复\"{name}\"吗？",
+  "trashRestoredItem": "已恢复\"{name}\"",
+  "trashPermanentDeleteConfirm": "确定要永久删除\"{name}\"吗？",
+  "trashPermanentDeletedItem": "已永久删除\"{name}\"",
+  "trashEmptyMessage": "回收站为空",
+  "trashNoMatching": "无匹配项目",
+  "trashAdjustSearch": "尝试调整搜索条件",
+  "operationLogPasswordRequired": "需要密码",
+  "operationLogClearConfirm": "确定要清除所有操作历史吗？",
+  "operationLogFoundResults": "找到 {count} 条结果",
+  "operationLogNoMatching": "无匹配条目",
+  "operationLogTryDifferent": "尝试其他搜索词",
+  "operationLogAdjustFilters": "尝试调整筛选条件",
+  "operationLogFilters": "筛选条件",
+  "sensitivityPasswordRequired": "需要密码",
+  "sensitivityNoFields": "此分区无字段",
+  "sensitivityKeepHighest": "保持最高",
+  "sensitivityMoveHigher": "移至更高",
+  "sensitivityKeepLowest": "保持最低",
+  "sensitivityMoveLower": "移至更低",
+  "sensitivityAdjustHint": "调整每个字段的敏感度级别。受限字段需要额外验证才能查看。",
+  "sensitivityNoFieldsMatch": "无字段匹配\"{query}\"",
+  "sensitivityFoundResults": "找到 {count} 条结果",
+  "ocrBusinessCard": "名片",
+  "ocrInvoice": "发票",
+  "ocrResume": "简历",
+  "ocrScannedDocument": "扫描文档",
+  "ocrUseCamera": "使用相机拍摄文档",
+  "ocrPhotoOrPdf": "照片或 PDF 文件",
+  "ocrBusinessCardSaved": "名片已保存",
+  "ocrInvoiceSaved": "发票已保存",
+  "ocrDocumentSavedAsNote": "文档已保存为笔记",
+  "ocrNoTextDetected": "未检测到文本",
+  "ocrNoResumeSections": "未检测到简历分区",
+  "ocrResumeSaved": "简历已保存",
+  "ocrResumeSavedSections": "简历已保存，共 {count} 个分区",
+  "ocrSavedSectionsFailed": "已保存 {success} 个分区，{fail} 个失败",
+  "predefinedDeletedItem": "已删除 {title}：{name}",
+  "accountDeviceCount": "{count} 台设备",
+  "profileEncryptionTitle": "端到端加密",
+  "profileEncryptionDesc": "您的数据使用 AES-256-GCM 加密",
+  "financialEncryptionDesc": "您的财务数据使用 AES-256-GCM 加密",
+  "profileIdCard": "身份证",
+  "profileIdCardSection": "身份证",
+  "profileAddress": "地址",
+  "profileFormatIdentity": "身份\n{data}",
+  "profileFormatIdCard": "身份证\n{data}",
+  "travelFormatPassport": "护照\n{data}",
+  "travelFormatVisa": "签证\n{data}",
+  "travelFormatHistory": "旅行历史\n{data}",
+  "financialFormatBankAccount": "银行账户\n{data}",
+  "financialFormatCard": "银行卡\n{data}",
+  "financialFormatTaxId": "税号\n{data}",
+  "professionalFormatEducation": "教育\n{data}",
+  "professionalFormatEmployment": "工作\n{data}",
+  "professionalFormatAward": "奖项\n{data}",
+  "professionalFormatSkill": "技能\n{data}",
+  "professionalFormatLanguage": "语言\n{data}"
 }

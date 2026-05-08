@@ -55,7 +55,7 @@ mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      l10n.biometricPasswordHint(hint),
+                      AppLocalizations.of(context).biometricPasswordHint(hint),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -97,12 +97,14 @@ mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
 Future<String?> showPasswordVerificationDialog({
   required BuildContext context,
   required WidgetRef ref,
-  String message = 'Restricted field. Enter your master password to proceed.',
+  String? message,
   String? passwordHint,
   required Future<bool> Function(String password) onVerify,
 }) async {
   // Capture context before async operations to avoid lint warning
   final dialogContext = context;
+  final l10n = AppLocalizations.of(context);
+  final effectiveMessage = message ?? AppLocalizations.of(context).passwordVerificationRestricted;
 
   // Check if biometric auth is available and enabled
   final biometricService = BiometricService.instance;
@@ -115,7 +117,7 @@ Future<String?> showPasswordVerificationDialog({
   // If biometric is available and enabled, offer it as an option
   if (isBiometricAvailable && isBiometricEnabled) {
     final dialogBuilder = BiometricPasswordDialogContent(
-      message: message,
+      message: effectiveMessage,
       passwordHint: passwordHint,
       onVerify: onVerify,
       biometricService: biometricService,
@@ -130,7 +132,7 @@ Future<String?> showPasswordVerificationDialog({
 
   // Fall back to password-only dialog
   final passwordDialogContent = PasswordVerificationDialogContent(
-    message: message,
+    message: effectiveMessage,
     passwordHint: passwordHint,
     onVerify: onVerify,
   );
@@ -210,7 +212,7 @@ class PasswordVerificationDialogContentState
     } else {
       setState(() {
         _isVerifying = false;
-        _errorMessage = 'Invalid password';
+        _errorMessage = AppLocalizations.of(context).passwordVerificationInvalid;
         _hasError = true;
         _userHasTypedAfterError = false;
       });
@@ -227,7 +229,7 @@ class PasswordVerificationDialogContentState
         children: [
           Icon(Icons.lock_outline, color: Colors.orange.shade700),
           const SizedBox(width: 8),
-          Text(l10n.dialogVerifyIdentity),
+          Text(AppLocalizations.of(context).dialogVerifyIdentity),
         ],
       ),
       content: Column(
@@ -261,7 +263,7 @@ class PasswordVerificationDialogContentState
             obscureText: _obscurePassword,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: l10n.loginMasterPassword,
+              labelText: AppLocalizations.of(context).loginMasterPassword,
               prefixIcon: const Icon(Icons.key),
               errorText: _hasError ? _errorMessage : null,
               errorStyle: TextStyle(
@@ -280,8 +282,8 @@ class PasswordVerificationDialogContentState
                         size: 20,
                         color: _hasError ? Colors.red.shade700 : null,
                       ),
-                      onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
-                      tooltip: l10n.settingsShowPasswordHint,
+                      onPressed: () => showHintOverlay(widget.passwordHint ?? AppLocalizations.of(context).loginNoPasswordHint),
+                      tooltip: AppLocalizations.of(context).settingsShowPasswordHint,
                     ),
                   IconButton(
                     icon: Icon(
@@ -296,7 +298,7 @@ class PasswordVerificationDialogContentState
                         _obscurePassword = !_obscurePassword;
                       });
                     },
-                    tooltip: _obscurePassword ? l10n.commonShowPassword : l10n.commonHidePassword,
+                    tooltip: _obscurePassword ? AppLocalizations.of(context).commonShowPassword : AppLocalizations.of(context).commonHidePassword,
                   ),
                 ],
               ),
@@ -308,7 +310,7 @@ class PasswordVerificationDialogContentState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: Text(l10n.commonCancel),
+          child: Text(AppLocalizations.of(context).commonCancel),
         ),
         ElevatedButton(
           onPressed: isPasswordEmpty ? null : _verify,
@@ -318,7 +320,7 @@ class PasswordVerificationDialogContentState
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(l10n.commonConfirm),
+              : Text(AppLocalizations.of(context).commonConfirm),
         ),
       ],
     );
@@ -393,7 +395,7 @@ class BiometricPasswordDialogContentState
     if (_isBiometricVerified || _isVerifying) return;
 
     final success = await widget.biometricService.authenticate(
-      reason: 'Verify your identity',
+      reason: AppLocalizations.of(context).dialogVerifyIdentity,
     );
 
     if (!mounted) return;
@@ -414,7 +416,7 @@ class BiometricPasswordDialogContentState
     } else {
       setState(() {
         _isVerifying = false;
-        _errorMessage = 'Invalid password';
+        _errorMessage = AppLocalizations.of(context).passwordVerificationInvalid;
         _hasError = true;
         _userHasTypedAfterError = false;
       });
@@ -426,15 +428,15 @@ class BiometricPasswordDialogContentState
     final l10n = AppLocalizations.of(context);
     final isPasswordEmpty = _controller.text.isEmpty;
     final biometricType = widget.securityService.settings.faceIdEnabled
-        ? 'Face ID'
-        : 'Touch ID';
+        ? AppLocalizations.of(context).loginBiometricFaceId
+        : AppLocalizations.of(context).loginBiometricTouchId;
 
     return AlertDialog(
       title: Row(
         children: [
           Icon(Icons.lock_outline, color: Colors.orange.shade700),
           const SizedBox(width: 8),
-          Text(l10n.dialogVerifyIdentity),
+          Text(AppLocalizations.of(context).dialogVerifyIdentity),
         ],
       ),
       content: Column(
@@ -472,18 +474,18 @@ class BiometricPasswordDialogContentState
                       ? Icons.face_outlined
                       : Icons.fingerprint_outlined,
                 ),
-                label: Text(l10n.dialogUseBiometric(biometricType)),
+                label: Text(AppLocalizations.of(context).dialogUseBiometric(biometricType)),
               ),
             ),
             const SizedBox(height: 12),
-            const Row(
+            Row(
               children: [
-                Expanded(child: Divider()),
+                const Expanded(child: Divider()),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('or', style: TextStyle(color: Colors.grey)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(AppLocalizations.of(context).settingsOr, style: const TextStyle(color: Colors.grey)),
                 ),
-                Expanded(child: Divider()),
+                const Expanded(child: Divider()),
               ],
             ),
             const SizedBox(height: 12),
@@ -494,7 +496,7 @@ class BiometricPasswordDialogContentState
             obscureText: _obscurePassword,
             autofocus: _isBiometricVerified,
             decoration: InputDecoration(
-              labelText: l10n.loginMasterPassword,
+              labelText: AppLocalizations.of(context).loginMasterPassword,
               prefixIcon: const Icon(Icons.key),
               errorText: _hasError ? _errorMessage : null,
               errorStyle: TextStyle(
@@ -513,8 +515,8 @@ class BiometricPasswordDialogContentState
                         size: 20,
                         color: _hasError ? Colors.red.shade700 : null,
                       ),
-                      onPressed: () => showHintOverlay(widget.passwordHint ?? 'No password hint available'),
-                      tooltip: l10n.settingsShowPasswordHint,
+                      onPressed: () => showHintOverlay(widget.passwordHint ?? AppLocalizations.of(context).loginNoPasswordHint),
+                      tooltip: AppLocalizations.of(context).settingsShowPasswordHint,
                     ),
                   IconButton(
                     icon: Icon(
@@ -529,7 +531,7 @@ class BiometricPasswordDialogContentState
                         _obscurePassword = !_obscurePassword;
                       });
                     },
-                    tooltip: _obscurePassword ? l10n.commonShowPassword : l10n.commonHidePassword,
+                    tooltip: _obscurePassword ? AppLocalizations.of(context).commonShowPassword : AppLocalizations.of(context).commonHidePassword,
                   ),
                 ],
               ),
@@ -541,7 +543,7 @@ class BiometricPasswordDialogContentState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: Text(l10n.commonCancel),
+          child: Text(AppLocalizations.of(context).commonCancel),
         ),
         ElevatedButton(
           onPressed: isPasswordEmpty ? null : _verify,
@@ -551,7 +553,7 @@ class BiometricPasswordDialogContentState
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(l10n.commonConfirm),
+              : Text(AppLocalizations.of(context).commonConfirm),
         ),
       ],
     );

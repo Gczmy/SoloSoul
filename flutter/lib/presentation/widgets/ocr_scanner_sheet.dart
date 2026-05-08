@@ -87,7 +87,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
                 child: Row(
                   children: [
                     Text(
-                      'Scan Document',
+                      AppLocalizations.of(context).ocrScanDocument,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const Spacer(),
@@ -166,9 +166,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'All recognition is done locally on your device. '
-                  'Images are never uploaded to any server. '
-                  'Travel documents and ID cards will be automatically detected.',
+                  AppLocalizations.of(context).ocrPrivacyNotice,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                       ),
@@ -187,7 +185,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           _ActionButton(
             icon: Icons.camera_alt_outlined,
             label: AppLocalizations.of(context).ocrTakePhoto,
-            description: 'Use camera to capture document',
+            description: AppLocalizations.of(context).ocrUseCamera,
             onTap: () => _pickImage(ImageSource.camera),
           ),
           const SizedBox(height: 12),
@@ -195,14 +193,13 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         _ActionButton(
           icon: Icons.folder_open_outlined,
           label: AppLocalizations.of(context).ocrSelectDocument,
-          description: 'Photo or PDF file',
+          description: AppLocalizations.of(context).ocrPhotoOrPdf,
           onTap: _pickDocument,
         ),
         const SizedBox(height: 24),
         // 提示
         Text(
-          'Tip: For best results, ensure the text is clearly visible '
-          'and the image is well-lit.',
+          AppLocalizations.of(context).ocrTip,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -226,7 +223,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Recognition Failed',
+            AppLocalizations.of(context).ocrRecognitionFailed,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -273,7 +270,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Travel document detected',
+                  l10n.ocrTravelDocumentDetected,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.w600,
@@ -472,15 +469,14 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'No text detected in the image. '
-              'Please try again with a clearer photo of the document.';
+          _errorMessage = l10n.ocrNoTextDetectedImage;
         });
       }
     } on OcrTimeoutException {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Recognition timed out. Please try again with a clearer image.';
+          _errorMessage = l10n.ocrRecognitionTimeoutImage;
         });
       }
     } on OcrException catch (e) {
@@ -528,7 +524,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           if (mounted) {
             setState(() {
               _isLoading = false;
-              _errorMessage = 'Failed to render PDF page. The file may be corrupted or password-protected.';
+              _errorMessage = l10n.ocrPdfRenderFailed;
             });
           }
           return;
@@ -609,8 +605,8 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         setState(() {
           _isLoading = false;
           _errorMessage = isPdf
-              ? 'No text detected in the PDF. Please try again with a clearer scanned document.'
-              : 'No text detected in the image. Please try again with a clearer photo of the document.';
+              ? l10n.ocrNoTextDetectedPdf
+              : l10n.ocrNoTextDetectedImage;
         });
       }
     } on OcrTimeoutException {
@@ -618,8 +614,8 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         setState(() {
           _isLoading = false;
           _errorMessage = isPdf
-              ? 'Recognition timed out. Please try again with a clearer PDF.'
-              : 'Recognition timed out. Please try again with a clearer image.';
+              ? l10n.ocrRecognitionTimeoutPdf
+              : l10n.ocrRecognitionTimeoutImage;
         });
       }
     } on OcrException catch (e) {

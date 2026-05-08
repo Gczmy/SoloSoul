@@ -46,11 +46,12 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final latestVersionAsync = ref.watch(latestVersionProvider);
     final latestVersion = latestVersionAsync.when(
-      data: (v) => v ?? 'Unavailable',
+      data: (v) => v ?? l10n.versionUnavailable,
       loading: () => '...',
-      error: (_, __) => 'Unavailable',
+      error: (_, __) => l10n.versionUnavailable,
     );
 
     return Container(
@@ -144,14 +145,14 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                         error: (_, __) => '1.0.0',
                       );
                       final isUpToDate = latestVersion != '...' &&
-                          latestVersion != 'Unavailable' &&
+                          latestVersion != l10n.versionUnavailable &&
                           currentVersion == latestVersion;
                       return VersionInfoTile(
                         icon: isUpToDate
                             ? Icons.check_circle_outline
                             : Icons.update_outlined,
                         title: AppLocalizations.of(context).versionUpdateStatus,
-                        value: isUpToDate ? 'Up to date' : 'Update available',
+                        value: isUpToDate ? l10n.versionUpToDate : l10n.versionUpdateAvailable,
                       );
                     },
                   ),
@@ -165,7 +166,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                             : (Platform.operatingSystem.isNotEmpty
                                 ? Platform.operatingSystem[0].toUpperCase() +
                                     Platform.operatingSystem.substring(1)
-                                : 'Unknown'),
+                                : l10n.settingsUnknown),
                   ),
                 ],
               ),

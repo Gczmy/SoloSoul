@@ -1037,7 +1037,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncPairingKeyHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter shared pairing key'**
+  /// **'Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.'**
   String get syncPairingKeyHint;
 
   /// No description provided for @syncGenerateAndCopyKey.
@@ -3673,6 +3673,942 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save as special backup'**
   String get dataManagementSpecialBackupTooltip;
+
+  /// No description provided for @passwordVerificationRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted field. Enter your master password to proceed.'**
+  String get passwordVerificationRestricted;
+
+  /// No description provided for @passwordVerificationInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid password'**
+  String get passwordVerificationInvalid;
+
+  /// No description provided for @trashPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Required'**
+  String get trashPasswordRequired;
+
+  /// No description provided for @trashEmptyConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete all {count} items in trash?'**
+  String trashEmptyConfirm(int count);
+
+  /// No description provided for @trashEmptyWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone. All items will be permanently removed.'**
+  String get trashEmptyWarning;
+
+  /// No description provided for @trashEmptyComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} items permanently deleted'**
+  String trashEmptyComplete(int count);
+
+  /// No description provided for @trashRestoreConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to restore \"{name}\"?'**
+  String trashRestoreConfirmBody(String name);
+
+  /// No description provided for @trashRestoredItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored \"{name}\"'**
+  String trashRestoredItem(String name);
+
+  /// No description provided for @trashPermanentDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete \"{name}\"?'**
+  String trashPermanentDeleteConfirm(String name);
+
+  /// No description provided for @trashPermanentDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone. The item will be permanently removed.'**
+  String get trashPermanentDeleteWarning;
+
+  /// No description provided for @trashPermanentDeletedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently deleted \"{name}\"'**
+  String trashPermanentDeletedItem(String name);
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty'**
+  String get trashEmpty;
+
+  /// No description provided for @trashNoMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching items'**
+  String get trashNoMatching;
+
+  /// No description provided for @trashDeletedAppear.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted items will appear here'**
+  String get trashDeletedAppear;
+
+  /// No description provided for @trashAdjustSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your search'**
+  String get trashAdjustSearch;
+
+  /// No description provided for @trashFoundResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} result(s)'**
+  String trashFoundResults(int count);
+
+  /// No description provided for @trashNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get trashNoResults;
+
+  /// No description provided for @trashTotalItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} total items in trash'**
+  String trashTotalItems(int count);
+
+  /// No description provided for @trashSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages & Objects'**
+  String get trashSectionTitle;
+
+  /// No description provided for @trashAutoPurgeNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Items in trash are permanently deleted after 30 days'**
+  String get trashAutoPurgeNotice;
+
+  /// No description provided for @trashEmptyTrashButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Trash'**
+  String get trashEmptyTrashButton;
+
+  /// No description provided for @operationLogPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Required'**
+  String get operationLogPasswordRequired;
+
+  /// No description provided for @operationLogClearConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear all operation history?'**
+  String get operationLogClearConfirm;
+
+  /// No description provided for @operationLogFoundResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} result(s)'**
+  String operationLogFoundResults(int count);
+
+  /// No description provided for @operationLogNoMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching entries'**
+  String get operationLogNoMatching;
+
+  /// No description provided for @operationLogTryDifferent.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search term'**
+  String get operationLogTryDifferent;
+
+  /// No description provided for @operationLogAdjustFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your filters'**
+  String get operationLogAdjustFilters;
+
+  /// No description provided for @operationLogFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get operationLogFilters;
+
+  /// No description provided for @sensitivityPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Required'**
+  String get sensitivityPasswordRequired;
+
+  /// No description provided for @sensitivityDowngradeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You are about to downgrade \"{name}\" to a lower sensitivity level.'**
+  String sensitivityDowngradeWarning(String name);
+
+  /// No description provided for @sensitivityDowngradeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This field will be visible with fewer protections. Continue?'**
+  String get sensitivityDowngradeConfirm;
+
+  /// No description provided for @sensitivityMovedToPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" moved to Private'**
+  String sensitivityMovedToPrivate(String name);
+
+  /// No description provided for @sensitivityNoFields.
+  ///
+  /// In en, this message translates to:
+  /// **'No fields in this section'**
+  String get sensitivityNoFields;
+
+  /// No description provided for @sensitivityKeepHighest.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at Highest'**
+  String get sensitivityKeepHighest;
+
+  /// No description provided for @sensitivityMoveHigher.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Higher'**
+  String get sensitivityMoveHigher;
+
+  /// No description provided for @sensitivityKeepLowest.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep at Lowest'**
+  String get sensitivityKeepLowest;
+
+  /// No description provided for @sensitivityMoveLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Lower'**
+  String get sensitivityMoveLower;
+
+  /// No description provided for @sensitivityMovedHigher.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" moved to higher sensitivity'**
+  String sensitivityMovedHigher(String name);
+
+  /// No description provided for @sensitivityFoundResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} result(s)'**
+  String sensitivityFoundResults(int count);
+
+  /// No description provided for @sensitivityNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get sensitivityNoResults;
+
+  /// No description provided for @sensitivityAdjustHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.'**
+  String get sensitivityAdjustHint;
+
+  /// No description provided for @sensitivityNoFieldsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No fields match \"{query}\"'**
+  String sensitivityNoFieldsMatch(String query);
+
+  /// No description provided for @sensitivityFieldsConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fields configured'**
+  String sensitivityFieldsConfigured(int count);
+
+  /// No description provided for @sensitivityTotalFields.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} total fields'**
+  String sensitivityTotalFields(int count);
+
+  /// No description provided for @commonNA.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get commonNA;
+
+  /// No description provided for @accountIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID: {id}'**
+  String accountIdLabel(String id);
+
+  /// No description provided for @accountNoRecentOps.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent operations'**
+  String get accountNoRecentOps;
+
+  /// No description provided for @accountNoDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices recorded'**
+  String get accountNoDevices;
+
+  /// No description provided for @accountRecentDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Devices'**
+  String get accountRecentDevices;
+
+  /// No description provided for @settingsAllAccountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get settingsAllAccountsTitle;
+
+  /// No description provided for @accountLastLoginLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last login: {time}'**
+  String accountLastLoginLabel(String time);
+
+  /// No description provided for @versionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get versionUnavailable;
+
+  /// No description provided for @versionUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get versionUpToDate;
+
+  /// No description provided for @versionUpdateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get versionUpdateAvailable;
+
+  /// No description provided for @settingsAccountCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} account(s)'**
+  String settingsAccountCount(int count);
+
+  /// No description provided for @debugLogSanitizeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs will be sanitized before copying, but clipboard content is visible to other apps. The clipboard should be cleared after use.'**
+  String get debugLogSanitizeWarning;
+
+  /// No description provided for @debugLogActiveNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug mode is active. Logs are being recorded.'**
+  String get debugLogActiveNotice;
+
+  /// No description provided for @homeVaultUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Vault Unlocked'**
+  String get homeVaultUnlocked;
+
+  /// No description provided for @homeOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get homeOnline;
+
+  /// No description provided for @homeOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get homeOffline;
+
+  /// No description provided for @searchEnterMinChars.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least 2 characters to search'**
+  String get searchEnterMinChars;
+
+  /// No description provided for @searchNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get searchNoResultsBody;
+
+  /// No description provided for @searchAdjustFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your filters or search terms'**
+  String get searchAdjustFilters;
+
+  /// No description provided for @syncComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync complete'**
+  String get syncComplete;
+
+  /// No description provided for @syncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String syncFailed(String error);
+
+  /// No description provided for @syncDirectionPushed.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed local changes'**
+  String get syncDirectionPushed;
+
+  /// No description provided for @syncDirectionPulled.
+  ///
+  /// In en, this message translates to:
+  /// **'Pulled remote changes'**
+  String get syncDirectionPulled;
+
+  /// No description provided for @syncDirectionMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged changes from both devices'**
+  String get syncDirectionMerged;
+
+  /// No description provided for @syncDirectionNoChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in sync'**
+  String get syncDirectionNoChange;
+
+  /// No description provided for @syncDiscoveryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan for nearby SoloSoul devices on your local network.'**
+  String get syncDiscoveryHint;
+
+  /// No description provided for @syncFoundDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Found {count} device(s)'**
+  String syncFoundDevices(int count);
+
+  /// No description provided for @syncTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get syncTestFailed;
+
+  /// No description provided for @syncDirectionPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push'**
+  String get syncDirectionPush;
+
+  /// No description provided for @syncDirectionPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull'**
+  String get syncDirectionPull;
+
+  /// No description provided for @syncDirectionMergedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged'**
+  String get syncDirectionMergedShort;
+
+  /// No description provided for @syncDirectionNoChangeShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No Change'**
+  String get syncDirectionNoChangeShort;
+
+  /// No description provided for @localSearchScanLocalFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Local Files'**
+  String get localSearchScanLocalFiles;
+
+  /// No description provided for @localSearchDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your local files for personal information and import them into your Vault.'**
+  String get localSearchDescription;
+
+  /// No description provided for @localSearchSelectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select. Long press to adjust size limit.'**
+  String get localSearchSelectHint;
+
+  /// No description provided for @localSearchPrivacyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'All scanning is done locally. No data leaves your device. You will preview all results before importing.'**
+  String get localSearchPrivacyNotice;
+
+  /// No description provided for @localSearchSkipLargerThan.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip {label} files larger than:'**
+  String localSearchSkipLargerThan(String label);
+
+  /// No description provided for @localSearchScanningFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning files...'**
+  String get localSearchScanningFiles;
+
+  /// No description provided for @localSearchScanCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan canceled'**
+  String get localSearchScanCanceled;
+
+  /// No description provided for @localSearchScanComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan complete'**
+  String get localSearchScanComplete;
+
+  /// No description provided for @localSearchNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal information was found in the scanned files. Try using \"Full text parsing\" mode or adding more folders.'**
+  String get localSearchNoResultsBody;
+
+  /// No description provided for @localSearchNoFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'No files'**
+  String get localSearchNoFiles;
+
+  /// No description provided for @scanDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get scanDeselectAll;
+
+  /// No description provided for @ocrScanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan passport, ID card, or any document'**
+  String get ocrScanDescription;
+
+  /// No description provided for @ocrNoTextDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No text detected'**
+  String get ocrNoTextDetected;
+
+  /// No description provided for @ocrBusinessCardSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Business card saved'**
+  String get ocrBusinessCardSaved;
+
+  /// No description provided for @ocrInvoiceSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice saved'**
+  String get ocrInvoiceSaved;
+
+  /// No description provided for @ocrDocumentSavedAsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Document saved as a note'**
+  String get ocrDocumentSavedAsNote;
+
+  /// No description provided for @ocrBusinessCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Business Card'**
+  String get ocrBusinessCard;
+
+  /// No description provided for @ocrInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get ocrInvoice;
+
+  /// No description provided for @ocrResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get ocrResume;
+
+  /// No description provided for @ocrNoResumeSections.
+  ///
+  /// In en, this message translates to:
+  /// **'No resume sections detected'**
+  String get ocrNoResumeSections;
+
+  /// No description provided for @ocrResumeSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume saved'**
+  String get ocrResumeSaved;
+
+  /// No description provided for @ocrResumeSavedSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume saved with {count} sections'**
+  String ocrResumeSavedSections(int count);
+
+  /// No description provided for @ocrSavedSectionsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {success} sections, {fail} failed'**
+  String ocrSavedSectionsFailed(int success, int fail);
+
+  /// No description provided for @ocrScannedDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanned Document'**
+  String get ocrScannedDocument;
+
+  /// No description provided for @ocrUseCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Use camera to capture document'**
+  String get ocrUseCamera;
+
+  /// No description provided for @ocrPhotoOrPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo or PDF file'**
+  String get ocrPhotoOrPdf;
+
+  /// No description provided for @commonShowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} more'**
+  String commonShowMore(int count);
+
+  /// No description provided for @commonCopiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get commonCopiedToClipboard;
+
+  /// No description provided for @commonUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get commonUntitled;
+
+  /// No description provided for @predefinedDeletedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {title}: {name}'**
+  String predefinedDeletedItem(String title, String name);
+
+  /// No description provided for @commonErrorWithMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {message}'**
+  String commonErrorWithMessage(String message);
+
+  /// No description provided for @commonObject.
+  ///
+  /// In en, this message translates to:
+  /// **'Object'**
+  String get commonObject;
+
+  /// No description provided for @fieldHistoryLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get fieldHistoryLatest;
+
+  /// No description provided for @commonEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'(empty)'**
+  String get commonEmpty;
+
+  /// No description provided for @lockVaultMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Locking the vault will require your master password to unlock again.'**
+  String get lockVaultMessage;
+
+  /// No description provided for @changePasswordWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing your password will re-encrypt all your data with the new key.'**
+  String get changePasswordWarning;
+
+  /// No description provided for @changePasswordCurrentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password is required'**
+  String get changePasswordCurrentRequired;
+
+  /// No description provided for @changePasswordNewRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'New password is required'**
+  String get changePasswordNewRequired;
+
+  /// No description provided for @changePasswordMustDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'New password must be different'**
+  String get changePasswordMustDiffer;
+
+  /// No description provided for @changePasswordFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to change password'**
+  String get changePasswordFailed;
+
+  /// No description provided for @entryAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 attachment} other{{count} attachments}}'**
+  String entryAttachments(int count);
+
+  /// No description provided for @profileEncryptionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is encrypted with AES-256-GCM'**
+  String get profileEncryptionDesc;
+
+  /// No description provided for @financialEncryptionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your financial data is encrypted with AES-256-GCM'**
+  String get financialEncryptionDesc;
+
+  /// No description provided for @llmStatsPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt {tokens}'**
+  String llmStatsPrompt(String tokens);
+
+  /// No description provided for @llmStatsCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Completion {tokens}'**
+  String llmStatsCompletion(String tokens);
+
+  /// No description provided for @llmProviderOllama.
+  ///
+  /// In en, this message translates to:
+  /// **'Ollama'**
+  String get llmProviderOllama;
+
+  /// No description provided for @homeNoMorePages.
+  ///
+  /// In en, this message translates to:
+  /// **'No more pages to add'**
+  String get homeNoMorePages;
+
+  /// No description provided for @homeDefaultAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get homeDefaultAccountName;
+
+  /// No description provided for @syncEnterPairingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the pairing key shared from the other device.'**
+  String get syncEnterPairingKey;
+
+  /// No description provided for @ocrNoTextDetectedImage.
+  ///
+  /// In en, this message translates to:
+  /// **'No text detected in the image. Please try again with a clearer photo of the document.'**
+  String get ocrNoTextDetectedImage;
+
+  /// No description provided for @ocrNoTextDetectedPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'No text detected in the PDF. Please try again with a clearer scanned document.'**
+  String get ocrNoTextDetectedPdf;
+
+  /// No description provided for @ocrRecognitionTimeoutImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition timed out. Please try again with a clearer image.'**
+  String get ocrRecognitionTimeoutImage;
+
+  /// No description provided for @ocrRecognitionTimeoutPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition timed out. Please try again with a clearer PDF.'**
+  String get ocrRecognitionTimeoutPdf;
+
+  /// No description provided for @ocrPdfRenderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to render PDF page. The file may be corrupted or password-protected.'**
+  String get ocrPdfRenderFailed;
+
+  /// No description provided for @commonAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Item'**
+  String get commonAddItem;
+
+  /// No description provided for @profileAddContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Contact'**
+  String get profileAddContact;
+
+  /// No description provided for @profileEditContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Contact'**
+  String get profileEditContact;
+
+  /// No description provided for @commonAddButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get commonAddButton;
+
+  /// No description provided for @profileIdCard.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Card'**
+  String get profileIdCard;
+
+  /// No description provided for @profileAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get profileAddress;
+
+  /// No description provided for @syncScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan for nearby SoloSoul devices on your local network.'**
+  String get syncScanHint;
+
+  /// No description provided for @syncPairingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.'**
+  String get syncPairingHint;
+
+  /// No description provided for @syncTestSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Success'**
+  String get syncTestSuccess;
+
+  /// No description provided for @trashEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty'**
+  String get trashEmptyMessage;
+
+  /// No description provided for @accountDeviceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} device(s)'**
+  String accountDeviceCount(int count);
+
+  /// No description provided for @profileEncryptionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End-to-End Encrypted'**
+  String get profileEncryptionTitle;
+
+  /// No description provided for @profileIdCardSection.
+  ///
+  /// In en, this message translates to:
+  /// **'ID card'**
+  String get profileIdCardSection;
+
+  /// No description provided for @profileFormatIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity\n{data}'**
+  String profileFormatIdentity(String data);
+
+  /// No description provided for @profileFormatIdCard.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Card\n{data}'**
+  String profileFormatIdCard(String data);
+
+  /// No description provided for @travelFormatPassport.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport\n{data}'**
+  String travelFormatPassport(String data);
+
+  /// No description provided for @travelFormatVisa.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa\n{data}'**
+  String travelFormatVisa(String data);
+
+  /// No description provided for @travelFormatHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel History\n{data}'**
+  String travelFormatHistory(String data);
+
+  /// No description provided for @financialFormatBankAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account\n{data}'**
+  String financialFormatBankAccount(String data);
+
+  /// No description provided for @financialFormatCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card\n{data}'**
+  String financialFormatCard(String data);
+
+  /// No description provided for @financialFormatTaxId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ID\n{data}'**
+  String financialFormatTaxId(String data);
+
+  /// No description provided for @professionalFormatEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education\n{data}'**
+  String professionalFormatEducation(String data);
+
+  /// No description provided for @professionalFormatEmployment.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment\n{data}'**
+  String professionalFormatEmployment(String data);
+
+  /// No description provided for @professionalFormatAward.
+  ///
+  /// In en, this message translates to:
+  /// **'Award\n{data}'**
+  String professionalFormatAward(String data);
+
+  /// No description provided for @professionalFormatSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill\n{data}'**
+  String professionalFormatSkill(String data);
+
+  /// No description provided for @professionalFormatLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language\n{data}'**
+  String professionalFormatLanguage(String data);
 }
 
 class _AppLocalizationsDelegate

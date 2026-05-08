@@ -127,7 +127,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
               ),
               const SizedBox(height: 24),
               Text(
-                'Password Required',
+                AppLocalizations.of(context).sensitivityPasswordRequired,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
@@ -190,7 +190,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'You are about to downgrade "${field.fieldName}" to a lower sensitivity level.',
+              AppLocalizations.of(context).sensitivityDowngradeWarning(field.fieldName),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -207,7 +207,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'This field will be visible with fewer protections. Continue?',
+                      AppLocalizations.of(context).sensitivityDowngradeConfirm,
                       style: TextStyle(
                         color: Colors.orange.shade900,
                         fontSize: 13,
@@ -231,7 +231,7 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
               Navigator.pop(context);
               showOverlaySnackBar(
                 context,
-                content: '"${field.fieldName}" moved to Private',
+                content: AppLocalizations.of(context).sensitivityMovedToPrivate(field.fieldName),
                 type: SnackBarType.info,
               );
             },
@@ -347,7 +347,7 @@ class _SensitivitySection extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Center(
                   child: Text(
-                    'No fields in this section',
+                    AppLocalizations.of(context).sensitivityNoFields,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -424,7 +424,7 @@ class _FieldListTile extends StatelessWidget {
                 onUpgrade!(field.fieldId);
                 showOverlaySnackBar(
                   context,
-                  content: '"${field.fieldName}" moved to higher sensitivity',
+                  content: AppLocalizations.of(context).sensitivityMovedHigher(field.fieldName),
                   type: SnackBarType.info,
                 );
               } else if (value == 'downgrade' && onDowngrade != null) {
@@ -444,7 +444,7 @@ class _FieldListTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        isHighest ? 'Keep at Highest' : 'Move to Higher',
+                        isHighest ? AppLocalizations.of(context).sensitivityKeepHighest : AppLocalizations.of(context).sensitivityMoveHigher,
                         style: TextStyle(color: Colors.red.shade700),
                       ),
                     ],
@@ -462,7 +462,7 @@ class _FieldListTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        isLowest ? 'Keep at Lowest' : 'Move to Lower',
+                        isLowest ? AppLocalizations.of(context).sensitivityKeepLowest : AppLocalizations.of(context).sensitivityMoveLower,
                         style: TextStyle(color: Colors.orange.shade700),
                       ),
                     ],
@@ -552,8 +552,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       children: [
                         Text(
                           hasResults
-                              ? 'Found ${publicFields.length + internalFields.length + sensitiveFields.length + criticalFields.length} result(s)'
-                              : 'No results found',
+                              ? AppLocalizations.of(context).sensitivityFoundResults(publicFields.length + internalFields.length + sensitiveFields.length + criticalFields.length)
+                              : AppLocalizations.of(context).sensitivityNoResults,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: hasResults
                                     ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -562,7 +562,7 @@ class _SensitivitySettingsView extends StatelessWidget {
                         ),
                         const Spacer(),
                         Text(
-                          '$totalFields total fields',
+                          AppLocalizations.of(context).sensitivityTotalFields(totalFields),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
@@ -595,7 +595,7 @@ class _SensitivitySettingsView extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.',
+                                AppLocalizations.of(context).sensitivityAdjustHint,
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: AppTheme.primaryColor,
                                     ),
@@ -610,8 +610,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Critical Section (Highest)
                       if (criticalFields.isNotEmpty)
                         _SensitivitySection(
-                          title: l10n.sensitivityCritical,
-                          subtitle: l10n.sensitivityCriticalDesc,
+                          title: AppLocalizations.of(context).sensitivityCritical,
+                          subtitle: AppLocalizations.of(context).sensitivityCriticalDesc,
                           icon: Icons.shield,
                           color: Colors.red.shade900,
                           fields: criticalFields,
@@ -625,8 +625,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Sensitive Section
                       if (sensitiveFields.isNotEmpty)
                         _SensitivitySection(
-                          title: l10n.sensitivitySensitive,
-                          subtitle: l10n.sensitivitySensitiveDesc,
+                          title: AppLocalizations.of(context).sensitivitySensitive,
+                          subtitle: AppLocalizations.of(context).sensitivitySensitiveDesc,
                           icon: Icons.visibility_off,
                           color: Colors.orange,
                           fields: sensitiveFields,
@@ -641,8 +641,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Internal Section
                       if (internalFields.isNotEmpty)
                         _SensitivitySection(
-                          title: l10n.sensitivityInternal,
-                          subtitle: l10n.sensitivityInternalDesc,
+                          title: AppLocalizations.of(context).sensitivityInternal,
+                          subtitle: AppLocalizations.of(context).sensitivityInternalDesc,
                           icon: Icons.visibility,
                           color: Colors.blue,
                           fields: internalFields,
@@ -657,8 +657,8 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Public Section (Lowest)
                       if (publicFields.isNotEmpty)
                         _SensitivitySection(
-                          title: l10n.sensitivityPublic,
-                          subtitle: l10n.sensitivityPublicDesc,
+                          title: AppLocalizations.of(context).sensitivityPublic,
+                          subtitle: AppLocalizations.of(context).sensitivityPublicDesc,
                           icon: Icons.public,
                           color: Colors.green,
                           fields: publicFields,
@@ -681,7 +681,7 @@ class _SensitivitySettingsView extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No fields match "$searchQuery"',
+                                AppLocalizations.of(context).sensitivityNoFieldsMatch(searchQuery),
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
@@ -700,7 +700,7 @@ class _SensitivitySettingsView extends StatelessWidget {
                       // Field count summary
                       Center(
                         child: Text(
-                          '$totalFields fields configured',
+                          AppLocalizations.of(context).sensitivityFieldsConfigured(totalFields),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),

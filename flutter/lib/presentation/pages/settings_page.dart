@@ -136,7 +136,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _vaultDataSize = 'Loading...';
+  String _vaultDataSize = '';
 
   @override
   void initState() {
@@ -151,7 +151,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<String> _getVaultDataSize() async {
     final stats = await RustVaultService.instance.getVaultStats();
-    if (stats == null) return 'Unknown';
+    if (stats == null) return AppLocalizations.of(context).settingsUnknown;
     final bytes = stats.totalSizeBytes.toInt();
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
@@ -303,7 +303,7 @@ class _AccountSettingsSection extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.person_outline,
                   title: l10n.settingsCurrentAccount,
-                  subtitle: currentAccount?.name ?? selectedId ?? 'Unknown',
+                  subtitle: currentAccount?.name ?? selectedId ?? l10n.settingsUnknown,
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -315,9 +315,9 @@ class _AccountSettingsSection extends ConsumerWidget {
                       ),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text(
-                      'Active',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.settingsActive,
+                      style: const TextStyle(
                         color: AppTheme.successColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -366,7 +366,7 @@ class _AccountSettingsSection extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.storage_outlined,
                   title: l10n.settingsDataManagement,
-                  subtitle: vaultDataSize,
+                  subtitle: vaultDataSize.isEmpty ? l10n.commonLoading : vaultDataSize,
                   onTap: () => context.push(AppRoutes.dataManagement),
                 ),
               ],

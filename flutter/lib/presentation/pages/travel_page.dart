@@ -27,12 +27,13 @@ class _TravelPageState extends ConsumerState<TravelPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isPrivacyMode =
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     return ObjectCategoryPage(
-      title: AppLocalizations.of(context).travelTitle,
+      title: l10n.travelTitle,
       sections: [
         const SizedBox(height: 8),
         const ScanDocumentButton(parentId: DefaultSectionIds.passport),
@@ -41,7 +42,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
               key: const ValueKey(DefaultSectionIds.passport),
               sectionId: DefaultSectionIds.passport,
               typeId: 'travel_passport',
-              title: AppLocalizations.of(context).travelPassports,
+              title: l10n.travelPassports,
               icon: Icons.flight_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (passport, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -51,7 +52,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 itemId: passport.id,
                 historyFieldId: 'passport',
                 isRestricted: true,
-                formatAllFields: (p) => 'Passport\n${p.toFormattedString()}',
+                formatAllFields: (p) => l10n.travelFormatPassport(p.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'passport',
                 excludeFields: const {'title'},
@@ -76,7 +77,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
               key: const ValueKey(DefaultSectionIds.visa),
               sectionId: DefaultSectionIds.visa,
               typeId: 'travel_visa',
-              title: AppLocalizations.of(context).travelVisas,
+              title: l10n.travelVisas,
               icon: Icons.assignment_ind_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (visa, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -86,7 +87,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 itemId: visa.id,
                 historyFieldId: 'visa',
                 isRestricted: true,
-                formatAllFields: (v) => 'Visa\n${v.toFormattedString()}',
+                formatAllFields: (v) => l10n.travelFormatVisa(v.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'visa',
                 excludeFields: const {'title'},
@@ -111,7 +112,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
               key: const ValueKey(DefaultSectionIds.travelHistory),
               sectionId: DefaultSectionIds.travelHistory,
               typeId: 'travel_history',
-              title: AppLocalizations.of(context).travelHistory,
+              title: l10n.travelHistory,
               icon: Icons.history_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -120,7 +121,7 @@ class _TravelPageState extends ConsumerState<TravelPage> {
                 icon: Icons.place,
                 itemId: item.id,
                 historyFieldId: 'travel',
-                formatAllFields: (t) => 'Travel History\n${t.toFormattedString()}',
+                formatAllFields: (t) => l10n.travelFormatHistory(t.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'travel',
                 excludeFields: const {'destination'},

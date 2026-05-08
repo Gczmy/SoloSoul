@@ -74,16 +74,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'End-to-End Encrypted',
-                      style: TextStyle(
+                    Text(
+                      l10n.homeEndToEndEncrypted,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppTheme.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Your data is encrypted with AES-256-GCM',
+                      l10n.profileEncryptionDesc,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -124,7 +124,7 @@ class _IdentitySection extends ConsumerWidget {
             itemId: item.id,
             historyFieldId: 'identity',
             formatAllFields:
-                (i) => 'Identity\n${i.toFormattedString()}',
+                (i) => '${l10n.profileIdentity}\n${i.toFormattedString()}',
             itemData: itemMap,
             fieldPrefix: 'identity',
             excludeFields: const {'fullName'},
@@ -331,12 +331,12 @@ class _IdentityDocumentsSection extends ConsumerWidget {
             title:
                 itemMap['title']?.isNotEmpty == true
                     ? itemMap['title']!
-                    : 'ID Card',
+                    : l10n.profileIdCard,
             icon: Icons.badge_outlined,
             itemId: item.id,
             historyFieldId: 'idCard',
             formatAllFields:
-                (c) => 'ID Card\n${c.toFormattedString()}',
+                (c) => '${l10n.profileIdCard}\n${c.toFormattedString()}',
             itemData: itemMap,
             fieldPrefix: 'idCard',
             excludeFields: const {'title'},
@@ -349,7 +349,7 @@ class _IdentityDocumentsSection extends ConsumerWidget {
       ),
       onDeleteFailed: buildOnDeleteFailed(
         context,
-        sectionLabel: 'ID card',
+        sectionLabel: l10n.profileIdCardSection,
       ),
       onCopyAll: buildOnCopyAll(context),
     )
@@ -379,7 +379,7 @@ class _AddressesSection extends ConsumerWidget {
             title:
                 itemMap['title']?.isNotEmpty == true
                     ? itemMap['title']!
-                    : 'Address',
+                    : l10n.profileAddress,
             icon: Icons.home_outlined,
             itemId: item.id,
             historyFieldId: 'address',
@@ -437,7 +437,7 @@ class _ContactForm extends StatelessWidget {
   crossAxisAlignment: CrossAxisAlignment.start,
   children: [
     Text(
-      mode == 'adding' ? 'Add Contact' : 'Edit Contact',
+      mode == 'adding' ? l10n.profileAddContact : l10n.profileEditContact,
       style: theme.textTheme.titleSmall?.copyWith(
         fontWeight: FontWeight.w600,
       ),
@@ -505,7 +505,7 @@ class _ContactForm extends StatelessWidget {
         FilledButton(
           onPressed: onSubmit,
           child: Text(
-            mode == 'adding' ? 'Add' : 'Save',
+            mode == 'adding' ? l10n.commonAddButton : l10n.commonSave,
           ),
         ),
       ],

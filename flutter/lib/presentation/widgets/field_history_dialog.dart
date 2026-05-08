@@ -111,7 +111,7 @@ class FieldHistoryDialog extends StatelessWidget {
         child: entries.isEmpty
             ? Center(
                 child: Text(
-                  'No history available',
+                  l10n.entryNoHistory,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -173,6 +173,7 @@ class _HistoryEntryTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     // Use provided fieldPrefix or fallback to deriving from title
     final prefix = fieldPrefix ?? title.toLowerCase().replaceAll(' ', '');
@@ -206,7 +207,7 @@ class _HistoryEntryTile extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Latest',
+                    l10n.fieldHistoryLatest,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.w600,
@@ -268,7 +269,7 @@ class _HistoryEntryTile extends ConsumerWidget {
                             value: value,
                           )
                         : Text(
-                            '(empty)',
+                            l10n.commonEmpty,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontStyle: FontStyle.italic,
                               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),

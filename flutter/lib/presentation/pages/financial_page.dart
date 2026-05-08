@@ -28,12 +28,13 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isPrivacyMode =
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     return ObjectCategoryPage(
-      title: AppLocalizations.of(context).financialTitle,
+      title: l10n.financialTitle,
       sections: [
             const ScanDocumentButton(parentId: DefaultSectionIds.taxId),
             const SizedBox(height: 16),
@@ -41,7 +42,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               key: const ValueKey(DefaultSectionIds.bankAccount),
               sectionId: DefaultSectionIds.bankAccount,
               typeId: 'financial_bank_account',
-              title: AppLocalizations.of(context).financialBankAccounts,
+              title: l10n.financialBankAccounts,
               icon: Icons.account_balance_outlined,
               maxVisibleItems: 3,
               displayItemBuilder:
@@ -53,7 +54,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     historyFieldId: 'bankAccount',
                     isRestricted: true,
                     formatAllFields:
-                        (a) => 'Bank Account\n${a.toFormattedString()}',
+                        (a) => l10n.financialFormatBankAccount(a.toFormattedString()),
                     itemData: itemMap,
                     fieldPrefix: 'bankAccount',
                     excludeFields: const {'title'},
@@ -78,7 +79,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               key: const ValueKey(DefaultSectionIds.card),
               sectionId: DefaultSectionIds.card,
               typeId: 'financial_card',
-              title: AppLocalizations.of(context).financialCards,
+              title: l10n.financialCards,
               icon: Icons.credit_card_outlined,
               maxVisibleItems: 3,
               displayItemBuilder:
@@ -89,7 +90,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     itemId: card.id,
                     historyFieldId: 'card',
                     isRestricted: true,
-                    formatAllFields: (c) => 'Card\n${c.toFormattedString()}',
+                    formatAllFields: (c) => l10n.financialFormatCard(c.toFormattedString()),
                     itemData: itemMap,
                     fieldPrefix: 'card',
                     excludeFields: const {'title'},
@@ -114,7 +115,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
               key: const ValueKey(DefaultSectionIds.taxId),
               sectionId: DefaultSectionIds.taxId,
               typeId: 'financial_tax_id',
-              title: AppLocalizations.of(context).financialTaxIdentification,
+              title: l10n.financialTaxIdentification,
               icon: Icons.receipt_long_outlined,
               maxVisibleItems: 3,
               displayItemBuilder:
@@ -125,7 +126,7 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     itemId: taxId.id,
                     historyFieldId: 'taxId',
                     isRestricted: true,
-                    formatAllFields: (t) => 'Tax ID\n${t.toFormattedString()}',
+                    formatAllFields: (t) => l10n.financialFormatTaxId(t.toFormattedString()),
                     itemData: itemMap,
                     fieldPrefix: 'taxId',
                     excludeFields: const {'title'},
@@ -167,16 +168,16 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'End-to-End Encrypted',
-                          style: TextStyle(
+                        Text(
+                          l10n.profileEncryptionTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: AppTheme.primaryColor,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Your financial data is encrypted with AES-256-GCM',
+                          l10n.financialEncryptionDesc,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(
                               context,

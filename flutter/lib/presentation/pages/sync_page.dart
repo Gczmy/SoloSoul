@@ -62,7 +62,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
                 icon: Icons.check_circle,
                 message: syncState.lastResult != null
                   ? _syncResultText(syncState.lastResult!)
-                  : 'Sync complete',
+                  : l10n.syncComplete,
                 color: Colors.green,
               )
             else if (syncState.status == SyncStatus.error)
@@ -138,12 +138,13 @@ class _SyncPageState extends ConsumerState<SyncPage> {
   }
 
   String _syncResultText(frb.SyncResult result) {
-    if (!result.success) return 'Sync failed: ${result.error ?? 'unknown error'}';
+    final l10n = AppLocalizations.of(context);
+    if (!result.success) return l10n.syncFailed(result.error ?? 'unknown error');
     return switch (result.direction) {
-      frb.SyncDirection.pushed => 'Pushed local changes',
-      frb.SyncDirection.pulled => 'Pulled remote changes',
-      frb.SyncDirection.merged => 'Merged changes from both devices',
-      frb.SyncDirection.noChange => 'Already in sync',
+      frb.SyncDirection.pushed => l10n.syncDirectionPushed,
+      frb.SyncDirection.pulled => l10n.syncDirectionPulled,
+      frb.SyncDirection.merged => l10n.syncDirectionMerged,
+      frb.SyncDirection.noChange => l10n.syncDirectionNoChange,
     };
   }
 
@@ -333,7 +334,7 @@ class _DiscoveryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Scan for nearby SoloSoul devices on your local network.',
+                    AppLocalizations.of(context).syncDiscoveryHint,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -358,7 +359,7 @@ class _DiscoveryCard extends StatelessWidget {
               const Divider(),
               const SizedBox(height: 8),
               Text(
-                'Found ${syncState.devices.length} device(s)',
+                AppLocalizations.of(context).syncFoundDevices(syncState.devices.length),
                 style: theme.textTheme.labelLarge,
               ),
               const SizedBox(height: 8),
@@ -506,8 +507,7 @@ class _PairingKeyCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Generate a shared pairing key to establish a secure connection '
-              'between devices. Both devices must use the same key.',
+              AppLocalizations.of(context).syncPairingKeyHint,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -541,13 +541,13 @@ class _SyncResultCard extends StatelessWidget {
           children: [
             _ResultRow(
               label: l10n.syncStatus,
-              value: result.success ? 'Success' : 'Failed',
+              value: result.success ? l10n.commonSuccess : l10n.syncTestFailed,
               icon: result.success ? Icons.check_circle : Icons.error_outline,
             ),
             const SizedBox(height: 8),
             _ResultRow(
               label: l10n.syncDirection,
-              value: _directionText(result.direction),
+              value: _directionText(context, result.direction),
               icon: _directionIcon(result.direction),
             ),
             const SizedBox(height: 8),
@@ -570,12 +570,13 @@ class _SyncResultCard extends StatelessWidget {
     );
   }
 
-  String _directionText(frb.SyncDirection direction) {
+  String _directionText(BuildContext context, frb.SyncDirection direction) {
+    final l10n = AppLocalizations.of(context);
     return switch (direction) {
-      frb.SyncDirection.pushed => 'Push',
-      frb.SyncDirection.pulled => 'Pull',
-      frb.SyncDirection.merged => 'Merged',
-      frb.SyncDirection.noChange => 'No Change',
+      frb.SyncDirection.pushed => l10n.syncDirectionPush,
+      frb.SyncDirection.pulled => l10n.syncDirectionPull,
+      frb.SyncDirection.merged => l10n.syncDirectionMergedShort,
+      frb.SyncDirection.noChange => l10n.syncDirectionNoChangeShort,
     };
   }
 
@@ -649,7 +650,7 @@ class _SyncDialogState extends State<_SyncDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Enter the pairing key shared from the other device.',
+            AppLocalizations.of(context).syncEnterPairingKey,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),

@@ -51,15 +51,15 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
     final IconData statusIcon;
     final Color statusColor;
     if (state.isScanning) {
-      statusText = 'Scanning files...';
+      statusText = l10n.localSearchScanningFiles;
       statusIcon = Icons.sync;
       statusColor = theme.colorScheme.primary;
     } else if (state.wasCanceled) {
-      statusText = 'Scan canceled';
+      statusText = l10n.localSearchScanCanceled;
       statusIcon = Icons.cancel_outlined;
       statusColor = theme.colorScheme.primary;
     } else {
-      statusText = 'Scan complete';
+      statusText = l10n.localSearchScanComplete;
       statusIcon = Icons.check_circle_outline;
       statusColor = theme.colorScheme.primary;
     }
@@ -209,10 +209,7 @@ class _LocalSearchProgressPageState extends ConsumerState<LocalSearchProgressPag
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.localSearchNoResults),
-        content: const Text(
-          'No personal information was found in the scanned files. '
-          'Try using "Full text parsing" mode or adding more folders.',
-        ),
+        content: Text(l10n.localSearchNoResultsBody),
         actions: [
           TextButton(
             onPressed: () {
@@ -325,7 +322,7 @@ class _StatButton extends StatelessWidget {
                 child: files.isEmpty
                     ? Center(
                         child: Text(
-                          'No files',
+                          AppLocalizations.of(context).localSearchNoFiles,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

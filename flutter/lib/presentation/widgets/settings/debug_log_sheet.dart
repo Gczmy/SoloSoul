@@ -41,11 +41,7 @@ class DebugLogSheetState extends State<DebugLogSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.settingsDebugLogCopyTitle),
-        content: const Text(
-          'Logs will be sanitized before copying, but clipboard content '
-          'is accessible to all apps on this device.\n\n'
-          'The clipboard should be cleared after use.',
-        ),
+        content: Text(l10n.debugLogSanitizeWarning),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -121,7 +117,7 @@ class DebugLogSheetState extends State<DebugLogSheet> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Debug mode is active. Logs are being recorded.',
+                    l10n.debugLogActiveNotice,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.red.shade700,
                     ),

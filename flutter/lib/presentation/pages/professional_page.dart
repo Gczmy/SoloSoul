@@ -27,12 +27,13 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isPrivacyMode =
         ref.read(accountStyleProvider).value?.displayMode ==
         SensitivityDisplayMode.hidePrivate;
 
     return ObjectCategoryPage(
-      title: AppLocalizations.of(context).professionalTitle,
+      title: l10n.professionalTitle,
       sections: [
             const ScanDocumentButton(parentId: DefaultSectionIds.employment),
             const SizedBox(height: 16),
@@ -40,7 +41,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.education),
               sectionId: DefaultSectionIds.education,
               typeId: 'professional_education',
-              title: AppLocalizations.of(context).professionalEducation,
+              title: l10n.professionalEducation,
               icon: Icons.school_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -49,7 +50,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 icon: Icons.school,
                 itemId: item.id,
                 historyFieldId: 'education',
-                formatAllFields: (e) => 'Education\n${e.toFormattedString()}',
+                formatAllFields: (e) => l10n.professionalFormatEducation(e.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'education',
                 excludeFields: const {'institution'},
@@ -74,7 +75,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.employment),
               sectionId: DefaultSectionIds.employment,
               typeId: 'professional_employment',
-              title: AppLocalizations.of(context).professionalEmployment,
+              title: l10n.professionalEmployment,
               icon: Icons.work_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -83,7 +84,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 icon: Icons.work,
                 itemId: item.id,
                 historyFieldId: 'employment',
-                formatAllFields: (e) => 'Employment\n${e.toFormattedString()}',
+                formatAllFields: (e) => l10n.professionalFormatEmployment(e.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'employment',
                 excludeFields: const {'company'},
@@ -108,7 +109,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.award),
               sectionId: DefaultSectionIds.award,
               typeId: 'professional_award',
-              title: AppLocalizations.of(context).professionalAwards,
+              title: l10n.professionalAwards,
               icon: Icons.emoji_events_outlined,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -117,7 +118,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 icon: Icons.emoji_events,
                 itemId: item.id,
                 historyFieldId: 'award',
-                formatAllFields: (e) => 'Award\n${e.toFormattedString()}',
+                formatAllFields: (e) => l10n.professionalFormatAward(e.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'award',
                 excludeFields: const {'title'},
@@ -142,7 +143,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.skill),
               sectionId: DefaultSectionIds.skill,
               typeId: 'professional_skill',
-              title: AppLocalizations.of(context).professionalSkills,
+              title: l10n.professionalSkills,
               icon: Icons.star_outline,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -151,7 +152,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 icon: Icons.star,
                 itemId: item.id,
                 historyFieldId: 'skill',
-                formatAllFields: (e) => 'Skill\n${e.toFormattedString()}',
+                formatAllFields: (e) => l10n.professionalFormatSkill(e.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'skill',
                 excludeFields: const {'name'},
@@ -176,7 +177,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
               key: const ValueKey(DefaultSectionIds.language),
               sectionId: DefaultSectionIds.language,
               typeId: 'professional_language',
-              title: AppLocalizations.of(context).professionalLanguages,
+              title: l10n.professionalLanguages,
               icon: Icons.translate,
               maxVisibleItems: 3,
               displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
@@ -185,7 +186,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
                 icon: Icons.translate,
                 itemId: item.id,
                 historyFieldId: 'language',
-                formatAllFields: (e) => 'Language\n${e.toFormattedString()}',
+                formatAllFields: (e) => l10n.professionalFormatLanguage(e.toFormattedString()),
                 itemData: itemMap,
                 fieldPrefix: 'language',
                 excludeFields: const {'name'},

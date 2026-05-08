@@ -50,10 +50,10 @@ Future<bool> showChangePasswordDialog({
                     children: [
                       Icon(Icons.warning_amber, color: Colors.indigo.shade700, size: 20),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Changing your password will re-encrypt all your data with the new key.',
-                          style: TextStyle(fontSize: 12),
+                          l10n.changePasswordWarning,
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ),
                     ],
@@ -194,23 +194,23 @@ Future<bool> showChangePasswordDialog({
 
                       // Validation
                       if (current.isEmpty) {
-                        setDialogState(() => error = 'Current password is required');
+                        setDialogState(() => error = l10n.changePasswordCurrentRequired);
                         return;
                       }
                       if (newPwd.isEmpty) {
-                        setDialogState(() => error = 'New password is required');
+                        setDialogState(() => error = l10n.changePasswordNewRequired);
                         return;
                       }
                       if (newPwd.length < 8) {
-                        setDialogState(() => error = 'Password must be at least 8 characters');
+                        setDialogState(() => error = l10n.loginPasswordMinLength);
                         return;
                       }
                       if (newPwd != confirm) {
-                        setDialogState(() => error = 'Passwords do not match');
+                        setDialogState(() => error = l10n.loginPasswordsDoNotMatch);
                         return;
                       }
                       if (current == newPwd) {
-                        setDialogState(() => error = 'New password must be different');
+                        setDialogState(() => error = l10n.changePasswordMustDiffer);
                         return;
                       }
 
@@ -233,7 +233,7 @@ Future<bool> showChangePasswordDialog({
                       } else if (dialogContext.mounted) {
                         setDialogState(() {
                           isLoading = false;
-                          error = result.error ?? 'Failed to change password';
+                          error = result.error ?? l10n.changePasswordFailed;
                         });
                       }
                     },

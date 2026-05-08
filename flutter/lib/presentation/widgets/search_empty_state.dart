@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 /// Empty state widget shown when no search query has been entered yet.
 class SearchEmptyState extends StatelessWidget {
@@ -7,6 +8,7 @@ class SearchEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Column(
@@ -15,7 +17,7 @@ class SearchEmptyState extends StatelessWidget {
           Icon(Icons.search, size: 64, color: theme.colorScheme.outline),
           const SizedBox(height: 16),
           Text(
-            'Enter at least 2 characters to search',
+            l10n.searchEnterMinChars,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.outline,
             ),
@@ -43,6 +45,7 @@ class SearchNoResultsState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Column(
@@ -51,14 +54,14 @@ class SearchNoResultsState extends StatelessWidget {
           Icon(Icons.search_off, size: 64, color: theme.colorScheme.outline),
           const SizedBox(height: 16),
           Text(
-            'No results found',
+            l10n.searchNoResultsBody,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.outline,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your filters or search terms',
+            l10n.searchAdjustFilters,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.outline,
             ),

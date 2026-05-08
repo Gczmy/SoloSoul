@@ -95,7 +95,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       return Scaffold(
         appBar: SoloGlassAppBar(
           backRoute: AppRoutes.home,
-          title: Text(l10n.trashTitle),
+          title: Text(AppLocalizations.of(context).trashTitle),
         ),
         body: Center(
           child: Column(
@@ -108,14 +108,14 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Password Required',
+                AppLocalizations.of(context).trashPasswordRequired,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _verifyPassword,
                 icon: const Icon(Icons.lock_open),
-                label: Text(l10n.trashVerify),
+                label: Text(AppLocalizations.of(context).trashVerify),
               ),
             ],
           ),
@@ -146,6 +146,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
 
   void _confirmEmptyTrash(BuildContext context, int itemCount) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -161,7 +162,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Are you sure you want to permanently delete all $itemCount items in trash?',
+              AppLocalizations.of(context).trashEmptyConfirm(itemCount),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -180,10 +181,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'This action cannot be undone. All items will be permanently removed.',
-                      style: TextStyle(
+                      AppLocalizations.of(context).trashEmptyWarning,
+                      style: const TextStyle(
                         color: Colors.red,
                         fontSize: 13,
                       ),
@@ -239,7 +240,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
               if (mounted) {
                 showOverlaySnackBar(
                   snackBarContext,
-                  content: 'All $itemCount items permanently deleted',
+                  content: AppLocalizations.of(context).trashEmptyComplete(itemCount),
                   type: SnackBarType.error,
                 );
               }
@@ -253,6 +254,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   Future<void> _confirmRestoreUnifiedObject(UnifiedObject object) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -264,7 +266,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           ],
         ),
         content: Text(
-          'Are you sure you want to restore "${object.name}"?',
+          AppLocalizations.of(context).trashRestoreConfirmBody(object.name),
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
         actions: [
@@ -293,7 +295,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: 'Restored "${object.name}"',
+          content: AppLocalizations.of(context).trashRestoredItem(object.name),
           type: SnackBarType.success,
         );
       }
@@ -301,6 +303,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   Future<void> _confirmPurgeUnifiedObject(UnifiedObject object) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -316,7 +319,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Are you sure you want to permanently delete "${object.name}"?',
+              AppLocalizations.of(context).trashPermanentDeleteConfirm(object.name),
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -335,10 +338,10 @@ class _TrashPageState extends ConsumerState<TrashPage> {
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'This action cannot be undone. The item will be permanently removed.',
-                      style: TextStyle(
+                      AppLocalizations.of(context).trashPermanentDeleteWarning,
+                      style: const TextStyle(
                         color: Colors.red,
                         fontSize: 13,
                       ),
@@ -392,7 +395,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: 'Permanently deleted "${object.name}"',
+          content: AppLocalizations.of(context).trashPermanentDeletedItem(object.name),
           type: SnackBarType.error,
         );
       }
@@ -411,6 +414,7 @@ class _TrashEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -422,7 +426,7 @@ class _TrashEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            searchQuery.isEmpty ? 'Trash is empty' : 'No matching items',
+            searchQuery.isEmpty ? AppLocalizations.of(context).trashEmpty : AppLocalizations.of(context).trashNoMatching,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -430,8 +434,8 @@ class _TrashEmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             searchQuery.isEmpty
-                ? 'Deleted items will appear here'
-                : 'Try adjusting your search',
+                ? AppLocalizations.of(context).trashDeletedAppear
+                : AppLocalizations.of(context).trashAdjustSearch,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -472,9 +476,9 @@ class _TrashListView extends StatelessWidget {
                   Icons.delete_forever,
                   color: AppTheme.errorColor,
                 ),
-                label: const Text(
-                  'Empty Trash',
-                  style: TextStyle(color: AppTheme.errorColor),
+                label: Text(
+                  AppLocalizations.of(context).trashEmptyTrashButton,
+                  style: const TextStyle(color: AppTheme.errorColor),
                 ),
               ),
             ],
@@ -485,7 +489,8 @@ class _TrashListView extends StatelessWidget {
             builder: (context) {
               final entries = <TrashEntry>[];
               if (objects.isNotEmpty) {
-                entries.add(const TrashSectionHeader('Pages & Objects'));
+                final l10n = AppLocalizations.of(context);
+                entries.add(TrashSectionHeader(AppLocalizations.of(context).trashSectionTitle));
                 entries.addAll(
                   objects.map((o) => TrashUnifiedEntry(o)),
                 );
@@ -592,7 +597,7 @@ class _TrashViewWidget extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Items in trash are permanently deleted after 30 days',
+                    AppLocalizations.of(context).trashAutoPurgeNotice,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.orange.shade700,
                     ),
@@ -652,8 +657,8 @@ class _TrashContentWidget extends StatelessWidget {
               children: [
                 Text(
                   totalCount > 0
-                      ? 'Found $totalCount result(s)'
-                      : 'No results found',
+                      ? AppLocalizations.of(context).trashFoundResults(totalCount)
+                      : AppLocalizations.of(context).trashNoResults,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: totalCount > 0
                             ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -662,7 +667,7 @@ class _TrashContentWidget extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${deletedUnifiedObjects.length} total items in trash',
+                  AppLocalizations.of(context).trashTotalItems(deletedUnifiedObjects.length),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

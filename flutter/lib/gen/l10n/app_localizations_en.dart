@@ -515,7 +515,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncPairingKey => 'Pairing Key';
 
   @override
-  String get syncPairingKeyHint => 'Enter shared pairing key';
+  String get syncPairingKeyHint =>
+      'Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.';
 
   @override
   String get syncGenerateAndCopyKey => 'Generate & Copy Key';
@@ -1906,4 +1907,592 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataManagementSpecialBackupTooltip => 'Save as special backup';
+
+  @override
+  String get passwordVerificationRestricted =>
+      'Restricted field. Enter your master password to proceed.';
+
+  @override
+  String get passwordVerificationInvalid => 'Invalid password';
+
+  @override
+  String get trashPasswordRequired => 'Password Required';
+
+  @override
+  String trashEmptyConfirm(int count) {
+    return 'Are you sure you want to permanently delete all $count items in trash?';
+  }
+
+  @override
+  String get trashEmptyWarning =>
+      'This action cannot be undone. All items will be permanently removed.';
+
+  @override
+  String trashEmptyComplete(int count) {
+    return 'All $count items permanently deleted';
+  }
+
+  @override
+  String trashRestoreConfirmBody(String name) {
+    return 'Are you sure you want to restore \"$name\"?';
+  }
+
+  @override
+  String trashRestoredItem(String name) {
+    return 'Restored \"$name\"';
+  }
+
+  @override
+  String trashPermanentDeleteConfirm(String name) {
+    return 'Are you sure you want to permanently delete \"$name\"?';
+  }
+
+  @override
+  String get trashPermanentDeleteWarning =>
+      'This action cannot be undone. The item will be permanently removed.';
+
+  @override
+  String trashPermanentDeletedItem(String name) {
+    return 'Permanently deleted \"$name\"';
+  }
+
+  @override
+  String get trashEmpty => 'Trash is empty';
+
+  @override
+  String get trashNoMatching => 'No matching items';
+
+  @override
+  String get trashDeletedAppear => 'Deleted items will appear here';
+
+  @override
+  String get trashAdjustSearch => 'Try adjusting your search';
+
+  @override
+  String trashFoundResults(int count) {
+    return 'Found $count result(s)';
+  }
+
+  @override
+  String get trashNoResults => 'No results found';
+
+  @override
+  String trashTotalItems(int count) {
+    return '$count total items in trash';
+  }
+
+  @override
+  String get trashSectionTitle => 'Pages & Objects';
+
+  @override
+  String get trashAutoPurgeNotice =>
+      'Items in trash are permanently deleted after 30 days';
+
+  @override
+  String get trashEmptyTrashButton => 'Empty Trash';
+
+  @override
+  String get operationLogPasswordRequired => 'Password Required';
+
+  @override
+  String get operationLogClearConfirm =>
+      'Are you sure you want to clear all operation history?';
+
+  @override
+  String operationLogFoundResults(int count) {
+    return 'Found $count result(s)';
+  }
+
+  @override
+  String get operationLogNoMatching => 'No matching entries';
+
+  @override
+  String get operationLogTryDifferent => 'Try a different search term';
+
+  @override
+  String get operationLogAdjustFilters => 'Try adjusting your filters';
+
+  @override
+  String get operationLogFilters => 'Filters';
+
+  @override
+  String get sensitivityPasswordRequired => 'Password Required';
+
+  @override
+  String sensitivityDowngradeWarning(String name) {
+    return 'You are about to downgrade \"$name\" to a lower sensitivity level.';
+  }
+
+  @override
+  String get sensitivityDowngradeConfirm =>
+      'This field will be visible with fewer protections. Continue?';
+
+  @override
+  String sensitivityMovedToPrivate(String name) {
+    return '\"$name\" moved to Private';
+  }
+
+  @override
+  String get sensitivityNoFields => 'No fields in this section';
+
+  @override
+  String get sensitivityKeepHighest => 'Keep at Highest';
+
+  @override
+  String get sensitivityMoveHigher => 'Move to Higher';
+
+  @override
+  String get sensitivityKeepLowest => 'Keep at Lowest';
+
+  @override
+  String get sensitivityMoveLower => 'Move to Lower';
+
+  @override
+  String sensitivityMovedHigher(String name) {
+    return '\"$name\" moved to higher sensitivity';
+  }
+
+  @override
+  String sensitivityFoundResults(int count) {
+    return 'Found $count result(s)';
+  }
+
+  @override
+  String get sensitivityNoResults => 'No results found';
+
+  @override
+  String get sensitivityAdjustHint =>
+      'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.';
+
+  @override
+  String sensitivityNoFieldsMatch(String query) {
+    return 'No fields match \"$query\"';
+  }
+
+  @override
+  String sensitivityFieldsConfigured(int count) {
+    return '$count fields configured';
+  }
+
+  @override
+  String sensitivityTotalFields(int count) {
+    return '$count total fields';
+  }
+
+  @override
+  String get commonNA => 'N/A';
+
+  @override
+  String accountIdLabel(String id) {
+    return 'Account ID: $id';
+  }
+
+  @override
+  String get accountNoRecentOps => 'No recent operations';
+
+  @override
+  String get accountNoDevices => 'No devices recorded';
+
+  @override
+  String get accountRecentDevices => 'Recent Devices';
+
+  @override
+  String get settingsAllAccountsTitle => 'All Accounts';
+
+  @override
+  String accountLastLoginLabel(String time) {
+    return 'Last login: $time';
+  }
+
+  @override
+  String get versionUnavailable => 'Unavailable';
+
+  @override
+  String get versionUpToDate => 'Up to date';
+
+  @override
+  String get versionUpdateAvailable => 'Update available';
+
+  @override
+  String settingsAccountCount(int count) {
+    return '$count account(s)';
+  }
+
+  @override
+  String get debugLogSanitizeWarning =>
+      'Logs will be sanitized before copying, but clipboard content is visible to other apps. The clipboard should be cleared after use.';
+
+  @override
+  String get debugLogActiveNotice =>
+      'Debug mode is active. Logs are being recorded.';
+
+  @override
+  String get homeVaultUnlocked => 'Vault Unlocked';
+
+  @override
+  String get homeOnline => 'Online';
+
+  @override
+  String get homeOffline => 'Offline';
+
+  @override
+  String get searchEnterMinChars => 'Enter at least 2 characters to search';
+
+  @override
+  String get searchNoResultsBody => 'No results found';
+
+  @override
+  String get searchAdjustFilters =>
+      'Try adjusting your filters or search terms';
+
+  @override
+  String get syncComplete => 'Sync complete';
+
+  @override
+  String syncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get syncDirectionPushed => 'Pushed local changes';
+
+  @override
+  String get syncDirectionPulled => 'Pulled remote changes';
+
+  @override
+  String get syncDirectionMerged => 'Merged changes from both devices';
+
+  @override
+  String get syncDirectionNoChange => 'Already in sync';
+
+  @override
+  String get syncDiscoveryHint =>
+      'Scan for nearby SoloSoul devices on your local network.';
+
+  @override
+  String syncFoundDevices(int count) {
+    return 'Found $count device(s)';
+  }
+
+  @override
+  String get syncTestFailed => 'Failed';
+
+  @override
+  String get syncDirectionPush => 'Push';
+
+  @override
+  String get syncDirectionPull => 'Pull';
+
+  @override
+  String get syncDirectionMergedShort => 'Merged';
+
+  @override
+  String get syncDirectionNoChangeShort => 'No Change';
+
+  @override
+  String get localSearchScanLocalFiles => 'Scan Local Files';
+
+  @override
+  String get localSearchDescription =>
+      'Search your local files for personal information and import them into your Vault.';
+
+  @override
+  String get localSearchSelectHint =>
+      'Tap to select. Long press to adjust size limit.';
+
+  @override
+  String get localSearchPrivacyNotice =>
+      'All scanning is done locally. No data leaves your device. You will preview all results before importing.';
+
+  @override
+  String localSearchSkipLargerThan(String label) {
+    return 'Skip $label files larger than:';
+  }
+
+  @override
+  String get localSearchScanningFiles => 'Scanning files...';
+
+  @override
+  String get localSearchScanCanceled => 'Scan canceled';
+
+  @override
+  String get localSearchScanComplete => 'Scan complete';
+
+  @override
+  String get localSearchNoResultsBody =>
+      'No personal information was found in the scanned files. Try using \"Full text parsing\" mode or adding more folders.';
+
+  @override
+  String get localSearchNoFiles => 'No files';
+
+  @override
+  String get scanDeselectAll => 'Deselect All';
+
+  @override
+  String get ocrScanDescription => 'Scan passport, ID card, or any document';
+
+  @override
+  String get ocrNoTextDetected => 'No text detected';
+
+  @override
+  String get ocrBusinessCardSaved => 'Business card saved';
+
+  @override
+  String get ocrInvoiceSaved => 'Invoice saved';
+
+  @override
+  String get ocrDocumentSavedAsNote => 'Document saved as a note';
+
+  @override
+  String get ocrBusinessCard => 'Business Card';
+
+  @override
+  String get ocrInvoice => 'Invoice';
+
+  @override
+  String get ocrResume => 'Resume';
+
+  @override
+  String get ocrNoResumeSections => 'No resume sections detected';
+
+  @override
+  String get ocrResumeSaved => 'Resume saved';
+
+  @override
+  String ocrResumeSavedSections(int count) {
+    return 'Resume saved with $count sections';
+  }
+
+  @override
+  String ocrSavedSectionsFailed(int success, int fail) {
+    return 'Saved $success sections, $fail failed';
+  }
+
+  @override
+  String get ocrScannedDocument => 'Scanned Document';
+
+  @override
+  String get ocrUseCamera => 'Use camera to capture document';
+
+  @override
+  String get ocrPhotoOrPdf => 'Photo or PDF file';
+
+  @override
+  String commonShowMore(int count) {
+    return 'Show $count more';
+  }
+
+  @override
+  String get commonCopiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get commonUntitled => 'Untitled';
+
+  @override
+  String predefinedDeletedItem(String title, String name) {
+    return 'Deleted $title: $name';
+  }
+
+  @override
+  String commonErrorWithMessage(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String get commonObject => 'Object';
+
+  @override
+  String get fieldHistoryLatest => 'Latest';
+
+  @override
+  String get commonEmpty => '(empty)';
+
+  @override
+  String get lockVaultMessage =>
+      'Locking the vault will require your master password to unlock again.';
+
+  @override
+  String get changePasswordWarning =>
+      'Changing your password will re-encrypt all your data with the new key.';
+
+  @override
+  String get changePasswordCurrentRequired => 'Current password is required';
+
+  @override
+  String get changePasswordNewRequired => 'New password is required';
+
+  @override
+  String get changePasswordMustDiffer => 'New password must be different';
+
+  @override
+  String get changePasswordFailed => 'Failed to change password';
+
+  @override
+  String entryAttachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attachments',
+      one: '1 attachment',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEncryptionDesc => 'Your data is encrypted with AES-256-GCM';
+
+  @override
+  String get financialEncryptionDesc =>
+      'Your financial data is encrypted with AES-256-GCM';
+
+  @override
+  String llmStatsPrompt(String tokens) {
+    return 'Prompt $tokens';
+  }
+
+  @override
+  String llmStatsCompletion(String tokens) {
+    return 'Completion $tokens';
+  }
+
+  @override
+  String get llmProviderOllama => 'Ollama';
+
+  @override
+  String get homeNoMorePages => 'No more pages to add';
+
+  @override
+  String get homeDefaultAccountName => 'Account';
+
+  @override
+  String get syncEnterPairingKey =>
+      'Enter the pairing key shared from the other device.';
+
+  @override
+  String get ocrNoTextDetectedImage =>
+      'No text detected in the image. Please try again with a clearer photo of the document.';
+
+  @override
+  String get ocrNoTextDetectedPdf =>
+      'No text detected in the PDF. Please try again with a clearer scanned document.';
+
+  @override
+  String get ocrRecognitionTimeoutImage =>
+      'Recognition timed out. Please try again with a clearer image.';
+
+  @override
+  String get ocrRecognitionTimeoutPdf =>
+      'Recognition timed out. Please try again with a clearer PDF.';
+
+  @override
+  String get ocrPdfRenderFailed =>
+      'Failed to render PDF page. The file may be corrupted or password-protected.';
+
+  @override
+  String get commonAddItem => 'Add Item';
+
+  @override
+  String get profileAddContact => 'Add Contact';
+
+  @override
+  String get profileEditContact => 'Edit Contact';
+
+  @override
+  String get commonAddButton => 'Add';
+
+  @override
+  String get profileIdCard => 'ID Card';
+
+  @override
+  String get profileAddress => 'Address';
+
+  @override
+  String get syncScanHint =>
+      'Scan for nearby SoloSoul devices on your local network.';
+
+  @override
+  String get syncPairingHint =>
+      'Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.';
+
+  @override
+  String get syncTestSuccess => 'Success';
+
+  @override
+  String get trashEmptyMessage => 'Trash is empty';
+
+  @override
+  String accountDeviceCount(int count) {
+    return '$count device(s)';
+  }
+
+  @override
+  String get profileEncryptionTitle => 'End-to-End Encrypted';
+
+  @override
+  String get profileIdCardSection => 'ID card';
+
+  @override
+  String profileFormatIdentity(String data) {
+    return 'Identity\n$data';
+  }
+
+  @override
+  String profileFormatIdCard(String data) {
+    return 'ID Card\n$data';
+  }
+
+  @override
+  String travelFormatPassport(String data) {
+    return 'Passport\n$data';
+  }
+
+  @override
+  String travelFormatVisa(String data) {
+    return 'Visa\n$data';
+  }
+
+  @override
+  String travelFormatHistory(String data) {
+    return 'Travel History\n$data';
+  }
+
+  @override
+  String financialFormatBankAccount(String data) {
+    return 'Bank Account\n$data';
+  }
+
+  @override
+  String financialFormatCard(String data) {
+    return 'Card\n$data';
+  }
+
+  @override
+  String financialFormatTaxId(String data) {
+    return 'Tax ID\n$data';
+  }
+
+  @override
+  String professionalFormatEducation(String data) {
+    return 'Education\n$data';
+  }
+
+  @override
+  String professionalFormatEmployment(String data) {
+    return 'Employment\n$data';
+  }
+
+  @override
+  String professionalFormatAward(String data) {
+    return 'Award\n$data';
+  }
+
+  @override
+  String professionalFormatSkill(String data) {
+    return 'Skill\n$data';
+  }
+
+  @override
+  String professionalFormatLanguage(String data) {
+    return 'Language\n$data';
+  }
 }

@@ -505,7 +505,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncPairingKey => '配对密钥';
 
   @override
-  String get syncPairingKeyHint => '输入共享配对密钥';
+  String get syncPairingKeyHint => '生成共享配对密钥以建立设备间的安全连接。两台设备必须使用相同的密钥。';
 
   @override
   String get syncGenerateAndCopyKey => '生成并复制密钥';
@@ -1867,4 +1867,567 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataManagementSpecialBackupTooltip => '保存为特殊备份';
+
+  @override
+  String get passwordVerificationRestricted => '受限字段。请输入主密码以继续。';
+
+  @override
+  String get passwordVerificationInvalid => '密码无效';
+
+  @override
+  String get trashPasswordRequired => '需要密码';
+
+  @override
+  String trashEmptyConfirm(int count) {
+    return '确定要永久删除回收站中的全部 $count 个项目吗？';
+  }
+
+  @override
+  String get trashEmptyWarning => '此操作不可撤销。所有项目将被永久删除。';
+
+  @override
+  String trashEmptyComplete(int count) {
+    return '已永久删除全部 $count 个项目';
+  }
+
+  @override
+  String trashRestoreConfirmBody(String name) {
+    return '确定要恢复\"$name\"吗？';
+  }
+
+  @override
+  String trashRestoredItem(String name) {
+    return '已恢复\"$name\"';
+  }
+
+  @override
+  String trashPermanentDeleteConfirm(String name) {
+    return '确定要永久删除\"$name\"吗？';
+  }
+
+  @override
+  String get trashPermanentDeleteWarning => '此操作不可撤销。该项目将被永久删除。';
+
+  @override
+  String trashPermanentDeletedItem(String name) {
+    return '已永久删除\"$name\"';
+  }
+
+  @override
+  String get trashEmpty => '回收站为空';
+
+  @override
+  String get trashNoMatching => '无匹配项目';
+
+  @override
+  String get trashDeletedAppear => '已删除的项目将显示在此处';
+
+  @override
+  String get trashAdjustSearch => '尝试调整搜索条件';
+
+  @override
+  String trashFoundResults(int count) {
+    return '找到 $count 条结果';
+  }
+
+  @override
+  String get trashNoResults => '未找到结果';
+
+  @override
+  String trashTotalItems(int count) {
+    return '回收站中共 $count 个项目';
+  }
+
+  @override
+  String get trashSectionTitle => '页面与对象';
+
+  @override
+  String get trashAutoPurgeNotice => '回收站中的项目在30天后将被永久删除';
+
+  @override
+  String get trashEmptyTrashButton => '清空回收站';
+
+  @override
+  String get operationLogPasswordRequired => '需要密码';
+
+  @override
+  String get operationLogClearConfirm => '确定要清除所有操作历史吗？';
+
+  @override
+  String operationLogFoundResults(int count) {
+    return '找到 $count 条结果';
+  }
+
+  @override
+  String get operationLogNoMatching => '无匹配条目';
+
+  @override
+  String get operationLogTryDifferent => '尝试其他搜索词';
+
+  @override
+  String get operationLogAdjustFilters => '尝试调整筛选条件';
+
+  @override
+  String get operationLogFilters => '筛选条件';
+
+  @override
+  String get sensitivityPasswordRequired => '需要密码';
+
+  @override
+  String sensitivityDowngradeWarning(String name) {
+    return '您正在将\"$name\"降级到更低的敏感度级别。';
+  }
+
+  @override
+  String get sensitivityDowngradeConfirm => '此字段将以更少的保护可见。继续？';
+
+  @override
+  String sensitivityMovedToPrivate(String name) {
+    return '\"$name\"已移至私有';
+  }
+
+  @override
+  String get sensitivityNoFields => '此分区无字段';
+
+  @override
+  String get sensitivityKeepHighest => '保持最高';
+
+  @override
+  String get sensitivityMoveHigher => '移至更高';
+
+  @override
+  String get sensitivityKeepLowest => '保持最低';
+
+  @override
+  String get sensitivityMoveLower => '移至更低';
+
+  @override
+  String sensitivityMovedHigher(String name) {
+    return '\"$name\"已移至更高敏感度';
+  }
+
+  @override
+  String sensitivityFoundResults(int count) {
+    return '找到 $count 条结果';
+  }
+
+  @override
+  String get sensitivityNoResults => '未找到结果';
+
+  @override
+  String get sensitivityAdjustHint => '调整每个字段的敏感度级别。受限字段需要额外验证才能查看。';
+
+  @override
+  String sensitivityNoFieldsMatch(String query) {
+    return '无字段匹配\"$query\"';
+  }
+
+  @override
+  String sensitivityFieldsConfigured(int count) {
+    return '已配置 $count 个字段';
+  }
+
+  @override
+  String sensitivityTotalFields(int count) {
+    return '共 $count 个字段';
+  }
+
+  @override
+  String get commonNA => '不适用';
+
+  @override
+  String accountIdLabel(String id) {
+    return '账户 ID：$id';
+  }
+
+  @override
+  String get accountNoRecentOps => '无最近操作';
+
+  @override
+  String get accountNoDevices => '无设备记录';
+
+  @override
+  String get accountRecentDevices => '最近设备';
+
+  @override
+  String get settingsAllAccountsTitle => '全部账户';
+
+  @override
+  String accountLastLoginLabel(String time) {
+    return '最后登录：$time';
+  }
+
+  @override
+  String get versionUnavailable => '不可用';
+
+  @override
+  String get versionUpToDate => '已是最新';
+
+  @override
+  String get versionUpdateAvailable => '有可用更新';
+
+  @override
+  String settingsAccountCount(int count) {
+    return '$count 个账户';
+  }
+
+  @override
+  String get debugLogSanitizeWarning => '日志将在复制前脱敏，但剪贴板内容对其他应用可见。使用后应清除剪贴板。';
+
+  @override
+  String get debugLogActiveNotice => '调试模式已激活。正在记录日志。';
+
+  @override
+  String get homeVaultUnlocked => 'Vault 已解锁';
+
+  @override
+  String get homeOnline => '在线';
+
+  @override
+  String get homeOffline => '离线';
+
+  @override
+  String get searchEnterMinChars => '输入至少2个字符进行搜索';
+
+  @override
+  String get searchNoResultsBody => '未找到结果';
+
+  @override
+  String get searchAdjustFilters => '尝试调整筛选条件或搜索词';
+
+  @override
+  String get syncComplete => '同步完成';
+
+  @override
+  String syncFailed(String error) {
+    return '同步失败：$error';
+  }
+
+  @override
+  String get syncDirectionPushed => '已推送本地更改';
+
+  @override
+  String get syncDirectionPulled => '已拉取远程更改';
+
+  @override
+  String get syncDirectionMerged => '已合并双方更改';
+
+  @override
+  String get syncDirectionNoChange => '已同步';
+
+  @override
+  String get syncDiscoveryHint => '扫描本地网络中的 SoloSoul 设备';
+
+  @override
+  String syncFoundDevices(int count) {
+    return '发现 $count 台设备';
+  }
+
+  @override
+  String get syncTestFailed => '失败';
+
+  @override
+  String get syncDirectionPush => '推送';
+
+  @override
+  String get syncDirectionPull => '拉取';
+
+  @override
+  String get syncDirectionMergedShort => '已合并';
+
+  @override
+  String get syncDirectionNoChangeShort => '无更改';
+
+  @override
+  String get localSearchScanLocalFiles => '扫描本地文件';
+
+  @override
+  String get localSearchDescription => '在本地文件中搜索个人信息并导入到您的 Vault 中。';
+
+  @override
+  String get localSearchSelectHint => '点击选择，长按调整大小限制。';
+
+  @override
+  String get localSearchPrivacyNotice => '所有扫描均在本地进行。数据不会离开您的设备。导入前您将预览所有结果。';
+
+  @override
+  String localSearchSkipLargerThan(String label) {
+    return '跳过大于以下大小的 $label 文件：';
+  }
+
+  @override
+  String get localSearchScanningFiles => '正在扫描文件...';
+
+  @override
+  String get localSearchScanCanceled => '扫描已取消';
+
+  @override
+  String get localSearchScanComplete => '扫描完成';
+
+  @override
+  String get localSearchNoResultsBody =>
+      '扫描文件中未发现个人信息。请尝试使用\"全文解析\"模式或添加更多文件夹。';
+
+  @override
+  String get localSearchNoFiles => '无文件';
+
+  @override
+  String get scanDeselectAll => '取消全选';
+
+  @override
+  String get ocrScanDescription => '扫描护照、身份证或任何文档';
+
+  @override
+  String get ocrNoTextDetected => '未检测到文本';
+
+  @override
+  String get ocrBusinessCardSaved => '名片已保存';
+
+  @override
+  String get ocrInvoiceSaved => '发票已保存';
+
+  @override
+  String get ocrDocumentSavedAsNote => '文档已保存为笔记';
+
+  @override
+  String get ocrBusinessCard => '名片';
+
+  @override
+  String get ocrInvoice => '发票';
+
+  @override
+  String get ocrResume => '简历';
+
+  @override
+  String get ocrNoResumeSections => '未检测到简历分区';
+
+  @override
+  String get ocrResumeSaved => '简历已保存';
+
+  @override
+  String ocrResumeSavedSections(int count) {
+    return '简历已保存，共 $count 个分区';
+  }
+
+  @override
+  String ocrSavedSectionsFailed(int success, int fail) {
+    return '已保存 $success 个分区，$fail 个失败';
+  }
+
+  @override
+  String get ocrScannedDocument => '扫描文档';
+
+  @override
+  String get ocrUseCamera => '使用相机拍摄文档';
+
+  @override
+  String get ocrPhotoOrPdf => '照片或 PDF 文件';
+
+  @override
+  String commonShowMore(int count) {
+    return '显示另外 $count 项';
+  }
+
+  @override
+  String get commonCopiedToClipboard => '已复制到剪贴板';
+
+  @override
+  String get commonUntitled => '无标题';
+
+  @override
+  String predefinedDeletedItem(String title, String name) {
+    return '已删除 $title：$name';
+  }
+
+  @override
+  String commonErrorWithMessage(String message) {
+    return '错误：$message';
+  }
+
+  @override
+  String get commonObject => '对象';
+
+  @override
+  String get fieldHistoryLatest => '最新';
+
+  @override
+  String get commonEmpty => '（空）';
+
+  @override
+  String get lockVaultMessage => '锁定保险库后需要主密码才能解锁。';
+
+  @override
+  String get changePasswordWarning => '修改密码将使用新密钥重新加密您的所有数据。';
+
+  @override
+  String get changePasswordCurrentRequired => '请输入当前密码';
+
+  @override
+  String get changePasswordNewRequired => '请输入新密码';
+
+  @override
+  String get changePasswordMustDiffer => '新密码必须与当前密码不同';
+
+  @override
+  String get changePasswordFailed => '密码修改失败';
+
+  @override
+  String entryAttachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个附件',
+      one: '1 个附件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileEncryptionDesc => '您的数据使用 AES-256-GCM 加密';
+
+  @override
+  String get financialEncryptionDesc => '您的财务数据使用 AES-256-GCM 加密';
+
+  @override
+  String llmStatsPrompt(String tokens) {
+    return '提示词 $tokens';
+  }
+
+  @override
+  String llmStatsCompletion(String tokens) {
+    return '补全 $tokens';
+  }
+
+  @override
+  String get llmProviderOllama => 'Ollama';
+
+  @override
+  String get homeNoMorePages => '没有更多页面可添加';
+
+  @override
+  String get homeDefaultAccountName => '账户';
+
+  @override
+  String get syncEnterPairingKey => '输入从另一台设备共享的配对密钥。';
+
+  @override
+  String get ocrNoTextDetectedImage => '图像中未检测到文本。请使用更清晰的文档照片重试。';
+
+  @override
+  String get ocrNoTextDetectedPdf => 'PDF 中未检测到文本。请使用更清晰的扫描文档重试。';
+
+  @override
+  String get ocrRecognitionTimeoutImage => '识别超时。请使用更清晰的图像重试。';
+
+  @override
+  String get ocrRecognitionTimeoutPdf => '识别超时。请使用更清晰的 PDF 重试。';
+
+  @override
+  String get ocrPdfRenderFailed => '无法渲染 PDF 页面。文件可能已损坏或受密码保护。';
+
+  @override
+  String get commonAddItem => '添加项目';
+
+  @override
+  String get profileAddContact => '添加联系人';
+
+  @override
+  String get profileEditContact => '编辑联系人';
+
+  @override
+  String get commonAddButton => '添加';
+
+  @override
+  String get profileIdCard => '身份证';
+
+  @override
+  String get profileAddress => '地址';
+
+  @override
+  String get syncScanHint => '扫描本地网络中的 SoloSoul 设备。';
+
+  @override
+  String get syncPairingHint => '生成共享配对密钥以建立设备间的安全连接。两台设备必须使用相同的密钥。';
+
+  @override
+  String get syncTestSuccess => '成功';
+
+  @override
+  String get trashEmptyMessage => '回收站为空';
+
+  @override
+  String accountDeviceCount(int count) {
+    return '$count 台设备';
+  }
+
+  @override
+  String get profileEncryptionTitle => '端到端加密';
+
+  @override
+  String get profileIdCardSection => '身份证';
+
+  @override
+  String profileFormatIdentity(String data) {
+    return '身份\n$data';
+  }
+
+  @override
+  String profileFormatIdCard(String data) {
+    return '身份证\n$data';
+  }
+
+  @override
+  String travelFormatPassport(String data) {
+    return '护照\n$data';
+  }
+
+  @override
+  String travelFormatVisa(String data) {
+    return '签证\n$data';
+  }
+
+  @override
+  String travelFormatHistory(String data) {
+    return '旅行历史\n$data';
+  }
+
+  @override
+  String financialFormatBankAccount(String data) {
+    return '银行账户\n$data';
+  }
+
+  @override
+  String financialFormatCard(String data) {
+    return '银行卡\n$data';
+  }
+
+  @override
+  String financialFormatTaxId(String data) {
+    return '税号\n$data';
+  }
+
+  @override
+  String professionalFormatEducation(String data) {
+    return '教育\n$data';
+  }
+
+  @override
+  String professionalFormatEmployment(String data) {
+    return '工作\n$data';
+  }
+
+  @override
+  String professionalFormatAward(String data) {
+    return '奖项\n$data';
+  }
+
+  @override
+  String professionalFormatSkill(String data) {
+    return '技能\n$data';
+  }
+
+  @override
+  String professionalFormatLanguage(String data) {
+    return '语言\n$data';
+  }
 }

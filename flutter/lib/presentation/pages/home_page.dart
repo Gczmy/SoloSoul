@@ -249,7 +249,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
     if (available.isEmpty) {
       if (!mounted) return;
-      _showTopOverlay('No more pages to add');
+      _showTopOverlay(AppLocalizations.of(context).homeNoMorePages);
       return;
     }
 
@@ -373,12 +373,12 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Vault Unlocked',
+                        l10n.homeVaultUnlocked,
                         style: theme.textTheme.titleMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        ref.watch(authNotifierProvider.notifier).selectedAccount?.name ?? 'Account',
+                        ref.watch(authNotifierProvider.notifier).selectedAccount?.name ?? l10n.homeDefaultAccountName,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w500,
@@ -407,7 +407,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        authState == AuthState.unlocked ? 'Online' : 'Offline',
+                        authState == AuthState.unlocked ? l10n.homeOnline : l10n.homeOffline,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: authState == AuthState.unlocked
                               ? AppTheme.successColor

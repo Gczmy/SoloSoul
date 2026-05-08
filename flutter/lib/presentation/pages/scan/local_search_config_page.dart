@@ -88,14 +88,14 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Scan Local Files',
+              l10n.localSearchScanLocalFiles,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Search your local files for personal information and import them into your Vault.',
+              l10n.localSearchDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -122,7 +122,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
             _SectionTitle(icon: Icons.file_present_outlined, title: l10n.localSearchFileTypes),
             const SizedBox(height: 8),
             Text(
-              'Tap to select. Long press to adjust size limit.',
+              l10n.localSearchSelectHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -189,8 +189,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'All scanning is done locally. No data leaves your device. '
-                      'You will preview all results before importing.',
+                      l10n.localSearchPrivacyNotice,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -252,7 +251,7 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Skip $label files larger than:',
+                    l10n.localSearchSkipLargerThan(label),
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),

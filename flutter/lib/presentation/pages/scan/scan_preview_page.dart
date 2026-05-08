@@ -663,7 +663,7 @@ class _ScanPreviewBottomBar extends StatelessWidget {
                   ),
                   label: Text(
                     state.importCandidates.every((c) => c.isSelected)
-                        ? 'Deselect All'
+                        ? AppLocalizations.of(context).scanDeselectAll
                         : 'Select All',
                   ),
                 ),

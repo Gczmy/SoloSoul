@@ -864,5 +864,617 @@
   "commonHidePassword": "Hide password",
   "objectCardAddItem": "Add Item",
   "dataManagementRestoreBackupTooltip": "Restore",
-  "dataManagementSpecialBackupTooltip": "Save as special backup"
+  "dataManagementSpecialBackupTooltip": "Save as special backup",
+  "passwordVerificationRestricted": "Restricted field. Enter your master password to proceed.",
+  "passwordVerificationInvalid": "Invalid password",
+  "trashPasswordRequired": "Password Required",
+  "trashEmptyConfirm": "Are you sure you want to permanently delete all {count} items in trash?",
+  "@trashEmptyConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashEmptyWarning": "This action cannot be undone. All items will be permanently removed.",
+  "trashEmptyComplete": "All {count} items permanently deleted",
+  "@trashEmptyComplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashRestoreConfirmBody": "Are you sure you want to restore \"{name}\"?",
+  "@trashRestoreConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashRestoredItem": "Restored \"{name}\"",
+  "@trashRestoredItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPermanentDeleteConfirm": "Are you sure you want to permanently delete \"{name}\"?",
+  "@trashPermanentDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPermanentDeleteWarning": "This action cannot be undone. The item will be permanently removed.",
+  "trashPermanentDeletedItem": "Permanently deleted \"{name}\"",
+  "@trashPermanentDeletedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashEmpty": "Trash is empty",
+  "trashNoMatching": "No matching items",
+  "trashDeletedAppear": "Deleted items will appear here",
+  "trashAdjustSearch": "Try adjusting your search",
+  "trashFoundResults": "Found {count} result(s)",
+  "@trashFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashNoResults": "No results found",
+  "trashTotalItems": "{count} total items in trash",
+  "@trashTotalItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashSectionTitle": "Pages & Objects",
+  "trashAutoPurgeNotice": "Items in trash are permanently deleted after 30 days",
+  "trashEmptyTrashButton": "Empty Trash",
+  "operationLogPasswordRequired": "Password Required",
+  "operationLogClearConfirm": "Are you sure you want to clear all operation history?",
+  "operationLogFoundResults": "Found {count} result(s)",
+  "@operationLogFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "operationLogNoMatching": "No matching entries",
+  "operationLogTryDifferent": "Try a different search term",
+  "operationLogAdjustFilters": "Try adjusting your filters",
+  "operationLogFilters": "Filters",
+  "sensitivityPasswordRequired": "Password Required",
+  "sensitivityDowngradeWarning": "You are about to downgrade \"{name}\" to a lower sensitivity level.",
+  "@sensitivityDowngradeWarning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityDowngradeConfirm": "This field will be visible with fewer protections. Continue?",
+  "sensitivityMovedToPrivate": "\"{name}\" moved to Private",
+  "@sensitivityMovedToPrivate": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityNoFields": "No fields in this section",
+  "sensitivityKeepHighest": "Keep at Highest",
+  "sensitivityMoveHigher": "Move to Higher",
+  "sensitivityKeepLowest": "Keep at Lowest",
+  "sensitivityMoveLower": "Move to Lower",
+  "sensitivityMovedHigher": "\"{name}\" moved to higher sensitivity",
+  "@sensitivityMovedHigher": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityFoundResults": "Found {count} result(s)",
+  "@sensitivityFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sensitivityNoResults": "No results found",
+  "sensitivityAdjustHint": "Adjust the sensitivity level for each field. Restricted fields require additional verification to view.",
+  "sensitivityNoFieldsMatch": "No fields match \"{name}\"",
+  "@sensitivityNoFieldsMatch": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityFieldsConfigured": "{count} fields configured",
+  "@sensitivityFieldsConfigured": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sensitivityTotalFields": "{count} total fields",
+  "@sensitivityTotalFields": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonNA": "N/A",
+  "accountIdLabel": "Account ID: {id}",
+  "@accountIdLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "accountNoRecentOps": "No recent operations",
+  "accountNoDevices": "No devices recorded",
+  "accountRecentDevices": "Recent Devices",
+  "settingsAllAccountsTitle": "All Accounts",
+  "accountLastLoginLabel": "Last login: {time}",
+  "@accountLastLoginLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "versionUnavailable": "Unavailable",
+  "versionUpToDate": "Up to date",
+  "versionUpdateAvailable": "Update available",
+  "settingsAccountCount": "{count} account(s)",
+  "@settingsAccountCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "debugLogSanitizeWarning": "Logs will be sanitized before copying, but clipboard content is accessible to all apps on this device.\n\nThe clipboard should be cleared after use.",
+  "debugLogActiveNotice": "Debug mode is active. Logs are being recorded.",
+  "homeVaultUnlocked": "Vault Unlocked",
+  "homeOnline": "Online",
+  "homeOffline": "Offline",
+  "searchEnterMinChars": "Enter at least 2 characters to search",
+  "searchNoResultsBody": "No results found",
+  "searchAdjustFilters": "Try adjusting your filters or search terms",
+  "syncComplete": "Sync complete",
+  "syncFailed": "Sync failed: {error}",
+  "@syncFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncDirectionPushed": "Pushed local changes",
+  "syncDirectionPulled": "Pulled remote changes",
+  "syncDirectionMerged": "Merged changes from both devices",
+  "syncDirectionNoChange": "Already in sync",
+  "syncDiscoveryHint": "Scan for nearby SoloSoul devices on your local network.",
+  "syncFoundDevices": "Found {count} device(s)",
+  "@syncFoundDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncPairingKeyHint": "Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.",
+  "syncTestFailed": "Failed",
+  "syncDirectionPush": "Push",
+  "syncDirectionPull": "Pull",
+  "syncDirectionMergedShort": "Merged",
+  "syncDirectionNoChangeShort": "No Change",
+  "localSearchScanLocalFiles": "Scan Local Files",
+  "localSearchDescription": "Search your local files for personal information and import them into your Vault.",
+  "localSearchSelectHint": "Tap to select. Long press to adjust size limit.",
+  "localSearchPrivacyNotice": "All scanning is done locally. No data leaves your device. You will preview all results before importing.",
+  "localSearchSkipLargerThan": "Skip {label} files larger than:",
+  "@localSearchSkipLargerThan": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "localSearchScanningFiles": "Scanning files...",
+  "localSearchScanCanceled": "Scan canceled",
+  "localSearchScanComplete": "Scan complete",
+  "localSearchNoResultsBody": "No personal information was found in the scanned files. Try using \"Full text parsing\" mode or adding more folders.",
+  "localSearchNoFiles": "No files",
+  "scanDeselectAll": "Deselect All",
+  "ocrScanDescription": "Scan passport, ID card, or any document",
+  "ocrNoTextDetected": "No text detected",
+  "ocrBusinessCardSaved": "Business card saved",
+  "ocrInvoiceSaved": "Invoice saved",
+  "ocrDocumentSavedAsNote": "Document saved as a note",
+  "ocrBusinessCard": "Business Card",
+  "ocrInvoice": "Invoice",
+  "ocrResume": "Resume",
+  "ocrNoResumeSections": "No resume sections detected",
+  "ocrResumeSaved": "Resume saved",
+  "ocrResumeSavedSections": "Resume saved with {count} sections",
+  "@ocrResumeSavedSections": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrSavedSectionsFailed": "Saved {success} sections, {fail} failed",
+  "@ocrSavedSectionsFailed": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrScannedDocument": "Scanned Document",
+  "ocrUseCamera": "Use camera to capture document",
+  "ocrPhotoOrPdf": "Photo or PDF file",
+  "commonShowMore": "Show {count} more",
+  "@commonShowMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonCopiedToClipboard": "Copied to clipboard",
+  "commonUntitled": "Untitled",
+  "predefinedDeletedItem": "Deleted {title}: {name}",
+  "@predefinedDeletedItem": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "commonErrorWithMessage": "Error: {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "commonObject": "Object",
+  "fieldHistoryLatest": "Latest",
+  "commonEmpty": "(empty)",
+  "lockVaultMessage": "Locking the vault will require your master password to unlock again.",
+  "changePasswordWarning": "Changing your password will re-encrypt all your data with the new key.",
+  "changePasswordCurrentRequired": "Current password is required",
+  "changePasswordNewRequired": "New password is required",
+  "changePasswordMustDiffer": "New password must be different",
+  "changePasswordFailed": "Failed to change password",
+  "entryAttachments": "{count, plural, =1{1 attachment} other{{count} attachments}}",
+  "@entryAttachments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileEncryptionDesc": "Your data is encrypted with AES-256-GCM",
+  "financialEncryptionDesc": "Your financial data is encrypted with AES-256-GCM",
+  "llmStatsPrompt": "Prompt {tokens}",
+  "@llmStatsPrompt": {
+    "placeholders": {
+      "tokens": {
+        "type": "String"
+      }
+    }
+  },
+  "llmStatsCompletion": "Completion {tokens}",
+  "@llmStatsCompletion": {
+    "placeholders": {
+      "tokens": {
+        "type": "String"
+      }
+    }
+  },
+  "llmProviderOllama": "Ollama",
+  "homeNoMorePages": "No more pages to add",
+  "homeDefaultAccountName": "Account",
+  "syncEnterPairingKey": "Enter the pairing key shared from the other device.",
+  "ocrNoTextDetectedImage": "No text detected in the image. Please try again with a clearer photo of the document.",
+  "ocrNoTextDetectedPdf": "No text detected in the PDF. Please try again with a clearer scanned document.",
+  "ocrRecognitionTimeoutImage": "Recognition timed out. Please try again with a clearer image.",
+  "ocrRecognitionTimeoutPdf": "Recognition timed out. Please try again with a clearer PDF.",
+  "ocrPdfRenderFailed": "Failed to render PDF page. The file may be corrupted or password-protected.",
+  "versionUnavailable": "Unavailable",
+  "versionUpToDate": "Up to date",
+  "versionUpdateAvailable": "Update available",
+  "settingsAllAccountsTitle": "All Accounts",
+  "accountIdLabel": "Account ID: {id}",
+  "@accountIdLabel": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "accountNoRecentOps": "No recent operations",
+  "accountNoDevices": "No devices recorded",
+  "accountRecentDevices": "Recent Devices",
+  "accountLastLoginLabel": "Last login: {time}",
+  "@accountLastLoginLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "commonNA": "N/A",
+  "debugLogSanitizeWarning": "Logs will be sanitized before copying, but clipboard content is visible to other apps. The clipboard should be cleared after use.",
+  "debugLogActiveNotice": "Debug mode is active. Logs are being recorded.",
+  "commonCopiedToClipboard": "Copied to clipboard",
+  "commonUntitled": "Untitled",
+  "commonObject": "Object",
+  "commonShowMore": "Show {count} more",
+  "@commonShowMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonErrorWithMessage": "Error: {message}",
+  "@commonErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "commonAddItem": "Add Item",
+  "profileAddContact": "Add Contact",
+  "profileEditContact": "Edit Contact",
+  "commonAddButton": "Add",
+  "profileIdCard": "ID Card",
+  "profileAddress": "Address",
+  "scanDeselectAll": "Deselect All",
+  "localSearchScanningFiles": "Scanning files...",
+  "localSearchScanCanceled": "Scan canceled",
+  "localSearchScanComplete": "Scan complete",
+  "localSearchNoFiles": "No files",
+  "localSearchPrivacyNotice": "All scanning is done locally. No data leaves your device. You will preview all results before importing.",
+  "localSearchSelectHint": "Tap to select. Long press to adjust size limit.",
+  "localSearchSkipLargerThan": "Skip {label} files larger than:",
+  "@localSearchSkipLargerThan": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "syncScanHint": "Scan for nearby SoloSoul devices on your local network.",
+  "syncPairingHint": "Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.",
+  "syncFoundDevices": "Found {count} device(s)",
+  "@syncFoundDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncFailed": "Sync failed: {error}",
+  "@syncFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncComplete": "Sync complete",
+  "syncDirectionPush": "Push",
+  "syncDirectionPushed": "Pushed local changes",
+  "syncDirectionPulled": "Pulled remote changes",
+  "syncDirectionMerged": "Merged changes from both devices",
+  "syncDirectionNoChange": "Already in sync",
+  "syncTestSuccess": "Success",
+  "syncTestFailed": "Failed",
+  "trashPasswordRequired": "Password Required",
+  "trashEmptyConfirm": "Are you sure you want to permanently delete all {count} items in trash?",
+  "@trashEmptyConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashEmptyWarning": "This action cannot be undone. All items will be permanently removed.",
+  "trashPermanentDeleteWarning": "This action cannot be undone. The item will be permanently removed.",
+  "trashEmptyComplete": "All {count} items permanently deleted",
+  "@trashEmptyComplete": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trashRestoreConfirmBody": "Are you sure you want to restore \"{name}\"?",
+  "@trashRestoreConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashRestoredItem": "Restored \"{name}\"",
+  "@trashRestoredItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPermanentDeleteConfirm": "Are you sure you want to permanently delete \"{name}\"?",
+  "@trashPermanentDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashPermanentDeletedItem": "Permanently deleted \"{name}\"",
+  "@trashPermanentDeletedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trashEmptyMessage": "Trash is empty",
+  "trashNoMatching": "No matching items",
+  "trashAdjustSearch": "Try adjusting your search",
+  "operationLogPasswordRequired": "Password Required",
+  "operationLogClearConfirm": "Are you sure you want to clear all operation history?",
+  "operationLogFoundResults": "Found {count} result(s)",
+  "@operationLogFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "operationLogNoMatching": "No matching entries",
+  "operationLogTryDifferent": "Try a different search term",
+  "operationLogAdjustFilters": "Try adjusting your filters",
+  "operationLogFilters": "Filters",
+  "sensitivityPasswordRequired": "Password Required",
+  "sensitivityNoFields": "No fields in this section",
+  "sensitivityKeepHighest": "Keep at Highest",
+  "sensitivityMoveHigher": "Move to Higher",
+  "sensitivityKeepLowest": "Keep at Lowest",
+  "sensitivityMoveLower": "Move to Lower",
+  "sensitivityAdjustHint": "Adjust the sensitivity level for each field. Restricted fields require additional verification to view.",
+  "sensitivityNoFieldsMatch": "No fields match \"{query}\"",
+  "@sensitivityNoFieldsMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "sensitivityFoundResults": "Found {count} result(s)",
+  "@sensitivityFoundResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrBusinessCard": "Business Card",
+  "ocrInvoice": "Invoice",
+  "ocrResume": "Resume",
+  "ocrScannedDocument": "Scanned Document",
+  "ocrUseCamera": "Use camera to capture document",
+  "ocrPhotoOrPdf": "Photo or PDF file",
+  "ocrBusinessCardSaved": "Business card saved",
+  "ocrInvoiceSaved": "Invoice saved",
+  "ocrDocumentSavedAsNote": "Document saved as a note",
+  "ocrNoTextDetected": "No text detected",
+  "ocrNoResumeSections": "No resume sections detected",
+  "ocrResumeSaved": "Resume saved",
+  "ocrResumeSavedSections": "Resume saved with {count} sections",
+  "@ocrResumeSavedSections": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrSavedSectionsFailed": "Saved {success} sections, {fail} failed",
+  "@ocrSavedSectionsFailed": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "fail": {
+        "type": "int"
+      }
+    }
+  },
+  "predefinedDeletedItem": "Deleted {title}: {name}",
+  "@predefinedDeletedItem": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountDeviceCount": "{count} device(s)",
+  "@accountDeviceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profileEncryptionTitle": "End-to-End Encrypted",
+  "profileEncryptionDesc": "Your data is encrypted with AES-256-GCM",
+  "financialEncryptionDesc": "Your financial data is encrypted with AES-256-GCM",
+  "profileIdCard": "ID Card",
+  "profileIdCardSection": "ID card",
+  "profileAddress": "Address",
+  "profileFormatIdentity": "Identity\n{data}",
+  "@profileFormatIdentity": { "placeholders": { "data": { "type": "String" } } },
+  "profileFormatIdCard": "ID Card\n{data}",
+  "@profileFormatIdCard": { "placeholders": { "data": { "type": "String" } } },
+  "travelFormatPassport": "Passport\n{data}",
+  "@travelFormatPassport": { "placeholders": { "data": { "type": "String" } } },
+  "travelFormatVisa": "Visa\n{data}",
+  "@travelFormatVisa": { "placeholders": { "data": { "type": "String" } } },
+  "travelFormatHistory": "Travel History\n{data}",
+  "@travelFormatHistory": { "placeholders": { "data": { "type": "String" } } },
+  "financialFormatBankAccount": "Bank Account\n{data}",
+  "@financialFormatBankAccount": { "placeholders": { "data": { "type": "String" } } },
+  "financialFormatCard": "Card\n{data}",
+  "@financialFormatCard": { "placeholders": { "data": { "type": "String" } } },
+  "financialFormatTaxId": "Tax ID\n{data}",
+  "@financialFormatTaxId": { "placeholders": { "data": { "type": "String" } } },
+  "professionalFormatEducation": "Education\n{data}",
+  "@professionalFormatEducation": { "placeholders": { "data": { "type": "String" } } },
+  "professionalFormatEmployment": "Employment\n{data}",
+  "@professionalFormatEmployment": { "placeholders": { "data": { "type": "String" } } },
+  "professionalFormatAward": "Award\n{data}",
+  "@professionalFormatAward": { "placeholders": { "data": { "type": "String" } } },
+  "professionalFormatSkill": "Skill\n{data}",
+  "@professionalFormatSkill": { "placeholders": { "data": { "type": "String" } } },
+  "professionalFormatLanguage": "Language\n{data}",
+  "@professionalFormatLanguage": { "placeholders": { "data": { "type": "String" } } }
 }
