@@ -80,6 +80,10 @@ printf '<?xml version="1.0" encoding="UTF-8"?>
     <true/>
     <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    <key>com.apple.security.files.bookmarks.app-scope</key>
+    <true/>
 </dict>
 </plist>' > "$TEMP_ENT"
 
