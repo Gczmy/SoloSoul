@@ -124,7 +124,7 @@ class _IdentitySection extends ConsumerWidget {
             itemId: item.id,
             historyFieldId: 'identity',
             formatAllFields:
-                (i) => '${l10n.profileIdentity}\n${i.toFormattedString()}',
+                (i) => '${l10n.profileIdentity}\n${i.toFormattedStringLocalized(l10n)}',
             itemData: itemMap,
             fieldPrefix: 'identity',
             excludeFields: const {'fullName'},
@@ -336,7 +336,7 @@ class _IdentityDocumentsSection extends ConsumerWidget {
             itemId: item.id,
             historyFieldId: 'idCard',
             formatAllFields:
-                (c) => '${l10n.profileIdCard}\n${c.toFormattedString()}',
+                (c) => '${l10n.profileIdCard}\n${c.toFormattedStringLocalized(l10n)}',
             itemData: itemMap,
             fieldPrefix: 'idCard',
             excludeFields: const {'title'},
