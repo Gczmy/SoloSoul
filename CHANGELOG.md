@@ -2,6 +2,12 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [1.5.0] - 2026-05-08
+
+### Fixed
+
+- **File Picker in Release Builds** — Added `com.apple.security.files.user-selected.read-write` and `com.apple.security.files.bookmarks.app-scope` to `build_dmg.sh` entitlements template. These were missing, preventing `file_picker` and `image_picker` from working in release DMG builds.
+
 ## [1.4.9] - 2026-05-08
 
 ### Fixed
