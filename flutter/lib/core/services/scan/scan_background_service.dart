@@ -186,6 +186,17 @@ class ScanBackgroundService {
     ));
   }
 
+  /// Release all resources. Call when the service is no longer needed.
+  void dispose() {
+    _cancelToken?.cancel();
+    _cancelToken = null;
+    _subscription?.cancel();
+    _subscription = null;
+    if (!_stateController.isClosed) {
+      _stateController.close();
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Internal
   // ---------------------------------------------------------------------------
