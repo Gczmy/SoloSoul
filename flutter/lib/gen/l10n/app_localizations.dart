@@ -5323,6 +5323,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Biometrics not available on this device'**
   String get securityBiometricNotAvailable;
+
+  /// No description provided for @scanAttachFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach original file'**
+  String get scanAttachFile;
 }
 
 class _AppLocalizationsDelegate

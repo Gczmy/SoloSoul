@@ -2875,4 +2875,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get securityBiometricNotAvailable =>
       'Biometrics not available on this device';
+
+  @override
+  String get scanAttachFile => 'Attach original file';
 }

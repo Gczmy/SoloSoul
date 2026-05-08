@@ -275,7 +275,26 @@ class _CandidateCardState extends ConsumerState<_CandidateCard> {
           // Fields
           if (_expanded)
             Column(
-              children: candidate.fields.asMap().entries.map((entry) {
+              children: [
+                // Attach original file toggle
+                CheckboxListTile(
+                  dense: true,
+                  value: candidate.attachOriginalFile,
+                  onChanged: candidate.sourceFilePath != null
+                      ? (v) {
+                          ref.read(localSearchProvider.notifier)
+                              .setAttachFile(widget.candidateIndex, v!);
+                        }
+                      : null,
+                  title: Text(
+                    AppLocalizations.of(context).scanAttachFile,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+                const Divider(),
+                ...candidate.fields.asMap().entries.map((entry) {
                 final fieldIndex = entry.key;
                 final field = entry.value;
                 final isConflict = widget.conflicts.any(
@@ -293,6 +312,7 @@ class _CandidateCardState extends ConsumerState<_CandidateCard> {
                   },
                 );
               }).toList(),
+              ],
             ),
         ],
       ),

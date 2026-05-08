@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_background_service.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_import_service.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/scan/local_search_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
@@ -397,14 +398,26 @@ class LocalSearchNotifier extends _$LocalSearchNotifier {
       ref.read(unifiedObjectProvider.notifier),
       ref.read(unifiedObjectProvider).objects,
     );
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
 
     final confirmed = state.importCandidates
         .where((c) => c.isSelected)
         .toList();
 
-    final result = await importService.executeImport(confirmed);
+    final result = await importService.executeImport(
+      confirmed,
+      accountId: accountId,
+    );
     state = state.copyWith(importResult: result);
     return result;
+  }
+
+  void setAttachFile(int index, bool value) {
+    final candidates = [...state.importCandidates];
+    if (index < candidates.length) {
+      candidates[index].attachOriginalFile = value;
+      state = state.copyWith(importCandidates: candidates);
+    }
   }
 
   void reset() {

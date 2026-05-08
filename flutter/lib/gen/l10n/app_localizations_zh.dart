@@ -2803,4 +2803,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get securityBiometricNotAvailable => '此设备不支持生物识别';
+
+  @override
+  String get scanAttachFile => '保存原始文件作为附件';
 }

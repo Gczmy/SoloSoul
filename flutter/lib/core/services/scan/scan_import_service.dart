@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:solosoul_flutter/core/models/scan/scan_result_model.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_field_mapping_parser.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/core/services/scan/local_search_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 
 // =============================================================================
 // Scan Import Service
@@ -51,6 +54,7 @@ class ScanImportService {
         source: section,
         existingObjectId: existing?.id,
         fields: fieldCandidates,
+        sourceFilePath: result.meta.sourceFile,
       ));
     }
 
@@ -146,6 +150,7 @@ class ScanImportService {
         source: section,
         existingObjectId: existing?.id,
         fields: fieldCandidates,
+        sourceFilePath: result.meta.sourceFile,
       ));
     }
 
@@ -269,6 +274,7 @@ class ScanImportService {
   Future<ScanImportResult> executeImport(
     List<ImportCandidate> confirmedCandidates, {
     ConflictResolution defaultResolution = ConflictResolution.skip,
+    String? accountId,
   }) async {
     var itemsCreated = 0;
     var itemsUpdated = 0;
@@ -301,12 +307,28 @@ class ScanImportService {
         candidate.source.section,
       );
 
+      String? targetId = candidate.existingObjectId;
       if (candidate.existingObjectId != null) {
         final updated = await _updateExisting(candidate, completeProperties, warnings);
         if (updated) itemsUpdated++;
       } else {
-        await _createNew(candidate, typeId, parentSectionId, completeProperties);
-        itemsCreated++;
+        targetId = await _objectNotifier.createObjectAndReturnId(
+          name: candidate.source.display,
+          typeId: typeId,
+          properties: completeProperties,
+        );
+        if (targetId != null) itemsCreated++;
+      }
+
+      if (candidate.attachOriginalFile &&
+          candidate.sourceFilePath != null &&
+          targetId != null &&
+          accountId != null) {
+        await _attachSourceFile(
+          accountId: accountId,
+          objectId: targetId,
+          sourceFilePath: candidate.sourceFilePath!,
+        );
       }
     }
 
@@ -497,6 +519,36 @@ class ScanImportService {
         ),
       UrlProperty(:final url) => UrlProperty(url: url, sensitivity: sensitivity),
     };
+  }
+
+  Future<void> _attachSourceFile({
+    required String accountId,
+    required String objectId,
+    required String sourceFilePath,
+  }) async {
+    try {
+      final file = File(sourceFilePath);
+      if (!await file.exists()) {
+        SoloLog.w('ScanImport', 'Source file not found: $sourceFilePath');
+        return;
+      }
+      final bytes = await file.readAsBytes();
+      final attachment = await AttachmentStorageService().saveAttachment(
+        accountId: accountId,
+        fileName: file.uri.pathSegments.last,
+        bytes: bytes,
+      );
+      final objects = _objectNotifier.state.objects;
+      final obj = UnifiedObjectService.instance.getObjectById(objects, objectId);
+      if (obj != null) {
+        await _objectNotifier.updateObject(
+          objectId,
+          attachments: [...obj.attachments, attachment],
+        );
+      }
+    } on Exception catch (e, st) {
+      SoloLog.e('ScanImport', 'Failed to attach source file', e, st);
+    }
   }
 }
 

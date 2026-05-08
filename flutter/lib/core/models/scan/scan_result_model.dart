@@ -193,11 +193,19 @@ class ImportCandidate {
   final List<ImportFieldCandidate> fields;
   bool isSelected;
 
+  /// Path to the original source file on disk.
+  final String? sourceFilePath;
+
+  /// Whether the user wants to attach the original file to the imported object.
+  bool attachOriginalFile;
+
   ImportCandidate({
     required this.source,
     this.existingObjectId,
     required this.fields,
     this.isSelected = true,
+    this.sourceFilePath,
+    this.attachOriginalFile = false,
   });
 }
 

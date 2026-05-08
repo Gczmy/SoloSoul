@@ -1211,5 +1211,6 @@
   "loginNoPasswordRecovery": "没有密码恢复机制。如果您忘记了主密码，将无法访问您的数据。",
   "loginPleaseEnterPassword": "请输入您的密码",
   "securityBiometricUnlockSubtitle": "使用面容 ID / 触控 ID 解锁",
-  "securityBiometricNotAvailable": "此设备不支持生物识别"
+  "securityBiometricNotAvailable": "此设备不支持生物识别",
+  "scanAttachFile": "保存原始文件作为附件"
 }
