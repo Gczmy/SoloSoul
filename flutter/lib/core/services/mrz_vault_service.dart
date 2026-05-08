@@ -33,11 +33,13 @@ class MrzVaultService {
     required MrzData mrzData,
     Uint8List? imageBytes,
     bool saveImage = false,
+    String? targetSectionId,
   }) async {
     final notifier = ref.read(unifiedObjectProvider.notifier);
+    final section = targetSectionId;
     final docType = mrzData.documentType;
 
-    if (docType.startsWith('V')) {
+    if (section == 'visa' || (section == null && docType.startsWith('V'))) {
       return _createVisa(
         ref,
         notifier,
@@ -45,17 +47,7 @@ class MrzVaultService {
         imageBytes: imageBytes,
         saveImage: saveImage,
       );
-    } else if (docType.startsWith('P')) {
-      return _createPassport(
-        ref,
-        notifier,
-        mrzData,
-        imageBytes: imageBytes,
-        saveImage: saveImage,
-      );
-    } else if (docType.startsWith('I') ||
-        docType.startsWith('C') ||
-        docType.startsWith('A')) {
+    } else if (section == 'id_card' || (section == null && (docType.startsWith('I') || docType.startsWith('C') || docType.startsWith('A')))) {
       return _createIdCard(
         ref,
         notifier,
@@ -64,7 +56,6 @@ class MrzVaultService {
         saveImage: saveImage,
       );
     } else {
-      // 未知类型，默认当作护照处理
       return _createPassport(
         ref,
         notifier,

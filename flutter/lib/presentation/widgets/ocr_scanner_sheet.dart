@@ -49,6 +49,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   String? _originalImageName;
   bool _saveAttachment = true;
   bool _isSaving = false; // guard against double-tap
+  String? _targetSectionId; // user-selected import section
 
   // LLM Assist 状态
   bool _useLlmAssist = false;
@@ -304,9 +305,26 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
             },
           ),
 
-        // Save attachment checkbox (MRZ result only)
-        if (result is SmartOcrMrzResult && _originalImageBytes != null) ...[
-          const SizedBox(height: 12),
+        // Section selector + attachment checkbox (MRZ result only)
+        if (result is SmartOcrMrzResult) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.folder_outlined, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                'Import to: ${_sectionLabel(_targetSectionId ?? _detectedSectionId(result.mrzData))}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => _showSectionPicker(context, l10n, result.mrzData),
+                child: Text(l10n.commonEdit),
+              ),
+            ],
+          ),
+          if (_originalImageBytes != null) ...[
+            const SizedBox(height: 12),
           CheckboxListTile(
             dense: true,
             value: _saveAttachment,
@@ -318,6 +336,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
           ),
+          ],
         ],
 
         const SizedBox(height: 20),
@@ -665,6 +684,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       mrzData: mrzData,
       imageBytes: _originalImageBytes,
       saveImage: _saveAttachment && _originalImageBytes != null,
+      targetSectionId: _targetSectionId,
     );
 
     if (mounted) {
@@ -681,6 +701,44 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         Navigator.of(context).pop(_result);
       }
     }
+  }
+
+  String _detectedSectionId(MrzData mrz) {
+    final dt = mrz.documentType;
+    if (dt.startsWith('V')) return 'visa';
+    if (dt.startsWith('I') || dt.startsWith('C') || dt.startsWith('A')) return 'id_card';
+    return 'passport';
+  }
+
+  static const _sectionOptions = [
+    ('passport', 'Passport'),
+    ('visa', 'Visa'),
+    ('id_card', 'ID Card'),
+  ];
+
+  String _sectionLabel(String sectionId) {
+    return _sectionOptions.firstWhere((o) => o.$1 == sectionId, orElse: () => ('passport', 'Passport')).$2;
+  }
+
+  void _showSectionPicker(BuildContext context, AppLocalizations l10n, MrzData mrz) {
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l10n.workspaceAddSectionButton),
+        children: _sectionOptions.map((opt) {
+          final current = _targetSectionId ?? _detectedSectionId(mrz);
+          return RadioListTile<String>(
+            value: opt.$1,
+            groupValue: current,
+            onChanged: (v) {
+              setState(() => _targetSectionId = v);
+              Navigator.pop(ctx);
+            },
+            title: Text(opt.$2),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
