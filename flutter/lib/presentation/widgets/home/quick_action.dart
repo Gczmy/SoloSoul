@@ -32,9 +32,9 @@ class QuickAction {
       '/professional' => l10n.sidebarProfessional,
       '/trash' => l10n.sidebarTrash,
       '/settings' => l10n.sidebarSettings,
-      '/security' => l10n.sidebarSecurity,
+      '/security_settings' => l10n.sidebarSecurity,
       '/operation_log' => l10n.sidebarOperationLog,
-      '/sensitivity' => l10n.sidebarSensitivity,
+      '/sensitivity_settings' => l10n.sidebarSensitivity,
       '/search' => l10n.sidebarSearch,
       _ => fallback,
     };
