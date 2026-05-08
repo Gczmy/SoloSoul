@@ -2,12 +2,12 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 
 /// Convert a PropertyValue to its string representation.
-String propValueToString(PropertyValue value) {
+String propValueToString(PropertyValue value, {String yesLabel = 'Yes', String noLabel = 'No'}) {
   return switch (value) {
     TextProperty(:final text) => text,
     NumberProperty(:final value) => value?.toString() ?? '',
     DateProperty(:final isoDate) => isoDate ?? '',
-    CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+    CheckboxProperty(:final checked) => checked ? yesLabel : noLabel,
     SelectProperty(:final selectedId) => selectedId ?? '',
     MultiSelectProperty(:final selectedIds) => selectedIds.join(', '),
     RelationProperty(:final targetObjectId) => targetObjectId ?? '',

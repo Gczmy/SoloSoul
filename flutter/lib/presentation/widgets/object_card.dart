@@ -599,6 +599,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final items = widget.items;
     final shouldCollapse = items.length > 3;
@@ -642,8 +643,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                     ),
                     label: Text(
                       widget.itemTemplate == null && widget.object.properties.isEmpty
-                          ? 'Edit Section'
-                          : 'Add Item',
+                          ? l10n.pageEditorEditSectionTitle
+                          : l10n.commonAddItem,
                     ),
                   ),
                 ),
@@ -707,8 +708,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                         const SizedBox(width: 4),
                         Text(
                           _isExpanded
-                              ? 'Show less'
-                              : 'Show ${items.length - 3} more',
+                              ? l10n.commonShowLess
+                              : l10n.commonShowMore(items.length - 3),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w500,
