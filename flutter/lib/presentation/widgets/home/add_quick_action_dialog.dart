@@ -81,6 +81,7 @@ class _ActionListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListTile(
       leading: Container(
         width: 36,
@@ -91,7 +92,7 @@ class _ActionListTile extends StatelessWidget {
         ),
         child: Icon(action.icon, color: action.color, size: 20),
       ),
-      title: Text(action.label),
+      title: Text(action.localizedLabel(l10n)),
       onTap: onTap,
     );
   }
