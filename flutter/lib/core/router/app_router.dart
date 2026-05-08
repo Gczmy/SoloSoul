@@ -85,14 +85,13 @@ GoRouter createRouter(WidgetRef ref) {
         return null;
       }
 
-      // Debug-only routes (local import + LLM interface reservation)
+      // Debug-only routes (local import)
       if (!kDebugMode) {
         const debugOnlyRoutes = {
           AppRoutes.localSearch,
           AppRoutes.localSearchProgress,
           AppRoutes.scanPreview,
           AppRoutes.scanImportResult,
-          AppRoutes.llmConfig,
         };
         if (debugOnlyRoutes.contains(currentPath)) {
           return AppRoutes.home;
