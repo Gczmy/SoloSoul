@@ -12,14 +12,17 @@ import 'package:solosoul_flutter/core/services/debug_logger.dart';
 /// This wrapper detects Keychain failures and transparently falls back to file
 /// storage in the app's support directory.
 ///
-/// SECURITY NOTE: The fallback files are stored in the app's sandboxed
-/// Application Support directory with 0600 permissions. This is less secure
-/// than Keychain but functional when Keychain is unavailable.
+/// **SECURITY WARNING**: Fallback files are stored as plaintext JSON with 0600
+/// permissions. This is less secure than Keychain and **should not be relied
+/// upon for production use**. Users should be encouraged to configure proper
+/// Keychain entitlements. A future version will add AES-256-GCM encryption
+/// to fallback files using the Rust crypto backend.
 class FallbackSecureStorage {
   static const _fallbackDirName = 'solosoul_fallback_storage';
 
   final FlutterSecureStorage _secureStorage;
   Directory? _fallbackDir;
+  bool _fallbackWarningEmitted = false;
 
   FallbackSecureStorage({FlutterSecureStorage? secureStorage})
       : _secureStorage = secureStorage ??
@@ -53,6 +56,14 @@ class FallbackSecureStorage {
   }
 
   Future<void> _writeFallback(String key, String? value) async {
+    if (!_fallbackWarningEmitted) {
+      _fallbackWarningEmitted = true;
+      DebugLogger.instance.logWarning(
+        'FALLBACK_STORAGE',
+        'SECURITY: Writing sensitive data to plaintext fallback storage. '
+        'Configure Keychain entitlements for production use.',
+      );
+    }
     final dir = await _getFallbackDir();
     final path = _fallbackFilePath(dir, key);
     final file = File(path);
