@@ -5119,6 +5119,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No backups yet'**
   String get dataMgmtNoBackups;
+
+  /// No description provided for @loginDataYourControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data, your control'**
+  String get loginDataYourControl;
 }
 
 class _AppLocalizationsDelegate

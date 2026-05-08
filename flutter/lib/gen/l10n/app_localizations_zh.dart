@@ -2701,4 +2701,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataMgmtNoBackups => '暂无备份';
+
+  @override
+  String get loginDataYourControl => '您的数据，由您掌控';
 }

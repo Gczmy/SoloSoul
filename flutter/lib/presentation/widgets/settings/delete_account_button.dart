@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 class DeleteAccountButton extends StatefulWidget {
@@ -39,8 +40,8 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
                   ]
                 : null,
           ),
-          child: const Text(
-            'Delete Account',
+          child: Text(
+            AppLocalizations.of(context).settingsDeleteAccount,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppTheme.errorColor,

@@ -1571,5 +1571,6 @@
   "dataMgmtBackupEncryptionDesc": "Backups are encrypted with your vault key. Auto-backup runs on every unlock.",
   "dataMgmtRegularBackups": "Regular Backups",
   "dataMgmtNoBackups": "No backups yet",
-  "dataMgmtOperationRestoredSpecial": "Restored special backup"
+  "dataMgmtOperationRestoredSpecial": "Restored special backup",
+  "loginDataYourControl": "Your data, your control"
 }

@@ -2770,4 +2770,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataMgmtNoBackups => 'No backups yet';
+
+  @override
+  String get loginDataYourControl => 'Your data, your control';
 }

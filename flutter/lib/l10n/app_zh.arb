@@ -1177,5 +1177,6 @@
   "dataMgmtBackupEncryptionDesc": "备份使用您的保险库密钥加密。每次解锁时自动运行备份。",
   "dataMgmtRegularBackups": "常规备份",
   "dataMgmtNoBackups": "暂无备份",
-  "dataMgmtOperationRestoredSpecial": "恢复了特殊备份"
+  "dataMgmtOperationRestoredSpecial": "恢复了特殊备份",
+  "loginDataYourControl": "您的数据，由您掌控"
 }

@@ -829,7 +829,7 @@ class _SoloSoulAdSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Your Local Digital Twin. Privacy-First Universal Identity.',
+                      l10n.settingsTagline,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                         height: 1.4,
@@ -898,7 +898,7 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
 
   Future<void> _tryBiometric() async {
     final success = await BiometricService.instance.authenticate(
-      reason: 'Verify your identity to enable debug mode',
+      reason: AppLocalizations.of(context).settingsVerifyIdentityDebug,
     );
     if (success && mounted) {
       Navigator.pop(context, '');
@@ -907,7 +907,7 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final biometricType = widget.faceIdEnabled ? 'Face ID' : 'Touch ID';
+    final biometricType = widget.faceIdEnabled ? AppLocalizations.of(context).loginBiometricFaceId : AppLocalizations.of(context).loginBiometricTouchId;
     return AlertDialog(
       title: Row(
         children: [
@@ -972,8 +972,8 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
                               Expanded(
                                 child: Text(
                                   widget.selectedAccount?.passwordHint != null
-                                      ? 'Password Hint: ${widget.selectedAccount!.passwordHint}'
-                                      : 'No password hint available',
+                                      ? AppLocalizations.of(context).biometricPasswordHint(widget.selectedAccount!.passwordHint!)
+                                      : AppLocalizations.of(context).loginNoPasswordHint,
                                   style: const TextStyle(color: Colors.white),
                                 ),
                               ),

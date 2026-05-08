@@ -50,7 +50,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   // Biometric unlock state
   bool _biometricsEnabled = false;
-  String _biometricType = 'Biometric';
+  // Initialized from l10n in build()
+  String _biometricType = '';
 
   // Create account form fields
   final _newAccountNameController = TextEditingController();
@@ -786,7 +787,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                             // Subtitle
                             Text(
-                              'Your data, your control',
+                              AppLocalizations.of(context).loginDataYourControl,
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w400,
