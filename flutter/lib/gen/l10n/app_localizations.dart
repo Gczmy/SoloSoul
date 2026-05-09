@@ -4652,6 +4652,12 @@ abstract class AppLocalizations {
   /// **'Date of Birth'**
   String get fieldDateOfBirth;
 
+  /// No description provided for @fieldDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get fieldDate;
+
   /// No description provided for @fieldGender.
   ///
   /// In en, this message translates to:

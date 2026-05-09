@@ -2453,6 +2453,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fieldDateOfBirth => '出生日期';
 
   @override
+  String get fieldDate => '日期';
+
+  @override
   String get fieldGender => '性别';
 
   @override

@@ -184,11 +184,6 @@ class PresetSectionTemplates {
       icon: '📞',
       fields: [
         TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
-        TemplateField(
           key: 'type',
           type: 'text',
           sensitivity: SensitivityLevel.public,
@@ -207,11 +202,6 @@ class PresetSectionTemplates {
       descriptionKey: 'templateProfileIdCardDesc',
       icon: '🪪',
       fields: [
-        TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
         TemplateField(
           key: 'number',
           type: 'text',
@@ -247,11 +237,6 @@ class PresetSectionTemplates {
       icon: '🏠',
       fields: [
         TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
-        TemplateField(
           key: 'street',
           type: 'text',
           sensitivity: SensitivityLevel.sensitive,
@@ -285,11 +270,6 @@ class PresetSectionTemplates {
       descriptionKey: 'templateFinancialBankAccountDesc',
       icon: '🏦',
       fields: [
-        TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
         TemplateField(
           key: 'bank_name',
           type: 'text',
@@ -325,11 +305,6 @@ class PresetSectionTemplates {
       icon: '💳',
       fields: [
         TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
-        TemplateField(
           key: 'card_number',
           type: 'text',
           sensitivity: SensitivityLevel.critical,
@@ -363,11 +338,6 @@ class PresetSectionTemplates {
       descriptionKey: 'templateFinancialTaxIdDesc',
       icon: '🔢',
       fields: [
-        TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
         TemplateField(
           key: 'tax_id_number',
           type: 'text',
@@ -509,11 +479,6 @@ class PresetSectionTemplates {
       icon: '🏆',
       fields: [
         TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
-        TemplateField(
           key: 'issuer',
           type: 'text',
           sensitivity: SensitivityLevel.public,
@@ -537,11 +502,6 @@ class PresetSectionTemplates {
       descriptionKey: 'templateTravelPassportDesc',
       icon: '🛂',
       fields: [
-        TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
         TemplateField(
           key: 'country',
           type: 'text',
@@ -611,11 +571,6 @@ class PresetSectionTemplates {
       descriptionKey: 'templateTravelVisaDesc',
       icon: '📋',
       fields: [
-        TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
         TemplateField(
           key: 'country',
           type: 'text',

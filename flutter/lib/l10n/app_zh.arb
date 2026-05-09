@@ -1098,6 +1098,7 @@
   "fieldGivenName": "名字",
   "fieldFamilyName": "姓氏",
   "fieldDateOfBirth": "出生日期",
+  "fieldDate": "日期",
   "fieldGender": "性别",
   "fieldNationality": "国籍",
   "fieldTitle": "标题",

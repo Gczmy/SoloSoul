@@ -2518,6 +2518,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldDateOfBirth => 'Date of Birth';
 
   @override
+  String get fieldDate => 'Date';
+
+  @override
   String get fieldGender => 'Gender';
 
   @override

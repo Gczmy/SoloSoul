@@ -1484,6 +1484,7 @@
   "fieldGivenName": "Given Name",
   "fieldFamilyName": "Family Name",
   "fieldDateOfBirth": "Date of Birth",
+  "fieldDate": "Date",
   "fieldGender": "Gender",
   "fieldNationality": "Nationality",
   "fieldTitle": "Title",

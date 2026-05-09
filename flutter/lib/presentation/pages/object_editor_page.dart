@@ -11,6 +11,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/models/section_template.dart';
@@ -60,27 +61,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   bool get _isEditing => widget.objectId != null;
 
   String _getFieldKeyLabel(String key) {
-    final l = AppLocalizations.of(context);
-    switch (key) {
-      case 'bank_name':
-        return l.fieldBankName;
-      case 'account_number':
-        return l.fieldAccountNumber;
-      case 'account_holder':
-        return l.fieldAccountHolder;
-      case 'branch_name':
-        return l.fieldBranchName;
-      case 'sort_code':
-        return l.fieldSortCode;
-      case 'iban':
-        return l.fieldIban;
-      case 'routing_number':
-        return l.fieldRoutingNumber;
-      case 'account_type':
-        return l.fieldAccountType;
-      default:
-        return key;
-    }
+    return translateFieldLabel(key, AppLocalizations.of(context));
   }
 
   void _initFieldDisplayLabels() {

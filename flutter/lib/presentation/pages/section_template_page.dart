@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 
 /// Standalone page for browsing and selecting a section template.
 /// Returns the selected [SectionTemplate] via [Navigator.pop] when applied.
@@ -413,26 +414,7 @@ class _TemplateFieldRow extends ConsumerWidget {
   final TemplateField field;
 
   String _getFieldKeyLabel(String key, AppLocalizations l) {
-    switch (key) {
-      case 'bank_name':
-        return l.fieldBankName;
-      case 'account_number':
-        return l.fieldAccountNumber;
-      case 'account_holder':
-        return l.fieldAccountHolder;
-      case 'branch_name':
-        return l.fieldBranchName;
-      case 'sort_code':
-        return l.fieldSortCode;
-      case 'iban':
-        return l.fieldIban;
-      case 'routing_number':
-        return l.fieldRoutingNumber;
-      case 'account_type':
-        return l.fieldAccountType;
-      default:
-        return key;
-    }
+    return translateFieldLabel(key, l);
   }
 
   String _getFieldTypeLabel(String type, AppLocalizations l) {
