@@ -45,7 +45,8 @@ class _PropertyField {
     this.type = 'text',
     this.isDefaultName = false,
     this.sensitivity = SensitivityLevel.public,
-  }) : controller = TextEditingController(text: key);
+    String? displayLabel,
+  }) : controller = TextEditingController(text: displayLabel ?? key);
 }
 
 class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
@@ -56,6 +57,30 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   final List<_PropertyField> _propertyFields = [];
 
   bool get _isEditing => widget.objectId != null;
+
+  String _getFieldKeyLabel(String key) {
+    final l = AppLocalizations.of(context);
+    switch (key) {
+      case 'bank_name':
+        return l.fieldBankName;
+      case 'account_number':
+        return l.fieldAccountNumber;
+      case 'account_holder':
+        return l.fieldAccountHolder;
+      case 'branch_name':
+        return l.fieldBranchName;
+      case 'sort_code':
+        return l.fieldSortCode;
+      case 'iban':
+        return l.fieldIban;
+      case 'routing_number':
+        return l.fieldRoutingNumber;
+      case 'account_type':
+        return l.fieldAccountType;
+      default:
+        return key;
+    }
+  }
   UnifiedObject? _existingObject;
 
   @override
@@ -247,6 +272,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                               key: field.key,
                               type: field.type,
                               sensitivity: field.sensitivity,
+                              displayLabel: _getFieldKeyLabel(field.key),
                             ));
                           }
                         }
