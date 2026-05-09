@@ -324,6 +324,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get objectEditorPropertyTypeCheckbox => '复选框';
 
   @override
+  String get objectEditorPropertyTypeSelect => '单选';
+
+  @override
+  String get objectEditorPropertyTypeMultiSelect => '多选';
+
+  @override
   String get objectEditorSensitivity => '敏感度';
 
   @override
@@ -2949,4 +2955,80 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trashTypeFilterLabel => '类型：';
+
+  @override
+  String get sectionTemplateTitle => '分区模板';
+
+  @override
+  String sectionTemplateSelected(int count) {
+    return '已选择 $count 个';
+  }
+
+  @override
+  String get sectionTemplateSelectButton => '选择模板';
+
+  @override
+  String get sectionTemplateEmpty => '暂无可用模板';
+
+  @override
+  String get sectionTemplateEmptyHint => '配置后将显示模板';
+
+  @override
+  String sectionTemplateApplied(String name) {
+    return '已应用模板 \"$name\"';
+  }
+
+  @override
+  String get templateChinaBankAccountName => '中国银行账户';
+
+  @override
+  String get templateChinaBankAccountDesc => '包含中国各大银行账户信息';
+
+  @override
+  String get templateUkBankAccountName => '英国银行账户';
+
+  @override
+  String get templateUkBankAccountDesc =>
+      '包含英国银行账户信息（Sort Code + Account Number）';
+
+  @override
+  String get templateUsBankAccountName => '美国银行账户';
+
+  @override
+  String get templateUsBankAccountDesc =>
+      '包含美国银行账户信息（Routing Number + Account Number）';
+
+  @override
+  String sectionTemplateFieldCount(int count) {
+    return '$count 个字段';
+  }
+
+  @override
+  String get objectEditorDefaultFieldTitle => '标题';
+
+  @override
+  String get objectEditorDefaultFieldItemName => '项目名称';
+
+  @override
+  String objectEditorMaxLength(int count) {
+    return '$count';
+  }
+
+  @override
+  String get fieldAccountHolder => '持有人';
+
+  @override
+  String get fieldBranchName => '支行名称';
+
+  @override
+  String get fieldRoutingNumber => '路由号码';
+
+  @override
+  String get fieldAccountType => '账户类型';
+
+  @override
+  String get fieldChecking => '支票账户';
+
+  @override
+  String get fieldSavings => '储蓄账户';
 }

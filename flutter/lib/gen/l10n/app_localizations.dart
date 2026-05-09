@@ -680,6 +680,18 @@ abstract class AppLocalizations {
   /// **'Checkbox'**
   String get objectEditorPropertyTypeCheckbox;
 
+  /// No description provided for @objectEditorPropertyTypeSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get objectEditorPropertyTypeSelect;
+
+  /// No description provided for @objectEditorPropertyTypeMultiSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Select'**
+  String get objectEditorPropertyTypeMultiSelect;
+
   /// No description provided for @objectEditorSensitivity.
   ///
   /// In en, this message translates to:
@@ -5599,6 +5611,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type:'**
   String get trashTypeFilterLabel;
+
+  /// No description provided for @sectionTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Section Template'**
+  String get sectionTemplateTitle;
+
+  /// No description provided for @sectionTemplateSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String sectionTemplateSelected(int count);
+
+  /// No description provided for @sectionTemplateSelectButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Template'**
+  String get sectionTemplateSelectButton;
+
+  /// No description provided for @sectionTemplateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates available'**
+  String get sectionTemplateEmpty;
+
+  /// No description provided for @sectionTemplateEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates will appear here once configured'**
+  String get sectionTemplateEmptyHint;
+
+  /// No description provided for @sectionTemplateApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Template \"{name}\" applied'**
+  String sectionTemplateApplied(String name);
+
+  /// No description provided for @templateChinaBankAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'China Bank Account'**
+  String get templateChinaBankAccountName;
+
+  /// No description provided for @templateChinaBankAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains Chinese bank account information'**
+  String get templateChinaBankAccountDesc;
+
+  /// No description provided for @templateUkBankAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'UK Bank Account'**
+  String get templateUkBankAccountName;
+
+  /// No description provided for @templateUkBankAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains UK bank account information (Sort Code + Account Number)'**
+  String get templateUkBankAccountDesc;
+
+  /// No description provided for @templateUsBankAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'US Bank Account'**
+  String get templateUsBankAccountName;
+
+  /// No description provided for @templateUsBankAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains US bank account information (Routing Number + Account Number)'**
+  String get templateUsBankAccountDesc;
+
+  /// No description provided for @sectionTemplateFieldCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fields'**
+  String sectionTemplateFieldCount(int count);
+
+  /// No description provided for @objectEditorDefaultFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get objectEditorDefaultFieldTitle;
+
+  /// No description provided for @objectEditorDefaultFieldItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Name'**
+  String get objectEditorDefaultFieldItemName;
+
+  /// No description provided for @objectEditorMaxLength.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}'**
+  String objectEditorMaxLength(int count);
+
+  /// No description provided for @fieldAccountHolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Holder'**
+  String get fieldAccountHolder;
+
+  /// No description provided for @fieldBranchName.
+  ///
+  /// In en, this message translates to:
+  /// **'Branch Name'**
+  String get fieldBranchName;
+
+  /// No description provided for @fieldRoutingNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Routing Number'**
+  String get fieldRoutingNumber;
+
+  /// No description provided for @fieldAccountType.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type'**
+  String get fieldAccountType;
+
+  /// No description provided for @fieldChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking'**
+  String get fieldChecking;
+
+  /// No description provided for @fieldSavings.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings'**
+  String get fieldSavings;
 }
 
 class _AppLocalizationsDelegate

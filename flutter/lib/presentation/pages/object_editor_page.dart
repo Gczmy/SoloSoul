@@ -13,6 +13,8 @@ import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
+import 'package:solosoul_flutter/core/models/section_template.dart';
+import 'package:solosoul_flutter/presentation/pages/section_template_page.dart';
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -226,6 +228,38 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                   onFieldChanged: () => setState(() {}),
                 ),
                 const SizedBox(height: 24),
+
+                // 模板入口
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final template = await Navigator.of(context).push<SectionTemplate>(
+                      MaterialPageRoute(
+                        builder: (context) => const SectionTemplatePage(),
+                      ),
+                    );
+                    if (template != null) {
+                      setState(() {
+                        for (final field in template.fields) {
+                          final existingKeys = _propertyFields.map((f) => f.key).toSet();
+                          if (!existingKeys.contains(field.key)) {
+                            _propertyFields.add(_PropertyField(
+                              key: field.key,
+                              type: field.type,
+                              sensitivity: field.sensitivity,
+                            ));
+                          }
+                        }
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.add_box_outlined, size: 18),
+                  label: Text(AppLocalizations.of(context).sectionTemplateSelectButton),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -278,7 +312,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     // Check for duplicate property keys
     final keyCounts = <String, int>{};
     for (final field in _propertyFields) {
-      final key = field.isDefaultName == true ? 'Title' : field.controller.text.trim();
+      final key = field.isDefaultName == true ? AppLocalizations.of(context).objectEditorDefaultFieldTitle : field.controller.text.trim();
       if (key.isNotEmpty) {
         keyCounts[key] = (keyCounts[key] ?? 0) + 1;
       }
@@ -295,7 +329,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     final properties = <String, PropertyValue>{};
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
-          ? 'Item Name'
+          ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
           : field.key.trim();
       if (key.isNotEmpty) {
         if (field.isDefaultName == true) {
@@ -352,7 +386,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       }
     }
   }
+
 }
+
 
 /// Icon picker + section name input row.
 class _ObjectEditorHeader extends StatelessWidget {
@@ -641,7 +677,7 @@ class _PropertyFieldsSection extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'Title',
+                        AppLocalizations.of(context).objectEditorDefaultFieldTitle,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurface,
                         ),
@@ -678,7 +714,7 @@ class _PropertyFieldsSection extends StatelessWidget {
 }
 
 /// Single editable property field row.
-class _PropertyFieldRow extends StatelessWidget {
+class _PropertyFieldRow extends ConsumerWidget {
   final _PropertyField field;
   final int index;
   final ValueChanged<int> onDeleteConfirmed;
@@ -691,9 +727,33 @@ class _PropertyFieldRow extends StatelessWidget {
     required this.onFieldChanged,
   });
 
+  String _getFieldKeyLabel(String key, AppLocalizations l) {
+    switch (key) {
+      case 'bank_name':
+        return l.fieldBankName;
+      case 'account_number':
+        return l.fieldAccountNumber;
+      case 'account_holder':
+        return l.fieldAccountHolder;
+      case 'branch_name':
+        return l.fieldBranchName;
+      case 'sort_code':
+        return l.fieldSortCode;
+      case 'iban':
+        return l.fieldIban;
+      case 'routing_number':
+        return l.fieldRoutingNumber;
+      case 'account_type':
+        return l.fieldAccountType;
+      default:
+        return key;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     return Padding(
   padding: const EdgeInsets.only(bottom: 8),
   child: Row(
@@ -701,19 +761,36 @@ class _PropertyFieldRow extends StatelessWidget {
     children: [
       Expanded(
         flex: 2,
-        child: TextField(
-          controller: field.controller,
-          maxLength: 24,
-          buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-          decoration: InputDecoration(
-            hintText: AppLocalizations.of(context).objectEditorKeyName,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            field.key = value;
-          },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Localized label for template field keys
+            if (_getFieldKeyLabel(field.key, l) != field.key)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2, left: 4),
+                child: Text(
+                  _getFieldKeyLabel(field.key, l),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            TextField(
+              controller: field.controller,
+              maxLength: 24,
+              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context).objectEditorKeyName,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                field.key = value;
+              },
+            ),
+          ],
         ),
       ),
       const SizedBox(width: 8),
@@ -745,7 +822,7 @@ class _PropertyFieldRow extends StatelessWidget {
                 SizedBox(
                   width: 16,
                   child: Text(
-                    '24',
+                    AppLocalizations.of(context).objectEditorMaxLength(24),
                     textAlign: TextAlign.left,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
@@ -769,12 +846,15 @@ class _PropertyFieldRow extends StatelessWidget {
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               isDense: true,
+              isExpanded: true,
               value: field.type,
               items: [
                 DropdownMenuItem(value: 'text', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeText)),
                 DropdownMenuItem(value: 'date', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeDate)),
                 DropdownMenuItem(value: 'number', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeNumber)),
                 DropdownMenuItem(value: 'checkbox', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeCheckbox)),
+                DropdownMenuItem(value: 'select', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeSelect)),
+                DropdownMenuItem(value: 'multiSelect', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeMultiSelect)),
               ],
               onChanged: (value) {
                 if (value != null) {
@@ -792,18 +872,7 @@ class _PropertyFieldRow extends StatelessWidget {
         child: PopupMenuButton<SensitivityLevel>(
           tooltip: AppLocalizations.of(context).objectEditorSensitivity,
           child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SensitivityTag(level: field.sensitivity),
-                const SizedBox(width: 2),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 12,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
+            child: SensitivityTag(level: field.sensitivity),
           ),
           itemBuilder: (context) => SensitivityLevel.values.map((level) {
             return PopupMenuItem(
@@ -827,7 +896,7 @@ class _PropertyFieldRow extends StatelessWidget {
         icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
         tooltip: AppLocalizations.of(context).commonDelete,
         onPressed: () async {
-          final keyName = field.key.trim().isNotEmpty ? field.key.trim() : 'this property';
+          final keyName = field.key.trim().isNotEmpty ? field.key.trim() : AppLocalizations.of(context).objectEditorItemProperties;
           final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
@@ -857,3 +926,4 @@ class _PropertyFieldRow extends StatelessWidget {
 
   }
 }
+

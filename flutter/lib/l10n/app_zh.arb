@@ -97,6 +97,8 @@
   "objectEditorPropertyTypeDate": "日期",
   "objectEditorPropertyTypeNumber": "数字",
   "objectEditorPropertyTypeCheckbox": "复选框",
+  "objectEditorPropertyTypeSelect": "单选",
+  "objectEditorPropertyTypeMultiSelect": "多选",
   "objectEditorSensitivity": "敏感度",
   "objectEditorDeletePropertyTitle": "删除属性",
   "pageEditorNameRequired": "名称为必填项",
@@ -1287,5 +1289,59 @@
   "trashTimeFilter1Day": "1 天内",
   "trashTimeFilter6Hours": "6 小时内",
   "trashTimeFilter1Hour": "1 小时内",
-  "trashTypeFilterLabel": "类型："
+  "trashTypeFilterLabel": "类型：",
+  "sectionTemplateTitle": "分区模板",
+  "sectionTemplateSelected": "已选择 {count} 个",
+  "@sectionTemplateSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sectionTemplateSelectButton": "选择模板",
+  "sectionTemplateEmpty": "暂无可用模板",
+  "sectionTemplateEmptyHint": "配置后将显示模板",
+  "sectionTemplateApplied": "已应用模板 \"{name}\"",
+  "@sectionTemplateApplied": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "templateChinaBankAccountName": "中国银行账户",
+  "templateChinaBankAccountDesc": "包含中国各大银行账户信息",
+  "templateUkBankAccountName": "英国银行账户",
+  "templateUkBankAccountDesc": "包含英国银行账户信息（Sort Code + Account Number）",
+  "templateUsBankAccountName": "美国银行账户",
+  "templateUsBankAccountDesc": "包含美国银行账户信息（Routing Number + Account Number）",
+  "sectionTemplateFieldCount": "{count} 个字段",
+  "@sectionTemplateFieldCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "objectEditorDefaultFieldTitle": "标题",
+  "objectEditorDefaultFieldItemName": "项目名称",
+  "objectEditorMaxLength": "{count}",
+  "@objectEditorMaxLength": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldBankName": "银行名称",
+  "fieldAccountNumber": "账号",
+  "fieldAccountHolder": "持有人",
+  "fieldBranchName": "支行名称",
+  "fieldSortCode": "排序码",
+  "fieldIban": "IBAN",
+  "fieldRoutingNumber": "路由号码",
+  "fieldAccountType": "账户类型",
+  "fieldChecking": "支票账户",
+  "fieldSavings": "储蓄账户"
 }

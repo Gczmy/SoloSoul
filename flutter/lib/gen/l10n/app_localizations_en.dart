@@ -330,6 +330,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get objectEditorPropertyTypeCheckbox => 'Checkbox';
 
   @override
+  String get objectEditorPropertyTypeSelect => 'Select';
+
+  @override
+  String get objectEditorPropertyTypeMultiSelect => 'Multi-Select';
+
+  @override
   String get objectEditorSensitivity => 'Sensitivity';
 
   @override
@@ -3021,4 +3027,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trashTypeFilterLabel => 'Type:';
+
+  @override
+  String get sectionTemplateTitle => 'Section Template';
+
+  @override
+  String sectionTemplateSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get sectionTemplateSelectButton => 'Select Template';
+
+  @override
+  String get sectionTemplateEmpty => 'No templates available';
+
+  @override
+  String get sectionTemplateEmptyHint =>
+      'Templates will appear here once configured';
+
+  @override
+  String sectionTemplateApplied(String name) {
+    return 'Template \"$name\" applied';
+  }
+
+  @override
+  String get templateChinaBankAccountName => 'China Bank Account';
+
+  @override
+  String get templateChinaBankAccountDesc =>
+      'Contains Chinese bank account information';
+
+  @override
+  String get templateUkBankAccountName => 'UK Bank Account';
+
+  @override
+  String get templateUkBankAccountDesc =>
+      'Contains UK bank account information (Sort Code + Account Number)';
+
+  @override
+  String get templateUsBankAccountName => 'US Bank Account';
+
+  @override
+  String get templateUsBankAccountDesc =>
+      'Contains US bank account information (Routing Number + Account Number)';
+
+  @override
+  String sectionTemplateFieldCount(int count) {
+    return '$count fields';
+  }
+
+  @override
+  String get objectEditorDefaultFieldTitle => 'Title';
+
+  @override
+  String get objectEditorDefaultFieldItemName => 'Item Name';
+
+  @override
+  String objectEditorMaxLength(int count) {
+    return '$count';
+  }
+
+  @override
+  String get fieldAccountHolder => 'Account Holder';
+
+  @override
+  String get fieldBranchName => 'Branch Name';
+
+  @override
+  String get fieldRoutingNumber => 'Routing Number';
+
+  @override
+  String get fieldAccountType => 'Account Type';
+
+  @override
+  String get fieldChecking => 'Checking';
+
+  @override
+  String get fieldSavings => 'Savings';
 }

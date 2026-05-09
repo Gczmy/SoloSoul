@@ -187,6 +187,8 @@
   "objectEditorPropertyTypeDate": "Date",
   "objectEditorPropertyTypeNumber": "Number",
   "objectEditorPropertyTypeCheckbox": "Checkbox",
+  "objectEditorPropertyTypeSelect": "Select",
+  "objectEditorPropertyTypeMultiSelect": "Multi-Select",
   "objectEditorSensitivity": "Sensitivity",
   "objectEditorDeletePropertyTitle": "Delete Property",
   "pageEditorNameRequired": "Name is required",
@@ -1705,5 +1707,59 @@
   "trashTimeFilter1Day": "Within 1 day",
   "trashTimeFilter6Hours": "Within 6 hours",
   "trashTimeFilter1Hour": "Within 1 hour",
-  "trashTypeFilterLabel": "Type:"
+  "trashTypeFilterLabel": "Type:",
+  "sectionTemplateTitle": "Section Template",
+  "sectionTemplateSelected": "{count} selected",
+  "@sectionTemplateSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sectionTemplateSelectButton": "Select Template",
+  "sectionTemplateEmpty": "No templates available",
+  "sectionTemplateEmptyHint": "Templates will appear here once configured",
+  "sectionTemplateApplied": "Template \"{name}\" applied",
+  "@sectionTemplateApplied": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "templateChinaBankAccountName": "China Bank Account",
+  "templateChinaBankAccountDesc": "Contains Chinese bank account information",
+  "templateUkBankAccountName": "UK Bank Account",
+  "templateUkBankAccountDesc": "Contains UK bank account information (Sort Code + Account Number)",
+  "templateUsBankAccountName": "US Bank Account",
+  "templateUsBankAccountDesc": "Contains US bank account information (Routing Number + Account Number)",
+  "sectionTemplateFieldCount": "{count} fields",
+  "@sectionTemplateFieldCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "objectEditorDefaultFieldTitle": "Title",
+  "objectEditorDefaultFieldItemName": "Item Name",
+  "objectEditorMaxLength": "{count}",
+  "@objectEditorMaxLength": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldBankName": "Bank Name",
+  "fieldAccountNumber": "Account Number",
+  "fieldAccountHolder": "Account Holder",
+  "fieldBranchName": "Branch Name",
+  "fieldSortCode": "Sort Code",
+  "fieldIban": "IBAN",
+  "fieldRoutingNumber": "Routing Number",
+  "fieldAccountType": "Account Type",
+  "fieldChecking": "Checking",
+  "fieldSavings": "Savings"
 }
