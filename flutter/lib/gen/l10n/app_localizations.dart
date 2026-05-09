@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get commonEdit;
 
+  /// No description provided for @commonUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get commonUndo;
+
   /// Settings tile label for language selection
   ///
   /// In en, this message translates to:
@@ -5329,6 +5335,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attach original file'**
   String get scanAttachFile;
+
+  /// Relative time: days ago in trash card
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String trashDaysAgo(Object count);
+
+  /// Relative time: hours ago in trash card
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String trashHoursAgo(Object count);
+
+  /// Relative time: minutes ago in trash card
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String trashMinutesAgo(Object count);
+
+  /// No description provided for @trashJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get trashJustNow;
+
+  /// No description provided for @trashDeletedRecently.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted recently'**
+  String get trashDeletedRecently;
+
+  /// Trash card subtitle indicating when item was deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {time} ago'**
+  String trashDeletedAgo(Object time);
+
+  /// Tooltip for expand button on deleted section trash card
+  ///
+  /// In en, this message translates to:
+  /// **'Show items'**
+  String get trashShowItems;
+
+  /// Display name for 'collection' typeId
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get typeCollection;
+
+  /// Display name for 'page' typeId
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get typePage;
+
+  /// Display name for 'item' typeId
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get typeItem;
+
+  /// Fallback display name for unknown typeId
+  ///
+  /// In en, this message translates to:
+  /// **'Object'**
+  String get typeUnknown;
+
+  /// Platform label: macOS
+  ///
+  /// In en, this message translates to:
+  /// **'macOS'**
+  String get operationPlatformMacos;
+
+  /// Platform label: iOS
+  ///
+  /// In en, this message translates to:
+  /// **'iOS'**
+  String get operationPlatformIos;
+
+  /// Platform label: Windows
+  ///
+  /// In en, this message translates to:
+  /// **'Windows'**
+  String get operationPlatformWindows;
+
+  /// Platform label: Linux
+  ///
+  /// In en, this message translates to:
+  /// **'Linux'**
+  String get operationPlatformLinux;
+
+  /// No description provided for @logSectionIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get logSectionIdentity;
+
+  /// No description provided for @logSectionContactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get logSectionContactInfo;
+
+  /// No description provided for @logSectionAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get logSectionAddress;
+
+  /// No description provided for @logSectionIdCard.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Card'**
+  String get logSectionIdCard;
+
+  /// No description provided for @logSectionPassport.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport'**
+  String get logSectionPassport;
+
+  /// No description provided for @logSectionVisa.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa'**
+  String get logSectionVisa;
+
+  /// No description provided for @logSectionTravelHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel History'**
+  String get logSectionTravelHistory;
+
+  /// No description provided for @logSectionBankAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account'**
+  String get logSectionBankAccount;
+
+  /// No description provided for @logSectionCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get logSectionCard;
+
+  /// No description provided for @logSectionEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get logSectionEducation;
+
+  /// No description provided for @logSectionEmployment.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment'**
+  String get logSectionEmployment;
+
+  /// No description provided for @logSectionSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill'**
+  String get logSectionSkill;
+
+  /// No description provided for @logSectionLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get logSectionLanguage;
+
+  /// No description provided for @logSectionTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get logSectionTravel;
+
+  /// No description provided for @logSectionFinancial.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial'**
+  String get logSectionFinancial;
+
+  /// No description provided for @logSectionProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional'**
+  String get logSectionProfessional;
+
+  /// No description provided for @logSectionSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity'**
+  String get logSectionSensitivity;
+
+  /// No description provided for @logSectionCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get logSectionCustom;
+
+  /// No description provided for @logSectionDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get logSectionDefault;
+
+  /// No description provided for @operationFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get operationFilterLabel;
 }
 
 class _AppLocalizationsDelegate

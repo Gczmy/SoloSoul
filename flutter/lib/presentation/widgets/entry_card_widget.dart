@@ -188,7 +188,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     return ref.watch(effectiveSensitivityProvider(fieldId));
   }
 
-  String _formatLabel(String key) => formatFieldLabel(key);
+  String _formatLabel(String key) => translateFieldLabel(key, AppLocalizations.of(context));
 
   List<LabelValueField> _autoBuildFields() {
     final fields = <LabelValueField>[];
@@ -222,7 +222,6 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final history = _history;
     final hasHistory = history != null;
     final fields = _buildFields();

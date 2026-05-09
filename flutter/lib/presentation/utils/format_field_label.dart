@@ -28,6 +28,7 @@ String translateFieldLabel(String key, AppLocalizations l10n) {
     'gender' => l10n.fieldGender,
     'nationality' => l10n.fieldNationality,
     'title' => l10n.fieldTitle,
+    'Title' => l10n.fieldTitle,
     'type' => l10n.fieldType,
     'value' => l10n.fieldValue,
     'number' => l10n.fieldNumber,

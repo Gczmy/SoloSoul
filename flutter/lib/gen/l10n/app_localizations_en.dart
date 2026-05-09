@@ -42,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonEdit => 'Edit';
 
   @override
+  String get commonUndo => 'Undo';
+
+  @override
   String get settingsLanguage => 'Language';
 
   @override
@@ -2878,4 +2881,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanAttachFile => 'Attach original file';
+
+  @override
+  String trashDaysAgo(Object count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String trashHoursAgo(Object count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String trashMinutesAgo(Object count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String get trashJustNow => 'Just now';
+
+  @override
+  String get trashDeletedRecently => 'Deleted recently';
+
+  @override
+  String trashDeletedAgo(Object time) {
+    return 'Deleted $time ago';
+  }
+
+  @override
+  String get trashShowItems => 'Show items';
+
+  @override
+  String get typeCollection => 'Section';
+
+  @override
+  String get typePage => 'Page';
+
+  @override
+  String get typeItem => 'Item';
+
+  @override
+  String get typeUnknown => 'Object';
+
+  @override
+  String get operationPlatformMacos => 'macOS';
+
+  @override
+  String get operationPlatformIos => 'iOS';
+
+  @override
+  String get operationPlatformWindows => 'Windows';
+
+  @override
+  String get operationPlatformLinux => 'Linux';
+
+  @override
+  String get logSectionIdentity => 'Identity';
+
+  @override
+  String get logSectionContactInfo => 'Contact';
+
+  @override
+  String get logSectionAddress => 'Address';
+
+  @override
+  String get logSectionIdCard => 'ID Card';
+
+  @override
+  String get logSectionPassport => 'Passport';
+
+  @override
+  String get logSectionVisa => 'Visa';
+
+  @override
+  String get logSectionTravelHistory => 'Travel History';
+
+  @override
+  String get logSectionBankAccount => 'Bank Account';
+
+  @override
+  String get logSectionCard => 'Card';
+
+  @override
+  String get logSectionEducation => 'Education';
+
+  @override
+  String get logSectionEmployment => 'Employment';
+
+  @override
+  String get logSectionSkill => 'Skill';
+
+  @override
+  String get logSectionLanguage => 'Language';
+
+  @override
+  String get logSectionTravel => 'Travel';
+
+  @override
+  String get logSectionFinancial => 'Financial';
+
+  @override
+  String get logSectionProfessional => 'Professional';
+
+  @override
+  String get logSectionSensitivity => 'Sensitivity';
+
+  @override
+  String get logSectionCustom => 'Custom';
+
+  @override
+  String get logSectionDefault => 'Section';
+
+  @override
+  String get operationFilterLabel => 'Filter';
 }

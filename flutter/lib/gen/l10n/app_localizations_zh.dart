@@ -42,6 +42,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonEdit => '编辑';
 
   @override
+  String get commonUndo => '撤销';
+
+  @override
   String get settingsLanguage => '语言';
 
   @override
@@ -2806,4 +2809,117 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get scanAttachFile => '保存原始文件作为附件';
+
+  @override
+  String trashDaysAgo(Object count) {
+    return '$count 天前';
+  }
+
+  @override
+  String trashHoursAgo(Object count) {
+    return '$count 小时前';
+  }
+
+  @override
+  String trashMinutesAgo(Object count) {
+    return '$count 分钟前';
+  }
+
+  @override
+  String get trashJustNow => '刚刚';
+
+  @override
+  String get trashDeletedRecently => '最近删除';
+
+  @override
+  String trashDeletedAgo(Object time) {
+    return '在 $time 前删除';
+  }
+
+  @override
+  String get trashShowItems => '显示项目';
+
+  @override
+  String get typeCollection => '分区';
+
+  @override
+  String get typePage => '页面';
+
+  @override
+  String get typeItem => '项目';
+
+  @override
+  String get typeUnknown => '对象';
+
+  @override
+  String get operationPlatformMacos => 'macOS';
+
+  @override
+  String get operationPlatformIos => 'iOS';
+
+  @override
+  String get operationPlatformWindows => 'Windows';
+
+  @override
+  String get operationPlatformLinux => 'Linux';
+
+  @override
+  String get logSectionIdentity => '身份信息';
+
+  @override
+  String get logSectionContactInfo => '联系方式';
+
+  @override
+  String get logSectionAddress => '地址';
+
+  @override
+  String get logSectionIdCard => '身份证';
+
+  @override
+  String get logSectionPassport => '护照';
+
+  @override
+  String get logSectionVisa => '签证';
+
+  @override
+  String get logSectionTravelHistory => '出行记录';
+
+  @override
+  String get logSectionBankAccount => '银行账户';
+
+  @override
+  String get logSectionCard => '卡片';
+
+  @override
+  String get logSectionEducation => '教育';
+
+  @override
+  String get logSectionEmployment => '工作';
+
+  @override
+  String get logSectionSkill => '技能';
+
+  @override
+  String get logSectionLanguage => '语言';
+
+  @override
+  String get logSectionTravel => '出行';
+
+  @override
+  String get logSectionFinancial => '财务';
+
+  @override
+  String get logSectionProfessional => '职业';
+
+  @override
+  String get logSectionSensitivity => '敏感设置';
+
+  @override
+  String get logSectionCustom => '自定义';
+
+  @override
+  String get logSectionDefault => '分区';
+
+  @override
+  String get operationFilterLabel => '筛选';
 }

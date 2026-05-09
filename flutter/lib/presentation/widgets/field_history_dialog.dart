@@ -5,6 +5,8 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart'
+    show translateFieldLabel;
 import 'package:solosoul_flutter/presentation/utils/format_relative_time.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show effectiveSensitivityProvider;
@@ -59,35 +61,17 @@ class FieldHistoryDialog extends StatelessWidget {
   }
 
   /// Finds the field definition for a given key by stripping the prefix.
-  ///
-  /// Keys in history entries are in the format "prefix.fieldName" (e.g.,
-  /// "contact.email", "idCard.number"). This method strips the prefix and
-  /// matches against the fieldId in fieldDefs.
   FormFieldDef? _findFieldDef(String key) {
     final strippedKey = key.contains('.')
         ? key.substring(key.indexOf('.') + 1)
         : key;
 
-    // First try exact match (some fieldDefs may include prefix)
     for (final def in fieldDefs) {
       if (def.fieldId == strippedKey || def.fieldId == key) {
         return def;
       }
     }
     return null;
-  }
-
-  /// Converts a stripped field key to a human-readable label.
-  String _toDisplayLabel(String strippedKey) {
-    // Convert camelCase to Title Case for display (e.g., "expiryDate" -> "Expiry Date")
-    return strippedKey.replaceAllMapped(
-      RegExp(r'([A-Z]|[0-9]+)'),
-      (match) => match.group(0)!.isEmpty
-          ? ''
-          : (match.start == 0
-              ? match.group(0)!
-              : ' ${match.group(0)}'),
-    );
   }
 
   @override
@@ -129,7 +113,6 @@ class FieldHistoryDialog extends StatelessWidget {
                     isLatest: isLatest,
                     fieldDefs: fieldDefs,
                     findFieldDef: _findFieldDef,
-                    toDisplayLabel: _toDisplayLabel,
                     formatTimestamp: _formatTimestamp,
                     formatFullTimestamp: _formatFullTimestamp,
                     title: title,
@@ -153,7 +136,6 @@ class _HistoryEntryTile extends ConsumerWidget {
   final bool isLatest;
   final List<FormFieldDef> fieldDefs;
   final FormFieldDef? Function(String) findFieldDef;
-  final String Function(String) toDisplayLabel;
   final String Function(DateTime) formatTimestamp;
   final String Function(DateTime) formatFullTimestamp;
   final String title;
@@ -164,7 +146,6 @@ class _HistoryEntryTile extends ConsumerWidget {
     required this.isLatest,
     required this.fieldDefs,
     required this.findFieldDef,
-    required this.toDisplayLabel,
     required this.formatTimestamp,
     required this.formatFullTimestamp,
     required this.title,
@@ -239,8 +220,7 @@ class _HistoryEntryTile extends ConsumerWidget {
             final strippedKey = e.key.contains('.')
                 ? e.key.substring(e.key.indexOf('.') + 1)
                 : e.key;
-            final fieldDef = findFieldDef(e.key);
-            final displayLabel = fieldDef?.label ?? toDisplayLabel(strippedKey);
+            final displayLabel = translateFieldLabel(strippedKey, l10n);
             // Build full fieldId for sensitivity lookup
             final fieldId = '$prefix.$strippedKey';
             final sensitivity = ref.watch(effectiveSensitivityProvider(fieldId));

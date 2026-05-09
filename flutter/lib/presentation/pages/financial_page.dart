@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    hide SensitivityLevel;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/predefined_object_section.dart';
@@ -35,6 +33,12 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
 
     return ObjectCategoryPage(
       title: l10n.financialTitle,
+      pageId: DefaultPageIds.financial,
+      defaultSectionIds: const [
+        DefaultSectionIds.bankAccount,
+        DefaultSectionIds.card,
+        DefaultSectionIds.taxId,
+      ],
       sections: [
             const ScanDocumentButton(parentId: DefaultSectionIds.taxId),
             const SizedBox(height: 16),
@@ -146,50 +150,6 @@ class _FinancialPageState extends ConsumerState<FinancialPage> {
                 .animate()
                 .fadeIn(delay: 200.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.lock_outline,
-                    color: AppTheme.primaryColor,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.profileEncryptionTitle,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.financialEncryptionDesc,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
       ],
     );
   }

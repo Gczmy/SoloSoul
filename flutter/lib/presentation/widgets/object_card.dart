@@ -553,6 +553,9 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   void _deleteObject() async {
     final l10n = AppLocalizations.of(context);
+    // Capture overlay before any async gap — after deleteObject the section's
+    // ObjectCard may be removed from the tree, making context unmounted.
+    final overlay = Overlay.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -575,12 +578,20 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     );
 
     if (confirmed == true) {
-      await ref.read(unifiedObjectProvider.notifier).deleteObject(widget.object.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.workspaceSectionDeleted)),
-        );
-      }
+      final sectionId = widget.object.id;
+      final notifier = ref.read(unifiedObjectProvider.notifier);
+      await notifier.deleteObject(sectionId);
+      showOverlaySnackBar(
+        null,
+        forOverlay: overlay,
+        content: l10n.workspaceSectionDeleted,
+        duration: const Duration(seconds: 4),
+        type: SnackBarType.warning,
+        actionLabel: l10n.commonUndo,
+        onAction: () {
+          notifier.restoreObject(sectionId);
+        },
+      );
     }
   }
 

@@ -105,8 +105,9 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
         ),
     };
 
-    // Fallback section object when not yet created (new account)
-    final sectionObject = section ??
+    // Always use widget.title (live l10n) to reflect current locale,
+    // not the stored section name which may be from another locale.
+    final sectionObject = (section ??
         UnifiedObject(
           id: widget.sectionId,
           typeId: widget.typeId,
@@ -115,7 +116,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
           properties: const {},
           createdAt: DateTime.now().millisecondsSinceEpoch,
           updatedAt: DateTime.now().millisecondsSinceEpoch,
-        );
+        )).copyWith(name: widget.title);
 
     return ObjectCard(
       object: sectionObject,

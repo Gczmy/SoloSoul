@@ -34,6 +34,12 @@ class _TravelPageState extends ConsumerState<TravelPage> {
 
     return ObjectCategoryPage(
       title: l10n.travelTitle,
+      pageId: DefaultPageIds.travel,
+      defaultSectionIds: const [
+        DefaultSectionIds.passport,
+        DefaultSectionIds.visa,
+        DefaultSectionIds.travelHistory,
+      ],
       sections: [
         const SizedBox(height: 8),
         const ScanDocumentButton(parentId: DefaultSectionIds.passport),

@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'base_models.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
@@ -477,12 +478,13 @@ class PropertyValueConverter
 }
 
 /// Convert PropertyValue to a human-readable display string for copying.
-String _propValueToDisplay(PropertyValue value) {
+String _propValueToDisplay(PropertyValue value, [AppLocalizations? l10n]) {
   return switch (value) {
     TextProperty(:final text) => text,
     NumberProperty(:final value) => value?.toString() ?? '',
     DateProperty(:final isoDate) => isoDate ?? '',
-    CheckboxProperty(:final checked) => checked ? 'Yes' : 'No',
+    CheckboxProperty(:final checked) =>
+        checked ? (l10n?.commonYes ?? 'Yes') : (l10n?.commonNo ?? 'No'),
     SelectProperty(:final selectedId) => selectedId ?? '',
     MultiSelectProperty(:final selectedIds) => selectedIds.join(', '),
     RelationProperty(:final targetObjectId) => targetObjectId ?? '',
@@ -613,7 +615,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   String get entryType => 'UnifiedObject';
 
   @override
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap([AppLocalizations? l10n]) => {
         'id': id,
         'typeId': typeId,
         'name': name,
@@ -623,7 +625,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
         'isDeleted': isDeleted,
         'createdAt': createdAt,
         'updatedAt': updatedAt,
-        for (final e in properties.entries) e.key: _propValueToDisplay(e.value),
+        for (final e in properties.entries) e.key: _propValueToDisplay(e.value, l10n),
       };
 
   factory UnifiedObject.fromJson(Map<String, dynamic> json) =>

@@ -10,7 +10,7 @@ abstract class IdentifiableItem {
 /// Mixin for entries that can format themselves for sharing/copying.
 mixin FormattableEntry {
   String get entryType;
-  Map<String, dynamic> toMap();
+  Map<String, dynamic> toMap([AppLocalizations? l10n]);
 
   String toFormattedString() {
     final data = toMap();
@@ -34,7 +34,7 @@ mixin FormattableEntry {
   }
 
   String toFormattedStringLocalized(AppLocalizations l10n) {
-    final data = toMap();
+    final data = toMap(l10n);
     final ignoreKeys = {
       'id',
       'createdAt',

@@ -31,9 +31,9 @@ class OperationTile extends StatelessWidget {
             children: [
               _DetailRow(label: l10n.operationLabelTimestamp, value: _formatFullTimestamp(entry.timestamp)),
               const SizedBox(height: 12),
-              _DetailRow(label: l10n.operationLabelAction, value: _actionLabel),
+              _DetailRow(label: l10n.operationLabelAction, value: _actionLabel(l10n)),
               const SizedBox(height: 12),
-              _DetailRow(label: l10n.operationLabelSection, value: entry.section.toUpperCase()),
+              _DetailRow(label: l10n.operationLabelSection, value: _sectionLabel(l10n)),
               if (entry.fieldPath != null) ...[
                 const SizedBox(height: 12),
                 _DetailRow(label: l10n.operationLabelFieldPath, value: entry.fieldPath!),
@@ -41,7 +41,7 @@ class OperationTile extends StatelessWidget {
               const SizedBox(height: 12),
               _DetailRow(label: l10n.operationLabelDescription, value: entry.description),
               const SizedBox(height: 12),
-              _DetailRow(label: l10n.operationLabelDevice, value: _getDeviceLabel(entry.device)),
+              _DetailRow(label: l10n.operationLabelDevice, value: _getDeviceLabel(entry.device, l10n)),
               if (hasProperties) ...[
                 const SizedBox(height: 16),
                 const Divider(),
@@ -107,20 +107,61 @@ class OperationTile extends StatelessWidget {
     }
   }
 
-  String get _actionLabel {
+  String _actionLabel(AppLocalizations l10n) {
     switch (entry.action) {
       case 'create':
-        return 'Created';
+        return l10n.operationActionCreate;
       case 'update':
-        return 'Updated';
+        return l10n.operationActionUpdate;
       case 'delete':
-        return 'Deleted';
+        return l10n.operationActionDelete;
       case 'restore':
-        return 'Restored';
+        return l10n.operationActionRestore;
       case 'purge':
-        return 'Purged';
+        return l10n.operationActionPurge;
       default:
         return entry.action;
+    }
+  }
+
+  String _sectionLabel(AppLocalizations l10n) {
+    switch (entry.section) {
+      case 'identity':
+        return l10n.logSectionIdentity;
+      case 'contact information':
+        return l10n.logSectionContactInfo;
+      case 'address':
+        return l10n.logSectionAddress;
+      case 'ID card':
+        return l10n.logSectionIdCard;
+      case 'passport':
+        return l10n.logSectionPassport;
+      case 'visa':
+        return l10n.logSectionVisa;
+      case 'travel history':
+        return l10n.logSectionTravelHistory;
+      case 'bank account':
+        return l10n.logSectionBankAccount;
+      case 'card':
+        return l10n.logSectionCard;
+      case 'education':
+        return l10n.logSectionEducation;
+      case 'employment':
+        return l10n.logSectionEmployment;
+      case 'skill':
+        return l10n.logSectionSkill;
+      case 'language':
+        return l10n.logSectionLanguage;
+      case 'travel':
+        return l10n.logSectionTravel;
+      case 'financial':
+        return l10n.logSectionFinancial;
+      case 'professional':
+        return l10n.logSectionProfessional;
+      case 'sensitivity settings':
+        return l10n.logSectionSensitivity;
+      default:
+        return l10n.logSectionDefault;
     }
   }
 
@@ -209,30 +250,30 @@ class OperationTile extends StatelessWidget {
     }
   }
 
-  String _formatTime(DateTime dt) {
+  String _formatTime(DateTime dt, AppLocalizations l10n) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return l10n.trashJustNow;
+    if (diff.inMinutes < 60) return l10n.trashMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.trashHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return l10n.trashDaysAgo(diff.inDays);
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 
-  String _getDeviceLabel(String device) {
+  String _getDeviceLabel(String device, AppLocalizations l10n) {
     switch (device.toLowerCase()) {
       case 'macos':
-        return 'macOS';
+        return l10n.operationPlatformMacos;
       case 'ios':
-        return 'iOS';
+        return l10n.operationPlatformIos;
       case 'android':
-        return 'Android';
+        return l10n.operationPlatformAndroid;
       case 'windows':
-        return 'Windows';
+        return l10n.operationPlatformWindows;
       case 'linux':
-        return 'Linux';
+        return l10n.operationPlatformLinux;
       case 'web':
-        return 'Web';
+        return l10n.operationPlatformWeb;
       default:
         return device;
     }
@@ -276,7 +317,7 @@ class OperationTile extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          _actionLabel,
+                          _actionLabel(l10n),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: _actionColor(context),
                             fontWeight: FontWeight.w600,
@@ -285,14 +326,14 @@ class OperationTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        entry.section.toUpperCase(),
+                        _sectionLabel(l10n),
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const Spacer(),
                       Text(
-                        _formatTime(entry.timestamp),
+                        _formatTime(entry.timestamp, l10n),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -330,7 +371,7 @@ class OperationTile extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              _getDeviceLabel(entry.device),
+                              _getDeviceLabel(entry.device, l10n),
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: Colors.grey.shade700,
                                 fontWeight: FontWeight.w500,

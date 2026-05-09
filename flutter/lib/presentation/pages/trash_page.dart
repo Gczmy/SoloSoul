@@ -123,7 +123,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       );
     }
     final theme = Theme.of(context);
-    final deletedUnifiedObjects = ref.watch(deletedObjectsProvider);
+    final deletedUnifiedObjects = ref.watch(trashRootDeletedObjectsProvider);
     return _TrashViewWidget(
       searchController: _searchController,
       searchQuery: _searchQuery,

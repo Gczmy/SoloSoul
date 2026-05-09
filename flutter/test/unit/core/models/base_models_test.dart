@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 
 class _TestEntry with FormattableEntry {
   @override
@@ -10,7 +11,7 @@ class _TestEntry with FormattableEntry {
       : _data = data;
 
   @override
-  Map<String, dynamic> toMap() => _data;
+  Map<String, dynamic> toMap([AppLocalizations? l10n]) => _data;
 }
 
 void main() {

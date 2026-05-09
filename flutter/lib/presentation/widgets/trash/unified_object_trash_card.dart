@@ -4,19 +4,20 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
-import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show effectiveSensitivityProvider;
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
+    show deletedChildrenProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/presentation/widgets/field_history_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
-class UnifiedObjectTrashCard extends ConsumerWidget {
+class UnifiedObjectTrashCard extends ConsumerStatefulWidget {
   final UnifiedObject object;
   final VoidCallback onRestore;
   final VoidCallback onPurge;
@@ -29,9 +30,20 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UnifiedObjectTrashCard> createState() =>
+      _UnifiedObjectTrashCardState();
+}
+
+class _UnifiedObjectTrashCardState
+    extends ConsumerState<UnifiedObjectTrashCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final object = widget.object;
+    final isSection = object.typeId == 'collection';
     final deletedAt = object.deletedAt;
     final daysRemaining = deletedAt != null
         ? 30 - DateTime.now().difference(deletedAt).inDays
@@ -51,146 +63,198 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
         }).toList() ??
         [];
 
+    final children = isSection
+        ? ref.watch(deletedChildrenProvider(object.id))
+        : <UnifiedObject>[];
+
+    final actionBarColor = isSection
+        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
+        : null;
+
     return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      UnifiedObjectService.getIconFromName(object.iconName),
-                      color: Colors.orange,
-                      size: 20,
-                    ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Icon + name row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          object.name,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          object.typeId ?? 'object',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Icon(
+                    UnifiedObjectService.getIconFromName(object.iconName),
+                    color: Colors.orange,
+                    size: 20,
                   ),
-                  if (isExpiringSoon)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$daysRemaining days',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.orange.shade800,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        object.name,
+                        style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final narrow = constraints.maxWidth < 420;
-                  return Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          deletedAt != null
-                              ? 'Deleted ${_formatTimeAgo(deletedAt)}'
-                              : 'Deleted recently',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                      const SizedBox(height: 2),
+                      Text(
+                        _localizedTypeId(object.typeId, l10n),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
-                      ),
-                      _ActionButtonWidget(
-                        narrow: narrow,
-                        icon: Icons.info_outline,
-                        label: l10n.trashDetailLabel,
-                        onPressed: () => _showDetailDialog(context, ref),
-                      ),
-                      const SizedBox(width: 4),
-                      _HistoryButtonWidget(
-                        narrow: narrow,
-                        count: history?.entries.length ?? 0,
-                        onShowHistory: () => FieldHistoryDialog.show(
-                          context: context,
-                          title: object.name,
-                          icon: UnifiedObjectService.getIconFromName(
-                            object.iconName,
-                          ),
-                          fieldDefs: fieldDefs,
-                          history: history,
-                          fieldPrefix: fieldPrefix,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      _ActionButtonWidget(
-                        narrow: narrow,
-                        icon: Icons.restore_from_trash,
-                        label: l10n.trashRestoreLabel,
-                        onPressed: onRestore,
-                      ),
-                      const SizedBox(width: 4),
-                      _ActionButtonWidget(
-                        narrow: narrow,
-                        icon: Icons.delete_forever,
-                        label: l10n.trashPurgeLabel,
-                        onPressed: onPurge,
-                        color: AppTheme.errorColor,
                       ),
                     ],
-                  );
-                },
-              ),
-            ],
+                  ),
+                ),
+                if (isExpiringSoon)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$daysRemaining days',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.orange.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          // Action bar with section-specific background
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            decoration: isSection
+                ? BoxDecoration(
+                    color: actionBarColor,
+                    borderRadius: const BorderRadius.vertical(
+                      bottom: Radius.circular(12),
+                    ),
+                  )
+                : null,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final narrow = constraints.maxWidth < 420;
+                return Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 14,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        deletedAt != null
+                            ? l10n.trashDeletedAgo(
+                                _formatTimeAgo(deletedAt, l10n))
+                            : l10n.trashDeletedRecently,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    _ActionButtonWidget(
+                      narrow: narrow,
+                      icon: Icons.info_outline,
+                      label: l10n.trashDetailLabel,
+                      onPressed: () =>
+                          _showDetailDialog(widget.object),
+                    ),
+                    const SizedBox(width: 4),
+                    _HistoryButtonWidget(
+                      narrow: narrow,
+                      count: history?.entries.length ?? 0,
+                      onShowHistory: () => FieldHistoryDialog.show(
+                        context: context,
+                        title: object.name,
+                        icon: UnifiedObjectService.getIconFromName(
+                          object.iconName,
+                        ),
+                        fieldDefs: fieldDefs,
+                        history: history,
+                        fieldPrefix: fieldPrefix,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    if (isSection && children.isNotEmpty) ...[
+                      _ActionButtonWidget(
+                        narrow: narrow,
+                        icon: _expanded
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        label: l10n.trashShowItems,
+                        onPressed: () =>
+                            setState(() => _expanded = !_expanded),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    _ActionButtonWidget(
+                      narrow: narrow,
+                      icon: Icons.restore_from_trash,
+                      label: l10n.trashRestoreLabel,
+                      onPressed: widget.onRestore,
+                    ),
+                    const SizedBox(width: 4),
+                    _ActionButtonWidget(
+                      narrow: narrow,
+                      icon: Icons.delete_forever,
+                      label: l10n.trashPurgeLabel,
+                      onPressed: widget.onPurge,
+                      color: AppTheme.errorColor,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          // Expandable children panel
+          if (isSection && _expanded && children.isNotEmpty)
+            _ChildrenPanel(
+              children: children,
+              theme: theme,
+              l10n: l10n,
+              onShowDetail: _showDetailDialog,
+            ),
+        ],
       ),
     );
   }
 
+  String _localizedTypeId(String? typeId, AppLocalizations l10n) {
+    return switch (typeId) {
+      'collection' => l10n.typeCollection,
+      'page' => l10n.typePage,
+      'item' => l10n.typeItem,
+      _ => l10n.typeUnknown,
+    };
+  }
 
-
-  void _showDetailDialog(BuildContext context, WidgetRef ref) {
+  void _showDetailDialog(UnifiedObject object) {
+    final context = this.context;
+    final ref = this.ref;
     final l10n = AppLocalizations.of(context);
     final fieldPrefix = fieldPrefixForTypeId(object.typeId ?? '');
     final deletedAt = object.deletedAt;
@@ -226,7 +290,8 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Deleted ${_formatTimeAgo(deletedAt)}',
+                            l10n.trashDeletedAgo(
+                                _formatTimeAgo(deletedAt, l10n)),
                             style: Theme.of(ctx)
                                 .textTheme
                                 .bodyMedium
@@ -240,12 +305,11 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         _formatFullTimestamp(deletedAt),
-                        style:
-                            Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(ctx)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
+                        style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(ctx)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
                       ),
                     ],
                   ),
@@ -281,10 +345,11 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
                                   ),
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              text.isEmpty ? '(empty)' : text,
-                              style: Theme.of(ctx).textTheme.bodyMedium,
-                            ),
+                            if (text.isNotEmpty)
+                              Text(
+                                text,
+                                style: Theme.of(ctx).textTheme.bodyMedium,
+                              ),
                           ],
                         ),
                       ),
@@ -312,17 +377,121 @@ class UnifiedObjectTrashCard extends ConsumerWidget {
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
-  String _formatTimeAgo(DateTime date) {
+  String _formatTimeAgo(DateTime date, AppLocalizations l10n) {
     final diff = DateTime.now().difference(date);
     if (diff.inDays > 0) {
-      return '${diff.inDays}d ago';
+      return l10n.trashDaysAgo(diff.inDays);
     } else if (diff.inHours > 0) {
-      return '${diff.inHours}h ago';
+      return l10n.trashHoursAgo(diff.inHours);
     } else if (diff.inMinutes > 0) {
-      return '${diff.inMinutes}m ago';
+      return l10n.trashMinutesAgo(diff.inMinutes);
     } else {
-      return 'Just now';
+      return l10n.trashJustNow;
     }
+  }
+}
+
+/// Children items panel shown inside an expanded section trash card.
+class _ChildrenPanel extends StatelessWidget {
+  final List<UnifiedObject> children;
+  final ThemeData theme;
+  final AppLocalizations l10n;
+  final ValueChanged<UnifiedObject>? onShowDetail;
+
+  const _ChildrenPanel({
+    required this.children,
+    required this.theme,
+    required this.l10n,
+    this.onShowDetail,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(12),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Divider(height: 1, color: theme.dividerColor),
+          const SizedBox(height: 8),
+          for (final child in children) ...[
+            _ChildItemRow(child: child, onShowDetail: onShowDetail),
+            if (child != children.last) const SizedBox(height: 2),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Single child item row inside a section's expanded panel.
+class _ChildItemRow extends StatelessWidget {
+  final UnifiedObject child;
+  final ValueChanged<UnifiedObject>? onShowDetail;
+
+  const _ChildItemRow({required this.child, this.onShowDetail});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            Icons.circle,
+            size: 6,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 10),
+          Icon(
+            UnifiedObjectService.getIconFromName(child.iconName),
+            size: 16,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              child.name,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Text(
+            child.typeId == 'item' ? '' : _itemTypeLabel(child.typeId),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+              fontSize: 11,
+            ),
+          ),
+          if (onShowDetail != null)
+            IconButton(
+              icon: const Icon(Icons.info_outline, size: 16),
+              onPressed: () => onShowDetail!(child),
+              padding: const EdgeInsets.all(4),
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              tooltip: AppLocalizations.of(context).trashDetailLabel,
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _itemTypeLabel(String? typeId) {
+    if (typeId == null || typeId == 'item') return '';
+    // Fallback for any non-item type children (unusual but possible)
+    return typeId;
   }
 }
 
@@ -377,12 +546,13 @@ class _HistoryButtonWidget extends StatelessWidget {
             ? onShowHistory
             : () => showOverlaySnackBar(
                   context,
-                  content: 'No history available',
+                  content: l10n.entryNoHistory,
                   type: SnackBarType.info,
                 ),
         padding: const EdgeInsets.all(2),
         constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-        tooltip: hasHist ? l10n.entryHistoryCount(count) : l10n.entryNoHistory,
+        tooltip:
+            hasHist ? l10n.entryHistoryCount(count) : l10n.entryNoHistory,
       );
     }
 
@@ -391,7 +561,7 @@ class _HistoryButtonWidget extends StatelessWidget {
           ? onShowHistory
           : () => showOverlaySnackBar(
                 context,
-                content: 'No history available',
+                content: l10n.entryNoHistory,
                 type: SnackBarType.info,
               ),
       icon: stackIcon,

@@ -14,89 +14,129 @@ enum SnackBarType {
 
 /// Shows a SnackBar using Overlay so it appears above dialogs
 /// Positioned at top to unify with OperationNotification
+///
+/// [forOverlay] bypasses [context.mounted] check and uses the given overlay
+/// directly — use when [context] may become invalid after an async gap
+/// (e.g. the calling widget is removed from the tree by the state change).
+/// When provided, theme/MediaQuery values are resolved from the overlay's own
+/// context inside the entry builder, so the original [context] is not needed.
 void showOverlaySnackBar(
-  BuildContext context, {
+  BuildContext? context, {
+  OverlayState? forOverlay,
   required String content,
   Duration duration = const Duration(seconds: 2),
   SnackBarType type = SnackBarType.info,
+  String? actionLabel,
+  VoidCallback? onAction,
 }) {
-  if (!context.mounted) return;
-  final overlay = Overlay.of(context);
+  if (forOverlay == null) {
+    if (context == null || !context.mounted) return;
+  }
+  final overlay = forOverlay ?? Overlay.of(context!);
   OverlayEntry? entry;
 
-  // Color and icon based on type
-  final (bgColor, icon, iconColor) = switch (type) {
-    SnackBarType.info => (
-        Theme.of(context).colorScheme.inverseSurface,
-        Icons.info_outline,
-        Theme.of(context).colorScheme.primary,
-      ),
-    SnackBarType.success => (
-        AppTheme.successColor.withValues(alpha: 0.95),
-        Icons.check_circle_outline,
-        Colors.white,
-      ),
-    SnackBarType.warning => (
-        Colors.orange.shade700,
-        Icons.warning_amber_outlined,
-        Colors.white,
-      ),
-    SnackBarType.error => (
-        AppTheme.errorColor.withValues(alpha: 0.95),
-        Icons.error_outline,
-        Colors.white,
-      ),
-  };
-
-  // Position below status bar (top position, same as OperationNotification)
-  final topOffset = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
-
   entry = OverlayEntry(
-    builder: (context) => Positioned(
-      top: topOffset,
-      left: 16.0,
-      right: 16.0,
-      child: SafeArea(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(12.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: iconColor, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    content,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.left,
+    builder: (entryContext) {
+      // Resolve visual values from the overlay's own context — this is
+      // always valid even when the original [context] is stale (forOverlay).
+      final BuildContext effectiveContext =
+          forOverlay != null ? entryContext : context!;
+
+      final (bgColor, icon, iconColor) = switch (type) {
+        SnackBarType.info => (
+            Theme.of(effectiveContext).colorScheme.inverseSurface,
+            Icons.info_outline,
+            Theme.of(effectiveContext).colorScheme.primary,
+          ),
+        SnackBarType.success => (
+            AppTheme.successColor.withValues(alpha: 0.95),
+            Icons.check_circle_outline,
+            Colors.white,
+          ),
+        SnackBarType.warning => (
+            Colors.orange.shade700,
+            Icons.warning_amber_outlined,
+            Colors.white,
+          ),
+        SnackBarType.error => (
+            AppTheme.errorColor.withValues(alpha: 0.95),
+            Icons.error_outline,
+            Colors.white,
+          ),
+      };
+
+      final topOffset =
+          MediaQuery.of(effectiveContext).padding.top + kToolbarHeight + 8;
+
+      return Positioned(
+        top: topOffset,
+        left: 16.0,
+        right: 16.0,
+        child: SafeArea(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, color: iconColor, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      content,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  if (actionLabel != null && onAction != null) ...[
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () {
+                        entry?.remove();
+                        entry = null;
+                        onAction();
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        actionLabel,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 
-  overlay.insert(entry);
+  overlay.insert(entry!);
   Future.delayed(duration, () {
     entry?.remove();
     entry = null;

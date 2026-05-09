@@ -51,9 +51,10 @@ class ObjectCardHeader extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        if (showEditActions) ...[
-          if (!showEditSection)
-            IconButton(
+        if (showEditActions && !showEditSection)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
               icon: const Icon(Icons.edit_outlined, size: 18),
               onPressed: onEdit,
               tooltip: l10n.commonEdit,
@@ -61,17 +62,7 @@ class ObjectCardHeader extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,
             ),
-          if (!showEditSection) const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18),
-            onPressed: onDelete,
-            tooltip: l10n.commonDelete,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            visualDensity: VisualDensity.compact,
           ),
-          const SizedBox(width: 8),
-        ],
         if (showAddButton)
           if (showEditSection)
             IconButton(
@@ -91,6 +82,18 @@ class ObjectCardHeader extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,
             ),
+        if (showEditActions)
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: IconButton(
+              icon: const Icon(Icons.delete_outline, size: 18),
+              onPressed: onDelete,
+              tooltip: l10n.commonDelete,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
       ],
     );
   }

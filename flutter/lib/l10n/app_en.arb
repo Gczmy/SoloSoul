@@ -11,6 +11,7 @@
   "commonSuccess": "Success",
   "commonDelete": "Delete",
   "commonEdit": "Edit",
+  "commonUndo": "Undo",
   "settingsLanguage": "Language",
   "@settingsLanguage": {
     "description": "Settings tile label for language selection"
@@ -1606,5 +1607,91 @@
   "loginPleaseEnterPassword": "Please enter your password",
   "securityBiometricUnlockSubtitle": "Use Face ID / Touch ID to unlock",
   "securityBiometricNotAvailable": "Biometrics not available on this device",
-  "scanAttachFile": "Attach original file"
+  "scanAttachFile": "Attach original file",
+  "trashDaysAgo": "{count}d ago",
+  "@trashDaysAgo": {
+    "description": "Relative time: days ago in trash card",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "trashHoursAgo": "{count}h ago",
+  "@trashHoursAgo": {
+    "description": "Relative time: hours ago in trash card",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "trashMinutesAgo": "{count}m ago",
+  "@trashMinutesAgo": {
+    "description": "Relative time: minutes ago in trash card",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "trashJustNow": "Just now",
+  "trashDeletedRecently": "Deleted recently",
+  "trashDeletedAgo": "Deleted {time} ago",
+  "@trashDeletedAgo": {
+    "description": "Trash card subtitle indicating when item was deleted",
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "trashShowItems": "Show items",
+  "@trashShowItems": {
+    "description": "Tooltip for expand button on deleted section trash card"
+  },
+  "typeCollection": "Section",
+  "@typeCollection": {
+    "description": "Display name for 'collection' typeId"
+  },
+  "typePage": "Page",
+  "@typePage": {
+    "description": "Display name for 'page' typeId"
+  },
+  "typeItem": "Item",
+  "@typeItem": {
+    "description": "Display name for 'item' typeId"
+  },
+  "typeUnknown": "Object",
+  "@typeUnknown": {
+    "description": "Fallback display name for unknown typeId"
+  },
+  "operationPlatformMacos": "macOS",
+  "@operationPlatformMacos": {
+    "description": "Platform label: macOS"
+  },
+  "operationPlatformIos": "iOS",
+  "@operationPlatformIos": {
+    "description": "Platform label: iOS"
+  },
+  "operationPlatformWindows": "Windows",
+  "@operationPlatformWindows": {
+    "description": "Platform label: Windows"
+  },
+  "operationPlatformLinux": "Linux",
+  "@operationPlatformLinux": {
+    "description": "Platform label: Linux"
+  },
+  "logSectionIdentity": "Identity",
+  "logSectionContactInfo": "Contact",
+  "logSectionAddress": "Address",
+  "logSectionIdCard": "ID Card",
+  "logSectionPassport": "Passport",
+  "logSectionVisa": "Visa",
+  "logSectionTravelHistory": "Travel History",
+  "logSectionBankAccount": "Bank Account",
+  "logSectionCard": "Card",
+  "logSectionEducation": "Education",
+  "logSectionEmployment": "Employment",
+  "logSectionSkill": "Skill",
+  "logSectionLanguage": "Language",
+  "logSectionTravel": "Travel",
+  "logSectionFinancial": "Financial",
+  "logSectionProfessional": "Professional",
+  "logSectionSensitivity": "Sensitivity",
+  "logSectionCustom": "Custom",
+  "logSectionDefault": "Section",
+  "operationFilterLabel": "Filter"
 }

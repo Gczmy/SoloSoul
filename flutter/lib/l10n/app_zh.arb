@@ -11,6 +11,7 @@
   "commonSuccess": "成功",
   "commonDelete": "删除",
   "commonEdit": "编辑",
+  "commonUndo": "撤销",
   "settingsLanguage": "语言",
   "settingsLanguageSubtitle": "选择您偏好的语言",
   "settingsLanguageEnglish": "English",
@@ -1212,5 +1213,67 @@
   "loginPleaseEnterPassword": "请输入您的密码",
   "securityBiometricUnlockSubtitle": "使用面容 ID / 触控 ID 解锁",
   "securityBiometricNotAvailable": "此设备不支持生物识别",
-  "scanAttachFile": "保存原始文件作为附件"
+  "scanAttachFile": "保存原始文件作为附件",
+  "trashDaysAgo": "{count} 天前",
+  "trashHoursAgo": "{count} 小时前",
+  "trashMinutesAgo": "{count} 分钟前",
+  "trashJustNow": "刚刚",
+  "trashDeletedRecently": "最近删除",
+  "trashDeletedAgo": "在 {time} 前删除",
+  "trashShowItems": "显示项目",
+  "@trashShowItems": {
+    "description": "Tooltip for expand button on deleted section trash card"
+  },
+  "typeCollection": "分区",
+  "@typeCollection": {
+    "description": "Display name for 'collection' typeId"
+  },
+  "typePage": "页面",
+  "@typePage": {
+    "description": "Display name for 'page' typeId"
+  },
+  "typeItem": "项目",
+  "@typeItem": {
+    "description": "Display name for 'item' typeId"
+  },
+  "typeUnknown": "对象",
+  "@typeUnknown": {
+    "description": "Fallback display name for unknown typeId"
+  },
+  "operationPlatformMacos": "macOS",
+  "@operationPlatformMacos": {
+    "description": "平台标签：macOS"
+  },
+  "operationPlatformIos": "iOS",
+  "@operationPlatformIos": {
+    "description": "平台标签：iOS"
+  },
+  "operationPlatformWindows": "Windows",
+  "@operationPlatformWindows": {
+    "description": "平台标签：Windows"
+  },
+  "operationPlatformLinux": "Linux",
+  "@operationPlatformLinux": {
+    "description": "平台标签：Linux"
+  },
+  "logSectionIdentity": "身份信息",
+  "logSectionContactInfo": "联系方式",
+  "logSectionAddress": "地址",
+  "logSectionIdCard": "身份证",
+  "logSectionPassport": "护照",
+  "logSectionVisa": "签证",
+  "logSectionTravelHistory": "出行记录",
+  "logSectionBankAccount": "银行账户",
+  "logSectionCard": "卡片",
+  "logSectionEducation": "教育",
+  "logSectionEmployment": "工作",
+  "logSectionSkill": "技能",
+  "logSectionLanguage": "语言",
+  "logSectionTravel": "出行",
+  "logSectionFinancial": "财务",
+  "logSectionProfessional": "职业",
+  "logSectionSensitivity": "敏感设置",
+  "logSectionCustom": "自定义",
+  "logSectionDefault": "分区",
+  "operationFilterLabel": "筛选"
 }

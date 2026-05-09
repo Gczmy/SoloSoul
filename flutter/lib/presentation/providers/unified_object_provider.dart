@@ -488,21 +488,32 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return _save(operationDesc: 'Deleted object');
   }
 
-  /// Restore a soft-deleted object.
+  /// Restore a soft-deleted object and all its descendants.
   Future<bool> restoreObject(String id) async {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
 
-    var restored = _service.restoreObject(object);
-    var updatedObjects = _service.replaceObject(state.objects, restored);
+    var updatedObjects = state.objects;
+
+    // Restore the object itself and all descendants (mirrors deleteObject recursion)
+    final descendantIds = _service.getDescendantIds(state.objects, id);
+    final idsToRestore = {id, ...descendantIds};
+
+    for (final restoreId in idsToRestore) {
+      final obj = _service.getObjectById(updatedObjects, restoreId);
+      if (obj != null && obj.isDeleted) {
+        final restored = _service.restoreObject(obj);
+        updatedObjects = _service.replaceObject(updatedObjects, restored);
+      }
+    }
 
     // Re-add to parent's childrenIds if parent exists
-    if (restored.parentId != null) {
-      updatedObjects = _service.addChild(updatedObjects, restored.parentId!, restored.id);
+    if (object.parentId != null) {
+      updatedObjects = _service.addChild(updatedObjects, object.parentId!, id);
     }
 
     state = state.copyWith(objects: updatedObjects);
-    return _saveDebounced(operationDesc: 'Restored object');
+    return _save(operationDesc: 'Restored object');
   }
 
   /// Permanently delete an object and all its descendants.
@@ -829,6 +840,47 @@ List<UnifiedObject> deletedObjects(Ref ref) {
   final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
   return objects.where((o) => o.isDeleted).toList();
 }
+
+/// Get top-level deleted objects only — objects whose parent is not also deleted.
+/// This powers the grouped trash view where deleted items live inside their
+/// deleted section card rather than appearing as separate entries.
+final trashRootDeletedObjectsProvider = Provider<List<UnifiedObject>>((ref) {
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final deletedIds = objects.where((o) => o.isDeleted).map((o) => o.id).toSet();
+  final result = objects
+      .where((o) =>
+          o.isDeleted &&
+          (o.parentId == null || !deletedIds.contains(o.parentId)))
+      .toList();
+  // Sort by deletedAt descending (most recent first, nulls last)
+  result.sort((a, b) {
+    final aTime = a.deletedAt;
+    final bTime = b.deletedAt;
+    if (aTime == null && bTime == null) return 0;
+    if (aTime == null) return 1;
+    if (bTime == null) return -1;
+    return bTime.compareTo(aTime);
+  });
+  return result;
+});
+
+/// Get deleted children of a specific parent (for section expand panel in trash).
+/// Sorted by deletedAt descending (most recent first).
+final deletedChildrenProvider =
+    Provider.family<List<UnifiedObject>, String>((ref, parentId) {
+  final objects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
+  final result =
+      objects.where((o) => o.parentId == parentId && o.isDeleted).toList();
+  result.sort((a, b) {
+    final aTime = a.deletedAt;
+    final bTime = b.deletedAt;
+    if (aTime == null && bTime == null) return 0;
+    if (aTime == null) return 1;
+    if (bTime == null) return -1;
+    return bTime.compareTo(aTime);
+  });
+  return result;
+});
 
 // =============================================================================
 // Default Page Providers

@@ -50,7 +50,7 @@ class OperationLogFilterSection extends ConsumerWidget {
           Row(
             children: [
               Text(
-                'Action:',
+                '${l10n.operationLabelAction}:',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -110,7 +110,7 @@ class OperationLogFilterSection extends ConsumerWidget {
           Row(
             children: [
               Text(
-                'Device:',
+                '${l10n.operationLabelDevice}:',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -122,7 +122,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                   child: Row(
                     children: [
                       OperationFilterChip(
-                        label: 'macOS',
+                        label: l10n.operationPlatformMacos,
                         icon: Icons.laptop_mac,
                         isSelected: deviceFilters.contains('macos'),
                         color: Colors.grey.shade700,
@@ -130,7 +130,7 @@ class OperationLogFilterSection extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       OperationFilterChip(
-                        label: 'iOS',
+                        label: l10n.operationPlatformIos,
                         icon: Icons.phone_iphone,
                         isSelected: deviceFilters.contains('ios'),
                         color: Colors.grey.shade700,

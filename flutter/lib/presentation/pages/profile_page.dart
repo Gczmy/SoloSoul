@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart'
-    show DefaultSectionIds;
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
-    show AppTheme;
+    show DefaultPageIds, DefaultSectionIds;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart'
     show accountStyleProvider;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
@@ -42,6 +40,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final l10n = AppLocalizations.of(context);
     return ObjectCategoryPage(
       title: l10n.profileTitle,
+      pageId: DefaultPageIds.profile,
+      defaultSectionIds: const [
+        DefaultSectionIds.identity,
+        DefaultSectionIds.contact,
+        DefaultSectionIds.idCard,
+        DefaultSectionIds.address,
+      ],
       sections: [
         const ScanDocumentButton(parentId: DefaultSectionIds.contact),
         const SizedBox(height: 16),
@@ -52,48 +57,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         _IdentityDocumentsSection(isPrivacyMode: isPrivacyMode),
         const SizedBox(height: 16),
         _AddressesSection(isPrivacyMode: isPrivacyMode),
-        const SizedBox(height: 32),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.primaryColor.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.lock_outline,
-                color: AppTheme.primaryColor,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.homeEndToEndEncrypted,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.profileEncryptionDesc,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
       ],
     );
   }

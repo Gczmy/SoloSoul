@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart' show translateFieldLabel;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
@@ -17,6 +19,7 @@ class ObjectCardPropertiesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Column(
@@ -37,7 +40,7 @@ class ObjectCardPropertiesList extends StatelessWidget {
             children: [
               Flexible(
                 child: SelectableText(
-                  '${wrapEveryNChars(formatLabel(entry.key), 12)}: ',
+                  wrapEveryNChars(translateFieldLabel(entry.key, l10n), 12),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
