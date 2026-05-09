@@ -3031,4 +3031,94 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fieldSavings => '储蓄账户';
+
+  @override
+  String get templateProfileIdentityName => '身份信息';
+
+  @override
+  String get templateProfileIdentityDesc => '个人身份信息，包括姓名、出生日期、性别和国籍';
+
+  @override
+  String get templateProfileContactName => '联系方式';
+
+  @override
+  String get templateProfileContactDesc => '联系方式，如电话号码和电子邮件地址';
+
+  @override
+  String get templateProfileIdCardName => '身份证件';
+
+  @override
+  String get templateProfileIdCardDesc => '身份证件，包括身份证、驾驶证和护照';
+
+  @override
+  String get templateProfileAddressName => '地址';
+
+  @override
+  String get templateProfileAddressDesc => '物理地址，包括街道、城市、省份和邮政编码';
+
+  @override
+  String get templateFinancialBankAccountName => '银行账户';
+
+  @override
+  String get templateFinancialBankAccountDesc => '包含银行账户信息，包括账号和 SWIFT 代码';
+
+  @override
+  String get templateFinancialCardName => '卡片';
+
+  @override
+  String get templateFinancialCardDesc => '包含支付卡片信息，包括卡号和 CVV';
+
+  @override
+  String get templateFinancialTaxIdName => '税务识别号';
+
+  @override
+  String get templateFinancialTaxIdDesc => '包含税务识别号信息';
+
+  @override
+  String get templateProfessionalEducationName => '教育';
+
+  @override
+  String get templateProfessionalEducationDesc => '正规教育记录，包括学位、学校和专业';
+
+  @override
+  String get templateProfessionalEmploymentName => '就业';
+
+  @override
+  String get templateProfessionalEmploymentDesc => '工作经历，包括公司、职位、工作职责和任期';
+
+  @override
+  String get templateProfessionalSkillName => '技能';
+
+  @override
+  String get templateProfessionalSkillDesc => '专业技能和熟练程度';
+
+  @override
+  String get templateProfessionalLanguageName => '语言';
+
+  @override
+  String get templateProfessionalLanguageDesc => '语言和熟练程度';
+
+  @override
+  String get templateProfessionalAwardName => '奖项';
+
+  @override
+  String get templateProfessionalAwardDesc => '专业奖项、荣誉和认可';
+
+  @override
+  String get templateTravelPassportName => '护照';
+
+  @override
+  String get templateTravelPassportDesc => '包含护照信息，包括号码、签发日期、有效期和持有人详情';
+
+  @override
+  String get templateTravelVisaName => '签证';
+
+  @override
+  String get templateTravelVisaDesc => '包含签证信息，包括类型、号码、签发日期和有效期';
+
+  @override
+  String get templateTravelHistoryName => '出行记录';
+
+  @override
+  String get templateTravelHistoryDesc => '出行记录，包括目的地、日期、航班和出行详情';
 }

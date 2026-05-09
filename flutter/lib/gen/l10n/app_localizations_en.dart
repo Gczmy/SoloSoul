@@ -3105,4 +3105,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldSavings => 'Savings';
+
+  @override
+  String get templateProfileIdentityName => 'Identity';
+
+  @override
+  String get templateProfileIdentityDesc =>
+      'Personal identity information including name, date of birth, gender, and nationality';
+
+  @override
+  String get templateProfileContactName => 'Contact Information';
+
+  @override
+  String get templateProfileContactDesc =>
+      'Contact details such as phone number and email address';
+
+  @override
+  String get templateProfileIdCardName => 'Identity Documents';
+
+  @override
+  String get templateProfileIdCardDesc =>
+      'Identity documents including ID cards, driver\'s license, and passport';
+
+  @override
+  String get templateProfileAddressName => 'Addresses';
+
+  @override
+  String get templateProfileAddressDesc =>
+      'Physical addresses including street, city, state, and postal code';
+
+  @override
+  String get templateFinancialBankAccountName => 'Bank Account';
+
+  @override
+  String get templateFinancialBankAccountDesc =>
+      'Contains bank account information including account number and SWIFT code';
+
+  @override
+  String get templateFinancialCardName => 'Card';
+
+  @override
+  String get templateFinancialCardDesc =>
+      'Contains payment card information including card number and CVV';
+
+  @override
+  String get templateFinancialTaxIdName => 'Tax Identification';
+
+  @override
+  String get templateFinancialTaxIdDesc =>
+      'Contains tax identification information';
+
+  @override
+  String get templateProfessionalEducationName => 'Education';
+
+  @override
+  String get templateProfessionalEducationDesc =>
+      'Records of formal education including degrees, institutions, and fields of study';
+
+  @override
+  String get templateProfessionalEmploymentName => 'Employment';
+
+  @override
+  String get templateProfessionalEmploymentDesc =>
+      'Work history including company, position, responsibilities, and tenure';
+
+  @override
+  String get templateProfessionalSkillName => 'Skill';
+
+  @override
+  String get templateProfessionalSkillDesc =>
+      'Professional skills and proficiency levels';
+
+  @override
+  String get templateProfessionalLanguageName => 'Language';
+
+  @override
+  String get templateProfessionalLanguageDesc =>
+      'Languages and proficiency levels';
+
+  @override
+  String get templateProfessionalAwardName => 'Award';
+
+  @override
+  String get templateProfessionalAwardDesc =>
+      'Professional awards, honors, and recognitions';
+
+  @override
+  String get templateTravelPassportName => 'Passport';
+
+  @override
+  String get templateTravelPassportDesc =>
+      'Contains passport information including number, issue date, expiry date, and holder details';
+
+  @override
+  String get templateTravelVisaName => 'Visa';
+
+  @override
+  String get templateTravelVisaDesc =>
+      'Contains visa information including type, number, issue date, and expiry date';
+
+  @override
+  String get templateTravelHistoryName => 'Travel History';
+
+  @override
+  String get templateTravelHistoryDesc =>
+      'Records of travel including destination, dates, flights, and travel details';
 }

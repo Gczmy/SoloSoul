@@ -5743,6 +5743,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Savings'**
   String get fieldSavings;
+
+  /// No description provided for @templateProfileIdentityName.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get templateProfileIdentityName;
+
+  /// No description provided for @templateProfileIdentityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal identity information including name, date of birth, gender, and nationality'**
+  String get templateProfileIdentityDesc;
+
+  /// No description provided for @templateProfileContactName.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get templateProfileContactName;
+
+  /// No description provided for @templateProfileContactDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact details such as phone number and email address'**
+  String get templateProfileContactDesc;
+
+  /// No description provided for @templateProfileIdCardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Documents'**
+  String get templateProfileIdCardName;
+
+  /// No description provided for @templateProfileIdCardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity documents including ID cards, driver\'s license, and passport'**
+  String get templateProfileIdCardDesc;
+
+  /// No description provided for @templateProfileAddressName.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get templateProfileAddressName;
+
+  /// No description provided for @templateProfileAddressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical addresses including street, city, state, and postal code'**
+  String get templateProfileAddressDesc;
+
+  /// No description provided for @templateFinancialBankAccountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account'**
+  String get templateFinancialBankAccountName;
+
+  /// No description provided for @templateFinancialBankAccountDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains bank account information including account number and SWIFT code'**
+  String get templateFinancialBankAccountDesc;
+
+  /// No description provided for @templateFinancialCardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get templateFinancialCardName;
+
+  /// No description provided for @templateFinancialCardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains payment card information including card number and CVV'**
+  String get templateFinancialCardDesc;
+
+  /// No description provided for @templateFinancialTaxIdName.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Identification'**
+  String get templateFinancialTaxIdName;
+
+  /// No description provided for @templateFinancialTaxIdDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains tax identification information'**
+  String get templateFinancialTaxIdDesc;
+
+  /// No description provided for @templateProfessionalEducationName.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get templateProfessionalEducationName;
+
+  /// No description provided for @templateProfessionalEducationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Records of formal education including degrees, institutions, and fields of study'**
+  String get templateProfessionalEducationDesc;
+
+  /// No description provided for @templateProfessionalEmploymentName.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment'**
+  String get templateProfessionalEmploymentName;
+
+  /// No description provided for @templateProfessionalEmploymentDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Work history including company, position, responsibilities, and tenure'**
+  String get templateProfessionalEmploymentDesc;
+
+  /// No description provided for @templateProfessionalSkillName.
+  ///
+  /// In en, this message translates to:
+  /// **'Skill'**
+  String get templateProfessionalSkillName;
+
+  /// No description provided for @templateProfessionalSkillDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional skills and proficiency levels'**
+  String get templateProfessionalSkillDesc;
+
+  /// No description provided for @templateProfessionalLanguageName.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get templateProfessionalLanguageName;
+
+  /// No description provided for @templateProfessionalLanguageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages and proficiency levels'**
+  String get templateProfessionalLanguageDesc;
+
+  /// No description provided for @templateProfessionalAwardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Award'**
+  String get templateProfessionalAwardName;
+
+  /// No description provided for @templateProfessionalAwardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional awards, honors, and recognitions'**
+  String get templateProfessionalAwardDesc;
+
+  /// No description provided for @templateTravelPassportName.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport'**
+  String get templateTravelPassportName;
+
+  /// No description provided for @templateTravelPassportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains passport information including number, issue date, expiry date, and holder details'**
+  String get templateTravelPassportDesc;
+
+  /// No description provided for @templateTravelVisaName.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa'**
+  String get templateTravelVisaName;
+
+  /// No description provided for @templateTravelVisaDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains visa information including type, number, issue date, and expiry date'**
+  String get templateTravelVisaDesc;
+
+  /// No description provided for @templateTravelHistoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel History'**
+  String get templateTravelHistoryName;
+
+  /// No description provided for @templateTravelHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Records of travel including destination, dates, flights, and travel details'**
+  String get templateTravelHistoryDesc;
 }
 
 class _AppLocalizationsDelegate

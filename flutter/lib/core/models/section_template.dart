@@ -137,5 +137,565 @@ class PresetSectionTemplates {
         ),
       ],
     ),
+    // 身份信息模板
+    SectionTemplate(
+      id: 'profile_identity',
+      nameKey: 'templateProfileIdentityName',
+      descriptionKey: 'templateProfileIdentityDesc',
+      icon: '👤',
+      fields: [
+        TemplateField(
+          key: 'full_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'given_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'family_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'date_of_birth',
+          type: 'date',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'gender',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'nationality',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+      ],
+    ),
+    // 联系信息模板
+    SectionTemplate(
+      id: 'profile_contact',
+      nameKey: 'templateProfileContactName',
+      descriptionKey: 'templateProfileContactDesc',
+      icon: '📞',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'type',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'value',
+          type: 'text',
+          sensitivity: SensitivityLevel.internal,
+        ),
+      ],
+    ),
+    // 身份证件模板
+    SectionTemplate(
+      id: 'profile_id_card',
+      nameKey: 'templateProfileIdCardName',
+      descriptionKey: 'templateProfileIdCardDesc',
+      icon: '🪪',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'number',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'issue_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.internal,
+        ),
+        TemplateField(
+          key: 'expiry_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.internal,
+        ),
+        TemplateField(
+          key: 'holder_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'country',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 地址模板
+    SectionTemplate(
+      id: 'profile_address',
+      nameKey: 'templateProfileAddressName',
+      descriptionKey: 'templateProfileAddressDesc',
+      icon: '🏠',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'street',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'city',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'state',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'postal_code',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'country',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 银行账户模板
+    SectionTemplate(
+      id: 'financial_bank_account',
+      nameKey: 'templateFinancialBankAccountName',
+      descriptionKey: 'templateFinancialBankAccountDesc',
+      icon: '🏦',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'bank_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'account_number',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'currency',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'swift_bic',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'sort_code',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+      ],
+    ),
+    // 卡片模板
+    SectionTemplate(
+      id: 'financial_card',
+      nameKey: 'templateFinancialCardName',
+      descriptionKey: 'templateFinancialCardDesc',
+      icon: '💳',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'card_number',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'card_type',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'expiry_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'holder_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'cvv',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+      ],
+    ),
+    // 税务识别号模板
+    SectionTemplate(
+      id: 'financial_tax_id',
+      nameKey: 'templateFinancialTaxIdName',
+      descriptionKey: 'templateFinancialTaxIdDesc',
+      icon: '🔢',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'tax_id_number',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'tax_id_type',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'issuing_authority',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'country',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 教育模板
+    SectionTemplate(
+      id: 'professional_education',
+      nameKey: 'templateProfessionalEducationName',
+      descriptionKey: 'templateProfessionalEducationDesc',
+      icon: '🎓',
+      fields: [
+        TemplateField(
+          key: 'institution',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'degree',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'degreeCustom',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'field',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'startDate',
+          type: 'date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'endDate',
+          type: 'date',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 就业模板
+    SectionTemplate(
+      id: 'professional_employment',
+      nameKey: 'templateProfessionalEmploymentName',
+      descriptionKey: 'templateProfessionalEmploymentDesc',
+      icon: '💼',
+      fields: [
+        TemplateField(
+          key: 'company',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'position',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'responsibilities',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'startDate',
+          type: 'date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'endDate',
+          type: 'date',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 技能模板
+    SectionTemplate(
+      id: 'professional_skill',
+      nameKey: 'templateProfessionalSkillName',
+      descriptionKey: 'templateProfessionalSkillDesc',
+      icon: '🛠️',
+      fields: [
+        TemplateField(
+          key: 'name',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'level',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 语言模板
+    SectionTemplate(
+      id: 'professional_language',
+      nameKey: 'templateProfessionalLanguageName',
+      descriptionKey: 'templateProfessionalLanguageDesc',
+      icon: '🌐',
+      fields: [
+        TemplateField(
+          key: 'name',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'proficiency',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
+    // 奖项模板
+    SectionTemplate(
+      id: 'professional_award',
+      nameKey: 'templateProfessionalAwardName',
+      descriptionKey: 'templateProfessionalAwardDesc',
+      icon: '🏆',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'issuer',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'date',
+          type: 'date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'description',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+      ],
+    ),
+    // 护照模板
+    SectionTemplate(
+      id: 'travel_passport',
+      nameKey: 'templateTravelPassportName',
+      descriptionKey: 'templateTravelPassportDesc',
+      icon: '🛂',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'country',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'country_code',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'number',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'issue_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.internal,
+        ),
+        TemplateField(
+          key: 'place_of_issue',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'expiry_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.internal,
+        ),
+        TemplateField(
+          key: 'holder_name',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'date_of_birth',
+          type: 'date',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'place_of_birth',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'sex',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'nationality',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'authority',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+      ],
+    ),
+    // 签证模板
+    SectionTemplate(
+      id: 'travel_visa',
+      nameKey: 'templateTravelVisaName',
+      descriptionKey: 'templateTravelVisaDesc',
+      icon: '📋',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'country',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'visa_type',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'number',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'issue_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.internal,
+        ),
+        TemplateField(
+          key: 'expiry_date',
+          type: 'date',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+      ],
+    ),
+    // 旅行历史模板
+    SectionTemplate(
+      id: 'travel_history',
+      nameKey: 'templateTravelHistoryName',
+      descriptionKey: 'templateTravelHistoryDesc',
+      icon: '✈️',
+      fields: [
+        TemplateField(
+          key: 'destination',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'travel_type',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'date',
+          type: 'date',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'departure_city',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'departure_time',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'arrival_time',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'flight_number',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'ticket_price',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
+          key: 'airline',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
   ];
 }
