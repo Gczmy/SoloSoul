@@ -55,6 +55,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   String? _selectedTypeId;
   String? _selectedParentId;
   final List<_PropertyField> _propertyFields = [];
+  bool _fieldsInitialized = false;
 
   bool get _isEditing => widget.objectId != null;
 
@@ -80,6 +81,17 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       default:
         return key;
     }
+  }
+
+  void _initFieldDisplayLabels() {
+    if (_fieldsInitialized) return;
+    for (final field in _propertyFields) {
+      final localized = _getFieldKeyLabel(field.key);
+      if (localized != field.key) {
+        field.controller.text = localized;
+      }
+    }
+    _fieldsInitialized = true;
   }
   UnifiedObject? _existingObject;
 
@@ -205,6 +217,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isEditing) {
+      _initFieldDisplayLabels();
+    }
     final theme = Theme.of(context);
 
     return Scaffold(
