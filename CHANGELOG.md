@@ -5,6 +5,18 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-05-09
+
+### Added
+
+- **Trash Filter Section** — Filter by time (10 days/1 day/6 hours/1 hour) and type (Page/Section/Item)
+- **Trash Hierarchy** — Expand pages to see sections, expand sections to see items
+
+### Fixed
+
+- **Delete Dialog i18n** — Localized delete confirmation dialogs
+- **Item Type Filter** — Fixed "Item" filter matching predefined section items
+
 ## [1.6.0] - 2026-05-09
 
 ### Added
