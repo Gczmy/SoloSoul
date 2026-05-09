@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-05-09
+
+### Added
+
+- **Trash Filter Section** — Collapsible filter panel with time-based filters (10 days, 1 day, 6 hours, 1 hour) and type filters (Page, Section, Item)
+- **Trash Hierarchy Expansion** — Pages show "Show sections", sections show "Show items" with nested expand/collapse
+- **Trash Card Color Coding** — Icon backgrounds colored by type (blue=page, green=section, orange=item)
+
+### Fixed
+
+- **Delete Dialog i18n** — Hardcoded English replaced with localized strings in delete confirmation dialogs
+- **Delete Snackbars** — Changed from `ScaffoldMessenger` to `showOverlaySnackBar` for consistent styling
+- **MediaQuery Error** — Fixed null check error in `showOverlaySnackBar` when called from dialog context
+- **Item Type Filter** — Fixed "Item" filter not matching predefined section items (travel_passport, profile_identity, etc.)
+- **Trash Item Labels** — Removed hardcoded "collection" text from child rows, proper type labels shown
+- **Double "前" Bug** — Fixed Chinese localization "在 X 前前删除" to "X 前删除"
+
+### Changes
+
+- **Sub-page Creation Disabled** — Add button now directly shows "Add section" dialog, bypassing sub-page creation to avoid bugs
+- **Parent Dropdown Hidden** — Parent selector removed from page editor to prevent accidental parent changes
+
 ## [1.4.7] - 2026-05-06
 
 ### Added
