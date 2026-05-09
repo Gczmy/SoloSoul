@@ -126,6 +126,30 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   Map<String, PropertyValue> get _template =>
       widget.itemTemplate ?? widget.object.properties;
 
+  String _getFieldKeyLabel(String key) {
+    final l = AppLocalizations.of(context);
+    switch (key) {
+      case 'bank_name':
+        return l.fieldBankName;
+      case 'account_number':
+        return l.fieldAccountNumber;
+      case 'account_holder':
+        return l.fieldAccountHolder;
+      case 'branch_name':
+        return l.fieldBranchName;
+      case 'sort_code':
+        return l.fieldSortCode;
+      case 'iban':
+        return l.fieldIban;
+      case 'routing_number':
+        return l.fieldRoutingNumber;
+      case 'account_type':
+        return l.fieldAccountType;
+      default:
+        return key;
+    }
+  }
+
   void _disposeControllers() {
     for (final c in _editControllers.values) {
       c.removeListener(_checkForChanges);
@@ -198,10 +222,10 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       _editControllers['__name__'] = TextEditingController(text: titleValue);
       _originalValues['__name__'] = titleValue;
 
-      // Other fields start empty
+      // Other fields start with localized display label for known template keys
       for (final key in template.keys.where((k) => k != titleKey)) {
-        _editControllers[key] = TextEditingController(text: '');
-        _originalValues[key] = '';
+        _editControllers[key] = TextEditingController(text: _getFieldKeyLabel(key));
+        _originalValues[key] = _getFieldKeyLabel(key);
       }
 
       _setupChangeDetection();
