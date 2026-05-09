@@ -1118,8 +1118,6 @@
   "fieldVisaNumber": "签证号码",
   "fieldEntryDate": "入境日期",
   "fieldExitDate": "离境日期",
-  "fieldBankName": "银行名称",
-  "fieldAccountNumber": "账号",
   "fieldSwiftCode": "SWIFT 代码",
   "fieldIban": "IBAN",
   "fieldCardNumber": "卡号",

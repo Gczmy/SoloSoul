@@ -2513,12 +2513,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fieldExitDate => '离境日期';
 
   @override
-  String get fieldBankName => '银行名称';
-
-  @override
-  String get fieldAccountNumber => '账号';
-
-  @override
   String get fieldSwiftCode => 'SWIFT 代码';
 
   @override
@@ -3013,6 +3007,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String objectEditorMaxLength(int count) {
     return '$count';
   }
+
+  @override
+  String get fieldBankName => '银行名称';
+
+  @override
+  String get fieldAccountNumber => '账号';
 
   @override
   String get fieldAccountHolder => '持有人';

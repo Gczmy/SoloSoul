@@ -2578,12 +2578,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldExitDate => 'Exit Date';
 
   @override
-  String get fieldBankName => 'Bank Name';
-
-  @override
-  String get fieldAccountNumber => 'Account Number';
-
-  @override
   String get fieldSwiftCode => 'SWIFT Code';
 
   @override
@@ -3087,6 +3081,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String objectEditorMaxLength(int count) {
     return '$count';
   }
+
+  @override
+  String get fieldBankName => 'Bank Name';
+
+  @override
+  String get fieldAccountNumber => 'Account Number';
 
   @override
   String get fieldAccountHolder => 'Account Holder';

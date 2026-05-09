@@ -1504,8 +1504,6 @@
   "fieldVisaNumber": "Visa Number",
   "fieldEntryDate": "Entry Date",
   "fieldExitDate": "Exit Date",
-  "fieldBankName": "Bank Name",
-  "fieldAccountNumber": "Account Number",
   "fieldSwiftCode": "SWIFT Code",
   "fieldIban": "IBAN",
   "fieldCardNumber": "Card Number",

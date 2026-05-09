@@ -4772,18 +4772,6 @@ abstract class AppLocalizations {
   /// **'Exit Date'**
   String get fieldExitDate;
 
-  /// No description provided for @fieldBankName.
-  ///
-  /// In en, this message translates to:
-  /// **'Bank Name'**
-  String get fieldBankName;
-
-  /// No description provided for @fieldAccountNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Account Number'**
-  String get fieldAccountNumber;
-
   /// No description provided for @fieldSwiftCode.
   ///
   /// In en, this message translates to:
@@ -5707,6 +5695,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}'**
   String objectEditorMaxLength(int count);
+
+  /// No description provided for @fieldBankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name'**
+  String get fieldBankName;
+
+  /// No description provided for @fieldAccountNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Number'**
+  String get fieldAccountNumber;
 
   /// No description provided for @fieldAccountHolder.
   ///
