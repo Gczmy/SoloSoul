@@ -753,70 +753,29 @@ class _PropertyFieldRow extends ConsumerWidget {
     required this.onFieldChanged,
   });
 
-  String _getFieldKeyLabel(String key, AppLocalizations l) {
-    switch (key) {
-      case 'bank_name':
-        return l.fieldBankName;
-      case 'account_number':
-        return l.fieldAccountNumber;
-      case 'account_holder':
-        return l.fieldAccountHolder;
-      case 'branch_name':
-        return l.fieldBranchName;
-      case 'sort_code':
-        return l.fieldSortCode;
-      case 'iban':
-        return l.fieldIban;
-      case 'routing_number':
-        return l.fieldRoutingNumber;
-      case 'account_type':
-        return l.fieldAccountType;
-      default:
-        return key;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final l = AppLocalizations.of(context);
     return Padding(
-  padding: const EdgeInsets.only(bottom: 8),
-  child: Row(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Expanded(
-        flex: 2,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Localized label for template field keys
-            if (_getFieldKeyLabel(field.key, l) != field.key)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 2, left: 4),
-                child: Text(
-                  _getFieldKeyLabel(field.key, l),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            TextField(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: TextField(
               controller: field.controller,
               maxLength: 24,
-              buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(context).objectEditorKeyName,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                border: const OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                field.key = value;
-              },
-            ),
-          ],
+          buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context).objectEditorKeyName,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            border: const OutlineInputBorder(),
+          ),
+          onChanged: (value) {
+            field.key = value;
+          },
         ),
       ),
       const SizedBox(width: 8),
