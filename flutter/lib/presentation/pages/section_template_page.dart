@@ -186,6 +186,36 @@ class _TemplateCard extends ConsumerWidget {
         return l.templateUkBankAccountName;
       case 'templateUsBankAccountName':
         return l.templateUsBankAccountName;
+      case 'templateProfileIdentityName':
+        return l.templateProfileIdentityName;
+      case 'templateProfileContactName':
+        return l.templateProfileContactName;
+      case 'templateProfileIdCardName':
+        return l.templateProfileIdCardName;
+      case 'templateProfileAddressName':
+        return l.templateProfileAddressName;
+      case 'templateTravelPassportName':
+        return l.templateTravelPassportName;
+      case 'templateTravelVisaName':
+        return l.templateTravelVisaName;
+      case 'templateTravelHistoryName':
+        return l.templateTravelHistoryName;
+      case 'templateFinancialBankAccountName':
+        return l.templateFinancialBankAccountName;
+      case 'templateFinancialCardName':
+        return l.templateFinancialCardName;
+      case 'templateFinancialTaxIdName':
+        return l.templateFinancialTaxIdName;
+      case 'templateProfessionalEducationName':
+        return l.templateProfessionalEducationName;
+      case 'templateProfessionalEmploymentName':
+        return l.templateProfessionalEmploymentName;
+      case 'templateProfessionalSkillName':
+        return l.templateProfessionalSkillName;
+      case 'templateProfessionalLanguageName':
+        return l.templateProfessionalLanguageName;
+      case 'templateProfessionalAwardName':
+        return l.templateProfessionalAwardName;
       default:
         return t.nameKey;
     }
@@ -199,6 +229,36 @@ class _TemplateCard extends ConsumerWidget {
         return l.templateUkBankAccountDesc;
       case 'templateUsBankAccountDesc':
         return l.templateUsBankAccountDesc;
+      case 'templateProfileIdentityDesc':
+        return l.templateProfileIdentityDesc;
+      case 'templateProfileContactDesc':
+        return l.templateProfileContactDesc;
+      case 'templateProfileIdCardDesc':
+        return l.templateProfileIdCardDesc;
+      case 'templateProfileAddressDesc':
+        return l.templateProfileAddressDesc;
+      case 'templateTravelPassportDesc':
+        return l.templateTravelPassportDesc;
+      case 'templateTravelVisaDesc':
+        return l.templateTravelVisaDesc;
+      case 'templateTravelHistoryDesc':
+        return l.templateTravelHistoryDesc;
+      case 'templateFinancialBankAccountDesc':
+        return l.templateFinancialBankAccountDesc;
+      case 'templateFinancialCardDesc':
+        return l.templateFinancialCardDesc;
+      case 'templateFinancialTaxIdDesc':
+        return l.templateFinancialTaxIdDesc;
+      case 'templateProfessionalEducationDesc':
+        return l.templateProfessionalEducationDesc;
+      case 'templateProfessionalEmploymentDesc':
+        return l.templateProfessionalEmploymentDesc;
+      case 'templateProfessionalSkillDesc':
+        return l.templateProfessionalSkillDesc;
+      case 'templateProfessionalLanguageDesc':
+        return l.templateProfessionalLanguageDesc;
+      case 'templateProfessionalAwardDesc':
+        return l.templateProfessionalAwardDesc;
       default:
         return t.descriptionKey;
     }
