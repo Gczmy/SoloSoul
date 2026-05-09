@@ -17,6 +17,16 @@ import 'package:solosoul_flutter/presentation/widgets/field_history_dialog.dart'
 import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 
+/// Returns the color for a given typeId (page=blue, collection=green, item=orange).
+Color typeColorForId(String? typeId) {
+  return switch (typeId) {
+    'page' => Colors.blue.shade700,
+    'collection' => Colors.green.shade700,
+    'item' => Colors.orange.shade700,
+    _ => Colors.orange.shade700, // Predefined items (travel_passport, profile_identity, etc.)
+  };
+}
+
 class UnifiedObjectTrashCard extends ConsumerStatefulWidget {
   final UnifiedObject object;
   final VoidCallback onRestore;
@@ -43,7 +53,9 @@ class _UnifiedObjectTrashCardState
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final object = widget.object;
-    final isSection = object.typeId == 'collection';
+    final isCollection = object.typeId == 'collection';
+    final isPage = object.typeId == 'page';
+    final isExpandable = isCollection || isPage;
     final deletedAt = object.deletedAt;
     final daysRemaining = deletedAt != null
         ? 30 - DateTime.now().difference(deletedAt).inDays
@@ -63,13 +75,9 @@ class _UnifiedObjectTrashCardState
         }).toList() ??
         [];
 
-    final children = isSection
+    final children = isExpandable
         ? ref.watch(deletedChildrenProvider(object.id))
         : <UnifiedObject>[];
-
-    final actionBarColor = isSection
-        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
-        : null;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -86,12 +94,12 @@ class _UnifiedObjectTrashCardState
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.1),
+                    color: _typeColor(object.typeId).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     UnifiedObjectService.getIconFromName(object.iconName),
-                    color: Colors.orange,
+                    color: _typeColor(object.typeId),
                     size: 20,
                   ),
                 ),
@@ -144,14 +152,6 @@ class _UnifiedObjectTrashCardState
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            decoration: isSection
-                ? BoxDecoration(
-                    color: actionBarColor,
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(12),
-                    ),
-                  )
-                : null,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final narrow = constraints.maxWidth < 420;
@@ -199,13 +199,15 @@ class _UnifiedObjectTrashCardState
                       ),
                     ),
                     const SizedBox(width: 4),
-                    if (isSection && children.isNotEmpty) ...[
+                    if (isExpandable && children.isNotEmpty) ...[
                       _ActionButtonWidget(
                         narrow: narrow,
                         icon: _expanded
                             ? Icons.expand_less
                             : Icons.expand_more,
-                        label: l10n.trashShowItems,
+                        label: isPage
+                            ? l10n.trashShowSections
+                            : l10n.trashShowItems,
                         onPressed: () =>
                             setState(() => _expanded = !_expanded),
                       ),
@@ -231,7 +233,7 @@ class _UnifiedObjectTrashCardState
             ),
           ),
           // Expandable children panel
-          if (isSection && _expanded && children.isNotEmpty)
+          if (isExpandable && _expanded && children.isNotEmpty)
             _ChildrenPanel(
               children: children,
               theme: theme,
@@ -250,6 +252,10 @@ class _UnifiedObjectTrashCardState
       'item' => l10n.typeItem,
       _ => l10n.typeUnknown,
     };
+  }
+
+  Color _typeColor(String? typeId) {
+    return typeColorForId(typeId);
   }
 
   void _showDetailDialog(UnifiedObject object) {
@@ -433,29 +439,161 @@ class _ChildrenPanel extends StatelessWidget {
 }
 
 /// Single child item row inside a section's expanded panel.
-class _ChildItemRow extends StatelessWidget {
+class _ChildItemRow extends ConsumerStatefulWidget {
   final UnifiedObject child;
   final ValueChanged<UnifiedObject>? onShowDetail;
 
   const _ChildItemRow({required this.child, this.onShowDetail});
 
   @override
+  ConsumerState<_ChildItemRow> createState() => _ChildItemRowState();
+}
+
+class _ChildItemRowState extends ConsumerState<_ChildItemRow> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final isCollection = widget.child.typeId == 'collection';
+    final grandchildren = isCollection
+        ? ref.watch(deletedChildrenProvider(widget.child.id))
+        : <UnifiedObject>[];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Icon(
+                Icons.circle,
+                size: 6,
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(width: 10),
+              Icon(
+                UnifiedObjectService.getIconFromName(widget.child.iconName),
+                size: 16,
+                color: typeColorForId(widget.child.typeId),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.child.name,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (widget.onShowDetail != null)
+                TextButton.icon(
+                  onPressed: () => widget.onShowDetail!(widget.child),
+                  icon: const Icon(Icons.info_outline, size: 14),
+                  label: Text(l10n.trashDetailLabel),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: Size.zero,
+                  ),
+                ),
+              if (isCollection && grandchildren.isNotEmpty) ...[
+                const SizedBox(width: 4),
+                TextButton.icon(
+                  onPressed: () => setState(() => _expanded = !_expanded),
+                  icon: Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    size: 14,
+                  ),
+                  label: Text(l10n.trashShowItems),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: Size.zero,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (isCollection && _expanded && grandchildren.isNotEmpty)
+          _GrandchildrenPanel(
+            children: grandchildren,
+            theme: theme,
+            l10n: l10n,
+            onShowDetail: widget.onShowDetail,
+          ),
+      ],
+    );
+  }
+}
+
+/// Grandchildren items panel (items inside a collection).
+class _GrandchildrenPanel extends StatelessWidget {
+  final List<UnifiedObject> children;
+  final ThemeData theme;
+  final AppLocalizations l10n;
+  final ValueChanged<UnifiedObject>? onShowDetail;
+
+  const _GrandchildrenPanel({
+    required this.children,
+    required this.theme,
+    required this.l10n,
+    this.onShowDetail,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(left: 24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final child in children) ...[
+            _GrandchildItemRow(child: child, onShowDetail: onShowDetail),
+            if (child != children.last) const SizedBox(height: 2),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Single grandchild (item) row inside a collection's expanded panel.
+class _GrandchildItemRow extends StatelessWidget {
+  final UnifiedObject child;
+  final ValueChanged<UnifiedObject>? onShowDetail;
+
+  const _GrandchildItemRow({required this.child, this.onShowDetail});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
           Icon(
             Icons.circle,
-            size: 6,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            size: 4,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Icon(
             UnifiedObjectService.getIconFromName(child.iconName),
-            size: 16,
-            color: theme.colorScheme.onSurfaceVariant,
+            size: 14,
+            color: typeColorForId(child.typeId),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -463,35 +601,24 @@ class _ChildItemRow extends StatelessWidget {
               child.name,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 12,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
-            child.typeId == 'item' ? '' : _itemTypeLabel(child.typeId),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-              fontSize: 11,
+          TextButton.icon(
+            onPressed: () => onShowDetail?.call(child),
+            icon: const Icon(Icons.info_outline, size: 12),
+            label: Text(l10n.trashDetailLabel),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              minimumSize: Size.zero,
             ),
           ),
-          if (onShowDetail != null)
-            IconButton(
-              icon: const Icon(Icons.info_outline, size: 16),
-              onPressed: () => onShowDetail!(child),
-              padding: const EdgeInsets.all(4),
-              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-              tooltip: AppLocalizations.of(context).trashDetailLabel,
-            ),
         ],
       ),
     );
-  }
-
-  String _itemTypeLabel(String? typeId) {
-    if (typeId == null || typeId == 'item') return '';
-    // Fallback for any non-item type children (unusual but possible)
-    return typeId;
   }
 }
 

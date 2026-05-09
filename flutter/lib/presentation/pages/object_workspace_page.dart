@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
+import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show showOverlaySnackBar, SnackBarType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -209,9 +210,7 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.workspaceDeleteSection),
-        content: Text(
-          'Are you sure you want to delete "${object.name}"?',
-        ),
+        content: Text(l10n.workspaceDeleteSectionConfirm(object.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -229,8 +228,10 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     if (confirmed == true) {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(object.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).workspaceSectionDeleted)),
+        showOverlaySnackBar(
+          context,
+          content: l10n.workspaceSectionDeleted,
+          type: SnackBarType.success,
         );
       }
     }
@@ -246,10 +247,9 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(object.typeId == 'page' ? l10n.workspaceDeletePage : l10n.workspaceDeleteSection),
-        content: Text(
-          'Are you sure you want to delete "${object.name}"?'
-          '${descendantCount > 0 ? '\n\nAll $descendantCount item(s) inside this ${object.typeId == 'page' ? 'page' : 'section'} will also be moved to trash.' : ''}',
-        ),
+        content: Text(object.typeId == 'page'
+            ? l10n.workspaceDeletePageConfirm(object.name, descendantCount)
+            : l10n.workspaceDeleteSectionConfirm(object.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -267,9 +267,10 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     if (confirmed == true) {
       await ref.read(unifiedObjectProvider.notifier).deleteObject(object.id);
       if (mounted) {
-        // Navigation is handled by build()'s auto-navigate when currentObject becomes null
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).workspaceMovedToTrash(object.name))),
+        showOverlaySnackBar(
+          context,
+          content: l10n.workspaceMovedToTrash(object.name),
+          type: SnackBarType.success,
         );
       }
     }
@@ -291,32 +292,9 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
   }
 
   void _showPageAddMenu() async {
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: Text(AppLocalizations.of(context).workspaceAddSubPage),
-              onTap: () => Navigator.pop(ctx, 'page'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder_outlined),
-              title: Text(AppLocalizations.of(context).workspaceAddSection),
-              onTap: () => Navigator.pop(ctx, 'section'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (choice == 'page') {
-      if (!mounted) return;
-      await context.push('/page_editor?parentId=${widget.objectId}');
-    } else if (choice == 'section') {
-      await _showAddSectionDialog();
-    }
+    // Temporarily disabled: sub-page creation has bugs
+    // Directly show add section dialog instead
+    await _showAddSectionDialog();
   }
 }
 

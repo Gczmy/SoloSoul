@@ -2909,6 +2909,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trashShowSections => 'Show sections';
+
+  @override
   String get trashShowItems => 'Show items';
 
   @override
@@ -2921,7 +2924,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get typeItem => 'Item';
 
   @override
-  String get typeUnknown => 'Object';
+  String get typeUnknown => 'Item';
 
   @override
   String get operationPlatformMacos => 'macOS';
@@ -2994,4 +2997,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get operationFilterLabel => 'Filter';
+
+  @override
+  String get trashFilterLabel => 'Filter:';
+
+  @override
+  String get trashTimeFilterLabel => 'Time:';
+
+  @override
+  String get trashTimeFilterAll => 'All';
+
+  @override
+  String get trashTimeFilter10Days => 'Within 10 days';
+
+  @override
+  String get trashTimeFilter1Day => 'Within 1 day';
+
+  @override
+  String get trashTimeFilter6Hours => 'Within 6 hours';
+
+  @override
+  String get trashTimeFilter1Hour => 'Within 1 hour';
+
+  @override
+  String get trashTypeFilterLabel => 'Type:';
 }

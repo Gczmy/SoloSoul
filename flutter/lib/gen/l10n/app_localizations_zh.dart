@@ -2833,8 +2833,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String trashDeletedAgo(Object time) {
-    return '在 $time 前删除';
+    return '$time删除';
   }
+
+  @override
+  String get trashShowSections => '显示分区';
 
   @override
   String get trashShowItems => '显示项目';
@@ -2849,7 +2852,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get typeItem => '项目';
 
   @override
-  String get typeUnknown => '对象';
+  String get typeUnknown => '项目';
 
   @override
   String get operationPlatformMacos => 'macOS';
@@ -2922,4 +2925,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get operationFilterLabel => '筛选';
+
+  @override
+  String get trashFilterLabel => '筛选：';
+
+  @override
+  String get trashTimeFilterLabel => '时间：';
+
+  @override
+  String get trashTimeFilterAll => '全部';
+
+  @override
+  String get trashTimeFilter10Days => '10 天内';
+
+  @override
+  String get trashTimeFilter1Day => '1 天内';
+
+  @override
+  String get trashTimeFilter6Hours => '6 小时内';
+
+  @override
+  String get trashTimeFilter1Hour => '1 小时内';
+
+  @override
+  String get trashTypeFilterLabel => '类型：';
 }

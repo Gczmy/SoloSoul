@@ -1638,6 +1638,10 @@
       "time": {}
     }
   },
+  "trashShowSections": "Show sections",
+  "@trashShowSections": {
+    "description": "Tooltip for expand button on deleted page trash card"
+  },
   "trashShowItems": "Show items",
   "@trashShowItems": {
     "description": "Tooltip for expand button on deleted section trash card"
@@ -1654,7 +1658,7 @@
   "@typeItem": {
     "description": "Display name for 'item' typeId"
   },
-  "typeUnknown": "Object",
+  "typeUnknown": "Item",
   "@typeUnknown": {
     "description": "Fallback display name for unknown typeId"
   },
@@ -1693,5 +1697,13 @@
   "logSectionSensitivity": "Sensitivity",
   "logSectionCustom": "Custom",
   "logSectionDefault": "Section",
-  "operationFilterLabel": "Filter"
+  "operationFilterLabel": "Filter",
+  "trashFilterLabel": "Filter:",
+  "trashTimeFilterLabel": "Time:",
+  "trashTimeFilterAll": "All",
+  "trashTimeFilter10Days": "Within 10 days",
+  "trashTimeFilter1Day": "Within 1 day",
+  "trashTimeFilter6Hours": "Within 6 hours",
+  "trashTimeFilter1Hour": "Within 1 hour",
+  "trashTypeFilterLabel": "Type:"
 }

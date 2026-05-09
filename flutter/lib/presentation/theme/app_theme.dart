@@ -66,7 +66,7 @@ void showOverlaySnackBar(
       };
 
       final topOffset =
-          MediaQuery.of(effectiveContext).padding.top + kToolbarHeight + 8;
+          (MediaQuery.maybeOf(effectiveContext)?.padding.top ?? 0) + kToolbarHeight + 8;
 
       return Positioned(
         top: topOffset,

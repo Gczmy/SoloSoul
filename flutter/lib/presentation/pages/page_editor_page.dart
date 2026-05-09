@@ -6,8 +6,6 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
-import 'package:solosoul_flutter/presentation/pages/object_editor_page.dart'
-    show ObjectParentDropdown;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 
@@ -162,18 +160,18 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
             ),
             const SizedBox(height: 24),
 
-            // Parent
-            Text(AppLocalizations.of(context).pageEditorParent, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 12),
-            ObjectParentDropdown(
-              selectedParentId: _selectedParentId,
-              objectId: widget.objectId,
-              onChanged: (value) {
-                setState(() {
-                  _selectedParentId = value;
-                });
-              },
-            ),
+            // Parent (hidden - parent change disabled to avoid bugs)
+            // Text(AppLocalizations.of(context).pageEditorParent, style: theme.textTheme.titleMedium),
+            // const SizedBox(height: 12),
+            // ObjectParentDropdown(
+            //   selectedParentId: _selectedParentId,
+            //   objectId: widget.objectId,
+            //   onChanged: (value) {
+            //     setState(() {
+            //       _selectedParentId = value;
+            //     });
+            //   },
+            // ),
             const SizedBox(height: 32),
 
             // Save

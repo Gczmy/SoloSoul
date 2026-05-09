@@ -5372,6 +5372,12 @@ abstract class AppLocalizations {
   /// **'Deleted {time} ago'**
   String trashDeletedAgo(Object time);
 
+  /// Tooltip for expand button on deleted page trash card
+  ///
+  /// In en, this message translates to:
+  /// **'Show sections'**
+  String get trashShowSections;
+
   /// Tooltip for expand button on deleted section trash card
   ///
   /// In en, this message translates to:
@@ -5399,7 +5405,7 @@ abstract class AppLocalizations {
   /// Fallback display name for unknown typeId
   ///
   /// In en, this message translates to:
-  /// **'Object'**
+  /// **'Item'**
   String get typeUnknown;
 
   /// Platform label: macOS
@@ -5545,6 +5551,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filter'**
   String get operationFilterLabel;
+
+  /// No description provided for @trashFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter:'**
+  String get trashFilterLabel;
+
+  /// No description provided for @trashTimeFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Time:'**
+  String get trashTimeFilterLabel;
+
+  /// No description provided for @trashTimeFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get trashTimeFilterAll;
+
+  /// No description provided for @trashTimeFilter10Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 10 days'**
+  String get trashTimeFilter10Days;
+
+  /// No description provided for @trashTimeFilter1Day.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 1 day'**
+  String get trashTimeFilter1Day;
+
+  /// No description provided for @trashTimeFilter6Hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 6 hours'**
+  String get trashTimeFilter6Hours;
+
+  /// No description provided for @trashTimeFilter1Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 1 hour'**
+  String get trashTimeFilter1Hour;
+
+  /// No description provided for @trashTypeFilterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type:'**
+  String get trashTypeFilterLabel;
 }
 
 class _AppLocalizationsDelegate

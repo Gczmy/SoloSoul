@@ -20,6 +20,8 @@ import 'package:solosoul_flutter/presentation/providers/operation_log_provider.d
     show OperationLogService;
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/trash/unified_object_trash_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/trash/trash_filter_section.dart';
+import 'package:solosoul_flutter/presentation/providers/trash_filter_provider.dart';
 
 // =============================================================================
 // Unified abstraction for trash list items (enables ListView.builder)
@@ -50,6 +52,7 @@ class TrashPage extends ConsumerStatefulWidget {
 class _TrashPageState extends ConsumerState<TrashPage> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _filterExpanded = false;
 
   /// Whether we have already shown the auto-prompt dialog on first build.
   bool _hasPromptedForVerification = false;
@@ -82,7 +85,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     // Show password verification dialog if not yet verified
     if (!ref.watch(isSensitiveAccessGrantedProvider)) {
       // Auto-prompt only on first build; after cancellation show Verify button
@@ -132,6 +134,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         _searchController.clear();
         setState(() => _searchQuery = '');
       },
+      filterExpanded: _filterExpanded,
+      onToggleFilter: () => setState(() => _filterExpanded = !_filterExpanded),
       trashContent: _TrashContentWidget(
         theme: theme,
         searchQuery: _searchQuery,
@@ -143,10 +147,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     );
   }
 
-
-
   void _confirmEmptyTrash(BuildContext context, int itemCount) {
-    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -255,7 +256,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   Future<void> _confirmRestoreUnifiedObject(UnifiedObject object) async {
-    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -304,7 +304,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   Future<void> _confirmPurgeUnifiedObject(UnifiedObject object) async {
-    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -415,7 +414,6 @@ class _TrashEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -490,7 +488,6 @@ class _TrashListView extends StatelessWidget {
             builder: (context) {
               final entries = <TrashEntry>[];
               if (objects.isNotEmpty) {
-                final l10n = AppLocalizations.of(context);
                 entries.add(TrashSectionHeader(AppLocalizations.of(context).trashSectionTitle));
                 entries.addAll(
                   objects.map((o) => TrashUnifiedEntry(o)),
@@ -532,11 +529,13 @@ class _TrashListView extends StatelessWidget {
   }
 }
 
-class _TrashViewWidget extends StatelessWidget {
+class _TrashViewWidget extends ConsumerWidget {
   final TextEditingController searchController;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
+  final bool filterExpanded;
+  final VoidCallback onToggleFilter;
   final Widget trashContent;
 
   const _TrashViewWidget({
@@ -544,19 +543,53 @@ class _TrashViewWidget extends StatelessWidget {
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onClearSearch,
+    required this.filterExpanded,
+    required this.onToggleFilter,
     required this.trashContent,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final timeFilter = ref.watch(trashTimeFilterProvider);
+    final typeFilters = ref.watch(trashTypeFilterProvider);
+    final hasActiveFilters =
+        (timeFilter != null && timeFilter != 'all') || typeFilters.isNotEmpty;
+
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
-        title: Text(AppLocalizations.of(context).trashTitle),
+        title: Text(l10n.trashTitle),
         actions: const [HeaderActionButtons()],
       ),
       body: Column(
         children: [
+          // Trash info banner - always shown, above search
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.trashAutoPurgeNotice,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 400.ms),
+
           // Search bar
           Padding(
             padding: const EdgeInsets.all(16),
@@ -564,7 +597,7 @@ class _TrashViewWidget extends StatelessWidget {
               controller: searchController,
               onChanged: onSearchChanged,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context).trashSearchHint,
+                hintText: l10n.trashSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: searchQuery.isNotEmpty
                     ? IconButton(
@@ -583,32 +616,20 @@ class _TrashViewWidget extends StatelessWidget {
             ),
           ),
 
-          // Trash info banner - always shown
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.warning_amber, color: Colors.orange.shade700),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    AppLocalizations.of(context).trashAutoPurgeNotice,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.orange.shade700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 400.ms),
+          // Filter header
+          _TrashFilterHeader(
+            filterExpanded: filterExpanded,
+            hasActiveFilters: hasActiveFilters,
+            onToggle: onToggleFilter,
+          ),
 
-          const SizedBox(height: 16),
+          // Filter section (collapsible)
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: filterExpanded
+                ? const TrashFilterSection()
+                : const SizedBox.shrink(),
+          ),
 
           // Main content area
           Expanded(child: trashContent),
@@ -618,7 +639,89 @@ class _TrashViewWidget extends StatelessWidget {
   }
 }
 
-class _TrashContentWidget extends StatelessWidget {
+class _TrashFilterHeader extends ConsumerWidget {
+  final bool filterExpanded;
+  final bool hasActiveFilters;
+  final VoidCallback onToggle;
+
+  const _TrashFilterHeader({
+    required this.filterExpanded,
+    required this.hasActiveFilters,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final timeFilter = ref.watch(trashTimeFilterProvider);
+    final typeFilters = ref.watch(trashTypeFilterProvider);
+    final activeCount =
+        (timeFilter != null && timeFilter != 'all' ? 1 : 0) +
+        (typeFilters.isNotEmpty ? 1 : 0);
+
+    return InkWell(
+      onTap: onToggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          border: Border(
+            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.filter_list,
+              size: 20,
+              color: hasActiveFilters
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.operationFilterLabel,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: hasActiveFilters
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (activeCount > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$activeCount',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+            const Spacer(),
+            AnimatedRotation(
+              turns: filterExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 300),
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrashContentWidget extends ConsumerWidget {
   final ThemeData theme;
   final String searchQuery;
   final List<UnifiedObject> deletedUnifiedObjects;
@@ -636,15 +739,50 @@ class _TrashContentWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Filter unified objects based on search query (by name and typeId only)
-    final filteredUnifiedObjects = searchQuery.isEmpty
-        ? deletedUnifiedObjects
-        : deletedUnifiedObjects.where((obj) {
-            final lowerQuery = searchQuery.toLowerCase();
-            return obj.name.toLowerCase().contains(lowerQuery) ||
-                (obj.typeId?.toLowerCase().contains(lowerQuery) ?? false);
-          }).toList();
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch filter state
+    final timeFilter = ref.watch(trashTimeFilterProvider);
+    final typeFilters = ref.watch(trashTypeFilterProvider);
+
+    // Filter unified objects based on search query, time filter, and type filter
+    final filteredUnifiedObjects = deletedUnifiedObjects.where((obj) {
+      // Search filter
+      if (searchQuery.isNotEmpty) {
+        final lowerQuery = searchQuery.toLowerCase();
+        if (!obj.name.toLowerCase().contains(lowerQuery) &&
+            !(obj.typeId?.toLowerCase().contains(lowerQuery) ?? false)) {
+          return false;
+        }
+      }
+
+      // Time filter
+      if (timeFilter != null && timeFilter != 'all') {
+        if (obj.deletedAt == null) return false;
+        final cutoff = getTimeFilterCutoff(timeFilter);
+        if (cutoff != null && !obj.deletedAt!.isAfter(cutoff)) {
+          return false;
+        }
+      }
+
+      // Type filter
+      if (typeFilters.isNotEmpty) {
+        bool matches = false;
+        for (final filter in typeFilters) {
+          if (filter == 'item') {
+            if (isItemType(obj.typeId)) {
+              matches = true;
+              break;
+            }
+          } else if (filter == obj.typeId) {
+            matches = true;
+            break;
+          }
+        }
+        if (!matches) return false;
+      }
+
+      return true;
+    }).toList();
 
     final totalCount = filteredUnifiedObjects.length;
 

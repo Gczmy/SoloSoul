@@ -1219,7 +1219,11 @@
   "trashMinutesAgo": "{count} 分钟前",
   "trashJustNow": "刚刚",
   "trashDeletedRecently": "最近删除",
-  "trashDeletedAgo": "在 {time} 前删除",
+  "trashDeletedAgo": "{time}删除",
+  "trashShowSections": "显示分区",
+  "@trashShowSections": {
+    "description": "Tooltip for expand button on deleted page trash card"
+  },
   "trashShowItems": "显示项目",
   "@trashShowItems": {
     "description": "Tooltip for expand button on deleted section trash card"
@@ -1236,7 +1240,7 @@
   "@typeItem": {
     "description": "Display name for 'item' typeId"
   },
-  "typeUnknown": "对象",
+  "typeUnknown": "项目",
   "@typeUnknown": {
     "description": "Fallback display name for unknown typeId"
   },
@@ -1275,5 +1279,13 @@
   "logSectionSensitivity": "敏感设置",
   "logSectionCustom": "自定义",
   "logSectionDefault": "分区",
-  "operationFilterLabel": "筛选"
+  "operationFilterLabel": "筛选",
+  "trashFilterLabel": "筛选：",
+  "trashTimeFilterLabel": "时间：",
+  "trashTimeFilterAll": "全部",
+  "trashTimeFilter10Days": "10 天内",
+  "trashTimeFilter1Day": "1 天内",
+  "trashTimeFilter6Hours": "6 小时内",
+  "trashTimeFilter1Hour": "1 小时内",
+  "trashTypeFilterLabel": "类型："
 }
