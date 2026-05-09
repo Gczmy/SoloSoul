@@ -602,6 +602,11 @@ class UnifiedObjectService {
     final result = List<UnifiedObject>.from(objects);
     final now = _currentTimestamp();
 
+    // If moving within the same parent (reorder), no parent-child relationship changes needed
+    if (oldParentId == newParentId) {
+      return result;
+    }
+
     // Single pass: update old parent, new parent, and the object itself
     for (var i = 0; i < result.length; i++) {
       final o = result[i];

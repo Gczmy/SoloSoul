@@ -126,23 +126,28 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }
     final theme = Theme.of(context);
     final deletedUnifiedObjects = ref.watch(trashRootDeletedObjectsProvider);
-    return _TrashViewWidget(
-      searchController: _searchController,
-      searchQuery: _searchQuery,
-      onSearchChanged: (value) => setState(() => _searchQuery = value),
-      onClearSearch: () {
-        _searchController.clear();
-        setState(() => _searchQuery = '');
-      },
-      filterExpanded: _filterExpanded,
-      onToggleFilter: () => setState(() => _filterExpanded = !_filterExpanded),
-      trashContent: _TrashContentWidget(
-        theme: theme,
+    // Extend sensitive access timeout on user activity to avoid interrupting active browsing
+    return Listener(
+      onPointerDown: (_) => ref.read(sensitivePageAccessProvider.notifier).markVerified(),
+      onPointerMove: (_) => ref.read(sensitivePageAccessProvider.notifier).markVerified(),
+      child: _TrashViewWidget(
+        searchController: _searchController,
         searchQuery: _searchQuery,
-        deletedUnifiedObjects: deletedUnifiedObjects,
-        onEmptyTrash: (count) => _confirmEmptyTrash(context, count),
-        onRestore: _confirmRestoreUnifiedObject,
-        onPurge: _confirmPurgeUnifiedObject,
+        onSearchChanged: (value) => setState(() => _searchQuery = value),
+        onClearSearch: () {
+          _searchController.clear();
+          setState(() => _searchQuery = '');
+        },
+        filterExpanded: _filterExpanded,
+        onToggleFilter: () => setState(() => _filterExpanded = !_filterExpanded),
+        trashContent: _TrashContentWidget(
+          theme: theme,
+          searchQuery: _searchQuery,
+          deletedUnifiedObjects: deletedUnifiedObjects,
+          onEmptyTrash: (count) => _confirmEmptyTrash(context, count),
+          onRestore: _confirmRestoreUnifiedObject,
+          onPurge: _confirmPurgeUnifiedObject,
+        ),
       ),
     );
   }

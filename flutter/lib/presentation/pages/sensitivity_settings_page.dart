@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     hide SensitivityLevel;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
-import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart' show sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart' show FieldRegistry, FieldSensitivity, SensitivityLevel, formFieldRegistryProvider;
 import 'package:solosoul_flutter/presentation/utils/auth_utils.dart';
@@ -147,19 +147,23 @@ class _SensitivitySettingsPageState extends ConsumerState<SensitivitySettingsPag
     final effectiveFields = _getEffectiveFields(registry, accountStyle);
     final sections = _getFilteredSections(effectiveFields, _searchQuery);
 
-    return _SensitivitySettingsView(
-      searchController: _searchController,
-      searchQuery: _searchQuery,
-      onSearchChanged: (value) => setState(() => _searchQuery = value),
-      onClearSearch: () {
-        _searchController.clear();
-        setState(() => _searchQuery = '');
-      },
-      effectiveFields: effectiveFields,
-      sections: sections,
-      onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
-      onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
-      onDowngradeCritical: (fieldId) => _showDowngradeConfirmation(context, ref, fieldId),
+    return Listener(
+      onPointerDown: (_) => ref.read(sensitivePageAccessProvider.notifier).markVerified(),
+      onPointerMove: (_) => ref.read(sensitivePageAccessProvider.notifier).markVerified(),
+      child: _SensitivitySettingsView(
+        searchController: _searchController,
+        searchQuery: _searchQuery,
+        onSearchChanged: (value) => setState(() => _searchQuery = value),
+        onClearSearch: () {
+          _searchController.clear();
+          setState(() => _searchQuery = '');
+        },
+        effectiveFields: effectiveFields,
+        sections: sections,
+        onUpgrade: (fieldId) => notifier.upgradeField(fieldId),
+        onDowngrade: (fieldId) => notifier.downgradeField(fieldId),
+        onDowngradeCritical: (fieldId) => _showDowngradeConfirmation(context, ref, fieldId),
+      ),
     );
   }
 

@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/utils/auth_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
-import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart' show sensitivePageAccessProvider, isSensitiveAccessGrantedProvider;
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/operation_log_filter_section.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
@@ -84,23 +84,28 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
       );
     }
     final entries = ref.watch(operationLogFilteredEntriesProvider);
-    return _OperationLogView(
-      searchController: _searchController,
-      searchQuery: _searchQuery,
-      entries: entries,
-      onSearchChanged: (value) => setState(() => _searchQuery = value),
-      onClearSearch: () {
-        _searchController.clear();
-        setState(() => _searchQuery = '');
-      },
-      onConfirmClearLog: () => _confirmClearLog(context),
-      filterExpanded: _filterExpanded,
-      onClearAllFilters: _clearAllFilters,
-      filterHeader: _OperationLogFilterHeader(
+    // Extend sensitive access timeout on user activity to avoid interrupting active browsing
+    return Listener(
+      onPointerDown: (_) => ref.read(sensitivePageAccessProvider.notifier).markVerified(),
+      onPointerMove: (_) => ref.read(sensitivePageAccessProvider.notifier).markVerified(),
+      child: _OperationLogView(
+        searchController: _searchController,
+        searchQuery: _searchQuery,
+        entries: entries,
+        onSearchChanged: (value) => setState(() => _searchQuery = value),
+        onClearSearch: () {
+          _searchController.clear();
+          setState(() => _searchQuery = '');
+        },
+        onConfirmClearLog: () => _confirmClearLog(context),
         filterExpanded: _filterExpanded,
-        actionFilters: ref.watch(logActionFilterProvider),
-        deviceFilters: ref.watch(logDeviceFilterProvider),
-        onToggle: () => setState(() => _filterExpanded = !_filterExpanded),
+        onClearAllFilters: _clearAllFilters,
+        filterHeader: _OperationLogFilterHeader(
+          filterExpanded: _filterExpanded,
+          actionFilters: ref.watch(logActionFilterProvider),
+          deviceFilters: ref.watch(logDeviceFilterProvider),
+          onToggle: () => setState(() => _filterExpanded = !_filterExpanded),
+        ),
       ),
     );
   }
