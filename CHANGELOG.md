@@ -5,6 +5,22 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2026-05-10
+
+### Added
+
+- **Global Backoff Protection** — Password verification now has global brute-force protection with 30-second cooldown after 5 failed attempts, persisted across dialog close/reopen
+- **Unified Password Dialog** — Shared password verification dialog extracted for reuse across the app (search page, settings page, etc.)
+
+### Fixed
+
+- **Icon Colors** — Key icon, hint button, and visibility button now use consistent theme colors (error: red, focus: primary blue)
+- **Biometric Independence** — TouchID/FaceID remains available even during password backoff cooldown
+
+### Refactored
+
+- **Filter Sections** — Unified filter section pattern across operation log, search, and trash pages
+
 ## [1.6.2] - 2026-05-10
 
 ### Added
