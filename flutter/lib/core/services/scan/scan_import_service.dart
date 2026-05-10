@@ -422,29 +422,6 @@ class ScanImportService {
     return result;
   }
 
-  Future<void> _createNew(
-    ImportCandidate candidate,
-    String typeId,
-    String? parentSectionId,
-    Map<String, PropertyValue> properties,
-  ) async {
-    final name = candidate.source.display;
-    if (parentSectionId != null) {
-      await _objectNotifier.createDefaultItem(
-        sectionId: parentSectionId,
-        typeId: typeId,
-        name: name,
-        properties: properties,
-      );
-    } else {
-      await _objectNotifier.createObject(
-        name: name,
-        typeId: typeId,
-        properties: properties,
-      );
-    }
-  }
-
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
