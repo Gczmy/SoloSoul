@@ -283,6 +283,8 @@ class OperationLogger {
     required String description,
     String? fieldPath,
     SensitivityLevel sensitivityLevel = SensitivityLevel.sensitive,
+    String? descriptionKey,
+    Map<String, String>? descriptionArgs,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -291,6 +293,8 @@ class OperationLogger {
       description: description,
       fieldPath: fieldPath,
       sensitivityLevel: sensitivityLevel,
+      descriptionKey: descriptionKey,
+      descriptionArgs: descriptionArgs,
     );
   }
 
@@ -303,6 +307,8 @@ class OperationLogger {
     SensitivityLevel sensitivityLevel = SensitivityLevel.public,
     Map<String, String>? properties,
     Map<String, String>? propertyLevels,
+    String? descriptionKey,
+    Map<String, String>? descriptionArgs,
   }) {
     return OperationEntry(
       timestamp: DateTime.now(),
@@ -313,6 +319,8 @@ class OperationLogger {
       sensitivityLevel: sensitivityLevel,
       properties: properties,
       propertyLevels: propertyLevels,
+      descriptionKey: descriptionKey,
+      descriptionArgs: descriptionArgs,
     );
   }
 

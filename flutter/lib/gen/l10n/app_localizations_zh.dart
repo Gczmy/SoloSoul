@@ -3228,4 +3228,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String predefinedDeleteFailed(String section) {
     return '删除$section失败';
   }
+
+  @override
+  String operationLogSensitivitySet(String field, String level) {
+    return '已将\"$field\"敏感度设置为$level';
+  }
+
+  @override
+  String operationLogSensitivityChanged(
+    String field,
+    String oldLevel,
+    String newLevel,
+  ) {
+    return '已将\"$field\"敏感度从$oldLevel更改为$newLevel';
+  }
+
+  @override
+  String operationLogSensitivityReverted(String field, String oldLevel) {
+    return '已将\"$field\"敏感度恢复为默认值（原为$oldLevel）';
+  }
+
+  @override
+  String get operationCreatedItem => '创建项目';
+
+  @override
+  String get operationUpdatedItem => '更新项目';
+
+  @override
+  String get operationDeletedItem => '删除项目';
+
+  @override
+  String get operationRestoredItem => '恢复项目';
+
+  @override
+  String get operationPurgedItem => '永久删除项目';
+
+  @override
+  String get operationChangedSensitivity => '更改敏感度';
+
+  @override
+  String get operationUpgradedSensitivity => '提升敏感度';
+
+  @override
+  String get operationDowngradedSensitivity => '降低敏感度';
+
+  @override
+  String get operationRevertedSensitivity => '恢复敏感度';
 }

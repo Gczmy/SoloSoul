@@ -1913,5 +1913,50 @@
         "type": "String"
       }
     }
-  }
+  },
+  "operationLogSensitivitySet": "Set \"{field}\" sensitivity to {level}",
+  "@operationLogSensitivitySet": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogSensitivityChanged": "Changed \"{field}\" sensitivity from {oldLevel} to {newLevel}",
+  "@operationLogSensitivityChanged": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "oldLevel": {
+        "type": "String"
+      },
+      "newLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogSensitivityReverted": "Reverted \"{field}\" sensitivity to default (was {oldLevel})",
+  "@operationLogSensitivityReverted": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "oldLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "operationCreatedItem": "Created item",
+  "operationUpdatedItem": "Updated item",
+  "operationDeletedItem": "Deleted item",
+  "operationRestoredItem": "Restored item",
+  "operationPurgedItem": "Permanently deleted item",
+  "operationChangedSensitivity": "Changed sensitivity",
+  "operationUpgradedSensitivity": "Upgraded sensitivity",
+  "operationDowngradedSensitivity": "Downgraded sensitivity",
+  "operationRevertedSensitivity": "Reverted sensitivity"
 }

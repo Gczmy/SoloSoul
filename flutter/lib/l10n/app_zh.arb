@@ -1495,5 +1495,50 @@
         "type": "String"
       }
     }
-  }
+  },
+  "operationLogSensitivitySet": "已将\"{field}\"敏感度设置为{level}",
+  "@operationLogSensitivitySet": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogSensitivityChanged": "已将\"{field}\"敏感度从{oldLevel}更改为{newLevel}",
+  "@operationLogSensitivityChanged": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "oldLevel": {
+        "type": "String"
+      },
+      "newLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogSensitivityReverted": "已将\"{field}\"敏感度恢复为默认值（原为{oldLevel}）",
+  "@operationLogSensitivityReverted": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "oldLevel": {
+        "type": "String"
+      }
+    }
+  },
+  "operationCreatedItem": "创建项目",
+  "operationUpdatedItem": "更新项目",
+  "operationDeletedItem": "删除项目",
+  "operationRestoredItem": "恢复项目",
+  "operationPurgedItem": "永久删除项目",
+  "operationChangedSensitivity": "更改敏感度",
+  "operationUpgradedSensitivity": "提升敏感度",
+  "operationDowngradedSensitivity": "降低敏感度",
+  "operationRevertedSensitivity": "恢复敏感度"
 }

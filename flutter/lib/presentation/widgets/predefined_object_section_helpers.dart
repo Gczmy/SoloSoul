@@ -15,6 +15,7 @@ import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 export 'package:solosoul_flutter/presentation/models/operation_log_models.dart' show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Builds the shared [onDidDelete] callback for [PredefinedObjectSection].
@@ -45,8 +46,11 @@ void Function(UnifiedObject item, int index) buildOnDidDelete(
           section: logSection.value,
           action: LogAction.restore,
           description: l10n.operationLogRestoredItem(item.name),
+          descriptionKey: 'restoredUnifiedItem',
+          descriptionArgs: {'name': item.name},
         );
         await OperationLogService.instance.addEntry(entry);
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored item'));
       },
     );
   };

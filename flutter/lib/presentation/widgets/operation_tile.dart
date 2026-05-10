@@ -39,7 +39,7 @@ class OperationTile extends StatelessWidget {
                 _DetailRow(label: l10n.operationLabelFieldPath, value: entry.fieldPath!),
               ],
               const SizedBox(height: 12),
-              _DetailRow(label: l10n.operationLabelDescription, value: entry.description),
+              _DetailRow(label: l10n.operationLabelDescription, value: entry.localizedDescription(l10n)),
               const SizedBox(height: 12),
               _DetailRow(label: l10n.operationLabelDevice, value: _getDeviceLabel(entry.device, l10n)),
               if (hasProperties) ...[
@@ -342,7 +342,7 @@ class OperationTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   // Second row: description
-                  Text(entry.description, style: theme.textTheme.bodyMedium),
+                  Text(entry.localizedDescription(l10n), style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 8),
                   // Third row: device tag only
                   Wrap(

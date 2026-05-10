@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
+    show OperationLogService;
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart' show LogAction;
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
@@ -269,17 +271,22 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
 
     state = AsyncData(updated);
     _autoSave();
-    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Changed sensitivity level'));
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Changed sensitivity'));
 
     // Log the sensitivity change
-    final description = oldLevel != null
-        ? 'Changed "$fieldId" sensitivity from ${oldLevel.label} to ${level.label}'
-        : 'Set "$fieldId" sensitivity to ${level.label}';
-    OperationLogger.logSensitivitySettings(
-      action: oldLevel != null ? LogAction.update : LogAction.create,
-      description: description,
-      fieldPath: fieldId,
-      sensitivityLevel: level,
+    final entryArgs = <String, String>{'field': fieldId, 'newLevel': level.label};
+    if (oldLevel != null) entryArgs['oldLevel'] = oldLevel.label;
+    OperationLogService.instance.addEntry(
+      OperationLogger.logSensitivitySettings(
+        action: oldLevel != null ? LogAction.update : LogAction.create,
+        description: oldLevel != null
+            ? 'Changed "$fieldId" sensitivity from ${oldLevel.label} to ${level.label}'
+            : 'Set "$fieldId" sensitivity to ${level.label}',
+        fieldPath: fieldId,
+        sensitivityLevel: level,
+        descriptionKey: oldLevel != null ? 'sensitivityChanged' : 'sensitivitySet',
+        descriptionArgs: entryArgs,
+      ),
     );
   }
 
@@ -307,12 +314,16 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
       state = AsyncData(updated);
       // Log the sensitivity revert
       if (oldLevel != null) {
-        OperationLogger.logSensitivitySettings(
+        final entry = OperationLogger.logSensitivitySettings(
           action: LogAction.delete,
           description: 'Reverted "$fieldId" sensitivity to default (was ${oldLevel.label})',
           fieldPath: fieldId,
           sensitivityLevel: oldLevel,
+          descriptionKey: 'sensitivityReverted',
+          descriptionArgs: {'field': fieldId, 'oldLevel': oldLevel.label},
         );
+        OperationLogService.instance.addEntry(entry);
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Reverted sensitivity'));
       }
     }
 
@@ -436,14 +447,22 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     ));
     _autoSave();
-    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Upgraded field sensitivity'));
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Upgraded sensitivity'));
 
     // Log the sensitivity upgrade
-    OperationLogger.logSensitivitySettings(
-      action: LogAction.update,
-      description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
-      fieldPath: fieldId,
-      sensitivityLevel: newLevel,
+    OperationLogService.instance.addEntry(
+      OperationLogger.logSensitivitySettings(
+        action: LogAction.update,
+        description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+        fieldPath: fieldId,
+        sensitivityLevel: newLevel,
+        descriptionKey: 'sensitivityUpgraded',
+        descriptionArgs: {
+          'field': fieldId,
+          'oldLevel': effectiveLevel.label,
+          'newLevel': newLevel.label,
+        },
+      ),
     );
   }
 
@@ -468,14 +487,22 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
       lastModified: DateTime.now(),
     ));
     _autoSave();
-    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Downgraded field sensitivity'));
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Downgraded sensitivity'));
 
     // Log the sensitivity downgrade
-    OperationLogger.logSensitivitySettings(
-      action: LogAction.update,
-      description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
-      fieldPath: fieldId,
-      sensitivityLevel: newLevel,
+    OperationLogService.instance.addEntry(
+      OperationLogger.logSensitivitySettings(
+        action: LogAction.update,
+        description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+        fieldPath: fieldId,
+        sensitivityLevel: newLevel,
+        descriptionKey: 'sensitivityDowngraded',
+        descriptionArgs: {
+          'field': fieldId,
+          'oldLevel': effectiveLevel.label,
+          'newLevel': newLevel.label,
+        },
+      ),
     );
   }
 

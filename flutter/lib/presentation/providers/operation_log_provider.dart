@@ -235,6 +235,10 @@ class OperationLogService extends ChangeNotifier {
             fieldPath: entry.fieldPath,
             device: devicePlatform,
             sensitivityLevel: entry.sensitivityLevel,
+            properties: entry.properties,
+            propertyLevels: entry.propertyLevels,
+            descriptionKey: entry.descriptionKey,
+            descriptionArgs: entry.descriptionArgs,
           )
         : entry;
 

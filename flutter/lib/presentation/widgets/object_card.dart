@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -274,8 +275,11 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         section: widget.object.name,
         action: LogAction.create,
         description: l10n.operationLogCreatedItem(name),
+        descriptionKey: 'createdUnifiedItem',
+        descriptionArgs: {'name': name},
       ),
     );
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created item'));
 
     if (mounted) {
       final isPrivacyMode =
@@ -376,8 +380,11 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
           action: LogAction.delete,
           description: l10n.operationLogDeletedItem(_itemDisplayTitle(item)),
           fieldPath: itemId,
+          descriptionKey: 'deletedUnifiedItem',
+          descriptionArgs: {'name': _itemDisplayTitle(item)},
         ),
       );
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted item'));
 
       if (mounted) {
         final isPrivacyMode =
@@ -532,8 +539,11 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         action: LogAction.update,
         description: l10n.operationLogUpdatedItem(name),
         fieldPath: itemId,
+        descriptionKey: 'updatedUnifiedItem',
+        descriptionArgs: {'name': name},
       ),
     );
+    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Updated item'));
 
     if (mounted) {
       final isPrivacyMode =

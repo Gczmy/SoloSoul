@@ -118,7 +118,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (fileName != null) {
         await _loadBackups();
         if (!mounted) return;
-        unawaited(ref.read(authNotifierProvider.notifier).updateOperation(l10n.dataMgmtOperationCreatedBackup));
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created backup'));
         OperationNotification.show(
           context,
           message: OperationMessage(
@@ -196,7 +196,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success) {
       await _loadAllBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationRestoredBackup));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -249,7 +249,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success && mounted) {
       await _loadBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationDeletedBackup));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -332,7 +332,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (!mounted) return;
       await _loadSpecialBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationPromotedBackup));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Promoted backup to special'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -433,7 +433,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (fileName != null) {
       await _loadSpecialBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationCreatedSpecial));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Created special backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -500,7 +500,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
       if (!mounted) return;
       await _loadSpecialBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationRenamedSpecial));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Renamed special backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -545,7 +545,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (success) {
       await _loadAllBackups();
       if (!mounted) return;
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationRestoredSpecial));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored special backup'));
       OperationNotification.show(
         context,
         message: OperationMessage(
@@ -597,7 +597,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     );
     if (success && mounted) {
       await _loadSpecialBackups();
-      unawaited(ref.read(authNotifierProvider.notifier).updateOperation(AppLocalizations.of(context).dataMgmtOperationDeletedSpecial));
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted special backup'));
     }
   }
 

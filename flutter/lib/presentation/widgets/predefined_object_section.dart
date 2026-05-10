@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -12,6 +13,7 @@ import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
     show LogSection, LogAction;
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
     show OperationLogService;
+import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
@@ -186,8 +188,11 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
             section: logSection.value,
             action: LogAction.delete,
             description: l10n.predefinedDeletedItem(widget.title, item?.name ?? ''),
+            descriptionKey: 'deletedPredefinedItem',
+            descriptionArgs: {'title': widget.title, 'name': item?.name ?? ''},
           );
           await OperationLogService.instance.addEntry(entry);
+          unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Deleted item'));
         }
         widget.onDidDelete?.call(
           item ?? UnifiedObject(

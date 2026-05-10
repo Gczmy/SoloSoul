@@ -6085,6 +6085,82 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to delete {section}'**
   String predefinedDeleteFailed(String section);
+
+  /// No description provided for @operationLogSensitivitySet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set \"{field}\" sensitivity to {level}'**
+  String operationLogSensitivitySet(String field, String level);
+
+  /// No description provided for @operationLogSensitivityChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed \"{field}\" sensitivity from {oldLevel} to {newLevel}'**
+  String operationLogSensitivityChanged(
+    String field,
+    String oldLevel,
+    String newLevel,
+  );
+
+  /// No description provided for @operationLogSensitivityReverted.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverted \"{field}\" sensitivity to default (was {oldLevel})'**
+  String operationLogSensitivityReverted(String field, String oldLevel);
+
+  /// No description provided for @operationCreatedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Created item'**
+  String get operationCreatedItem;
+
+  /// No description provided for @operationUpdatedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated item'**
+  String get operationUpdatedItem;
+
+  /// No description provided for @operationDeletedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted item'**
+  String get operationDeletedItem;
+
+  /// No description provided for @operationRestoredItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored item'**
+  String get operationRestoredItem;
+
+  /// No description provided for @operationPurgedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently deleted item'**
+  String get operationPurgedItem;
+
+  /// No description provided for @operationChangedSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed sensitivity'**
+  String get operationChangedSensitivity;
+
+  /// No description provided for @operationUpgradedSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgraded sensitivity'**
+  String get operationUpgradedSensitivity;
+
+  /// No description provided for @operationDowngradedSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Downgraded sensitivity'**
+  String get operationDowngradedSensitivity;
+
+  /// No description provided for @operationRevertedSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverted sensitivity'**
+  String get operationRevertedSensitivity;
 }
 
 class _AppLocalizationsDelegate

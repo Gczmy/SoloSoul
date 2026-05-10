@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 // ignore_for_file: use_build_context_synchronously
@@ -236,12 +237,18 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final opEntry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.purge,
-          description: '${l10n.trashPermanentlyDeleted}${obj.name}',
+          description: l10n.trashPermanentDeletedItem(obj.name),
           properties: properties,
           propertyLevels: propertyLevels,
+          descriptionKey: 'purgedUnifiedItem',
+          descriptionArgs: {'name': obj.name},
         );
         await OperationLogService.instance.addEntry(opEntry);
       }
+    }
+
+    if (deletedObjects.isNotEmpty) {
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Purged items'));
     }
 
     // Batch delete + single save
@@ -294,9 +301,12 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.restore,
-          description: '${AppLocalizations.of(context).trashRestored}${object.name}',
+          description: AppLocalizations.of(context).trashRestoredItem(object.name),
+          descriptionKey: 'restoredTrashItem',
+          descriptionArgs: {'name': object.name},
         );
         await OperationLogService.instance.addEntry(entry);
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored item'));
       }
       if (mounted) {
         showOverlaySnackBar(
@@ -391,11 +401,14 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.purge,
-          description: '${AppLocalizations.of(context).trashPermanentlyDeleted}${object.name}',
+          description: AppLocalizations.of(context).trashPermanentDeletedItem(object.name),
           properties: properties,
           propertyLevels: propertyLevels,
+          descriptionKey: 'purgedUnifiedItem',
+          descriptionArgs: {'name': object.name},
         );
         await OperationLogService.instance.addEntry(entry);
+        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Purged item'));
       }
       if (mounted) {
         showOverlaySnackBar(

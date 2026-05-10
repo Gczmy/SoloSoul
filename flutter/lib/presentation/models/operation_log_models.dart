@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+
 enum LogSection {
   identity('identity'),
   contactInformation('contact information'),
@@ -93,6 +95,14 @@ class OperationEntry {
   /// Key: property name, Value: sensitivity level name.
   final Map<String, String>? propertyLevels;
 
+  /// i18n key for rendering description dynamically (enables language switching).
+  /// When set, [localizedDescription] uses this key instead of the raw [description].
+  final String? descriptionKey;
+
+  /// Arguments for [descriptionKey] interpolation.
+  /// Key: param name, Value: param value.
+  final Map<String, String>? descriptionArgs;
+
   const OperationEntry({
     required this.timestamp,
     required this.action,
@@ -103,7 +113,59 @@ class OperationEntry {
     this.sensitivityLevel = SensitivityLevel.public,
     this.properties,
     this.propertyLevels,
+    this.descriptionKey,
+    this.descriptionArgs,
   });
+
+  /// Render the description using the current locale.
+  /// Falls back to the stored [description] for backward compatibility with
+  /// older log entries that lack structured i18n data.
+  String localizedDescription(AppLocalizations l10n) {
+    final key = descriptionKey;
+    final args = descriptionArgs;
+    if (key == null || args == null) return description;
+
+    return _renderLocalized(key, args, l10n, description);
+  }
+
+  static String _renderLocalized(
+    String key,
+    Map<String, String> args,
+    AppLocalizations l10n,
+    String fallbackDescription,
+  ) {
+    return switch (key) {
+      'createdUnifiedItem' => l10n.operationLogCreatedItem(args['name'] ?? ''),
+      'updatedUnifiedItem' => l10n.operationLogUpdatedItem(args['name'] ?? ''),
+      'deletedUnifiedItem' => l10n.operationLogDeletedItem(args['name'] ?? ''),
+      'deletedPredefinedItem' => l10n.predefinedDeletedItem(args['title'] ?? '', args['name'] ?? ''),
+      'restoredUnifiedItem' => l10n.operationLogRestoredItem(args['name'] ?? ''),
+      'purgedUnifiedItem' => l10n.trashPermanentDeletedItem(args['name'] ?? ''),
+      'restoredTrashItem' => l10n.trashRestoredItem(args['name'] ?? ''),
+      'sensitivitySet' => _sensitivityDesc(args, l10n),
+      'sensitivityChanged' => _sensitivityDesc(args, l10n),
+      'sensitivityReverted' => _sensitivityDesc(args, l10n),
+      'sensitivityUpgraded' => _sensitivityDesc(args, l10n),
+      'sensitivityDowngraded' => _sensitivityDesc(args, l10n),
+      _ => fallbackDescription,
+    };
+  }
+
+  static String _sensitivityDesc(Map<String, String> args, AppLocalizations l10n) {
+    final field = args['field'] ?? '';
+    final oldLevel = args['oldLevel'];
+    final newLevel = args['newLevel'];
+    if (oldLevel != null && newLevel != null) {
+      return l10n.operationLogSensitivityChanged(field, oldLevel, newLevel);
+    }
+    if (newLevel != null) {
+      return l10n.operationLogSensitivitySet(field, newLevel);
+    }
+    if (oldLevel != null) {
+      return l10n.operationLogSensitivityReverted(field, oldLevel);
+    }
+    return field;
+  }
 
   factory OperationEntry.fromJson(Map<String, dynamic> json) {
     return OperationEntry(
@@ -119,6 +181,8 @@ class OperationEntry {
       ),
       properties: (json['properties'] as Map<String, dynamic>?)?.cast<String, String>(),
       propertyLevels: (json['propertyLevels'] as Map<String, dynamic>?)?.cast<String, String>(),
+      descriptionKey: json['descriptionKey'] as String?,
+      descriptionArgs: (json['descriptionArgs'] as Map<String, dynamic>?)?.cast<String, String>(),
     );
   }
 
@@ -132,5 +196,7 @@ class OperationEntry {
         'sensitivityLevel': sensitivityLevel.name,
         if (properties != null && properties!.isNotEmpty) 'properties': properties,
         if (propertyLevels != null && propertyLevels!.isNotEmpty) 'propertyLevels': propertyLevels,
+        if (descriptionKey != null) 'descriptionKey': descriptionKey,
+        if (descriptionArgs != null && descriptionArgs!.isNotEmpty) 'descriptionArgs': descriptionArgs,
       };
 }

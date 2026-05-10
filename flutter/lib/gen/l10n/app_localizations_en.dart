@@ -3319,4 +3319,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String predefinedDeleteFailed(String section) {
     return 'Failed to delete $section';
   }
+
+  @override
+  String operationLogSensitivitySet(String field, String level) {
+    return 'Set \"$field\" sensitivity to $level';
+  }
+
+  @override
+  String operationLogSensitivityChanged(
+    String field,
+    String oldLevel,
+    String newLevel,
+  ) {
+    return 'Changed \"$field\" sensitivity from $oldLevel to $newLevel';
+  }
+
+  @override
+  String operationLogSensitivityReverted(String field, String oldLevel) {
+    return 'Reverted \"$field\" sensitivity to default (was $oldLevel)';
+  }
+
+  @override
+  String get operationCreatedItem => 'Created item';
+
+  @override
+  String get operationUpdatedItem => 'Updated item';
+
+  @override
+  String get operationDeletedItem => 'Deleted item';
+
+  @override
+  String get operationRestoredItem => 'Restored item';
+
+  @override
+  String get operationPurgedItem => 'Permanently deleted item';
+
+  @override
+  String get operationChangedSensitivity => 'Changed sensitivity';
+
+  @override
+  String get operationUpgradedSensitivity => 'Upgraded sensitivity';
+
+  @override
+  String get operationDowngradedSensitivity => 'Downgraded sensitivity';
+
+  @override
+  String get operationRevertedSensitivity => 'Reverted sensitivity';
 }

@@ -373,9 +373,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     return result;
   }
 
-  /// Update operation metadata
+  /// Update operation metadata and bump accounts version to trigger UI refresh.
   Future<void> updateOperation(String operationDesc) async {
     await _accountManager.updateOperation(operationDesc);
+    _accountManager.bumpAccountsVersion();
   }
 
   /// Update account metadata and bump accounts version to trigger UI rebuild.

@@ -31,6 +31,16 @@ class CurrentAccountSheet extends StatelessWidget {
       'Renamed special backup' => l10n.dataMgmtOperationRenamedSpecial,
       'Restored special backup' => l10n.dataMgmtOperationRestoredSpecial,
       'Deleted special backup' => l10n.dataMgmtOperationDeletedSpecial,
+      'Created item' => l10n.operationCreatedItem,
+      'Updated item' => l10n.operationUpdatedItem,
+      'Deleted item' => l10n.operationDeletedItem,
+      'Restored item' => l10n.operationRestoredItem,
+      'Purged item' => l10n.operationPurgedItem,
+      'Purged items' => l10n.operationPurgedItem,
+      'Changed sensitivity' => l10n.operationChangedSensitivity,
+      'Upgraded sensitivity' => l10n.operationUpgradedSensitivity,
+      'Downgraded sensitivity' => l10n.operationDowngradedSensitivity,
+      'Reverted sensitivity' => l10n.operationRevertedSensitivity,
       _ => desc,
     };
   }
