@@ -9,13 +9,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
 import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_config_models.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_prompt_templates.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/mrz_vault_service.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
 import 'package:solosoul_flutter/core/services/pdf_render_service.dart';
-import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
+import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_utils.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_config_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.dart';
@@ -453,43 +454,10 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           'MRZ candidate lines: ${mrzCandidates.length}, candidates=$mrzCandidates');
 
       // Step 3: 从候选行中精确筛选并尝试解析 MRZ
-      MrzData? mrzData;
-      if (mrzCandidates.isNotEmpty) {
-        // 优先尝试 TD3 护照（2 行 × 44 字符）— 取最后 2 个 44 字符行
-        final td3Lines = mrzCandidates.where((l) => l.length == 44).toList();
-        if (td3Lines.length >= 2) {
-          final lastTwo = td3Lines.sublist(td3Lines.length - 2);
-          mrzData = MrzParser.parse(lastTwo);
-          SoloLog.d('OcrScannerSheet',
-              'Trying TD3 with ${lastTwo.length} lines: $lastTwo');
-        }
-
-        // 尝试 TD1 身份证（3 行 × 30 字符）— 取最后 3 个 30 字符行
-        if (mrzData == null) {
-          final td1Lines = mrzCandidates.where((l) => l.length == 30).toList();
-          if (td1Lines.length >= 3) {
-            final lastThree = td1Lines.sublist(td1Lines.length - 3);
-            mrzData = MrzParser.parse(lastThree);
-            SoloLog.d('OcrScannerSheet',
-                'Trying TD1 with ${lastThree.length} lines: $lastThree');
-          }
-        }
-
-        // 尝试 TD2（2 行 × 36 字符）— 取最后 2 个 36 字符行
-        if (mrzData == null) {
-          final td2Lines = mrzCandidates.where((l) => l.length == 36).toList();
-          if (td2Lines.length >= 2) {
-            final lastTwo = td2Lines.sublist(td2Lines.length - 2);
-            mrzData = MrzParser.parse(lastTwo);
-            SoloLog.d('OcrScannerSheet',
-                'Trying TD2 with ${lastTwo.length} lines: $lastTwo');
-          }
-        }
-
-        if (mrzData != null) {
-          SoloLog.d('OcrScannerSheet',
-              'MRZ parsed: docType=${mrzData.documentType}, docNo=${mrzData.documentNumber}');
-        }
+      final mrzData = OcrScannerUtils.parseMrzFromCandidates(mrzCandidates);
+      if (mrzData != null) {
+        SoloLog.d('OcrScannerSheet',
+            'MRZ parsed: docType=${mrzData.documentType}, docNo=${mrzData.documentNumber}');
       }
 
       final finalMrzData = mrzData;
@@ -603,30 +571,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
 
       final ocrResult = await OcrService.recognizeText(bytes);
       final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
-
-      MrzData? mrzData;
-      if (mrzCandidates.isNotEmpty) {
-        final td3Lines = mrzCandidates.where((l) => l.length == 44).toList();
-        if (td3Lines.length >= 2) {
-          final lastTwo = td3Lines.sublist(td3Lines.length - 2);
-          mrzData = MrzParser.parse(lastTwo);
-        }
-        if (mrzData == null) {
-          final td1Lines = mrzCandidates.where((l) => l.length == 30).toList();
-          if (td1Lines.length >= 3) {
-            final lastThree = td1Lines.sublist(td1Lines.length - 3);
-            mrzData = MrzParser.parse(lastThree);
-          }
-        }
-        if (mrzData == null) {
-          final td2Lines = mrzCandidates.where((l) => l.length == 36).toList();
-          if (td2Lines.length >= 2) {
-            final lastTwo = td2Lines.sublist(td2Lines.length - 2);
-            mrzData = MrzParser.parse(lastTwo);
-          }
-        }
-      }
-
+      final mrzData = OcrScannerUtils.parseMrzFromCandidates(mrzCandidates);
       final finalMrzData = mrzData;
       if (finalMrzData != null) {
         if (mounted) {
@@ -740,56 +685,15 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       final options = <OcrScannerLlmOption>[];
 
       // Local models
-      final localModelName = config.localModelPath ?? LlmLocalService.defaultModelName;
-      final localService = LlmLocalService(modelName: localModelName);
-      final status = await localService.checkStatus();
-      if (status.installedModels.isNotEmpty) {
-        for (final model in status.installedModels) {
-          final isAvailable = status.serviceRunning && status.installedModels.contains(model);
-          options.add(OcrScannerLlmOption(
-            id: 'local://$model',
-            displayName: model,
-            isLocal: true,
-            isAvailable: isAvailable,
-          ));
-        }
-      } else {
-        // Fallback: show configured model even if Ollama not running
-        options.add(OcrScannerLlmOption(
-          id: 'local://$localModelName',
-          displayName: localModelName,
-          isLocal: true,
-          isAvailable: false,
-        ));
-      }
+      options.addAll(await _buildLocalModelOptions(config));
 
       // Cloud profiles
-      for (final profile in config.cloudProfiles) {
-        String? apiKey;
-        try {
-          apiKey = await LlmConfigService.instance.getApiKeyByRef(profile.apiKeyRef);
-        } on Exception catch (_) {
-          apiKey = null;
-        }
-        final isAvailable = profile.endpoint.isNotEmpty &&
-            profile.model.isNotEmpty &&
-            (apiKey != null && apiKey.isNotEmpty);
-        options.add(OcrScannerLlmOption(
-          id: 'cloud://${profile.id}',
-          displayName: '${profile.name} · ${profile.model}',
-          isLocal: false,
-          isAvailable: isAvailable,
-        ));
-      }
+      options.addAll(await _buildCloudModelOptions(config));
 
       if (mounted) {
         setState(() {
           _modelOptions = options;
-          if (_selectedModelId == null && options.isNotEmpty) {
-            // Auto-select first available model, fallback to first option
-            final available = options.where((o) => o.isAvailable).toList();
-            _selectedModelId = available.isNotEmpty ? available.first.id : options.first.id;
-          }
+          _selectedModelId = _autoSelectModel(options, _selectedModelId);
           _isCheckingModels = false;
         });
       }
@@ -802,6 +706,60 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         });
       }
     }
+  }
+
+  Future<List<OcrScannerLlmOption>> _buildLocalModelOptions(LlmConfigState config) async {
+    final options = <OcrScannerLlmOption>[];
+    final localModelName = config.localModelPath ?? LlmLocalService.defaultModelName;
+    final localService = LlmLocalService(modelName: localModelName);
+    final status = await localService.checkStatus();
+    if (status.installedModels.isNotEmpty) {
+      for (final model in status.installedModels) {
+        final isAvailable = status.serviceRunning && status.installedModels.contains(model);
+        options.add(OcrScannerLlmOption(
+          id: 'local://$model',
+          displayName: model,
+          isLocal: true,
+          isAvailable: isAvailable,
+        ));
+      }
+    } else {
+      options.add(OcrScannerLlmOption(
+        id: 'local://$localModelName',
+        displayName: localModelName,
+        isLocal: true,
+        isAvailable: false,
+      ));
+    }
+    return options;
+  }
+
+  Future<List<OcrScannerLlmOption>> _buildCloudModelOptions(LlmConfigState config) async {
+    final options = <OcrScannerLlmOption>[];
+    for (final profile in config.cloudProfiles) {
+      String? apiKey;
+      try {
+        apiKey = await LlmConfigService.instance.getApiKeyByRef(profile.apiKeyRef);
+      } on Exception catch (_) {
+        apiKey = null;
+      }
+      final isAvailable = profile.endpoint.isNotEmpty &&
+          profile.model.isNotEmpty &&
+          (apiKey != null && apiKey.isNotEmpty);
+      options.add(OcrScannerLlmOption(
+        id: 'cloud://${profile.id}',
+        displayName: '${profile.name} · ${profile.model}',
+        isLocal: false,
+        isAvailable: isAvailable,
+      ));
+    }
+    return options;
+  }
+
+  String? _autoSelectModel(List<OcrScannerLlmOption> options, String? currentSelection) {
+    if (currentSelection != null || options.isEmpty) return currentSelection;
+    final available = options.where((o) => o.isAvailable).toList();
+    return available.isNotEmpty ? available.first.id : options.first.id;
   }
 
   Future<ExtractionResult?> _performLlmExtraction({
