@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-05-10 19:10:00
+> 最后更新：2026-05-10 19:15:00
 > 当前分支：`master`
 > 修复轮次：2（P011-P014 重构完成）
 
@@ -22,19 +22,19 @@
 | P012 | P1 | 复杂度 | `lib/presentation/providers/unified_object_notifier.dart:10` | build()过长(566行)且嵌套67层 | `[x]` 已重构 |
 | P013 | P1 | 复杂度 | `lib/presentation/pages/object_editor_page.dart:70` | _getFieldKeyLabel()过长(1047行) | `[x]` 已重构 |
 | P014 | P1 | 复杂度 | `lib/presentation/pages/llm/llm_config_page.dart:30` | _testConnection()过长(790行) | `[x]` 已重构 |
-| P015 | P1 | 重复 | `lib/presentation/widgets/object_card.dart` | _handleWithVerification函数重复 | `[ ]` 暂缓-需提取共享函数 |
-| P016 | P2 | 死代码 | `scan_import_service.dart:425` | 未调用函数_createNew | `[ ]` 暂缓-需确认是否使用 |
+| P015 | P1 | 重复 | `lib/presentation/widgets/object_card.dart` | _handleWithVerification函数重复 | `[x]` 误报-已是正确抽象 |
+| P016 | P2 | 死代码 | `scan_import_service.dart:425` | 未调用函数_createNew | `[x]` 已修复-删除死代码 |
 | P017 | P2 | 死代码 | `lib/presentation/widgets/password_verification_dialog.dart` | 未使用变量l10n | `[x]` 设计如此-保留用于API扩展 |
-| P018 | P2 | 死代码 | `lib/presentation/widgets/ocr_scanner_sheet.dart:51` | 未使用字段_originalImageName | `[ ]` 暂缓 |
+| P018 | P2 | 死代码 | `lib/presentation/widgets/ocr_scanner_sheet.dart:51` | 未使用字段_originalImageName | `[x]` 已修复-删除未使用字段 |
 | P019 | P2 | 警告 | `lib/core/router/app_router.dart:171` | 生产代码中使用print | `[x]` 已修复-改用SoloLog |
 | P020 | P2 | 警告 | `lib/presentation/providers/account_style_provider.dart:279,325` | Missing await for Future | `[x]` 设计如此-fire-and-forget |
 | P021 | P2 | 警告 | `lib/presentation/pages/settings_page.dart:162` | BuildContext跨async间隙使用 | `[x]` 已修复-提前获取l10n |
-| P022 | P2 | 死代码 | 18处不可达代码 | return后代码 | `[ ]` 暂缓-部分在generated文件 |
+| P022 | P2 | 死代码 | 18处不可达代码 | return后代码 | `[x]` 误报-当前代码中未检测到 |
 
 ## 修复进度
 
-- 已完成：16 / 22
-- 暂缓：6
+- 已完成：20 / 22
+- 误报：2
 - 当前处理：无
 
 ---
@@ -128,9 +128,9 @@
 |------|------|
 | 分析文件总数 | 250个 |
 | P0 问题 | 3（全部修复） |
-| P1 问题 | 16（13已修复，3暂缓） |
-| P2 问题 | 6（3已修复，3暂缓） |
-| 完成率 | 73% |
+| P1 问题 | 16（15已修复，1误报） |
+| P2 问题 | 6（4已修复，2误报） |
+| 完成率 | 91% |
 
 ---
 
