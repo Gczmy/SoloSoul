@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-05-10
+
+### Added
+
+- **Global Backoff Protection** — Password verification now has global brute-force protection with 30-second cooldown after 5 failed attempts, persisted across dialog close/reopen via BackoffNotifier (Riverpod NotifierProvider with Timer)
+- **Unified Password Dialog** — Extracted shared `showPasswordVerificationDialog` and `PasswordVerificationDialogContent` / `BiometricPasswordDialogContent` for reuse across search page, settings page, and other sensitive operations
+- **Backoff Provider** — Added `BackoffNotifier` and `backoffProvider` in `auth_state.dart` with global countdown Timer that survives dialog close/reopen; `clear()` called on successful login
+- **PasswordBackoffException** — Added `PasswordBackoffException` in `auth_types.dart` thrown from `verifyPassword` when backoff/lockout active
+- **Filter Section Reuse** — Added `generic_filter_section.dart` with reusable `FilterChipData` and `buildFilterChips` pattern
+
+### Fixed
+
+- **Icon Colors** — Key icon, hint button, visibility button now use `AppTheme.primaryColor` (`#487CA5`) for focus state instead of inconsistent `Colors.blue.shade700` (`#1976D2`)
+- **Icon Colors Error State** — Error state consistently uses `Colors.red.shade700` (`#D32F2F`)
+- **Biometric Independence** — TouchID/FaceID remains available even during password backoff cooldown; biometric button only disabled when `_isBiometricVerified` or `_isVerifying`
+- **Backoff Button Stuck** — Fixed `_isVerifying` not reset when `PasswordBackoffException` caught, causing button to remain disabled after backoff countdown ended
+- **Settings Page Debug Dialog** — Removed `_DebugActivationDialog` (settings_page_debug_dialog.dart deleted); now uses shared `showPasswordVerificationDialog`
+- **Search Page i18n** — Fixed hardcoded English "Restricted area, please unlock first" → `AppLocalizations.of(context).sensitiveRestrictedMessage`
+
+### Refactored
+
+- **Filter Sections** — Unified filter section pattern: `operation_log_filter_section.dart`, `search_filters.dart`, `trash_filter_section.dart` all refactored with shared `FilterChipData` and `buildFilterChips` from `generic_filter_section.dart`
+- **Auth Module Export** — `auth.dart` barrel now exports `PasswordBackoffException` for `password_verification_dialog.dart` usage
+
+### Changed
+
+- **Confirm Button** — Removed spinner animation from confirm button; only two states: blue enabled (password non-empty and not in backoff) and gray disabled
+- **Backoff Banner Position** — Countdown banner moved from inside button to dialog content area, placed between orange info box and TouchID button
+
 ## [1.6.2] - 2026-05-10
 
 ### Added
