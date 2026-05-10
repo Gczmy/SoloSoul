@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-05-10
+
+### Added
+
+- **Section Template Browser** — 15 predefined section templates (passport, visa, bank account China/UK/US, ID card, driver's license, contact, education, employment, skills, languages, awards, identity, task) with localized names/descriptions
+- **Trash Empty Placeholder** — Trash card shows "Title: (empty)" in gray when name is blank; detail dialog shows "(empty)" in gray italic for blank property values
+- **Operation Log Windows/Linux Filter** — Added Windows and Linux device platform filter chips
+- **I18n for Section Templates** — All 15 template names, descriptions, and field keys fully localized in English and Chinese
+- **Field Key Translation** — Added snake_case variants for all translated field keys (full_name, given_name, date_of_birth, etc.) to support section template field display
+- **Debug Logger Buffering** — Logger now always records sanitized entries to a circular buffer from app start; activation prints buffered logs for pre-bug capture
+
+### Fixed
+
+- **Per-Section Schema Independence** — Items now read schema properties from their parent section instead of a shared `ObjectTypeDefinition`, preventing cross-section property leakage. Each new section starts with only `Title`. New sections no longer inherit properties from previously-edited sections
+- **Section Editor Deprecated Toggle Removed** — Deleting a property in a section editor truly removes it (no deprecated toggle); deprecated toggle only appears in the item editor for properties removed from parent schema
+- **Section Delete/Re-create** — Removing then re-creating a property in a section no longer triggers "duplicate property" error
+- **Settings Page Account Count i18n** — Hardcoded English replaced with `l10n.settingsAccountCount`
+- **Settings Page Data Management i18n** — Backup summaries, special backup labels localized
+- **Settings Page Current Account i18n** — Operation descriptions, device names, platform labels fully localized
+- **Settings Page Version Display** — Platform now shows actual OS name (macOS/Windows/Android/iOS) instead of "Unknown"
+- **Device Name Resolution** — Now uses actual system hostname (`Platform.localHostname`) so multiple Macs are distinguishable; adds platform label prefix ([macOS], [iOS], etc.) to device names
+- **Template Field i18n** — ObjectCard add-item form shows localized field labels instead of raw camelCase keys
+- **Redundant Title Fields Removed** — Removed duplicate Title property field in section editors
+- **Duplicate ARB Keys** — Removed duplicate ARB keys causing gen-l10n warnings
+- **Redundant Label Above Field Input** — Removed duplicate localized label above template field input in item editor
+- **Privacy Mode Timeout** — Fixed privacy mode not timing out correctly
+- **Sidebar Child Page Drag** — Fixed drag-and-drop glitch when reordering sidebar child pages
+- **Verbose Metadata Update Logs** — Removed verbose debug logs from metadata update operations
+
+### Changed
+
+- **Debug Logger Always Recording** — Logger switched from gated (only records when activated) to always-recording with circular buffer; activation prints buffered entries live
+- **liquid_glass_widgets Vendored** — Moved from pub.dev dependency to local `packages/liquid_glass_widgets` path dependency; removed verbose init logs
+
 ## [1.6.1] - 2026-05-09
 
 ### Added
