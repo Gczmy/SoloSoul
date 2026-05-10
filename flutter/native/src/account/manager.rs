@@ -1381,19 +1381,15 @@ impl AccountManager {
         account_id: &str,
         update: MetadataUpdate,
     ) -> Result<(), String> {
-        log_to_file(&format!("update_account_metadata: account_id={}", account_id));
         let config_path = self.account_dir(account_id).join("config.json");
-        log_to_file(&format!("update_account_metadata: config_path={:?}", config_path));
         let config_content = safe_storage::recover_or_load(&config_path)
             .ok_or_else(|| {
                 "Failed to read config".to_string()
             })?;
-        log_to_file(&format!("update_account_metadata: config read OK, len={}", config_content.len()));
         let mut config: AccountConfig = serde_json::from_str(&config_content)
             .map_err(|e| {
                 format!("Failed to parse config: {}", e)
             })?;
-        log_to_file(&format!("update_account_metadata: config parsed OK, last_login_at={:?}", config.last_login_at));
 
         if let Some(hint) = update.password_hint {
             config.password_hint = Some(hint);
@@ -1416,12 +1412,10 @@ impl AccountManager {
 
         let new_content = serde_json::to_string_pretty(&config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
-        log_to_file(&format!("update_account_metadata: writing config, {} bytes", new_content.len()));
         safe_storage::write_atomic(&config_path, new_content.as_bytes())
             .map_err(|e| {
                 format!("Write config failed: {}", e)
             })?;
-        log_to_file("update_account_metadata: write OK");
 
         Ok(())
     }

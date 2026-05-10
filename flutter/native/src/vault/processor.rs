@@ -1119,11 +1119,6 @@ fn handle_update_account_metadata(
     payload: Option<serde_json::Value>,
     manager: &AccountManager,
 ) -> VaultResponse {
-    let payload_summary = payload.as_ref().map(|p| {
-        p.get("account_id").and_then(|v| v.as_str()).unwrap_or("?").to_string()
-    });
-    log_to_file(&format!("handle_update_account_metadata: account_id={:?}", payload_summary));
-
     #[derive(Deserialize)]
     struct MetadataPayload {
         account_id: String,
@@ -1158,11 +1153,6 @@ fn handle_update_account_metadata(
         }
     };
 
-    log_to_file(&format!(
-        "handle_update_account_metadata: parsed: account_id={}, last_login_at={:?}",
-        payload.account_id, payload.last_login_at
-    ));
-
     let last_login_at = payload.last_login_at.and_then(|s| {
         chrono::DateTime::parse_from_rfc3339(&s)
             .ok()
@@ -1176,13 +1166,11 @@ fn handle_update_account_metadata(
 
     // Handle add_device (append/upsert) vs recent_devices (overwrite)
     let recent_devices = if let Some(device) = payload.add_device {
-        log_to_file("handle_update_account_metadata: processing add_device");
         // Read current config to get existing devices
         let config_path = manager
             .base_path()
             .join(&payload.account_id)
             .join("config.json");
-        log_to_file(&format!("handle_update_account_metadata: config_path={:?}", config_path));
         let existing_devices = if let Some(content) = crate::safe_storage::recover_or_load(&config_path) {
             if let Ok(config) = serde_json::from_str::<crate::account::manager::AccountConfig>(&content) {
                 config.recent_devices
@@ -1234,8 +1222,6 @@ fn handle_update_account_metadata(
         })
     };
 
-    log_to_file("handle_update_account_metadata: calling manager.update_account_metadata");
-
     match manager.update_account_metadata(
         &payload.account_id,
         MetadataUpdate {
@@ -1248,11 +1234,9 @@ fn handle_update_account_metadata(
         },
     ) {
         Ok(()) => {
-            log_to_file("handle_update_account_metadata: SUCCESS");
             VaultResponse::success(serde_json::json!({"updated": true}))
         },
         Err(e) => {
-            log_to_file(&format!("handle_update_account_metadata: FAILED: {}", e));
             VaultResponse::error(format!("Failed to update metadata: {}", e))
         },
     }
