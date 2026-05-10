@@ -64,15 +64,11 @@ class ContentParserService {
   static Future<String?> _extractHead(String filePath, int totalSize) async {
     final file = File(filePath);
     final maxRead = totalSize > _maxFileSize ? _maxFileSize : totalSize;
-    final bytes = await file.openRead(0, maxRead).fold<Uint8List>(
-      Uint8List(0),
-      (prev, chunk) {
-        final combined = Uint8List(prev.length + chunk.length);
-        combined.setAll(0, prev);
-        combined.setAll(prev.length, chunk);
-        return combined;
-      },
-    );
+    final chunks = <int>[];
+    await for (final chunk in file.openRead(0, maxRead)) {
+      chunks.addAll(chunk);
+    }
+    final bytes = Uint8List.fromList(chunks);
     return _decodeBytes(bytes);
   }
 

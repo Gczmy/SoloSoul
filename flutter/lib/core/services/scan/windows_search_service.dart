@@ -30,6 +30,12 @@ class WindowsSearchService {
     List<String> extensions, {
     int maxFiles = 500,
   }) async {
+    // Validate path to prevent command injection
+    if (!_isSafePath(rootPath)) {
+      SoloLog.w('WindowsSearch', 'Rejected unsafe path: $rootPath');
+      return [];
+    }
+
     final results = <ScannedFile>[];
 
     try {

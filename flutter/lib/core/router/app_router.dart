@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:go_router/go_router.dart';
 import 'package:solosoul_flutter/presentation/pages/splash_page.dart';
 import 'package:solosoul_flutter/presentation/pages/login_page.dart';
@@ -168,7 +169,7 @@ GoRouter createRouter(WidgetRef ref) {
             builder: (context, state) {
               final objectId = state.uri.queryParameters['id'];
               final parentId = state.uri.queryParameters['parentId'];
-              print('[ROUTER] ObjectEditorPage: objectId=$objectId, parentId=$parentId');
+              SoloLog.d('Router', 'ObjectEditorPage: objectId=$objectId, parentId=$parentId');
               return ObjectEditorPage(
                 objectId: objectId,
                 parentId: parentId,

@@ -158,8 +158,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<String> _getVaultDataSize() async {
+    final l10n = AppLocalizations.of(context);
     final stats = await RustVaultService.instance.getVaultStats();
-    if (stats == null) return AppLocalizations.of(context).settingsUnknown;
+    if (stats == null) return l10n.settingsUnknown;
     final bytes = stats.totalSizeBytes.toInt();
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';

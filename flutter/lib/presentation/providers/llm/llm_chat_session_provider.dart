@@ -160,12 +160,12 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
     if (hasStreamingMessage) return;
 
     // 1. 添加用户消息
-    final userId = 'user_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
+    final userId = 'user_${DateTime.now().millisecondsSinceEpoch}_${Random.secure().nextInt(999999)}';
     state = [...state, LlmChatMessage(id: userId, text: text, isUser: true)];
     _debouncedSave();
 
     // 2. 添加空 AI 消息（等待流式填充）
-    final aiId = 'ai_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(999999)}';
+    final aiId = 'ai_${DateTime.now().millisecondsSinceEpoch}_${Random.secure().nextInt(999999)}';
     state = [
       ...state,
       LlmChatMessage(id: aiId, text: '', isUser: false, isStreaming: true),
