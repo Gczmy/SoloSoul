@@ -5,11 +5,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:solosoul_flutter/core/models/ocr_result.dart';
 import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
-import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_prompt_templates.dart';
@@ -24,6 +22,10 @@ import 'package:solosoul_flutter/presentation/providers/llm/llm_model_provider.d
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/extracted_fields_preview.dart';
 import 'package:solosoul_flutter/presentation/widgets/mrz_preview_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_action_button.dart';
+import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_llm_option.dart';
+import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_llm_section.dart';
+import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_result_card.dart';
 
 /// 通用 OCR 扫描底部 Sheet（智能 MRZ 版）
 ///
@@ -54,7 +56,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
   // LLM Assist 状态
   bool _useLlmAssist = false;
   String? _selectedModelId;
-  List<_LlmModelOption> _modelOptions = const [];
+  List<OcrScannerLlmOption> _modelOptions = const [];
   bool _isCheckingModels = false;
 
   @override
@@ -184,12 +186,24 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         ),
         const SizedBox(height: 16),
         // LLM 协助区域
-        _buildLlmAssistSection(),
+        OcrScannerLlmSection(
+          useLlmAssist: _useLlmAssist,
+          modelOptions: _modelOptions,
+          isCheckingModels: _isCheckingModels,
+          selectedModelId: _selectedModelId,
+          onLlmAssistChanged: (v) {
+            setState(() => _useLlmAssist = v ?? false);
+            if (_useLlmAssist && _modelOptions.isEmpty && !_isCheckingModels) {
+              _loadModelOptions();
+            }
+          },
+          onModelChanged: (value) => setState(() => _selectedModelId = value),
+        ),
         const SizedBox(height: 8),
         // 操作按钮
         if (defaultTargetPlatform == TargetPlatform.iOS ||
             defaultTargetPlatform == TargetPlatform.android) ...[
-          _ActionButton(
+          OcrScannerActionButton(
             icon: Icons.camera_alt_outlined,
             label: AppLocalizations.of(context).ocrTakePhoto,
             description: AppLocalizations.of(context).ocrUseCamera,
@@ -197,7 +211,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
           ),
           const SizedBox(height: 12),
         ],
-        _ActionButton(
+        OcrScannerActionButton(
           icon: Icons.folder_open_outlined,
           label: AppLocalizations.of(context).ocrSelectDocument,
           description: AppLocalizations.of(context).ocrPhotoOrPdf,
@@ -313,29 +327,35 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
               const Icon(Icons.folder_outlined, size: 16),
               const SizedBox(width: 8),
               Text(
-                'Import to: ${_sectionLabel(_targetSectionId ?? _detectedSectionId(result.mrzData))}',
+                'Import to: ${ocrScannerSectionLabel(_targetSectionId ?? ocrScannerDetectedSectionId(result.mrzData))}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const Spacer(),
               TextButton(
-                onPressed: () => _showSectionPicker(context, l10n, result.mrzData),
+                onPressed: () => showOcrScannerSectionPicker(
+                  context,
+                  l10n,
+                  result.mrzData,
+                  _targetSectionId,
+                  (v) => setState(() => _targetSectionId = v),
+                ),
                 child: Text(l10n.commonEdit),
               ),
             ],
           ),
           if (_originalImageBytes != null) ...[
             const SizedBox(height: 12),
-          CheckboxListTile(
-            dense: true,
-            value: _saveAttachment,
-            onChanged: (v) => setState(() => _saveAttachment = v!),
-            title: Text(
-              l10n.scanAttachFile,
-              style: Theme.of(context).textTheme.bodySmall,
+            CheckboxListTile(
+              dense: true,
+              value: _saveAttachment,
+              onChanged: (v) => setState(() => _saveAttachment = v!),
+              title: Text(
+                l10n.scanAttachFile,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
             ),
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
-          ),
           ],
         ],
 
@@ -703,188 +723,6 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
     }
   }
 
-  String _detectedSectionId(MrzData mrz) {
-    final dt = mrz.documentType;
-    if (dt.startsWith('V')) return 'visa';
-    if (dt.startsWith('I') || dt.startsWith('C') || dt.startsWith('A')) return 'id_card';
-    return 'passport';
-  }
-
-  static const _sectionOptions = [
-    ('passport', 'Passport'),
-    ('visa', 'Visa'),
-    ('id_card', 'ID Card'),
-  ];
-
-  String _sectionLabel(String sectionId) {
-    return _sectionOptions.firstWhere((o) => o.$1 == sectionId, orElse: () => ('passport', 'Passport')).$2;
-  }
-
-  void _showSectionPicker(BuildContext context, AppLocalizations l10n, MrzData mrz) {
-    showDialog(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(l10n.workspaceAddSectionButton),
-        children: _sectionOptions.map((opt) {
-          final current = _targetSectionId ?? _detectedSectionId(mrz);
-          return RadioListTile<String>(
-            value: opt.$1,
-            groupValue: current,
-            onChanged: (v) {
-              setState(() => _targetSectionId = v);
-              Navigator.pop(ctx);
-            },
-            title: Text(opt.$2),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // LLM Assist Section
-  // ---------------------------------------------------------------------------
-
-  Widget _buildLlmAssistSection() {
-    final hasModels = _modelOptions.isNotEmpty;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: Text(AppLocalizations.of(context).ocrLlmAssist),
-              subtitle: Text(AppLocalizations.of(context).ocrLlmAssistSubtitle),
-              value: _useLlmAssist,
-              onChanged: (v) {
-                setState(() => _useLlmAssist = v ?? false);
-                if (_useLlmAssist && _modelOptions.isEmpty && !_isCheckingModels) {
-                  _loadModelOptions();
-                }
-              },
-            ),
-            if (_useLlmAssist) ...[
-              const Divider(height: 1),
-              const SizedBox(height: 8),
-              if (_isCheckingModels)
-                const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Center(
-                    child: SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                )
-              else if (!hasModels)
-                _buildNoModelState()
-              else
-                _buildModelSelector(),
-            ],
-            // 常驻配置按钮
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => context.push(AppRoutes.llmConfig),
-                icon: const Icon(Icons.settings, size: 16),
-                label: Text(AppLocalizations.of(context).ocrLlmConfig),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoModelState() {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 16,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context).ocrNoModelAvailable,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => context.push(AppRoutes.llmConfig),
-            icon: const Icon(Icons.arrow_forward, size: 16),
-            label: Text(AppLocalizations.of(context).ocrGoToConfig),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModelSelector() {
-    return DropdownButtonFormField<String>(
-      // ignore: deprecated_member_use
-      value: _selectedModelId,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: AppLocalizations.of(context).ocrModelSelectorLabel,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      items: _modelOptions.map((option) {
-        return DropdownMenuItem<String>(
-          value: option.id,
-          child: Row(
-            children: [
-              Icon(
-                Icons.circle,
-                size: 8,
-                color: option.isAvailable ? Colors.green : Colors.red,
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                option.isLocal ? Icons.computer : Icons.cloud,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  option.displayName,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: option.isAvailable
-                        ? Theme.of(context).colorScheme.onSurface
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-      onChanged: (value) => setState(() => _selectedModelId = value),
-    );
-  }
-
   Future<void> _loadModelOptions() async {
     setState(() => _isCheckingModels = true);
     try {
@@ -899,7 +737,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         return;
       }
       final config = configAsync.value!;
-      final options = <_LlmModelOption>[];
+      final options = <OcrScannerLlmOption>[];
 
       // Local models
       final localModelName = config.localModelPath ?? LlmLocalService.defaultModelName;
@@ -908,7 +746,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       if (status.installedModels.isNotEmpty) {
         for (final model in status.installedModels) {
           final isAvailable = status.serviceRunning && status.installedModels.contains(model);
-          options.add(_LlmModelOption(
+          options.add(OcrScannerLlmOption(
             id: 'local://$model',
             displayName: model,
             isLocal: true,
@@ -917,7 +755,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         }
       } else {
         // Fallback: show configured model even if Ollama not running
-        options.add(_LlmModelOption(
+        options.add(OcrScannerLlmOption(
           id: 'local://$localModelName',
           displayName: localModelName,
           isLocal: true,
@@ -936,7 +774,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
         final isAvailable = profile.endpoint.isNotEmpty &&
             profile.model.isNotEmpty &&
             (apiKey != null && apiKey.isNotEmpty);
-        options.add(_LlmModelOption(
+        options.add(OcrScannerLlmOption(
           id: 'cloud://${profile.id}',
           displayName: '${profile.name} · ${profile.model}',
           isLocal: false,
@@ -1097,87 +935,5 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       return match.group(1)!.trim();
     }
     return text.trim();
-  }
-}
-
-// =============================================================================
-// LLM Model Option
-// =============================================================================
-
-class _LlmModelOption {
-  final String id;
-  final String displayName;
-  final bool isLocal;
-  final bool isAvailable;
-
-  const _LlmModelOption({
-    required this.id,
-    required this.displayName,
-    required this.isLocal,
-    required this.isAvailable,
-  });
-}
-
-// =============================================================================
-// Action Button
-// =============================================================================
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String description;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.description,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

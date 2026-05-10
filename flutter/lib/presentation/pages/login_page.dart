@@ -23,6 +23,8 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart' show getDeviceName;
 import 'package:solosoul_flutter/presentation/widgets/login/account_list_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/login/create_account_form.dart';
+import 'package:solosoul_flutter/presentation/widgets/login/login_background.dart';
+import 'package:solosoul_flutter/presentation/widgets/login/login_header.dart';
 import 'package:solosoul_flutter/presentation/widgets/login/password_input_section.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -639,7 +641,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
     // Use ref.read to avoid rebuilds when auth state changes during setState
@@ -673,48 +674,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: Stack(
           children: [
             // Decorative background orbs
-            Positioned(
-              top: 80,
-              left: -80,
-              child: Container(
-                width: 240,
-                height: 240,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.primaryColor.withValues(
-                    alpha: isDark ? 0.12 : 0.07,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 120,
-              right: -100,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.accentColor.withValues(
-                    alpha: isDark ? 0.1 : 0.05,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 300,
-              right: 20,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppTheme.secondaryColor.withValues(
-                    alpha: isDark ? 0.08 : 0.04,
-                  ),
-                ),
-              ),
-            ),
+            const LoginBackground(),
             // Main content
             SafeArea(
               child: LayoutBuilder(
@@ -736,67 +696,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Header Logo — Liquid Glass orb
-                            Center(
-                              child: GlassButton(
-                                icon: const Icon(
-                                  Icons.lock_outline,
-                                  color: Colors.white,
-                                ),
-                                onTap: () {},
-                                width: 80,
-                                height: 80,
-                                iconSize: 36,
-                                shape: const LiquidRoundedSuperellipse(
-                                  borderRadius: 20,
-                                ),
-                                useOwnLayer: true,
-                                settings: const LiquidGlassSettings(
-                                  thickness: 30,
-                                  blur: 10,
-                                  glassColor: Color(0x4D487CA5),
-                                  refractiveIndex: 1.3,
-                                  lightIntensity: 1.2,
-                                ),
-                              ),
-                            )
-                                .animate()
-                                .scale(
-                                  begin: const Offset(0.8, 0.8),
-                                  end: const Offset(1, 1),
-                                  duration: 500.ms,
-                                  curve: Curves.easeOutBack,
-                                )
-                                .fadeIn(),
-
-                            const SizedBox(height: 32),
-
-                            // Title
-                            Text(
-                              'SoloSoul',
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                              textAlign: TextAlign.center,
-                            ).animate().fadeIn(
-                              delay: 100.ms,
-                              duration: 400.ms,
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            // Subtitle
-                            Text(
-                              AppLocalizations.of(context).loginDataYourControl,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              textAlign: TextAlign.center,
-                            ).animate().fadeIn(
-                              delay: 150.ms,
-                              duration: 400.ms,
-                            ),
+                            // Header with logo, title, and subtitle
+                            const LoginHeader(),
 
                             const SizedBox(height: 32),
 

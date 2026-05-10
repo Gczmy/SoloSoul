@@ -30,9 +30,7 @@ class LlmChatPage extends StatelessWidget {
           ),
         ],
       ),
-      body: const LlmChatPanel(
-        showClearButton: true,
-      ),
+      body: const LlmChatPanel(showClearButton: true),
     );
   }
 }

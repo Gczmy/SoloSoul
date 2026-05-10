@@ -45,7 +45,9 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       }
 
       if (config.backendType == LlmBackendType.cloud) {
-        final result = await ref.read(llmModelProvider.notifier).testActiveCloudConnection();
+        final result = await ref
+            .read(llmModelProvider.notifier)
+            .testActiveCloudConnection();
         if (!mounted) return;
         setState(() {
           _testResult = result;
@@ -65,9 +67,9 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
         } else if (!status.modelAvailable) {
           setState(() {
             _testResult = l10n.llmConfigOllamaModelNotInstalled(
-                config.localModelPath ?? 'qwen2.5:1.5b',
-                status.installedModels.join(', '),
-              );
+              config.localModelPath ?? 'qwen2.5:1.5b',
+              status.installedModels.join(', '),
+            );
             _testSuccess = false;
           });
         } else {
@@ -83,7 +85,8 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       if (!mounted) return;
       final errorMsg = switch (e.code) {
         LlmErrorCode.configNotLoaded => l10n.llmErrorConfigNotLoaded,
-        LlmErrorCode.cloudConfigIncomplete => l10n.llmErrorCloudConfigIncomplete,
+        LlmErrorCode.cloudConfigIncomplete =>
+          l10n.llmErrorCloudConfigIncomplete,
         LlmErrorCode.noActiveProfile => l10n.llmErrorNoActiveCloudProfile,
         LlmErrorCode.apiKeyMissing => l10n.llmErrorApiKeyEmpty,
         LlmErrorCode.unauthorized => l10n.llmErrorApiKeyEmpty,
@@ -110,38 +113,52 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       isScrollControlled: true,
       builder: (ctx) => _ProfileEditorSheet(
         profile: profile,
-        onSave: (name, providerType, apiKey, endpoint, model, anthropicVersion) async {
-          final notifier = ref.read(llmConfigProvider.notifier);
-          try {
-            if (profile == null) {
-              await notifier.addCloudProfile(
-                name: name,
-                providerType: providerType,
-                apiKey: apiKey,
-                endpoint: endpoint,
-                model: model,
-                anthropicVersion: anthropicVersion,
-              );
-            } else {
-              await notifier.updateCloudProfile(
-                profileId: profile.id,
-                name: name,
-                providerType: providerType,
-                apiKey: apiKey.isEmpty ? null : apiKey,
-                endpoint: endpoint,
-                model: model,
-                anthropicVersion: anthropicVersion,
-              );
-            }
-            if (ctx.mounted) Navigator.pop(ctx);
-          } on Exception catch (e) {
-            if (ctx.mounted) {
-              ScaffoldMessenger.of(ctx).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(ctx).llmConfigSaveFailed(e.toString()))),
-              );
-            }
-          }
-        },
+        onSave:
+            (
+              name,
+              providerType,
+              apiKey,
+              endpoint,
+              model,
+              anthropicVersion,
+            ) async {
+              final notifier = ref.read(llmConfigProvider.notifier);
+              try {
+                if (profile == null) {
+                  await notifier.addCloudProfile(
+                    name: name,
+                    providerType: providerType,
+                    apiKey: apiKey,
+                    endpoint: endpoint,
+                    model: model,
+                    anthropicVersion: anthropicVersion,
+                  );
+                } else {
+                  await notifier.updateCloudProfile(
+                    profileId: profile.id,
+                    name: name,
+                    providerType: providerType,
+                    apiKey: apiKey.isEmpty ? null : apiKey,
+                    endpoint: endpoint,
+                    model: model,
+                    anthropicVersion: anthropicVersion,
+                  );
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+              } on Exception catch (e) {
+                if (ctx.mounted) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(
+                          ctx,
+                        ).llmConfigSaveFailed(e.toString()),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
       ),
     );
   }
@@ -151,12 +168,19 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppLocalizations.of(context).llmConfigDeleteTitle),
-        content: Text(AppLocalizations.of(ctx).llmConfigDeleteConfirm(profile.name)),
+        content: Text(
+          AppLocalizations.of(ctx).llmConfigDeleteConfirm(profile.name),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context).commonCancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppLocalizations.of(context).commonCancel),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
             child: Text(AppLocalizations.of(context).commonDelete),
           ),
         ],
@@ -179,7 +203,10 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Chip(
-              label: Text(AppLocalizations.of(context).llmConfigExperimental, style: const TextStyle(fontSize: 12)),
+              label: Text(
+                AppLocalizations.of(context).llmConfigExperimental,
+                style: const TextStyle(fontSize: 12),
+              ),
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               side: BorderSide.none,
             ),
@@ -188,13 +215,19 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       ),
       body: asyncConfig.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(AppLocalizations.of(context).llmConfigLoadFailed(e.toString()))),
+        error: (e, _) => Center(
+          child: Text(
+            AppLocalizations.of(context).llmConfigLoadFailed(e.toString()),
+          ),
+        ),
         data: (config) {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               // Backend selection
-              _SectionTitle(title: AppLocalizations.of(context).llmConfigInferenceBackend),
+              _SectionTitle(
+                title: AppLocalizations.of(context).llmConfigInferenceBackend,
+              ),
               _BackendSelector(
                 current: config.backendType,
                 onChanged: notifier.setBackendType,
@@ -203,9 +236,13 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
               // Local model settings
               if (config.backendType == LlmBackendType.local) ...[
-                _SectionTitle(title: AppLocalizations.of(context).llmStatsLocalModelOllama),
+                _SectionTitle(
+                  title: AppLocalizations.of(context).llmStatsLocalModelOllama,
+                ),
                 _TextFieldCard(
-                  controller: TextEditingController(text: config.localModelPath ?? 'qwen2.5:1.5b'),
+                  controller: TextEditingController(
+                    text: config.localModelPath ?? 'qwen2.5:1.5b',
+                  ),
                   label: AppLocalizations.of(context).llmConfigModelName,
                   hint: 'qwen2.5:1.5b, llama3.2, deepseek-r1:1.5b...',
                   onChanged: (value) {
@@ -226,7 +263,9 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          AppLocalizations.of(context).llmConfigInstructionsOllama,
+                          AppLocalizations.of(
+                            context,
+                          ).llmConfigInstructionsOllama,
                           style: const TextStyle(fontSize: 13),
                         ),
                       ],
@@ -238,7 +277,9 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
 
               // Cloud API profiles
               if (config.backendType == LlmBackendType.cloud) ...[
-                _SectionTitle(title: AppLocalizations.of(context).llmConfigCloudConfig),
+                _SectionTitle(
+                  title: AppLocalizations.of(context).llmConfigCloudConfig,
+                ),
                 if (config.cloudProfiles.isEmpty)
                   const EmptyProfilesState()
                 else
@@ -252,7 +293,8 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                         return _ProfileCard(
                           profile: profile,
                           isActive: profile.id == config.activeCloudProfileId,
-                          onActivate: () => notifier.setActiveCloudProfile(profile.id),
+                          onActivate: () =>
+                              notifier.setActiveCloudProfile(profile.id),
                           onEdit: () => _showProfileEditor(profile: profile),
                           onDelete: () => _deleteProfile(profile),
                         );
@@ -270,7 +312,9 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                 // Privacy consent
                 Card(
                   child: CheckboxListTile(
-                    title: Text(AppLocalizations.of(context).llmConfigCloudConsent),
+                    title: Text(
+                      AppLocalizations.of(context).llmConfigCloudConsent,
+                    ),
                     subtitle: Text(
                       AppLocalizations.of(context).llmConfigCloudConsentDesc,
                     ),
@@ -286,9 +330,14 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
               Card(
                 clipBehavior: Clip.antiAlias,
                 child: ListTile(
-                  leading: Icon(Icons.bar_chart, color: Theme.of(context).colorScheme.primary),
+                  leading: Icon(
+                    Icons.bar_chart,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   title: Text(AppLocalizations.of(context).llmStatsTitle),
-                  subtitle: Text(AppLocalizations.of(context).llmConfigStatsSubtitle),
+                  subtitle: Text(
+                    AppLocalizations.of(context).llmConfigStatsSubtitle,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.llmStats),
                 ),
@@ -305,7 +354,11 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.play_arrow),
-                label: Text(_isTesting ? AppLocalizations.of(context).llmConfigTesting : AppLocalizations.of(context).llmConfigTestConnection),
+                label: Text(
+                  _isTesting
+                      ? AppLocalizations.of(context).llmConfigTesting
+                      : AppLocalizations.of(context).llmConfigTestConnection,
+                ),
               ),
 
               // Test result
@@ -331,8 +384,12 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
                             _testResult!,
                             style: TextStyle(
                               color: _testSuccess
-                                  ? Theme.of(context).colorScheme.onPrimaryContainer
-                                  : Theme.of(context).colorScheme.onErrorContainer,
+                                  ? Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
                             ),
                           ),
                         ),
@@ -384,12 +441,13 @@ class _ProfileCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Radio<String>(
-                    value: profile.id,
-                  ),
+                  Radio<String>(value: profile.id),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
@@ -418,7 +476,11 @@ class _ProfileCard extends StatelessWidget {
                     onPressed: onEdit,
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: theme.colorScheme.error,
+                    ),
                     tooltip: AppLocalizations.of(context).commonDelete,
                     onPressed: onDelete,
                   ),
@@ -431,12 +493,16 @@ class _ProfileCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context).llmConfigModelInfo(profile.model),
+                      AppLocalizations.of(
+                        context,
+                      ).llmConfigModelInfo(profile.model),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      AppLocalizations.of(context).llmConfigEndpointInfo(profile.endpoint),
+                      AppLocalizations.of(
+                        context,
+                      ).llmConfigEndpointInfo(profile.endpoint),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -470,7 +536,8 @@ class _ProfileEditorSheet extends StatefulWidget {
     String endpoint,
     String model,
     String? anthropicVersion,
-  ) onSave;
+  )
+  onSave;
 
   const _ProfileEditorSheet({this.profile, required this.onSave});
 
@@ -524,19 +591,27 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).llmConfigNameRequired)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).llmConfigNameRequired),
+        ),
       );
       return;
     }
     if (widget.profile == null && apiKey.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).llmConfigApiKeyRequired)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).llmConfigApiKeyRequired),
+        ),
       );
       return;
     }
     if (endpoint.isEmpty || model.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).llmConfigEndpointModelRequired)),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).llmConfigEndpointModelRequired,
+          ),
+        ),
       );
       return;
     }
@@ -589,7 +664,9 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
           Row(
             children: [
               Text(
-                isEditing ? AppLocalizations.of(context).llmConfigEditProfile : AppLocalizations.of(context).llmConfigAddProfile,
+                isEditing
+                    ? AppLocalizations.of(context).llmConfigEditProfile
+                    : AppLocalizations.of(context).llmConfigAddProfile,
                 style: theme.textTheme.titleLarge,
               ),
               const Spacer(),
@@ -617,13 +694,17 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
           TextField(
             controller: _apiKeyController,
             decoration: InputDecoration(
-              labelText: isEditing ? AppLocalizations.of(context).llmConfigApiKeySet : AppLocalizations.of(context).llmConfigApiKeyNew,
+              labelText: isEditing
+                  ? AppLocalizations.of(context).llmConfigApiKeySet
+                  : AppLocalizations.of(context).llmConfigApiKeyNew,
               hintText: isEditing
                   ? AppLocalizations.of(context).llmConfigApiKeyHintNew
                   : (_provider == LlmCloudProviderType.anthropic
-                      ? 'sk-ant-api03-...'
-                      : 'sk-...'),
-              helperText: isEditing ? AppLocalizations.of(context).llmConfigApiKeyHintKeep : null,
+                        ? 'sk-ant-api03-...'
+                        : 'sk-...'),
+              helperText: isEditing
+                  ? AppLocalizations.of(context).llmConfigApiKeyHintKeep
+                  : null,
               border: const OutlineInputBorder(),
             ),
             obscureText: true,
@@ -662,9 +743,16 @@ class _ProfileEditorSheetState extends State<_ProfileEditorSheet> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
-                : Text(isEditing ? AppLocalizations.of(context).llmConfigSave : AppLocalizations.of(context).llmConfigCreate),
+                : Text(
+                    isEditing
+                        ? AppLocalizations.of(context).llmConfigSave
+                        : AppLocalizations.of(context).llmConfigCreate,
+                  ),
           ),
           const SizedBox(height: 8),
         ],
@@ -688,9 +776,9 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

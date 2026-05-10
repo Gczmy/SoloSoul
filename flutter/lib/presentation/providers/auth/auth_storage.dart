@@ -144,7 +144,7 @@ class SecureAccountStorage {
       return (
         success: false,
         error: 'Password must be at least 12 characters, '
-            'or 8+ with uppercase, lowercase, and digits',
+            'or 8+ with uppercase, lowercase, digits, and special characters',
         account: null,
         sessionKey: null
       );
@@ -353,7 +353,8 @@ class SecureAccountStorage {
     final hasUpper = password.contains(RegExp(r'[A-Z]'));
     final hasLower = password.contains(RegExp(r'[a-z]'));
     final hasDigit = password.contains(RegExp(r'[0-9]'));
-    return hasUpper && hasLower && hasDigit;
+    final hasSpecial = password.contains(RegExp(r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]'));
+    return hasUpper && hasLower && hasDigit && hasSpecial;
   }
 }
 
