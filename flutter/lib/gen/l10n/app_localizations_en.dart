@@ -1918,6 +1918,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataManagementSpecialBackupTooltip => 'Save as special backup';
 
   @override
+  String get dataManagementSpecialBackupsTitle => 'Special Backups';
+
+  @override
+  String get dataManagementNoSpecialBackups =>
+      'No special backups yet. Create one to preserve a specific version.';
+
+  @override
+  String dataManagementSpecialBackupsCount(int count, int max) {
+    return '$count / $max special backups';
+  }
+
+  @override
+  String dataManagementBackupsSummary(int count, String totalSize) {
+    return '$count regular backup(s) · total $totalSize';
+  }
+
+  @override
   String get passwordVerificationRestricted =>
       'Restricted field. Enter your master password to proceed.';
 
@@ -2841,6 +2858,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataMgmtOperationDeletedSpecial => 'Deleted special backup';
+
+  @override
+  String get operationCreatedAccount => 'Created account';
+
+  @override
+  String get operationDeletedAccount => 'Deleted account';
+
+  @override
+  String get operationChangedPassword => 'Changed password';
 
   @override
   String get dataMgmtVaultSize => 'Vault size: ';

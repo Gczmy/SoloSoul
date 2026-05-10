@@ -49,7 +49,7 @@ final latestVersionProvider = FutureProvider<String?>((ref) async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(
-      Uri.parse('https://api.github.com/repos/Gczmy/SoloSoul_code/releases/latest'),
+      Uri.parse('https://api.github.com/repos/Gczmy/SoloSoul/releases/latest'),
     );
     request.headers.set('Accept', 'application/vnd.github.v3+json');
     request.headers.set('User-Agent', 'SoloSoul-App');
@@ -185,7 +185,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
 
     if (password != null && context.mounted) {
-      final success = await authNotifier.verifyPasswordForSensitiveData(password);
+      final isBiometric = password == _DebugActivationDialog._biometricSentinel;
+      final success = isBiometric ||
+          await authNotifier.verifyPasswordForSensitiveData(password);
       if (success && context.mounted) {
         await ref.read(debugModeProvider.notifier).enableDebugMode();
         if (context.mounted) {
@@ -339,7 +341,7 @@ class _AccountSettingsSection extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.people_outline,
                   title: l10n.settingsAllAccounts,
-                  subtitle: '${accounts.length} account(s)',
+                  subtitle: l10n.settingsAccountCount(accounts.length),
                   onTap: () {
                     showModalBottomSheet(
                       context: context,
@@ -597,7 +599,7 @@ class _AppInfoSection extends ConsumerWidget {
               icon: Icons.code,
               title: l10n.settingsVersion,
               subtitle: packageInfo.when(
-                data: (info) => info.version,
+                data: (info) => kDebugMode ? '${info.version} (dev)' : info.version,
                 loading: () => '...',
                 error: (_, __) => '1.0.0',
               ),
@@ -870,6 +872,8 @@ class _SoloSoulAdSection extends StatelessWidget {
 /// Debug mode activation dialog with password + biometric options.
 /// Extracted from SettingsPage._showDebugActivationDialog to reduce method length.
 class _DebugActivationDialog extends StatefulWidget {
+  static const _biometricSentinel = '__BIOMETRIC__';
+
   final AccountInfo? selectedAccount;
   final bool canUseBiometric;
   final bool faceIdEnabled;
@@ -901,7 +905,7 @@ class _DebugActivationDialogState extends State<_DebugActivationDialog> {
       reason: AppLocalizations.of(context).settingsVerifyIdentityDebug,
     );
     if (success && mounted) {
-      Navigator.pop(context, '');
+      Navigator.pop(context, _DebugActivationDialog._biometricSentinel);
     }
   }
 

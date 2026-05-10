@@ -868,6 +868,30 @@
   "objectCardAddItem": "Add Item",
   "dataManagementRestoreBackupTooltip": "Restore",
   "dataManagementSpecialBackupTooltip": "Save as special backup",
+  "dataManagementSpecialBackupsTitle": "Special Backups",
+  "dataManagementNoSpecialBackups": "No special backups yet. Create one to preserve a specific version.",
+  "dataManagementSpecialBackupsCount": "{count} / {max} special backups",
+  "@dataManagementSpecialBackupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dataManagementBackupsSummary": "{count} regular backup(s) · total {totalSize}",
+  "@dataManagementBackupsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "totalSize": {
+        "type": "String"
+      }
+    }
+  },
   "passwordVerificationRestricted": "Restricted field. Enter your master password to proceed.",
   "passwordVerificationInvalid": "Invalid password",
   "trashPasswordRequired": "Password Required",
@@ -1595,6 +1619,9 @@
   "dataMgmtSafetyBackupNotice": "A safety backup of the current state will be created first.",
   "dataMgmtSpecialBackupRestored": "Special backup restored. Please restart the app.",
   "dataMgmtOperationDeletedSpecial": "Deleted special backup",
+  "operationCreatedAccount": "Created account",
+  "operationDeletedAccount": "Deleted account",
+  "operationChangedPassword": "Changed password",
   "dataMgmtVaultSize": "Vault size: ",
   "dataMgmtBackupEncryptionDesc": "Backups are encrypted with your vault key. Auto-backup runs on every unlock.",
   "dataMgmtRegularBackups": "Regular Backups",

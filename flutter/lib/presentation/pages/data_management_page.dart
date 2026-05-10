@@ -724,6 +724,7 @@ class _BackupSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Column(
@@ -834,7 +835,7 @@ class _BackupSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Center(
               child: Text(
-                '${backups.length} regular backup(s) · total ${formatBytes(totalSize)}',
+                l10n.dataManagementBackupsSummary(backups.length, formatBytes(totalSize)),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -869,6 +870,7 @@ class _RestoreSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Column(
@@ -887,7 +889,7 @@ class _RestoreSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Special Backups',
+                  l10n.dataManagementSpecialBackupsTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -910,7 +912,7 @@ class _RestoreSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Text(
-              'No special backups yet. Create one to preserve a specific version.',
+              l10n.dataManagementNoSpecialBackups,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -937,7 +939,7 @@ class _RestoreSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Center(
               child: Text(
-                '${specialBackups.length} / ${BackupService.maxSpecialBackupCount} special backups',
+                l10n.dataManagementSpecialBackupsCount(specialBackups.length, BackupService.maxSpecialBackupCount),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

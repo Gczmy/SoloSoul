@@ -3692,6 +3692,30 @@ abstract class AppLocalizations {
   /// **'Save as special backup'**
   String get dataManagementSpecialBackupTooltip;
 
+  /// No description provided for @dataManagementSpecialBackupsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Special Backups'**
+  String get dataManagementSpecialBackupsTitle;
+
+  /// No description provided for @dataManagementNoSpecialBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'No special backups yet. Create one to preserve a specific version.'**
+  String get dataManagementNoSpecialBackups;
+
+  /// No description provided for @dataManagementSpecialBackupsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} / {max} special backups'**
+  String dataManagementSpecialBackupsCount(int count, int max);
+
+  /// No description provided for @dataManagementBackupsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} regular backup(s) · total {totalSize}'**
+  String dataManagementBackupsSummary(int count, String totalSize);
+
   /// No description provided for @passwordVerificationRestricted.
   ///
   /// In en, this message translates to:
@@ -5263,6 +5287,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted special backup'**
   String get dataMgmtOperationDeletedSpecial;
+
+  /// No description provided for @operationCreatedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Created account'**
+  String get operationCreatedAccount;
+
+  /// No description provided for @operationDeletedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted account'**
+  String get operationDeletedAccount;
+
+  /// No description provided for @operationChangedPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed password'**
+  String get operationChangedPassword;
 
   /// No description provided for @dataMgmtVaultSize.
   ///

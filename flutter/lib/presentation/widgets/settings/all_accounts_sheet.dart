@@ -68,7 +68,7 @@ class AllAccountsSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '${accounts.length} account(s)',
+                  l10n.settingsAccountCount(accounts.length),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

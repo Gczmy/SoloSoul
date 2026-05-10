@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/sync_service.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
@@ -146,7 +144,7 @@ class SyncNotifier extends Notifier<SyncState> {
   }
 
   String _getDeviceName() {
-    return '${getDeviceName()}-${Platform.localHostname}';
+    return getDeviceName();
   }
 }
 

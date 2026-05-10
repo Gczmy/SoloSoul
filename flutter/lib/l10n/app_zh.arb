@@ -641,6 +641,30 @@
   "objectCardAddItem": "添加项目",
   "dataManagementRestoreBackupTooltip": "恢复",
   "dataManagementSpecialBackupTooltip": "保存为特殊备份",
+  "dataManagementSpecialBackupsTitle": "特别备份",
+  "dataManagementNoSpecialBackups": "暂无特别备份。创建一个以保留特定版本。",
+  "dataManagementSpecialBackupsCount": "{count} / {max} 个特别备份",
+  "@dataManagementSpecialBackupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "dataManagementBackupsSummary": "{count} 个常规备份 · 共 {totalSize}",
+  "@dataManagementBackupsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "totalSize": {
+        "type": "String"
+      }
+    }
+  },
   "passwordVerificationRestricted": "受限字段。请输入主密码以继续。",
   "passwordVerificationInvalid": "密码无效",
   "trashPasswordRequired": "需要密码",
@@ -1206,6 +1230,9 @@
   "dataMgmtRegularBackups": "常规备份",
   "dataMgmtNoBackups": "暂无备份",
   "dataMgmtOperationRestoredSpecial": "恢复了特殊备份",
+  "operationCreatedAccount": "创建了账户",
+  "operationDeletedAccount": "删除了账户",
+  "operationChangedPassword": "修改了密码",
   "loginDataYourControl": "您的数据，由您掌控",
   "loginEnterMasterPassword": "输入主密码",
   "loginUnlockYourVault": "解锁您的保险库",

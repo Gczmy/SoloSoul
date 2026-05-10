@@ -55,8 +55,11 @@ class LogEntry {
 }
 
 /// Memory-based debug logger for troubleshooting.
-/// Only active when debugModeProvider is true (user-activated in release builds).
-/// Automatically clears on dispose for "burn after reading" behavior.
+///
+/// Always records sanitized log entries to a circular buffer from app start.
+/// Console output (print) is gated on [isActive], controlled by the user
+/// via debug mode toggle. This allows capturing logs before a bug occurs
+/// so the user can enable debug mode and see what led to the problem.
 class DebugLogger {
   static final DebugLogger _instance = DebugLogger._();
   static DebugLogger get instance => _instance;
@@ -103,22 +106,21 @@ class DebugLogger {
     RegExp(r'saltLen[=:]\s*\d+', caseSensitive: false),
   ];
 
-  /// Activate logging - must be called when debugModeProvider becomes true
+  /// Activate logging — print all buffered entries to console, then
+  /// continue printing new entries live. Preserves existing buffer.
   void activate() {
     _isActive = true;
-    _logBuffer.clear();
+    // Dump all buffered entries to console so the user sees pre-activation logs
+    for (final entry in _logBuffer) {
+      // ignore: avoid_print
+      print(entry.toLine());
+    }
     log('DEBUG_MODE_ENABLED', 'Debug logging activated', LogLevel.info);
   }
 
-  /// Deactivate and clear all logs - "burn after reading"
+  /// Deactivate — stop console output but preserve buffer for export/copy.
   void deactivate() {
-    log(
-      'DEBUG_MODE_DISABLED',
-      'Debug logging deactivated, buffer cleared',
-      LogLevel.info,
-    );
     _isActive = false;
-    _logBuffer.clear();
   }
 
   /// Check if logging is active
@@ -183,8 +185,6 @@ class DebugLogger {
   }
 
   void _log(String tag, String message, LogLevel level) {
-    if (!_isActive) return;
-
     final sanitized = _sanitize(message);
     final entry = LogEntry(
       timestamp: DateTime.now(),

@@ -751,10 +751,9 @@ packages:
   liquid_glass_widgets:
     dependency: "direct main"
     description:
-      name: liquid_glass_widgets
-      sha256: "36cbf8e0195f59297f5ae4c021a477414dabfcc79a4de18c446fd525d97227b5"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/liquid_glass_widgets"
+      relative: true
+    source: path
     version: "0.10.6"
   local_auth:
     dependency: "direct main"

@@ -108,14 +108,36 @@ class _UnifiedObjectTrashCardState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        object.name,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      object.name.trim().isNotEmpty
+                          ? Text(
+                              object.name,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          : Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '${translateFieldLabel('Title', l10n)}: ',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: l10n.commonEmpty,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                       const SizedBox(height: 2),
                       Text(
                         _localizedTypeId(object.typeId, l10n),
@@ -355,6 +377,14 @@ class _UnifiedObjectTrashCardState
                               Text(
                                 text,
                                 style: Theme.of(ctx).textTheme.bodyMedium,
+                              )
+                            else
+                              Text(
+                                l10n.commonEmpty,
+                                style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                           ],
                         ),

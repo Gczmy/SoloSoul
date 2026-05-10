@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +43,15 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
       _tapCount = 0;
       widget.onDebugActivationRequested();
     }
+  }
+
+  String get _platformName {
+    if (Platform.isMacOS) return 'macOS';
+    if (Platform.isWindows) return 'Windows';
+    if (Platform.isAndroid) return 'Android';
+    if (Platform.isIOS) return 'iOS';
+    if (Platform.isLinux) return 'Linux';
+    return 'Web';
   }
 
   @override
@@ -108,7 +118,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                       icon: Icons.info_outline,
                       title: AppLocalizations.of(context).versionCurrentVersion,
                       value: widget.packageInfo.when(
-                        data: (info) => '${info.version}${_tapCount > 0 ? ' ($_tapCount)' : ''}',
+                        data: (info) => '${info.version}${kDebugMode ? ' (dev)' : ''}${_tapCount > 0 ? ' ($_tapCount)' : ''}',
                         loading: () => '...',
                         error: (_, __) => '1.0.0',
                       ),
@@ -180,7 +190,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                   VersionInfoTile(
                     icon: Platform.isMacOS ? Icons.laptop_mac : Icons.phone_android,
                     title: AppLocalizations.of(context).versionPlatform,
-                    value: l10n.settingsUnknown,
+                    value: _platformName,
                   ),
                 ],
               ),
@@ -193,7 +203,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
   }
 
   static void _launchReleasesPage() {
-    const url = 'https://github.com/Gczmy/SoloSoul_code/releases';
+    const url = 'https://github.com/Gczmy/SoloSoul/releases';
     if (Platform.isMacOS) {
       Process.run('open', [url]);
     } else {

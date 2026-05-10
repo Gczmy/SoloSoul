@@ -1878,6 +1878,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataManagementSpecialBackupTooltip => '保存为特殊备份';
 
   @override
+  String get dataManagementSpecialBackupsTitle => '特别备份';
+
+  @override
+  String get dataManagementNoSpecialBackups => '暂无特别备份。创建一个以保留特定版本。';
+
+  @override
+  String dataManagementSpecialBackupsCount(int count, int max) {
+    return '$count / $max 个特别备份';
+  }
+
+  @override
+  String dataManagementBackupsSummary(int count, String totalSize) {
+    return '$count 个常规备份 · 共 $totalSize';
+  }
+
+  @override
   String get passwordVerificationRestricted => '受限字段。请输入主密码以继续。';
 
   @override
@@ -2773,6 +2789,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataMgmtOperationDeletedSpecial => '删除了特殊备份';
+
+  @override
+  String get operationCreatedAccount => '创建了账户';
+
+  @override
+  String get operationDeletedAccount => '删除了账户';
+
+  @override
+  String get operationChangedPassword => '修改了密码';
 
   @override
   String get dataMgmtVaultSize => '保险库大小：';

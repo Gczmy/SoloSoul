@@ -17,7 +17,23 @@ class CurrentAccountSheet extends StatelessWidget {
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
-
+  /// Translates stored English operation descriptions to the current locale.
+  String _translateOpDesc(String desc, AppLocalizations l10n) {
+    return switch (desc) {
+      'Created account' => l10n.operationCreatedAccount,
+      'Deleted account' => l10n.operationDeletedAccount,
+      'Changed password' => l10n.operationChangedPassword,
+      'Created backup' => l10n.dataMgmtOperationCreatedBackup,
+      'Restored backup' => l10n.dataMgmtOperationRestoredBackup,
+      'Deleted backup' => l10n.dataMgmtOperationDeletedBackup,
+      'Promoted backup to special' => l10n.dataMgmtOperationPromotedBackup,
+      'Created special backup' => l10n.dataMgmtOperationCreatedSpecial,
+      'Renamed special backup' => l10n.dataMgmtOperationRenamedSpecial,
+      'Restored special backup' => l10n.dataMgmtOperationRestoredSpecial,
+      'Deleted special backup' => l10n.dataMgmtOperationDeletedSpecial,
+      _ => desc,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +118,9 @@ class CurrentAccountSheet extends StatelessWidget {
                 InfoTile(
                   icon: Icons.update_outlined,
                   title: AppLocalizations.of(context).accountLastOperation,
-                  value: account.lastOperationDesc ?? l10n.accountNoRecentOps,
+                  value: account.lastOperationDesc != null
+                      ? _translateOpDesc(account.lastOperationDesc!, l10n)
+                      : l10n.accountNoRecentOps,
                   subtitle: account.lastOperationAt != null
                       ? _formatDateTime(account.lastOperationAt, naFallback: l10n.commonNA)
                       : null,
@@ -146,9 +164,21 @@ class CurrentAccountSheet extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Text(
-                              device.deviceName,
-                              style: theme.textTheme.bodyMedium,
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '${getDevicePlatformLabel(device.deviceName)} ',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: device.deviceName,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           Text(
