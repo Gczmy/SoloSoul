@@ -10,6 +10,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/widgets/object_editor/character_counter.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
@@ -1041,37 +1042,10 @@ class _PropertyFieldRow extends ConsumerWidget {
         child: ValueListenableBuilder<TextEditingValue>(
           valueListenable: field.controller,
           builder: (context, value, child) {
-            final len = value.text.length;
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 16,
-                  child: Text(
-                    '$len',
-                    textAlign: TextAlign.right,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                Text(
-                  '/',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                SizedBox(
-                  width: 16,
-                  child: Text(
-                    AppLocalizations.of(context).objectEditorMaxLength(24),
-                    textAlign: TextAlign.left,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: len >= 24 ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
+            return CharacterCounter(
+              currentLength: value.text.length,
+              maxLength: 24,
+              maxLabel: AppLocalizations.of(context).objectEditorMaxLength(24),
             );
           },
         ),
