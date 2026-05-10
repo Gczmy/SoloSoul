@@ -1,5 +1,18 @@
 part of 'unified_object_provider.dart';
 
+/// Result of orphan identification phase.
+class _OrphanAnalysis {
+  final Map<String, String> orphanTargets; // orphanId -> targetSectionId
+  final Map<String, SectionMeta> neededSections;
+  final Set<String> neededPages;
+
+  _OrphanAnalysis({
+    required this.orphanTargets,
+    required this.neededSections,
+    required this.neededPages,
+  });
+}
+
 /// Notifier for managing all unified objects.
 class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   late final UnifiedObjectService _service;
@@ -70,19 +83,24 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   /// 自动挂载到对应的默认 section（section 不存在则自动创建）。
   /// Public for testing.
   UnifiedObjectData repairOrphanItems(UnifiedObjectData data) {
-    final objects = List<UnifiedObject>.from(data.objects);
-    final objectMap = {for (final o in objects) o.id: o};
-    final now = DateTime.now().millisecondsSinceEpoch;
+    // Phase 1: Identify orphans and target sections
+    final orphans = _identifyOrphans(data);
+    if (orphans.orphanTargets.isEmpty) return data;
 
-    // Phase 1: Identify orphans and target sections (read-only scan)
+    // Phase 2: Repar orphans
+    return _reparOrphans(data, orphans);
+  }
+
+  /// Phase 1: Identify orphan items and their target sections.
+  _OrphanAnalysis _identifyOrphans(UnifiedObjectData data) {
     final orphanTargets = <String, String>{}; // orphanId -> targetSectionId
     final neededSections = <String, SectionMeta>{};
     final neededPages = <String>{};
 
-    for (final obj in objects) {
+    for (final obj in data.objects) {
       if (obj.parentId == null) continue;
       if (obj.typeId == 'page' || obj.typeId == 'collection') continue;
-      if (objectMap[obj.parentId] != null) continue;
+      if (data.objects.any((o) => o.id == obj.parentId)) continue;
 
       final itemTypeId = obj.typeId;
       if (itemTypeId == null) continue;
@@ -91,19 +109,31 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
       orphanTargets[obj.id] = targetSectionId;
 
-      if (objectMap[targetSectionId] == null && !neededSections.containsKey(targetSectionId)) {
+      if (!data.objects.any((o) => o.id == targetSectionId) && !neededSections.containsKey(targetSectionId)) {
         final meta = getSectionMeta(targetSectionId);
         if (meta == null) continue;
         neededSections[targetSectionId] = meta;
-        if (objectMap[meta.parentPageId] == null) {
+        if (!data.objects.any((o) => o.id == meta.parentPageId)) {
           neededPages.add(meta.parentPageId);
         }
       }
     }
 
-    if (orphanTargets.isEmpty) return data;
+    return _OrphanAnalysis(
+      orphanTargets: orphanTargets,
+      neededSections: neededSections,
+      neededPages: neededPages,
+    );
+  }
 
-    // Phase 2: Add missing pages, sections, and reparent orphans in one pass
+  /// Phase 2: Repar orphans by adding missing pages/sections and reparenting.
+  UnifiedObjectData _reparOrphans(UnifiedObjectData data, _OrphanAnalysis orphans) {
+    final objects = List<UnifiedObject>.from(data.objects);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final orphanTargets = orphans.orphanTargets;
+    final neededSections = orphans.neededSections;
+    final neededPages = orphans.neededPages;
+
     final newObjects = <UnifiedObject>[];
     final sectionChildAdds = <String, List<String>>{}; // sectionId -> [orphanIds]
     final pageChildAdds = <String, List<String>>{}; // pageId -> [sectionIds]

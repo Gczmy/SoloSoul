@@ -45,57 +45,12 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
       }
 
       if (config.backendType == LlmBackendType.cloud) {
-        final result = await ref
-            .read(llmModelProvider.notifier)
-            .testActiveCloudConnection();
-        if (!mounted) return;
-        setState(() {
-          _testResult = result;
-          _testSuccess = true;
-        });
+        await _testCloudConnection(l10n);
       } else {
-        final service = LlmLocalService(
-          modelName: config.localModelPath ?? 'qwen2.5:1.5b',
-        );
-        final status = await service.checkStatus();
-        if (!mounted) return;
-        if (!status.serviceRunning) {
-          setState(() {
-            _testResult = l10n.llmConfigOllamaNotRunning;
-            _testSuccess = false;
-          });
-        } else if (!status.modelAvailable) {
-          setState(() {
-            _testResult = l10n.llmConfigOllamaModelNotInstalled(
-              config.localModelPath ?? 'qwen2.5:1.5b',
-              status.installedModels.join(', '),
-            );
-            _testSuccess = false;
-          });
-        } else {
-          await service.testConnection();
-          if (!mounted) return;
-          setState(() {
-            _testResult = l10n.llmConfigLocalSuccess;
-            _testSuccess = true;
-          });
-        }
+        await _testLocalConnection(config, l10n);
       }
     } on LlmException catch (e) {
-      if (!mounted) return;
-      final errorMsg = switch (e.code) {
-        LlmErrorCode.configNotLoaded => l10n.llmErrorConfigNotLoaded,
-        LlmErrorCode.cloudConfigIncomplete =>
-          l10n.llmErrorCloudConfigIncomplete,
-        LlmErrorCode.noActiveProfile => l10n.llmErrorNoActiveCloudProfile,
-        LlmErrorCode.apiKeyMissing => l10n.llmErrorApiKeyEmpty,
-        LlmErrorCode.unauthorized => l10n.llmErrorApiKeyEmpty,
-        _ => e.message,
-      };
-      setState(() {
-        _testResult = errorMsg;
-        _testSuccess = false;
-      });
+      _handleLlmException(e, AppLocalizations.of(context));
     } on Exception catch (e) {
       if (!mounted) return;
       setState(() {
@@ -105,6 +60,63 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
     } finally {
       if (mounted) setState(() => _isTesting = false);
     }
+  }
+
+  Future<void> _testCloudConnection(AppLocalizations l10n) async {
+    final result = await ref
+        .read(llmModelProvider.notifier)
+        .testActiveCloudConnection();
+    if (!mounted) return;
+    setState(() {
+      _testResult = result;
+      _testSuccess = true;
+    });
+  }
+
+  Future<void> _testLocalConnection(LlmConfigState config, AppLocalizations l10n) async {
+    final service = LlmLocalService(
+      modelName: config.localModelPath ?? 'qwen2.5:1.5b',
+    );
+    final status = await service.checkStatus();
+    if (!mounted) return;
+    if (!status.serviceRunning) {
+      setState(() {
+        _testResult = l10n.llmConfigOllamaNotRunning;
+        _testSuccess = false;
+      });
+    } else if (!status.modelAvailable) {
+      setState(() {
+        _testResult = l10n.llmConfigOllamaModelNotInstalled(
+          config.localModelPath ?? 'qwen2.5:1.5b',
+          status.installedModels.join(', '),
+        );
+        _testSuccess = false;
+      });
+    } else {
+      await service.testConnection();
+      if (!mounted) return;
+      setState(() {
+        _testResult = l10n.llmConfigLocalSuccess;
+        _testSuccess = true;
+      });
+    }
+  }
+
+  void _handleLlmException(LlmException e, AppLocalizations l10n) {
+    if (!mounted) return;
+    final errorMsg = switch (e.code) {
+      LlmErrorCode.configNotLoaded => l10n.llmErrorConfigNotLoaded,
+      LlmErrorCode.cloudConfigIncomplete =>
+        l10n.llmErrorCloudConfigIncomplete,
+      LlmErrorCode.noActiveProfile => l10n.llmErrorNoActiveCloudProfile,
+      LlmErrorCode.apiKeyMissing => l10n.llmErrorApiKeyEmpty,
+      LlmErrorCode.unauthorized => l10n.llmErrorApiKeyEmpty,
+      _ => e.message,
+    };
+    setState(() {
+      _testResult = errorMsg;
+      _testSuccess = false;
+    });
   }
 
   void _showProfileEditor({LlmCloudProfile? profile}) {
