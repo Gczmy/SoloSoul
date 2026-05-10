@@ -49,7 +49,6 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
 
   // Original image data for attachment saving
   Uint8List? _originalImageBytes;
-  String? _originalImageName;
   bool _saveAttachment = true;
   bool _isSaving = false; // guard against double-tap
   String? _targetSectionId; // user-selected import section
@@ -441,7 +440,6 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       final bytes = await picked.readAsBytes();
       // Store for potential attachment saving
       _originalImageBytes = bytes;
-      _originalImageName = picked.name;
 
       // Step 1: 通用 OCR 识别
       final ocrResult = await OcrService.recognizeText(Uint8List.fromList(bytes));
