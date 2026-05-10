@@ -5,6 +5,29 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2026-05-10
+
+### Added
+
+- **Section Template Browser** — 15 predefined section templates (passport, visa, bank accounts, ID card, education, etc.) with localized names
+- **Trash Empty Placeholders** — Blank titles show "Title: (empty)"; blank property values show "(empty)" in gray italic
+- **Operation Log Filter** — Added Windows and Linux device platform options
+- **Field Key Translation** — All template field keys now localized in both English and Chinese
+- **Debug Logger** — Always records to circular buffer; activation prints buffered logs for pre-bug diagnostics
+
+### Fixed
+
+- **Per-Section Schema Independence** — Each section has its own property schema; no cross-section property leakage. New sections start with only Title
+- **Section Editor** — Deleting properties truly removes them (no deprecated toggle); re-creating works without "duplicate" error
+- **Settings Page i18n** — Account count, backup summaries, operation descriptions, device names fully localized
+- **Device Name Resolution** — Shows actual system hostname for distinguishing multiple Macs; platform labels like [macOS] added
+- **Template Field Display** — ObjectCard shows localized labels instead of raw camelCase keys
+- **Privacy Mode & Sidebar Drag** — Fixed timeout and reordering bugs
+
+### Changed
+
+- **liquid_glass_widgets** — Vendored locally to remove pub.dev dependency, suppressed verbose init logs
+
 ## [1.6.1] - 2026-05-09
 
 ### Added
