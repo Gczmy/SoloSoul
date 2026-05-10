@@ -65,6 +65,10 @@ class TrashTypeFilter extends _$TrashTypeFilter {
     }
   }
 
+  void setFilters(Set<String> filters) {
+    state = filters;
+  }
+
   void clear() {
     state = {};
   }

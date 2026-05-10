@@ -7,5 +7,5 @@ export 'auth_storage.dart';
 export 'auth_services.dart';
 export 'auth_state.dart' show SensitivePageAccessState, SensitivePageAccessNotifier,
     sensitivePageAccessProvider, kSensitiveAccessTimeout, IsSensitiveAccessGranted,
-    isSensitiveAccessGrantedProvider;
+    isSensitiveAccessGrantedProvider, BackoffState, BackoffNotifier, backoffProvider;
 export 'auth_notifier.dart';

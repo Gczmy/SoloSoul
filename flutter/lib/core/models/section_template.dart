@@ -9,6 +9,8 @@ class SectionTemplate {
   final String descriptionKey;
   final List<TemplateField> fields;
   final String icon;
+  /// 所属页面分类：profile, financial, professional, travel, bank
+  final String pageTag;
 
   const SectionTemplate({
     required this.id,
@@ -16,6 +18,7 @@ class SectionTemplate {
     required this.descriptionKey,
     required this.fields,
     required this.icon,
+    required this.pageTag,
   });
 }
 
@@ -45,6 +48,7 @@ class PresetSectionTemplates {
       nameKey: 'templateChinaBankAccountName',
       descriptionKey: 'templateChinaBankAccountDesc',
       icon: '🏦',
+      pageTag: 'bank',
       fields: [
         TemplateField(
           key: 'bank_name',
@@ -74,6 +78,7 @@ class PresetSectionTemplates {
       nameKey: 'templateUkBankAccountName',
       descriptionKey: 'templateUkBankAccountDesc',
       icon: '🏛️',
+      pageTag: 'bank',
       fields: [
         TemplateField(
           key: 'bank_name',
@@ -108,6 +113,7 @@ class PresetSectionTemplates {
       nameKey: 'templateUsBankAccountName',
       descriptionKey: 'templateUsBankAccountDesc',
       icon: '🗽',
+      pageTag: 'bank',
       fields: [
         TemplateField(
           key: 'bank_name',
@@ -143,6 +149,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfileIdentityName',
       descriptionKey: 'templateProfileIdentityDesc',
       icon: '👤',
+      pageTag: 'profile',
       fields: [
         TemplateField(
           key: 'full_name',
@@ -182,6 +189,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfileContactName',
       descriptionKey: 'templateProfileContactDesc',
       icon: '📞',
+      pageTag: 'profile',
       fields: [
         TemplateField(
           key: 'type',
@@ -201,6 +209,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfileIdCardName',
       descriptionKey: 'templateProfileIdCardDesc',
       icon: '🪪',
+      pageTag: 'profile',
       fields: [
         TemplateField(
           key: 'number',
@@ -235,6 +244,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfileAddressName',
       descriptionKey: 'templateProfileAddressDesc',
       icon: '🏠',
+      pageTag: 'profile',
       fields: [
         TemplateField(
           key: 'street',
@@ -269,6 +279,7 @@ class PresetSectionTemplates {
       nameKey: 'templateFinancialBankAccountName',
       descriptionKey: 'templateFinancialBankAccountDesc',
       icon: '🏦',
+      pageTag: 'financial',
       fields: [
         TemplateField(
           key: 'bank_name',
@@ -303,6 +314,7 @@ class PresetSectionTemplates {
       nameKey: 'templateFinancialCardName',
       descriptionKey: 'templateFinancialCardDesc',
       icon: '💳',
+      pageTag: 'financial',
       fields: [
         TemplateField(
           key: 'card_number',
@@ -337,6 +349,7 @@ class PresetSectionTemplates {
       nameKey: 'templateFinancialTaxIdName',
       descriptionKey: 'templateFinancialTaxIdDesc',
       icon: '🔢',
+      pageTag: 'financial',
       fields: [
         TemplateField(
           key: 'tax_id_number',
@@ -366,6 +379,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfessionalEducationName',
       descriptionKey: 'templateProfessionalEducationDesc',
       icon: '🎓',
+      pageTag: 'professional',
       fields: [
         TemplateField(
           key: 'institution',
@@ -405,6 +419,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfessionalEmploymentName',
       descriptionKey: 'templateProfessionalEmploymentDesc',
       icon: '💼',
+      pageTag: 'professional',
       fields: [
         TemplateField(
           key: 'company',
@@ -439,6 +454,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfessionalSkillName',
       descriptionKey: 'templateProfessionalSkillDesc',
       icon: '🛠️',
+      pageTag: 'professional',
       fields: [
         TemplateField(
           key: 'name',
@@ -458,6 +474,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfessionalLanguageName',
       descriptionKey: 'templateProfessionalLanguageDesc',
       icon: '🌐',
+      pageTag: 'professional',
       fields: [
         TemplateField(
           key: 'name',
@@ -477,6 +494,7 @@ class PresetSectionTemplates {
       nameKey: 'templateProfessionalAwardName',
       descriptionKey: 'templateProfessionalAwardDesc',
       icon: '🏆',
+      pageTag: 'professional',
       fields: [
         TemplateField(
           key: 'issuer',
@@ -501,6 +519,7 @@ class PresetSectionTemplates {
       nameKey: 'templateTravelPassportName',
       descriptionKey: 'templateTravelPassportDesc',
       icon: '🛂',
+      pageTag: 'travel',
       fields: [
         TemplateField(
           key: 'country',
@@ -570,6 +589,7 @@ class PresetSectionTemplates {
       nameKey: 'templateTravelVisaName',
       descriptionKey: 'templateTravelVisaDesc',
       icon: '📋',
+      pageTag: 'travel',
       fields: [
         TemplateField(
           key: 'country',
@@ -604,6 +624,7 @@ class PresetSectionTemplates {
       nameKey: 'templateTravelHistoryName',
       descriptionKey: 'templateTravelHistoryDesc',
       icon: '✈️',
+      pageTag: 'travel',
       fields: [
         TemplateField(
           key: 'destination',

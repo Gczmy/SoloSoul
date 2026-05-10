@@ -1,95 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solosoul_flutter/presentation/providers/search_provider.dart';
-import 'package:solosoul_flutter/presentation/models/search_models.dart' show SearchState;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/providers/search_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/generic_filter_section.dart';
 
-/// Search filter chips widget for filtering by sensitivity level.
-class SearchFilters extends ConsumerWidget {
-  final SearchState searchState;
-
+class SearchFilters extends ConsumerStatefulWidget {
   const SearchFilters({
     super.key,
-    required this.searchState,
+    required this.resultCount,
   });
 
+  final int resultCount;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final unselectedBg = theme.colorScheme.surfaceContainerHighest;
+  ConsumerState<SearchFilters> createState() => _SearchFiltersState();
+}
 
-    ChipThemeData chipTheme(bool selected) {
-      return ChipThemeData(
-        backgroundColor: selected ? null : unselectedBg,
-        side: selected ? null : BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      );
-    }
+class _SearchFiltersState extends ConsumerState<SearchFilters> {
+  bool _collapsed = false;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          ChipTheme(
-            data: chipTheme(searchState.searchPublic),
-            child: FilterChip(
-              label: Text(l10n.sensitivityPublic),
-              selected: searchState.searchPublic,
-              onSelected: (_) {
-                ref.read(searchProvider.notifier).togglePublic();
-              },
-              showCheckmark: false,
-            ),
-          ),
-          ChipTheme(
-            data: chipTheme(searchState.searchInternal),
-            child: FilterChip(
-              label: Text(l10n.sensitivityInternal),
-              selected: searchState.searchInternal,
-              onSelected: (_) {
-                ref.read(searchProvider.notifier).toggleInternal();
-              },
-              showCheckmark: false,
-            ),
-          ),
-          ChipTheme(
-            data: chipTheme(searchState.searchSensitive),
-            child: FilterChip(
-              label: Text(l10n.sensitivitySensitive),
-              selected: searchState.searchSensitive,
-              onSelected: (_) {
-                ref.read(searchProvider.notifier).toggleSensitive();
-              },
-              showCheckmark: false,
-            ),
-          ),
-          ChipTheme(
-            data: chipTheme(searchState.searchRestricted),
-            child: FilterChip(
-              label: Text(l10n.sensitivityRestricted),
-              selected: searchState.searchRestricted,
-              onSelected: (_) {
-                ref.read(searchProvider.notifier).toggleRestricted();
-              },
-              showCheckmark: false,
-            ),
-          ),
-          if (searchState.searchRestricted)
-            TextButton.icon(
-              icon: const Icon(Icons.lock_open, size: 18),
-              label: Text(l10n.searchUnlock),
-              onPressed: () {
-                ref
-                    .read(searchProvider.notifier)
-                    .unlockAllRestricted(context, ref);
-              },
-            ),
-        ],
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final searchState = ref.watch(searchProvider);
+    final selectedIds = <SensitivityLevel>{
+      if (searchState.searchPublic) SensitivityLevel.public,
+      if (searchState.searchInternal) SensitivityLevel.internal,
+      if (searchState.searchSensitive) SensitivityLevel.sensitive,
+      if (searchState.searchRestricted) SensitivityLevel.critical,
+    };
+
+    final sensitivityOptions = [
+      FilterOption(
+        id: SensitivityLevel.public,
+        label: l.sensitivityPublic,
+        icon: Icons.public,
+        color: Colors.green.shade600,
       ),
+      FilterOption(
+        id: SensitivityLevel.internal,
+        label: l.sensitivityInternal,
+        icon: Icons.shield_outlined,
+        color: Colors.blue.shade600,
+      ),
+      FilterOption(
+        id: SensitivityLevel.sensitive,
+        label: l.sensitivitySensitive,
+        icon: Icons.lock_outline,
+        color: Colors.orange.shade600,
+      ),
+      FilterOption(
+        id: SensitivityLevel.critical,
+        label: l.sensitivityRestricted,
+        icon: Icons.lock,
+        color: Colors.red.shade600,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GenericFilterSection<SensitivityLevel>(
+          headerLabel: l.operationFilterLabel,
+          filterGroups: [
+            FilterGroup(
+              label: '',
+              options: sensitivityOptions,
+              selectedIds: selectedIds,
+              onSelectionChanged: (ids) {
+                final notifier = ref.read(searchProvider.notifier);
+                notifier.setFilters(
+                  searchPublic: ids.contains(SensitivityLevel.public),
+                  searchInternal: ids.contains(SensitivityLevel.internal),
+                  searchSensitive: ids.contains(SensitivityLevel.sensitive),
+                  searchRestricted: ids.contains(SensitivityLevel.critical),
+                );
+              },
+            ),
+          ],
+          resultCount: widget.resultCount,
+          expanded: !_collapsed,
+          onToggle: () => setState(() => _collapsed = !_collapsed),
+          showClearAll: true,
+          onClearAll: () {
+            ref.read(searchProvider.notifier).setFilters(
+              searchPublic: true,
+              searchInternal: true,
+              searchSensitive: true,
+              searchRestricted: true,
+            );
+          },
+        ),
+        if (searchState.searchRestricted)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
+            child: TextButton.icon(
+              icon: const Icon(Icons.lock_open, size: 18),
+              label: Text(l.searchUnlock),
+              onPressed: () {
+                ref.read(searchProvider.notifier).unlockAllRestricted(context, ref);
+              },
+            ),
+          ),
+      ],
     );
   }
 }

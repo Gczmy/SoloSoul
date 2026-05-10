@@ -20,7 +20,6 @@ class OperationLogPage extends ConsumerStatefulWidget {
 }
 
 class _OperationLogPageState extends ConsumerState<OperationLogPage> {
-  bool _filterExpanded = false;
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -98,14 +97,7 @@ class _OperationLogPageState extends ConsumerState<OperationLogPage> {
           setState(() => _searchQuery = '');
         },
         onConfirmClearLog: () => _confirmClearLog(context),
-        filterExpanded: _filterExpanded,
         onClearAllFilters: _clearAllFilters,
-        filterHeader: _OperationLogFilterHeader(
-          filterExpanded: _filterExpanded,
-          actionFilters: ref.watch(logActionFilterProvider),
-          deviceFilters: ref.watch(logDeviceFilterProvider),
-          onToggle: () => setState(() => _filterExpanded = !_filterExpanded),
-        ),
       ),
     );
   }
@@ -148,9 +140,7 @@ class _OperationLogView extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
   final VoidCallback onConfirmClearLog;
-  final bool filterExpanded;
   final VoidCallback onClearAllFilters;
-  final Widget filterHeader;
 
   const _OperationLogView({
     required this.searchController,
@@ -159,14 +149,13 @@ class _OperationLogView extends StatelessWidget {
     required this.onSearchChanged,
     required this.onClearSearch,
     required this.onConfirmClearLog,
-    required this.filterExpanded,
     required this.onClearAllFilters,
-    required this.filterHeader,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final filteredEntries = searchQuery.isEmpty
         ? entries
         : entries.where((entry) {
@@ -211,26 +200,10 @@ class _OperationLogView extends StatelessWidget {
               ),
             ),
           ),
-          filterHeader,
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: filterExpanded
-                ? OperationLogFilterSection(onClearAll: onClearAllFilters)
-                : const SizedBox.shrink(),
+          OperationLogFilterSection(
+            resultCount: filteredEntries.length,
+            onClearAll: onClearAllFilters,
           ),
-          if (searchQuery.isNotEmpty && filteredEntries.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  AppLocalizations.of(context).operationLogFoundResults(filteredEntries.length),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ),
           Expanded(
             child: filteredEntries.isEmpty
                 ? Center(
@@ -272,85 +245,6 @@ class _OperationLogView extends StatelessWidget {
                   ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _OperationLogFilterHeader extends StatelessWidget {
-  final bool filterExpanded;
-  final Set<String> actionFilters;
-  final Set<String> deviceFilters;
-  final VoidCallback onToggle;
-
-  const _OperationLogFilterHeader({
-    required this.filterExpanded,
-    required this.actionFilters,
-    required this.deviceFilters,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasActiveFilters = actionFilters.isNotEmpty || deviceFilters.isNotEmpty;
-
-    return InkWell(
-      onTap: onToggle,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          border: Border(
-            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.filter_list,
-              size: 20,
-              color: hasActiveFilters
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              AppLocalizations.of(context).operationLogFilters,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: hasActiveFilters
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (hasActiveFilters) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${actionFilters.length + deviceFilters.length}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-            const Spacer(),
-            AnimatedRotation(
-              turns: filterExpanded ? 0.5 : 0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.keyboard_arrow_down,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -77,20 +77,14 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   bool get _isEditingItem {
     if (_existingObject == null) return false;
     if (_existingObject!.typeId == 'item') {
-      // ignore: avoid_print
-      print('[EDITOR-DEBUG] _isEditingItem: true (typeId==item)');
       return true;
     }
     if (_existingObject!.parentId != null) {
       final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
       if (parent != null && parent.typeId != 'page') {
-        // ignore: avoid_print
-        print('[EDITOR-DEBUG] _isEditingItem: true (parent is section)');
         return true;
       }
     }
-    // ignore: avoid_print
-    print('[EDITOR-DEBUG] _isEditingItem: false');
     return false;
   }
 
@@ -100,16 +94,10 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   Map<String, PropertyValue> get _schemaProperties {
     if (_isEditingItem && _existingObject?.parentId != null) {
       final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
-      // ignore: avoid_print
-      print('[EDITOR-DEBUG] _schemaProperties: parentId=${_existingObject!.parentId}, parentFound=${parent != null}, parentTypeId=${parent?.typeId}');
       if (parent != null && parent.typeId != 'page') {
-        // ignore: avoid_print
-        print('[EDITOR-DEBUG] _schemaProperties: returning parent.properties keys=${parent.properties.keys.toList()}');
         return parent.properties;
       }
     }
-    // ignore: avoid_print
-    print('[EDITOR-DEBUG] _schemaProperties: falling back to _existingObject.properties keys=${_existingObject?.properties.keys.toList()}');
     return _existingObject?.properties ?? {};
   }
 
@@ -152,16 +140,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _propertyFields.clear();
     bool hasDefaultName = false;
 
-    // ignore: avoid_print
-    print('[EDITOR-DEBUG] _loadExistingObject: object.id=${object.id}, typeId=${object.typeId}, parentId=${object.parentId}, isEditingItem=$_isEditingItem');
-
     if (_isEditingItem) {
       // Item: use parent section's properties as schema authority.
       final schemaProps = _schemaProperties;
-      // ignore: avoid_print
-      print('[EDITOR-DEBUG] schemaProps keys: ${schemaProps.keys.toList()}');
-      // ignore: avoid_print
-      print('[EDITOR-DEBUG] item.properties keys: ${object.properties.keys.toList()}');
 
       // Add all schema properties (parent section's current properties).
       for (final entry in schemaProps.entries) {
@@ -198,8 +179,6 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
           isDeprecated: true,
         ));
       }
-      // ignore: avoid_print
-      print('[EDITOR-DEBUG] final field keys: ${_propertyFields.map((f) => "${f.key}${f.isDeprecated ? "(depr)" : ""}").toList()}');
     } else {
       // Section: load own properties directly (they ARE the schema).
       for (final entry in object.properties.entries) {
@@ -461,8 +440,6 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     // For items: preserve stored values for active properties, always include deprecated data.
     // For sections: properties map IS the schema for child items.
     final properties = <String, PropertyValue>{};
-    // ignore: avoid_print
-    print('[EDITOR-DEBUG] _saveObject: isEditingItem=$_isEditingItem, fieldCount=${_propertyFields.length}');
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
@@ -473,26 +450,16 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
           text: '',
           sensitivity: SensitivityLevel.public,
         );
-        // ignore: avoid_print
-        print('[EDITOR-DEBUG] _saveObject: added Title');
       } else if (_isEditingItem && field.isDeprecated) {
         // Always preserve deprecated data so it's not lost
         properties[key] = _createPropertyValueWithValue(field.type, field.storedValue ?? '', field.sensitivity);
-        // ignore: avoid_print
-        print('[EDITOR-DEBUG] _saveObject: added deprecated $key = ${field.storedValue}');
       } else if (_isEditingItem && field.storedValue != null) {
         // Preserve item's stored value for active properties
         properties[key] = _createPropertyValueWithValue(field.type, field.storedValue!, field.sensitivity);
-        // ignore: avoid_print
-        print('[EDITOR-DEBUG] _saveObject: added active $key = ${field.storedValue}');
       } else {
         properties[key] = _createEmptyPropertyValue(field.type, field.sensitivity);
-        // ignore: avoid_print
-        print('[EDITOR-DEBUG] _saveObject: added empty $key');
       }
     }
-    // ignore: avoid_print
-    print('[EDITOR-DEBUG] _saveObject: final properties keys=${properties.keys.toList()}');
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
 

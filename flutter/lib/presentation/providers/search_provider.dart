@@ -64,6 +64,21 @@ class SearchNotifier extends Notifier<SearchState> {
     if (state.query.length >= 2) _performSearch();
   }
 
+  void setFilters({
+    required bool searchPublic,
+    required bool searchInternal,
+    required bool searchSensitive,
+    required bool searchRestricted,
+  }) {
+    state = state.copyWith(
+      searchPublic: searchPublic,
+      searchInternal: searchInternal,
+      searchSensitive: searchSensitive,
+      searchRestricted: searchRestricted,
+    );
+    if (state.query.length >= 2) _performSearch();
+  }
+
   bool isFieldRevealed(String fieldPath, SensitivityLevel level) {
     final style = ref.read(accountStyleProvider).value;
     if (style == null || !style.revealedFields.contains(fieldPath)) return false;
@@ -106,7 +121,7 @@ class SearchNotifier extends Notifier<SearchState> {
       final password = await showPasswordVerificationDialog(
         context: context,
         ref: ref,
-        message: 'Restricted field. Enter your master password to view.',
+        message: AppLocalizations.of(context).sensitiveRestrictedMessage,
         onVerify: (password) async {
           final authNotifier = ref.read(authNotifierProvider.notifier);
           return authNotifier.verifyPasswordForSensitiveData(password);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/section_template.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/widgets/generic_filter_section.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
@@ -19,53 +20,87 @@ class SectionTemplatePage extends ConsumerStatefulWidget {
 class _SectionTemplatePageState extends ConsumerState<SectionTemplatePage> {
   String? _selectedTemplateId;
   final Set<String> _expandedTemplates = {};
+  Set<String> _selectedPageTags = {};
+  bool _filterExpanded = true;
 
   List<SectionTemplate> get _templates => PresetSectionTemplates.templates;
+
+  static const _pageTags = ['profile', 'financial', 'professional', 'travel', 'bank'];
+
+  List<SectionTemplate> get _filteredTemplates {
+    if (_selectedPageTags.isEmpty) return _templates;
+    return _templates.where((t) => _selectedPageTags.contains(t.pageTag)).toList();
+  }
+
+  String _getPageTagLabel(String tag, AppLocalizations l) {
+    switch (tag) {
+      case 'profile':
+        return l.profileTitle;
+      case 'financial':
+        return l.financialTitle;
+      case 'professional':
+        return l.professionalTitle;
+      case 'travel':
+        return l.travelTitle;
+      case 'bank':
+        return l.sectionTemplatePageTagBank;
+      default:
+        return tag;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final templates = _templates;
+    final l = AppLocalizations.of(context);
+    final templates = _filteredTemplates;
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        title: Text(AppLocalizations.of(context).sectionTemplateTitle),
+        title: Text(l.sectionTemplateTitle),
       ),
       body: Stack(
         children: [
-          SingleChildScrollView(
-            padding: AppTheme.kPagePadding.copyWith(bottom: 96),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Template list
-                if (templates.isEmpty)
-                  _buildEmptyState(theme)
-                else
-                  ...templates.map((template) => _TemplateCard(
-                        template: template,
-                        isExpanded: _expandedTemplates.contains(template.id),
-                        isSelected: _selectedTemplateId == template.id,
-                        onToggleExpand: () {
-                          setState(() {
-                            if (_expandedTemplates.contains(template.id)) {
-                              _expandedTemplates.remove(template.id);
-                            } else {
-                              _expandedTemplates.add(template.id);
-                            }
-                          });
-                        },
-                        onSelect: () {
-                          setState(() {
-                            _selectedTemplateId =
-                                _selectedTemplateId == template.id
-                                    ? null
-                                    : template.id;
-                          });
-                        },
-                      )),
-              ],
-            ),
+          Column(
+            children: [
+              _buildFilterChips(l, templates),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: AppTheme.kPagePadding.copyWith(bottom: 96),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Template list
+                      if (templates.isEmpty)
+                        _buildEmptyState(theme)
+                      else
+                        ...templates.map((template) => _TemplateCard(
+                              template: template,
+                              isExpanded: _expandedTemplates.contains(template.id),
+                              isSelected: _selectedTemplateId == template.id,
+                              onToggleExpand: () {
+                                setState(() {
+                                  if (_expandedTemplates.contains(template.id)) {
+                                    _expandedTemplates.remove(template.id);
+                                  } else {
+                                    _expandedTemplates.add(template.id);
+                                  }
+                                });
+                              },
+                              onSelect: () {
+                                setState(() {
+                                  _selectedTemplateId =
+                                      _selectedTemplateId == template.id
+                                          ? null
+                                          : template.id;
+                                });
+                              },
+                            )),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
           _BottomApplyBar(
             selectedTemplateId: _selectedTemplateId,
@@ -119,6 +154,65 @@ class _SectionTemplatePageState extends ConsumerState<SectionTemplatePage> {
       (t) => t.id == _selectedTemplateId,
     );
     Navigator.of(context).pop(template);
+  }
+
+  Widget _buildFilterChips(AppLocalizations l, List<SectionTemplate> templates) {
+    final theme = Theme.of(context);
+    final selectedIds = _selectedPageTags;
+
+    final allOption = FilterOption<String>(
+      id: 'all',
+      label: l.sectionTemplateFilterAll,
+      icon: Icons.apps,
+      color: theme.colorScheme.primary,
+    );
+    final tagOptions = _pageTags.map((tag) => FilterOption<String>(
+          id: tag,
+          label: _getPageTagLabel(tag, l),
+          icon: _getPageTagIcon(tag),
+          color: theme.colorScheme.primary,
+        )).toList();
+
+    return GenericFilterSection<String>(
+      filterGroups: [
+        FilterGroup<String>(
+          label: '',
+          options: [allOption, ...tagOptions],
+          selectedIds: selectedIds,
+          onSelectionChanged: (ids) {
+            setState(() {
+              if (ids.contains('all')) {
+                _selectedPageTags = {};
+              } else {
+                _selectedPageTags = ids;
+              }
+            });
+          },
+        ),
+      ],
+      expanded: _filterExpanded,
+      resultCount: templates.length,
+      onToggle: () => setState(() => _filterExpanded = !_filterExpanded),
+      showClearAll: true,
+      onClearAll: () => setState(() => _selectedPageTags = {}),
+    );
+  }
+
+  IconData _getPageTagIcon(String tag) {
+    switch (tag) {
+      case 'profile':
+        return Icons.person_outline;
+      case 'financial':
+        return Icons.account_balance_wallet_outlined;
+      case 'professional':
+        return Icons.work_outline;
+      case 'travel':
+        return Icons.flight_outlined;
+      case 'bank':
+        return Icons.account_balance_outlined;
+      default:
+        return Icons.label_outline;
+    }
   }
 }
 

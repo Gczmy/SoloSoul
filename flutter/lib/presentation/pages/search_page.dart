@@ -74,8 +74,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               },
             ),
           ),
-          SearchFilters(searchState: searchState),
-          const Divider(height: 24),
+          SearchFilters(resultCount: searchState.results.length),
           Expanded(
             child: _SearchResultsWidget(
               searchState: searchState,

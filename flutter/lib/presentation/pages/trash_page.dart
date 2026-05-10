@@ -53,7 +53,6 @@ class TrashPage extends ConsumerStatefulWidget {
 class _TrashPageState extends ConsumerState<TrashPage> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
-  bool _filterExpanded = false;
 
   /// Whether we have already shown the auto-prompt dialog on first build.
   bool _hasPromptedForVerification = false;
@@ -139,8 +138,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           _searchController.clear();
           setState(() => _searchQuery = '');
         },
-        filterExpanded: _filterExpanded,
-        onToggleFilter: () => setState(() => _filterExpanded = !_filterExpanded),
         trashContent: _TrashContentWidget(
           theme: theme,
           searchQuery: _searchQuery,
@@ -552,8 +549,6 @@ class _TrashViewWidget extends ConsumerWidget {
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
-  final bool filterExpanded;
-  final VoidCallback onToggleFilter;
   final Widget trashContent;
 
   const _TrashViewWidget({
@@ -561,8 +556,6 @@ class _TrashViewWidget extends ConsumerWidget {
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onClearSearch,
-    required this.filterExpanded,
-    required this.onToggleFilter,
     required this.trashContent,
   });
 
@@ -570,10 +563,31 @@ class _TrashViewWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final deletedUnifiedObjects = ref.watch(trashRootDeletedObjectsProvider);
     final timeFilter = ref.watch(trashTimeFilterProvider);
     final typeFilters = ref.watch(trashTypeFilterProvider);
-    final hasActiveFilters =
-        (timeFilter != null && timeFilter != 'all') || typeFilters.isNotEmpty;
+
+    // Compute filtered count for the badge
+    final filteredCount = deletedUnifiedObjects.where((obj) {
+      if (timeFilter != null && timeFilter != 'all') {
+        if (obj.deletedAt == null) return false;
+        final cutoff = getTimeFilterCutoff(timeFilter);
+        if (cutoff != null && !obj.deletedAt!.isAfter(cutoff)) return false;
+      }
+      if (typeFilters.isNotEmpty) {
+        bool matches = false;
+        for (final filter in typeFilters) {
+          if (filter == 'item') {
+            if (isItemType(obj.typeId)) { matches = true; break; }
+          } else if (filter == obj.typeId) {
+            matches = true;
+            break;
+          }
+        }
+        if (!matches) return false;
+      }
+      return true;
+    }).length;
 
     return Scaffold(
       appBar: SoloGlassAppBar(
@@ -634,106 +648,18 @@ class _TrashViewWidget extends ConsumerWidget {
             ),
           ),
 
-          // Filter header
-          _TrashFilterHeader(
-            filterExpanded: filterExpanded,
-            hasActiveFilters: hasActiveFilters,
-            onToggle: onToggleFilter,
-          ),
-
-          // Filter section (collapsible)
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: filterExpanded
-                ? const TrashFilterSection()
-                : const SizedBox.shrink(),
+          // Filter section (always visible, GenericFilterSection handles collapse)
+          TrashFilterSection(
+            resultCount: filteredCount,
+            onClearAll: () {
+              ref.read(trashTimeFilterProvider.notifier).clear();
+              ref.read(trashTypeFilterProvider.notifier).clear();
+            },
           ),
 
           // Main content area
           Expanded(child: trashContent),
         ],
-      ),
-    );
-  }
-}
-
-class _TrashFilterHeader extends ConsumerWidget {
-  final bool filterExpanded;
-  final bool hasActiveFilters;
-  final VoidCallback onToggle;
-
-  const _TrashFilterHeader({
-    required this.filterExpanded,
-    required this.hasActiveFilters,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final timeFilter = ref.watch(trashTimeFilterProvider);
-    final typeFilters = ref.watch(trashTypeFilterProvider);
-    final activeCount =
-        (timeFilter != null && timeFilter != 'all' ? 1 : 0) +
-        (typeFilters.isNotEmpty ? 1 : 0);
-
-    return InkWell(
-      onTap: onToggle,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          border: Border(
-            bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.filter_list,
-              size: 20,
-              color: hasActiveFilters
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.operationFilterLabel,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: hasActiveFilters
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (activeCount > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$activeCount',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-            const Spacer(),
-            AnimatedRotation(
-              turns: filterExpanded ? 0.5 : 0,
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.keyboard_arrow_down,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
