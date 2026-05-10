@@ -3213,4 +3213,84 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get templateTravelHistoryDesc =>
       'Records of travel including destination, dates, flights, and travel details';
+
+  @override
+  String get objectEditorSchemaUpdated =>
+      'Property schema has been updated, syncing automatically';
+
+  @override
+  String objectEditorShowDeprecated(int count) {
+    return '$count deprecated';
+  }
+
+  @override
+  String get objectEditorHideDeprecated => 'Hide Deprecated';
+
+  @override
+  String get objectEditorDeprecatedProperties => 'Deprecated Properties';
+
+  @override
+  String get objectEditorDeprecatedBadge => 'Deprecated';
+
+  @override
+  String get objectEditorRestoreProperty => 'Restore Property';
+
+  @override
+  String operationLogCreatedItem(String name) {
+    return 'Created item \"$name\"';
+  }
+
+  @override
+  String operationLogUpdatedItem(String name) {
+    return 'Updated item \"$name\"';
+  }
+
+  @override
+  String operationLogDeletedItem(String name) {
+    return 'Deleted item \"$name\"';
+  }
+
+  @override
+  String operationLogRestoredItem(String name) {
+    return 'Restored \"$name\"';
+  }
+
+  @override
+  String operationNotifCreated(String name) {
+    return 'Added \"$name\"';
+  }
+
+  @override
+  String operationNotifUpdated(String name) {
+    return 'Updated \"$name\"';
+  }
+
+  @override
+  String operationNotifDeleted(String name) {
+    return 'Deleted \"$name\"';
+  }
+
+  @override
+  String operationNotifRestored(String name) {
+    return 'Restored \"$name\"';
+  }
+
+  @override
+  String operationNotifPurged(String name) {
+    return 'Permanently deleted \"$name\"';
+  }
+
+  @override
+  String get operationNotifUndo => 'Undo';
+
+  @override
+  String get operationNotifDismiss => 'Dismiss';
+
+  @override
+  String get predefinedCopySuccess => 'Copied to clipboard';
+
+  @override
+  String predefinedDeleteFailed(String section) {
+    return 'Failed to delete $section';
+  }
 }

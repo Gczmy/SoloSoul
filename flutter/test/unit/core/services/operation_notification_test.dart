@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations_en.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 void main() {
+  final l10n = AppLocalizationsEn();
+
   group('OperationType', () {
     test('has expected values', () {
       expect(OperationType.values, hasLength(5));
@@ -15,7 +18,7 @@ void main() {
   });
 
   group('OperationMessage', () {
-    group('message getter', () {
+    group('getMessage', () {
       group('create', () {
         test('with fieldName', () {
           const msg = OperationMessage(
@@ -23,7 +26,7 @@ void main() {
             section: 'identity',
             fieldName: 'email - work',
           );
-          expect(msg.message, 'Added email - work to Identity');
+          expect(msg.getMessage(l10n), 'Added "email - work"');
         });
 
         test('with itemName fallback', () {
@@ -32,7 +35,7 @@ void main() {
             section: 'travel',
             itemName: 'Paris Trip',
           );
-          expect(msg.message, 'Added Paris Trip to Travel');
+          expect(msg.getMessage(l10n), 'Added "Paris Trip"');
         });
 
         test('with neither fieldName nor itemName', () {
@@ -40,7 +43,7 @@ void main() {
             type: OperationType.create,
             section: 'education',
           );
-          expect(msg.message, 'Added new item to Education');
+          expect(msg.getMessage(l10n), 'Added new item to Education');
         });
 
         test('fieldName takes priority over itemName', () {
@@ -50,7 +53,7 @@ void main() {
             fieldName: 'email - work',
             itemName: 'Contact Info',
           );
-          expect(msg.message, contains('email - work'));
+          expect(msg.getMessage(l10n), contains('email - work'));
         });
       });
 
@@ -61,7 +64,7 @@ void main() {
             section: 'bank account',
             fieldName: 'Account Number',
           );
-          expect(msg.message, 'Updated Account Number in Bank Account');
+          expect(msg.getMessage(l10n), 'Updated "Account Number"');
         });
 
         test('with itemName', () {
@@ -70,7 +73,7 @@ void main() {
             section: 'card',
             itemName: 'Visa Card',
           );
-          expect(msg.message, 'Updated Visa Card in Card');
+          expect(msg.getMessage(l10n), 'Updated "Visa Card"');
         });
 
         test('with neither', () {
@@ -78,7 +81,7 @@ void main() {
             type: OperationType.update,
             section: 'employment',
           );
-          expect(msg.message, 'Updated Employment');
+          expect(msg.getMessage(l10n), 'Updated Employment');
         });
       });
 
@@ -89,7 +92,7 @@ void main() {
             section: 'address',
             fieldName: 'Home Address',
           );
-          expect(msg.message, 'Deleted Home Address from Address');
+          expect(msg.getMessage(l10n), 'Deleted "Home Address"');
         });
 
         test('with itemName', () {
@@ -98,7 +101,7 @@ void main() {
             section: 'visa',
             itemName: 'US Visa',
           );
-          expect(msg.message, 'Deleted US Visa from Visa');
+          expect(msg.getMessage(l10n), 'Deleted "US Visa"');
         });
 
         test('with neither', () {
@@ -106,7 +109,7 @@ void main() {
             type: OperationType.delete,
             section: 'passport',
           );
-          expect(msg.message, 'Deleted from Passport');
+          expect(msg.getMessage(l10n), 'Deleted from Passport');
         });
       });
 
@@ -117,7 +120,7 @@ void main() {
             section: 'skill',
             fieldName: 'Flutter',
           );
-          expect(msg.message, 'Restored Flutter to Skill');
+          expect(msg.getMessage(l10n), 'Restored "Flutter"');
         });
 
         test('with itemName', () {
@@ -126,7 +129,7 @@ void main() {
             section: 'language',
             itemName: 'English',
           );
-          expect(msg.message, 'Restored English to Language');
+          expect(msg.getMessage(l10n), 'Restored "English"');
         });
 
         test('with neither', () {
@@ -134,7 +137,7 @@ void main() {
             type: OperationType.restore,
             section: 'education',
           );
-          expect(msg.message, 'Restored Education');
+          expect(msg.getMessage(l10n), 'Restored Education');
         });
       });
 
@@ -145,7 +148,7 @@ void main() {
             section: 'identity',
             fieldName: 'Old Name',
           );
-          expect(msg.message, 'Permanently deleted Old Name');
+          expect(msg.getMessage(l10n), 'Permanently deleted "Old Name"');
         });
 
         test('with itemName', () {
@@ -154,7 +157,7 @@ void main() {
             section: 'card',
             itemName: 'Expired Card',
           );
-          expect(msg.message, 'Permanently deleted Expired Card');
+          expect(msg.getMessage(l10n), 'Permanently deleted "Expired Card"');
         });
 
         test('with neither', () {
@@ -162,7 +165,7 @@ void main() {
             type: OperationType.purge,
             section: 'travel',
           );
-          expect(msg.message, 'Permanently deleted from Travel');
+          expect(msg.getMessage(l10n), 'Permanently deleted from Travel');
         });
       });
 
@@ -173,7 +176,7 @@ void main() {
             section: 'identity',
             customMessage: 'Custom override',
           );
-          expect(msg.message, 'Custom override');
+          expect(msg.getMessage(l10n), 'Custom override');
         });
 
         test('ignores other fields when customMessage set', () {
@@ -184,17 +187,17 @@ void main() {
             itemName: 'item',
             customMessage: 'Custom',
           );
-          expect(msg.message, 'Custom');
+          expect(msg.getMessage(l10n), 'Custom');
         });
       });
 
-      group('section display names', () {
+      group('section display names in fallback', () {
         test('maps known sections', () {
           final expected = {
             'identity': 'Identity',
-            'contact information': 'Contact Information',
+            'contact information': 'Contact',
             'address': 'Address',
-            'id card': 'ID Card',
+            'ID card': 'ID Card',
             'passport': 'Passport',
             'visa': 'Visa',
             'travel history': 'Travel History',
@@ -214,7 +217,7 @@ void main() {
               type: OperationType.create,
               section: entry.key,
             );
-            expect(msg.message, contains(entry.value),
+            expect(msg.getMessage(l10n), contains(entry.value),
                 reason: 'Section "${entry.key}" should map to "${entry.value}"');
           }
         });
@@ -224,7 +227,7 @@ void main() {
             type: OperationType.create,
             section: 'customSection',
           );
-          expect(msg.message, contains('customSection'));
+          expect(msg.getMessage(l10n), contains('customSection'));
         });
       });
     });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 /// Operation type for notification messages
@@ -29,108 +30,76 @@ class OperationMessage {
     this.customMessage,
   });
 
-  /// Get the message text in English based on operation type
+  /// Get the localized message text based on operation type
   /// Note: Privacy mode affects data display, not operation descriptions
-  String get message {
+  String getMessage(AppLocalizations l10n) {
     if (customMessage != null) return customMessage!;
 
-    final sectionLabel = _getSectionLabel();
+    final name = fieldName?.isNotEmpty == true
+        ? fieldName!
+        : (itemName?.isNotEmpty == true ? itemName! : null);
 
-    switch (type) {
-      case OperationType.create:
-        // Use fieldName if available (the specific item name like "email - work")
-        if (fieldName != null && fieldName!.isNotEmpty) {
-          return 'Added $fieldName to $sectionLabel';
-        }
-        if (itemName != null && itemName!.isNotEmpty) {
-          return 'Added $itemName to $sectionLabel';
-        }
-        // Fallback: provide more descriptive message based on section
-        return 'Added new item to $sectionLabel';
-
-      case OperationType.update:
-        // Use fieldName if available (the specific item name like "email - work")
-        if (fieldName != null && fieldName!.isNotEmpty) {
-          return 'Updated $fieldName in $sectionLabel';
-        }
-        if (itemName != null && itemName!.isNotEmpty) {
-          return 'Updated $itemName in $sectionLabel';
-        }
-        return 'Updated $sectionLabel';
-
-      case OperationType.delete:
-        // Use fieldName if available (the specific item name like "email - work")
-        if (fieldName != null && fieldName!.isNotEmpty) {
-          return 'Deleted $fieldName from $sectionLabel';
-        }
-        if (itemName != null && itemName!.isNotEmpty) {
-          return 'Deleted $itemName from $sectionLabel';
-        }
-        return 'Deleted from $sectionLabel';
-
-      case OperationType.restore:
-        // Use fieldName if available (the specific item name like "email - work")
-        if (fieldName != null && fieldName!.isNotEmpty) {
-          return 'Restored $fieldName to $sectionLabel';
-        }
-        if (itemName != null && itemName!.isNotEmpty) {
-          return 'Restored $itemName to $sectionLabel';
-        }
-        return 'Restored $sectionLabel';
-
-      case OperationType.purge:
-        // Use fieldName if available (the specific item name like "email - work")
-        if (fieldName != null && fieldName!.isNotEmpty) {
-          return 'Permanently deleted $fieldName';
-        }
-        if (itemName != null && itemName!.isNotEmpty) {
-          return 'Permanently deleted $itemName';
-        }
-        return 'Permanently deleted from $sectionLabel';
+    if (name != null) {
+      return switch (type) {
+        OperationType.create => l10n.operationNotifCreated(name),
+        OperationType.update => l10n.operationNotifUpdated(name),
+        OperationType.delete => l10n.operationNotifDeleted(name),
+        OperationType.restore => l10n.operationNotifRestored(name),
+        OperationType.purge => l10n.operationNotifPurged(name),
+      };
     }
+
+    // Fallback without name
+    final sectionLabel = _getSectionLabel(l10n);
+    return switch (type) {
+      OperationType.create => 'Added new item to $sectionLabel',
+      OperationType.update => 'Updated $sectionLabel',
+      OperationType.delete => 'Deleted from $sectionLabel',
+      OperationType.restore => 'Restored $sectionLabel',
+      OperationType.purge => 'Permanently deleted from $sectionLabel',
+    };
   }
 
-  String _getSectionLabel() {
-    // Section name is not sensitive info, always show it
-    return _sectionDisplayName;
+  String _getSectionLabel(AppLocalizations l10n) {
+    return _sectionDisplayName(l10n);
   }
 
-  String get _sectionDisplayName {
+  String _sectionDisplayName(AppLocalizations l10n) {
     switch (section) {
       case 'identity':
-        return 'Identity';
+        return l10n.logSectionIdentity;
       case 'contact information':
-        return 'Contact Information';
+        return l10n.logSectionContactInfo;
       case 'address':
-        return 'Address';
-      case 'id card':
-        return 'ID Card';
+        return l10n.logSectionAddress;
+      case 'ID card':
+        return l10n.logSectionIdCard;
       case 'passport':
-        return 'Passport';
+        return l10n.logSectionPassport;
       case 'visa':
-        return 'Visa';
+        return l10n.logSectionVisa;
       case 'travel history':
-        return 'Travel History';
+        return l10n.logSectionTravelHistory;
       case 'bank account':
-        return 'Bank Account';
+        return l10n.logSectionBankAccount;
       case 'card':
-        return 'Card';
+        return l10n.logSectionCard;
       case 'education':
-        return 'Education';
+        return l10n.logSectionEducation;
       case 'employment':
-        return 'Employment';
+        return l10n.logSectionEmployment;
       case 'skill':
-        return 'Skill';
+        return l10n.logSectionSkill;
       case 'language':
-        return 'Language';
+        return l10n.logSectionLanguage;
       case 'travel':
-        return 'Travel';
+        return l10n.logSectionTravel;
       case 'financial':
-        return 'Financial';
+        return l10n.logSectionFinancial;
       case 'professional':
-        return 'Professional';
+        return l10n.logSectionProfessional;
       default:
-        return section; // Use the raw section value if not matched
+        return section;
     }
   }
 
@@ -290,6 +259,7 @@ class _NotificationWidgetState extends State<_NotificationWidget>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final message = widget.message;
 
     // Get colors based on snackbar type
@@ -354,7 +324,7 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        message.message,
+                        message.getMessage(l10n),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14.0,
@@ -374,9 +344,9 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          'Undo',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.operationNotifUndo,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -386,7 +356,7 @@ class _NotificationWidgetState extends State<_NotificationWidget>
                       icon: const Icon(Icons.close, color: Colors.white70, size: 18),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      tooltip: 'Dismiss',
+                      tooltip: l10n.operationNotifDismiss,
                     ),
                   ],
                 ),

@@ -135,6 +135,8 @@ class ObjectTypeDefinition {
   final String? description;
   final ObjectLayout defaultLayout;
   final List<PropertyDefinition> properties;
+  final int schemaVersion;
+  final List<String> deprecatedProperties;
 
   const ObjectTypeDefinition({
     required this.id,
@@ -143,6 +145,8 @@ class ObjectTypeDefinition {
     this.description,
     this.defaultLayout = ObjectLayout.document,
     this.properties = const [],
+    this.schemaVersion = 1,
+    this.deprecatedProperties = const [],
   });
 
   factory ObjectTypeDefinition.fromJson(Map<String, dynamic> json) =>
@@ -157,6 +161,8 @@ class ObjectTypeDefinition {
     String? description,
     ObjectLayout? defaultLayout,
     List<PropertyDefinition>? properties,
+    int? schemaVersion,
+    List<String>? deprecatedProperties,
   }) {
     return ObjectTypeDefinition(
       id: id ?? this.id,
@@ -165,8 +171,11 @@ class ObjectTypeDefinition {
       description: description ?? this.description,
       defaultLayout: defaultLayout ?? this.defaultLayout,
       properties: properties ?? this.properties,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
+      deprecatedProperties: deprecatedProperties ?? this.deprecatedProperties,
     );
   }
+
 }
 
 // =============================================================================
@@ -595,6 +604,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   final DateTime? deletedAt;
   final int createdAt;
   final int updatedAt;
+  final int? schemaVersionWhenSaved;
 
   const UnifiedObject({
     required this.id,
@@ -609,6 +619,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.schemaVersionWhenSaved,
   });
 
   @override
@@ -646,6 +657,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     DateTime? deletedAt,
     int? createdAt,
     int? updatedAt,
+    int? schemaVersionWhenSaved,
   }) {
     return UnifiedObject(
       id: id ?? this.id,
@@ -660,6 +672,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      schemaVersionWhenSaved: schemaVersionWhenSaved ?? this.schemaVersionWhenSaved,
     );
   }
 }

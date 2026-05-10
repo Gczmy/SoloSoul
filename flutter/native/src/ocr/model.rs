@@ -56,7 +56,7 @@ pub fn load_models_from_memory_v2(
                 let _ = DET_SESSION.set(Mutex::new(session));
             }
             Err(e) => {
-                eprintln!("[OCR] DET model load failed (non-fatal): {e}");
+                // non-fatal: DET model not required for basic MRZ
             }
         }
     }
@@ -71,7 +71,7 @@ pub fn load_models_from_memory_v2(
                 let _ = CLS_SESSION.set(Mutex::new(session));
             }
             Err(e) => {
-                eprintln!("[OCR] CLS model load failed (non-fatal): {e}");
+                // non-fatal: CLS model not required for basic MRZ
             }
         }
     }

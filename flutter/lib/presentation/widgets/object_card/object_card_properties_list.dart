@@ -10,11 +10,13 @@ import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dar
 class ObjectCardPropertiesList extends StatelessWidget {
   final UnifiedObject item;
   final String titlePropertyKey;
+  final Map<String, PropertyValue>? template;
 
   const ObjectCardPropertiesList({
     super.key,
     required this.item,
     this.titlePropertyKey = 'Title',
+    this.template,
   });
 
   @override
@@ -22,9 +24,17 @@ class ObjectCardPropertiesList extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
+    // Only show properties defined in the schema (template). Properties
+    // that exist in item data but not in the schema are deprecated and
+    // hidden from view — they can be accessed via "Show Deprecated" in
+    // edit mode.
+    final visibleEntries = template != null
+        ? item.properties.entries.where((e) => template!.containsKey(e.key))
+        : item.properties.entries;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: item.properties.entries
+      children: visibleEntries
           .where((e) => e.key != titlePropertyKey)
           .map((entry) {
         final sensitivity = entry.value.sensitivity;
@@ -50,7 +60,7 @@ class ObjectCardPropertiesList extends StatelessWidget {
               if (isEmptyValue)
                 Flexible(
                   child: Text(
-                    '(empty)',
+                    l10n.commonEmpty,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,

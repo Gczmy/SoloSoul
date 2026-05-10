@@ -65,6 +65,12 @@ ObjectTypeDefinition _$ObjectTypeDefinitionFromJson(
           ?.map((e) => PropertyDefinition.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  schemaVersion: (json['schemaVersion'] as num?)?.toInt() ?? 1,
+  deprecatedProperties:
+      (json['deprecatedProperties'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$ObjectTypeDefinitionToJson(
@@ -76,6 +82,8 @@ Map<String, dynamic> _$ObjectTypeDefinitionToJson(
   'description': instance.description,
   'defaultLayout': _$ObjectLayoutEnumMap[instance.defaultLayout]!,
   'properties': instance.properties.map((e) => e.toJson()).toList(),
+  'schemaVersion': instance.schemaVersion,
+  'deprecatedProperties': instance.deprecatedProperties,
 };
 
 const _$ObjectLayoutEnumMap = {
@@ -274,6 +282,7 @@ UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['deletedAt'] as String),
       createdAt: (json['createdAt'] as num).toInt(),
       updatedAt: (json['updatedAt'] as num).toInt(),
+      schemaVersionWhenSaved: (json['schemaVersionWhenSaved'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
@@ -292,6 +301,7 @@ Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
+      'schemaVersionWhenSaved': instance.schemaVersionWhenSaved,
     };
 
 UnifiedObjectData _$UnifiedObjectDataFromJson(Map<String, dynamic> json) =>

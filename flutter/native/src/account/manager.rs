@@ -863,7 +863,6 @@ impl AccountManager {
                     };
                     unlocked.take();
                 }
-                eprintln!("Failed to open vault: {}", e);
                 VerifyResult {
                     success: false,
                     error: Some(format!("Failed to open vault: {}", e)),
@@ -1382,31 +1381,24 @@ impl AccountManager {
         account_id: &str,
         update: MetadataUpdate,
     ) -> Result<(), String> {
-        eprintln!("[METADATA-MGR] update_account_metadata: account_id={}", account_id);
         log_to_file(&format!("update_account_metadata: account_id={}", account_id));
         let config_path = self.account_dir(account_id).join("config.json");
-        eprintln!("[METADATA-MGR] config_path={:?}", config_path);
         log_to_file(&format!("update_account_metadata: config_path={:?}", config_path));
         let config_content = safe_storage::recover_or_load(&config_path)
             .ok_or_else(|| {
-                eprintln!("[METADATA-MGR] FAILED: config not found at {:?}", config_path);
                 "Failed to read config".to_string()
             })?;
-        eprintln!("[METADATA-MGR] config read OK, len={}", config_content.len());
         log_to_file(&format!("update_account_metadata: config read OK, len={}", config_content.len()));
         let mut config: AccountConfig = serde_json::from_str(&config_content)
             .map_err(|e| {
-                eprintln!("[METADATA-MGR] FAILED to parse config: {}", e);
                 format!("Failed to parse config: {}", e)
             })?;
-        eprintln!("[METADATA-MGR] config parsed OK, last_login_at={:?}", config.last_login_at);
         log_to_file(&format!("update_account_metadata: config parsed OK, last_login_at={:?}", config.last_login_at));
 
         if let Some(hint) = update.password_hint {
             config.password_hint = Some(hint);
         }
         if let Some(login) = update.last_login_at {
-            eprintln!("[METADATA-MGR] Setting last_login_at: {:?}", login);
             config.last_login_at = Some(login);
         }
         if let Some(op_at) = update.last_operation_at {
@@ -1416,7 +1408,6 @@ impl AccountManager {
             config.last_operation_desc = Some(op_desc);
         }
         if let Some(devices) = update.recent_devices {
-            eprintln!("[METADATA-MGR] Setting {} devices", devices.len());
             config.recent_devices = devices;
         }
         if let Some(enabled) = update.biometric_enabled {
@@ -1425,14 +1416,11 @@ impl AccountManager {
 
         let new_content = serde_json::to_string_pretty(&config)
             .map_err(|e| format!("Serialize config failed: {}", e))?;
-        eprintln!("[METADATA-MGR] Writing config ({} bytes)...", new_content.len());
         log_to_file(&format!("update_account_metadata: writing config, {} bytes", new_content.len()));
         safe_storage::write_atomic(&config_path, new_content.as_bytes())
             .map_err(|e| {
-                eprintln!("[METADATA-MGR] FAILED to write config: {}", e);
                 format!("Write config failed: {}", e)
             })?;
-        eprintln!("[METADATA-MGR] write OK");
         log_to_file("update_account_metadata: write OK");
 
         Ok(())

@@ -2260,7 +2260,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fieldHistoryLatest => '最新';
 
   @override
-  String get commonEmpty => '（空）';
+  String get commonEmpty => '(空)';
 
   @override
   String get lockVaultMessage => '锁定保险库后需要主密码才能解锁。';
@@ -3124,4 +3124,83 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get templateTravelHistoryDesc => '出行记录，包括目的地、日期、航班和出行详情';
+
+  @override
+  String get objectEditorSchemaUpdated => '属性定义已更新，自动同步中';
+
+  @override
+  String objectEditorShowDeprecated(int count) {
+    return '$count 个已废弃';
+  }
+
+  @override
+  String get objectEditorHideDeprecated => '隐藏废弃';
+
+  @override
+  String get objectEditorDeprecatedProperties => '废弃属性';
+
+  @override
+  String get objectEditorDeprecatedBadge => '已废弃';
+
+  @override
+  String get objectEditorRestoreProperty => '恢复属性';
+
+  @override
+  String operationLogCreatedItem(String name) {
+    return '创建项目\"$name\"';
+  }
+
+  @override
+  String operationLogUpdatedItem(String name) {
+    return '更新项目\"$name\"';
+  }
+
+  @override
+  String operationLogDeletedItem(String name) {
+    return '删除项目\"$name\"';
+  }
+
+  @override
+  String operationLogRestoredItem(String name) {
+    return '恢复\"$name\"';
+  }
+
+  @override
+  String operationNotifCreated(String name) {
+    return '添加了\"$name\"';
+  }
+
+  @override
+  String operationNotifUpdated(String name) {
+    return '更新了\"$name\"';
+  }
+
+  @override
+  String operationNotifDeleted(String name) {
+    return '删除了\"$name\"';
+  }
+
+  @override
+  String operationNotifRestored(String name) {
+    return '恢复了\"$name\"';
+  }
+
+  @override
+  String operationNotifPurged(String name) {
+    return '彻底删除了\"$name\"';
+  }
+
+  @override
+  String get operationNotifUndo => '撤销';
+
+  @override
+  String get operationNotifDismiss => '关闭';
+
+  @override
+  String get predefinedCopySuccess => '已复制到剪贴板';
+
+  @override
+  String predefinedDeleteFailed(String section) {
+    return '删除$section失败';
+  }
 }

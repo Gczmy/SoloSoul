@@ -121,10 +121,18 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   /// Tracks original values when entering edit/add mode for dirty-check.
   final Map<String, String> _originalValues = {};
   bool _hasChanges = false;
+  bool _showDeprecated = false;
 
   /// Resolved template: [itemTemplate] takes precedence over [object.properties].
   Map<String, PropertyValue> get _template =>
       widget.itemTemplate ?? widget.object.properties;
+
+  /// Keys in the currently-editing item that are NOT in the template (deprecated).
+  List<String> _deprecatedKeysFor(UnifiedObject item) {
+    return item.properties.keys
+        .where((k) => !_template.containsKey(k))
+        .toList();
+  }
 
   void _disposeControllers() {
     for (final c in _editControllers.values) {
@@ -210,6 +218,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   }
 
   Future<void> _saveNewItem() async {
+    final l10n = AppLocalizations.of(context);
     final template = _template;
     final properties = Map<String, PropertyValue>.from(template);
 
@@ -264,7 +273,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       OperationLogger.logCustomSection(
         section: widget.object.name,
         action: LogAction.create,
-        description: 'Created item "$name"',
+        description: l10n.operationLogCreatedItem(name),
       ),
     );
 
@@ -350,6 +359,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     if (confirmed != true) return;
 
     Future<void> doDelete() async {
+      final l10n = AppLocalizations.of(context);
       final bool success;
       if (widget.onDeleteItem != null) {
         success = await widget.onDeleteItem!(itemId);
@@ -364,7 +374,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         OperationLogger.logCustomSection(
           section: widget.object.name,
           action: LogAction.delete,
-          description: 'Deleted item "${_itemDisplayTitle(item)}"',
+          description: l10n.operationLogDeletedItem(_itemDisplayTitle(item)),
           fieldPath: itemId,
         ),
       );
@@ -401,22 +411,29 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       setState(() {
         _editingItemId = item.id;
         _isAddingItem = false;
+        _showDeprecated = false;
         _disposeControllers();
         _editControllers['__name__'] = TextEditingController(text: _itemDisplayTitle(item));
         _originalValues['__name__'] = _itemDisplayTitle(item);
 
-        // Merge template keys with actual item properties so template-defined
-        // fields that the item lacks still appear in edit mode.
-        final allKeys = {..._template, ...item.properties}.keys;
-        for (final key in allKeys) {
+        // Only create controllers for active (template) keys. Keys that
+        // exist in the item but not in the template are deprecated —
+        // they are hidden behind a "Show Deprecated" toggle and
+        // preserved in item.properties on save.
+        for (final key in _template.keys) {
           final value = item.properties[key];
           final textValue = value != null
               ? propValueToString(value)
-              : _template[key] != null
-                  ? propValueToString(_template[key]!)
-                  : '';
+              : propValueToString(_template[key]!);
           _editControllers[key] = TextEditingController(text: textValue);
           _originalValues[key] = textValue;
+        }
+        // Also create controllers for deprecated keys (display-only).
+        for (final key in item.properties.keys) {
+          if (_template.containsKey(key)) continue;
+          final value = item.properties[key]!;
+          _editControllers[key] =
+              TextEditingController(text: propValueToString(value));
         }
         _setupChangeDetection();
         _hasChanges = false;
@@ -433,11 +450,13 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   void _cancelEditItem() {
     setState(() {
       _editingItemId = null;
+      _showDeprecated = false;
       _disposeControllers();
     });
   }
 
   Future<void> _saveEditItem(String itemId) async {
+    final l10n = AppLocalizations.of(context);
     final item = ref.read(objectByIdProvider(itemId));
     if (item == null) return;
 
@@ -454,11 +473,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       );
     }
 
-    for (final key in item.properties.keys) {
-      if (key == titleKey) continue; // already handled above
-      final controller = _editControllers[key];
-      if (controller != null) {
-        final oldValue = item.properties[key]!;
+    // Iterate all controllers (template + item merged keys) so new schema
+    // properties added after item creation are included in the save.
+    for (final entry in _editControllers.entries) {
+      final key = entry.key;
+      if (key == '__name__' || key == titleKey) continue;
+      final controller = entry.value;
+      final oldValue = item.properties[key] ?? _template[key];
+      if (oldValue != null) {
         updatedProps[key] = _parsePropertyValue(oldValue, controller.text);
       }
     }
@@ -508,7 +530,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       OperationLogger.logCustomSection(
         section: widget.object.name,
         action: LogAction.update,
-        description: 'Updated item "$name"',
+        description: l10n.operationLogUpdatedItem(name),
         fieldPath: itemId,
       ),
     );
@@ -700,6 +722,12 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                     _editControllers[key]?.text = (value ?? false) ? 'Yes' : 'No';
                   });
                 },
+                showDeprecated: _editingItemId == item.id && _showDeprecated,
+                deprecatedKeys: _editingItemId == item.id
+                    ? _deprecatedKeysFor(item)
+                    : const [],
+                onToggleDeprecated: () =>
+                    setState(() => _showDeprecated = !_showDeprecated),
               )),
               if (shouldCollapse && !_isAddingItem) ...[
                 const SizedBox(height: 8),
@@ -783,7 +811,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         Clipboard.setData(ClipboardData(text: text));
         showOverlaySnackBar(
           context,
-          content: 'Copied to clipboard',
+          content: AppLocalizations.of(context).commonCopiedToClipboard,
           type: SnackBarType.success,
         );
       }
@@ -828,6 +856,9 @@ class _ItemTileWidget extends StatelessWidget {
     Map<String, SensitivityLevel>,
   )? customFormBuilder;
   final void Function(String key, bool? value) onCheckboxChanged;
+  final bool showDeprecated;
+  final List<String> deprecatedKeys;
+  final VoidCallback onToggleDeprecated;
 
   const _ItemTileWidget({
     required this.item,
@@ -849,7 +880,12 @@ class _ItemTileWidget extends StatelessWidget {
     required this.onCancelEditItem,
     this.customFormBuilder,
     required this.onCheckboxChanged,
+    this.showDeprecated = false,
+    this.deprecatedKeys = const [],
+    this.onToggleDeprecated = _noop,
   });
+
+  static void _noop() {}
 
   @override
   Widget build(BuildContext context) {
@@ -864,6 +900,9 @@ class _ItemTileWidget extends StatelessWidget {
         customFormBuilder: customFormBuilder,
         titlePropertyKey: titlePropertyKey,
         onCheckboxChanged: onCheckboxChanged,
+        showDeprecated: showDeprecated,
+        deprecatedKeys: deprecatedKeys,
+        onToggleDeprecated: onToggleDeprecated,
       );
     }
     if (displayItemBuilder != null) {
@@ -885,6 +924,7 @@ class _ItemTileWidget extends StatelessWidget {
       historyFieldIdPrefix: historyFieldIdPrefix,
       nameExtractor: nameExtractor,
       titlePropertyKey: titlePropertyKey,
+      template: template,
     );
   }
 }
@@ -1009,6 +1049,9 @@ class _ItemEditModeWidget extends StatelessWidget {
     Map<String, SensitivityLevel>,
   )? customFormBuilder;
   final void Function(String key, bool? value) onCheckboxChanged;
+  final bool showDeprecated;
+  final List<String> deprecatedKeys;
+  final VoidCallback onToggleDeprecated;
 
   const _ItemEditModeWidget({
     required this.item,
@@ -1020,7 +1063,12 @@ class _ItemEditModeWidget extends StatelessWidget {
     required this.titlePropertyKey,
     this.customFormBuilder,
     required this.onCheckboxChanged,
+    this.showDeprecated = false,
+    this.deprecatedKeys = const [],
+    this.onToggleDeprecated = _noop,
   });
+
+  static void _noop() {}
 
   @override
   Widget build(BuildContext context) {
@@ -1058,13 +1106,17 @@ class _ItemEditModeWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          // Property inputs (skip the title property — already shown above)
-          ...item.properties.keys.where((k) => k != titlePropertyKey).map((key) {
+          // Property inputs — only render active (template) keys.
+          // Deprecated keys are handled by the toggle section below.
+          ...editControllers.keys
+              .where((k) => k != '__name__' && k != titlePropertyKey && template.containsKey(k))
+              .map((key) {
+            final value = item.properties[key] ?? template[key];
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: ObjectCardEditField(
                 propertyKey: key,
-                value: item.properties[key]!,
+                value: value!,
                 controller: editControllers[key],
                 onCheckboxChanged: (newValue) {
                   onCheckboxChanged(key, newValue);
@@ -1072,6 +1124,56 @@ class _ItemEditModeWidget extends StatelessWidget {
               ),
             );
           }),
+          // Deprecated properties toggle (item-only keys not in schema)
+          if (deprecatedKeys.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: onToggleDeprecated,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      showDeprecated
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      showDeprecated
+                          ? l10n.objectEditorHideDeprecated
+                          : l10n.objectEditorShowDeprecated(deprecatedKeys.length),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Render deprecated fields when toggled on (read-only via AbsorbPointer)
+            if (showDeprecated)
+              ...deprecatedKeys.map((key) {
+                final value = item.properties[key];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: AbsorbPointer(
+                    child: Opacity(
+                      opacity: 0.55,
+                      child: ObjectCardEditField(
+                        propertyKey: key,
+                        value: value,
+                        controller: editControllers[key],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+          ],
           const SizedBox(height: 12),
           // Action buttons
           Row(

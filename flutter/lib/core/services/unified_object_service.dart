@@ -21,16 +21,17 @@ class ObjectTypeRegistry {
     for (final t in _kBuiltinTypes) t.id: t,
   };
 
-  /// Get a type definition by ID. Checks built-ins first.
+  /// Get a type definition by ID. Checks custom types first (they override built-ins).
   static ObjectTypeDefinition? getType(
     String id, {
     List<ObjectTypeDefinition> customTypes = const [],
   }) {
-    if (_builtins.containsKey(id)) return _builtins[id];
+    // Custom types take precedence over built-ins (allows overriding built-in types)
     try {
       return customTypes.firstWhere((t) => t.id == id);
     } on Object {
-      return null;
+      // Fall back to built-in if no custom type with this id
+      return _builtins[id];
     }
   }
 
@@ -496,6 +497,7 @@ class UnifiedObjectService {
     Map<String, PropertyValue>? properties,
     List<String>? childrenIds,
     List<Attachment>? attachments,
+    int? schemaVersionWhenSaved,
   }) {
     return object.copyWith(
       name: name,
@@ -505,6 +507,7 @@ class UnifiedObjectService {
       properties: properties,
       childrenIds: childrenIds,
       attachments: attachments,
+      schemaVersionWhenSaved: schemaVersionWhenSaved,
       updatedAt: _currentTimestamp(),
     );
   }

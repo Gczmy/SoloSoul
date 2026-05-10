@@ -14,6 +14,7 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/core/models/section_template.dart';
 import 'package:solosoul_flutter/presentation/pages/section_template_page.dart';
 
@@ -40,6 +41,9 @@ class _PropertyField {
   bool? isDefaultName;
   SensitivityLevel sensitivity;
   final TextEditingController controller;
+  bool isDeprecated;
+  /// The actual stored value for this property (used by deprecated properties).
+  String? storedValue;
 
   _PropertyField({
     this.key = '',
@@ -47,6 +51,8 @@ class _PropertyField {
     this.isDefaultName = false,
     this.sensitivity = SensitivityLevel.public,
     String? displayLabel,
+    this.isDeprecated = false,
+    this.storedValue,
   }) : controller = TextEditingController(text: displayLabel ?? key);
 }
 
@@ -57,11 +63,53 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   String? _selectedParentId;
   final List<_PropertyField> _propertyFields = [];
   bool _fieldsInitialized = false;
+  bool _showDeprecated = false;
 
   bool get _isEditing => widget.objectId != null;
 
   String _getFieldKeyLabel(String key) {
     return translateFieldLabel(key, AppLocalizations.of(context));
+  }
+
+  /// Whether we're editing an item (child of a section/collection).
+  /// Items use parent section's properties as schema; sections use their own.
+  bool get _isEditingItem {
+    if (_existingObject == null) return false;
+    if (_existingObject!.typeId == 'item') {
+      // ignore: avoid_print
+      print('[EDITOR-DEBUG] _isEditingItem: true (typeId==item)');
+      return true;
+    }
+    if (_existingObject!.parentId != null) {
+      final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
+      if (parent != null && parent.typeId != 'page') {
+        // ignore: avoid_print
+        print('[EDITOR-DEBUG] _isEditingItem: true (parent is section)');
+        return true;
+      }
+    }
+    // ignore: avoid_print
+    print('[EDITOR-DEBUG] _isEditingItem: false');
+    return false;
+  }
+
+  /// Schema properties for the current editing context.
+  /// For items: parent section's properties (the schema authority).
+  /// For sections: the section's own properties.
+  Map<String, PropertyValue> get _schemaProperties {
+    if (_isEditingItem && _existingObject?.parentId != null) {
+      final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
+      // ignore: avoid_print
+      print('[EDITOR-DEBUG] _schemaProperties: parentId=${_existingObject!.parentId}, parentFound=${parent != null}, parentTypeId=${parent?.typeId}');
+      if (parent != null && parent.typeId != 'page') {
+        // ignore: avoid_print
+        print('[EDITOR-DEBUG] _schemaProperties: returning parent.properties keys=${parent.properties.keys.toList()}');
+        return parent.properties;
+      }
+    }
+    // ignore: avoid_print
+    print('[EDITOR-DEBUG] _schemaProperties: falling back to _existingObject.properties keys=${_existingObject?.properties.keys.toList()}');
+    return _existingObject?.properties ?? {};
   }
 
   void _initFieldDisplayLabels() {
@@ -102,35 +150,72 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _selectedParentId = object.parentId;
     _propertyFields.clear();
     bool hasDefaultName = false;
-    for (final entry in object.properties.entries) {
-      final sensitivity = entry.value.sensitivity;
-      if (entry.key == 'Title' || entry.key == 'Item Name') {
-        _propertyFields.add(_PropertyField(
-          key: 'Title',
-          type: 'text',
-          isDefaultName: true,
-          sensitivity: sensitivity,
-        ));
-        hasDefaultName = true;
-      } else {
+
+    // ignore: avoid_print
+    print('[EDITOR-DEBUG] _loadExistingObject: object.id=${object.id}, typeId=${object.typeId}, parentId=${object.parentId}, isEditingItem=$_isEditingItem');
+
+    if (_isEditingItem) {
+      // Item: use parent section's properties as schema authority.
+      final schemaProps = _schemaProperties;
+      // ignore: avoid_print
+      print('[EDITOR-DEBUG] schemaProps keys: ${schemaProps.keys.toList()}');
+      // ignore: avoid_print
+      print('[EDITOR-DEBUG] item.properties keys: ${object.properties.keys.toList()}');
+
+      // Add all schema properties (parent section's current properties).
+      for (final entry in schemaProps.entries) {
+        final sensitivity = entry.value.sensitivity;
+        if (entry.key == 'Title' || entry.key == 'Item Name') {
+          _propertyFields.add(_PropertyField(
+            key: 'Title',
+            type: 'text',
+            isDefaultName: true,
+            sensitivity: sensitivity,
+          ));
+          hasDefaultName = true;
+        } else {
+          final storedProp = object.properties[entry.key];
+          _propertyFields.add(_PropertyField(
+            key: entry.key,
+            type: storedProp != null ? _inferTypeFromValue(storedProp) : _inferTypeFromValue(entry.value),
+            sensitivity: sensitivity,
+            storedValue: storedProp != null ? _propertyValueToString(storedProp) : null,
+          ));
+        }
+      }
+
+      // Add item properties NOT in parent schema as deprecated (data preserved).
+      final schemaKeys = schemaProps.keys.toSet();
+      for (final entry in object.properties.entries) {
+        if (schemaKeys.contains(entry.key)) continue;
+        if (entry.key == 'Title' || entry.key == 'Item Name') continue;
         _propertyFields.add(_PropertyField(
           key: entry.key,
           type: _inferTypeFromValue(entry.value),
-          sensitivity: sensitivity,
+          sensitivity: entry.value.sensitivity,
+          storedValue: _propertyValueToString(entry.value),
+          isDeprecated: true,
         ));
       }
-    }
-    // 补全 Schema 中缺失的字段（兼容导入时只写入部分字段的历史数据）
-    final type = ObjectTypeRegistry.getType(object.typeId ?? '');
-    if (type != null) {
-      final existingKeys = _propertyFields.map((f) => f.key).toSet();
-      for (final propDef in type.properties) {
-        if (propDef.id == 'Title' || propDef.id == 'Item Name') continue;
-        if (!existingKeys.contains(propDef.id)) {
+      // ignore: avoid_print
+      print('[EDITOR-DEBUG] final field keys: ${_propertyFields.map((f) => "${f.key}${f.isDeprecated ? "(depr)" : ""}").toList()}');
+    } else {
+      // Section: load own properties directly (they ARE the schema).
+      for (final entry in object.properties.entries) {
+        final sensitivity = entry.value.sensitivity;
+        if (entry.key == 'Title' || entry.key == 'Item Name') {
           _propertyFields.add(_PropertyField(
-            key: propDef.id,
-            type: propDef.type.name,
-            sensitivity: SensitivityLevel.public,
+            key: 'Title',
+            type: 'text',
+            isDefaultName: true,
+            sensitivity: sensitivity,
+          ));
+          hasDefaultName = true;
+        } else {
+          _propertyFields.add(_PropertyField(
+            key: entry.key,
+            type: _inferTypeFromValue(entry.value),
+            sensitivity: sensitivity,
           ));
         }
       }
@@ -143,14 +228,14 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         isDefaultName: true,
       ));
     }
+    setState(() {});
   }
 
   void _initPropertiesFromType(String typeId) {
-    final type = ObjectTypeRegistry.getType(typeId);
-    if (type == null) return;
-
     _propertyFields.clear();
     _propertyFields.add(_PropertyField(key: 'Title', type: 'text', isDefaultName: true));
+    final type = ObjectTypeRegistry.getType(typeId);
+    if (type == null) return;
     for (final propDef in type.properties) {
       if (propDef.id != 'Title' && propDef.id != 'Item Name') {
         _propertyFields.add(_PropertyField(
@@ -183,6 +268,17 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       'select' => SelectProperty(options: [], selectedId: null, sensitivity: sensitivity),
       'multiSelect' => MultiSelectProperty(options: [], selectedIds: [], sensitivity: sensitivity),
       _ => TextProperty(text: '', sensitivity: sensitivity),
+    };
+  }
+
+  /// 根据类型字符串和已有值创建 PropertyValue（保留 item 的存储数据）。
+  static PropertyValue _createPropertyValueWithValue(
+      String type, String value, SensitivityLevel sensitivity) {
+    return switch (type) {
+      'date' => DateProperty(isoDate: value.isEmpty ? null : value, sensitivity: sensitivity),
+      'number' => NumberProperty(value: double.tryParse(value), sensitivity: sensitivity),
+      'checkbox' => CheckboxProperty(checked: value == 'Yes', sensitivity: sensitivity),
+      _ => TextProperty(text: value, sensitivity: sensitivity),
     };
   }
 
@@ -241,19 +337,36 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
                 _PropertyFieldsSection(
                   fields: _propertyFields,
+                  showDeprecated: _showDeprecated,
+                  isItemEditor: _isEditingItem,
+                  onToggleDeprecated: () => setState(() => _showDeprecated = !_showDeprecated),
                   onAdd: () => setState(() => _propertyFields.add(_PropertyField(key: '', type: 'text'))),
-                  onDeleteConfirmed: (index) => setState(() {
-                    final removed = _propertyFields.removeAt(index);
-                    removed.controller.dispose();
-                  }),
+                  onDeleteConfirmed: (index, key) {
+                    if (_isEditingItem) {
+                      // Item: mark as deprecated (hide, preserve data)
+                      setState(() => _propertyFields[index].isDeprecated = true);
+                    } else {
+                      // Section: truly remove from schema
+                      setState(() {
+                        final removed = _propertyFields.removeAt(index);
+                        removed.controller.dispose();
+                      });
+                    }
+                  },
                   onFieldChanged: () => setState(() {}),
+                  onRestoreDeprecated: (key) {
+                    setState(() {
+                      final field = _propertyFields.firstWhere((f) => f.key == key);
+                      field.isDeprecated = false;
+                    });
+                  },
                 ),
                 const SizedBox(height: 24),
 
-                // 模板入口
+                // 模板入口 — liquid glass styled with hover effect
                 const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () async {
+                _TemplateGlassButton(
+                  onTap: () async {
                     final template = await Navigator.of(context).push<SectionTemplate>(
                       MaterialPageRoute(
                         builder: (context) => const SectionTemplatePage(),
@@ -275,11 +388,6 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                       });
                     }
                   },
-                  icon: const Icon(Icons.add_box_outlined, size: 18),
-                  label: Text(AppLocalizations.of(context).sectionTemplateSelectButton),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -331,9 +439,10 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       return;
     }
 
-    // Check for duplicate property keys
+    // Check for duplicate property keys (only among active, non-deprecated fields)
     final keyCounts = <String, int>{};
     for (final field in _propertyFields) {
+      if (field.isDeprecated) continue;
       final key = field.isDefaultName == true ? AppLocalizations.of(context).objectEditorDefaultFieldTitle : field.controller.text.trim();
       if (key.isNotEmpty) {
         keyCounts[key] = (keyCounts[key] ?? 0) + 1;
@@ -347,31 +456,48 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       return;
     }
 
-    // Build properties from property fields
+    // Build properties from property fields.
+    // For items: preserve stored values for active properties, always include deprecated data.
+    // For sections: properties map IS the schema for child items.
     final properties = <String, PropertyValue>{};
+    // ignore: avoid_print
+    print('[EDITOR-DEBUG] _saveObject: isEditingItem=$_isEditingItem, fieldCount=${_propertyFields.length}');
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
           : field.key.trim();
-      if (key.isNotEmpty) {
-        if (field.isDefaultName == true) {
-          properties['Title'] = const TextProperty(
-            text: '',
-            sensitivity: SensitivityLevel.public,
-          );
-        } else {
-          properties[key] = _createEmptyPropertyValue(field.type, field.sensitivity);
-        }
+      if (key.isEmpty) continue;
+      if (field.isDefaultName == true) {
+        properties['Title'] = const TextProperty(
+          text: '',
+          sensitivity: SensitivityLevel.public,
+        );
+        // ignore: avoid_print
+        print('[EDITOR-DEBUG] _saveObject: added Title');
+      } else if (_isEditingItem && field.isDeprecated) {
+        // Always preserve deprecated data so it's not lost
+        properties[key] = _createPropertyValueWithValue(field.type, field.storedValue ?? '', field.sensitivity);
+        // ignore: avoid_print
+        print('[EDITOR-DEBUG] _saveObject: added deprecated $key = ${field.storedValue}');
+      } else if (_isEditingItem && field.storedValue != null) {
+        // Preserve item's stored value for active properties
+        properties[key] = _createPropertyValueWithValue(field.type, field.storedValue!, field.sensitivity);
+        // ignore: avoid_print
+        print('[EDITOR-DEBUG] _saveObject: added active $key = ${field.storedValue}');
+      } else {
+        properties[key] = _createEmptyPropertyValue(field.type, field.sensitivity);
+        // ignore: avoid_print
+        print('[EDITOR-DEBUG] _saveObject: added empty $key');
       }
     }
+    // ignore: avoid_print
+    print('[EDITOR-DEBUG] _saveObject: final properties keys=${properties.keys.toList()}');
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
 
     if (_isEditing && _existingObject != null) {
-      // Record history before update
       await _recordHistory();
 
-      // Handle parent change: if parent changed, use moveObject
       final oldParentId = _existingObject!.parentId;
       final newParentId = _selectedParentId;
 
@@ -649,20 +775,33 @@ class _BottomSaveBar extends StatelessWidget {
 /// Item Properties section with dynamic field list.
 class _PropertyFieldsSection extends StatelessWidget {
   final List<_PropertyField> fields;
+  final bool showDeprecated;
+  final bool isItemEditor;
+  final VoidCallback onToggleDeprecated;
   final VoidCallback onAdd;
-  final ValueChanged<int> onDeleteConfirmed;
+  final void Function(int index, String key) onDeleteConfirmed;
   final VoidCallback onFieldChanged;
+  final ValueChanged<String> onRestoreDeprecated;
 
   const _PropertyFieldsSection({
     required this.fields,
+    required this.showDeprecated,
+    required this.isItemEditor,
+    required this.onToggleDeprecated,
     required this.onAdd,
     required this.onDeleteConfirmed,
     required this.onFieldChanged,
+    required this.onRestoreDeprecated,
   });
 
   @override
   Widget build(BuildContext context) {
+    final deprecatedFields = fields.where((f) => f.isDeprecated).toList();
+    final normalFields = fields.where((f) => !f.isDeprecated && f.isDefaultName != true).toList();
+    final titleFieldList = fields.where((f) => f.isDefaultName == true).toList();
+    final titleField = titleFieldList.isNotEmpty ? titleFieldList.first : null;
     final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -670,6 +809,18 @@ class _PropertyFieldsSection extends StatelessWidget {
           children: [
             Text(AppLocalizations.of(context).objectEditorItemProperties, style: theme.textTheme.titleMedium),
             const Spacer(),
+            if (deprecatedFields.isNotEmpty && isItemEditor)
+              TextButton.icon(
+                onPressed: onToggleDeprecated,
+                icon: Icon(showDeprecated ? Icons.visibility_off : Icons.visibility, size: 16),
+                label: Text(showDeprecated
+                    ? AppLocalizations.of(context).objectEditorHideDeprecated
+                    : AppLocalizations.of(context).objectEditorShowDeprecated(deprecatedFields.length)),
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
             IconButton(
               icon: const Icon(Icons.add, size: 20),
               tooltip: AppLocalizations.of(context).objectEditorAddProperty,
@@ -679,59 +830,169 @@ class _PropertyFieldsSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        ...fields.asMap().entries.map((entry) {
-          final index = entry.key;
-          final field = entry.value;
-          if (field.isDefaultName == true) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      height: 40,
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context).objectEditorDefaultFieldTitle,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
+
+        // Title field
+        if (titleField != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    height: 40,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context).objectEditorDefaultFieldTitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const SizedBox(width: 40),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    flex: 1,
-                    child: SizedBox(height: 40),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 72,
-                    child: Center(child: SensitivityTag(level: field.sensitivity)),
-                  ),
-                  const SizedBox(width: 40),
-                ],
-              ),
-            );
-          }
+                ),
+                const SizedBox(width: 8),
+                const SizedBox(width: 40),
+                const SizedBox(width: 8),
+                const Expanded(
+                  flex: 1,
+                  child: SizedBox(height: 40),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 72,
+                  child: Center(child: SensitivityTag(level: titleField.sensitivity)),
+                ),
+                const SizedBox(width: 40),
+              ],
+            ),
+          ),
+        ],
+
+        // Normal property fields
+        ...normalFields.map((field) {
+          final index = fields.indexOf(field);
           return _PropertyFieldRow(
             field: field,
             index: index,
-            onDeleteConfirmed: onDeleteConfirmed,
+            onDeleteConfirmed: (i, k) => onDeleteConfirmed(i, k),
             onFieldChanged: onFieldChanged,
           );
         }),
+
+        // Deprecated property fields (collapsible)
+        if (deprecatedFields.isNotEmpty && showDeprecated) ...[
+          const SizedBox(height: 8),
+          Divider(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
+          const SizedBox(height: 8),
+          Text(
+            AppLocalizations.of(context).objectEditorDeprecatedProperties,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...deprecatedFields.map((field) => _DeprecatedPropertyRow(
+            field: field,
+            onRestore: () => onRestoreDeprecated(field.key),
+          )),
+        ],
       ],
     );
+  }
+}
+
+/// Read-only deprecated property row with restore action.
+class _DeprecatedPropertyRow extends StatelessWidget {
+  final _PropertyField field;
+  final VoidCallback onRestore;
+
+  const _DeprecatedPropertyRow({
+    required this.field,
+    required this.onRestore,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          // Deprecated badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              l.objectEditorDeprecatedBadge,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+                fontSize: 10,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Key label (localized)
+          Expanded(
+            flex: 2,
+            child: Text(
+              translateFieldLabel(field.key, l),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                decoration: TextDecoration.lineThrough,
+              ),
+            ),
+          ),
+          // Value (read-only)
+          Expanded(
+            flex: 1,
+            child: Container(
+              height: 40,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Text(
+                _getPropertyDisplayValue(field),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Restore button
+          IconButton(
+            icon: Icon(Icons.restore, size: 18, color: theme.colorScheme.primary),
+            tooltip: l.objectEditorRestoreProperty,
+            onPressed: onRestore,
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getPropertyDisplayValue(_PropertyField field) {
+    final value = field.storedValue ?? field.controller.text;
+    if (value.isEmpty) return '—';
+    return value;
   }
 }
 
@@ -739,7 +1000,7 @@ class _PropertyFieldsSection extends StatelessWidget {
 class _PropertyFieldRow extends ConsumerWidget {
   final _PropertyField field;
   final int index;
-  final ValueChanged<int> onDeleteConfirmed;
+  final void Function(int index, String key) onDeleteConfirmed;
   final VoidCallback onFieldChanged;
 
   const _PropertyFieldRow({
@@ -896,7 +1157,7 @@ class _PropertyFieldRow extends ConsumerWidget {
             ),
           );
           if (confirmed == true) {
-            onDeleteConfirmed(index);
+            onDeleteConfirmed(index, field.key);
           }
         },
         visualDensity: VisualDensity.compact,
@@ -905,6 +1166,76 @@ class _PropertyFieldRow extends ConsumerWidget {
   ),
 );
 
+  }
+}
+
+/// Liquid-glass template selector button with hover animation.
+class _TemplateGlassButton extends StatefulWidget {
+  final VoidCallback onTap;
+
+  const _TemplateGlassButton({required this.onTap});
+
+  @override
+  State<_TemplateGlassButton> createState() => _TemplateGlassButtonState();
+}
+
+class _TemplateGlassButtonState extends State<_TemplateGlassButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF1F1F1F);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedScale(
+        scale: _isHovered ? 1.015 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: GlassButton.custom(
+          onTap: widget.onTap,
+          width: double.infinity,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+          glowOpacity: _isHovered ? 0.15 : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: _isHovered
+                        ? textColor
+                        : textColor.withValues(alpha: 0.7),
+                  ),
+                  child: const Text('✦'),
+                ),
+                const SizedBox(width: 10),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: _isHovered
+                        ? textColor
+                        : textColor.withValues(alpha: 0.7),
+                  ),
+                  child: Text(l10n.sectionTemplateSelectButton),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -56,41 +56,21 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   /// Load unified objects from the current profile.
   Future<void> loadFromProfile() async {
     final profile = ref.read(profileNotifierProvider).value;
-    DebugLogger.instance.logInfo(
-      'UNIFIED_OBJECT',
-      'loadFromProfile: profile=${profile != null}, '
-      'currentStateObjects=${state.objects.length}, customTypes=${state.customTypes.length}',
-    );
     if (profile == null) {
-      // 新账号或旧数据没有 profile 时，重置 state 避免显示其他账号的数据
-      DebugLogger.instance.logWarning('UNIFIED_OBJECT', 'loadFromProfile: profile is null, resetting');
       state = const UnifiedObjectData(objects: [], customTypes: []);
       return;
     }
 
     final data = profile.unifiedObjects;
     if (data == null) {
-      // 新账号或旧数据没有 unifiedObjects 时，重置 state 避免显示其他账号的数据
-      DebugLogger.instance.logWarning('UNIFIED_OBJECT', 'loadFromProfile: unifiedObjects is null');
       if (state.objects.isNotEmpty || state.customTypes.isNotEmpty) {
         state = const UnifiedObjectData(objects: [], customTypes: []);
       }
       return;
     }
 
-    // 避免无意义的 state 覆盖（引用相等时跳过，防止级联重建）
-    if (identical(state, data)) {
-      DebugLogger.instance.logInfo('UNIFIED_OBJECT', 'loadFromProfile: state identical to data, skipping');
-      return;
-    }
-
     // 数据完整性修复：挂载孤儿 item 到默认 section
     final repaired = repairOrphanItems(data);
-    DebugLogger.instance.logInfo(
-      'UNIFIED_OBJECT',
-      'loadFromProfile: loaded ${repaired.objects.length} objects, ${repaired.customTypes.length} customTypes',
-    );
-
     state = repaired;
   }
 
@@ -413,6 +393,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     Map<String, PropertyValue>? properties,
     List<String>? childrenIds,
     List<Attachment>? attachments,
+    int? schemaVersionWhenSaved,
   }) async {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
@@ -426,6 +407,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       properties: properties,
       childrenIds: childrenIds,
       attachments: attachments,
+      schemaVersionWhenSaved: schemaVersionWhenSaved,
     );
 
     state = state.copyWith(
@@ -626,7 +608,8 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       updatedTypes.add(type);
     }
     state = state.copyWith(customTypes: updatedTypes);
-    return _saveDebounced(operationDesc: 'Saved custom type');
+    // Type changes must be saved immediately (not debounced) to avoid data loss
+    return _save(operationDesc: 'Saved custom type');
   }
 
   /// Delete a custom object type.

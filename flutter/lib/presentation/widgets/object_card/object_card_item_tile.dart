@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart' show translateFieldLabel;
 import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_history_section.dart';
@@ -24,6 +25,7 @@ class ObjectCardItemTile extends ConsumerWidget {
   final String historyFieldIdPrefix;
   final String Function(Map<String, String>)? nameExtractor;
   final String titlePropertyKey;
+  final Map<String, PropertyValue>? template;
 
   const ObjectCardItemTile({
     super.key,
@@ -36,6 +38,7 @@ class ObjectCardItemTile extends ConsumerWidget {
     required this.historyFieldIdPrefix,
     this.nameExtractor,
     this.titlePropertyKey = 'Title',
+    this.template,
   });
 
   @override
@@ -104,20 +107,12 @@ class ObjectCardItemTile extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SelectableText(
-                      objectItemDisplayTitle(
-                        item,
-                        nameExtractor: nameExtractor,
-                        titlePropertyKey: titlePropertyKey,
-                      ),
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    _buildTitle(context),
                     const SizedBox(height: 4),
                     ObjectCardPropertiesList(
                       item: item,
                       titlePropertyKey: titlePropertyKey,
+                      template: template,
                     ),
                   ],
                 ),
@@ -181,6 +176,48 @@ class ObjectCardItemTile extends ConsumerWidget {
             ObjectCardHistorySection(history: history),
           ],
           const Divider(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTitle(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final displayTitle = objectItemDisplayTitle(
+      item,
+      nameExtractor: nameExtractor,
+      titlePropertyKey: titlePropertyKey,
+    );
+
+    if (displayTitle.isNotEmpty) {
+      return SelectableText(
+        displayTitle,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    // Empty title — show label prefix + empty indicator
+    final label = translateFieldLabel(titlePropertyKey, l10n);
+    return SelectableText.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          TextSpan(
+            text: l10n.commonEmpty,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ),
     );

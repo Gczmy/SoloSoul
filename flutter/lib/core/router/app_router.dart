@@ -168,6 +168,7 @@ GoRouter createRouter(WidgetRef ref) {
             builder: (context, state) {
               final objectId = state.uri.queryParameters['id'];
               final parentId = state.uri.queryParameters['parentId'];
+              print('[ROUTER] ObjectEditorPage: objectId=$objectId, parentId=$parentId');
               return ObjectEditorPage(
                 objectId: objectId,
                 parentId: parentId,

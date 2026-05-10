@@ -5929,6 +5929,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Records of travel including destination, dates, flights, and travel details'**
   String get templateTravelHistoryDesc;
+
+  /// No description provided for @objectEditorSchemaUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Property schema has been updated, syncing automatically'**
+  String get objectEditorSchemaUpdated;
+
+  /// No description provided for @objectEditorShowDeprecated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} deprecated'**
+  String objectEditorShowDeprecated(int count);
+
+  /// No description provided for @objectEditorHideDeprecated.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide Deprecated'**
+  String get objectEditorHideDeprecated;
+
+  /// No description provided for @objectEditorDeprecatedProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Deprecated Properties'**
+  String get objectEditorDeprecatedProperties;
+
+  /// No description provided for @objectEditorDeprecatedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Deprecated'**
+  String get objectEditorDeprecatedBadge;
+
+  /// No description provided for @objectEditorRestoreProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Property'**
+  String get objectEditorRestoreProperty;
+
+  /// No description provided for @operationLogCreatedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Created item \"{name}\"'**
+  String operationLogCreatedItem(String name);
+
+  /// No description provided for @operationLogUpdatedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated item \"{name}\"'**
+  String operationLogUpdatedItem(String name);
+
+  /// No description provided for @operationLogDeletedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted item \"{name}\"'**
+  String operationLogDeletedItem(String name);
+
+  /// No description provided for @operationLogRestoredItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored \"{name}\"'**
+  String operationLogRestoredItem(String name);
+
+  /// No description provided for @operationNotifCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Added \"{name}\"'**
+  String operationNotifCreated(String name);
+
+  /// No description provided for @operationNotifUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated \"{name}\"'**
+  String operationNotifUpdated(String name);
+
+  /// No description provided for @operationNotifDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted \"{name}\"'**
+  String operationNotifDeleted(String name);
+
+  /// No description provided for @operationNotifRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored \"{name}\"'**
+  String operationNotifRestored(String name);
+
+  /// No description provided for @operationNotifPurged.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently deleted \"{name}\"'**
+  String operationNotifPurged(String name);
+
+  /// No description provided for @operationNotifUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get operationNotifUndo;
+
+  /// No description provided for @operationNotifDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get operationNotifDismiss;
+
+  /// No description provided for @predefinedCopySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get predefinedCopySuccess;
+
+  /// No description provided for @predefinedDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete {section}'**
+  String predefinedDeleteFailed(String section);
 }
 
 class _AppLocalizationsDelegate

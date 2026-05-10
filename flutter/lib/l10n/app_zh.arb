@@ -946,7 +946,7 @@
   },
   "commonObject": "对象",
   "fieldHistoryLatest": "最新",
-  "commonEmpty": "（空）",
+  "commonEmpty": "(空)",
   "lockVaultMessage": "锁定保险库后需要主密码才能解锁。",
   "changePasswordWarning": "修改密码将使用新密钥重新加密您的所有数据。",
   "changePasswordCurrentRequired": "请输入当前密码",
@@ -1173,7 +1173,7 @@
   "datePickerSelectDate": "选择日期",
   "headerSensitiveAccessLocked": "敏感访问已锁定",
   "operationLogPropertySnapshot": "属性快照",
-  "commonEmpty": "（空）",
+  "commonEmpty": "(空)",
   "dataMgmtVaultDataSize": "保险库数据大小",
   "dataMgmtAppVersion": "应用版本",
   "dataMgmtRestoreOverwrite": "这将用 {time} 的备份覆盖您当前的数据。系统将首先创建当前状态的安全备份。",
@@ -1372,5 +1372,101 @@
   "templateTravelVisaName": "签证",
   "templateTravelVisaDesc": "包含签证信息，包括类型、号码、签发日期和有效期",
   "templateTravelHistoryName": "出行记录",
-  "templateTravelHistoryDesc": "出行记录，包括目的地、日期、航班和出行详情"
+  "templateTravelHistoryDesc": "出行记录，包括目的地、日期、航班和出行详情",
+  "objectEditorSchemaUpdated": "属性定义已更新，自动同步中",
+  "objectEditorShowDeprecated": "{count} 个已废弃",
+  "@objectEditorShowDeprecated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "objectEditorHideDeprecated": "隐藏废弃",
+  "objectEditorDeprecatedProperties": "废弃属性",
+  "objectEditorDeprecatedBadge": "已废弃",
+  "objectEditorRestoreProperty": "恢复属性",
+  "operationLogCreatedItem": "创建项目\"{name}\"",
+  "@operationLogCreatedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogUpdatedItem": "更新项目\"{name}\"",
+  "@operationLogUpdatedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogDeletedItem": "删除项目\"{name}\"",
+  "@operationLogDeletedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogRestoredItem": "恢复\"{name}\"",
+  "@operationLogRestoredItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifCreated": "添加了\"{name}\"",
+  "@operationNotifCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifUpdated": "更新了\"{name}\"",
+  "@operationNotifUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifDeleted": "删除了\"{name}\"",
+  "@operationNotifDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifRestored": "恢复了\"{name}\"",
+  "@operationNotifRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifPurged": "彻底删除了\"{name}\"",
+  "@operationNotifPurged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifUndo": "撤销",
+  "operationNotifDismiss": "关闭",
+  "predefinedCopySuccess": "已复制到剪贴板",
+  "predefinedDeleteFailed": "删除{section}失败",
+  "@predefinedDeleteFailed": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  }
 }

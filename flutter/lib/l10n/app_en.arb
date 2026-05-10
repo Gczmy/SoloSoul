@@ -1790,5 +1790,101 @@
   "templateTravelVisaName": "Visa",
   "templateTravelVisaDesc": "Contains visa information including type, number, issue date, and expiry date",
   "templateTravelHistoryName": "Travel History",
-  "templateTravelHistoryDesc": "Records of travel including destination, dates, flights, and travel details"
+  "templateTravelHistoryDesc": "Records of travel including destination, dates, flights, and travel details",
+  "objectEditorSchemaUpdated": "Property schema has been updated, syncing automatically",
+  "objectEditorShowDeprecated": "{count} deprecated",
+  "@objectEditorShowDeprecated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "objectEditorHideDeprecated": "Hide Deprecated",
+  "objectEditorDeprecatedProperties": "Deprecated Properties",
+  "objectEditorDeprecatedBadge": "Deprecated",
+  "objectEditorRestoreProperty": "Restore Property",
+  "operationLogCreatedItem": "Created item \"{name}\"",
+  "@operationLogCreatedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogUpdatedItem": "Updated item \"{name}\"",
+  "@operationLogUpdatedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogDeletedItem": "Deleted item \"{name}\"",
+  "@operationLogDeletedItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationLogRestoredItem": "Restored \"{name}\"",
+  "@operationLogRestoredItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifCreated": "Added \"{name}\"",
+  "@operationNotifCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifUpdated": "Updated \"{name}\"",
+  "@operationNotifUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifDeleted": "Deleted \"{name}\"",
+  "@operationNotifDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifRestored": "Restored \"{name}\"",
+  "@operationNotifRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifPurged": "Permanently deleted \"{name}\"",
+  "@operationNotifPurged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "operationNotifUndo": "Undo",
+  "operationNotifDismiss": "Dismiss",
+  "predefinedCopySuccess": "Copied to clipboard",
+  "predefinedDeleteFailed": "Failed to delete {section}",
+  "@predefinedDeleteFailed": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  }
 }

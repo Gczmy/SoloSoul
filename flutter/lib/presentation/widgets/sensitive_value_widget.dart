@@ -257,7 +257,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
                   ClipboardMonitorService.instance.notifySensitiveCopied();
                   showOverlaySnackBar(
                     context,
-                    content: 'Copied to clipboard',
+                    content: AppLocalizations.of(context).commonCopiedToClipboard,
                     type: SnackBarType.success,
                     duration: const Duration(seconds: 1),
                   );

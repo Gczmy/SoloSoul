@@ -150,13 +150,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         migrate_v2_to_v3(conn)?;
     }
 
-    let final_version = get_schema_version(conn)?;
-    if final_version != current_version {
-        println!(
-            "Schema migrated from {} to {}",
-            current_version, final_version
-        );
-    }
+    let _final_version = get_schema_version(conn)?;
 
     Ok(())
 }

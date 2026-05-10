@@ -43,7 +43,6 @@ pub fn write_atomic(path: &Path, data: &[u8]) -> std::io::Result<()> {
         // across filesystem boundaries (unlikely but defensive).
         if let Err(e) = fs::copy(path, &bak_path) {
             // Non-fatal: log and continue — the tmp file is already synced
-            eprintln!("[safe_storage] backup copy failed (non-fatal): {}", e);
         }
     }
 

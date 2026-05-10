@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
     show OperationLogService;
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
@@ -25,6 +26,7 @@ void Function(UnifiedObject item, int index) buildOnDidDelete(
   required bool isPrivacyMode,
   required WidgetRef ref,
 }) {
+  final l10n = AppLocalizations.of(context);
   return (item, index) {
     OperationNotification.show(
       context,
@@ -42,7 +44,7 @@ void Function(UnifiedObject item, int index) buildOnDidDelete(
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.restore,
-          description: 'Restored ${item.name}',
+          description: l10n.operationLogRestoredItem(item.name),
         );
         await OperationLogService.instance.addEntry(entry);
       },
@@ -60,7 +62,7 @@ void Function(UnifiedObject item, int index) buildOnDeleteFailed(
   return (item, index) {
     showOverlaySnackBar(
       context,
-      content: 'Failed to delete $sectionLabel',
+      content: AppLocalizations.of(context).predefinedDeleteFailed(sectionLabel),
       type: SnackBarType.error,
     );
   };
@@ -77,7 +79,7 @@ Future<void> Function(UnifiedObject item, String text) buildOnCopyAll(
     unawaited(ClipboardMonitorService.instance.notifySensitiveCopied());
     showOverlaySnackBar(
       context,
-      content: 'Copied to clipboard',
+      content: AppLocalizations.of(context).predefinedCopySuccess,
       type: SnackBarType.success,
     );
   };
