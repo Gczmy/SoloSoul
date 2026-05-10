@@ -7,6 +7,7 @@
   "commonError": "错误",
   "commonRetry": "重试",
   "commonClose": "关闭",
+  "genericFilterClearAll": "清除",
   "commonLoading": "加载中...",
   "commonSuccess": "成功",
   "commonDelete": "删除",
@@ -667,6 +668,8 @@
   },
   "passwordVerificationRestricted": "受限字段。请输入主密码以继续。",
   "passwordVerificationInvalid": "密码无效",
+  "passwordVerificationBackoff": "密码错误次数过多，请等待 {seconds} 秒后重试。",
+  "passwordVerificationLockedOut": "账户已锁定，请等待 {minutes} 分钟。",
   "trashPasswordRequired": "需要密码",
   "trashEmptyConfirm": "确定要永久删除回收站中的全部 {count} 个项目吗？",
   "@trashEmptyConfirm": {
@@ -1317,6 +1320,8 @@
   "trashTimeFilter1Hour": "1 小时内",
   "trashTypeFilterLabel": "类型：",
   "sectionTemplateTitle": "分区模板",
+  "sectionTemplateFilterAll": "全部",
+  "sectionTemplatePageTagBank": "银行",
   "sectionTemplateSelected": "已选择 {count} 个",
   "@sectionTemplateSelected": {
     "placeholders": {

@@ -7,6 +7,7 @@
   "commonError": "Error",
   "commonRetry": "Retry",
   "commonClose": "Close",
+  "genericFilterClearAll": "Clear",
   "commonLoading": "Loading...",
   "commonSuccess": "Success",
   "commonDelete": "Delete",
@@ -894,6 +895,8 @@
   },
   "passwordVerificationRestricted": "Restricted field. Enter your master password to proceed.",
   "passwordVerificationInvalid": "Invalid password",
+  "passwordVerificationBackoff": "Too many failed attempts. Please wait {seconds}s before trying again.",
+  "passwordVerificationLockedOut": "Account locked. Please wait {minutes} minutes.",
   "trashPasswordRequired": "Password Required",
   "trashEmptyConfirm": "Are you sure you want to permanently delete all {count} items in trash?",
   "@trashEmptyConfirm": {
@@ -1735,6 +1738,8 @@
   "trashTimeFilter1Hour": "Within 1 hour",
   "trashTypeFilterLabel": "Type:",
   "sectionTemplateTitle": "Section Template",
+  "sectionTemplateFilterAll": "All",
+  "sectionTemplatePageTagBank": "Bank",
   "sectionTemplateSelected": "{count} selected",
   "@sectionTemplateSelected": {
     "placeholders": {

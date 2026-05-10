@@ -198,6 +198,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     SoloLog.d('Auth', 'Step3: Vault already unlocked, salt validated by Rust');
 
     SoloLog.d('Auth', 'UNLOCK SUCCESS — vault is unlocked, proceeding to home');
+    // Reset brute-force tracker on successful login
+    _storage.resetAttemptTracker(accountId);
     state = const AsyncData(AuthState.unlocked);
 
     // 自动备份：解锁成功后异步创建加密备份（不阻塞登录流程）
@@ -260,6 +262,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _secureWipe(sessionKey);
 
     state = const AsyncData(AuthState.unlocked);
+    // Reset brute-force tracker on successful biometric login
+    _storage.resetAttemptTracker(accountId);
     SoloLog.d('Auth', 'Vault unlocked with biometric successfully!');
 
     _autoBackupAfterUnlock();
@@ -318,6 +322,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (password.isEmpty) return false;
 
     SoloLog.d('Auth', 'verifyPasswordForSensitiveData: Starting verification...');
+    // Re-throw backoff exceptions so the UI layer can show a countdown
     final result = await _storage.verifyPassword(
       accountId,
       password,

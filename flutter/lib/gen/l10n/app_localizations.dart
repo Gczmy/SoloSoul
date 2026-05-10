@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get commonClose;
 
+  /// No description provided for @genericFilterClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get genericFilterClearAll;
+
   /// No description provided for @commonLoading.
   ///
   /// In en, this message translates to:
@@ -3728,6 +3734,18 @@ abstract class AppLocalizations {
   /// **'Invalid password'**
   String get passwordVerificationInvalid;
 
+  /// No description provided for @passwordVerificationBackoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many failed attempts. Please wait {seconds}s before trying again.'**
+  String passwordVerificationBackoff(Object seconds);
+
+  /// No description provided for @passwordVerificationLockedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Account locked. Please wait {minutes} minutes.'**
+  String passwordVerificationLockedOut(Object minutes);
+
   /// No description provided for @trashPasswordRequired.
   ///
   /// In en, this message translates to:
@@ -5653,6 +5671,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Section Template'**
   String get sectionTemplateTitle;
+
+  /// No description provided for @sectionTemplateFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get sectionTemplateFilterAll;
+
+  /// No description provided for @sectionTemplatePageTagBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get sectionTemplatePageTagBank;
 
   /// No description provided for @sectionTemplateSelected.
   ///

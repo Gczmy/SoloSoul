@@ -7,6 +7,65 @@ part 'auth_state.g.dart';
 /// Sensitive data access validation timeout (unique constant)
 const kSensitiveAccessTimeout = Duration(minutes: 1);
 
+/// Backoff state for brute-force protection
+class BackoffState {
+  final int remainingSeconds;
+  final bool isLockedOut;
+
+  const BackoffState({this.remainingSeconds = 0, this.isLockedOut = false});
+
+}
+
+/// Notifier for backoff state
+class BackoffNotifier extends Notifier<BackoffState> {
+  Timer? _timer;
+
+  @override
+  BackoffState build() {
+    ref.onDispose(() {
+      _timer?.cancel();
+    });
+    return const BackoffState();
+  }
+
+  /// Call after catching PasswordBackoffException to sync state
+  void onBackoffException(int remainingSeconds, bool isLockedOut) {
+    _timer?.cancel();
+    state = BackoffState(
+      remainingSeconds: remainingSeconds,
+      isLockedOut: isLockedOut,
+    );
+    if (!isLockedOut && remainingSeconds > 0) {
+      _startCountdown(remainingSeconds);
+    }
+  }
+
+  void _startCountdown(int seconds) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (state.remainingSeconds <= 1) {
+        timer.cancel();
+        state = const BackoffState();
+      } else {
+        state = BackoffState(
+          remainingSeconds: state.remainingSeconds - 1,
+          isLockedOut: false,
+        );
+      }
+    });
+  }
+
+  /// Call after successful login to clear backoff
+  void clear() {
+    _timer?.cancel();
+    state = const BackoffState();
+  }
+}
+
+/// Provider for backoff state
+final backoffProvider = NotifierProvider<BackoffNotifier, BackoffState>(() {
+  return BackoffNotifier();
+});
+
 /// Sensitive page access state
 class SensitivePageAccessState {
   final DateTime? lastVerified;

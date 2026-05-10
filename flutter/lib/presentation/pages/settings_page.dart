@@ -21,8 +21,6 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/lock_vault_dialog.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
-import 'package:solosoul_flutter/core/services/biometric_service.dart';
-import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart'
     show DebugLogger;
 import 'package:solosoul_flutter/presentation/widgets/settings/debug_log_sheet.dart';
@@ -45,7 +43,6 @@ part 'settings_page_sync_section.dart';
 part 'settings_page_llm_section.dart';
 part 'settings_page_app_info_section.dart';
 part 'settings_page_ad_section.dart';
-part 'settings_page_debug_dialog.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
@@ -149,7 +146,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _loadVaultDataSize();
+    Future.microtask(_loadVaultDataSize);
   }
 
   Future<void> _loadVaultDataSize() async {
@@ -172,58 +169,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   static Future<void> _showDebugActivationDialog(BuildContext context, WidgetRef ref) async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
-    final biometricService = BiometricService.instance;
-    final securityService = SecurityService.instance;
-    await securityService.loadSettings();
-
     final selectedAccount = authNotifier.selectedAccount;
-    final isBiometricAvailable = await biometricService.isAvailable();
-    final isBiometricEnabled = securityService.settings.biometricsEnabled ||
-        securityService.settings.faceIdEnabled;
-    final canUseBiometric = isBiometricAvailable && isBiometricEnabled;
 
     if (!context.mounted) return;
-    final password = await showDialog<String?>(
+    final password = await showPasswordVerificationDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => _DebugActivationDialog(
-        selectedAccount: selectedAccount,
-        canUseBiometric: canUseBiometric,
-        faceIdEnabled: securityService.settings.faceIdEnabled,
-      ),
+      ref: ref,
+      message: AppLocalizations.of(context).settingsEnableDebugModeDesc,
+      passwordHint: selectedAccount?.passwordHint,
+      onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
 
     if (password != null && context.mounted) {
-      final isBiometric = password == _DebugActivationDialog._biometricSentinel;
-      final success = isBiometric ||
-          await authNotifier.verifyPasswordForSensitiveData(password);
-      if (success && context.mounted) {
-        await ref.read(debugModeProvider.notifier).enableDebugMode();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Text(AppLocalizations.of(context).settingsDebugModeEnabled),
-                ],
-              ),
-              backgroundColor: AppTheme.successColor,
-            ),
-          );
-        }
-      } else if (context.mounted) {
+      await ref.read(debugModeProvider.notifier).enableDebugMode();
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.white),
+                const Icon(Icons.check_circle, color: Colors.white),
                 const SizedBox(width: 12),
-                Text(AppLocalizations.of(context).settingsInvalidPassword),
+                Text(AppLocalizations.of(context).settingsDebugModeEnabled),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.successColor,
           ),
         );
       }

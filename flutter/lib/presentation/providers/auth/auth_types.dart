@@ -1,6 +1,21 @@
 export 'package:solosoul_flutter/presentation/providers/auth/auth_helpers.dart'
     show bytesToHex, hexToBytes, constantTimeEquals;
 
+/// Thrown when password verification is blocked by brute-force protection.
+class PasswordBackoffException implements Exception {
+  final int remainingSeconds;
+  final bool isLockedOut;
+
+  const PasswordBackoffException({
+    required this.remainingSeconds,
+    required this.isLockedOut,
+  });
+
+  @override
+  String toString() =>
+      'PasswordBackoffException(remainingSeconds=$remainingSeconds, isLockedOut=$isLockedOut)';
+}
+
 /// Device info for tracking recent device logins
 class DeviceInfo {
   final String deviceName;

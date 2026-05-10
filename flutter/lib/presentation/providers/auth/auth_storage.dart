@@ -36,6 +36,13 @@ class SecureAccountStorage {
     _attemptTrackers.clear();
   }
 
+  /// Resets the attempt tracker for a specific account (call after successful login).
+  /// Fully resets including lockout — successful login should clear all brute-force state.
+  void resetAttemptTracker(String accountId) {
+    final tracker = _attemptTrackers[accountId];
+    tracker?.reset();
+  }
+
   /// Best-effort secure wipe of a byte buffer (fills with zeros).
   static void secureWipe(Uint8List buffer) {
     for (var i = 0; i < buffer.length; i++) {
@@ -231,12 +238,18 @@ class SecureAccountStorage {
     if (tracker.isLockedOut) {
       final remaining = tracker.remainingLockout;
       SoloLog.w('AuthStorage', 'verifyPassword: account locked out, ${remaining.inSeconds}s remaining');
-      return false;
+      throw PasswordBackoffException(
+        remainingSeconds: remaining.inSeconds,
+        isLockedOut: true,
+      );
     }
     if (tracker.shouldBackoff) {
       final delay = tracker.currentBackoff;
       SoloLog.w('AuthStorage', 'verifyPassword: backing off ${delay.inSeconds}s after ${tracker.attempts} failed attempts');
-      await Future<void>.delayed(delay);
+      throw PasswordBackoffException(
+        remainingSeconds: delay.inSeconds,
+        isLockedOut: false,
+      );
     }
 
     SoloLog.d('AuthStorage', 'verifyPassword: Starting for accountId=$accountId hasPassword=${password.isNotEmpty}');
@@ -393,7 +406,7 @@ class AttemptTracker {
     if (attempts < backoffStartAfterAttempts) return Duration.zero;
     final exponent = attempts - backoffStartAfterAttempts;
     final seconds = initialBackoff.inSeconds * (1 << exponent);
-    return Duration(seconds: seconds.clamp(0, 300));
+    return Duration(seconds: seconds.clamp(0, 30));
   }
 
   void recordFailure() {

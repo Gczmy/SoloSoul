@@ -30,6 +30,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonClose => '关闭';
 
   @override
+  String get genericFilterClearAll => '清除';
+
+  @override
   String get commonLoading => '加载中...';
 
   @override
@@ -1900,6 +1903,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwordVerificationInvalid => '密码无效';
 
   @override
+  String passwordVerificationBackoff(Object seconds) {
+    return '密码错误次数过多，请等待 $seconds 秒后重试。';
+  }
+
+  @override
+  String passwordVerificationLockedOut(Object minutes) {
+    return '账户已锁定，请等待 $minutes 分钟。';
+  }
+
+  @override
   String get trashPasswordRequired => '需要密码';
 
   @override
@@ -2980,6 +2993,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sectionTemplateTitle => '分区模板';
+
+  @override
+  String get sectionTemplateFilterAll => '全部';
+
+  @override
+  String get sectionTemplatePageTagBank => '银行';
 
   @override
   String sectionTemplateSelected(int count) {

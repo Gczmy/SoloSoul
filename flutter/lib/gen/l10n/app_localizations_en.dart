@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonClose => 'Close';
 
   @override
+  String get genericFilterClearAll => 'Clear';
+
+  @override
   String get commonLoading => 'Loading...';
 
   @override
@@ -1942,6 +1945,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordVerificationInvalid => 'Invalid password';
 
   @override
+  String passwordVerificationBackoff(Object seconds) {
+    return 'Too many failed attempts. Please wait ${seconds}s before trying again.';
+  }
+
+  @override
+  String passwordVerificationLockedOut(Object minutes) {
+    return 'Account locked. Please wait $minutes minutes.';
+  }
+
+  @override
   String get trashPasswordRequired => 'Password Required';
 
   @override
@@ -3053,6 +3066,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sectionTemplateTitle => 'Section Template';
+
+  @override
+  String get sectionTemplateFilterAll => 'All';
+
+  @override
+  String get sectionTemplatePageTagBank => 'Bank';
 
   @override
   String sectionTemplateSelected(int count) {

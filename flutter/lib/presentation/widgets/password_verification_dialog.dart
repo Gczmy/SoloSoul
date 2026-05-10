@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/biometric_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
+import 'package:solosoul_flutter/presentation/providers/auth/auth.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 // ignore_for_file: use_build_context_synchronously
@@ -25,7 +26,6 @@ mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
   /// Auto-dismisses after 4 seconds.
   void showHintOverlay(String hint) {
     disposeOverlay();
-    final l10n = AppLocalizations.of(context);
 
     final overlay = Overlay.of(context);
     _hintOverlayEntry = OverlayEntry(
@@ -103,7 +103,6 @@ Future<String?> showPasswordVerificationDialog({
 }) async {
   // Capture context before async operations to avoid lint warning
   final dialogContext = context;
-  final l10n = AppLocalizations.of(context);
   final effectiveMessage = message ?? AppLocalizations.of(context).passwordVerificationRestricted;
 
   // Check if biometric auth is available and enabled
@@ -150,7 +149,7 @@ Future<String?> showPasswordVerificationDialog({
 }
 
 /// Password verification dialog content (public for testing).
-class PasswordVerificationDialogContent extends StatefulWidget {
+class PasswordVerificationDialogContent extends ConsumerStatefulWidget {
   const PasswordVerificationDialogContent({
     super.key,
     required this.message,
@@ -163,12 +162,12 @@ class PasswordVerificationDialogContent extends StatefulWidget {
   final Future<bool> Function(String password) onVerify;
 
   @override
-  State<PasswordVerificationDialogContent> createState() =>
+  ConsumerState<PasswordVerificationDialogContent> createState() =>
       PasswordVerificationDialogContentState();
 }
 
 class PasswordVerificationDialogContentState
-    extends State<PasswordVerificationDialogContent>
+    extends ConsumerState<PasswordVerificationDialogContent>
     with PasswordDialogOverlayMixin {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
@@ -178,22 +177,31 @@ class PasswordVerificationDialogContentState
   bool _hasError = false;
   bool _userHasTypedAfterError = false;
   bool _obscurePassword = true;
+  bool _hasFocus = false;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
   }
 
   @override
   void dispose() {
     disposeOverlay();
     _controller.removeListener(_onTextChanged);
+    _focusNode.removeListener(_onFocusChanged);
     // Securely clear password text before disposing
     _controller.text = '';
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onFocusChanged() {
+    setState(() {
+      _hasFocus = _focusNode.hasFocus;
+    });
   }
 
   void _onTextChanged() {
@@ -211,24 +219,40 @@ class PasswordVerificationDialogContentState
   Future<void> _verify() async {
     if (_controller.text.isEmpty) return;
     setState(() => _isVerifying = true);
-    final success = await widget.onVerify(_controller.text);
-    if (!mounted) return;
-    if (success) {
-      Navigator.of(context).pop(_controller.text);
-    } else {
-      setState(() {
-        _isVerifying = false;
-        _errorMessage = AppLocalizations.of(context).passwordVerificationInvalid;
-        _hasError = true;
-        _userHasTypedAfterError = false;
-      });
+    try {
+      final success = await widget.onVerify(_controller.text);
+      if (!mounted) return;
+      if (success) {
+        Navigator.of(context).pop(_controller.text);
+      } else {
+        setState(() {
+          _isVerifying = false;
+          _errorMessage = AppLocalizations.of(context).passwordVerificationInvalid;
+          _hasError = true;
+          _userHasTypedAfterError = false;
+        });
+      }
+    } on PasswordBackoffException catch (e) {
+      if (!mounted) return;
+      setState(() => _isVerifying = false);
+      ref.read(backoffProvider.notifier).onBackoffException(
+        e.remainingSeconds,
+        e.isLockedOut,
+      );
     }
+  }
+
+  Color? get _iconColor {
+    if (_hasError) return Colors.red.shade700;
+    if (_hasFocus) return AppTheme.primaryColor;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final isPasswordEmpty = _controller.text.isEmpty;
+    final backoff = ref.watch(backoffProvider);
+    final isBackoff = backoff.remainingSeconds > 0;
 
     return AlertDialog(
       title: Row(
@@ -265,6 +289,39 @@ class PasswordVerificationDialogContentState
             ),
           ),
           const SizedBox(height: 16),
+          if (isBackoff)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.red.shade700),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context).passwordVerificationBackoff(backoff.remainingSeconds),
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           TextField(
             controller: _controller,
             focusNode: _focusNode,
@@ -272,7 +329,10 @@ class PasswordVerificationDialogContentState
             autofocus: true,
             decoration: InputDecoration(
               labelText: AppLocalizations.of(context).loginMasterPassword,
-              prefixIcon: const Icon(Icons.key),
+              labelStyle: TextStyle(
+                color: _iconColor,
+              ),
+              prefixIcon: Icon(Icons.key, color: _iconColor),
               errorText: _hasError ? _errorMessage : null,
               errorStyle: TextStyle(
                 color: Colors.red.shade700,
@@ -288,7 +348,7 @@ class PasswordVerificationDialogContentState
                       icon: Icon(
                         Icons.help_outline,
                         size: 20,
-                        color: _hasError ? Colors.red.shade700 : null,
+                        color: _iconColor,
                       ),
                       onPressed: () => showHintOverlay(widget.passwordHint ?? AppLocalizations.of(context).loginNoPasswordHint),
                       tooltip: AppLocalizations.of(context).settingsShowPasswordHint,
@@ -299,7 +359,7 @@ class PasswordVerificationDialogContentState
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                       size: 20,
-                      color: _hasError ? Colors.red.shade700 : null,
+                      color: _iconColor,
                     ),
                     onPressed: () {
                       setState(() {
@@ -322,14 +382,8 @@ class PasswordVerificationDialogContentState
           child: Text(AppLocalizations.of(context).commonCancel),
         ),
         ElevatedButton(
-          onPressed: isPasswordEmpty ? null : _verify,
-          child: _isVerifying
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(AppLocalizations.of(context).commonConfirm),
+          onPressed: (isPasswordEmpty || isBackoff || _isVerifying) ? null : _verify,
+          child: Text(AppLocalizations.of(context).commonConfirm),
         ),
       ],
     );
@@ -338,7 +392,7 @@ class PasswordVerificationDialogContentState
 
 /// Biometric-enhanced password verification dialog with Touch ID/Face ID option
 /// Biometric-enhanced password verification dialog content (public for testing).
-class BiometricPasswordDialogContent extends StatefulWidget {
+class BiometricPasswordDialogContent extends ConsumerStatefulWidget {
   const BiometricPasswordDialogContent({
     super.key,
     required this.message,
@@ -355,12 +409,12 @@ class BiometricPasswordDialogContent extends StatefulWidget {
   final SecurityService securityService;
 
   @override
-  State<BiometricPasswordDialogContent> createState() =>
+  ConsumerState<BiometricPasswordDialogContent> createState() =>
       BiometricPasswordDialogContentState();
 }
 
 class BiometricPasswordDialogContentState
-    extends State<BiometricPasswordDialogContent>
+    extends ConsumerState<BiometricPasswordDialogContent>
     with PasswordDialogOverlayMixin {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
@@ -371,22 +425,31 @@ class BiometricPasswordDialogContentState
   bool _userHasTypedAfterError = false;
   bool _isBiometricVerified = false;
   bool _obscurePassword = true;
+  bool _hasFocus = false;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
   }
 
   @override
   void dispose() {
     disposeOverlay();
     _controller.removeListener(_onTextChanged);
+    _focusNode.removeListener(_onFocusChanged);
     // Securely clear password text before disposing
     _controller.text = '';
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onFocusChanged() {
+    setState(() {
+      _hasFocus = _focusNode.hasFocus;
+    });
   }
 
   void _onTextChanged() {
@@ -418,24 +481,39 @@ class BiometricPasswordDialogContentState
   Future<void> _verify() async {
     if (_controller.text.isEmpty) return;
     setState(() => _isVerifying = true);
-    final success = await widget.onVerify(_controller.text);
-    if (!mounted) return;
-    if (success) {
-      Navigator.of(context).pop(_controller.text);
-    } else {
-      setState(() {
-        _isVerifying = false;
-        _errorMessage = AppLocalizations.of(context).passwordVerificationInvalid;
-        _hasError = true;
-        _userHasTypedAfterError = false;
-      });
+    try {
+      final success = await widget.onVerify(_controller.text);
+      if (!mounted) return;
+      if (success) {
+        Navigator.of(context).pop(_controller.text);
+      } else {
+        setState(() {
+          _isVerifying = false;
+          _errorMessage = AppLocalizations.of(context).passwordVerificationInvalid;
+          _hasError = true;
+          _userHasTypedAfterError = false;
+        });
+      }
+    } on PasswordBackoffException catch (e) {
+      if (!mounted) return;
+      setState(() => _isVerifying = false);
+      ref.read(backoffProvider.notifier).onBackoffException(
+        e.remainingSeconds,
+        e.isLockedOut,
+      );
     }
+  }
+
+  Color? get _iconColor {
+    if (_hasError) return Colors.red.shade700;
+    if (_hasFocus) return AppTheme.primaryColor;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final isPasswordEmpty = _controller.text.isEmpty;
+    final backoff = ref.watch(backoffProvider);
     final biometricType = widget.securityService.settings.faceIdEnabled
         ? AppLocalizations.of(context).loginBiometricFaceId
         : AppLocalizations.of(context).loginBiometricTouchId;
@@ -475,11 +553,44 @@ class BiometricPasswordDialogContentState
             ),
           ),
           const SizedBox(height: 16),
+          if (backoff.remainingSeconds > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.red.shade700),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context).passwordVerificationBackoff(backoff.remainingSeconds),
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (!_isBiometricVerified) ...[
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: _isVerifying ? null : _tryBiometric,
+                onPressed: (_isBiometricVerified || _isVerifying) ? null : _tryBiometric,
                 icon: Icon(
                   widget.securityService.settings.faceIdEnabled
                       ? Icons.face_outlined
@@ -508,7 +619,10 @@ class BiometricPasswordDialogContentState
             autofocus: _isBiometricVerified,
             decoration: InputDecoration(
               labelText: AppLocalizations.of(context).loginMasterPassword,
-              prefixIcon: const Icon(Icons.key),
+              labelStyle: TextStyle(
+                color: _iconColor,
+              ),
+              prefixIcon: Icon(Icons.key, color: _iconColor),
               errorText: _hasError ? _errorMessage : null,
               errorStyle: TextStyle(
                 color: Colors.red.shade700,
@@ -524,7 +638,7 @@ class BiometricPasswordDialogContentState
                       icon: Icon(
                         Icons.help_outline,
                         size: 20,
-                        color: _hasError ? Colors.red.shade700 : null,
+                        color: _iconColor,
                       ),
                       onPressed: () => showHintOverlay(widget.passwordHint ?? AppLocalizations.of(context).loginNoPasswordHint),
                       tooltip: AppLocalizations.of(context).settingsShowPasswordHint,
@@ -535,7 +649,7 @@ class BiometricPasswordDialogContentState
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                       size: 20,
-                      color: _hasError ? Colors.red.shade700 : null,
+                      color: _iconColor,
                     ),
                     onPressed: () {
                       setState(() {
@@ -558,14 +672,8 @@ class BiometricPasswordDialogContentState
           child: Text(AppLocalizations.of(context).commonCancel),
         ),
         ElevatedButton(
-          onPressed: isPasswordEmpty ? null : _verify,
-          child: _isVerifying
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(AppLocalizations.of(context).commonConfirm),
+          onPressed: (isPasswordEmpty || backoff.remainingSeconds > 0 || _isVerifying) ? null : _verify,
+          child: Text(AppLocalizations.of(context).commonConfirm),
         ),
       ],
     );
