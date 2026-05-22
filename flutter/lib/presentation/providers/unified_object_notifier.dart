@@ -173,7 +173,8 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return data.copyWith(objects: objects);
   }
 
-  /// 为已有数据的默认分区迁移 schema：如果 properties 为空，从 ObjectTypeRegistry 复制。
+  /// 为已有数据迁移：修复默认页面 iconName、为空分区填充 schema、
+  /// 并创建从未存在过的缺失默认页面/分区。
   UnifiedObjectData _migrateDefaultSectionSchemas(UnifiedObjectData data) {
     final objects = List<UnifiedObject>.from(data.objects);
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -203,6 +204,72 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       if (schemaProps.isEmpty) continue;
 
       objects[i] = obj.copyWith(properties: schemaProps, updatedAt: now);
+      changed = true;
+    }
+
+    // Create missing default pages (never existed before)
+    for (final pageId in [
+      DefaultPageIds.profile,
+      DefaultPageIds.travel,
+      DefaultPageIds.financial,
+      DefaultPageIds.professional,
+    ]) {
+      if (objects.any((o) => o.id == pageId)) continue;
+
+      objects.add(UnifiedObject(
+        id: pageId,
+        typeId: 'page',
+        name: pageNameFromId(pageId),
+        iconName: pageIconNameFromId(pageId),
+        parentId: null,
+        childrenIds: const [],
+        properties: const {},
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ));
+      changed = true;
+    }
+
+    // Create missing default sections (never existed before)
+    for (final entry in allSectionMeta) {
+      final sectionId = entry.key;
+      final meta = entry.value;
+
+      if (objects.any((o) => o.id == sectionId)) continue;
+
+      final itemTypeId = getItemTypeIdForSection(sectionId);
+      final schemaProps = itemTypeId != null
+          ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
+          : <String, PropertyValue>{};
+
+      objects.add(UnifiedObject(
+        id: sectionId,
+        typeId: 'collection',
+        name: meta.name,
+        iconName: meta.iconName,
+        parentId: meta.parentPageId,
+        childrenIds: const [],
+        properties: schemaProps,
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      ));
+
+      // Add section to page's childrenIds
+      final pageIndex = objects.indexWhere((o) => o.id == meta.parentPageId);
+      if (pageIndex >= 0) {
+        final page = objects[pageIndex];
+        if (!page.childrenIds.contains(sectionId)) {
+          objects[pageIndex] = page.copyWith(
+            childrenIds: [...page.childrenIds, sectionId],
+            updatedAt: now,
+          );
+        }
+      }
+
       changed = true;
     }
 
