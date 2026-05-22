@@ -1204,7 +1204,7 @@
   "fieldHistoryLatest": "Latest",
   "commonEmpty": "(empty)",
   "lockVaultMessage": "Locking the vault will require your master password to unlock again.",
-  "changePasswordWarning": "Changing your password will re-encrypt all your data with the new key.",
+  "changePasswordWarning": "Changing your password will re-encrypt all your data with the new key. You may also update only the password hint.",
   "changePasswordCurrentRequired": "Current password is required",
   "changePasswordNewRequired": "New password is required",
   "changePasswordMustDiffer": "New password must be different",

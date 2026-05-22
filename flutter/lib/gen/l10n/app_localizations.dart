@@ -4415,7 +4415,7 @@ abstract class AppLocalizations {
   /// No description provided for @changePasswordWarning.
   ///
   /// In en, this message translates to:
-  /// **'Changing your password will re-encrypt all your data with the new key.'**
+  /// **'Changing your password will re-encrypt all your data with the new key. You may also update only the password hint.'**
   String get changePasswordWarning;
 
   /// No description provided for @changePasswordCurrentRequired.

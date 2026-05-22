@@ -2301,7 +2301,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lockVaultMessage => '锁定保险库后需要主密码才能解锁。';
 
   @override
-  String get changePasswordWarning => '修改密码将使用新密钥重新加密您的所有数据。';
+  String get changePasswordWarning => '修改密码将使用新密钥重新加密您的所有数据，您也可以选择仅修改密码提示。';
 
   @override
   String get changePasswordCurrentRequired => '请输入当前密码';

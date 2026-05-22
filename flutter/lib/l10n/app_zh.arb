@@ -977,7 +977,7 @@
   "fieldHistoryLatest": "最新",
   "commonEmpty": "(空)",
   "lockVaultMessage": "锁定保险库后需要主密码才能解锁。",
-  "changePasswordWarning": "修改密码将使用新密钥重新加密您的所有数据。",
+  "changePasswordWarning": "修改密码将使用新密钥重新加密您的所有数据，您也可以选择仅修改密码提示。" , 
   "changePasswordCurrentRequired": "请输入当前密码",
   "changePasswordNewRequired": "请输入新密码",
   "changePasswordMustDiffer": "新密码必须与当前密码不同",

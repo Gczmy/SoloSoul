@@ -2361,7 +2361,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changePasswordWarning =>
-      'Changing your password will re-encrypt all your data with the new key.';
+      'Changing your password will re-encrypt all your data with the new key. You may also update only the password hint.';
 
   @override
   String get changePasswordCurrentRequired => 'Current password is required';
