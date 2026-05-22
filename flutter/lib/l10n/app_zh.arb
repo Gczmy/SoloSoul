@@ -100,6 +100,7 @@
   "objectEditorPropertyTypeCheckbox": "复选框",
   "objectEditorPropertyTypeSelect": "单选",
   "objectEditorPropertyTypeMultiSelect": "多选",
+  "objectEditorPropertyTypeUrl": "链接",
   "objectEditorSensitivity": "敏感度",
   "objectEditorDeletePropertyTitle": "删除属性",
   "pageEditorNameRequired": "名称为必填项",

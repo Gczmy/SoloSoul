@@ -12,6 +12,7 @@ import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/lock_vault_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 import 'package:solosoul_flutter/presentation/widgets/sidebar/add_page_input.dart';
 import 'package:solosoul_flutter/presentation/widgets/sidebar/nav_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/sidebar/page_tree_tile.dart';
@@ -173,7 +174,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       for (final page in defaultPages)
         NavTile(
           icon: UnifiedObjectService.getIconFromName(page.iconName),
-          label: page.name,
+          label: getLocalizedObjectName(AppLocalizations.of(context), page),
           expanded: _expanded,
           selected: location == _routeForPageId(page.id),
           onTap: () => context.go(_routeForPageId(page.id)!),
@@ -200,111 +201,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
         ),
       const SizedBox(height: 16),
     ];
-
-    if (_expanded) {
-      items.addAll([
-        const Divider(height: 1),
-        const SizedBox(height: 8),
-        // Custom pages label
-        Padding(
-          padding: const EdgeInsets.only(left: 12, right: 4, bottom: 8),
-          child: Row(
-            children: [
-              Text(
-                AppLocalizations.of(context).sidebarPages,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const Spacer(),
-              Tooltip(
-                message: AppLocalizations.of(context).sidebarAddPage,
-                child: InkWell(
-                  onTap: () => setState(() => _isAddingPage = true),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.add,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ]);
-
-      // Root-level drop zone
-      items.add(
-        DragTarget<String>(
-          onWillAcceptWithDetails: (_) => true,
-          onAcceptWithDetails: (details) {
-            ref.read(unifiedObjectProvider.notifier).moveObject(details.data, null);
-          },
-          builder: (context, candidateData, rejectedData) {
-            final isHovering = candidateData.isNotEmpty;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              height: isHovering ? 36 : 4,
-              margin: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: isHovering
-                    ? theme.colorScheme.primary.withValues(alpha: 0.08)
-                    : null,
-                border: isHovering
-                    ? Border.all(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                        width: 1.5,
-                      )
-                    : null,
-              ),
-              child: isHovering
-                  ? Center(
-                      child: Text(
-                        AppLocalizations.of(context).sidebarDropToMakeRootPage,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    )
-                  : null,
-            );
-          },
-        ),
-      );
-
-      // Add page input
-      if (_isAddingPage) {
-        items.add(
-          TapRegion(
-            onTapOutside: (_) {
-              if (_isAddingPage && !_isPickingIcon) {
-                if (_addPageController.text.trim().isNotEmpty) {
-                  _confirmAddPage();
-                } else {
-                  _addPageController.clear();
-                  _newPageIconName = 'article';
-                  setState(() => _isAddingPage = false);
-                }
-              }
-            },
-            child: AddPageInput(
-              controller: _addPageController,
-              iconName: _newPageIconName,
-              onIconTap: _pickNewPageIcon,
-              onConfirm: _confirmAddPage,
-            ),
-          ),
-        );
-      }
-    }
 
     return items;
   }
@@ -379,6 +275,107 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         },
                       ),
                     ),
+
+                    // Fixed "Pages +" section above bottom actions
+                    if (_expanded)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Divider(height: 1),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context).sidebarPages,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Tooltip(
+                                  message: AppLocalizations.of(context).sidebarAddPage,
+                                  child: InkWell(
+                                    onTap: () => setState(() => _isAddingPage = true),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(
+                                        Icons.add,
+                                        size: 16,
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Root-level drop zone
+                            DragTarget<String>(
+                              onWillAcceptWithDetails: (_) => true,
+                              onAcceptWithDetails: (details) {
+                                ref.read(unifiedObjectProvider.notifier).moveObject(details.data, null);
+                              },
+                              builder: (context, candidateData, rejectedData) {
+                                final isHovering = candidateData.isNotEmpty;
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  height: isHovering ? 36 : 4,
+                                  margin: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: isHovering
+                                        ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                                        : null,
+                                    border: isHovering
+                                        ? Border.all(
+                                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                                            width: 1.5,
+                                          )
+                                        : null,
+                                  ),
+                                  child: isHovering
+                                      ? Center(
+                                          child: Text(
+                                            AppLocalizations.of(context).sidebarDropToMakeRootPage,
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        )
+                                      : null,
+                                );
+                              },
+                            ),
+                            // Add page input
+                            if (_isAddingPage)
+                              TapRegion(
+                                onTapOutside: (_) {
+                                  if (_isAddingPage && !_isPickingIcon) {
+                                    if (_addPageController.text.trim().isNotEmpty) {
+                                      _confirmAddPage();
+                                    } else {
+                                      _addPageController.clear();
+                                      _newPageIconName = 'article';
+                                      setState(() => _isAddingPage = false);
+                                    }
+                                  }
+                                },
+                                child: AddPageInput(
+                                  controller: _addPageController,
+                                  iconName: _newPageIconName,
+                                  onIconTap: _pickNewPageIcon,
+                                  onConfirm: _confirmAddPage,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
 
                     // Bottom actions: Lock + Trash + Settings
                     Padding(

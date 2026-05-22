@@ -53,17 +53,17 @@ class NavTile extends StatelessWidget {
                   child: showLabel
                       ? Row(
                           children: [
-                            if (onIconTap != null)
-                              InkWell(
-                                onTap: onIconTap,
-                                borderRadius: BorderRadius.circular(6),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Icon(icon, size: 20, color: fgColor),
-                                ),
-                              )
-                            else
-                              Icon(icon, size: 20, color: fgColor),
+                            // Consistent padding so alignment matches PageTreeTile.
+                            Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: onIconTap != null
+                                  ? InkWell(
+                                      onTap: onIconTap,
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Icon(icon, size: 20, color: fgColor),
+                                    )
+                                  : Icon(icon, size: 20, color: fgColor),
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(

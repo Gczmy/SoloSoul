@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
@@ -265,6 +266,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   Future<void> _confirmRestoreUnifiedObject(UnifiedObject object) async {
+    final l10nDlg = AppLocalizations.of(context);
+    final displayName = getLocalizedObjectName(l10nDlg, object);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -272,11 +275,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           children: [
             const Icon(Icons.restore, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            Text(AppLocalizations.of(context).trashConfirmRestore),
+            Text(l10nDlg.trashConfirmRestore),
           ],
         ),
         content: Text(
-          AppLocalizations.of(context).trashRestoreConfirmBody(object.name),
+          l10nDlg.trashRestoreConfirmBody(displayName),
           style: Theme.of(ctx).textTheme.bodyMedium,
         ),
         actions: [
@@ -298,9 +301,9 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.restore,
-          description: AppLocalizations.of(context).trashRestoredItem(object.name),
+          description: l10nDlg.trashRestoredItem(displayName),
           descriptionKey: 'restoredTrashItem',
-          descriptionArgs: {'name': object.name},
+          descriptionArgs: {'name': displayName},
         );
         await OperationLogService.instance.addEntry(entry);
         unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Restored item'));
@@ -308,7 +311,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: AppLocalizations.of(context).trashRestoredItem(object.name),
+          content: l10nDlg.trashRestoredItem(displayName),
           type: SnackBarType.success,
         );
       }
@@ -316,6 +319,8 @@ class _TrashPageState extends ConsumerState<TrashPage> {
   }
 
   Future<void> _confirmPurgeUnifiedObject(UnifiedObject object) async {
+    final l10nDlg = AppLocalizations.of(context);
+    final displayName = getLocalizedObjectName(l10nDlg, object);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -323,7 +328,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           children: [
             Icon(Icons.warning_amber, color: Colors.orange.shade700),
             const SizedBox(width: 8),
-            Text(AppLocalizations.of(context).trashConfirmPermanentDelete),
+            Text(l10nDlg.trashConfirmPermanentDelete),
           ],
         ),
         content: Column(
@@ -331,7 +336,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              AppLocalizations.of(context).trashPermanentDeleteConfirm(object.name),
+              l10nDlg.trashPermanentDeleteConfirm(displayName),
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -398,11 +403,11 @@ class _TrashPageState extends ConsumerState<TrashPage> {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
           action: LogAction.purge,
-          description: AppLocalizations.of(context).trashPermanentDeletedItem(object.name),
+          description: l10nDlg.trashPermanentDeletedItem(displayName),
           properties: properties,
           propertyLevels: propertyLevels,
           descriptionKey: 'purgedUnifiedItem',
-          descriptionArgs: {'name': object.name},
+          descriptionArgs: {'name': displayName},
         );
         await OperationLogService.instance.addEntry(entry);
         unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Purged item'));
@@ -410,7 +415,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: AppLocalizations.of(context).trashPermanentDeletedItem(object.name),
+          content: l10nDlg.trashPermanentDeletedItem(displayName),
           type: SnackBarType.error,
         );
       }

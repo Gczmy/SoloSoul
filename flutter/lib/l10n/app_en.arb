@@ -190,6 +190,7 @@
   "objectEditorPropertyTypeCheckbox": "Checkbox",
   "objectEditorPropertyTypeSelect": "Select",
   "objectEditorPropertyTypeMultiSelect": "Multi-Select",
+  "objectEditorPropertyTypeUrl": "URL",
   "objectEditorSensitivity": "Sensitivity",
   "objectEditorDeletePropertyTitle": "Delete Property",
   "pageEditorNameRequired": "Name is required",

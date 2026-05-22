@@ -19,6 +19,7 @@ import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_header.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_item_tile_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_new_item_form.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
@@ -589,11 +590,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final overlay = Overlay.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.dialogDeleteSection),
-        content: Text(
-          l10n.dialogDeleteItemConfirm(widget.object.name),
-        ),
+      builder: (context) {
+        final l10nDlg = AppLocalizations.of(context);
+        final displayName = getLocalizedObjectName(l10nDlg, widget.object);
+        return AlertDialog(
+          title: Text(l10nDlg.dialogDeleteSection),
+          content: Text(
+            l10nDlg.dialogDeleteItemConfirm(displayName),
+          ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -605,7 +609,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
             child: Text(l10n.commonDelete),
           ),
         ],
-      ),
+        );
+      },
     );
 
     if (confirmed == true) {

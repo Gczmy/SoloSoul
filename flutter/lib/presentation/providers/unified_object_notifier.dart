@@ -183,8 +183,8 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     for (var i = 0; i < objects.length; i++) {
       final obj = objects[i];
 
-      // Migrate default page icon names
-      if (obj.typeId == 'page') {
+      // Migrate default page icon names (only for built-in default pages)
+      if (obj.typeId == 'page' && _isDefaultPageId(obj.id)) {
         final expectedIcon = pageIconNameFromId(obj.id);
         if (obj.iconName != expectedIcon) {
           objects[i] = obj.copyWith(iconName: expectedIcon, updatedAt: now);
@@ -692,6 +692,13 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       _ => 'Page',
     };
   }
+
+  /// Whether the given page ID is one of the built-in default pages.
+  bool _isDefaultPageId(String pageId) =>
+      pageId == DefaultPageIds.profile ||
+      pageId == DefaultPageIds.travel ||
+      pageId == DefaultPageIds.financial ||
+      pageId == DefaultPageIds.professional;
 
   /// Icon name for a default page (used by sidebar and home quick actions).
   String pageIconNameFromId(String pageId) {

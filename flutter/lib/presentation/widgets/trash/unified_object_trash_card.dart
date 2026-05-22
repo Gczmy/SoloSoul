@@ -4,6 +4,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
@@ -69,6 +70,7 @@ class _UnifiedObjectTrashCardState
           ))
         : null;
 
+    final displayName = getLocalizedObjectName(l10n, object);
     final typeDef = ObjectTypeRegistry.getType(object.typeId ?? '');
     final fieldDefs = typeDef?.properties.map((prop) {
           return FormFieldDef(fieldId: prop.id, label: prop.name);
@@ -108,9 +110,9 @@ class _UnifiedObjectTrashCardState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      object.name.trim().isNotEmpty
+                      displayName.trim().isNotEmpty
                           ? Text(
-                              object.name,
+                              displayName,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -211,7 +213,7 @@ class _UnifiedObjectTrashCardState
                       count: history?.entries.length ?? 0,
                       onShowHistory: () => FieldHistoryDialog.show(
                         context: context,
-                        title: object.name,
+                        title: displayName,
                         icon: UnifiedObjectService.getIconFromName(
                           object.iconName,
                         ),
@@ -284,12 +286,13 @@ class _UnifiedObjectTrashCardState
     final context = this.context;
     final ref = this.ref;
     final l10n = AppLocalizations.of(context);
+    final displayName = getLocalizedObjectName(l10n, object);
     final fieldPrefix = fieldPrefixForTypeId(object.typeId ?? '');
     final deletedAt = object.deletedAt;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(object.name),
+        title: Text(displayName),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

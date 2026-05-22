@@ -333,6 +333,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get objectEditorPropertyTypeMultiSelect => '多选';
 
   @override
+  String get objectEditorPropertyTypeUrl => '链接';
+
+  @override
   String get objectEditorSensitivity => '敏感度';
 
   @override

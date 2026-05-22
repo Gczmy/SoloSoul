@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/dashed_placeholder.dart';
 
 import 'package:solosoul_flutter/presentation/widgets/home/add_button.dart';
@@ -164,11 +165,12 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
     return pages.map((page) {
       final route = _routeForPageId(page.id) ?? '${AppRoutes.objects}/${page.id}';
+      final l10n = AppLocalizations.of(context);
       return QuickAction(
         icon: UnifiedObjectService.getIconFromName(page.iconName),
-        label: page.name,
+        label: getLocalizedObjectName(l10n, page),
         route: route,
-        color: _colorForPage(page.name),
+        color: _colorForPage(page.id),
         isCustom: true,
       );
     }).toList();

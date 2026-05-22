@@ -522,11 +522,6 @@ class PresetSectionTemplates {
       pageTag: 'professional',
       fields: [
         TemplateField(
-          key: 'title',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
-        TemplateField(
           key: 'authors',
           type: 'text',
           sensitivity: SensitivityLevel.public,

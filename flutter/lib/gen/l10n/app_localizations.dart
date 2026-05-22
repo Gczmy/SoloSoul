@@ -698,6 +698,12 @@ abstract class AppLocalizations {
   /// **'Multi-Select'**
   String get objectEditorPropertyTypeMultiSelect;
 
+  /// No description provided for @objectEditorPropertyTypeUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get objectEditorPropertyTypeUrl;
+
   /// No description provided for @objectEditorSensitivity.
   ///
   /// In en, this message translates to:

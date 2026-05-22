@@ -529,7 +529,6 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'article',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'authors', name: 'Authors', type: PropertyType.text),
       PropertyDefinition(id: 'institution', name: 'Institution', type: PropertyType.text),
       PropertyDefinition(id: 'contact', name: 'Contact', type: PropertyType.text),

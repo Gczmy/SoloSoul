@@ -25,7 +25,10 @@ class DynamicSectionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(childrenProvider(section.id));
-    final config = SectionRendererRegistry.getConfig(section.typeId ?? '');
+    // Preset sections are stored with typeId 'collection', so look up by
+    // section ID first, then fall back to typeId for non-preset types.
+    final config = SectionRendererRegistry.getConfigBySectionId(section.id) ??
+        SectionRendererRegistry.getConfig(section.typeId ?? '');
 
     if (config != null) {
       return _buildPresetSection(context, items, config);

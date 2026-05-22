@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_header.dart';
 
 void main() {
@@ -22,6 +23,8 @@ void main() {
     testWidgets('renders icon and name', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -43,6 +46,8 @@ void main() {
     testWidgets('shows edit and delete buttons when showEditActions is true', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -64,6 +69,8 @@ void main() {
     testWidgets('hides edit button when showEditSection is true', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -86,6 +93,8 @@ void main() {
     testWidgets('shows add button when showAddButton is true', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -106,6 +115,8 @@ void main() {
     testWidgets('shows edit_note button when showAddButton and showEditSection', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -129,6 +140,8 @@ void main() {
       var called = false;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -151,6 +164,8 @@ void main() {
       var called = false;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -173,6 +188,8 @@ void main() {
       var called = false;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,
@@ -195,6 +212,8 @@ void main() {
       var called = false;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ObjectCardHeader(
               object: object,

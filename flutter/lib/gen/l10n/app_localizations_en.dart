@@ -339,6 +339,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get objectEditorPropertyTypeMultiSelect => 'Multi-Select';
 
   @override
+  String get objectEditorPropertyTypeUrl => 'URL';
+
+  @override
   String get objectEditorSensitivity => 'Sensitivity';
 
   @override

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/unified_object_service.dart'
+    show DefaultPageIds, DefaultSectionIds, getItemTypeIdForSection;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 
 /// Convert a [UnifiedObject] to a flat String map from its properties.
@@ -289,7 +291,7 @@ class SectionRendererRegistry {
       historyFieldId: 'article',
       fieldPrefix: 'article',
       titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      excludeFields: const {},
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatArticle(item.toFormattedStringLocalized(l10n)),
     ),
@@ -303,4 +305,40 @@ class SectionRendererRegistry {
 
   /// All registered preset type IDs.
   static Iterable<String> get presetTypeIds => _configs.keys;
+
+  /// Get the config for a preset section by its [sectionId] (e.g.
+  /// [DefaultSectionIds.passport]). Returns `null` for custom sections.
+  static PresetSectionConfig? getConfigBySectionId(String sectionId) {
+    final itemTypeId = getItemTypeIdForSection(sectionId);
+    if (itemTypeId == null) return null;
+    return _configs[itemTypeId];
+  }
+}
+
+/// Returns a localized display name for a [UnifiedObject].
+///
+/// Default pages (Profile, Travel, Financial, Professional) and preset
+/// sections (identity, passport, bank account, etc.) are mapped through
+/// [AppLocalizations]. Custom pages/sections fall back to [object.name].
+String getLocalizedObjectName(AppLocalizations? l10n, UnifiedObject object) {
+  if (l10n == null) return object.name;
+
+  // Default pages
+  if (object.typeId == 'page') {
+    return switch (object.id) {
+      DefaultPageIds.profile => l10n.profileTitle,
+      DefaultPageIds.travel => l10n.travelTitle,
+      DefaultPageIds.financial => l10n.financialTitle,
+      DefaultPageIds.professional => l10n.professionalTitle,
+      _ => object.name,
+    };
+  }
+
+  // Preset sections — look up by section ID first (stored typeId is 'collection')
+  final config = SectionRendererRegistry.getConfigBySectionId(object.id) ??
+      SectionRendererRegistry.getConfig(object.typeId ?? '');
+  if (config != null) return config.l10nTitle(l10n);
+
+  // Custom sections / fallback
+  return object.name;
 }

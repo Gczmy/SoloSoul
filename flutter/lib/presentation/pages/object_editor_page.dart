@@ -1038,6 +1038,7 @@ class _PropertyFieldRow extends ConsumerWidget {
                 DropdownMenuItem(value: 'checkbox', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeCheckbox)),
                 DropdownMenuItem(value: 'select', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeSelect)),
                 DropdownMenuItem(value: 'multiSelect', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeMultiSelect)),
+                DropdownMenuItem(value: 'url', child: Text(AppLocalizations.of(context).objectEditorPropertyTypeUrl)),
               ],
               onChanged: (value) {
                 if (value != null) {

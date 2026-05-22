@@ -65,32 +65,47 @@ class OperationMessage {
   }
 
   String _sectionDisplayName(AppLocalizations l10n) {
-    switch (section) {
+    // Match both stored names (e.g. 'Passports') and normalized keys.
+    final s = section.toLowerCase();
+    switch (s) {
       case 'identity':
+      case 'identities':
         return l10n.logSectionIdentity;
+      case 'contact':
       case 'contact information':
+      case 'contacts':
         return l10n.logSectionContactInfo;
       case 'address':
+      case 'addresses':
         return l10n.logSectionAddress;
-      case 'ID card':
+      case 'id card':
+      case 'id cards':
         return l10n.logSectionIdCard;
       case 'passport':
+      case 'passports':
         return l10n.logSectionPassport;
       case 'visa':
+      case 'visas':
         return l10n.logSectionVisa;
       case 'travel history':
+      case 'travel histories':
         return l10n.logSectionTravelHistory;
       case 'bank account':
+      case 'bank accounts':
         return l10n.logSectionBankAccount;
       case 'card':
+      case 'cards':
         return l10n.logSectionCard;
       case 'education':
         return l10n.logSectionEducation;
       case 'employment':
+      case 'employments':
         return l10n.logSectionEmployment;
       case 'skill':
+      case 'skills':
         return l10n.logSectionSkill;
       case 'language':
+      case 'languages':
         return l10n.logSectionLanguage;
       case 'travel':
         return l10n.logSectionTravel;

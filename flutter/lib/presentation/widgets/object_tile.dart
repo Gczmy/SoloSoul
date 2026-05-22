@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 
 /// Generic tile for displaying any UnifiedObject.
 /// Used in reorderable lists and tree views.
@@ -28,6 +29,7 @@ class ObjectTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final icon = UnifiedObjectService.getIconFromName(object.iconName);
+    final displayName = getLocalizedObjectName(l10n, object);
     final type = ObjectTypeRegistry.getType(object.typeId ?? '');
     final typeLabel = type?.name ?? object.typeId ?? l10n.commonObject;
 
@@ -69,7 +71,7 @@ class ObjectTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      object.name,
+                      displayName,
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: 2),

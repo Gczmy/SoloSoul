@@ -192,7 +192,7 @@ class _TreeTile extends StatelessWidget {
                 fgColor: fgColor,
                 onIconTap: onIconTap,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: _TreeTileTitle(
                   isEditing: isEditing,
@@ -403,7 +403,11 @@ class _TreeTileLeading extends StatelessWidget {
       );
     }
 
-    return icon;
+    // Consistent padding so alignment matches whether or not onIconTap is present.
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: icon,
+    );
   }
 }
 
