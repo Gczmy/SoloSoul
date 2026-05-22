@@ -129,7 +129,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           id: meta.parentPageId,
           typeId: 'page',
           name: pageNameFromId(meta.parentPageId),
-          iconName: 'article',
+          iconName: pageIconNameFromId(meta.parentPageId),
           parentId: null,
           childrenIds: const [],
           properties: const {},
@@ -181,6 +181,18 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     for (var i = 0; i < objects.length; i++) {
       final obj = objects[i];
+
+      // Migrate default page icon names
+      if (obj.typeId == 'page') {
+        final expectedIcon = pageIconNameFromId(obj.id);
+        if (obj.iconName != expectedIcon) {
+          objects[i] = obj.copyWith(iconName: expectedIcon, updatedAt: now);
+          changed = true;
+        }
+        continue;
+      }
+
+      // Migrate default section schemas
       if (obj.typeId != 'collection') continue;
       if (obj.properties.isNotEmpty) continue;
 
@@ -614,6 +626,17 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     };
   }
 
+  /// Icon name for a default page (used by sidebar and home quick actions).
+  String pageIconNameFromId(String pageId) {
+    return switch (pageId) {
+      DefaultPageIds.profile => 'person',
+      DefaultPageIds.travel => 'flight',
+      DefaultPageIds.financial => 'account_balance',
+      DefaultPageIds.professional => 'work',
+      _ => 'article',
+    };
+  }
+
   /// Create all default sections for a given page, plus the page itself if missing.
   /// Used by "Restore defaults" button when a default page has no sections.
   Future<bool> createDefaultSectionsForPage(String pageId) async {
@@ -630,7 +653,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         id: pageId,
         typeId: 'page',
         name: pageNameFromId(pageId),
-        iconName: 'article',
+        iconName: pageIconNameFromId(pageId),
         parentId: null,
         childrenIds: const [],
         properties: const {},

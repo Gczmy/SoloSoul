@@ -47,6 +47,18 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
 
   void _toggle() => setState(() => _expanded = !_expanded);
 
+  /// Map default page IDs to their fixed routes.
+  /// Custom pages use the generic `/objects/:id` route.
+  static String? _routeForPageId(String pageId) {
+    return switch (pageId) {
+      DefaultPageIds.profile => AppRoutes.profile,
+      DefaultPageIds.travel => AppRoutes.travel,
+      DefaultPageIds.financial => AppRoutes.financial,
+      DefaultPageIds.professional => AppRoutes.professional,
+      _ => null,
+    };
+  }
+
   void _confirmAddPage() {
     final name = _addPageController.text.trim();
     if (name.isEmpty) return;
@@ -97,9 +109,26 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
   List<Widget> _buildSidebarItems(
     BuildContext context,
     String location,
-    List<UnifiedObject> customPages,
+    List<UnifiedObject> allPages,
     ThemeData theme,
   ) {
+    // Separate default pages (with fixed routes) from custom pages
+    final defaultPageOrder = {
+      DefaultPageIds.profile: 0,
+      DefaultPageIds.travel: 1,
+      DefaultPageIds.financial: 2,
+      DefaultPageIds.professional: 3,
+    };
+    final defaultPages = allPages
+        .where((p) => defaultPageOrder.containsKey(p.id))
+        .toList();
+    defaultPages.sort((a, b) =>
+        defaultPageOrder[a.id]!.compareTo(defaultPageOrder[b.id]!));
+
+    final customPages = allPages
+        .where((p) => !defaultPageOrder.containsKey(p.id))
+        .toList();
+
     final items = <Widget>[
       // Home
       NavTile(
@@ -140,35 +169,35 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       if (kDebugMode) const SizedBox(height: 4),
       const Divider(height: 1),
       const SizedBox(height: 8),
-      // Default pages
-      NavTile(
-        icon: Icons.person_outline,
-        label: AppLocalizations.of(context).sidebarProfile,
-        expanded: _expanded,
-        selected: location == AppRoutes.profile,
-        onTap: () => context.go(AppRoutes.profile),
-      ),
-      NavTile(
-        icon: Icons.flight_outlined,
-        label: AppLocalizations.of(context).sidebarTravel,
-        expanded: _expanded,
-        selected: location == AppRoutes.travel,
-        onTap: () => context.go(AppRoutes.travel),
-      ),
-      NavTile(
-        icon: Icons.account_balance_outlined,
-        label: AppLocalizations.of(context).sidebarFinancial,
-        expanded: _expanded,
-        selected: location == AppRoutes.financial,
-        onTap: () => context.go(AppRoutes.financial),
-      ),
-      NavTile(
-        icon: Icons.work_outline,
-        label: AppLocalizations.of(context).sidebarProfessional,
-        expanded: _expanded,
-        selected: location == AppRoutes.professional,
-        onTap: () => context.go(AppRoutes.professional),
-      ),
+      // All pages (default + custom), default pages first
+      for (final page in defaultPages)
+        NavTile(
+          icon: UnifiedObjectService.getIconFromName(page.iconName),
+          label: page.name,
+          expanded: _expanded,
+          selected: location == _routeForPageId(page.id),
+          onTap: () => context.go(_routeForPageId(page.id)!),
+        ),
+      for (final page in customPages.where((p) => p.parentId == null))
+        PageTreeTile(
+          key: ValueKey(page.id),
+          page: page,
+          expanded: _expanded,
+          depth: 0,
+          isSelected: location == '${AppRoutes.objects}/${page.id}',
+          onTap: () => context.go('${AppRoutes.objects}/${page.id}'),
+          onIconTap: () => _changePageIcon(page.id, page.iconName),
+          expandedPageIds: _expandedPageIds,
+          onToggleExpand: (id) {
+            setState(() {
+              if (_expandedPageIds.contains(id)) {
+                _expandedPageIds.remove(id);
+              } else {
+                _expandedPageIds.add(id);
+              }
+            });
+          },
+        ),
       const SizedBox(height: 16),
     ];
 
@@ -209,31 +238,6 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
           ),
         ),
       ]);
-
-      // Custom pages tree (root-level only)
-      for (final page in customPages.where((p) => p.parentId == null)) {
-        items.add(
-          PageTreeTile(
-            key: ValueKey(page.id),
-            page: page,
-            expanded: _expanded,
-            depth: 0,
-            isSelected: location == '${AppRoutes.objects}/${page.id}',
-            onTap: () => context.go('${AppRoutes.objects}/${page.id}'),
-            onIconTap: () => _changePageIcon(page.id, page.iconName),
-            expandedPageIds: _expandedPageIds,
-            onToggleExpand: (id) {
-              setState(() {
-                if (_expandedPageIds.contains(id)) {
-                  _expandedPageIds.remove(id);
-                } else {
-                  _expandedPageIds.add(id);
-                }
-              });
-            },
-          ),
-        );
-      }
 
       // Root-level drop zone
       items.add(
@@ -310,15 +314,8 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     final theme = Theme.of(context);
     final sidebarWidth = _expanded ? _expandedWidth : _collapsedWidth;
     final location = GoRouterState.of(context).matchedLocation;
-    final allPages = ref.watch(objectsByTypeProvider('page'));
-    // Filter out default pages (Profile, Travel, Financial, Professional)
-    // so they don't appear in the custom pages section.
-    final customPages = allPages
-        .where((p) =>
-            p.id != DefaultPageIds.profile &&
-            p.id != DefaultPageIds.travel &&
-            p.id != DefaultPageIds.financial &&
-            p.id != DefaultPageIds.professional)
+    final allPages = ref.watch(objectsByTypeProvider('page'))
+        .where((p) => !p.isDeleted)
         .toList();
 
     final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
@@ -368,7 +365,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                           final sidebarItems = _buildSidebarItems(
                             context,
                             location,
-                            customPages,
+                            allPages,
                             theme,
                           );
                           return ListView.builder(

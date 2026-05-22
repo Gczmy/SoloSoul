@@ -146,25 +146,36 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     }
   }
 
-  List<QuickAction> _rebuildActionsFromRoutes(List<String> routes) {
-    final all = [..._allAvailableActions];
-    // Append custom pages (exclude default pages)
-    final customPages = ref.read(unifiedObjectProvider).objects
-        .where((o) => o.typeId == 'page' && !o.isDeleted)
-        .where((o) =>
-            o.id != DefaultPageIds.profile &&
-            o.id != DefaultPageIds.travel &&
-            o.id != DefaultPageIds.financial &&
-            o.id != DefaultPageIds.professional);
-    for (final page in customPages) {
-      all.add(QuickAction(
+  /// Map default page IDs to their fixed routes.
+  static String? _routeForPageId(String pageId) {
+    return switch (pageId) {
+      DefaultPageIds.profile => AppRoutes.profile,
+      DefaultPageIds.travel => AppRoutes.travel,
+      DefaultPageIds.financial => AppRoutes.financial,
+      DefaultPageIds.professional => AppRoutes.professional,
+      _ => null,
+    };
+  }
+
+  /// Build quick actions for all pages (default + custom) from unified objects.
+  List<QuickAction> _buildPageActions() {
+    final pages = ref.read(unifiedObjectProvider).objects
+        .where((o) => o.typeId == 'page' && !o.isDeleted);
+
+    return pages.map((page) {
+      final route = _routeForPageId(page.id) ?? '${AppRoutes.objects}/${page.id}';
+      return QuickAction(
         icon: UnifiedObjectService.getIconFromName(page.iconName),
         label: page.name,
-        route: '${AppRoutes.objects}/${page.id}',
+        route: route,
         color: _colorForPage(page.name),
         isCustom: true,
-      ));
-    }
+      );
+    }).toList();
+  }
+
+  List<QuickAction> _rebuildActionsFromRoutes(List<String> routes) {
+    final all = [..._allAvailableActions, ..._buildPageActions()];
 
     final result = <QuickAction>[];
     for (final route in routes) {
@@ -208,10 +219,6 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   }
 
   static const List<QuickAction> _allAvailableActions = [
-    QuickAction(icon: Icons.person_outline, label: 'Profile', route: AppRoutes.profile, color: Colors.blue),
-    QuickAction(icon: Icons.flight_outlined, label: 'Travel', route: AppRoutes.travel, color: Colors.teal),
-    QuickAction(icon: Icons.account_balance_outlined, label: 'Financial', route: AppRoutes.financial, color: Colors.green),
-    QuickAction(icon: Icons.work_outline, label: 'Professional', route: AppRoutes.professional, color: Colors.orange),
     QuickAction(icon: Icons.delete_outline, label: 'Trash', route: AppRoutes.trash, color: Colors.red),
     QuickAction(icon: Icons.settings_outlined, label: 'Settings', route: AppRoutes.settings, color: Colors.grey),
     QuickAction(icon: Icons.security_outlined, label: 'Security', route: AppRoutes.securitySettings, color: Colors.indigo),
@@ -221,28 +228,13 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
   ];
 
   void _showAddActionDialog() async {
-    final customPages = ref.read(unifiedObjectProvider).objects
-        .where((o) => o.typeId == 'page' && !o.isDeleted)
-        .where((o) =>
-            o.id != DefaultPageIds.profile &&
-            o.id != DefaultPageIds.travel &&
-            o.id != DefaultPageIds.financial &&
-            o.id != DefaultPageIds.professional)
-        .toList();
-
-    final customActions = customPages.map((page) => QuickAction(
-          icon: UnifiedObjectService.getIconFromName(page.iconName),
-          label: page.name,
-          route: '${AppRoutes.objects}/${page.id}',
-          color: _colorForPage(page.name),
-          isCustom: true,
-        )).toList();
+    final pageActions = _buildPageActions();
 
     final available = [
       ..._allAvailableActions.where((a) {
         return !_actions.any((existing) => existing.route == a.route);
       }),
-      ...customActions.where((a) {
+      ...pageActions.where((a) {
         return !_actions.any((existing) => existing.route == a.route);
       }),
     ];
