@@ -409,6 +409,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Master password changed successfully';
 
   @override
+  String get settingsPasswordHintChangedSuccess =>
+      'Password hint changed successfully';
+
+  @override
   String get settingsOk => 'OK';
 
   @override
@@ -1347,10 +1351,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLockVaultDesc => 'Lock now and require password';
 
   @override
-  String get settingsChangePassword => 'Change Master Password';
+  String get settingsChangePassword =>
+      'Change Master Password or Password Hint';
 
   @override
-  String get settingsChangePasswordDesc => 'Update your vault password';
+  String get settingsChangePasswordDesc =>
+      'Update your vault password or password hint';
 
   @override
   String get settingsSecurity => 'Security';
@@ -2368,6 +2374,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changePasswordFailed => 'Failed to change password';
+
+  @override
+  String get errorInvalidCurrentPassword => 'Invalid current password';
 
   @override
   String entryAttachments(int count) {

@@ -323,12 +323,21 @@ class SecureAccountStorage {
     );
   }
 
-  /// Update password hint — delegates to Rust.
+  /// Update password hint — updates Rust vault and syncs to Keychain.
   Future<void> updatePasswordHint(String accountId, String hint) async {
+    // Update Rust vault (source of truth)
     NativeVaultService.instance.request(
       'update_account_metadata',
       {'account_id': accountId, 'password_hint': hint},
     );
+
+    // Sync to Keychain so selectedAccount reflects the latest hint
+    final accounts = await listAccounts();
+    final idx = accounts.indexWhere((a) => a.id == accountId);
+    if (idx >= 0) {
+      accounts[idx] = accounts[idx].copyWith(passwordHint: hint);
+      await _saveAccounts(accounts);
+    }
   }
 
   /// Update account metadata — delegates to Rust `update_account_metadata`.

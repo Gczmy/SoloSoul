@@ -30,11 +30,14 @@ class _AccessSettingsSection extends ConsumerWidget {
           title: l10n.settingsChangePassword,
           subtitle: l10n.settingsChangePasswordDesc,
           onTap: () async {
-            final success = await showChangePasswordDialog(
+            final result = await showChangePasswordDialog(
               context: context,
               ref: ref,
             );
-            if (success && context.mounted) {
+            if (result != ChangePasswordDialogResult.cancelled && context.mounted) {
+              final message = result == ChangePasswordDialogResult.hintOnlyChanged
+                  ? AppLocalizations.of(context).settingsPasswordHintChangedSuccess
+                  : AppLocalizations.of(context).settingsPasswordChangedSuccess;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(
@@ -45,7 +48,7 @@ class _AccessSettingsSection extends ConsumerWidget {
                         size: 20,
                       ),
                       const SizedBox(width: 12),
-                      Text(AppLocalizations.of(context).settingsPasswordChangedSuccess),
+                      Text(message),
                     ],
                   ),
                   backgroundColor: AppTheme.successColor,

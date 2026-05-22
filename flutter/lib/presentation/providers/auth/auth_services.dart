@@ -280,6 +280,25 @@ class PasswordService {
 
     return (success: true, error: null);
   }
+
+  /// Update only the password hint (no password change).
+  /// Verifies current password before updating.
+  Future<({bool success, String? error})> updatePasswordHintOnly({
+    required String accountId,
+    required String currentPassword,
+    required String newPasswordHint,
+  }) async {
+    // Step 1: Verify current password
+    final verifyResult = await _storage.verifyPassword(accountId, currentPassword);
+    if (!verifyResult) {
+      return (success: false, error: 'Invalid current password');
+    }
+
+    // Step 2: Update password hint
+    await _storage.updatePasswordHint(accountId, newPasswordHint);
+
+    return (success: true, error: null);
+  }
 }
 
 // ============================================================================

@@ -123,6 +123,7 @@
   "settingsDebugModeEnabled": "调试模式已启用",
   "settingsInvalidPassword": "密码无效",
   "settingsPasswordChangedSuccess": "主密码修改成功",
+  "settingsPasswordHintChangedSuccess": "密码提示修改成功",
   "settingsOk": "确定",
   "settingsEnableDebugMode": "启用调试模式",
   "settingsEnableDebugModeDesc": "输入主密码以启用调试日志。",
@@ -424,8 +425,8 @@
   "settingsAccess": "访问",
   "settingsLockVault": "锁定保险库",
   "settingsLockVaultDesc": "立即锁定并需要密码",
-  "settingsChangePassword": "更改主密码",
-  "settingsChangePasswordDesc": "更新您的保险库密码",
+  "settingsChangePassword": "更改主密码或密码提示",
+  "settingsChangePasswordDesc": "更新您的保险库密码或密码提示",
   "settingsSecurity": "安全",
   "settingsAutoLockPrivacy": "自动锁定与隐私",
   "settingsAutoLockPrivacyDesc": "配置超时和隐私设置",
@@ -981,6 +982,7 @@
   "changePasswordNewRequired": "请输入新密码",
   "changePasswordMustDiffer": "新密码必须与当前密码不同",
   "changePasswordFailed": "密码修改失败",
+  "errorInvalidCurrentPassword": "当前密码不正确",
   "entryAttachments": "{count, plural, =1{1 个附件} other{{count} 个附件}}",
   "@entryAttachments": {
     "placeholders": {

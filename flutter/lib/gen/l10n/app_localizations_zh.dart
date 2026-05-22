@@ -402,6 +402,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPasswordChangedSuccess => '主密码修改成功';
 
   @override
+  String get settingsPasswordHintChangedSuccess => '密码提示修改成功';
+
+  @override
   String get settingsOk => '确定';
 
   @override
@@ -1322,10 +1325,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsLockVaultDesc => '立即锁定并需要密码';
 
   @override
-  String get settingsChangePassword => '更改主密码';
+  String get settingsChangePassword => '更改主密码或密码提示';
 
   @override
-  String get settingsChangePasswordDesc => '更新您的保险库密码';
+  String get settingsChangePasswordDesc => '更新您的保险库密码或密码提示';
 
   @override
   String get settingsSecurity => '安全';
@@ -2311,6 +2314,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changePasswordFailed => '密码修改失败';
+
+  @override
+  String get errorInvalidCurrentPassword => '当前密码不正确';
 
   @override
   String entryAttachments(int count) {

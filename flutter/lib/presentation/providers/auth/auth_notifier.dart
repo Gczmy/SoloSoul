@@ -378,6 +378,27 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     return result;
   }
 
+  /// Update only the password hint (no password change).
+  Future<({bool success, String? error})> updatePasswordHintOnly({
+    required String currentPassword,
+    required String newPasswordHint,
+  }) async {
+    final accountId = _accountManager.selectedAccountId;
+    if (accountId == null) {
+      return (success: false, error: 'No account selected');
+    }
+
+    final result = await _passwordService.updatePasswordHintOnly(
+      accountId: accountId,
+      currentPassword: currentPassword,
+      newPasswordHint: newPasswordHint,
+    );
+    if (result.success) {
+      await updateOperation('Updated password hint');
+    }
+    return result;
+  }
+
   /// Update operation metadata and bump accounts version to trigger UI refresh.
   Future<void> updateOperation(String operationDesc) async {
     await _accountManager.updateOperation(operationDesc);

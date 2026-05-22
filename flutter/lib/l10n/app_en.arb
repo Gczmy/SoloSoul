@@ -213,6 +213,7 @@
   "settingsDebugModeEnabled": "Debug mode enabled",
   "settingsInvalidPassword": "Invalid password",
   "settingsPasswordChangedSuccess": "Master password changed successfully",
+  "settingsPasswordHintChangedSuccess": "Password hint changed successfully",
   "settingsOk": "OK",
   "settingsEnableDebugMode": "Enable Debug Mode",
   "settingsEnableDebugModeDesc": "Enter your master password to enable Debug Log.",
@@ -651,8 +652,8 @@
   "settingsAccess": "Access",
   "settingsLockVault": "Lock Vault",
   "settingsLockVaultDesc": "Lock now and require password",
-  "settingsChangePassword": "Change Master Password",
-  "settingsChangePasswordDesc": "Update your vault password",
+  "settingsChangePassword": "Change Master Password or Password Hint",
+  "settingsChangePasswordDesc": "Update your vault password or password hint",
   "settingsSecurity": "Security",
   "settingsAutoLockPrivacy": "Auto-Lock & Privacy",
   "settingsAutoLockPrivacyDesc": "Configure timeout and privacy settings",
@@ -1208,6 +1209,7 @@
   "changePasswordNewRequired": "New password is required",
   "changePasswordMustDiffer": "New password must be different",
   "changePasswordFailed": "Failed to change password",
+  "errorInvalidCurrentPassword": "Invalid current password",
   "entryAttachments": "{count, plural, =1{1 attachment} other{{count} attachments}}",
   "@entryAttachments": {
     "placeholders": {

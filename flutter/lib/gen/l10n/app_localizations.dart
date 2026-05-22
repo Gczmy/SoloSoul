@@ -836,6 +836,12 @@ abstract class AppLocalizations {
   /// **'Master password changed successfully'**
   String get settingsPasswordChangedSuccess;
 
+  /// No description provided for @settingsPasswordHintChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password hint changed successfully'**
+  String get settingsPasswordHintChangedSuccess;
+
   /// No description provided for @settingsOk.
   ///
   /// In en, this message translates to:
@@ -2603,13 +2609,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsChangePassword.
   ///
   /// In en, this message translates to:
-  /// **'Change Master Password'**
+  /// **'Change Master Password or Password Hint'**
   String get settingsChangePassword;
 
   /// No description provided for @settingsChangePasswordDesc.
   ///
   /// In en, this message translates to:
-  /// **'Update your vault password'**
+  /// **'Update your vault password or password hint'**
   String get settingsChangePasswordDesc;
 
   /// No description provided for @settingsSecurity.
@@ -4435,6 +4441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to change password'**
   String get changePasswordFailed;
+
+  /// No description provided for @errorInvalidCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid current password'**
+  String get errorInvalidCurrentPassword;
 
   /// No description provided for @entryAttachments.
   ///
