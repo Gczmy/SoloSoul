@@ -804,6 +804,8 @@
   "pageEditorPageTitleHint": "Page title",
   "pageEditorSaveFirst": "Save the page first to add sections",
   "pageEditorNoSections": "No sections yet",
+  "pageNoSections": "No sections yet",
+  "pageRestoreDefaults": "Restore Defaults",
   "pageEditorEnterSectionTitle": "Enter section title",
   "pageEditorEditSectionTitle": "Edit Section",
   "folderPickerGoUp": "Go up",

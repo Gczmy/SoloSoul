@@ -91,62 +91,82 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
             .toList() ??
         [];
 
-    // Load predefined schema from registry
-    final typeDef = ObjectTypeRegistry.getType(widget.typeId);
-    if (typeDef == null) {
-      return _PredefinedErrorWidget(message: l10n.predefinedUnknownType(widget.typeId));
+    // If the section was soft-deleted by the user, don't render it at all.
+    // The user can restore it from Trash or use "Restore defaults".
+    if (section != null && section.isDeleted) {
+      return const SizedBox.shrink();
     }
 
-    // Build template from schema + FieldRegistry sensitivity
-    final prefix = _fieldPrefix(widget.typeId);
-    final template = <String, PropertyValue>{
-      for (final prop in typeDef.properties)
-        prop.id: _emptyPropertyValueForType(
-          prop.type,
-          _lookupSensitivity('$prefix.${prop.id}'),
-        ),
-    };
-
-    // Always use widget.title (live l10n) to reflect current locale,
-    // not the stored section name which may be from another locale.
-    final sectionObject = (section ??
+    // Use stored name if available, fallback to widget.title (l10n) for
+    // first-time rendering before the section object is persisted.
+    final effectiveName = section?.name.isNotEmpty == true ? section!.name : widget.title;
+    final sectionObject = section ??
         UnifiedObject(
           id: widget.sectionId,
           typeId: widget.typeId,
-          name: widget.title,
+          name: effectiveName,
           iconName: getSectionMeta(widget.sectionId)?.iconName ?? 'folder',
           properties: const {},
           createdAt: DateTime.now().millisecondsSinceEpoch,
           updatedAt: DateTime.now().millisecondsSinceEpoch,
-        )).copyWith(name: widget.title);
+        );
+
+    // Fallback: if section has no schema yet (edge case), build from registry.
+    final prefix = fieldPrefixForTypeId(widget.typeId);
+    final Map<String, PropertyValue>? itemTemplate;
+    if (sectionObject.properties.isEmpty) {
+      final typeDef = ObjectTypeRegistry.getType(widget.typeId);
+      if (typeDef != null) {
+        itemTemplate = <String, PropertyValue>{
+          for (final prop in typeDef.properties)
+            prop.id: emptyPropertyValueForType(
+              prop.type,
+              lookupFieldSensitivity('$prefix.${prop.id}'),
+            ),
+        };
+      } else {
+        itemTemplate = null;
+      }
+    } else {
+      itemTemplate = null; // Use section.properties as schema
+    }
 
     return ObjectCard(
       object: sectionObject,
       items: items,
       itemTypeId: widget.typeId,
-      itemTemplate: template,
+      itemTemplate: itemTemplate,
       historyFieldIdPrefix: prefix,
+      titlePropertyKey: _titlePropertyKeyForTypeId(widget.typeId),
       nameExtractor: (props) {
         for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
           if (props[key]?.isNotEmpty == true) return props[key]!;
         }
         return l10n.commonUntitled;
       },
-      showEditActions: false,
-      showAddButton: true,
+      showEditActions: true,
+      showAddButton: section != null && !section.isDeleted,
       customFormBuilder: widget.customFormBuilder,
       displayItemBuilder: widget.displayItemBuilder != null
           ? (context, item, {required isEditing}) {
               final map = <String, String>{};
-              for (final prop in typeDef.properties) {
-                final value = item.properties[prop.id];
-                map[prop.id] = value != null ? propValueToString(value) : '';
+              for (final entry in item.properties.entries) {
+                map[entry.key] = propValueToString(entry.value);
               }
               return widget.displayItemBuilder!(item, map);
             }
           : null,
       onSaveItem: ({required itemId, required name, required properties}) async {
         final notifier = ref.read(unifiedObjectProvider.notifier);
+
+        // If the section was soft-deleted, restore it first so the new item
+        // has a valid parent.
+        final currentSection = ref.read(unifiedObjectProvider).objects
+            .firstWhere((o) => o.id == widget.sectionId, orElse: () => sectionObject);
+        if (currentSection.isDeleted) {
+          await notifier.restoreObject(widget.sectionId);
+        }
+
         if (itemId == null) {
           await notifier.createDefaultItem(
             sectionId: widget.sectionId,
@@ -213,57 +233,20 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     );
   }
 
-
-
-  /// Map typeId to the field-prefix used by FieldRegistry.
-  String _fieldPrefix(String typeId) {
-    return switch (typeId) {
-      'profile_identity' => 'identity',
-      'profile_contact' => 'contact',
-      'profile_id_card' => 'idCard',
-      'profile_address' => 'address',
-      'travel_passport' => 'passport',
-      'travel_visa' => 'visa',
-      'travel_history' => 'travel',
-      'financial_bank_account' => 'bankAccount',
-      'financial_card' => 'card',
-      'financial_tax_id' => 'taxId',
-      'professional_education' => 'education',
-      'professional_employment' => 'employment',
-      'professional_skill' => 'skill',
-      'professional_language' => 'language',
-      'professional_award' => 'award',
-      'professional_article' => 'article',
-      _ => typeId,
-    };
-  }
-
   /// Map typeId to LogSection for operation logging.
   LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
 
-  /// 根据 PropertyType 创建对应的空 PropertyValue。
-  static PropertyValue _emptyPropertyValueForType(PropertyType type, SensitivityLevel sensitivity) {
-    return switch (type) {
-      PropertyType.text => TextProperty(text: '', sensitivity: sensitivity),
-      PropertyType.number => NumberProperty(value: null, sensitivity: sensitivity),
-      PropertyType.date => DateProperty(isoDate: null, sensitivity: sensitivity),
-      PropertyType.checkbox => CheckboxProperty(checked: false, sensitivity: sensitivity),
-      PropertyType.select => SelectProperty(options: [], selectedId: null, sensitivity: sensitivity),
-      PropertyType.multiSelect => MultiSelectProperty(options: [], selectedIds: [], sensitivity: sensitivity),
-      PropertyType.relation => RelationProperty(targetObjectId: null, sensitivity: sensitivity),
-      PropertyType.url => UrlProperty(url: null, sensitivity: sensitivity),
+  /// Infer the property key that acts as the title/name field for a given type.
+  String _titlePropertyKeyForTypeId(String typeId) {
+    return switch (typeId) {
+      'profile_identity' => 'fullName',
+      'travel_history' => 'destination',
+      'professional_education' => 'institution',
+      'professional_employment' => 'company',
+      'professional_skill' => 'name',
+      'professional_language' => 'name',
+      _ => 'title',
     };
-  }
-
-  /// Look up sensitivity from FieldRegistry defaults.
-  SensitivityLevel _lookupSensitivity(String fieldId) {
-    try {
-      return FieldRegistry.defaultFields
-          .firstWhere((f) => f.fieldId == fieldId)
-          .level;
-    } on Object catch (_) {
-      return SensitivityLevel.public;
-    }
   }
 }
 

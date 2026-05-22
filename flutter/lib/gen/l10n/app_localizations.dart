@@ -3350,6 +3350,18 @@ abstract class AppLocalizations {
   /// **'No sections yet'**
   String get pageEditorNoSections;
 
+  /// No description provided for @pageNoSections.
+  ///
+  /// In en, this message translates to:
+  /// **'No sections yet'**
+  String get pageNoSections;
+
+  /// No description provided for @pageRestoreDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Defaults'**
+  String get pageRestoreDefaults;
+
   /// No description provided for @pageEditorEnterSectionTitle.
   ///
   /// In en, this message translates to:

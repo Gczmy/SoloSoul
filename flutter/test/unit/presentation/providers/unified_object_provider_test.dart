@@ -92,7 +92,7 @@ void main() {
       expect(identical(result, data), isTrue);
     });
 
-    test('repairs orphan item with missing parent', () {
+    test('repairs orphan item with missing parent by clearing parentId', () {
       final data = UnifiedObjectData(
         objects: [
           _makeObject(
@@ -106,14 +106,13 @@ void main() {
       );
 
       final result = notifier.repairOrphanItems(data);
-      // Should create page, section, and reparent item
-      expect(result.objects.length, greaterThan(1));
+      // Target section does not exist — parentId is cleared (becomes root-level)
+      expect(result.objects.length, 1);
       final item = result.objects.firstWhere((o) => o.id == 'item1');
-      expect(item.parentId, isNot('missing_section'));
-      expect(item.parentId, isNotNull);
+      expect(item.parentId, isNull);
     });
 
-    test('creates missing page for orphan repair', () {
+    test('does not create missing page for orphan repair', () {
       final data = UnifiedObjectData(
         objects: [
           _makeObject(
@@ -127,12 +126,12 @@ void main() {
       );
 
       final result = notifier.repairOrphanItems(data);
-      // A page should be created
+      // No page should be created when target section is missing
       final pages = result.objects.where((o) => o.typeId == 'page').toList();
-      expect(pages, isNotEmpty);
+      expect(pages, isEmpty);
     });
 
-    test('creates missing section for orphan repair', () {
+    test('does not create missing section for orphan repair', () {
       final data = UnifiedObjectData(
         objects: [
           _makeObject(
@@ -146,9 +145,9 @@ void main() {
       );
 
       final result = notifier.repairOrphanItems(data);
-      // A collection should be created
+      // No collection should be created when target section is missing
       final sections = result.objects.where((o) => o.typeId == 'collection').toList();
-      expect(sections, isNotEmpty);
+      expect(sections, isEmpty);
     });
 
     test('does not modify items with valid parents', () {
@@ -211,7 +210,7 @@ void main() {
       expect(identical(result, data), isTrue);
     });
 
-    test('updates childrenIds on created sections and pages', () {
+    test('clears parentId when target section is missing', () {
       final data = UnifiedObjectData(
         objects: [
           _makeObject(
@@ -225,13 +224,12 @@ void main() {
       );
 
       final result = notifier.repairOrphanItems(data);
-      // Find the section that now parents item1
+      // parentId is cleared since target section does not exist
       final item = result.objects.firstWhere((o) => o.id == 'item1');
-      final section = result.objects.firstWhere((o) => o.id == item.parentId);
-      expect(section.childrenIds, contains('item1'));
+      expect(item.parentId, isNull);
     });
 
-    test('handles multiple orphans of same type', () {
+    test('handles multiple orphans of same type by clearing parentIds', () {
       final data = UnifiedObjectData(
         objects: [
           _makeObject(
@@ -253,8 +251,9 @@ void main() {
       final result = notifier.repairOrphanItems(data);
       final items = result.objects.where((o) => o.id.startsWith('item')).toList();
       expect(items.length, 2);
-      // Both should be reparented to the same section
-      expect(items.first.parentId, items.last.parentId);
+      // Both should have parentId cleared
+      expect(items.first.parentId, isNull);
+      expect(items.last.parentId, isNull);
     });
   });
 

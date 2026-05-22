@@ -1,18 +1,5 @@
 part of 'unified_object_provider.dart';
 
-/// Result of orphan identification phase.
-class _OrphanAnalysis {
-  final Map<String, String> orphanTargets; // orphanId -> targetSectionId
-  final Map<String, SectionMeta> neededSections;
-  final Set<String> neededPages;
-
-  _OrphanAnalysis({
-    required this.orphanTargets,
-    required this.neededSections,
-    required this.neededPages,
-  });
-}
-
 /// Notifier for managing all unified objects.
 class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   late final UnifiedObjectService _service;
@@ -70,7 +57,16 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     // 数据完整性修复：挂载孤儿 item 到默认 section
-    final repaired = repairOrphanItems(data);
+    var repaired = repairOrphanItems(data);
+
+    // 如果数据为空（首次启动），自动创建默认 page + section（带 schema）
+    if (repaired.objects.isEmpty) {
+      repaired = _createDefaultStructure(repaired);
+    } else {
+      // 已有数据：为默认分区迁移 schema（如果 properties 为空）
+      repaired = _migrateDefaultSectionSchemas(repaired);
+    }
+
     state = repaired;
   }
 
@@ -79,130 +75,126 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     state = const UnifiedObjectData(objects: [], customTypes: []);
   }
 
-  /// 启动时数据完整性检查：将所有 parentId 指向不存在的 section 的 item
-  /// 自动挂载到对应的默认 section（section 不存在则自动创建）。
+  /// 启动时数据完整性检查：将 parentId 指向不存在的 section 的孤儿 item
+  /// 重新挂载到对应默认 section，但不再自动创建缺失的 section/page。
+  /// 如果目标 section 不存在，孤儿 item 的 parentId 会被清空（成为根级对象）。
   /// Public for testing.
   UnifiedObjectData repairOrphanItems(UnifiedObjectData data) {
-    // Phase 1: Identify orphans and target sections
-    final orphans = _identifyOrphans(data);
-    if (orphans.orphanTargets.isEmpty) return data;
+    final objects = List<UnifiedObject>.from(data.objects);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var changed = false;
 
-    // Phase 2: Repar orphans
-    return _reparOrphans(data, orphans);
-  }
-
-  /// Phase 1: Identify orphan items and their target sections.
-  _OrphanAnalysis _identifyOrphans(UnifiedObjectData data) {
-    final orphanTargets = <String, String>{}; // orphanId -> targetSectionId
-    final neededSections = <String, SectionMeta>{};
-    final neededPages = <String>{};
-
-    for (final obj in data.objects) {
+    for (var i = 0; i < objects.length; i++) {
+      final obj = objects[i];
       if (obj.parentId == null) continue;
       if (obj.typeId == 'page' || obj.typeId == 'collection') continue;
-      if (data.objects.any((o) => o.id == obj.parentId)) continue;
 
+      final parentExists = data.objects.any((o) => o.id == obj.parentId && !o.isDeleted);
+      if (parentExists) continue;
+
+      // Parent missing — try to find the default section for this item type
       final itemTypeId = obj.typeId;
       if (itemTypeId == null) continue;
       final targetSectionId = getDefaultSectionIdForItemType(itemTypeId);
-      if (targetSectionId == null) continue;
 
-      orphanTargets[obj.id] = targetSectionId;
-
-      if (!data.objects.any((o) => o.id == targetSectionId) && !neededSections.containsKey(targetSectionId)) {
-        final meta = getSectionMeta(targetSectionId);
-        if (meta == null) continue;
-        neededSections[targetSectionId] = meta;
-        if (!data.objects.any((o) => o.id == meta.parentPageId)) {
-          neededPages.add(meta.parentPageId);
-        }
+      if (targetSectionId != null &&
+          data.objects.any((o) => o.id == targetSectionId && !o.isDeleted)) {
+        // Target section exists — reparent
+        objects[i] = obj.copyWith(parentId: targetSectionId, updatedAt: now);
+        changed = true;
+      } else {
+        // No valid target — clear parentId so item becomes root-level
+        objects[i] = obj.copyWith(parentId: null, updatedAt: now);
+        changed = true;
       }
     }
 
-    return _OrphanAnalysis(
-      orphanTargets: orphanTargets,
-      neededSections: neededSections,
-      neededPages: neededPages,
-    );
+    return changed ? data.copyWith(objects: objects) : data;
   }
 
-  /// Phase 2: Repar orphans by adding missing pages/sections and reparenting.
-  UnifiedObjectData _reparOrphans(UnifiedObjectData data, _OrphanAnalysis orphans) {
+  /// 首次启动时创建完整的默认 page + section 结构，并为每个 section 复制 builtin schema。
+  UnifiedObjectData _createDefaultStructure(UnifiedObjectData data) {
     final objects = List<UnifiedObject>.from(data.objects);
     final now = DateTime.now().millisecondsSinceEpoch;
-    final orphanTargets = orphans.orphanTargets;
-    final neededSections = orphans.neededSections;
-    final neededPages = orphans.neededPages;
 
-    final newObjects = <UnifiedObject>[];
-    final sectionChildAdds = <String, List<String>>{}; // sectionId -> [orphanIds]
-    final pageChildAdds = <String, List<String>>{}; // pageId -> [sectionIds]
-
-    for (final pageId in neededPages) {
-      newObjects.add(UnifiedObject(
-        id: pageId,
-        typeId: 'page',
-        name: pageNameFromId(pageId),
-        iconName: 'article',
-        parentId: null,
-        childrenIds: const [],
-        properties: const {},
-        isDeleted: false,
-        deletedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      ));
-    }
-
-    for (final entry in neededSections.entries) {
+    for (final entry in allSectionMeta) {
+      final sectionId = entry.key;
       final meta = entry.value;
-      newObjects.add(UnifiedObject(
-        id: entry.key,
+      final itemTypeId = getItemTypeIdForSection(sectionId);
+
+      // Ensure page exists
+      final pageExists = objects.any((o) => o.id == meta.parentPageId);
+      if (!pageExists) {
+        objects.add(UnifiedObject(
+          id: meta.parentPageId,
+          typeId: 'page',
+          name: pageNameFromId(meta.parentPageId),
+          iconName: 'article',
+          parentId: null,
+          childrenIds: const [],
+          properties: const {},
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ));
+      }
+
+      // Build schema from builtin type definition
+      final schemaProps = itemTypeId != null
+          ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
+          : <String, PropertyValue>{};
+
+      objects.add(UnifiedObject(
+        id: sectionId,
         typeId: 'collection',
         name: meta.name,
         iconName: meta.iconName,
         parentId: meta.parentPageId,
         childrenIds: const [],
-        properties: const {},
+        properties: schemaProps,
         isDeleted: false,
         deletedAt: null,
         createdAt: now,
         updatedAt: now,
       ));
-      pageChildAdds.putIfAbsent(meta.parentPageId, () => []).add(entry.key);
-    }
 
-    // Build updated list: reparent orphans, add new objects
-    final updatedObjects = <UnifiedObject>[];
-    for (final obj in objects) {
-      final targetSectionId = orphanTargets[obj.id];
-      if (targetSectionId != null) {
-        updatedObjects.add(obj.copyWith(parentId: targetSectionId, updatedAt: now));
-        sectionChildAdds.putIfAbsent(targetSectionId, () => []).add(obj.id);
-      } else {
-        updatedObjects.add(obj);
-      }
-    }
-    updatedObjects.addAll(newObjects);
-
-    // Apply child additions to existing sections/pages
-    final result = <UnifiedObject>[];
-    for (final obj in updatedObjects) {
-      final sectionAdds = sectionChildAdds[obj.id];
-      final pageAdds = pageChildAdds[obj.id];
-      if (sectionAdds != null || pageAdds != null) {
-        final newChildren = [
-          ...obj.childrenIds,
-          if (sectionAdds != null) ...sectionAdds,
-          if (pageAdds != null) ...pageAdds,
-        ];
-        result.add(obj.copyWith(childrenIds: newChildren, updatedAt: now));
-      } else {
-        result.add(obj);
+      // Add section to page's childrenIds
+      final pageIndex = objects.indexWhere((o) => o.id == meta.parentPageId);
+      if (pageIndex >= 0) {
+        final page = objects[pageIndex];
+        objects[pageIndex] = page.copyWith(
+          childrenIds: [...page.childrenIds, sectionId],
+          updatedAt: now,
+        );
       }
     }
 
-    return data.copyWith(objects: result);
+    return data.copyWith(objects: objects);
+  }
+
+  /// 为已有数据的默认分区迁移 schema：如果 properties 为空，从 ObjectTypeRegistry 复制。
+  UnifiedObjectData _migrateDefaultSectionSchemas(UnifiedObjectData data) {
+    final objects = List<UnifiedObject>.from(data.objects);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var changed = false;
+
+    for (var i = 0; i < objects.length; i++) {
+      final obj = objects[i];
+      if (obj.typeId != 'collection') continue;
+      if (obj.properties.isNotEmpty) continue;
+
+      final itemTypeId = getItemTypeIdForSection(obj.id);
+      if (itemTypeId == null) continue;
+
+      final schemaProps = ObjectTypeRegistry.buildPropertiesFromType(itemTypeId);
+      if (schemaProps.isEmpty) continue;
+
+      objects[i] = obj.copyWith(properties: schemaProps, updatedAt: now);
+      changed = true;
+    }
+
+    return changed ? data.copyWith(objects: objects) : data;
   }
 
   /// Save current state back to profile.
@@ -260,50 +252,6 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? iconName,
     Map<String, PropertyValue>? properties,
   }) async {
-    var objects = state.objects;
-
-    // 防御：如果 parent 是预设 section 但不存在，自动创建（连带 page）
-    if (parentId != null && _service.getObjectById(objects, parentId) == null) {
-      final meta = getSectionMeta(parentId);
-      if (meta != null) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        // 确保 page 存在
-        final pageExists = _service.getObjectById(objects, meta.parentPageId) != null;
-        if (!pageExists) {
-          final page = UnifiedObject(
-            id: meta.parentPageId,
-            typeId: 'page',
-            name: pageNameFromId(meta.parentPageId),
-            iconName: 'article',
-            parentId: null,
-            childrenIds: const [],
-            properties: const {},
-            isDeleted: false,
-            deletedAt: null,
-            createdAt: now,
-            updatedAt: now,
-          );
-          objects = _service.addObject(objects, page);
-        }
-        // 创建 section
-        final section = UnifiedObject(
-          id: parentId,
-          typeId: 'collection',
-          name: meta.name,
-          iconName: meta.iconName,
-          parentId: meta.parentPageId,
-          childrenIds: const [],
-          properties: const {},
-          isDeleted: false,
-          deletedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        );
-        objects = _service.addObject(objects, section);
-        objects = _service.addChild(objects, meta.parentPageId, parentId);
-      }
-    }
-
     final object = _service.createObject(
       name: name,
       typeId: typeId,
@@ -312,7 +260,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       properties: properties,
     );
 
-    var updatedObjects = _service.addObject(objects, object);
+    var updatedObjects = _service.addObject(state.objects, object);
 
     // If parent specified, add child reference to parent's childrenIds
     if (parentId != null) {
@@ -333,50 +281,6 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? iconName,
     Map<String, PropertyValue>? properties,
   }) async {
-    var objects = state.objects;
-
-    // 防御：如果 parent 是预设 section 但不存在，自动创建（连带 page）
-    if (parentId != null && _service.getObjectById(objects, parentId) == null) {
-      final meta = getSectionMeta(parentId);
-      if (meta != null) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        // 确保 page 存在
-        final pageExists = _service.getObjectById(objects, meta.parentPageId) != null;
-        if (!pageExists) {
-          final page = UnifiedObject(
-            id: meta.parentPageId,
-            typeId: 'page',
-            name: pageNameFromId(meta.parentPageId),
-            iconName: 'article',
-            parentId: null,
-            childrenIds: const [],
-            properties: const {},
-            isDeleted: false,
-            deletedAt: null,
-            createdAt: now,
-            updatedAt: now,
-          );
-          objects = _service.addObject(objects, page);
-        }
-        // 创建 section
-        final section = UnifiedObject(
-          id: parentId,
-          typeId: 'collection',
-          name: meta.name,
-          iconName: meta.iconName,
-          parentId: meta.parentPageId,
-          childrenIds: const [],
-          properties: const {},
-          isDeleted: false,
-          deletedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        );
-        objects = _service.addObject(objects, section);
-        objects = _service.addChild(objects, meta.parentPageId, parentId);
-      }
-    }
-
     final object = _service.createObject(
       name: name,
       typeId: typeId,
@@ -385,7 +289,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       properties: properties,
     );
 
-    var updatedObjects = _service.addObject(objects, object);
+    var updatedObjects = _service.addObject(state.objects, object);
 
     if (parentId != null) {
       updatedObjects = _service.addChild(updatedObjects, parentId, object.id);
@@ -450,15 +354,6 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   Future<bool> deleteObject(String id) async {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
-
-    // Protect default pages from deletion
-    if (id == DefaultPageIds.profile ||
-        id == DefaultPageIds.travel ||
-        id == DefaultPageIds.financial ||
-        id == DefaultPageIds.professional) {
-      DebugLogger.instance.logWarning('UNIFIED', 'Blocked deletion of default page: $id');
-      return false;
-    }
 
     var updatedObjects = List<UnifiedObject>.from(state.objects);
 
@@ -642,7 +537,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
   /// Create a new default-page item under a section.
   /// The item's schema is predefined by its [typeId]; users can only edit values.
-  /// 如果目标 section 不存在，会自动创建（连带创建其所属 page）。
+  /// If the target section does not exist, it is auto-created (with schema).
   Future<bool> createDefaultItem({
     required String sectionId,
     required String typeId,
@@ -651,13 +546,13 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   }) async {
     var objects = state.objects;
 
-    // 防御：如果 section 不存在，自动创建（连带 page）
+    // Ensure section exists (create with schema if missing)
     final sectionExists = _service.getObjectById(objects, sectionId) != null;
     if (!sectionExists) {
       final meta = getSectionMeta(sectionId);
       if (meta != null) {
         final now = DateTime.now().millisecondsSinceEpoch;
-        // 确保 page 存在（使用固定 ID）
+        // Ensure page exists
         final pageExists = _service.getObjectById(objects, meta.parentPageId) != null;
         if (!pageExists) {
           final page = UnifiedObject(
@@ -675,7 +570,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           );
           objects = _service.addObject(objects, page);
         }
-        // 创建 section（使用固定 ID）
+        final schemaProps = ObjectTypeRegistry.buildPropertiesFromType(typeId);
         final section = UnifiedObject(
           id: sectionId,
           typeId: 'collection',
@@ -683,14 +578,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           iconName: meta.iconName,
           parentId: meta.parentPageId,
           childrenIds: const [],
-          properties: const {},
+          properties: schemaProps,
           isDeleted: false,
           deletedAt: null,
           createdAt: now,
           updatedAt: now,
         );
         objects = _service.addObject(objects, section);
-        objects = _service.addChild(objects, meta.parentPageId, section.id);
+        objects = _service.addChild(objects, meta.parentPageId, sectionId);
       }
     }
 
@@ -717,6 +612,76 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       DefaultPageIds.professional => 'Professional',
       _ => 'Page',
     };
+  }
+
+  /// Create all default sections for a given page, plus the page itself if missing.
+  /// Used by "Restore defaults" button when a default page has no sections.
+  Future<bool> createDefaultSectionsForPage(String pageId) async {
+    final sectionIds = getDefaultSectionIdsForPage(pageId);
+    if (sectionIds.isEmpty) return false;
+
+    var objects = List<UnifiedObject>.from(state.objects);
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Ensure page exists
+    final pageExists = _service.getObjectById(objects, pageId) != null;
+    if (!pageExists) {
+      final page = UnifiedObject(
+        id: pageId,
+        typeId: 'page',
+        name: pageNameFromId(pageId),
+        iconName: 'article',
+        parentId: null,
+        childrenIds: const [],
+        properties: const {},
+        isDeleted: false,
+        deletedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      );
+      objects = _service.addObject(objects, page);
+    }
+
+    for (final sectionId in sectionIds) {
+      final existing = _service.getObjectById(objects, sectionId);
+      if (existing != null && !existing.isDeleted) continue;
+
+      final meta = getSectionMeta(sectionId);
+      if (meta == null) continue;
+
+      final itemTypeId = getItemTypeIdForSection(sectionId);
+      final schemaProps = itemTypeId != null
+          ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
+          : <String, PropertyValue>{};
+
+      // If soft-deleted, restore it instead of creating
+      if (existing != null && existing.isDeleted) {
+        final restored = _service.restoreObject(existing);
+        objects = _service.replaceObject(objects, restored.copyWith(
+          properties: schemaProps,
+          updatedAt: now,
+        ));
+      } else {
+        final section = UnifiedObject(
+          id: sectionId,
+          typeId: 'collection',
+          name: meta.name,
+          iconName: meta.iconName,
+          parentId: meta.parentPageId,
+          childrenIds: const [],
+          properties: schemaProps,
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        );
+        objects = _service.addObject(objects, section);
+      }
+      objects = _service.addChild(objects, meta.parentPageId, sectionId);
+    }
+
+    state = state.copyWith(objects: objects);
+    return _save(operationDesc: 'Restored default sections');
   }
 
   /// Update an existing default-page item's name and property values.

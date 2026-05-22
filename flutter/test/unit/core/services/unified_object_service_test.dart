@@ -48,7 +48,7 @@ void main() {
         expect(type!.name, 'My Custom');
       });
 
-      test('built-in takes priority over custom with same ID', () {
+      test('custom takes priority over built-in with same ID', () {
         final customPage = const ObjectTypeDefinition(
           id: 'page',
           name: 'Custom Page',
@@ -58,7 +58,7 @@ void main() {
         final type =
             ObjectTypeRegistry.getType('page', customTypes: [customPage]);
         expect(type, isNotNull);
-        expect(type!.name, 'Page'); // built-in wins
+        expect(type!.name, 'Custom Page'); // custom wins
       });
     });
 

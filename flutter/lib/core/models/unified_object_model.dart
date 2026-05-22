@@ -644,12 +644,14 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
 
   Map<String, dynamic> toJson() => _$UnifiedObjectToJson(this);
 
+  static const _nullSentinel = Object();
+
   UnifiedObject copyWith({
     String? id,
     String? typeId,
     String? name,
     String? iconName,
-    String? parentId,
+    Object? parentId = _nullSentinel,
     List<String>? childrenIds,
     Map<String, PropertyValue>? properties,
     List<Attachment>? attachments,
@@ -664,7 +666,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       typeId: typeId ?? this.typeId,
       name: name ?? this.name,
       iconName: iconName ?? this.iconName,
-      parentId: parentId ?? this.parentId,
+      parentId: parentId == _nullSentinel ? this.parentId : parentId as String?,
       childrenIds: childrenIds ?? this.childrenIds,
       properties: properties ?? this.properties,
       attachments: attachments ?? this.attachments,

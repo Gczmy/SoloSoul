@@ -1705,6 +1705,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pageEditorNoSections => '暂无分区';
 
   @override
+  String get pageNoSections => '暂无分区';
+
+  @override
+  String get pageRestoreDefaults => '恢复默认分区';
+
+  @override
   String get pageEditorEnterSectionTitle => '输入分区标题';
 
   @override

@@ -1747,6 +1747,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pageEditorNoSections => 'No sections yet';
 
   @override
+  String get pageNoSections => 'No sections yet';
+
+  @override
+  String get pageRestoreDefaults => 'Restore Defaults';
+
+  @override
   String get pageEditorEnterSectionTitle => 'Enter section title';
 
   @override

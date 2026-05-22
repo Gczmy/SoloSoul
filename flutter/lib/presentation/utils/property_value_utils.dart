@@ -60,24 +60,4 @@ String objectItemDisplayTitle(
   return item.name;
 }
 
-/// Map typeId to field-prefix used by FieldRegistry.
-String fieldPrefixForTypeId(String typeId) {
-  return switch (typeId) {
-    'profile_identity' => 'identity',
-    'profile_contact' => 'contact',
-    'profile_id_card' => 'idCard',
-    'profile_address' => 'address',
-    'travel_passport' => 'passport',
-    'travel_visa' => 'visa',
-    'travel_history' => 'travel',
-    'financial_bank_account' => 'bankAccount',
-    'financial_card' => 'card',
-    'financial_tax_id' => 'taxId',
-    'professional_education' => 'education',
-    'professional_employment' => 'employment',
-    'professional_skill' => 'skill',
-    'professional_language' => 'language',
-    'professional_award' => 'award',
-    _ => typeId,
-  };
-}
+

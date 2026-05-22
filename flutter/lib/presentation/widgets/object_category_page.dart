@@ -1,6 +1,7 @@
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
@@ -37,6 +38,12 @@ class ObjectCategoryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final allChildren = pageId != null
+        ? ref.watch(childrenProvider(pageId!))
+        : <UnifiedObject>[];
+    final hasCollections = allChildren
+        .any((o) => o.typeId == 'collection' && !o.isDeleted);
+
     return Scaffold(
       appBar: SoloGlassAppBar(
         title: Text(title),
@@ -62,6 +69,8 @@ class ObjectCategoryPage extends ConsumerWidget {
                 pageId: pageId!,
                 defaultSectionIds: defaultSectionIds,
               ),
+            if (pageId != null && !hasCollections)
+              _RestoreDefaultsWidget(pageId: pageId!),
           ],
         ),
       ),
@@ -84,5 +93,52 @@ class ObjectCategoryPage extends ConsumerWidget {
           parentId: pageId,
           iconName: result['icon']!,
         );
+  }
+}
+
+/// Button shown when a default page has no sections, allowing the user to
+/// restore the original default sections.
+class _RestoreDefaultsWidget extends ConsumerWidget {
+  final String pageId;
+
+  const _RestoreDefaultsWidget({required this.pageId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.folder_open_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.pageNoSections,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await ref
+                    .read(unifiedObjectProvider.notifier)
+                    .createDefaultSectionsForPage(pageId);
+              },
+              icon: const Icon(Icons.restore),
+              label: Text(l10n.pageRestoreDefaults),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

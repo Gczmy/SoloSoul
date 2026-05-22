@@ -23,10 +23,28 @@ class SectionMeta {
 /// does not belong to a default section.
 String? getDefaultSectionIdForItemType(String typeId) {
   return switch (typeId) {
+    // Legacy types (kept for backward compatibility)
     'profile_item' => 'section_profile_default',
     'travel_item' => 'section_travel_default',
     'financial_item' => 'section_financial_default',
     'professional_item' => 'section_professional_default',
+    // Modern preset types
+    'profile_identity' => DefaultSectionIds.identity,
+    'profile_contact' => DefaultSectionIds.contact,
+    'profile_id_card' => DefaultSectionIds.idCard,
+    'profile_address' => DefaultSectionIds.address,
+    'travel_passport' => DefaultSectionIds.passport,
+    'travel_visa' => DefaultSectionIds.visa,
+    'travel_history' => DefaultSectionIds.travelHistory,
+    'financial_bank_account' => DefaultSectionIds.bankAccount,
+    'financial_card' => DefaultSectionIds.card,
+    'financial_tax_id' => DefaultSectionIds.taxId,
+    'professional_education' => DefaultSectionIds.education,
+    'professional_employment' => DefaultSectionIds.employment,
+    'professional_skill' => DefaultSectionIds.skill,
+    'professional_language' => DefaultSectionIds.language,
+    'professional_award' => DefaultSectionIds.award,
+    'professional_article' => DefaultSectionIds.article,
     _ => null,
   };
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
 const _uuid = Uuid();
 
@@ -44,6 +46,24 @@ class ObjectTypeRegistry {
 
   /// Default type for generic objects.
   static ObjectTypeDefinition get defaultType => _builtins['note']!;
+
+  /// Build a property-value map from a built-in type definition.
+  /// Used to copy builtin schema into a section's properties.
+  static Map<String, PropertyValue> buildPropertiesFromType(
+    String typeId, {
+    List<ObjectTypeDefinition> customTypes = const [],
+  }) {
+    final type = getType(typeId, customTypes: customTypes);
+    if (type == null) return {};
+
+    final prefix = fieldPrefixForTypeId(typeId);
+    final result = <String, PropertyValue>{};
+    for (final prop in type.properties) {
+      final sensitivity = lookupFieldSensitivity('$prefix.${prop.id}');
+      result[prop.id] = emptyPropertyValueForType(prop.type, sensitivity);
+    }
+    return result;
+  }
 }
 
 // =============================================================================
@@ -116,6 +136,17 @@ const Map<String, SectionMeta> _kSectionMeta = {
 /// 根据 sectionId 获取其元数据，用于缺失时自动创建。
 SectionMeta? getSectionMeta(String sectionId) => _kSectionMeta[sectionId];
 
+/// 遍历所有默认 section 的元数据。
+Iterable<MapEntry<String, SectionMeta>> get allSectionMeta => _kSectionMeta.entries;
+
+/// 根据 pageId 获取该页面下的所有默认 section ID 列表。
+List<String> getDefaultSectionIdsForPage(String pageId) {
+  return _kSectionMeta.entries
+      .where((e) => e.value.parentPageId == pageId)
+      .map((e) => e.key)
+      .toList();
+}
+
 /// Mapping from section ID to its item type ID.
 /// Prefixes avoid collisions with generic built-in types (e.g. 'contact').
 const Map<String, String> _kSectionItemTypes = {
@@ -143,6 +174,57 @@ String? getDefaultSectionIdForItemType(String itemTypeId) {
     if (entry.value == itemTypeId) return entry.key;
   }
   return null;
+}
+
+/// 根据 section ID 获取对应的 item type ID。
+String? getItemTypeIdForSection(String sectionId) => _kSectionItemTypes[sectionId];
+
+/// Map typeId to the field-prefix used by FieldRegistry.
+String fieldPrefixForTypeId(String typeId) {
+  return switch (typeId) {
+    'profile_identity' => 'identity',
+    'profile_contact' => 'contact',
+    'profile_id_card' => 'idCard',
+    'profile_address' => 'address',
+    'travel_passport' => 'passport',
+    'travel_visa' => 'visa',
+    'travel_history' => 'travel',
+    'financial_bank_account' => 'bankAccount',
+    'financial_card' => 'card',
+    'financial_tax_id' => 'taxId',
+    'professional_education' => 'education',
+    'professional_employment' => 'employment',
+    'professional_skill' => 'skill',
+    'professional_language' => 'language',
+    'professional_award' => 'award',
+    'professional_article' => 'article',
+    _ => typeId,
+  };
+}
+
+/// Look up sensitivity from FieldRegistry defaults.
+SensitivityLevel lookupFieldSensitivity(String fieldId) {
+  try {
+    return FieldRegistry.defaultFields
+        .firstWhere((f) => f.fieldId == fieldId)
+        .level;
+  } on Object catch (_) {
+    return SensitivityLevel.public;
+  }
+}
+
+/// 根据 PropertyType 创建对应的空 PropertyValue。
+PropertyValue emptyPropertyValueForType(PropertyType type, SensitivityLevel sensitivity) {
+  return switch (type) {
+    PropertyType.text => TextProperty(text: '', sensitivity: sensitivity),
+    PropertyType.number => NumberProperty(value: null, sensitivity: sensitivity),
+    PropertyType.date => DateProperty(isoDate: null, sensitivity: sensitivity),
+    PropertyType.checkbox => CheckboxProperty(checked: false, sensitivity: sensitivity),
+    PropertyType.select => SelectProperty(options: [], selectedId: null, sensitivity: sensitivity),
+    PropertyType.multiSelect => MultiSelectProperty(options: [], selectedIds: [], sensitivity: sensitivity),
+    PropertyType.relation => RelationProperty(targetObjectId: null, sensitivity: sensitivity),
+    PropertyType.url => UrlProperty(url: null, sensitivity: sensitivity),
+  };
 }
 
 // =============================================================================
