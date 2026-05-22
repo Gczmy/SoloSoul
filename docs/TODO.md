@@ -490,6 +490,7 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 - [ ] Riverpod 3.x 升级 (当前 2.6.1)
 - [ ] 多语言支持 (i18n)
 - [ ] 法律文本外部化 (从代码移到资源文件)
+- [ ] 用户自选数据目录 + Security-Scoped Bookmark (解决沙盒切换时的数据迁移问题，低优先级。当前 Debug/DMG 已统一禁用沙盒，若未来需上架 Mac App Store 再实施)
 
 ---
 

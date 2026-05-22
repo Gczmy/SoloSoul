@@ -1190,6 +1190,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get professionalLanguages => '语言';
 
   @override
+  String get professionalArticles => '文章';
+
+  @override
   String get localSearchTitle => '本地搜索导入';
 
   @override
@@ -2470,6 +2473,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String professionalFormatArticle(String data) {
+    return '文章\n$data';
+  }
+
+  @override
   String get fieldFullName => '全名';
 
   @override
@@ -2696,6 +2704,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fieldName => '名称';
+
+  @override
+  String get fieldAuthors => '作者';
+
+  @override
+  String get fieldContactInfo => '联系方式';
+
+  @override
+  String get fieldAbstract => '摘要';
+
+  @override
+  String get fieldDoi => 'DOI';
+
+  @override
+  String get fieldUrl => '网址';
+
+  @override
+  String get fieldVenue => '发表场所';
+
+  @override
+  String get fieldYear => '年份';
+
+  @override
+  String get fieldCitation => '引用格式';
 
   @override
   String get datePickerSelectDate => '选择日期';
@@ -3150,6 +3182,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get templateProfessionalAwardDesc => '专业奖项、荣誉和认可';
+
+  @override
+  String get templateProfessionalArticleName => '文章';
+
+  @override
+  String get templateProfessionalArticleDesc =>
+      '学术文章与出版物，包括标题、作者、DOI、发表场所及引用格式';
 
   @override
   String get templateTravelPassportName => '护照';

@@ -66,26 +66,7 @@ install_name_tool -id "@executable_path/../Frameworks/libsolosoul_core.dylib" \
 # --- 注入正式签名 ---
 echo -e "${YELLOW}Injecting Identity Signature...${NC}"
 IDENTITY="A432EC36C0EF2CD554D9E9679CDAC754F414C072"
-
-TEMP_ENT="/tmp/solosoul_release.entitlements"
-printf '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>com.apple.security.app-sandbox</key>
-    <false/>
-    <key>com.apple.security.cs.allow-jit</key>
-    <true/>
-    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-    <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
-    <key>com.apple.security.files.bookmarks.app-scope</key>
-    <true/>
-</dict>
-</plist>' > "$TEMP_ENT"
+ENTITLEMENTS="Runner/Release.entitlements"
 
 xattr -cr "$APP_PATH"
 
@@ -93,14 +74,12 @@ xattr -cr "$APP_PATH"
 echo -e "${YELLOW}Signing Frameworks...${NC}"
 find "$APP_PATH/Contents/Frameworks" -name "*.dylib" | xargs codesign --force --sign "$IDENTITY" --timestamp=none
 
-# 签名主程序
+# 签名主程序 (使用项目中的 Release.entitlements，已与 Debug 统一禁用沙盒)
 echo -e "${YELLOW}Signing Main Executable...${NC}"
 codesign --force --sign "$IDENTITY" \
          --identifier "$BUNDLE_ID" \
-         --entitlements "$TEMP_ENT" \
+         --entitlements "$ENTITLEMENTS" \
          --timestamp=none "$APP_PATH"
-
-rm "$TEMP_ENT"
 
 # Step 3 & 4: 打包 DMG (逻辑保持不变)
 echo -e "${YELLOW}Creating DMG...${NC}"

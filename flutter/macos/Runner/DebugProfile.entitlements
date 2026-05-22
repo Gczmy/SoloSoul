@@ -2,8 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- SoloSoul uses encryption (AES-256-GCM + Argon2id) as the primary security
+	     model rather than App Sandbox isolation. Sandbox is disabled to ensure
+	     consistent data paths between flutter run (Debug) and DMG (Release). -->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
+	<false/>
 	<key>com.apple.security.application-identifier</key>
 	<string>$(AppIdentifierPrefix)com.solosoul.solosoulFlutter</string>
 	<key>com.apple.security.files.bookmarks.app-scope</key>

@@ -233,6 +233,7 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       'professional_skill' => 'skill',
       'professional_language' => 'language',
       'professional_award' => 'award',
+      'professional_article' => 'article',
       _ => typeId,
     };
   }

@@ -513,6 +513,66 @@ class PresetSectionTemplates {
         ),
       ],
     ),
+    // 文章模板
+    SectionTemplate(
+      id: 'professional_article',
+      nameKey: 'templateProfessionalArticleName',
+      descriptionKey: 'templateProfessionalArticleDesc',
+      icon: '📄',
+      pageTag: 'professional',
+      fields: [
+        TemplateField(
+          key: 'title',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'authors',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'institution',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'contact',
+          type: 'text',
+          sensitivity: SensitivityLevel.internal,
+        ),
+        TemplateField(
+          key: 'abstract',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'doi',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'url',
+          type: 'url',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'venue',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'year',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'citation',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
     // 护照模板
     SectionTemplate(
       id: 'travel_passport',

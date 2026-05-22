@@ -311,6 +311,8 @@ class _TemplateCard extends ConsumerWidget {
         return l.templateProfessionalLanguageName;
       case 'templateProfessionalAwardName':
         return l.templateProfessionalAwardName;
+      case 'templateProfessionalArticleName':
+        return l.templateProfessionalArticleName;
       default:
         return t.nameKey;
     }
@@ -354,6 +356,8 @@ class _TemplateCard extends ConsumerWidget {
         return l.templateProfessionalLanguageDesc;
       case 'templateProfessionalAwardDesc':
         return l.templateProfessionalAwardDesc;
+      case 'templateProfessionalArticleDesc':
+        return l.templateProfessionalArticleDesc;
       default:
         return t.descriptionKey;
     }

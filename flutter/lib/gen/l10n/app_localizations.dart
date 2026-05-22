@@ -2336,6 +2336,12 @@ abstract class AppLocalizations {
   /// **'Languages'**
   String get professionalLanguages;
 
+  /// No description provided for @professionalArticles.
+  ///
+  /// In en, this message translates to:
+  /// **'Articles'**
+  String get professionalArticles;
+
   /// No description provided for @localSearchTitle.
   ///
   /// In en, this message translates to:
@@ -4670,6 +4676,12 @@ abstract class AppLocalizations {
   /// **'Language\n{data}'**
   String professionalFormatLanguage(String data);
 
+  /// No description provided for @professionalFormatArticle.
+  ///
+  /// In en, this message translates to:
+  /// **'Article\n{data}'**
+  String professionalFormatArticle(String data);
+
   /// No description provided for @fieldFullName.
   ///
   /// In en, this message translates to:
@@ -5125,6 +5137,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get fieldName;
+
+  /// No description provided for @fieldAuthors.
+  ///
+  /// In en, this message translates to:
+  /// **'Authors'**
+  String get fieldAuthors;
+
+  /// No description provided for @fieldContactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get fieldContactInfo;
+
+  /// No description provided for @fieldAbstract.
+  ///
+  /// In en, this message translates to:
+  /// **'Abstract'**
+  String get fieldAbstract;
+
+  /// No description provided for @fieldDoi.
+  ///
+  /// In en, this message translates to:
+  /// **'DOI'**
+  String get fieldDoi;
+
+  /// No description provided for @fieldUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get fieldUrl;
+
+  /// No description provided for @fieldVenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get fieldVenue;
+
+  /// No description provided for @fieldYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get fieldYear;
+
+  /// No description provided for @fieldCitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Citation'**
+  String get fieldCitation;
 
   /// No description provided for @datePickerSelectDate.
   ///
@@ -5965,6 +6025,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Professional awards, honors, and recognitions'**
   String get templateProfessionalAwardDesc;
+
+  /// No description provided for @templateProfessionalArticleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Article'**
+  String get templateProfessionalArticleName;
+
+  /// No description provided for @templateProfessionalArticleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic articles and publications including title, authors, DOI, venue, and citation'**
+  String get templateProfessionalArticleDesc;
 
   /// No description provided for @templateTravelPassportName.
   ///

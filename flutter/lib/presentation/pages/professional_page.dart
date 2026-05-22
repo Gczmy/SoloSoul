@@ -41,6 +41,7 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
         DefaultSectionIds.skill,
         DefaultSectionIds.language,
         DefaultSectionIds.award,
+        DefaultSectionIds.article,
       ],
       sections: [
             const ScanDocumentButton(parentId: DefaultSectionIds.employment),
@@ -213,6 +214,40 @@ class _ProfessionalPageState extends ConsumerState<ProfessionalPage> {
             )
                 .animate()
                 .fadeIn(delay: 500.ms, duration: 400.ms)
+                .slideX(begin: 0.05, end: 0),
+            const SizedBox(height: 16),
+            PredefinedObjectSection(
+              key: const ValueKey(DefaultSectionIds.article),
+              sectionId: DefaultSectionIds.article,
+              typeId: 'professional_article',
+              title: l10n.professionalArticles,
+              icon: Icons.article_outlined,
+              maxVisibleItems: 3,
+              displayItemBuilder: (item, itemMap) => EntryCardWidget<UnifiedObject>(
+                item: item,
+                title: item.name,
+                icon: Icons.article,
+                itemId: item.id,
+                historyFieldId: 'article',
+                formatAllFields: (e) => l10n.professionalFormatArticle(e.toFormattedStringLocalized(l10n)),
+                itemData: itemMap,
+                fieldPrefix: 'article',
+                excludeFields: const {'title'},
+              ),
+              onDidDelete: buildOnDidDelete(
+                context,
+                logSection: LogSection.professional,
+                isPrivacyMode: isPrivacyMode,
+                ref: ref,
+              ),
+              onDeleteFailed: buildOnDeleteFailed(
+                context,
+                sectionLabel: 'article',
+              ),
+              onCopyAll: buildOnCopyAll(context),
+            )
+                .animate()
+                .fadeIn(delay: 600.ms, duration: 400.ms)
                 .slideX(begin: 0.05, end: 0),
       ],
     );

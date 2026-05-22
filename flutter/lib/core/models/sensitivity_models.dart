@@ -96,6 +96,7 @@ class FieldRegistry {
     ...skillFields,
     ...languageFields,
     ...awardFields,
+    ...articleFields,
   ];
 
   static bool isFieldRestricted(String fieldId) {
@@ -153,6 +154,7 @@ class FieldRegistry {
         'skill',
         'language',
         'award',
+        'article',
       ];
 
   static String getSectionDisplayName(String section) {
@@ -172,6 +174,7 @@ class FieldRegistry {
       'skill': 'Skills',
       'language': 'Language',
       'award': 'Award',
+      'article': 'Article',
       'page': 'Page',
     };
     return names[section] ?? section;
@@ -383,6 +386,20 @@ const awardFields = [
   FieldSensitivity(fieldId: 'award.description', fieldName: 'Description', fieldSection: 'award', level: SensitivityLevel.sensitive),
 ];
 
+/// Article Section fields
+const articleFields = [
+  FieldSensitivity(fieldId: 'article.title', fieldName: 'Title', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.authors', fieldName: 'Authors', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.institution', fieldName: 'Institution', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.contact', fieldName: 'Contact', fieldSection: 'article', level: SensitivityLevel.internal),
+  FieldSensitivity(fieldId: 'article.abstract', fieldName: 'Abstract', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.doi', fieldName: 'DOI', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.url', fieldName: 'URL', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.venue', fieldName: 'Venue', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.year', fieldName: 'Year', fieldSection: 'article', level: SensitivityLevel.public),
+  FieldSensitivity(fieldId: 'article.citation', fieldName: 'Citation', fieldSection: 'article', level: SensitivityLevel.public),
+];
+
 /// Field ID constants to prevent typos
 class FieldIds {
   FieldIds._();
@@ -497,6 +514,7 @@ class FormFieldRegistryNotifier extends Notifier<Map<String, FieldSensitivity>> 
       skillFields,
       languageFields,
       awardFields,
+      articleFields,
     ];
 
     final allFields = allFieldLists.expand((list) => list).toList();

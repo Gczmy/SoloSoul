@@ -83,6 +83,7 @@ class DefaultSectionIds {
   static const skill = '__section_skill';
   static const language = '__section_language';
   static const award = '__section_award';
+  static const article = '__section_article';
 }
 
 /// Metadata for auto-creating a default section when it is missing.
@@ -109,6 +110,7 @@ const Map<String, SectionMeta> _kSectionMeta = {
   DefaultSectionIds.skill: SectionMeta('Skills', 'stars', DefaultPageIds.professional),
   DefaultSectionIds.language: SectionMeta('Languages', 'language', DefaultPageIds.professional),
   DefaultSectionIds.award: SectionMeta('Awards', 'emoji_events', DefaultPageIds.professional),
+  DefaultSectionIds.article: SectionMeta('Articles', 'article', DefaultPageIds.professional),
 };
 
 /// 根据 sectionId 获取其元数据，用于缺失时自动创建。
@@ -132,6 +134,7 @@ const Map<String, String> _kSectionItemTypes = {
   DefaultSectionIds.skill: 'professional_skill',
   DefaultSectionIds.language: 'professional_language',
   DefaultSectionIds.award: 'professional_award',
+  DefaultSectionIds.article: 'professional_article',
 };
 
 /// 根据 item type ID 反向查找对应的默认 section ID。
@@ -436,6 +439,24 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
       PropertyDefinition(id: 'issuer', name: 'Issuer', type: PropertyType.text),
       PropertyDefinition(id: 'date', name: 'Date', type: PropertyType.date),
       PropertyDefinition(id: 'description', name: 'Description', type: PropertyType.text),
+    ],
+  ),
+  const ObjectTypeDefinition(
+    id: 'professional_article',
+    name: 'Article',
+    iconName: 'article',
+    defaultLayout: ObjectLayout.document,
+    properties: [
+      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'authors', name: 'Authors', type: PropertyType.text),
+      PropertyDefinition(id: 'institution', name: 'Institution', type: PropertyType.text),
+      PropertyDefinition(id: 'contact', name: 'Contact', type: PropertyType.text),
+      PropertyDefinition(id: 'abstract', name: 'Abstract', type: PropertyType.text),
+      PropertyDefinition(id: 'doi', name: 'DOI', type: PropertyType.text),
+      PropertyDefinition(id: 'url', name: 'URL', type: PropertyType.url),
+      PropertyDefinition(id: 'venue', name: 'Venue', type: PropertyType.text),
+      PropertyDefinition(id: 'year', name: 'Year', type: PropertyType.text),
+      PropertyDefinition(id: 'citation', name: 'Citation', type: PropertyType.text),
     ],
   ),
 ];

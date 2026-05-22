@@ -1215,6 +1215,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get professionalLanguages => 'Languages';
 
   @override
+  String get professionalArticles => 'Articles';
+
+  @override
   String get localSearchTitle => 'Local Search Import';
 
   @override
@@ -2536,6 +2539,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String professionalFormatArticle(String data) {
+    return 'Article\n$data';
+  }
+
+  @override
   String get fieldFullName => 'Full Name';
 
   @override
@@ -2762,6 +2770,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldName => 'Name';
+
+  @override
+  String get fieldAuthors => 'Authors';
+
+  @override
+  String get fieldContactInfo => 'Contact';
+
+  @override
+  String get fieldAbstract => 'Abstract';
+
+  @override
+  String get fieldDoi => 'DOI';
+
+  @override
+  String get fieldUrl => 'URL';
+
+  @override
+  String get fieldVenue => 'Venue';
+
+  @override
+  String get fieldYear => 'Year';
+
+  @override
+  String get fieldCitation => 'Citation';
 
   @override
   String get datePickerSelectDate => 'Select date';
@@ -3237,6 +3269,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get templateProfessionalAwardDesc =>
       'Professional awards, honors, and recognitions';
+
+  @override
+  String get templateProfessionalArticleName => 'Article';
+
+  @override
+  String get templateProfessionalArticleDesc =>
+      'Academic articles and publications including title, authors, DOI, venue, and citation';
 
   @override
   String get templateTravelPassportName => 'Passport';
