@@ -213,6 +213,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
     QuickAction(icon: Icons.history_outlined, label: 'Operation Log', route: AppRoutes.operationLog, color: Colors.purple),
     QuickAction(icon: Icons.visibility_outlined, label: 'Sensitivity', route: AppRoutes.sensitivitySettings, color: Colors.cyan),
     QuickAction(icon: Icons.search_outlined, label: 'Search', route: AppRoutes.search, color: Colors.deepOrange),
+    QuickAction(icon: Icons.extension_outlined, label: 'Plugins', route: AppRoutes.pluginDashboard, color: Colors.deepPurple),
   ];
 
   void _showAddActionDialog() async {

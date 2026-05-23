@@ -32,6 +32,7 @@ class QuickAction {
       '/professional' => l10n.sidebarProfessional,
       '/trash' => l10n.sidebarTrash,
       '/settings' => l10n.sidebarSettings,
+      '/settings/plugins' => l10n.sidebarPlugin,
       '/security_settings' => l10n.sidebarSecurity,
       '/operation_log' => l10n.sidebarOperationLog,
       '/sensitivity_settings' => l10n.sidebarSensitivity,

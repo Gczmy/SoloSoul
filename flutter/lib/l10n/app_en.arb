@@ -572,6 +572,7 @@
   "sidebarTrash": "Trash",
   "sidebarSync": "Sync",
   "sidebarSettings": "Settings",
+  "sidebarPlugin": "Plugins",
   "sidebarSecurity": "Security",
   "sidebarOperationLog": "Operation Log",
   "sidebarSensitivity": "Sensitivity",

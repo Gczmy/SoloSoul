@@ -345,6 +345,7 @@
   "sidebarTrash": "回收站",
   "sidebarSync": "同步",
   "sidebarSettings": "设置",
+  "sidebarPlugin": "插件",
   "sidebarSecurity": "安全",
   "sidebarOperationLog": "操作日志",
   "sidebarSensitivity": "敏感度",

@@ -1085,6 +1085,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sidebarSettings => '设置';
 
   @override
+  String get sidebarPlugin => '插件';
+
+  @override
   String get sidebarSecurity => '安全';
 
   @override

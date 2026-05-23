@@ -2126,6 +2126,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get sidebarSettings;
 
+  /// No description provided for @sidebarPlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins'**
+  String get sidebarPlugin;
+
   /// No description provided for @sidebarSecurity.
   ///
   /// In en, this message translates to:

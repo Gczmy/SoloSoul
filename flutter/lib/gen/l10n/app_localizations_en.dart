@@ -1111,6 +1111,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sidebarSettings => 'Settings';
 
   @override
+  String get sidebarPlugin => 'Plugins';
+
+  @override
   String get sidebarSecurity => 'Security';
 
   @override
