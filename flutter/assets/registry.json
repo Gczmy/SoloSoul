@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-23T00:00:00Z",
+  "updated_at": "2026-05-24T00:00:00Z",
   "plugins": {
     "com.solosoul.official.slotgo": {
       "name": "SlotGo",
@@ -14,6 +14,36 @@
           "max_app_version": "999.999.999",
           "download_url": "https://github.com/Gczmy/SoloSoul_plugin_market/releases/download/slotgo-v0.1.0/plugin.wasm",
           "released_at": "2026-05-23T00:00:00Z"
+        }
+      }
+    },
+    "com.solosoul.official.id-validator": {
+      "name": "ID Validator",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "e2ee0a3e98eb013a20ab1e77d3e17bd8ced5941a6400ae810940b9046c8e6e0f",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://github.com/Gczmy/SoloSoul_plugin_market/releases/download/id-validator-v1.0.0/plugin.wasm",
+          "released_at": "2026-05-24T00:00:00Z"
+        }
+      }
+    },
+    "com.solosoul.official.expiry-guardian": {
+      "name": "Expiry Guardian",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "f13160cdd4e38c885cfbb7e3d00b793f7e6c3ed6ceda912551ab1f92c173b88d",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://github.com/Gczmy/SoloSoul_plugin_market/releases/download/expiry-guardian-v1.0.0/plugin.wasm",
+          "released_at": "2026-05-24T00:00:00Z"
         }
       }
     }
