@@ -12,8 +12,8 @@
 | P002 | P0     | 编译错误   | `test/unit/core/services/scan/local_search_service_test.dart:116` | 错误调用 `LocalSearchService.filenameHintsPersonal`，实际为 `ScanSectionDetector.filenameHintsPersonal` | `[x]` 已修复 |
 | P003 | P0     | 编译错误   | `test/unit/presentation/utils/property_value_utils_test.dart` | 缺少 `fieldPrefixForTypeId` 函数导入（定义于 `core/services/unified_object_service.dart`） | `[x]` 已修复 |
 | P004 | P0     | 编译错误   | `test/unit/presentation/widgets/sensitivity_tag_utils_test.dart` / `test/widget/sensitivity_tag_test.dart` | `getSensitivityLabel` 函数已被移除（现有 `SensitivityLevel.localizedLabel`），测试引用不存在符号 | `[x]` 已修复 |
-| P005 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:297` | 未使用的局部变量 `parentSectionId` | `[ ]` 待修复 |
-| P006 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:518` | 使用 Riverpod 内部可见性 API `_objectNotifier.state`，可能在未来版本失效 | `[ ]` 待修复 |
+| P005 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:297` | 未使用的局部变量 `parentSectionId` | `[x]` 已修复 |
+| P006 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:518` | 使用 Riverpod 内部可见性 API `_objectNotifier.state`，可能在未来版本失效 | `[x]` 已修复 |
 | P007 | P1     | 警告       | `lib/presentation/pages/sensitivity_settings_page.dart:508` | 未使用的局部变量 `l10n` | `[ ]` 待修复 |
 | P008 | P1     | 警告       | `lib/presentation/widgets/predefined_object_section.dart:6` / `:253` | 未使用的导入 `sensitivity_models.dart`；未引用的 `_PredefinedErrorWidget` | `[ ]` 待修复 |
 | P009 | P1     | 潜在漏洞   | `lib/presentation/pages/llm/llm_config_page.dart:53` | `use_build_context_synchronously`：在异步 catch 块中直接使用 `context` 获取 `AppLocalizations`，未先检查 `mounted` | `[ ]` 待修复 |
@@ -29,8 +29,8 @@
 
 ## 修复进度
 
-- 已完成：3 / 18
-- 当前处理：P004
+- 已完成：5 / 18
+- 当前处理：P005-P006
 
 ## 详细问题描述与修复指引
 

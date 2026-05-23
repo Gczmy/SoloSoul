@@ -294,7 +294,6 @@ class ScanImportService {
         continue;
       }
 
-      final parentSectionId = _findParentSectionId(typeId);
       final fieldsToWrite = _fieldsToWrite(candidate.fields);
       fieldsSkipped += candidate.fields.length - fieldsToWrite.length;
 
@@ -435,28 +434,6 @@ class ScanImportService {
     return null;
   }
 
-  String? _findParentSectionId(String itemTypeId) {
-    // Map item type to its default section
-    const typeToSection = {
-      'profile_identity': '__section_identity',
-      'profile_contact': '__section_contact',
-      'profile_id_card': '__section_id_card',
-      'profile_address': '__section_address',
-      'travel_passport': '__section_passport',
-      'travel_visa': '__section_visa',
-      'travel_history': '__section_travel_history',
-      'financial_bank_account': '__section_bank_account',
-      'financial_card': '__section_card',
-      'financial_tax_id': '__section_tax_id',
-      'professional_education': '__section_education',
-      'professional_employment': '__section_employment',
-      'professional_skill': '__section_skill',
-      'professional_language': '__section_language',
-      'professional_award': '__section_award',
-    };
-    return typeToSection[itemTypeId];
-  }
-
   String? _extractText(PropertyValue value) {
     if (value is TextProperty) return value.text;
     if (value is NumberProperty) return value.value?.toString();
@@ -515,7 +492,7 @@ class ScanImportService {
         fileName: file.uri.pathSegments.last,
         bytes: bytes,
       );
-      final objects = _objectNotifier.state.objects;
+      final objects = _objectNotifier.currentObjects;
       final obj = UnifiedObjectService.instance.getObjectById(objects, objectId);
       if (obj != null) {
         await _objectNotifier.updateObject(

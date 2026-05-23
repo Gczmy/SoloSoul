@@ -36,6 +36,10 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return const UnifiedObjectData(objects: [], customTypes: []);
   }
 
+  /// Public accessor for the current list of objects (avoids direct state access
+  /// from outside this library).
+  List<UnifiedObject> get currentObjects => state.objects;
+
   // ---------------------------------------------------------------------------
   // Persistence
   // ---------------------------------------------------------------------------
