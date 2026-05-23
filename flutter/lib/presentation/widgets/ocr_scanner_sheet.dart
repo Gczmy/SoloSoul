@@ -155,35 +155,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
     return Column(
       children: [
         const SizedBox(height: 16),
-        // 隐私提示
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .primaryContainer
-                .withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.security,
-                size: 20,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context).ocrPrivacyNotice,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        const _OcrPrivacyNotice(),
         const SizedBox(height: 16),
         // LLM 协助区域
         OcrScannerLlmSection(
@@ -272,34 +244,7 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
 
     return Column(
       children: [
-        // 智能检测提示徽章
-        if (result is SmartOcrMrzResult)
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.verified_user_outlined,
-                  size: 16,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  l10n.ocrTravelDocumentDetected,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
-          ),
+        if (result is SmartOcrMrzResult) const _MrzDetectedBadge(),
 
         // 结果展示
         if (result is SmartOcrMrzResult)
@@ -891,5 +836,75 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       return match.group(1)!.trim();
     }
     return text.trim();
+  }
+}
+
+class _OcrPrivacyNotice extends StatelessWidget {
+  const _OcrPrivacyNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .colorScheme
+            .primaryContainer
+            .withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.security,
+            size: 20,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).ocrPrivacyNotice,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MrzDetectedBadge extends StatelessWidget {
+  const _MrzDetectedBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.verified_user_outlined,
+            size: 16,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            AppLocalizations.of(context).ocrTravelDocumentDetected,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 }

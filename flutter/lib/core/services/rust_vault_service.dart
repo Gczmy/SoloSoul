@@ -102,6 +102,70 @@ class RustVaultService {
     return NativeVaultService.instance.isVaultUnlocked();
   }
 
+  // ---------------------------------------------------------------------------
+  // Generic encrypted JSON helpers
+  // ---------------------------------------------------------------------------
+
+  Future<bool> _saveEncryptedJson(
+    String accountId,
+    String jsonData,
+    String operation,
+  ) async {
+    final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
+    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
+    if (encryptedData.isEmpty) {
+      return false;
+    }
+
+    final result = NativeVaultService.instance.request(
+      operation,
+      {
+        'account_id': accountId,
+        'data': base64Encode(encryptedData),
+      },
+    );
+
+    return result?['success'] == true;
+  }
+
+  Future<String?> _loadDecryptedJson(
+    String accountId,
+    String operation,
+    String logLabel,
+  ) async {
+    final result = NativeVaultService.instance.request(
+      operation,
+      {'account_id': accountId},
+    );
+
+    if (result?['success'] != true) {
+      return null;
+    }
+
+    final responseData = result!['data'] as Map<String, dynamic>?;
+    if (responseData == null) {
+      return null;
+    }
+
+    final data = responseData['data'];
+    if (data == null) {
+      return null;
+    }
+
+    if (data is String) {
+      final encryptedBytes = base64Decode(data);
+      try {
+        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
+        return utf8.decode(decrypted);
+      } on Object catch (e) {
+        SoloLog.w('RustVault', '$logLabel decryption failed (likely stale key after password change): $e');
+        return null;
+      }
+    }
+
+    return null;
+  }
+
   /// Save a profile (create or update)
   ///
   /// [name] - Profile name
@@ -328,21 +392,7 @@ class RustVaultService {
     String accountId,
     String jsonData,
   ) async {
-    final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
-    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
-    if (encryptedData.isEmpty) {
-      return false;
-    }
-
-    final result = NativeVaultService.instance.request(
-      'save_field_histories',
-      {
-        'account_id': accountId,
-        'data': base64Encode(encryptedData),
-      },
-    );
-
-    return result?['success'] == true;
+    return _saveEncryptedJson(accountId, jsonData, 'save_field_histories');
   }
 
   /// Load and decrypt field histories by account ID
@@ -351,37 +401,7 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadFieldHistoriesDecrypted(String accountId) async {
-    final result = NativeVaultService.instance.request(
-      'load_field_histories',
-      {'account_id': accountId},
-    );
-
-    if (result?['success'] != true) {
-      return null;
-    }
-
-    final responseData = result!['data'] as Map<String, dynamic>?;
-    if (responseData == null) {
-      return null;
-    }
-
-    final data = responseData['data'];
-    if (data == null) {
-      return null;
-    }
-
-    if (data is String) {
-      final encryptedBytes = base64Decode(data);
-      try {
-        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
-        return utf8.decode(decrypted);
-      } on Object catch (e) {
-        SoloLog.w('RustVault', 'Scan config decryption failed (likely stale key after password change): $e');
-        return null;
-      }
-    }
-
-    return null;
+    return _loadDecryptedJson(accountId, 'load_field_histories', 'Field histories');
   }
 
   /// Delete field histories for an account
@@ -412,21 +432,7 @@ class RustVaultService {
     String accountId,
     String jsonData,
   ) async {
-    final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
-    final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);
-    if (encryptedData.isEmpty) {
-      return false;
-    }
-
-    final result = NativeVaultService.instance.request(
-      'save_scan_config',
-      {
-        'account_id': accountId,
-        'data': base64Encode(encryptedData),
-      },
-    );
-
-    return result?['success'] == true;
+    return _saveEncryptedJson(accountId, jsonData, 'save_scan_config');
   }
 
   /// Load and decrypt scan configuration by account ID
@@ -435,37 +441,7 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadScanConfigDecrypted(String accountId) async {
-    final result = NativeVaultService.instance.request(
-      'load_scan_config',
-      {'account_id': accountId},
-    );
-
-    if (result?['success'] != true) {
-      return null;
-    }
-
-    final responseData = result!['data'] as Map<String, dynamic>?;
-    if (responseData == null) {
-      return null;
-    }
-
-    final data = responseData['data'];
-    if (data == null) {
-      return null;
-    }
-
-    if (data is String) {
-      final encryptedBytes = base64Decode(data);
-      try {
-        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
-        return utf8.decode(decrypted);
-      } on Object catch (e) {
-        SoloLog.w('RustVault', 'Scan config decryption failed (likely stale key after password change): $e');
-        return null;
-      }
-    }
-
-    return null;
+    return _loadDecryptedJson(accountId, 'load_scan_config', 'Scan config');
   }
 
   /// Delete scan configuration for an account
@@ -575,37 +551,7 @@ class RustVaultService {
   ///
   /// Returns decrypted JSON string, or null if not found/error
   Future<String?> loadSettingDecrypted(String accountId) async {
-    final result = NativeVaultService.instance.request(
-      'load_setting',
-      {'account_id': accountId},
-    );
-
-    if (result?['success'] != true) {
-      return null;
-    }
-
-    final responseData = result!['data'] as Map<String, dynamic>?;
-    if (responseData == null) {
-      return null;
-    }
-
-    final data = responseData['data'];
-    if (data == null) {
-      return null;
-    }
-
-    if (data is String) {
-      final encryptedBytes = base64Decode(data);
-      try {
-        final decrypted = await frb.frbDecryptBytes(data: encryptedBytes);
-        return utf8.decode(decrypted);
-      } on Object catch (e) {
-        SoloLog.w('RustVault', 'Scan config decryption failed (likely stale key after password change): $e');
-        return null;
-      }
-    }
-
-    return null;
+    return _loadDecryptedJson(accountId, 'load_setting', 'Setting');
   }
 
   /// Delete account settings for an account

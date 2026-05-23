@@ -642,6 +642,55 @@ class _TypeDropdown extends ConsumerWidget {
   }
 }
 
+class _TitleFieldRow extends StatelessWidget {
+  final ThemeData theme;
+  final SensitivityLevel sensitivity;
+
+  const _TitleFieldRow({required this.theme, required this.sensitivity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Container(
+              height: 40,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                AppLocalizations.of(context).objectEditorDefaultFieldTitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const SizedBox(width: 40),
+          const SizedBox(width: 8),
+          const Expanded(
+            flex: 1,
+            child: SizedBox(height: 40),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 72,
+            child: Center(child: SensitivityTag(level: sensitivity)),
+          ),
+          const SizedBox(width: 40),
+        ],
+      ),
+    );
+  }
+}
 class ObjectParentDropdown extends ConsumerWidget {
   final String? selectedParentId;
   final String? objectId;
@@ -800,47 +849,8 @@ class _PropertyFieldsSection extends StatelessWidget {
         const SizedBox(height: 12),
 
         // Title field
-        if (titleField != null) ...[
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    height: 40,
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context).objectEditorDefaultFieldTitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const SizedBox(width: 40),
-                const SizedBox(width: 8),
-                const Expanded(
-                  flex: 1,
-                  child: SizedBox(height: 40),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 72,
-                  child: Center(child: SensitivityTag(level: titleField.sensitivity)),
-                ),
-                const SizedBox(width: 40),
-              ],
-            ),
-          ),
-        ],
+        if (titleField != null)
+          _TitleFieldRow(theme: theme, sensitivity: titleField.sensitivity),
 
         // Normal property fields
         ...normalFields.map((field) {

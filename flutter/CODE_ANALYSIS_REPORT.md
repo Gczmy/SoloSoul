@@ -25,7 +25,7 @@
 | P015 | P2     | 代码风格   | 大量测试文件 | `prefer_const_constructors` / `prefer_const_declarations`：大量构造函数未使用 `const` 优化 | `[x]` 已修复（批量，dart fix） |
 | P016 | P2     | 代码风格   | 多个测试文件 | `no_leading_underscores_for_local_identifiers`：局部变量以下划线开头 | `[x]` 已修复（批量，dart fix） |
 | P017 | P2     | 代码风格   | `lib/presentation/pages/scan/scan_preview_page.dart:314` | `unnecessary_to_list_in_spreads`：spread 中不必要的 `toList()` | `[x]` 已修复（dart fix） |
-| P018 | P2     | 结构       | `lib/presentation/pages/object_editor_page.dart` / `ocr_scanner_sheet.dart` / `trash_page.dart` / `rust_vault_service.dart` 等 | 文件过大（>700行）且嵌套层级深（>5层），可维护性差 | `[ ]` 暂缓 |
+| P018 | P2     | 结构       | `lib/presentation/pages/object_editor_page.dart` / `ocr_scanner_sheet.dart` / `trash_page.dart` / `rust_vault_service.dart` 等 | 文件过大（>700行）且嵌套层级深（>5层），已提取子widget和通用辅助方法 | `[x]` 已修复 |
 | P019 | P2     | 警告       | `test/unit/presentation/providers/history_expanded_test.dart:4` | `unused_shown_name`：`HistoryExpanded` 被 show 但未使用 | `[x]` 已修复（复审发现） |
 | P020 | P2     | 警告       | `test/widget/nav_tile_test.dart:103` | `unused_local_variable`：`iconTapped` 声明但未读取 | `[x]` 已修复（复审发现） |
 

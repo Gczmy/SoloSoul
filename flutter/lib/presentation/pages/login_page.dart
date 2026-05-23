@@ -576,58 +576,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final overlay = Overlay.of(context);
 
     _passwordHintOverlayEntry = OverlayEntry(
-      builder: (ctx) => Positioned(
-        top: MediaQuery.of(ctx).padding.top + kToolbarHeight + 8,
-        left: 16,
-        right: 16,
-        child: SafeArea(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.help_outline, color: Colors.white, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      AppLocalizations.of(context).loginPasswordHint(hint),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white70,
-                      size: 18,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      _passwordHintOverlayEntry?.remove();
-                      _passwordHintOverlayEntry = null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      builder: (ctx) => _PasswordHintOverlay(
+        hint: hint,
+        onDismiss: () {
+          _passwordHintOverlayEntry?.remove();
+          _passwordHintOverlayEntry = null;
+        },
       ),
     );
 
@@ -830,5 +784,66 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         error: (error, _) => Center(child: Text('${AppLocalizations.of(context).commonError}: $error')),
       );
     }
+  }
+}
+
+class _PasswordHintOverlay extends StatelessWidget {
+  final String hint;
+  final VoidCallback onDismiss;
+
+  const _PasswordHintOverlay({required this.hint, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.help_outline, color: Colors.white, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context).loginPasswordHint(hint),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.close,
+                    color: Colors.white70,
+                    size: 18,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: onDismiss,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
