@@ -13,8 +13,19 @@ flutter/.pub-cache/
 flutter/.pub/
 flutter/build/
 flutter/coverage/
+flutter/debug_info/
 flutter/*.symbols
 flutter/*.map.json
+flutter/.fvm/
+flutter/.fvmrc
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# Flutter platform ephemeral/build artifacts
+flutter/android/app/build/
+flutter/linux/flutter/ephemeral/
+flutter/windows/flutter/ephemeral/
+flutter/web/ephemeral/
 
 # Rust
 crypto-argon2/target/
@@ -71,3 +82,11 @@ web/next-env.d.ts
 *.tmp
 *.temp
 *.onnx
+*.orig
+*.rej
+
+# Version managers
+.tool-versions
+.ruby-version
+.python-version
+.nvmrc
