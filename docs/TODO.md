@@ -508,12 +508,19 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 ## P6: 测试
 
 ### Flutter
-- [ ] 组件测试
+- [x] 单元测试 (840 通过，0 失败) — models, providers, services, utils ✅
+- [x] Widget 测试 — 共享组件、页面交互 ✅
+- [ ] 组件测试 (Plugin UI)
 - [ ] 集成测试
 - [ ] E2E 测试 (Playwright)
 
 ### Go 后端
-- [x] 单元测试 (crypto, vault, schema, ocr, api) ✅
+- [x] 单元测试 (crypto 78.6%, vault 67.4%, schema 95.5%, ocr 74.2%, api 20.3%) ✅
+- [x] AccountManager CRUD 测试 ✅
+- [ ] gRPC/HTTP handler 测试
+
+### Rust 核心
+- [x] 单元测试 (182 通过) — crypto, vault, profile, plugin models ✅
 
 ### 安全测试
 - [ ] 渗透测试
@@ -543,8 +550,8 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 | Cross-platform Build | 2 | 13 | 13% |
 | Plugin System | 29 | 1 | 97% |
 | LLM Features | 0 | 3 | 0% |
-| Testing | 1 | 5 | 17% |
-| **总计** | **63** | **35** | **64%** |
+| Testing | 5 | 2 | 71% |
+| **总计** | **67** | **32** | **68%** |
 
 ---
 
