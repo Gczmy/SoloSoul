@@ -6,9 +6,9 @@
 
 ## 终版总结
 
-- **初始问题总数**：18
-- **修复完成**：16（含复审中发现的 2 个新问题）
-- **暂缓处理**：4（详见下方）
+- **初始问题总数**：20（含复审追加 2 项）
+- **修复完成**：17
+- **暂缓处理**：3
 - **剩余编译错误/警告（不含暂缓项）**：0
 - **dart analyze 结果**：仅剩 4 个第三方包资源警告 + 4 个暂缓的 deprecated info
 
@@ -16,7 +16,6 @@
 
 | ID   | 原因                                                         |
 |------|--------------------------------------------------------------|
-| P001 | 死测试文件 `llm_query_enhancer_test.dart` 引用已移除功能，需用户确认是否删除 |
 | P011 | `Radio` API 废弃迁移至 `RadioGroup`，涉及 UI 结构调整，需评估回归风险   |
 | P012 | `DropdownButtonFormField.value` 废弃迁移至 `initialValue`，涉及受控组件行为评估 |
 | P018 | 大文件（>700行）与深层嵌套（>5层）重构，建议作为独立专项任务处理         |
@@ -25,7 +24,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
-| P001 | P0     | 编译错误   | `test/unit/core/services/llm/llm_query_enhancer_test.dart` | 引用不存在的 `llm_query_enhancer.dart`，导致 `EnhancementResult`、`LlmQueryEnhancer` 等全部未定义 | `[ ]` 暂缓（死测试文件，待确认删除） |
+| P001 | P0     | 编译错误   | `test/unit/core/services/llm/llm_query_enhancer_test.dart` | 引用不存在的 `llm_query_enhancer.dart`，导致 `EnhancementResult`、`LlmQueryEnhancer` 等全部未定义 | `[x]` 已修复（文件已删除） |
 | P002 | P0     | 编译错误   | `test/unit/core/services/scan/local_search_service_test.dart:116` | 错误调用 `LocalSearchService.filenameHintsPersonal`，实际为 `ScanSectionDetector.filenameHintsPersonal` | `[x]` 已修复 |
 | P003 | P0     | 编译错误   | `test/unit/presentation/utils/property_value_utils_test.dart` | 缺少 `fieldPrefixForTypeId` 函数导入（定义于 `core/services/unified_object_service.dart`） | `[x]` 已修复 |
 | P004 | P0     | 编译错误   | `test/unit/presentation/widgets/sensitivity_tag_utils_test.dart` / `test/widget/sensitivity_tag_test.dart` | `getSensitivityLabel` 函数已被移除（现有 `SensitivityLevel.localizedLabel`），测试引用不存在符号 | `[x]` 已修复 |
@@ -48,8 +47,8 @@
 
 ## 修复进度
 
-- 已完成：16 / 20
-- 当前处理：P019-P020（复审中发现并修复）
+- 已完成：17 / 20
+- 当前处理：P001 死测试文件已删除
 
 ## 详细问题描述与修复指引
 
