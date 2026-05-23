@@ -551,3 +551,81 @@ func TestCryptoHash(t *testing.T) {
 		t.Error("Same input should produce same hash")
 	}
 }
+
+func TestFileStore_SetVaultPath(t *testing.T) {
+	t.Run("changes vault path and resets state", func(t *testing.T) {
+		dir1 := t.TempDir()
+		dir2 := t.TempDir()
+
+		fs, err := NewFileStore(dir1)
+		if err != nil {
+			t.Fatalf("NewFileStore failed: %v", err)
+		}
+
+		// Initialize and unlock first vault
+		password := "testpassword123"
+		if err := fs.Initialize(password); err != nil {
+			t.Fatalf("Initialize() failed: %v", err)
+		}
+
+		// Change to second path
+		if err := fs.SetVaultPath(dir2); err != nil {
+			t.Fatalf("SetVaultPath() failed: %v", err)
+		}
+
+		// Should be locked after path change
+		if !fs.IsLocked() {
+			t.Error("SetVaultPath() should lock the vault")
+		}
+
+		// Path should be updated
+		if fs.GetVaultPath() != dir2 {
+			t.Errorf("GetVaultPath() = %q, want %q", fs.GetVaultPath(), dir2)
+		}
+	})
+
+	t.Run("switches to initialized vault", func(t *testing.T) {
+		dir1 := t.TempDir()
+		dir2 := t.TempDir()
+
+		// Setup two initialized vaults
+		fs1, _ := NewFileStore(dir1)
+		fs1.Initialize("password1")
+
+		fs2, _ := NewFileStore(dir2)
+		fs2.Initialize("password2")
+
+		// Switch fs1 to dir2
+		if err := fs1.SetVaultPath(dir2); err != nil {
+			t.Fatalf("SetVaultPath() failed: %v", err)
+		}
+
+		// Should detect initialization
+		if !fs1.IsInitialized() {
+			t.Error("SetVaultPath() should detect existing initialized vault")
+		}
+	})
+}
+
+func TestFileStore_GetVaultPath(t *testing.T) {
+	t.Run("returns initial path", func(t *testing.T) {
+		dir := t.TempDir()
+		fs, _ := NewFileStore(dir)
+
+		path := fs.GetVaultPath()
+		if path != dir {
+			t.Errorf("GetVaultPath() = %q, want %q", path, dir)
+		}
+	})
+
+	t.Run("returns updated path after SetVaultPath", func(t *testing.T) {
+		dir1 := t.TempDir()
+		dir2 := t.TempDir()
+		fs, _ := NewFileStore(dir1)
+
+		fs.SetVaultPath(dir2)
+		if fs.GetVaultPath() != dir2 {
+			t.Errorf("GetVaultPath() after SetVaultPath = %q, want %q", fs.GetVaultPath(), dir2)
+		}
+	})
+}
