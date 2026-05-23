@@ -117,6 +117,9 @@ void main() {
 
       // The icon is wrapped in an InkWell when onIconTap is provided
       expect(find.byType(InkWell), findsWidgets);
+      await tester.tap(find.byType(InkWell).first);
+      await tester.pump();
+      expect(iconTapped, isTrue);
     });
 
     testWidgets('has fixed height of 40', (tester) async {

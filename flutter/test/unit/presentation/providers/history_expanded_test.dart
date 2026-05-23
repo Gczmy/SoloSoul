@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart'
-    show HistoryExpanded, historyExpandedProvider;
+    show historyExpandedProvider;
 
 void main() {
   group('HistoryExpanded provider', () {
