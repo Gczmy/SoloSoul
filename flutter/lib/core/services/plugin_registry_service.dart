@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:solosoul_flutter/core/models/plugin_models.dart';
@@ -12,6 +13,7 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 class PluginRegistryService {
   static const _remoteUrl = 'https://plugins.solosoul.dev/registry.json';
   static const _cacheTtl = Duration(hours: 24);
+  static const _builtinAssetPath = 'assets/registry.json';
 
   late final Directory _pluginDir;
 
@@ -21,7 +23,7 @@ class PluginRegistryService {
     await _pluginDir.create(recursive: true);
   }
 
-  /// 获取合并后的注册表（远程优先，离线回退本地缓存）
+  /// 获取合并后的注册表（远程优先，离线回退本地缓存，首次启动回退内置资源）
   Future<PluginRegistry> getRegistry() async {
     // 优先使用本地缓存（若未过期）
     final cached = await _loadLocalCache();
@@ -42,7 +44,8 @@ class PluginRegistryService {
       // 离线或网络错误，回退本地缓存（即使已过期）
     }
 
-    return cached ?? PluginRegistry.empty();
+    // 回退顺序：本地缓存（即使过期）→ 内置资源 → 空 registry
+    return cached ?? await _loadBuiltinRegistry() ?? PluginRegistry.empty();
   }
 
   /// 检查本地缓存是否在 24h 有效期内
@@ -63,5 +66,18 @@ class PluginRegistryService {
     if (!await cacheFile.exists()) return null;
     final json = await cacheFile.readAsString();
     return PluginRegistry.fromJson(jsonDecode(json));
+  }
+
+  /// 从应用内置资源加载默认注册表（首次启动兜底）
+  Future<PluginRegistry?> _loadBuiltinRegistry() async {
+    try {
+      final jsonString = await rootBundle.loadString(_builtinAssetPath);
+      final registry = PluginRegistry.fromJson(jsonDecode(jsonString));
+      // 同时写入本地缓存，避免每次启动都读 asset
+      await _saveLocalCache(jsonString);
+      return registry;
+    } on Exception catch (_) {
+      return null;
+    }
   }
 }

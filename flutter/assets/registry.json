@@ -1,0 +1,21 @@
+{
+  "version": "1",
+  "updated_at": "2026-05-23T00:00:00Z",
+  "plugins": {
+    "com.solosoul.official.slotgo": {
+      "name": "SlotGo",
+      "publisher": "SoloSoul Official",
+      "latest_version": "0.1.0",
+      "versions": {
+        "0.1.0": {
+          "sha256": "ec404120c8b4cfe6fd146794dda4c6d507c1c373589d7e5075d4dd695ec3fe22",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://github.com/Gczmy/SoloSoul_plugin_market/releases/download/slotgo-v0.1.0/plugin.wasm",
+          "released_at": "2026-05-23T00:00:00Z"
+        }
+      }
+    }
+  }
+}

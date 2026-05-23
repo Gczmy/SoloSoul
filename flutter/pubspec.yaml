@@ -120,6 +120,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/registry.json
     - assets/models/v1/
     - assets/docs/
 
