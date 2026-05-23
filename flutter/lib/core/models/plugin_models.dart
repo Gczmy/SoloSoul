@@ -82,7 +82,10 @@ class PluginVersionInfo {
   final String pluginApiVersion;
   final String minAppVersion;
   final String maxAppVersion;
+  /// 优先下载地址（jsDelivr CDN 加速）
   final String downloadUrl;
+  /// GitHub Raw 直连 fallback 地址
+  final String? rawUrl;
   final DateTime releasedAt;
 
   PluginVersionInfo({
@@ -91,6 +94,7 @@ class PluginVersionInfo {
     required this.minAppVersion,
     required this.maxAppVersion,
     required this.downloadUrl,
+    this.rawUrl,
     required this.releasedAt,
   });
 
@@ -101,6 +105,7 @@ class PluginVersionInfo {
       minAppVersion: json['min_app_version'] as String,
       maxAppVersion: json['max_app_version'] as String,
       downloadUrl: json['download_url'] as String,
+      rawUrl: json['raw_url'] as String?,
       releasedAt: DateTime.tryParse(json['released_at'] as String? ?? '') ?? DateTime.now().toUtc(),
     );
   }
@@ -111,8 +116,45 @@ class PluginVersionInfo {
     'min_app_version': minAppVersion,
     'max_app_version': maxAppVersion,
     'download_url': downloadUrl,
+    if (rawUrl != null) 'raw_url': rawUrl,
     'released_at': releasedAt.toIso8601String(),
   };
+}
+
+/// 插件市场源配置
+///
+/// 用户可配置多个插件源，每个源对应一个 GitHub 公开仓库。
+class PluginSource {
+  final String name;
+  final String repoOwner;
+  final String repoName;
+  final String branch;
+  final bool useCdn;
+
+  const PluginSource({
+    required this.name,
+    required this.repoOwner,
+    required this.repoName,
+    this.branch = 'main',
+    this.useCdn = true,
+  });
+
+  /// 官方默认源
+  static const official = PluginSource(
+    name: 'SoloSoul Official',
+    repoOwner: 'Gczmy',
+    repoName: 'SoloSoul_plugin_market',
+    branch: 'main',
+    useCdn: true,
+  );
+
+  /// registry.json 的远程地址
+  String get registryUrl => useCdn
+      ? 'https://cdn.jsdelivr.net/gh/$repoOwner/$repoName@$branch/registry.json'
+      : 'https://raw.githubusercontent.com/$repoOwner/$repoName/$branch/registry.json';
+
+  @override
+  String toString() => 'PluginSource($name: $repoOwner/$repoName@$branch)';
 }
 
 /// 已安装插件信息（installed.json 中的条目）

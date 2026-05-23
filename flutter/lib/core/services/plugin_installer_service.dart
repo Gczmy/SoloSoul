@@ -11,6 +11,8 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 /// 插件安装器：负责从市场/本地安装、更新、卸载插件
 ///
+/// 下载策略：优先使用 jsDelivr CDN（downloadUrl），失败时 fallback 到 GitHub Raw（rawUrl）。
+///
 /// ⚠️ 路径必须与 Rust 侧 PluginStore::base_dir() 完全一致。
 class PluginInstallerService {
   late final Directory _pluginDir;
@@ -38,26 +40,29 @@ class PluginInstallerService {
       throw PluginIncompatibleException(pluginId);
     }
 
-    // 2. 下载 wasm + manifest 到临时目录
+    // 2. 下载 wasm（带 CDN → Raw fallback）
+    final wasmBytes = await _downloadWasm(versionInfo);
+
+    // 3. 大小限制（防止恶意超大 wasm 导致 OOM）
+    const maxWasmSize = 10 * 1024 * 1024; // 10MB
+    if (wasmBytes.length > maxWasmSize) {
+      throw PluginSecurityException('Wasm file exceeds 10MB limit');
+    }
+
+    // 4. SHA-256 校验
+    final computedHash = sha256.convert(wasmBytes).toString();
+    if (computedHash != versionInfo.sha256) {
+      throw PluginSecurityException(
+        'Hash mismatch for $pluginId: expected ${versionInfo.sha256}, got $computedHash',
+      );
+    }
+
+    // 5. 下载 manifest.json（从 wasm URL 推断 manifest URL）
+    final manifestJson = await _downloadManifest(versionInfo);
+
+    // 6. 保存到临时文件，然后调用 Rust FFI 安装
     final tempDir = await Directory.systemTemp.createTemp('solosoul_plugin_');
     try {
-      final wasmBytes = await _download('${versionInfo.downloadUrl}/plugin.wasm');
-      final manifestJsonBytes = await _download('${versionInfo.downloadUrl}/manifest.json');
-      final manifestJson = utf8.decode(manifestJsonBytes);
-
-      // 2.5 大小限制（防止恶意超大 wasm 导致 OOM）
-      const maxWasmSize = 10 * 1024 * 1024; // 10MB
-      if (wasmBytes.length > maxWasmSize) {
-        throw PluginSecurityException('Wasm file exceeds 10MB limit');
-      }
-
-      // 3. SHA-256 校验
-      final computedHash = sha256.convert(wasmBytes).toString();
-      if (computedHash != versionInfo.sha256) {
-        throw PluginSecurityException('Hash mismatch for $pluginId');
-      }
-
-      // 4. 保存到临时文件，然后调用 Rust FFI 安装
       final tempWasmPath = '${tempDir.path}/plugin.wasm';
       final tempManifestPath = '${tempDir.path}/manifest.json';
       await File(tempWasmPath).writeAsBytes(wasmBytes);
@@ -126,13 +131,77 @@ class PluginInstallerService {
     return app >= min && app <= max;
   }
 
+  /// 下载 wasm，优先 CDN，fallback 到 Raw
+  Future<List<int>> _downloadWasm(PluginVersionInfo info) async {
+    // 优先尝试 downloadUrl（jsDelivr CDN）
+    try {
+      return await _download(info.downloadUrl);
+    } on Exception catch (e) {
+      _log('CDN download failed (${info.downloadUrl}): $e');
+    }
+
+    // fallback 到 rawUrl（GitHub Raw）
+    final rawUrl = info.rawUrl;
+    if (rawUrl != null && rawUrl != info.downloadUrl) {
+      try {
+        return await _download(rawUrl);
+      } on Exception catch (e) {
+        _log('Raw download failed ($rawUrl): $e');
+      }
+    }
+
+    throw PluginSecurityException(
+      'Failed to download wasm from all available URLs',
+    );
+  }
+
+  /// 下载 manifest.json（从 wasm URL 推断 manifest 路径）
+  Future<String> _downloadManifest(PluginVersionInfo info) async {
+    // 尝试从 downloadUrl 推断 manifest URL
+    String? manifestUrl;
+    try {
+      manifestUrl = _inferManifestUrl(info.downloadUrl);
+      final bytes = await _download(manifestUrl);
+      return utf8.decode(bytes);
+    } on Exception catch (e) {
+      _log('Manifest CDN download failed ($manifestUrl): $e');
+    }
+
+    // fallback 到 rawUrl
+    final rawUrl = info.rawUrl;
+    if (rawUrl != null) {
+      try {
+        manifestUrl = _inferManifestUrl(rawUrl);
+        final bytes = await _download(manifestUrl);
+        return utf8.decode(bytes);
+      } on Exception catch (e) {
+        _log('Manifest raw download failed ($manifestUrl): $e');
+      }
+    }
+
+    throw PluginSecurityException(
+      'Failed to download manifest.json from all available URLs',
+    );
+  }
+
+  /// 从 wasm URL 推断 manifest.json URL
+  /// 例如：.../plugin.wasm → .../manifest.json
+  String _inferManifestUrl(String wasmUrl) {
+    final uri = Uri.parse(wasmUrl);
+    final pathSegments = List<String>.from(uri.pathSegments);
+    if (pathSegments.isNotEmpty && pathSegments.last == 'plugin.wasm') {
+      pathSegments.last = 'manifest.json';
+    }
+    return uri.replace(pathSegments: pathSegments).toString();
+  }
+
   Future<List<int>> _download(String url) async {
     final client = HttpClient();
     try {
       final request = await client.getUrl(Uri.parse(url));
       final response = await request.close();
       if (response.statusCode != 200) {
-        throw PluginSecurityException('Download failed: HTTP ${response.statusCode}');
+        throw PluginSecurityException('Download failed: HTTP ${response.statusCode} for $url');
       }
       return response.expand((chunk) => chunk).toList();
     } finally {
@@ -196,5 +265,11 @@ class PluginInstallerService {
       }
     }
     return reconciled;
+  }
+
+  void _log(String message) {
+    if (kReleaseMode) return;
+    // ignore: avoid_print
+    print('[PluginInstallerService] $message');
   }
 }
