@@ -486,7 +486,13 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 - [x] **FRB StreamSink 事件流**：`frb_plugin_execute` 返回 `Stream<PluginEvent>`，Dart 端通过 `await for` 监听并处理 ConsentRequest / Completed / Error 事件。Consent 弹窗通过 Stream 事件实时触发。
 - [x] **`frb_plugin_execute` 调用链已补全**：`api.rs` → `PluginManager.execute_plugin()` → `WasmSandbox.execute()` → Host Functions。Session 预注册、Consent 后台线程、Audit 后台线程全部就绪。
 - [ ] **iOS 构建**：`sandbox` feature 默认启用，iOS 需 `--no-default-features`（wasmtime asm 兼容性问题）。
-- [ ] **SlotGo 官方插件**：未开始
+- [x] **SlotGo 官方插件**：基础框架完成（v0.1.0）
+  - [x] 目录结构与 manifest 创建
+  - [x] SDK 引用与 Cargo 依赖配置
+  - [x] wasm32-wasip1 编译通过（61KB）
+  - [x] Plugin Market registry.json 注册
+  - [x] GitHub Release 发布
+  - [ ] 业务逻辑：读取护照字段、POST 预约请求
 - [x] **Rust 未使用变量警告**：已清理 `manager.rs`、`host.rs`、`sandbox.rs`、`session.rs` 中的未使用 import。
 
 ---
@@ -535,10 +541,10 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 | Go Backend | 6 | 2 | 75% |
 | Cloud Sync | 0 | 8 | 0% |
 | Cross-platform Build | 2 | 13 | 13% |
-| Plugin System | 24 | 5 | 83% |
+| Plugin System | 29 | 1 | 97% |
 | LLM Features | 0 | 3 | 0% |
 | Testing | 1 | 5 | 17% |
-| **总计** | **58** | **39** | **60%** |
+| **总计** | **63** | **35** | **64%** |
 
 ---
 
