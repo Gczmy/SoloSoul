@@ -66,7 +66,7 @@ install_name_tool -id "@executable_path/../Frameworks/libsolosoul_core.dylib" \
 # --- 注入正式签名 ---
 echo -e "${YELLOW}Injecting Identity Signature...${NC}"
 IDENTITY="A432EC36C0EF2CD554D9E9679CDAC754F414C072"
-ENTITLEMENTS="Runner/Release.entitlements"
+ENTITLEMENTS="macos/Runner/Release.entitlements"
 
 xattr -cr "$APP_PATH"
 

@@ -2,7 +2,47 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [1.6.0] - 2026-05-09
+## [1.6.4] - 2026-05-23
+
+### Added
+
+- **Icon Library Expansion to 96 Icons** — `icon_picker_sheet.dart` now supports 96 icons across 12 categories (travel, finance, identity, education, technology, health, media, objects, nature, symbols, arrows, misc). Added search filtering, categorized grid display, and collapsible filter bar.
+- **Default Page Custom Sections** — Profile/Travel/Financial/Professional pages now support adding custom sections via "+" button alongside the sensitivity mode button. Reuses `AddSectionDialog` and `custom_sections_widget.dart`. New sections appear at the bottom and support rename, delete, and property editing.
+- **Article Section Template** — New predefined template for articles and notes with Title, Author, Source, URL, and Content fields.
+- **Password Hint-Only Changes** — `change_password_dialog.dart` now supports updating only the password hint without changing the master password. Added `updatePasswordHintOnly` flow in `rust_vault_service.dart`.
+- **Global Backoff Protection** — Password verification dialog now enforces a 30-second global cooldown after 5 failed attempts. Backoff state is persisted via `SharedPreferences` and survives dialog close/reopen across the entire app.
+- **Unified Password Verification Dialog** — Extracted shared `password_verification_dialog.dart` with `showPasswordVerificationDialog()` API. Replaced duplicated password dialogs on search page, settings page, and all protected pages.
+
+### Fixed
+
+- **macOS Hot Restart Compilation Error** — `packages/liquid_glass_widgets/lib/src/renderer/shaders.dart` had `const String _shadersRoot = !kIsWeb && isTestEnvironment ? ...` which failed on IO builds because `isTestEnvironment` is `final` (not `const`) in `_env_io.dart`. Changed `_shadersRoot` and `ShaderKeys` fields to `final` with `ignore: prefer_const_declarations` to prevent analyzer false-positives.
+- **Default Page Alignment (Phase 3)** — Custom sections now visually align with predefined sections on Profile/Travel/Financial/Professional pages. Removed hardcoded padding differences.
+- **Old Account Auto-Migration** — Accounts created before schema v2 now automatically get missing default pages and sections (Identity, Contact, Address, ID Card, Passport, Visa, etc.) on next unlock.
+- **macOS Sandbox Data Isolation** — Fixed `path_provider` data directory resolution for sandboxed release builds. Data now correctly stores in `~/Library/Containers/...` when sandbox is enabled.
+- **URL Property Type** — `UrlProperty` now has proper validation regex and displays clickable links in `ObjectCard`.
+- **Sidebar Alignment** — Fixed vertical alignment of sidebar items with icons of varying widths. Added `IntrinsicWidth` wrapper for consistent label positioning.
+- **Filter Bar Collapse** — Filter sections on operation log, search, and trash pages now properly collapse/expand without layout jumps.
+- **Delete Account Flow** — Improved confirmation dialog with warning text and 3-second delay before allowing deletion.
+- **New Account Default Pages** — Fixed missing default pages when creating a brand new account after app reinstall.
+
+### Refactored
+
+- **Code Quality Audit (Round 1)** — Comprehensive static analysis and automated fix cycle:
+  - Fixed 4 P0 test compilation errors: `llm_query_enhancer_test.dart` (dead file removed), `local_search_service_test.dart` (wrong class reference), `property_value_utils_test.dart` (missing import), `sensitivity_tag_test.dart` (removed `getSensitivityLabel` restored)
+  - Fixed P1 warnings: unused variables/imports in `scan_import_service.dart`, `sensitivity_settings_page.dart`, `predefined_object_section.dart`
+  - Fixed P1 potential bugs: `use_build_context_synchronously` in `llm_config_page.dart`, `unawaited_futures` in `account_style_provider.dart`
+  - Fixed P1 deprecated API usages: `dangling_library_doc_comments` in `mrz_date_utils.dart`, missing `fake_async` dependency
+  - Bulk P2 fixes via `dart fix --apply`: 160 fixes across 41 files (`prefer_const_constructors`, `prefer_const_declarations`, `no_leading_underscores_for_local_identifiers`, `unnecessary_import`, `unnecessary_to_list_in_spreads`, etc.)
+  - Fixed `build_dmg.sh` entitlements path: `Runner/Release.entitlements` → `macos/Runner/Release.entitlements`
+- **Filter Sections Unification** — Extracted shared `FilterSection` widget pattern across operation log, search, and trash pages. Eliminated duplicated filter logic.
+
+### Internal
+
+- Added `currentObjects` public getter to `UnifiedObjectNotifier` to avoid external access to protected `state` property.
+- Restored `getSensitivityLabel(SensitivityLevel)` top-level helper in `sensitivity_tag.dart` for test compatibility.
+- Generated `CODE_ANALYSIS_REPORT.md` and `CODE_ANALYSIS_REPORT_FINAL.md` documenting 20 identified issues and 17 resolutions.
+
+## [1.6.3] - 2026-05-10
 
 ### Added
 
@@ -60,66 +100,39 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
-- **LLM Config Page** — Fixed redirecting to home page in release mode. `AppRoutes.llmConfig` was incorrectly included in `debugOnlyRoutes` guard set in `app_router.dart`, causing the redirect to return `AppRoutes.home` in non-debug builds.
-- **Local Search & Scan Routes** — Removed the entire `debugOnlyRoutes` guard block. `localSearch`, `localSearchProgress`, `scanPreview`, `scanImportResult` are now accessible in production builds.
-
-## [1.4.8] - 2026-05-08
+- **LLM Config Page** — Fixed redirecting to home page in release mode (removed from `debugOnlyRoutes` guard)
+- **Local Search & Scan Routes** — Opened to production builds
 
 ## [1.4.8] - 2026-05-08
 
 ### Added
 
-- **Auto Language Detection** — `LanguageNotifier.build()` now detects OS locale via `PlatformDispatcher.instance.locale`. Chinese OS → zh, all others → en. Added `hasStoredPreference()` to `LanguageService` to distinguish first launch from user choice.
-- **Version Auto-Injection** — `build_dmg.sh` now injects VERSION into `pubspec.yaml` before `flutter build macos --release` and restores via `trap EXIT`.
-- **Update Notification** — Version sheet uses semantic version comparison (`_isUpdateAvailable`), shows "update available" button that opens GitHub Releases in browser (macOS) or copies URL to clipboard.
-- **Password Dialog Fixed Width** — Replaced `showDialog` (which uses `IntrinsicWidth`) with `showGeneralDialog` + `Center` + `SizedBox(width: 360)` inside AlertDialog content; prevents dialog resizing on password input.
-
-### i18n — Comprehensive Completion
-
-- **935 ARB Keys** (up from ~330), 60+ files modified, 0 hardcoded strings remaining
-- **Pages**: home, search, sync, trash, operation_log, sensitivity_settings, settings, data_management, login, profile, travel, financial, professional
-- **Widgets**: password_verification_dialog, ocr_scanner_sheet, scan_document_button, search_empty_state, section_card, entry_card_widget, object_tile, predefined_object_section, change_password_dialog, field_history_dialog, lock_vault_dialog, search_result_tile, scan_progress_banner, date_picker_form_field, header_action_buttons, folder_picker_dialog, entry_action_builder, mrz_preview_card, version_sheet, current_account_sheet, all_accounts_sheet, debug_log_sheet, delete_account_dialog_content, add_quick_action_dialog, backup_list_tile, object_card_edit_field, create_account_form, password_input_section, empty_profiles_state, scan_document_button
-- **Field Label Translation** — `translateFieldLabel(key, l10n)` switch-based lookup for ~80 built-in property keys; used in `object_card_edit_field`, `operation_tile`, `trash/unified_object_trash_card`
-- **Sensitivity Labels Unified** — `sensitivityCritical` → "Restricted"/"受限"; added `localizedLabel(l10n)` to `SensitivityLevelExtension`
-- **Quick Action Labels** — `QuickAction.localizedLabel()` maps routes to sidebar l10n keys
-- **Privacy Policy & Terms** — Chinese `PRIVACY_POLICY_zh.md` and `TERMS_OF_SERVICE_zh.md` created; locale-aware loading in `settings_page.dart`
+- **Auto Language Detection** — OS locale auto-detection on first launch (Chinese OS → zh, all others → en)
+- **Version Auto-Injection** — Version auto-injected into DMG builds, with update notification linking to GitHub Releases
+- **935 ARB Keys** — Comprehensive i18n completion across all pages and widgets with 0 hardcoded strings remaining
 
 ### Fixed
 
-- Quick action editor showing English page names
-- Login page: Enter Master Password, Unlock, biometric labels, password recovery warning
-- Data management: all backup operation labels, dialogs, confirm messages
-- Delete account button label
-- Date picker: "Select date", "Cancel", "OK" l10n
-- Search empty state text color too faint
-- Security/Sensitivity route paths in quick action labels (corrected to `/security_settings`, `/sensitivity_settings`)
-- Untranslated "Vault" in home page and local search description
+- Date picker localization, password dialog width consistency, search empty state colors, untranslated "Vault" references
 
-### Code Quality
+## [1.4.7] - 2026-05-06
 
-- **S001**: PowerShell injection path validation in `windows_search_service.dart`
-- **S002**: Security hardening + one-time warning log in `fallback_secure_storage.dart`
-- **S004**: `print()` → `SoloLog` in `ocr_service.dart`
-- **S006**: `cleanupStaleTimers()` added to `solo_log.dart`
-- **P001**: `dispose()` method added to `scan_background_service.dart`
-- **P002**: LRU eviction (max 3) in `profile_storage_service.dart`
-- **P003**: `_configCache` in-memory cache in `llm_config_service.dart`
-- **D001-D005**: Deleted unused files: `llm_privacy_filter.dart`, `llm_query_enhancer.dart`, `llm_stub_provider.dart`, `streaming_text_widget.dart`, `ocr_result_preview.dart`
-- **O011**: Removed duplicate `_getDeviceIcon` wrappers
-- **O012**: Extracted `_buildPropertyList` from `_showDetailDialog`
-- **O013**: Extracted `_performEmptyTrash` from `_confirmEmptyTrash`
-- **O014**: Extracted `_buildResultActions` from `_buildResultState`
-- **O016**: Merged duplicate for-each loops in `trash_page.dart`
-- **O017**: Extracted `shouldRetryStats` boolean variable
-- **O018**: Migrated deprecated Radio API to `RadioGroup`
-- **O019**: Added `mounted` checks after async gaps in `llm_config_page.dart` and `login_page.dart`
-- **O020**: Added `const` constructors to 6 locations
-- **O010**: Extracted `EmptyProfilesState` to `llm/` subdirectory (822→795 lines)
+### Added
 
-### UI
+- **Liquid Glass UI Overhaul** — Complete cross-platform UI redesign using liquid glass material design. All 20+ protected pages, AppBars, cards, buttons, dialogs, and sidebar now use glass-morphism effects with Notion+Anytype bright color palette
+- **Login UI Refresh** — Redesigned login page with gradient background, decorative orbs, vertical centering, and hover effects on all interactive elements
+- **Back Navigation** — SoloGlassAppBar now supports `backRoute` for proper back button behavior on deep-linked pages
 
-- Language picker emoji flags replaced with `Icons.language`
-- Version sheet platform icon changed from `Icons.phone_android` to `Icons.laptop_mac`
-- Create account back button moved to top-left with arrow, matching login page style
-- Biometric unlock text simplified to "使用 {biometricType}" (removed "解锁 SoloSoul" suffix)
+### Fixed
 
+- **Sensitivity Lock Enforcement** — Locking sensitive access now simultaneously enforces data masking and collapses all expanded history records
+- **Sidebar Rename Bug** — Editing a custom page name no longer persists when navigating away; double-tap renamed to long-press for faster click response
+- **Sidebar Drag Performance** — Cached descendant lookups during drag-and-drop and simplified drag placeholder to reduce jank
+- **LLM Stats Persistence** — Skips LLM usage statistics persistence when vault is locked to prevent errors
+- **Object Editor Character Counter** — Fixed character counter showing literal text instead of actual number
+- **History Timestamp Alignment** — Full timestamps in history records are now right-aligned for consistency
+
+### Refactored
+
+- **Sensitivity Model Consolidation** — `sensitivity_models.dart` moved to `core/models/` for cleaner architecture
+- **Scan Service Refactoring** — `local_search_service` now uses `FieldRegistry` as the single source of truth for field sensitivity levels
