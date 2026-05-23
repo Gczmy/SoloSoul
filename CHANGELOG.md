@@ -5,6 +5,31 @@ All notable changes to SoloSoul are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.4] - 2026-05-23
+
+### Added
+
+- **Icon Library Expansion** — 96 icons across 12 categories with search filtering and categorized display
+- **Default Page Custom Sections** — Add, edit, and delete custom sections on Profile/Travel/Financial/Professional pages
+- **Article Section Template** — New predefined template for articles and notes
+- **Password Hint-Only Changes** — Update password hint without changing the master password
+- **Global Backoff Protection** — 30-second cooldown after 5 failed password attempts, persisted across dialog sessions
+- **Unified Password Dialog** — Shared password verification dialog across search, settings, and all protected pages
+
+### Fixed
+
+- **macOS Compilation** — Fixed `Not a constant expression` error in `liquid_glass_widgets` that prevented app launch
+- **Default Page Alignment** — Custom sections now align with predefined sections on default pages
+- **Old Account Migration** — Automatically creates missing default pages and sections for accounts created before schema v2
+- **macOS Sandbox Data Isolation** — Fixed data path resolution for sandboxed release builds
+- **URL Property Type** — Proper validation and display for URL fields
+- **Sidebar Alignment** — Visual alignment improvements for sidebar items
+
+### Refactored
+
+- **Code Quality Audit** — Comprehensive static analysis cleanup: fixed test compilation errors, removed dead code, resolved unawaited futures, and eliminated 160+ analyzer warnings across 41 files
+- **Filter Sections** — Unified filter section pattern across operation log, search, and trash pages
+
 ## [1.6.3] - 2026-05-10
 
 ### Added
