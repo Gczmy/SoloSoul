@@ -28,7 +28,6 @@
 | 13 | [13-lifecycle.md](13-lifecycle.md) | 插件生命周期管理：安装、更新、卸载（与主软件分离） |
 | 14 | [14-advanced-security.md](14-advanced-security.md) | 高级安全机制：JIT 即时解密、熔断机制 |
 | 15 | [15-appendix.md](15-appendix.md) | 附录：Host Functions ABI 规范、错误码总表、版本兼容性检查流程 |
-| 16 | [16-plugin-ideas.md](16-plugin-ideas.md) | 插件创意库：纯本地/联网插件方案、可行性评估、推荐开发排序 |
 
 ---
 
