@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
-import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
     show unifiedObjectProvider;
@@ -250,20 +249,4 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
   }
 }
 
-class _PredefinedErrorWidget extends StatelessWidget {
-  final String message;
 
-  const _PredefinedErrorWidget({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Text(
-        l10n.commonErrorWithMessage(message),
-        style: const TextStyle(color: Colors.red),
-      ),
-    );
-  }
-}

@@ -14,8 +14,8 @@
 | P004 | P0     | 编译错误   | `test/unit/presentation/widgets/sensitivity_tag_utils_test.dart` / `test/widget/sensitivity_tag_test.dart` | `getSensitivityLabel` 函数已被移除（现有 `SensitivityLevel.localizedLabel`），测试引用不存在符号 | `[x]` 已修复 |
 | P005 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:297` | 未使用的局部变量 `parentSectionId` | `[x]` 已修复 |
 | P006 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:518` | 使用 Riverpod 内部可见性 API `_objectNotifier.state`，可能在未来版本失效 | `[x]` 已修复 |
-| P007 | P1     | 警告       | `lib/presentation/pages/sensitivity_settings_page.dart:508` | 未使用的局部变量 `l10n` | `[ ]` 待修复 |
-| P008 | P1     | 警告       | `lib/presentation/widgets/predefined_object_section.dart:6` / `:253` | 未使用的导入 `sensitivity_models.dart`；未引用的 `_PredefinedErrorWidget` | `[ ]` 待修复 |
+| P007 | P1     | 警告       | `lib/presentation/pages/sensitivity_settings_page.dart:508` | 未使用的局部变量 `l10n` | `[x]` 已修复 |
+| P008 | P1     | 警告       | `lib/presentation/widgets/predefined_object_section.dart:6` / `:253` | 未使用的导入 `sensitivity_models.dart`；未引用的 `_PredefinedErrorWidget` | `[x]` 已修复 |
 | P009 | P1     | 潜在漏洞   | `lib/presentation/pages/llm/llm_config_page.dart:53` | `use_build_context_synchronously`：在异步 catch 块中直接使用 `context` 获取 `AppLocalizations`，未先检查 `mounted` | `[ ]` 待修复 |
 | P010 | P1     | 潜在漏洞   | `lib/presentation/providers/account_style_provider.dart:279` / `:325` | `unawaited_futures`：异步操作未等待/未 `unawaited`，可能导致异常静默丢失 | `[ ]` 待修复 |
 | P011 | P1     | 废弃 API   | `lib/presentation/pages/section_template_page.dart:467-468` / `lib/presentation/widgets/ocr_scanner_result_card.dart:43-44` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged`，应改用 `RadioGroup` | `[ ]` 待修复 |
@@ -29,8 +29,8 @@
 
 ## 修复进度
 
-- 已完成：5 / 18
-- 当前处理：P005-P006
+- 已完成：7 / 18
+- 当前处理：P007-P008
 
 ## 详细问题描述与修复指引
 

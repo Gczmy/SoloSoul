@@ -505,7 +505,6 @@ class _SensitivitySettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final publicFields = sections[SensitivityLevel.public]!;
     final internalFields = sections[SensitivityLevel.internal]!;
     final sensitiveFields = sections[SensitivityLevel.sensitive]!;
