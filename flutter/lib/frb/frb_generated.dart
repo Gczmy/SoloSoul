@@ -10,6 +10,7 @@ import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'plugin/manager.dart';
 import 'plugin/manifest.dart';
 
 /// Main entrypoint of the Rust API
@@ -166,7 +167,7 @@ abstract class RustLibApi extends BaseApi {
     String? value,
   });
 
-  Future<int> crateApiFrbPluginExecute({
+  Stream<PluginEvent> crateApiFrbPluginExecute({
     required String pluginId,
     required BigInt sessionTtlSeconds,
   });
@@ -1029,37 +1030,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<int> crateApiFrbPluginExecute({
+  Stream<PluginEvent> crateApiFrbPluginExecute({
     required String pluginId,
     required BigInt sessionTtlSeconds,
   }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(pluginId, serializer);
-          sse_encode_u_64(sessionTtlSeconds, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 27,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_i_32,
-          decodeErrorData: sse_decode_String,
+    final sink = RustStreamSink<PluginEvent>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_String(pluginId, serializer);
+            sse_encode_u_64(sessionTtlSeconds, serializer);
+            sse_encode_StreamSink_plugin_event_Sse(sink, serializer);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 27,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_i_32,
+            decodeErrorData: sse_decode_String,
+          ),
+          constMeta: kCrateApiFrbPluginExecuteConstMeta,
+          argValues: [pluginId, sessionTtlSeconds, sink],
+          apiImpl: this,
         ),
-        constMeta: kCrateApiFrbPluginExecuteConstMeta,
-        argValues: [pluginId, sessionTtlSeconds],
-        apiImpl: this,
       ),
     );
+    return sink.stream;
   }
 
   TaskConstMeta get kCrateApiFrbPluginExecuteConstMeta => const TaskConstMeta(
     debugName: "frb_plugin_execute",
-    argNames: ["pluginId", "sessionTtlSeconds"],
+    argNames: ["pluginId", "sessionTtlSeconds", "sink"],
   );
 
   @override
@@ -1416,6 +1422,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return AnyhowException(raw as String);
+  }
+
+  @protected
   Map<String, Map<String, List<FieldHistoryEntry>>>
   dco_decode_Map_String_Map_String_list_field_history_entry_None_None(
     dynamic raw,
@@ -1437,6 +1449,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         raw,
       ).map((e) => MapEntry(e.$1, e.$2)),
     );
+  }
+
+  @protected
+  RustStreamSink<PluginEvent> dco_decode_StreamSink_plugin_event_Sse(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
   }
 
   @protected
@@ -1756,6 +1776,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PluginEvent dco_decode_plugin_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return PluginEvent_ConsentRequest(
+          requestId: dco_decode_String(raw[1]),
+          pluginId: dco_decode_String(raw[2]),
+          pluginName: dco_decode_String(raw[3]),
+          field: dco_decode_String(raw[4]),
+          sensitivity: dco_decode_String(raw[5]),
+        );
+      case 1:
+        return PluginEvent_ConsentTimeout(requestId: dco_decode_String(raw[1]));
+      case 2:
+        return PluginEvent_Log(
+          level: dco_decode_String(raw[1]),
+          message: dco_decode_String(raw[2]),
+        );
+      case 3:
+        return PluginEvent_Progress(percent: dco_decode_u_8(raw[1]));
+      case 4:
+        return PluginEvent_Completed(exitCode: dco_decode_i_32(raw[1]));
+      case 5:
+        return PluginEvent_Error(message: dco_decode_String(raw[1]));
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
   PluginManifest dco_decode_plugin_manifest(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1955,6 +2005,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_String(deserializer);
+    return AnyhowException(inner);
+  }
+
+  @protected
   Map<String, Map<String, List<FieldHistoryEntry>>>
   sse_decode_Map_String_Map_String_list_field_history_entry_None_None(
     SseDeserializer deserializer,
@@ -1977,6 +2034,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       deserializer,
     );
     return Map.fromEntries(inner.map((e) => MapEntry(e.$1, e.$2)));
+  }
+
+  @protected
+  RustStreamSink<PluginEvent> sse_decode_StreamSink_plugin_event_Sse(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
   }
 
   @protected
@@ -2400,6 +2465,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PluginEvent sse_decode_plugin_event(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_requestId = sse_decode_String(deserializer);
+        var var_pluginId = sse_decode_String(deserializer);
+        var var_pluginName = sse_decode_String(deserializer);
+        var var_field = sse_decode_String(deserializer);
+        var var_sensitivity = sse_decode_String(deserializer);
+        return PluginEvent_ConsentRequest(
+          requestId: var_requestId,
+          pluginId: var_pluginId,
+          pluginName: var_pluginName,
+          field: var_field,
+          sensitivity: var_sensitivity,
+        );
+      case 1:
+        var var_requestId = sse_decode_String(deserializer);
+        return PluginEvent_ConsentTimeout(requestId: var_requestId);
+      case 2:
+        var var_level = sse_decode_String(deserializer);
+        var var_message = sse_decode_String(deserializer);
+        return PluginEvent_Log(level: var_level, message: var_message);
+      case 3:
+        var var_percent = sse_decode_u_8(deserializer);
+        return PluginEvent_Progress(percent: var_percent);
+      case 4:
+        var var_exitCode = sse_decode_i_32(deserializer);
+        return PluginEvent_Completed(exitCode: var_exitCode);
+      case 5:
+        var var_message = sse_decode_String(deserializer);
+        return PluginEvent_Error(message: var_message);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
   PluginManifest sse_decode_plugin_manifest(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_pluginId = sse_decode_String(deserializer);
@@ -2625,6 +2730,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.message, serializer);
+  }
+
+  @protected
   void sse_encode_Map_String_Map_String_list_field_history_entry_None_None(
     Map<String, Map<String, List<FieldHistoryEntry>>> self,
     SseSerializer serializer,
@@ -2644,6 +2758,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_record_string_list_field_history_entry(
       self.entries.map((e) => (e.key, e.value)).toList(),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_plugin_event_Sse(
+    RustStreamSink<PluginEvent> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_plugin_event,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
       serializer,
     );
   }
@@ -2997,6 +3128,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_network_policy(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_plugin_event(PluginEvent self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case PluginEvent_ConsentRequest(
+        requestId: final requestId,
+        pluginId: final pluginId,
+        pluginName: final pluginName,
+        field: final field,
+        sensitivity: final sensitivity,
+      ):
+        sse_encode_i_32(0, serializer);
+        sse_encode_String(requestId, serializer);
+        sse_encode_String(pluginId, serializer);
+        sse_encode_String(pluginName, serializer);
+        sse_encode_String(field, serializer);
+        sse_encode_String(sensitivity, serializer);
+      case PluginEvent_ConsentTimeout(requestId: final requestId):
+        sse_encode_i_32(1, serializer);
+        sse_encode_String(requestId, serializer);
+      case PluginEvent_Log(level: final level, message: final message):
+        sse_encode_i_32(2, serializer);
+        sse_encode_String(level, serializer);
+        sse_encode_String(message, serializer);
+      case PluginEvent_Progress(percent: final percent):
+        sse_encode_i_32(3, serializer);
+        sse_encode_u_8(percent, serializer);
+      case PluginEvent_Completed(exitCode: final exitCode):
+        sse_encode_i_32(4, serializer);
+        sse_encode_i_32(exitCode, serializer);
+      case PluginEvent_Error(message: final message):
+        sse_encode_i_32(5, serializer);
+        sse_encode_String(message, serializer);
     }
   }
 

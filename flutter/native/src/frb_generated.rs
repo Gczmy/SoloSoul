@@ -957,11 +957,18 @@ fn wire__crate__api__frb_plugin_execute_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_plugin_id = <String>::sse_decode(&mut deserializer);
             let api_session_ttl_seconds = <u64>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::plugin::manager::PluginEvent,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok =
-                        crate::api::frb_plugin_execute(api_plugin_id, api_session_ttl_seconds)?;
+                    let output_ok = crate::api::frb_plugin_execute(
+                        api_plugin_id,
+                        api_session_ttl_seconds,
+                        api_sink,
+                    )?;
                     Ok(output_ok)
                 })())
             }
@@ -1350,6 +1357,14 @@ fn wire__crate__api__frb_unlock_vault_impl(
 
 // Section: dart2rust
 
+impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
+    }
+}
+
 impl SseDecode
     for std::collections::HashMap<
         String,
@@ -1372,6 +1387,19 @@ impl SseDecode for std::collections::HashMap<String, Vec<crate::api::FieldHistor
         let mut inner =
             <Vec<(String, Vec<crate::api::FieldHistoryEntry>)>>::sse_decode(deserializer);
         return inner.into_iter().collect();
+    }
+}
+
+impl SseDecode
+    for StreamSink<
+        crate::plugin::manager::PluginEvent,
+        flutter_rust_bridge::for_generated::SseCodec,
+    >
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return StreamSink::deserialize(inner);
     }
 }
 
@@ -1771,6 +1799,64 @@ impl SseDecode for Option<crate::plugin::manifest::NetworkPolicy> {
             ));
         } else {
             return None;
+        }
+    }
+}
+
+impl SseDecode for crate::plugin::manager::PluginEvent {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_requestId = <String>::sse_decode(deserializer);
+                let mut var_pluginId = <String>::sse_decode(deserializer);
+                let mut var_pluginName = <String>::sse_decode(deserializer);
+                let mut var_field = <String>::sse_decode(deserializer);
+                let mut var_sensitivity = <String>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::ConsentRequest {
+                    request_id: var_requestId,
+                    plugin_id: var_pluginId,
+                    plugin_name: var_pluginName,
+                    field: var_field,
+                    sensitivity: var_sensitivity,
+                };
+            }
+            1 => {
+                let mut var_requestId = <String>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::ConsentTimeout {
+                    request_id: var_requestId,
+                };
+            }
+            2 => {
+                let mut var_level = <String>::sse_decode(deserializer);
+                let mut var_message = <String>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::Log {
+                    level: var_level,
+                    message: var_message,
+                };
+            }
+            3 => {
+                let mut var_percent = <u8>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::Progress {
+                    percent: var_percent,
+                };
+            }
+            4 => {
+                let mut var_exitCode = <i32>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::Completed {
+                    exit_code: var_exitCode,
+                };
+            }
+            5 => {
+                let mut var_message = <String>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::Error {
+                    message: var_message,
+                };
+            }
+            _ => {
+                unimplemented!("");
+            }
         }
     }
 }
@@ -2333,6 +2419,60 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::OcrEngineStatus>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::plugin::manager::PluginEvent {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::plugin::manager::PluginEvent::ConsentRequest {
+                request_id,
+                plugin_id,
+                plugin_name,
+                field,
+                sensitivity,
+            } => [
+                0.into_dart(),
+                request_id.into_into_dart().into_dart(),
+                plugin_id.into_into_dart().into_dart(),
+                plugin_name.into_into_dart().into_dart(),
+                field.into_into_dart().into_dart(),
+                sensitivity.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::plugin::manager::PluginEvent::ConsentTimeout { request_id } => {
+                [1.into_dart(), request_id.into_into_dart().into_dart()].into_dart()
+            }
+            crate::plugin::manager::PluginEvent::Log { level, message } => [
+                2.into_dart(),
+                level.into_into_dart().into_dart(),
+                message.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::plugin::manager::PluginEvent::Progress { percent } => {
+                [3.into_dart(), percent.into_into_dart().into_dart()].into_dart()
+            }
+            crate::plugin::manager::PluginEvent::Completed { exit_code } => {
+                [4.into_dart(), exit_code.into_into_dart().into_dart()].into_dart()
+            }
+            crate::plugin::manager::PluginEvent::Error { message } => {
+                [5.into_dart(), message.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::plugin::manager::PluginEvent
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::plugin::manager::PluginEvent>
+    for crate::plugin::manager::PluginEvent
+{
+    fn into_into_dart(self) -> crate::plugin::manager::PluginEvent {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::plugin::manifest::PluginManifest {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -2535,6 +2675,13 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::VaultStats> for crate::api::V
     }
 }
 
+impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(format!("{:?}", self), serializer);
+    }
+}
+
 impl SseEncode
     for std::collections::HashMap<
         String,
@@ -2557,6 +2704,18 @@ impl SseEncode for std::collections::HashMap<String, Vec<crate::api::FieldHistor
             self.into_iter().collect(),
             serializer,
         );
+    }
+}
+
+impl SseEncode
+    for StreamSink<
+        crate::plugin::manager::PluginEvent,
+        flutter_rust_bridge::for_generated::SseCodec,
+    >
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        unimplemented!("")
     }
 }
 
@@ -2858,6 +3017,52 @@ impl SseEncode for Option<crate::plugin::manifest::NetworkPolicy> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::plugin::manifest::NetworkPolicy>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for crate::plugin::manager::PluginEvent {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::plugin::manager::PluginEvent::ConsentRequest {
+                request_id,
+                plugin_id,
+                plugin_name,
+                field,
+                sensitivity,
+            } => {
+                <i32>::sse_encode(0, serializer);
+                <String>::sse_encode(request_id, serializer);
+                <String>::sse_encode(plugin_id, serializer);
+                <String>::sse_encode(plugin_name, serializer);
+                <String>::sse_encode(field, serializer);
+                <String>::sse_encode(sensitivity, serializer);
+            }
+            crate::plugin::manager::PluginEvent::ConsentTimeout { request_id } => {
+                <i32>::sse_encode(1, serializer);
+                <String>::sse_encode(request_id, serializer);
+            }
+            crate::plugin::manager::PluginEvent::Log { level, message } => {
+                <i32>::sse_encode(2, serializer);
+                <String>::sse_encode(level, serializer);
+                <String>::sse_encode(message, serializer);
+            }
+            crate::plugin::manager::PluginEvent::Progress { percent } => {
+                <i32>::sse_encode(3, serializer);
+                <u8>::sse_encode(percent, serializer);
+            }
+            crate::plugin::manager::PluginEvent::Completed { exit_code } => {
+                <i32>::sse_encode(4, serializer);
+                <i32>::sse_encode(exit_code, serializer);
+            }
+            crate::plugin::manager::PluginEvent::Error { message } => {
+                <i32>::sse_encode(5, serializer);
+                <String>::sse_encode(message, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
         }
     }
 }

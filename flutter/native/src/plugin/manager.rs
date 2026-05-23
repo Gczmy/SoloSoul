@@ -6,12 +6,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::oneshot;
 
-// StreamSink 用于 FRB Stream，待代码生成时启用
-// use flutter_rust_bridge::StreamSink;
+#[cfg(feature = "sandbox")]
+use crate::frb_generated::StreamSink;
 
-use super::host::{AuditEntry, ConsentChannel, ConsentRequest, ConsentResult, RateLimiter};
+use super::host::{AuditAction, AuditEntry, ConsentChannel, ConsentRequest, ConsentResult, RateLimiter};
 use super::manifest::PluginManifest;
-use super::sandbox::{PluginError, WasmSandbox};
+use super::sandbox::WasmSandbox;
 use super::session::{PluginSessionManager, SessionInfo};
 use super::store::PluginStore;
 
@@ -118,12 +118,21 @@ impl PluginManager {
         Ok(())
     }
 
-    /// 执行插件（核心方法，返回事件流）
+    /// 执行插件（核心方法，返回 exit code）
+    ///
+    /// 执行流程：
+    /// 1. 加载 manifest 和 wasm
+    /// 2. 编译 wasm 模块
+    /// 3. 生成 session_id 并注册 Session
+    /// 4. 创建 Consent / Audit 通道
+    /// 5. 启动 Consent 后台处理线程（将请求存入 pending_consents）
+    /// 6. 调用 WasmSandbox.execute() 运行插件
+    /// 7. 插件返回后清理 Session（若执行成功则保留至 TTL 过期）
     pub fn execute_plugin(
         &self,
         plugin_id: String,
         session_ttl_seconds: u64,
-        // sink: StreamSink<PluginEvent>, // TODO: 启用 FRB Stream 后恢复
+        sink: StreamSink<PluginEvent>,
     ) -> Result<i32, String> {
         // 1. 加载 manifest 和 wasm
         let manifest = self.store.load_manifest(&plugin_id)?;
@@ -135,29 +144,88 @@ impl PluginManager {
             .compile_module(&wasm_bytes)
             .map_err(|e| format!("{:?}", e))?;
 
-        // 3. 创建通道
+        // 3. 生成 Session ID 并预先注册（执行期间 Host Functions 可查询 Session 状态）
+        let session_id = uuid::Uuid::new_v4().to_string();
+        let plugin_name = manifest.name.clone();
+        self.session_manager
+            .register(&plugin_id, &plugin_name, &session_id, session_ttl_seconds);
+
+        // 4. 创建 Consent 和 Audit 通道
         let (consent_tx, mut consent_rx) = tokio::sync::mpsc::channel::<ConsentRequest>(16);
         let (audit_tx, mut audit_rx) = tokio::sync::mpsc::channel::<AuditEntry>(64);
 
         let pending_consents = Arc::clone(&self.pending_consents);
-        let session_manager = self.session_manager.clone();
-        let sandbox = WasmSandbox::new().map_err(|e| format!("{:?}", e))?;
         let rate_limiter = Arc::clone(&self.rate_limiter);
-        let plugin_name = manifest.name.clone();
         let manifest_clone = manifest.clone();
-        let plugin_id_clone = plugin_id.clone();
 
-        // 4. 创建 tokio runtime 处理异步事件
-        let rt = tokio::runtime::Runtime::new()
-            .map_err(|e| format!("Failed to create tokio runtime: {}", e))?;
+        // 5. 启动 Consent 后台处理线程
+        //    消费 consent_rx，将每个请求的 request_id + oneshot sender 存入 pending_consents
+        //    同时通过 StreamSink 推送 ConsentRequest 事件到 Dart 端
+        //    当 consent_rx 被 drop（execute_plugin 返回）时，线程自然退出
+        let sink_consent = sink.clone();
+        std::thread::spawn(move || {
+            while let Some(request) = consent_rx.blocking_recv() {
+                let request_id = request.request_id.clone();
+                let sender = request.response;
+                if let Ok(mut guard) = pending_consents.lock() {
+                    guard.insert(request_id.clone(), sender);
+                }
+                // 通过 StreamSink 推送 ConsentRequest 事件到 Dart 端
+                let _ = sink_consent.add(PluginEvent::ConsentRequest {
+                    request_id,
+                    plugin_id: request.plugin_id,
+                    plugin_name: request.plugin_name,
+                    field: request.field,
+                    sensitivity: format!("{:?}", request.sensitivity),
+                });
+            }
+        });
 
-        // 5. 启动 Consent 处理任务
-        // TODO: 启用 FRB Stream 后恢复 Consent 处理任务和 Audit 处理任务
-        // 当前简化实现：直接执行，不通过 Stream 发送事件
-        let result = sandbox.execute(
+        // 5b. 启动 Audit 后台处理线程
+        //     消费 audit_rx，将审计日志追加写入 ~/.solosoul/audit/plugin_audit.log
+        std::thread::spawn(move || {
+            use std::fs::{create_dir_all, OpenOptions};
+            use std::io::Write;
+            use std::path::PathBuf;
+
+            let home = std::env::var("HOME")
+                .or_else(|_| std::env::var("USERPROFILE"))
+                .unwrap_or_else(|_| "/tmp".to_string());
+            let audit_dir = PathBuf::from(home).join(".solosoul").join("audit");
+            let audit_file = audit_dir.join("plugin_audit.log");
+
+            let _ = create_dir_all(&audit_dir);
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = std::fs::set_permissions(&audit_dir, std::fs::Permissions::from_mode(0o700));
+            }
+
+            while let Some(entry) = audit_rx.blocking_recv() {
+                let line = format_audit_entry(&entry);
+                if let Ok(mut file) = OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(&audit_file)
+                {
+                    let _ = writeln!(file, "{}", line);
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        let _ = std::fs::set_permissions(&audit_file, std::fs::Permissions::from_mode(0o600));
+                    }
+                }
+            }
+        });
+
+        // 6. 执行插件（在独立线程中运行，避免阻塞 Dart UI）
+        let sink_execute = sink.clone();
+
+        let result = self.sandbox.execute(
             &module,
-            &plugin_id_clone,
+            &plugin_id,
             &plugin_name,
+            &session_id,
             &manifest_clone,
             &ConsentChannel { tx: consent_tx },
             audit_tx,
@@ -165,13 +233,22 @@ impl PluginManager {
             session_ttl_seconds,
         );
 
-        // 8. 注册 Session
-        let session_id = uuid::Uuid::new_v4().to_string();
-        session_manager.register(&plugin_id, &plugin_name, &session_id, session_ttl_seconds);
-
+        // 7. 根据执行结果处理 Session，并通过 StreamSink 推送 Completed/Error 事件
         match result {
-            Ok(r) => Ok(r.exit_code),
-            Err(e) => Err(format!("{:?}", e)),
+            Ok(r) => {
+                let _ = sink_execute.add(PluginEvent::Completed {
+                    exit_code: r.exit_code,
+                });
+                Ok(r.exit_code)
+            }
+            Err(e) => {
+                // 执行失败时立即撤销 Session
+                self.session_manager.revoke(&plugin_id);
+                let _ = sink_execute.add(PluginEvent::Error {
+                    message: format!("{:?}", e),
+                });
+                Err(format!("{:?}", e))
+            }
         }
     }
 
@@ -234,3 +311,46 @@ where
     let manager = guard.as_ref().ok_or("PluginManager not initialized")?;
     f(manager)
 }
+
+// ============================================================================
+// Audit log formatter
+// ============================================================================
+
+/// 将审计条目格式化为 JSON Lines 格式
+fn format_audit_entry(entry: &AuditEntry) -> String {
+    let action_json = match &entry.action {
+        AuditAction::FieldAccessGranted {
+            field,
+            confirmed_by_user,
+        } => {
+            format!(
+                r#"{{"type":"FieldAccessGranted","field":"{}","confirmed_by_user":{}}}"#,
+                field, confirmed_by_user
+            )
+        }
+        AuditAction::FieldAccessDenied { field } => {
+            format!(r#"{{"type":"FieldAccessDenied","field":"{}"}}"#, field)
+        }
+        AuditAction::NetworkBlocked { url } => {
+            format!(r#"{{"type":"NetworkBlocked","url":"{}"}}"#, url)
+        }
+        AuditAction::NetworkAllowed { url } => {
+            format!(r#"{{"type":"NetworkAllowed","url":"{}"}}"#, url)
+        }
+        AuditAction::RateLimitTriggered { field } => {
+            format!(r#"{{"type":"RateLimitTriggered","field":"{}"}}"#, field)
+        }
+        AuditAction::PluginCrashed { reason } => {
+            format!(r#"{{"type":"PluginCrashed","reason":"{}"}}"#, reason)
+        }
+        AuditAction::SessionCreated => r#"{"type":"SessionCreated"}"#.to_string(),
+        AuditAction::SessionRevoked => r#"{"type":"SessionRevoked"}"#.to_string(),
+    };
+
+    let timestamp = chrono::Utc::now().to_rfc3339();
+    format!(
+        r#"{{"timestamp":"{}","plugin_id":"{}","session_id":"{}","action":{}}}"#,
+        timestamp, entry.plugin_id, entry.session_id, action_json
+    )
+}
+

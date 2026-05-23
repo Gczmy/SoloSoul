@@ -55,7 +55,7 @@ lazy_static::lazy_static! {
     static ref ACCOUNT_MANAGER: Mutex<Option<account::AccountManager>> = Mutex::new(None);
 }
 
-fn get_account_manager(
+pub(crate) fn get_account_manager(
 ) -> Result<std::sync::MutexGuard<'static, Option<account::AccountManager>>, String> {
     ACCOUNT_MANAGER
         .lock()

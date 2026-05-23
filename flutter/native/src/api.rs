@@ -1001,18 +1001,16 @@ pub fn frb_ocr_release() {
 // Plugin System
 // ============================================================================
 
-// StreamSink 需要通过 crate::frb_generated 导入，待 FRB 代码生成时处理
-// #[cfg(feature = "sandbox")]
-// use flutter_rust_bridge::StreamSink;
+#[cfg(feature = "sandbox")]
+use crate::frb_generated::StreamSink;
 
 /// Plugin manifest exposed to Dart (re-exported from plugin module)
 #[cfg(feature = "sandbox")]
 pub use crate::plugin::PluginManifest;
 
 /// Plugin event for StreamSink
-// PluginEvent 用于 StreamSink，待 FRB Stream 支持启用后取消注释
-// #[cfg(feature = "sandbox")]
-// pub use crate::plugin::PluginEvent;
+#[cfg(feature = "sandbox")]
+pub use crate::plugin::PluginEvent;
 
 /// Plugin session info (bridge-friendly, non-opaque)
 #[cfg(feature = "sandbox")]
@@ -1073,16 +1071,26 @@ pub fn frb_plugin_list_active_sessions() -> Result<Vec<PluginSessionInfo>, Strin
     })
 }
 
-/// 执行插件（返回事件流）
-/// TODO: StreamSink 类型需要 FRB 代码生成支持，当前为 stub
+/// 执行插件（返回 exit code，同时通过 StreamSink 推送实时事件）
+///
+/// 调用链：Dart -> FRB -> PluginManager.execute_plugin() -> WasmSandbox.execute()
+/// -> wasmtime Store -> Host Functions (request_field/post_data/log/get_timestamp)
+///
+/// Stream 事件类型（PluginEvent）：
+/// - ConsentRequest: 需要用户确认字段访问
+/// - ConsentTimeout: 授权请求超时
+/// - Log: 插件日志
+/// - Progress: 执行进度（0-100）
+/// - Completed: 执行完成（含 exit code）
+/// - Error: 执行错误
 #[cfg(feature = "sandbox")]
 #[frb]
 pub fn frb_plugin_execute(
     plugin_id: String,
     session_ttl_seconds: u64,
+    sink: StreamSink<PluginEvent>,
 ) -> Result<i32, String> {
-    // stub: 返回 0 表示成功
-    Ok(0)
+    crate::plugin::with_manager(|m| m.execute_plugin(plugin_id, session_ttl_seconds, sink))
 }
 
 /// 响应用户授权（Dart -> Rust）

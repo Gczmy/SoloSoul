@@ -9,7 +9,8 @@ use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, oneshot};
 use wasmtime::{Caller, Linker};
 
-use super::manifest::{NetworkPolicy, PluginManifest};
+use super::manifest::PluginManifest;
+use crate::vault::{ProfileData, VersionedProfileData};
 
 // ============================================================================
 // Consent Channel
@@ -281,7 +282,7 @@ impl SoloHostFunctions {
                     let needs_confirmation = sensitivity.needs_confirmation();
 
                     if !needs_confirmation {
-                        match decrypt_field_sync_stub(&field_id) {
+                        match decrypt_field_value(&field_id) {
                             Ok(value) => {
                                 if value.len() >= out_cap as usize {
                                     return -4; // BufferTooSmall
@@ -471,10 +472,121 @@ fn is_network_allowed(manifest: &PluginManifest, url: &str) -> bool {
     policy.allows_domain(&host)
 }
 
-fn decrypt_field_sync_stub(_field_id: &str) -> Result<String, String> {
-    // TODO: 对接 Vault 解密系统
-    // 临时返回测试值，实际实现需调用 vault::get_and_decrypt()
-    Ok("test_value".to_string())
+/// 从 Vault 中同步解密字段值
+///
+/// 执行流程：
+/// 1. 获取 AccountManager → session_key + vault_store
+/// 2. 加载第一个 Profile 的加密 data
+/// 3. 用 session_key 解密（支持 SOLO blob 和 Legacy Dart 格式）
+/// 4. 反序列化为 ProfileData，按字段路径提取值
+fn decrypt_field_value(field_id: &str) -> Result<String, String> {
+    // 1. 获取 AccountManager
+    let manager_guard = crate::get_account_manager()
+        .map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+
+    // 2. 获取 session_key
+    let session_key = manager
+        .get_session_key()
+        .ok_or("Vault not unlocked")?;
+
+    // 3. 获取 vault_store
+    let vault_guard = manager
+        .get_vault_store()
+        .ok_or("Vault store not available")?;
+    let vault_store = vault_guard
+        .as_ref()
+        .ok_or("Vault store not open")?;
+
+    // 4. 列出 profiles 并取第一个
+    let profiles = vault_store
+        .list_profiles()
+        .map_err(|e| format!("Failed to list profiles: {}", e))?;
+    let profile_summary = profiles.first().ok_or("No profiles found")?;
+
+    // 5. 加载 profile 的加密 data
+    let profile = vault_store
+        .load_profile(&profile_summary.id)
+        .map_err(|e| format!("Failed to load profile: {}", e))?
+        .ok_or("Profile not found")?;
+
+    // 6. 解密
+    let plaintext = crate::crypto::decrypt_profile_data(&session_key, &profile.data)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
+
+    // 7. 反序列化
+    let json_str = String::from_utf8_lossy(&plaintext);
+    let versioned: VersionedProfileData = serde_json::from_str(&json_str)
+        .map_err(|e| format!("Failed to parse profile data: {}", e))?;
+
+    // 8. 按字段路径取值
+    extract_field_value(field_id, &versioned.data)
+        .ok_or_else(|| format!("Field '{}' not found or empty", field_id))
+}
+
+/// 从 ProfileData 中按字段路径提取值
+fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
+    match field_id {
+        "identity.full_name" => data.identity.as_ref()?.full_name.clone(),
+        "identity.contact.emails" => {
+            let emails: Vec<String> = data
+                .identity
+                .as_ref()?
+                .contact
+                .as_ref()?
+                .entries
+                .iter()
+                .filter(|e| e.entry_type == "email")
+                .map(|e| e.value.clone())
+                .collect();
+            if emails.is_empty() {
+                None
+            } else {
+                Some(emails.join(", "))
+            }
+        }
+        "identity.contact.phones" => {
+            let phones: Vec<String> = data
+                .identity
+                .as_ref()?
+                .contact
+                .as_ref()?
+                .entries
+                .iter()
+                .filter(|e| e.entry_type == "phone")
+                .map(|e| e.value.clone())
+                .collect();
+            if phones.is_empty() {
+                None
+            } else {
+                Some(phones.join(", "))
+            }
+        }
+        "identity.id_card.number" => data
+            .identity
+            .as_ref()?
+            .id_cards
+            .iter()
+            .find(|c| !c.is_deleted)
+            .and_then(|c| c.number.clone()),
+        "travel.primary_passport.number" => data
+            .travel
+            .as_ref()?
+            .passports
+            .iter()
+            .find(|p| !p.is_deleted)
+            .and_then(|p| p.number.clone()),
+        "financial.primary_bank_account.number" => data
+            .financial
+            .as_ref()?
+            .bank_accounts
+            .iter()
+            .find(|b| !b.is_deleted)
+            .and_then(|b| b.account_number.clone()),
+        _ => None,
+    }
 }
 
 async fn proxy_http_post(url: &str, body: &str) -> Result<String, HttpError> {

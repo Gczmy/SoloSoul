@@ -6,6 +6,7 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'plugin/manager.dart';
 import 'plugin/manifest.dart';
 part 'api.freezed.dart';
 
@@ -269,9 +270,19 @@ Future<List<String>> frbPluginListInstalled() =>
 Future<List<PluginSessionInfo>> frbPluginListActiveSessions() =>
     RustLib.instance.api.crateApiFrbPluginListActiveSessions();
 
-/// 执行插件（返回事件流）
-/// TODO: StreamSink 类型需要 FRB 代码生成支持，当前为 stub
-Future<int> frbPluginExecute({
+/// 执行插件（返回 exit code，同时通过 StreamSink 推送实时事件）
+///
+/// 调用链：Dart -> FRB -> PluginManager.execute_plugin() -> WasmSandbox.execute()
+/// -> wasmtime Store -> Host Functions (request_field/post_data/log/get_timestamp)
+///
+/// Stream 事件类型（PluginEvent）：
+/// - ConsentRequest: 需要用户确认字段访问
+/// - ConsentTimeout: 授权请求超时
+/// - Log: 插件日志
+/// - Progress: 执行进度（0-100）
+/// - Completed: 执行完成（含 exit code）
+/// - Error: 执行错误
+Stream<PluginEvent> frbPluginExecute({
   required String pluginId,
   required BigInt sessionTtlSeconds,
 }) => RustLib.instance.api.crateApiFrbPluginExecute(
@@ -416,7 +427,6 @@ sealed class OcrEngineStatus with _$OcrEngineStatus {
   }) = _OcrEngineStatus;
 }
 
-/// Plugin event for StreamSink
 /// Plugin session info (bridge-friendly, non-opaque)
 @freezed
 sealed class PluginSessionInfo with _$PluginSessionInfo {

@@ -483,11 +483,11 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 - [ ] JIT 即时解密（预留，需 Vault 层配合）
 
 ### 已知限制 / 待办
-- [ ] **FRB StreamSink 事件流**：`plugin_execute` 当前返回 `Future<int>`，Consent 通过独立 `frbPluginConsentResponse` 处理。事件流架构（`PluginEvent` → Dart）已预留但未接线。
-- [ ] **`frb_plugin_execute` 当前为 stub**：实际执行逻辑待与 `WasmSandbox.execute` 完全集成（WASM 线程 + Store 隔离已就绪）。
+- [x] **FRB StreamSink 事件流**：`frb_plugin_execute` 返回 `Stream<PluginEvent>`，Dart 端通过 `await for` 监听并处理 ConsentRequest / Completed / Error 事件。Consent 弹窗通过 Stream 事件实时触发。
+- [x] **`frb_plugin_execute` 调用链已补全**：`api.rs` → `PluginManager.execute_plugin()` → `WasmSandbox.execute()` → Host Functions。Session 预注册、Consent 后台线程、Audit 后台线程全部就绪。
 - [ ] **iOS 构建**：`sandbox` feature 默认启用，iOS 需 `--no-default-features`（wasmtime asm 兼容性问题）。
 - [ ] **SlotGo 官方插件**：未开始
-- [ ] **Rust 未使用变量警告**：`manager.rs` 中 `plugin_id`、`session_ttl_seconds` 等（不影响编译）
+- [x] **Rust 未使用变量警告**：已清理 `manager.rs`、`host.rs`、`sandbox.rs`、`session.rs` 中的未使用 import。
 
 ---
 

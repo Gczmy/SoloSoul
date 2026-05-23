@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import 'package:solosoul_flutter/frb/api.dart' as frb;
+import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/plugin_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
+import 'package:solosoul_flutter/presentation/widgets/plugin_consent_dialog.dart';
 
 /// 插件看板页面 — 管理插件生命周期（安装/卸载/更新/运行）
 class PluginDashboardPage extends ConsumerStatefulWidget {
@@ -434,14 +437,52 @@ class _PluginCard extends ConsumerWidget {
 
   Future<void> _onRun(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
+    final stream = runPlugin(ref, pluginId);
+
     try {
-      final exitCode = await runPlugin(ref, pluginId);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${l10n.pluginRunSuccess} (exit: $exitCode)'),
-          ),
-        );
+      await for (final event in stream) {
+        switch (event) {
+          case frb_plugin.PluginEvent_ConsentRequest(
+              requestId: final requestId,
+              pluginId: final pid,
+              pluginName: final pname,
+              field: final field,
+              sensitivity: final sensitivityStr,
+            ):
+            final approved = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => PluginConsentDialog(
+                pluginId: pid,
+                pluginName: pname,
+                fieldId: field,
+                requestId: requestId,
+                sensitivity: _parseSensitivity(sensitivityStr),
+              ),
+            );
+            await frb.frbPluginConsentResponse(
+              requestId: requestId,
+              approved: approved ?? false,
+              value: null,
+            );
+          case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${l10n.pluginRunSuccess} (exit: $exitCode)'),
+                ),
+              );
+            }
+          case frb_plugin.PluginEvent_Error(message: final message):
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('${l10n.commonError}: $message')),
+              );
+            }
+          default:
+            // 忽略 ConsentTimeout / Log / Progress 等事件
+            break;
+        }
       }
     } on Exception catch (e) {
       if (context.mounted) {
@@ -450,6 +491,16 @@ class _PluginCard extends ConsumerWidget {
         );
       }
     }
+  }
+
+  SensitivityLevel _parseSensitivity(String value) {
+    return switch (value.toLowerCase()) {
+      'public' => SensitivityLevel.public,
+      'internal' => SensitivityLevel.internal,
+      'sensitive' => SensitivityLevel.sensitive,
+      'critical' => SensitivityLevel.critical,
+      _ => SensitivityLevel.sensitive,
+    };
   }
 
   Future<void> _onStop(BuildContext context, WidgetRef ref) async {

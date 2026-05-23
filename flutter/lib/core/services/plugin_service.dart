@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:solosoul_flutter/core/models/plugin_models.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
+import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
 
 /// 插件服务：管理插件加载、运行、沙盒执行
@@ -33,12 +34,14 @@ class PluginService {
 
   /// 运行插件（核心方法）
   ///
-  /// 当前为简化实现：直接调用 Rust FFI 执行，不通过 Stream 处理事件。
-  /// TODO: 启用 FRB Stream 后，改为监听 PluginEvent Stream，处理 ConsentRequest。
-  Future<PluginRunResult> runPlugin(
+  /// 返回 PluginEvent Stream，Dart 端需监听并处理：
+  /// - ConsentRequest: 显示授权弹窗，调用 frbPluginConsentResponse
+  /// - Completed: 执行成功（含 exit code）
+  /// - Error: 执行错误
+  Stream<frb_plugin.PluginEvent> runPlugin(
     String pluginId, {
     Map<String, dynamic>? params,
-  }) async {
+  }) async* {
     // 1. 校验插件目录存在
     final pluginDir = Directory('${_pluginDir.path}/$pluginId');
     if (!await pluginDir.exists()) {
@@ -48,13 +51,11 @@ class PluginService {
     // 2. 通过 Rust FFI 加载 manifest（避免 Dart 重复解析）
     final manifest = await frb.frbPluginLoadManifest(pluginId: pluginId);
 
-    // 3. 通过 Rust FFI 执行插件
-    final exitCode = await frb.frbPluginExecute(
+    // 3. 通过 Rust FFI 执行插件，返回事件流
+    yield* frb.frbPluginExecute(
       pluginId: pluginId,
       sessionTtlSeconds: manifest.dataTtlSeconds,
     );
-
-    return PluginRunResult(exitCode: exitCode);
   }
 
   /// 列出活跃 Session

@@ -3,13 +3,12 @@
 //! 每个插件运行在独立的 wasmtime::Store 中，敏感数据仅在 Store 存活期间可访问。
 //! TTL 到期后整个 Store 被 drop，Wasm 内存（含可能的敏感数据副本）彻底销毁。
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use wasmtime::{Config, Engine, Linker, Module, Store};
 
 use super::host::{AuditAction, AuditEntry, ConsentChannel, RateLimiter, SoloHostFunctions};
 use super::manifest::PluginManifest;
-use super::session::{PluginSessionManager, SessionInfo};
+
 
 /// 沙盒执行结果
 #[derive(Debug)]
@@ -73,18 +72,18 @@ impl WasmSandbox {
         module: &Module,
         plugin_id: &str,
         plugin_name: &str,
+        session_id: &str,
         manifest: &PluginManifest,
         consent_channel: &ConsentChannel,
         audit_tx: tokio::sync::mpsc::Sender<AuditEntry>,
         rate_limiter: Arc<RateLimiter>,
         ttl_seconds: u64,
     ) -> Result<PluginResult, PluginError> {
-        let session_id = uuid::Uuid::new_v4().to_string();
 
         let host = SoloHostFunctions::new(
             plugin_id,
             plugin_name,
-            &session_id,
+            session_id,
             manifest.clone(),
             consent_channel.tx.clone(),
             audit_tx.clone(),
@@ -130,7 +129,7 @@ impl WasmSandbox {
             Err(trap) => {
                 let _ = audit_tx.try_send(AuditEntry {
                     plugin_id: plugin_id.to_string(),
-                    session_id: session_id.clone(),
+                    session_id: session_id.to_string(),
                     timestamp: std::time::Instant::now(),
                     action: AuditAction::PluginCrashed {
                         reason: trap.to_string(),

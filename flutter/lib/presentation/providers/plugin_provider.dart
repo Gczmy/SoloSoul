@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/core/services/plugin_installer_service.dart';
 import 'package:solosoul_flutter/core/services/plugin_registry_service.dart';
 import 'package:solosoul_flutter/core/services/plugin_service.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
+import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
 
 // ============================================================================
@@ -209,9 +210,8 @@ Future<void> uninstallPlugin(WidgetRef ref, String pluginId) async {
   ref.invalidate(activeSessionsProvider);
 }
 
-Future<int> runPlugin(WidgetRef ref, String pluginId) async {
+Stream<frb_plugin.PluginEvent> runPlugin(WidgetRef ref, String pluginId) async* {
   final service = await ref.read(_initializedPluginServiceProvider.future);
-  final result = await service.runPlugin(pluginId);
+  yield* service.runPlugin(pluginId);
   ref.invalidate(activeSessionsProvider);
-  return result.exitCode;
 }

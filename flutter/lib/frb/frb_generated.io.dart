@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
+import 'plugin/manager.dart';
 import 'plugin/manifest.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
@@ -20,6 +21,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
   Map<String, Map<String, List<FieldHistoryEntry>>>
   dco_decode_Map_String_Map_String_list_field_history_entry_None_None(
     dynamic raw,
@@ -28,6 +32,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   Map<String, List<FieldHistoryEntry>>
   dco_decode_Map_String_list_field_history_entry_None(dynamic raw);
+
+  @protected
+  RustStreamSink<PluginEvent> dco_decode_StreamSink_plugin_event_Sse(
+    dynamic raw,
+  );
 
   @protected
   String dco_decode_String(dynamic raw);
@@ -139,6 +148,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   NetworkPolicy? dco_decode_opt_box_autoadd_network_policy(dynamic raw);
 
   @protected
+  PluginEvent dco_decode_plugin_event(dynamic raw);
+
+  @protected
   PluginManifest dco_decode_plugin_manifest(dynamic raw);
 
   @protected
@@ -194,6 +206,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   VaultStats dco_decode_vault_stats(dynamic raw);
 
   @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
   Map<String, Map<String, List<FieldHistoryEntry>>>
   sse_decode_Map_String_Map_String_list_field_history_entry_None_None(
     SseDeserializer deserializer,
@@ -202,6 +217,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   Map<String, List<FieldHistoryEntry>>
   sse_decode_Map_String_list_field_history_entry_None(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<PluginEvent> sse_decode_StreamSink_plugin_event_Sse(
     SseDeserializer deserializer,
   );
 
@@ -337,6 +357,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PluginEvent sse_decode_plugin_event(SseDeserializer deserializer);
+
+  @protected
   PluginManifest sse_decode_plugin_manifest(SseDeserializer deserializer);
 
   @protected
@@ -398,6 +421,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   VaultStats sse_decode_vault_stats(SseDeserializer deserializer);
 
   @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_Map_String_Map_String_list_field_history_entry_None_None(
     Map<String, Map<String, List<FieldHistoryEntry>>> self,
     SseSerializer serializer,
@@ -406,6 +435,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_Map_String_list_field_history_entry_None(
     Map<String, List<FieldHistoryEntry>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_plugin_event_Sse(
+    RustStreamSink<PluginEvent> self,
     SseSerializer serializer,
   );
 
@@ -567,6 +602,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     NetworkPolicy? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_plugin_event(PluginEvent self, SseSerializer serializer);
 
   @protected
   void sse_encode_plugin_manifest(
