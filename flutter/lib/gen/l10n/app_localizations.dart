@@ -3206,6 +3206,54 @@ abstract class AppLocalizations {
   /// **'Choose Icon'**
   String get iconPickerTitle;
 
+  /// No description provided for @iconCategoryWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work & Study'**
+  String get iconCategoryWork;
+
+  /// No description provided for @iconCategoryPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People & Identity'**
+  String get iconCategoryPeople;
+
+  /// No description provided for @iconCategoryTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel & Transport'**
+  String get iconCategoryTravel;
+
+  /// No description provided for @iconCategoryFinance.
+  ///
+  /// In en, this message translates to:
+  /// **'Finance & Business'**
+  String get iconCategoryFinance;
+
+  /// No description provided for @iconCategoryLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Life & Health'**
+  String get iconCategoryLife;
+
+  /// No description provided for @iconCategoryTech.
+  ///
+  /// In en, this message translates to:
+  /// **'Tech & Devices'**
+  String get iconCategoryTech;
+
+  /// No description provided for @iconCategoryCreative.
+  ///
+  /// In en, this message translates to:
+  /// **'Creative & Art'**
+  String get iconCategoryCreative;
+
+  /// No description provided for @iconCategoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get iconCategoryGeneral;
+
   /// No description provided for @operationDetails.
   ///
   /// In en, this message translates to:

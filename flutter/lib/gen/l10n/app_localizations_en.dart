@@ -1664,6 +1664,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get iconPickerTitle => 'Choose Icon';
 
   @override
+  String get iconCategoryWork => 'Work & Study';
+
+  @override
+  String get iconCategoryPeople => 'People & Identity';
+
+  @override
+  String get iconCategoryTravel => 'Travel & Transport';
+
+  @override
+  String get iconCategoryFinance => 'Finance & Business';
+
+  @override
+  String get iconCategoryLife => 'Life & Health';
+
+  @override
+  String get iconCategoryTech => 'Tech & Devices';
+
+  @override
+  String get iconCategoryCreative => 'Creative & Art';
+
+  @override
+  String get iconCategoryGeneral => 'General';
+
+  @override
   String get operationDetails => 'Operation Details';
 
   @override

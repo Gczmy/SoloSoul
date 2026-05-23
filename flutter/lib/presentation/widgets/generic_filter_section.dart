@@ -185,39 +185,54 @@ class GenericFilterSection<T> extends ConsumerWidget {
           const SizedBox(width: 8),
         ],
         Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (int i = 0; i < group.options.length; i++) ...[
-                  _FilterChip(
-                    label: group.options[i].label,
-                    icon: group.options[i].icon,
-                    isSelected: group.selectedIds.contains(group.options[i].id),
-                    color: group.options[i].color,
-                    onSelected: (_) {
-                      final newSelection = Set<T>.from(group.selectedIds);
-                      if (group.singleSelect) {
-                        newSelection
-                          ..clear()
-                          ..add(group.options[i].id);
+          child: _ScrollableChipRow(
+            children: [
+              for (int i = 0; i < group.options.length; i++) ...[
+                _FilterChip(
+                  label: group.options[i].label,
+                  icon: group.options[i].icon,
+                  isSelected: group.selectedIds.contains(group.options[i].id),
+                  color: group.options[i].color,
+                  onSelected: (_) {
+                    final newSelection = Set<T>.from(group.selectedIds);
+                    if (group.singleSelect) {
+                      newSelection
+                        ..clear()
+                        ..add(group.options[i].id);
+                    } else {
+                      if (newSelection.contains(group.options[i].id)) {
+                        newSelection.remove(group.options[i].id);
                       } else {
-                        if (newSelection.contains(group.options[i].id)) {
-                          newSelection.remove(group.options[i].id);
-                        } else {
-                          newSelection.add(group.options[i].id);
-                        }
+                        newSelection.add(group.options[i].id);
                       }
-                      group.onSelectionChanged(newSelection);
-                    },
-                  ),
-                  if (i < group.options.length - 1) const SizedBox(width: 4),
-                ],
+                    }
+                    group.onSelectionChanged(newSelection);
+                  },
+                ),
+                if (i < group.options.length - 1) const SizedBox(width: 4),
               ],
-            ),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Horizontal scrollable row with overscroll support.
+class _ScrollableChipRow extends StatelessWidget {
+  final List<Widget> children;
+  const _ScrollableChipRow({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const ClampingScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
     );
   }
 }

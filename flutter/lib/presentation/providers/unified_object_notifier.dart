@@ -44,15 +44,28 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
   Future<void> loadFromProfile() async {
     final profile = ref.read(profileNotifierProvider).value;
     if (profile == null) {
-      state = const UnifiedObjectData(objects: [], customTypes: []);
+      // 新账号：创建默认结构并立即保存
+      final defaultData = _createDefaultStructure(
+        const UnifiedObjectData(objects: [], customTypes: []),
+      );
+      state = defaultData;
+      final updatedProfile = ProfileData(
+        unifiedObjects: defaultData,
+        schemaVersion: ProfileStorageService.kSchemaVersion,
+      );
+      await ref.read(profileNotifierProvider.notifier).saveProfileImmediate(updatedProfile);
       return;
     }
 
     final data = profile.unifiedObjects;
     if (data == null) {
-      if (state.objects.isNotEmpty || state.customTypes.isNotEmpty) {
-        state = const UnifiedObjectData(objects: [], customTypes: []);
-      }
+      // Profile 存在但 unifiedObjects 缺失：同样创建默认结构
+      final defaultData = _createDefaultStructure(
+        const UnifiedObjectData(objects: [], customTypes: []),
+      );
+      state = defaultData;
+      final updatedProfile = profile.copyWith(unifiedObjects: defaultData);
+      await ref.read(profileNotifierProvider.notifier).saveProfileImmediate(updatedProfile);
       return;
     }
 

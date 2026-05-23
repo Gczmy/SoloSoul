@@ -10,7 +10,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
     show unifiedObjectProvider, unifiedObjectCacheProvider;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
-import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
+import 'package:solosoul_flutter/presentation/widgets/categorized_icon_grid.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 
@@ -343,42 +343,14 @@ class _AddSectionDialogState extends State<_AddSectionDialog> {
           const SizedBox(height: 16),
           Text(AppLocalizations.of(context).workspaceIcon, style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: kIconNames.map((name) {
-              final isSelected = name == _iconName;
-              return Material(
-                color: isSelected
-                    ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                    : theme.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => setState(() => _iconName = name),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isSelected
-                            ? theme.colorScheme.primary
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      UnifiedObjectService.getIconFromName(name),
-                      size: 20,
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+          SizedBox(
+            height: 180,
+            child: CategorizedIconGrid(
+              currentIcon: _iconName,
+              iconSize: 40,
+              spacing: 8,
+              onSelected: (name) => setState(() => _iconName = name),
+            ),
           ),
         ],
       ),

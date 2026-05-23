@@ -1625,6 +1625,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get iconPickerTitle => '选择图标';
 
   @override
+  String get iconCategoryWork => '工作与学习';
+
+  @override
+  String get iconCategoryPeople => '人物与身份';
+
+  @override
+  String get iconCategoryTravel => '旅行与出行';
+
+  @override
+  String get iconCategoryFinance => '财务与商业';
+
+  @override
+  String get iconCategoryLife => '生活与健康';
+
+  @override
+  String get iconCategoryTech => '科技与设备';
+
+  @override
+  String get iconCategoryCreative => '创意与艺术';
+
+  @override
+  String get iconCategoryGeneral => '通用';
+
+  @override
   String get operationDetails => '操作详情';
 
   @override

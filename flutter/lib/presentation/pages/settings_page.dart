@@ -28,7 +28,7 @@ import 'package:solosoul_flutter/presentation/widgets/settings/version_sheet.dar
 import 'package:solosoul_flutter/presentation/widgets/settings/current_account_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/all_accounts_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/delete_account_button.dart';
-import 'package:solosoul_flutter/presentation/widgets/settings/delete_account_dialog_content.dart';
+
 import 'package:solosoul_flutter/presentation/widgets/settings/settings_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/settings/slogan_chip.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -238,18 +238,61 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   static Future<void> _confirmDeleteAccount(BuildContext context, WidgetRef ref) async {
-    final result = await showDialog<bool>(
+    final l10n = AppLocalizations.of(context);
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final passwordHint = authNotifier.selectedAccount?.passwordHint;
+
+    // Step 1: password verification (must use real password, not biometric)
+    final password = await showGeneralDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => DeleteAccountDialogContent(
-        dialogContext: dialogContext,
-        ref: ref,
+      barrierLabel: 'Dialog',
+      pageBuilder: (dialogContext, anim1, anim2) => Center(
+        child: SizedBox(
+          width: 480,
+          child: PasswordVerificationDialogContent(
+            message: l10n.settingsDeleteAccountWarning,
+            passwordHint: passwordHint,
+            onVerify: authNotifier.verifyPasswordForSensitiveData,
+          ),
+        ),
       ),
     );
+    if (password == null || !context.mounted) return;
 
-    if (result == true && context.mounted) {
-      await ref.read(authNotifierProvider.notifier).lockVault();
-      ref.read(sensitivePageAccessProvider.notifier).clear();
-    }
+    // Step 2: show final confirmation
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.red.shade700),
+            const SizedBox(width: 8),
+            Text(l10n.settingsDeleteAccount),
+          ],
+        ),
+        content: Text(l10n.settingsDeleteAccountWarning),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            child: Text(l10n.settingsDeleteAccount),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    // Step 3: execute deletion
+    final success = await authNotifier.deleteAccount(password);
+    if (!success || !context.mounted) return;
+
+    ref.invalidate(accountsProvider);
+    await authNotifier.lockVault();
+    ref.read(sensitivePageAccessProvider.notifier).clear();
   }
 }

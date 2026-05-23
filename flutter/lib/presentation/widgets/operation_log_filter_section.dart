@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/presentation/providers/operation_log_provider.d
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/generic_filter_section.dart';
 
-class OperationLogFilterSection extends ConsumerWidget {
+class OperationLogFilterSection extends ConsumerStatefulWidget {
   const OperationLogFilterSection({
     super.key,
     required this.resultCount,
@@ -16,7 +16,14 @@ class OperationLogFilterSection extends ConsumerWidget {
   final VoidCallback? onClearAll;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OperationLogFilterSection> createState() => _OperationLogFilterSectionState();
+}
+
+class _OperationLogFilterSectionState extends ConsumerState<OperationLogFilterSection> {
+  bool _collapsed = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final actionFilters = ref.watch(logActionFilterProvider);
     final deviceFilters = ref.watch(logDeviceFilterProvider);
@@ -69,12 +76,14 @@ class OperationLogFilterSection extends ConsumerWidget {
           },
         ),
       ],
-      resultCount: resultCount,
+      resultCount: widget.resultCount,
+      expanded: !_collapsed,
+      onToggle: () => setState(() => _collapsed = !_collapsed),
       showClearAll: true,
       onClearAll: () {
         ref.read(logActionFilterProvider.notifier).clear();
         ref.read(logDeviceFilterProvider.notifier).clear();
-        onClearAll?.call();
+        widget.onClearAll?.call();
       },
     );
   }

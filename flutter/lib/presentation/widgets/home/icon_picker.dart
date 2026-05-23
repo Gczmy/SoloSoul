@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/presentation/widgets/categorized_icon_grid.dart';
 
 /// Inline icon picker widget.
 ///
-/// Shows a 48×48 trigger button that opens a bottom sheet grid of
-/// 26 predefined Material-style icons.
+/// Shows a 48×48 trigger button that opens a categorized bottom sheet
+/// of ~100 predefined Material-style icons.
 class IconPicker extends StatelessWidget {
   final String iconName;
   final ValueChanged<String> onChanged;
 
   const IconPicker({super.key, required this.iconName, required this.onChanged});
-
-  static const List<String> _iconNames = [
-    'article', 'folder', 'note', 'person', 'flight', 'work',
-    'school', 'account_balance', 'credit_card', 'home', 'language',
-    'star', 'book', 'favorite', 'security', 'medical_services',
-    'phone', 'email', 'link', 'description', 'check_circle',
-    'restaurant', 'sports', 'music_note', 'movie', 'camera',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -27,40 +20,25 @@ class IconPicker extends StatelessWidget {
       onTap: () async {
         final result = await showModalBottomSheet<String>(
           context: context,
-          builder: (ctx) => SafeArea(
-            child: Padding(
+          isScrollControlled: true,
+          builder: (ctx) => DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            minChildSize: 0.4,
+            maxChildSize: 0.85,
+            expand: false,
+            builder: (ctx, scrollController) => Padding(
               padding: const EdgeInsets.all(16),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _iconNames.map((name) {
-                  final isSelected = name == iconName;
-                  return Material(
-                    color: isSelected
-                        ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                        : theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () => Navigator.pop(ctx, name),
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          UnifiedObjectService.getIconFromName(name),
-                          color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Flexible(
+                    child: CategorizedIconGrid(
+                      currentIcon: iconName,
+                      onSelected: (name) => Navigator.pop(ctx, name),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
             ),
           ),

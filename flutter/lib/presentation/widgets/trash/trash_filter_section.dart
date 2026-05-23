@@ -4,7 +4,7 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/trash_filter_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/generic_filter_section.dart';
 
-class TrashFilterSection extends ConsumerWidget {
+class TrashFilterSection extends ConsumerStatefulWidget {
   const TrashFilterSection({
     super.key,
     required this.resultCount,
@@ -15,7 +15,14 @@ class TrashFilterSection extends ConsumerWidget {
   final VoidCallback? onClearAll;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TrashFilterSection> createState() => _TrashFilterSectionState();
+}
+
+class _TrashFilterSectionState extends ConsumerState<TrashFilterSection> {
+  bool _collapsed = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l = AppLocalizations.of(context);
     final timeFilter = ref.watch(trashTimeFilterProvider);
@@ -57,12 +64,14 @@ class TrashFilterSection extends ConsumerWidget {
           },
         ),
       ],
-      resultCount: resultCount,
+      resultCount: widget.resultCount,
+      expanded: !_collapsed,
+      onToggle: () => setState(() => _collapsed = !_collapsed),
       showClearAll: true,
       onClearAll: () {
         ref.read(trashTimeFilterProvider.notifier).clear();
         ref.read(trashTypeFilterProvider.notifier).clear();
-        onClearAll?.call();
+        widget.onClearAll?.call();
       },
     );
   }
