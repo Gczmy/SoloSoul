@@ -8,7 +8,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
-| P001 | P0     | 编译错误   | `test/unit/core/services/llm/llm_query_enhancer_test.dart` | 引用不存在的 `llm_query_enhancer.dart`，导致 `EnhancementResult`、`LlmQueryEnhancer` 等全部未定义 | `[ ]` 暂缓（死测试文件，待确认删除） |
+| P001 | P0     | 编译错误   | `test/unit/core/services/llm/llm_query_enhancer_test.dart` | 引用不存在的 `llm_query_enhancer.dart`，导致 `EnhancementResult`、`LlmQueryEnhancer` 等全部未定义 | `[x]` 已修复（文件已删除） |
 | P002 | P0     | 编译错误   | `test/unit/core/services/scan/local_search_service_test.dart:116` | 错误调用 `LocalSearchService.filenameHintsPersonal`，实际为 `ScanSectionDetector.filenameHintsPersonal` | `[x]` 已修复 |
 | P003 | P0     | 编译错误   | `test/unit/presentation/utils/property_value_utils_test.dart` | 缺少 `fieldPrefixForTypeId` 函数导入（定义于 `core/services/unified_object_service.dart`） | `[x]` 已修复 |
 | P004 | P0     | 编译错误   | `test/unit/presentation/widgets/sensitivity_tag_utils_test.dart` / `test/widget/sensitivity_tag_test.dart` | `getSensitivityLabel` 函数已被移除（现有 `SensitivityLevel.localizedLabel`），测试引用不存在符号 | `[x]` 已修复 |
