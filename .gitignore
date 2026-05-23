@@ -33,11 +33,12 @@ flutter/native/target/
 .cargo/registry/
 vendor/
 
-# Go
+# Go / Native binaries
 *.exe
 *.dll
 *.so
 *.dylib
+*.a
 *.test
 solosoul
 solosould
