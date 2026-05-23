@@ -276,7 +276,7 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
     // Log the sensitivity change
     final entryArgs = <String, String>{'field': fieldId, 'newLevel': level.label};
     if (oldLevel != null) entryArgs['oldLevel'] = oldLevel.label;
-    OperationLogService.instance.addEntry(
+    unawaited(OperationLogService.instance.addEntry(
       OperationLogger.logSensitivitySettings(
         action: oldLevel != null ? LogAction.update : LogAction.create,
         description: oldLevel != null
@@ -287,7 +287,7 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
         descriptionKey: oldLevel != null ? 'sensitivityChanged' : 'sensitivitySet',
         descriptionArgs: entryArgs,
       ),
-    );
+    ));
   }
 
   /// Remove field sensitivity override (revert to tag/global default).
@@ -322,7 +322,7 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
           descriptionKey: 'sensitivityReverted',
           descriptionArgs: {'field': fieldId, 'oldLevel': oldLevel.label},
         );
-        OperationLogService.instance.addEntry(entry);
+        unawaited(OperationLogService.instance.addEntry(entry));
         unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Reverted sensitivity'));
       }
     }

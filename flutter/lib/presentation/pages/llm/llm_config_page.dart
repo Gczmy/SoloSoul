@@ -50,6 +50,7 @@ class _LlmConfigPageState extends ConsumerState<LlmConfigPage> {
         await _testLocalConnection(config, l10n);
       }
     } on LlmException catch (e) {
+      if (!mounted) return;
       _handleLlmException(e, AppLocalizations.of(context));
     } on Exception catch (e) {
       if (!mounted) return;
