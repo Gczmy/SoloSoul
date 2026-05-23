@@ -2,6 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 
+/// Helper to get sensitivity level label (English, for testing and non-context usage)
+String getSensitivityLabel(SensitivityLevel level) {
+  switch (level) {
+    case SensitivityLevel.critical:
+      return 'Critical';
+    case SensitivityLevel.sensitive:
+      return 'Sensitive';
+    case SensitivityLevel.internal:
+      return 'Internal';
+    case SensitivityLevel.public:
+      return 'Public';
+  }
+}
+
 /// Helper to get sensitivity level color
 Color getSensitivityColor(SensitivityLevel level) {
   switch (level) {
