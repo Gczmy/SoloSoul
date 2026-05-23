@@ -10,7 +10,7 @@
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
 | P001 | P0     | 编译错误   | `test/unit/core/services/llm/llm_query_enhancer_test.dart` | 引用不存在的 `llm_query_enhancer.dart`，导致 `EnhancementResult`、`LlmQueryEnhancer` 等全部未定义 | `[ ]` 暂缓（死测试文件，待确认删除） |
 | P002 | P0     | 编译错误   | `test/unit/core/services/scan/local_search_service_test.dart:116` | 错误调用 `LocalSearchService.filenameHintsPersonal`，实际为 `ScanSectionDetector.filenameHintsPersonal` | `[x]` 已修复 |
-| P003 | P0     | 编译错误   | `test/unit/presentation/utils/property_value_utils_test.dart` | 缺少 `fieldPrefixForTypeId` 函数导入（定义于 `core/services/unified_object_service.dart`） | `[ ]` 待修复 |
+| P003 | P0     | 编译错误   | `test/unit/presentation/utils/property_value_utils_test.dart` | 缺少 `fieldPrefixForTypeId` 函数导入（定义于 `core/services/unified_object_service.dart`） | `[x]` 已修复 |
 | P004 | P0     | 编译错误   | `test/unit/presentation/widgets/sensitivity_tag_utils_test.dart` / `test/widget/sensitivity_tag_test.dart` | `getSensitivityLabel` 函数已被移除（现有 `SensitivityLevel.localizedLabel`），测试引用不存在符号 | `[ ]` 待修复 |
 | P005 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:297` | 未使用的局部变量 `parentSectionId` | `[ ]` 待修复 |
 | P006 | P1     | 警告       | `lib/core/services/scan/scan_import_service.dart:518` | 使用 Riverpod 内部可见性 API `_objectNotifier.state`，可能在未来版本失效 | `[ ]` 待修复 |
@@ -29,8 +29,8 @@
 
 ## 修复进度
 
-- 已完成：1 / 18
-- 当前处理：P002
+- 已完成：2 / 18
+- 当前处理：P003
 
 ## 详细问题描述与修复指引
 
