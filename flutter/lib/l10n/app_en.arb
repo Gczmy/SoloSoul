@@ -1995,6 +1995,8 @@
     "description": "Settings tile label for plugin management"
   },
   "pluginManagementSubtitle": "Manage installed plugins and browse the marketplace",
+  "pluginManagementSubtitleIOS": "Plugin execution unavailable on iOS",
+  "pluginIOSUnsupportedBanner": "Plugin execution is not supported on iOS due to platform restrictions.",
   "pluginDashboardTitle": "Plugin Management",
   "pluginTabAll": "All",
   "pluginTabInstalled": "Installed",

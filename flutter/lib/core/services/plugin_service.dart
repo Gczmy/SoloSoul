@@ -42,6 +42,13 @@ class PluginService {
     String pluginId, {
     Map<String, dynamic>? params,
   }) async* {
+    // iOS 平台不支持 Wasmtime，插件系统不可用
+    if (Platform.isIOS) {
+      throw UnsupportedError(
+        'Plugin execution is not supported on iOS due to Wasmtime JIT restrictions.',
+      );
+    }
+
     // 1. 校验插件目录存在
     final pluginDir = Directory('${_pluginDir.path}/$pluginId');
     if (!await pluginDir.exists()) {

@@ -3379,6 +3379,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pluginManagementSubtitle => '管理已安装插件并浏览插件市场';
 
   @override
+  String get pluginManagementSubtitleIOS => 'iOS 暂不支持运行插件';
+
+  @override
+  String get pluginIOSUnsupportedBanner => '由于平台限制，iOS 暂不支持运行插件。';
+
+  @override
   String get pluginDashboardTitle => '插件管理';
 
   @override

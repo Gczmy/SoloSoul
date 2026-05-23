@@ -16,8 +16,10 @@ class _PluginSettingsSection extends ConsumerWidget {
         SettingsTile(
           icon: Icons.extension_outlined,
           title: l10n.pluginManagement,
-          subtitle: l10n.pluginManagementSubtitle,
-          onTap: () => context.push(AppRoutes.pluginDashboard),
+          subtitle: Platform.isIOS
+              ? l10n.pluginManagementSubtitleIOS
+              : l10n.pluginManagementSubtitle,
+          onTap: Platform.isIOS ? null : () => context.push(AppRoutes.pluginDashboard),
         ),
       ],
     ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideX(begin: 0.05, end: 0);

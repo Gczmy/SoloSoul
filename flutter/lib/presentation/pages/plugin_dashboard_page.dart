@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import 'dart:io' show Platform;
+
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
@@ -101,6 +103,26 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
             },
           ),
         ),
+
+        // iOS 平台不支持插件运行（Wasmtime JIT 限制）
+        if (Platform.isIOS)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            color: Colors.amber.withValues(alpha: 0.15),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.amber.shade800, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.pluginIOSUnsupportedBanner,
+                    style: TextStyle(color: Colors.amber.shade900, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         // 离线横幅
         if (isOffline && data.installed.isEmpty)
@@ -369,14 +391,14 @@ class _PluginCard extends ConsumerWidget {
       if (isRunning) {
         buttons.push(
           OutlinedButton(
-            onPressed: () => _onStop(context, ref),
+            onPressed: Platform.isIOS ? null : () => _onStop(context, ref),
             child: Text(l10n.pluginActionStop),
           ),
         );
       } else {
         buttons.push(
           FilledButton(
-            onPressed: () => _onRun(context, ref),
+            onPressed: Platform.isIOS ? null : () => _onRun(context, ref),
             child: Text(l10n.pluginActionRun),
           ),
         );

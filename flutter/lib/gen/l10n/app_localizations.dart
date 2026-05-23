@@ -6354,6 +6354,18 @@ abstract class AppLocalizations {
   /// **'Manage installed plugins and browse the marketplace'**
   String get pluginManagementSubtitle;
 
+  /// No description provided for @pluginManagementSubtitleIOS.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin execution unavailable on iOS'**
+  String get pluginManagementSubtitleIOS;
+
+  /// No description provided for @pluginIOSUnsupportedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin execution is not supported on iOS due to platform restrictions.'**
+  String get pluginIOSUnsupportedBanner;
+
   /// No description provided for @pluginDashboardTitle.
   ///
   /// In en, this message translates to:

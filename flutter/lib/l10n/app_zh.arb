@@ -1573,6 +1573,8 @@
   "operationRevertedSensitivity": "恢复敏感度",
   "pluginManagement": "插件管理",
   "pluginManagementSubtitle": "管理已安装插件并浏览插件市场",
+  "pluginManagementSubtitleIOS": "iOS 暂不支持运行插件",
+  "pluginIOSUnsupportedBanner": "由于平台限制，iOS 暂不支持运行插件。",
   "pluginDashboardTitle": "插件管理",
   "pluginTabAll": "全部",
   "pluginTabInstalled": "已安装",

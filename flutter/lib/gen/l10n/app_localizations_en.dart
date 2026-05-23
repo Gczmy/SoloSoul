@@ -3474,6 +3474,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manage installed plugins and browse the marketplace';
 
   @override
+  String get pluginManagementSubtitleIOS =>
+      'Plugin execution unavailable on iOS';
+
+  @override
+  String get pluginIOSUnsupportedBanner =>
+      'Plugin execution is not supported on iOS due to platform restrictions.';
+
+  @override
   String get pluginDashboardTitle => 'Plugin Management';
 
   @override
