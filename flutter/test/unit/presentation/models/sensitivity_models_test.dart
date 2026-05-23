@@ -21,6 +21,7 @@ void main() {
         ...skillFields.map((f) => f.fieldId),
         ...languageFields.map((f) => f.fieldId),
         ...awardFields.map((f) => f.fieldId),
+        ...articleFields.map((f) => f.fieldId),
       };
 
       final defaultFieldIds =
@@ -50,6 +51,7 @@ void main() {
         skillFields.length,
         languageFields.length,
         awardFields.length,
+        articleFields.length,
       ].reduce((a, b) => a + b);
 
       expect(
@@ -337,8 +339,8 @@ void main() {
         expect(sections, contains('employment'));
       });
 
-      test('has 15 sections', () {
-        expect(FieldRegistry.allSections.length, 15);
+      test('has 16 sections', () {
+        expect(FieldRegistry.allSections.length, 16);
       });
     });
 

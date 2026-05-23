@@ -10,7 +10,7 @@ func TestMRZParser_ParseTD3(t *testing.T) {
 
 	// Valid TD3: 44 chars each line (pre-validated)
 	line1Valid := "P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	line2Valid := "0123456789GBR8101011F2507144<<<<<<<<<<<<<<4<"
+	line2Valid := "0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<"
 
 	tests := []struct {
 		name      string
@@ -73,8 +73,8 @@ func TestMRZParser_ParseTD1(t *testing.T) {
 	p := NewMRZParser()
 
 	// Valid TD1: 30 chars each line
-	line1Valid := "I<GBRSMITH<<SARAH<<<<<<<<<<<<<<"  // 30 chars
-	line2Valid := "0123456789<4GBR8101011F250714<<" // 30 chars
+	line1Valid := "I<GBRSMITH<<SARAH<<<<<<<<<<<<<"  // 30 chars
+	line2Valid := "01234567848101017F2507145<<<<<" // 30 chars
 	line3Valid := "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"   // 30 chars
 
 	tests := []struct {
@@ -96,7 +96,7 @@ func TestMRZParser_ParseTD1(t *testing.T) {
 					m.Country == "GBR" &&
 					m.Surname == "SMITH" &&
 					m.GivenNames == "SARAH" &&
-					m.DocumentNumber == "0123456789" &&
+					m.DocumentNumber == "012345678" &&
 					m.DateOfBirth == "810101" &&
 					m.Sex == "F" &&
 					m.ExpiryDate == "250714"
@@ -134,8 +134,8 @@ func TestMRZParser_ParseTD2(t *testing.T) {
 	p := NewMRZParser()
 
 	// Valid TD2: 36 chars each line
-	line1Valid := "I<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<" // 36 chars
-	line2Valid := "012345678<4GBR8101011F250714<<<<<"  // 36 chars
+	line1Valid := "I<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<" // 36 chars
+	line2Valid := "0123456784GBR8101017F2507145<<<<<<<<"  // 36 chars
 
 	tests := []struct {
 		name      string
@@ -244,11 +244,11 @@ func TestMRZParser_ParseDate(t *testing.T) {
 			},
 		},
 		{
-			name:    "year 49 -> 1949",
+			name:    "year 49 -> 2049",
 			dateStr: "490101",
 			wantErr: false,
 			checkFunc: func(t time.Time) bool {
-				return t.Year() == 1949 && t.Month() == 1 && t.Day() == 1
+				return t.Year() == 2049 && t.Month() == 1 && t.Day() == 1
 			},
 		},
 		{
@@ -282,7 +282,7 @@ func TestMRZParser_ExtractMRZFromText(t *testing.T) {
 
 	// Valid TD3 strings
 	line1 := "P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-	line2 := "0123456789GBR8101011F2507144<<<<<<<<<<<<<<4<"
+	line2 := "0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<"
 
 	tests := []struct {
 		name      string
@@ -403,7 +403,7 @@ func TestMRZData_ToExtractedFields_WithEmptyOptional(t *testing.T) {
 func TestMRZParser_NameParsing(t *testing.T) {
 	p := NewMRZParser()
 
-	line2 := "0123456789GBR8101011F2507144<<<<<<<<<<<<<<4<"
+	line2 := "0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<"
 
 	tests := []struct {
 		name        string
@@ -419,7 +419,7 @@ func TestMRZParser_NameParsing(t *testing.T) {
 		},
 		{
 			name:        "name with multiple given names",
-			line1:       "P<GBRSMITH<<SARAH<ELIZABETH<<<<<<<<<<<<<<<<<<",
+			line1:       "P<GBRSMITH<<SARAH<ELIZABETH<<<<<<<<<<<<<<<<<",
 			wantSurname: "SMITH",
 			wantGiven:   "SARAH ELIZABETH",
 		},

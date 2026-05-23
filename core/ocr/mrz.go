@@ -53,7 +53,7 @@ func (p *MRZParser) ParseTD3(line1, line2 string) (*MRZData, error) {
 	nameParts := strings.Split(line1[5:], "<")
 	if len(nameParts) >= 2 {
 		data.Surname = strings.Trim(nameParts[0], "<")
-		data.GivenNames = strings.Trim(strings.Join(nameParts[1:], " "), "<")
+		data.GivenNames = strings.TrimSpace(strings.Join(nameParts[1:], " "))
 	}
 
 	// Line 2: Document number + check digit + nationality + DOB + check digit + sex + expiry + check digit + personal number + check digit
@@ -100,7 +100,7 @@ func (p *MRZParser) ParseTD1(line1, line2, line3 string) (*MRZData, error) {
 	nameParts := strings.Split(line1[5:], "<")
 	if len(nameParts) >= 2 {
 		data.Surname = strings.Trim(nameParts[0], "<")
-		data.GivenNames = strings.Trim(strings.Join(nameParts[1:], " "), "<")
+		data.GivenNames = strings.TrimSpace(strings.Join(nameParts[1:], " "))
 	}
 
 	// Line 2: Document number + check digit + DOB + check digit + sex + expiry + check digit
@@ -139,7 +139,7 @@ func (p *MRZParser) ParseTD2(line1, line2 string) (*MRZData, error) {
 	nameParts := strings.Split(line1[5:], "<")
 	if len(nameParts) >= 2 {
 		data.Surname = strings.Trim(nameParts[0], "<")
-		data.GivenNames = strings.Trim(strings.Join(nameParts[1:], " "), "<")
+		data.GivenNames = strings.TrimSpace(strings.Join(nameParts[1:], " "))
 	}
 
 	// Line 2: Document number + check digit + nationality + DOB + check digit + sex + expiry + check digit + optional data

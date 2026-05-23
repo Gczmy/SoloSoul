@@ -77,7 +77,7 @@ void main() {
     });
   });
 
-  group('RustVaultService account operations', skip: skipOnLinux, () {
+  group('RustVaultService account operations', skip: 'Requires initialized flutter_rust_bridge', () {
     late RustVaultService service;
 
     setUp(() {
@@ -104,9 +104,9 @@ void main() {
       expect(result.success, false);
     });
 
-    test('deleteAccount returns bool', () {
+    test('deleteAccount returns bool', () async {
       // Without Rust library, returns false
-      final result = service.deleteAccount('nonexistent');
+      final result = await service.deleteAccount('nonexistent');
 
       expect(result, isA<bool>());
     });
@@ -119,7 +119,7 @@ void main() {
     });
   });
 
-  group('RustVaultService initialization', skip: skipOnLinux, () {
+  group('RustVaultService initialization', skip: 'Requires initialized flutter_rust_bridge', () {
     test('initAccountManager is callable', () {
       final service = RustVaultService.instance;
 

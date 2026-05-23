@@ -7,6 +7,7 @@ import (
 
 func TestGenerateRequestID(t *testing.T) {
 	id1 := generateRequestID()
+	time.Sleep(10 * time.Millisecond)
 	id2 := generateRequestID()
 
 	if id1 == "" {
@@ -25,6 +26,7 @@ func TestGenerateRequestID(t *testing.T) {
 
 func TestGenerateSessionID(t *testing.T) {
 	id1 := generateSessionID()
+	time.Sleep(10 * time.Millisecond)
 	id2 := generateSessionID()
 
 	if id1 == "" {

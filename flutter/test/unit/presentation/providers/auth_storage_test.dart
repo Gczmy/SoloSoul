@@ -64,9 +64,9 @@ void main() {
       expect(SecureAccountStorage.hasSufficientComplexity('Password'), isFalse);
     });
 
-    test('returns true for password with upper, lower, and digits', () {
-      expect(SecureAccountStorage.hasSufficientComplexity('Pass1'), isTrue);
-      expect(SecureAccountStorage.hasSufficientComplexity('MyP4ss'), isTrue);
+    test('returns true for password with upper, lower, digits, and special', () {
+      expect(SecureAccountStorage.hasSufficientComplexity('Pass1!'), isTrue);
+      expect(SecureAccountStorage.hasSufficientComplexity('MyP4ss!'), isTrue);
     });
 
     test('returns false for empty password', () {
@@ -267,7 +267,7 @@ void main() {
     test('rejects weak 8-char password without complexity', () async {
       final result = await SecureAccountStorage.instance.createAccount('Test', 'password');
       expect(result.success, isFalse);
-      expect(result.error, contains('uppercase, lowercase, and digits'));
+      expect(result.error, contains('uppercase, lowercase, digits, and special characters'));
     });
 
     test('accepts 8-char password with complexity (proceeds past validation)', () async {
@@ -287,7 +287,7 @@ void main() {
       secureStorageData['solosoul_accounts'] =
           '[{"id":"acc1","name":"Existing","created_at":"2024-01-01T00:00:00.000Z","last_accessed":"2024-01-01T00:00:00.000Z"}]';
 
-      final result = await SecureAccountStorage.instance.createAccount('existing', 'Password1');
+      final result = await SecureAccountStorage.instance.createAccount('existing', 'Password1!');
       expect(result.success, isFalse);
       expect(result.error, 'This account name is already taken');
     });
@@ -296,7 +296,7 @@ void main() {
       secureStorageData['solosoul_accounts'] =
           '[{"id":"acc1","name":"Existing","created_at":"2024-01-01T00:00:00.000Z","last_accessed":"2024-01-01T00:00:00.000Z"}]';
 
-      final result = await SecureAccountStorage.instance.createAccount('EXISTING', 'Password1');
+      final result = await SecureAccountStorage.instance.createAccount('EXISTING', 'Password1!');
       expect(result.success, isFalse);
       expect(result.error, 'This account name is already taken');
     });

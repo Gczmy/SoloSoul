@@ -415,7 +415,7 @@ class AttemptTracker {
     if (attempts < backoffStartAfterAttempts) return Duration.zero;
     final exponent = attempts - backoffStartAfterAttempts;
     final seconds = initialBackoff.inSeconds * (1 << exponent);
-    return Duration(seconds: seconds.clamp(0, 30));
+    return Duration(seconds: seconds.clamp(0, 300));
   }
 
   void recordFailure() {

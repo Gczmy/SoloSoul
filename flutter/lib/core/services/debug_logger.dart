@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 enum LogLevel { debug, info, warning, error }
 
 /// Categories of sensitive data for structured tagging.
@@ -127,6 +129,12 @@ class DebugLogger {
   bool get isActive => _isActive;
 
   List<LogEntry> get entries => List.unmodifiable(_logBuffer);
+
+  /// Clear the log buffer. For testing only.
+  @visibleForTesting
+  void clearBuffer() {
+    _logBuffer.clear();
+  }
 
   /// Wrap a sensitive value with a structured tag.
   ///

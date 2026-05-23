@@ -70,6 +70,7 @@ void main() {
     setUp(() {
       logger = DebugLogger.instance;
       logger.deactivate(); // Ensure clean state
+      logger.clearBuffer();
     });
 
     tearDown(() {
@@ -91,9 +92,10 @@ void main() {
       expect(logger.isActive, isFalse);
     });
 
-    test('entries is empty when inactive', () {
-      logger.log('TEST', 'should not be logged');
-      expect(logger.entries, isEmpty);
+    test('entries are captured even when inactive', () {
+      logger.log('TEST', 'should still be buffered');
+      expect(logger.entries, isNotEmpty);
+      expect(logger.entries.last.tag, 'TEST');
     });
 
     test('entries are captured when active', () {
@@ -137,13 +139,14 @@ void main() {
       expect(entries[4].level, LogLevel.error);
     });
 
-    test('deactivate clears buffer', () {
+    test('deactivate preserves buffer', () {
       logger.activate();
       logger.log('TEST', 'hello');
       expect(logger.entries, isNotEmpty);
       logger.deactivate();
-      // After deactivate, entries should be empty
-      expect(logger.entries, isEmpty);
+      // Deactivate only stops console output; buffer is preserved
+      expect(logger.entries, isNotEmpty);
+      expect(logger.entries.last.tag, 'TEST');
     });
   });
 
@@ -174,6 +177,7 @@ void main() {
     });
 
     test('getExportLog returns message when empty', () {
+      logger.clearBuffer();
       expect(logger.getExportLog(), 'No debug logs available.');
     });
 

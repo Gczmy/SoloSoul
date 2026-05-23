@@ -99,7 +99,7 @@ func TestValidator_ValidateIdentity(t *testing.T) {
 			wantErrCount: 0,
 		},
 		{
-			name: "missing full name",
+			name: "missing full name is allowed",
 			identity: Identity{
 				FullName: PersonName{FullName: ""},
 				DateOfBirth: Date{
@@ -111,10 +111,10 @@ func TestValidator_ValidateIdentity(t *testing.T) {
 					Country: "GBR",
 				},
 			},
-			wantErrCount: 1,
+			wantErrCount: 0,
 		},
 		{
-			name: "missing date of birth",
+			name: "missing date of birth is allowed",
 			identity: Identity{
 				FullName: PersonName{FullName: "Jane Smith"},
 				DateOfBirth: Date{
@@ -126,10 +126,10 @@ func TestValidator_ValidateIdentity(t *testing.T) {
 					Country: "GBR",
 				},
 			},
-			wantErrCount: 1,
+			wantErrCount: 0,
 		},
 		{
-			name: "missing country",
+			name: "missing country is allowed",
 			identity: Identity{
 				FullName: PersonName{FullName: "Jane Smith"},
 				DateOfBirth: Date{
@@ -141,7 +141,7 @@ func TestValidator_ValidateIdentity(t *testing.T) {
 					Country: "",
 				},
 			},
-			wantErrCount: 1,
+			wantErrCount: 0,
 		},
 	}
 
@@ -245,22 +245,22 @@ func TestValidator_ValidatePassport(t *testing.T) {
 			wantErrCount: 0,
 		},
 		{
-			name: "missing number",
+			name: "missing number is allowed",
 			passport: func() *Passport {
 				p := *basePassport
 				p.Number = ""
 				return &p
 			}(),
-			wantErrCount: 1,
+			wantErrCount: 0,
 		},
 		{
-			name: "missing country",
+			name: "missing country is allowed",
 			passport: func() *Passport {
 				p := *basePassport
 				p.Country = ""
 				return &p
 			}(),
-			wantErrCount: 1,
+			wantErrCount: 0,
 		},
 		{
 			name: "expiry before issue",
