@@ -6,6 +6,7 @@
 /// 世纪判断规则（ICAO Doc 9303 行业惯例）：
 /// - YY >= 50 → 19YY（如 99 → 1999）
 /// - YY < 50 → 20YY（如 01 → 2001）
+library mrz_date_utils;
 
 /// 将 MRZ 6 位日期字符串 (YYMMDD) 解析为 ISO 8601 日期格式 (YYYY-MM-DD)。
 ///

@@ -18,10 +18,10 @@
 | P008 | P1     | 警告       | `lib/presentation/widgets/predefined_object_section.dart:6` / `:253` | 未使用的导入 `sensitivity_models.dart`；未引用的 `_PredefinedErrorWidget` | `[x]` 已修复 |
 | P009 | P1     | 潜在漏洞   | `lib/presentation/pages/llm/llm_config_page.dart:53` | `use_build_context_synchronously`：在异步 catch 块中直接使用 `context` 获取 `AppLocalizations`，未先检查 `mounted` | `[x]` 已修复 |
 | P010 | P1     | 潜在漏洞   | `lib/presentation/providers/account_style_provider.dart:279` / `:325` | `unawaited_futures`：异步操作未等待/未 `unawaited`，可能导致异常静默丢失 | `[x]` 已修复 |
-| P011 | P1     | 废弃 API   | `lib/presentation/pages/section_template_page.dart:467-468` / `lib/presentation/widgets/ocr_scanner_result_card.dart:43-44` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged`，应改用 `RadioGroup` | `[ ]` 待修复 |
-| P012 | P1     | 废弃 API   | `lib/presentation/widgets/ocr_scanner_llm_section.dart:117` | 使用已废弃的 `value` 参数，应改用 `initialValue` | `[ ]` 待修复 |
-| P013 | P1     | 文档       | `lib/core/utils/mrz_date_utils.dart:8` | 悬空的库文档注释（`Dangling library doc comment`） | `[ ]` 待修复 |
-| P014 | P1     | 依赖       | `test/unit/presentation/providers/auth_state_test.dart` / `auth_storage_test.dart` | 导入 `fake_async` 但未在 `pubspec.yaml` 的 `dev_dependencies` 中声明（`depend_on_referenced_packages`） | `[ ]` 待修复 |
+| P011 | P1     | 废弃 API   | `lib/presentation/pages/section_template_page.dart:467-468` / `lib/presentation/widgets/ocr_scanner_result_card.dart:43-44` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged`，应改用 `RadioGroup` | `[ ]` 暂缓（API迁移需评估UI影响） |
+| P012 | P1     | 废弃 API   | `lib/presentation/widgets/ocr_scanner_llm_section.dart:117` | 使用已废弃的 `value` 参数，应改用 `initialValue` | `[ ]` 暂缓（API迁移需评估受控组件行为） |
+| P013 | P1     | 文档       | `lib/core/utils/mrz_date_utils.dart:8` | 悬空的库文档注释（`Dangling library doc comment`） | `[x]` 已修复 |
+| P014 | P1     | 依赖       | `test/unit/presentation/providers/auth_state_test.dart` / `auth_storage_test.dart` | 导入 `fake_async` 但未在 `pubspec.yaml` 的 `dev_dependencies` 中声明（`depend_on_referenced_packages`） | `[x]` 已修复 |
 | P015 | P2     | 代码风格   | 大量测试文件 | `prefer_const_constructors` / `prefer_const_declarations`：大量构造函数未使用 `const` 优化 | `[ ]` 待修复 |
 | P016 | P2     | 代码风格   | 多个测试文件 | `no_leading_underscores_for_local_identifiers`：局部变量以下划线开头 | `[ ]` 待修复 |
 | P017 | P2     | 代码风格   | `lib/presentation/pages/scan/scan_preview_page.dart:314` | `unnecessary_to_list_in_spreads`：spread 中不必要的 `toList()` | `[ ]` 待修复 |
@@ -29,8 +29,8 @@
 
 ## 修复进度
 
-- 已完成：9 / 18
-- 当前处理：P009-P010
+- 已完成：11 / 18
+- 当前处理：P013-P014
 
 ## 详细问题描述与修复指引
 
