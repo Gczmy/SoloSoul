@@ -1,14 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
-import 'package:solosoul_flutter/presentation/models/search_models.dart';
 import 'package:solosoul_flutter/presentation/providers/search_provider.dart';
 
 void main() {
   group('SearchNotifier.executeSearch', () {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    UnifiedObject _makeObject({
+    UnifiedObject makeObject({
       required String id,
       required String name,
       String? typeId,
@@ -31,7 +30,7 @@ void main() {
       );
     }
 
-    PropertyValue _textProp(String text, SensitivityLevel sensitivity) {
+    PropertyValue textProp(String text, SensitivityLevel sensitivity) {
       return TextProperty(text: text, sensitivity: sensitivity);
     }
 
@@ -44,7 +43,7 @@ void main() {
 
     test('finds object by name', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'Passport'),
+        makeObject(id: 'o1', name: 'Passport'),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'pass', true, true, true, true,
@@ -57,7 +56,7 @@ void main() {
 
     test('is case insensitive', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'Bank Account'),
+        makeObject(id: 'o1', name: 'Bank Account'),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'BANK', true, true, true, true,
@@ -68,8 +67,8 @@ void main() {
 
     test('filters deleted objects', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'Active'),
-        _makeObject(id: 'o2', name: 'Deleted', isDeleted: true),
+        makeObject(id: 'o1', name: 'Active'),
+        makeObject(id: 'o2', name: 'Deleted', isDeleted: true),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'deleted', true, true, true, true,
@@ -79,7 +78,7 @@ void main() {
 
     test('finds object by typeId', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'X', typeId: 'credit_card'),
+        makeObject(id: 'o1', name: 'X', typeId: 'credit_card'),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'credit', true, true, true, true,
@@ -91,10 +90,10 @@ void main() {
 
     test('finds property by value', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
-          properties: {'number': _textProp('555-1234', SensitivityLevel.public)},
+          properties: {'number': textProp('555-1234', SensitivityLevel.public)},
         ),
       ];
       final results = SearchNotifier.executeSearch(
@@ -107,10 +106,10 @@ void main() {
 
     test('finds property by key', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
-          properties: {'passport_number': _textProp('AB123', SensitivityLevel.public)},
+          properties: {'passport_number': textProp('AB123', SensitivityLevel.public)},
         ),
       ];
       final results = SearchNotifier.executeSearch(
@@ -122,10 +121,10 @@ void main() {
 
     test('skips empty property values', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
-          properties: {'empty': _textProp('', SensitivityLevel.public)},
+          properties: {'empty': textProp('', SensitivityLevel.public)},
         ),
       ];
       final results = SearchNotifier.executeSearch(
@@ -139,12 +138,12 @@ void main() {
 
     test('filters by sensitivity level - public only', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
           properties: {
-            'public': _textProp('pub', SensitivityLevel.public),
-            'internal': _textProp('int', SensitivityLevel.internal),
+            'public': textProp('pub', SensitivityLevel.public),
+            'internal': textProp('int', SensitivityLevel.internal),
           },
         ),
       ];
@@ -157,7 +156,7 @@ void main() {
 
     test('filters by sensitivity level - excludes public when disabled', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'Test'),
+        makeObject(id: 'o1', name: 'Test'),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'test', false, true, true, true,
@@ -168,11 +167,11 @@ void main() {
 
     test('filters by sensitivity level - internal only', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
           properties: {
-            'internal': _textProp('secret', SensitivityLevel.internal),
+            'internal': textProp('secret', SensitivityLevel.internal),
           },
         ),
       ];
@@ -185,11 +184,11 @@ void main() {
 
     test('filters by sensitivity level - sensitive only', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
           properties: {
-            'sensitive': _textProp('hidden', SensitivityLevel.sensitive),
+            'sensitive': textProp('hidden', SensitivityLevel.sensitive),
           },
         ),
       ];
@@ -202,11 +201,11 @@ void main() {
 
     test('filters by sensitivity level - critical only', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
           properties: {
-            'critical': _textProp('top', SensitivityLevel.critical),
+            'critical': textProp('top', SensitivityLevel.critical),
           },
         ),
       ];
@@ -219,14 +218,14 @@ void main() {
 
     test('resolves section name from parent chain', () {
       final objects = [
-        _makeObject(id: 'page1', name: 'Travel', typeId: 'page'),
-        _makeObject(
+        makeObject(id: 'page1', name: 'Travel', typeId: 'page'),
+        makeObject(
           id: 'sec1',
           name: 'Documents',
           typeId: 'collection',
           parentId: 'page1',
         ),
-        _makeObject(
+        makeObject(
           id: 'item1',
           name: 'Passport',
           typeId: 'item',
@@ -242,7 +241,7 @@ void main() {
 
     test('resolves section name for root-level object', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'Profile'),
+        makeObject(id: 'o1', name: 'Profile'),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'profile', true, true, true, true,
@@ -252,17 +251,17 @@ void main() {
 
     test('handles various property types', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
           properties: {
-            'num': NumberProperty(value: 42, sensitivity: SensitivityLevel.public),
-            'date': DateProperty(isoDate: '2024-01-01', sensitivity: SensitivityLevel.public),
-            'check': CheckboxProperty(checked: true, sensitivity: SensitivityLevel.public),
-            'select': SelectProperty(options: const [], selectedId: 'opt1', sensitivity: SensitivityLevel.public),
-            'multi': MultiSelectProperty(options: const [], selectedIds: ['a', 'b'], sensitivity: SensitivityLevel.public),
-            'url': UrlProperty(url: 'https://x.com', sensitivity: SensitivityLevel.public),
-            'relation': RelationProperty(targetObjectId: 'ref1', sensitivity: SensitivityLevel.public),
+            'num': const NumberProperty(value: 42, sensitivity: SensitivityLevel.public),
+            'date': const DateProperty(isoDate: '2024-01-01', sensitivity: SensitivityLevel.public),
+            'check': const CheckboxProperty(checked: true, sensitivity: SensitivityLevel.public),
+            'select': const SelectProperty(options: [], selectedId: 'opt1', sensitivity: SensitivityLevel.public),
+            'multi': const MultiSelectProperty(options: [], selectedIds: ['a', 'b'], sensitivity: SensitivityLevel.public),
+            'url': const UrlProperty(url: 'https://x.com', sensitivity: SensitivityLevel.public),
+            'relation': const RelationProperty(targetObjectId: 'ref1', sensitivity: SensitivityLevel.public),
           },
         ),
       ];
@@ -299,12 +298,12 @@ void main() {
 
     test('handles null values in properties', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'o1',
           name: 'Item',
           properties: {
-            'nullNum': NumberProperty(value: null, sensitivity: SensitivityLevel.public),
-            'nullDate': DateProperty(isoDate: null, sensitivity: SensitivityLevel.public),
+            'nullNum': const NumberProperty(value: null, sensitivity: SensitivityLevel.public),
+            'nullDate': const DateProperty(isoDate: null, sensitivity: SensitivityLevel.public),
           },
         ),
       ];
@@ -317,8 +316,8 @@ void main() {
 
     test('returns multiple results for multiple matches', () {
       final objects = [
-        _makeObject(id: 'o1', name: 'Bank'),
-        _makeObject(id: 'o2', name: 'Bank Card'),
+        makeObject(id: 'o1', name: 'Bank'),
+        makeObject(id: 'o2', name: 'Bank Card'),
       ];
       final results = SearchNotifier.executeSearch(
         objects, 'bank', true, true, true, true,
@@ -328,7 +327,7 @@ void main() {
 
     test('custom section fallback for broken parent chain', () {
       final objects = [
-        _makeObject(
+        makeObject(
           id: 'item1',
           name: 'Orphan',
           typeId: 'item',

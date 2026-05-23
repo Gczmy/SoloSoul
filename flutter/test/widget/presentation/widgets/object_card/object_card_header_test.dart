@@ -6,14 +6,14 @@ import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_he
 
 void main() {
   group('ObjectCardHeader', () {
-    final object = UnifiedObject(
+    const object = UnifiedObject(
       id: 'o1',
       typeId: 'item',
       name: 'Test Object',
       iconName: 'folder',
       parentId: null,
-      childrenIds: const [],
-      properties: const {},
+      childrenIds: [],
+      properties: {},
       isDeleted: false,
       deletedAt: null,
       createdAt: 0,

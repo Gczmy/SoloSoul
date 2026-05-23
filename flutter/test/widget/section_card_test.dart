@@ -31,9 +31,9 @@ void main() {
             body: SectionCard(
               title: 'Section',
               icon: Icons.folder,
-              children: const [],
               actionIcon: Icons.add,
               onAction: () => actionTapped = true,
+              children: const [],
             ),
           ),
         ),
@@ -53,8 +53,8 @@ void main() {
             body: SectionCard(
               title: 'Section',
               icon: Icons.folder,
-              children: [],
               actionIcon: Icons.add,
+              children: [],
             ),
           ),
         ),
@@ -70,8 +70,8 @@ void main() {
             body: SectionCard(
               title: 'Colored',
               icon: Icons.palette,
-              children: [],
               titleColor: Colors.purple,
+              children: [],
             ),
           ),
         ),
@@ -202,8 +202,8 @@ void main() {
             body: CollapsibleSectionCard(
               title: 'With Footer',
               icon: Icons.info,
-              children: [],
               footer: Text('Footer content'),
+              children: [],
             ),
           ),
         ),

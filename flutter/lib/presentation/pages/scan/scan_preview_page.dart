@@ -311,7 +311,7 @@ class _CandidateCardState extends ConsumerState<_CandidateCard> {
                         .setFieldAction(widget.candidateIndex, fieldIndex, action);
                   },
                 );
-              }).toList(),
+              }),
               ],
             ),
         ],

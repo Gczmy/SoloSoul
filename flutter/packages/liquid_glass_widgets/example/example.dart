@@ -41,7 +41,7 @@ class LiquidGlassExampleApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         useMaterial3: true,
-        colorScheme: ColorScheme.dark(
+        colorScheme: const ColorScheme.dark(
           primary: Colors.blue,
           surface: Colors.black,
         ),

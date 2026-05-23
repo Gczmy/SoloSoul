@@ -17,19 +17,19 @@ Map<String, PropertyValue> _placeholderProperties() => {
 UnifiedObjectData _mockProfileData() {
   return UnifiedObjectData(
     objects: [
-      UnifiedObject(
+      const UnifiedObject(
         id: '__page_profile',
         typeId: 'page',
         name: 'Profile',
         iconName: 'person',
         parentId: null,
-        childrenIds: const [
+        childrenIds: [
           '__section_identity',
           '__section_contact',
           '__section_id_card',
           '__section_address',
         ],
-        properties: const {},
+        properties: {},
         createdAt: 0,
         updatedAt: 0,
       ),
@@ -96,10 +96,10 @@ Widget _buildProfilePageWithData(UnifiedObjectData data) {
     overrides: [
       unifiedObjectProvider.overrideWith(() => _TestUnifiedObjectNotifier(data)),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const ProfilePage(),
+      home: ProfilePage(),
     ),
   );
 }

@@ -1,10 +1,7 @@
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fake_async/fake_async.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
-import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -183,7 +180,7 @@ void main() {
     });
 
     test('returns accounts from storage', () async {
-      final accountsJson = '[{"id":"acc1","name":"Test","created_at":"2024-01-01T00:00:00.000Z","last_accessed":"2024-01-01T00:00:00.000Z"}]';
+      const accountsJson = '[{"id":"acc1","name":"Test","created_at":"2024-01-01T00:00:00.000Z","last_accessed":"2024-01-01T00:00:00.000Z"}]';
       secureStorageData['solosoul_accounts'] = accountsJson;
 
       final accounts = await SecureAccountStorage.instance.listAccounts();

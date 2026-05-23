@@ -36,7 +36,7 @@ void main() {
       });
 
       test('checks custom types when not in builtins', () {
-        final customType = const ObjectTypeDefinition(
+        const customType = ObjectTypeDefinition(
           id: 'myCustom',
           name: 'My Custom',
           iconName: 'star',
@@ -49,7 +49,7 @@ void main() {
       });
 
       test('custom takes priority over built-in with same ID', () {
-        final customPage = const ObjectTypeDefinition(
+        const customPage = ObjectTypeDefinition(
           id: 'page',
           name: 'Custom Page',
           iconName: 'star',
@@ -75,7 +75,7 @@ void main() {
       });
 
       test('includes custom types', () {
-        final customType = const ObjectTypeDefinition(
+        const customType = ObjectTypeDefinition(
           id: 'custom1',
           name: 'Custom 1',
           iconName: 'star',

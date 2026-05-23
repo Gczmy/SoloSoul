@@ -39,7 +39,7 @@ void main() {
 
   group('FieldHistory', () {
     test('copyWith no changes', () {
-      final history = FieldHistory(
+      const history = FieldHistory(
         fieldId: 'f1',
         itemId: 'i1',
         entries: [],
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('copyWith changes', () {
-      final history = FieldHistory(
+      const history = FieldHistory(
         fieldId: 'f1',
         itemId: 'i1',
         entries: [],

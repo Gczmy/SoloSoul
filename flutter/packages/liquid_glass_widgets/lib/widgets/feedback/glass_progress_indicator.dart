@@ -400,13 +400,13 @@ class _CircularProgressPainter extends CustomPainter {
     if (value == null) {
       // Indeterminate: rotating arc (90 degrees)
       final startAngle = rotation - math.pi / 2; // Start at top
-      final sweepAngle = math.pi / 2; // 90 degrees (iOS standard)
+      const sweepAngle = math.pi / 2; // 90 degrees (iOS standard)
 
       canvas.drawArc(rect, startAngle, sweepAngle, false, glowPaint);
       canvas.drawArc(rect, startAngle, sweepAngle, false, progressPaint);
     } else {
       // Determinate: progress ring
-      final startAngle = -math.pi / 2; // Start at top
+      const startAngle = -math.pi / 2; // Start at top
       final sweepAngle = 2 * math.pi * value!.clamp(0.0, 1.0);
 
       if (sweepAngle > 0) {

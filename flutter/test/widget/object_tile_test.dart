@@ -5,7 +5,7 @@ import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
 
 void main() {
   group('ObjectTile', () {
-    final testObject = UnifiedObject(
+    const testObject = UnifiedObject(
       id: 'obj-1',
       typeId: 'identity',
       name: 'Passport',
@@ -17,7 +17,7 @@ void main() {
 
     testWidgets('renders name and type label', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(object: testObject),
           ),
@@ -30,7 +30,7 @@ void main() {
 
     testWidgets('shows drag handle by default', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(object: testObject),
           ),
@@ -43,7 +43,7 @@ void main() {
     testWidgets('hides drag handle when showDragHandle is false',
         (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(
               object: testObject,
@@ -58,7 +58,7 @@ void main() {
 
     testWidgets('shows children count badge', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(object: testObject),
           ),
@@ -98,7 +98,7 @@ void main() {
 
     testWidgets('hides edit button when onEdit is null', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(object: testObject),
           ),
@@ -125,7 +125,7 @@ void main() {
 
     testWidgets('hides delete button when onDelete is null', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(object: testObject),
           ),
@@ -192,7 +192,7 @@ void main() {
     testWidgets('renders icon container with primary color tint',
         (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: ObjectTile(object: testObject),
           ),

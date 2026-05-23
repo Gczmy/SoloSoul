@@ -77,8 +77,8 @@ void main() {
 
     testWidgets('renders trailing widget when provided', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: const Scaffold(
+        const MaterialApp(
+          home: Scaffold(
             body: VersionInfoTile(
               icon: Icons.update,
               title: 'Update',

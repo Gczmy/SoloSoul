@@ -43,7 +43,7 @@ class _DeleteAccountButtonState extends State<DeleteAccountButton> {
           child: Text(
             AppLocalizations.of(context).settingsDeleteAccount,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppTheme.errorColor,
               fontSize: 16,
               fontWeight: FontWeight.w600,

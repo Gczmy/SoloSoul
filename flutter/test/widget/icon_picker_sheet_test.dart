@@ -82,7 +82,7 @@ void main() {
 
     testWidgets('selected icon uses primary color', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: IconPickerSheet(currentIcon: 'star'),
           ),

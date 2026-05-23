@@ -15,18 +15,18 @@ Map<String, PropertyValue> _placeholderProperties() => {
 UnifiedObjectData _mockTravelData() {
   return UnifiedObjectData(
     objects: [
-      UnifiedObject(
+      const UnifiedObject(
         id: '__page_travel',
         typeId: 'page',
         name: 'Travel',
         iconName: 'flight',
         parentId: null,
-        childrenIds: const [
+        childrenIds: [
           '__section_passport',
           '__section_visa',
           '__section_travel_history',
         ],
-        properties: const {},
+        properties: {},
         createdAt: 0,
         updatedAt: 0,
       ),
@@ -82,10 +82,10 @@ Widget _buildTravelPageWithData(UnifiedObjectData data) {
     overrides: [
       unifiedObjectProvider.overrideWith(() => _TestUnifiedObjectNotifier(data)),
     ],
-    child: MaterialApp(
+    child: const MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const TravelPage(),
+      home: TravelPage(),
     ),
   );
 }

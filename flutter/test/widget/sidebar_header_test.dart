@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
-import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/sidebar/sidebar_header.dart';
 
 void main() {

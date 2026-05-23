@@ -125,7 +125,7 @@ void main() {
     test('getHistory returns null for missing field', () {
       notifier.state = FormHistories(histories: {
         'item1': {
-          'field1': FieldHistory(
+          'field1': const FieldHistory(
             fieldId: 'field1',
             itemId: 'item1',
             entries: [],
@@ -139,7 +139,7 @@ void main() {
     test('clear resets state', () {
       notifier.state = FormHistories(histories: {
         'item1': {
-          'field1': FieldHistory(
+          'field1': const FieldHistory(
             fieldId: 'field1',
             itemId: 'item1',
             entries: [],

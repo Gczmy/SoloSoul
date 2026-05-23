@@ -24,8 +24,8 @@ void main() {
 
     testWidgets('shows chevron when onTap is provided', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: const Scaffold(
+        const MaterialApp(
+          home: Scaffold(
             body: SettingsTile(
               icon: Icons.settings,
               title: 'Settings',
@@ -57,8 +57,8 @@ void main() {
 
     testWidgets('shows trailing widget instead of chevron', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: const Scaffold(
+        const MaterialApp(
+          home: Scaffold(
             body: SettingsTile(
               icon: Icons.notifications,
               title: 'Notifications',

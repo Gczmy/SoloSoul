@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_helpers.dart';
 

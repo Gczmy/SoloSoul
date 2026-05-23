@@ -114,7 +114,7 @@ class OcrScannerLlmSection extends StatelessWidget {
 
   Widget _buildModelSelector(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: selectedModelId,
+      initialValue: selectedModelId,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context).ocrModelSelectorLabel,

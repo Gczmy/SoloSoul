@@ -149,7 +149,7 @@ class AllAccountsSheet extends StatelessWidget {
                                         ),
                                         child: Text(
                                           l10n.settingsActive,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: AppTheme.successColor,
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,

@@ -7,7 +7,7 @@ import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dar
 void main() {
   group('SearchResultItem', () {
     test('creates with required fields', () {
-      final item = SearchResultItem(
+      const item = SearchResultItem(
         fieldPath: 'identity.name',
         fieldName: 'name',
         section: 'identity',
@@ -25,7 +25,7 @@ void main() {
     });
 
     test('creates with isDeleted true', () {
-      final item = SearchResultItem(
+      const item = SearchResultItem(
         fieldPath: 'test',
         fieldName: 'test',
         section: 'test',
@@ -96,7 +96,7 @@ void main() {
       test('copies with results', () {
         const state = SearchState();
         final results = [
-          SearchResultItem(
+          const SearchResultItem(
             fieldPath: 'a',
             fieldName: 'b',
             section: 'c',

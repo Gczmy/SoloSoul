@@ -337,7 +337,7 @@ class _GlassToastState extends State<GlassToast> {
                   vertical: 6,
                 ),
                 onPressed: widget.action!.onPressed,
-                minimumSize: Size(32, 32),
+                minimumSize: const Size(32, 32),
                 child: Text(
                   widget.action!.label,
                   style: TextStyle(

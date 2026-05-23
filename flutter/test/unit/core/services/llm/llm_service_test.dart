@@ -212,7 +212,7 @@ void main() {
       expect(service.endpoint, 'https://api.example.com/v1/');
     });
 
-    String _anthropicSuccessResponse() {
+    String anthropicSuccessResponse() {
       return jsonEncode({
         'content': [
           {'type': 'text', 'text': 'Anthropic reply'}
@@ -229,7 +229,7 @@ void main() {
     test('uses x-api-key header for Anthropic provider', () async {
       final client = createMockClient(
         statusCode: 200,
-        responseBody: _anthropicSuccessResponse(),
+        responseBody: anthropicSuccessResponse(),
       );
       final service = LlmCloudService(
         apiKey: 'sk-ant-test',
@@ -246,7 +246,7 @@ void main() {
     test('builds Anthropic request body with system prompt extracted', () async {
       final client = createMockClient(
         statusCode: 200,
-        responseBody: _anthropicSuccessResponse(),
+        responseBody: anthropicSuccessResponse(),
       );
       final service = LlmCloudService(
         apiKey: 'key',

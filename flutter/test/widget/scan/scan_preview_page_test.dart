@@ -11,9 +11,9 @@ void main() {
   group('ScanPreviewPage', () {
     testWidgets('renders empty state when no candidates', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        const ProviderScope(
           child: MaterialApp(
-            home: const ScanPreviewPage(),
+            home: ScanPreviewPage(),
           ),
         ),
       );
@@ -29,7 +29,7 @@ void main() {
 
       // Set up state via notifier
       final notifier = container.read(localSearchProvider.notifier);
-      final scanResult = ScanResult(
+      const scanResult = ScanResult(
         meta: ScanMeta(
           scanId: 'test-scan',
           createdAt: 0,
@@ -77,8 +77,8 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const ScanPreviewPage(),
+          child: const MaterialApp(
+            home: ScanPreviewPage(),
           ),
         ),
       );
@@ -95,7 +95,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(localSearchProvider.notifier);
-      final scanResult = ScanResult(
+      const scanResult = ScanResult(
         meta: ScanMeta(
           scanId: 'test-scan',
           createdAt: 0,
@@ -137,8 +137,8 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const ScanPreviewPage(),
+          child: const MaterialApp(
+            home: ScanPreviewPage(),
           ),
         ),
       );
@@ -155,7 +155,7 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(localSearchProvider.notifier);
-      final scanResult = ScanResult(
+      const scanResult = ScanResult(
         meta: ScanMeta(
           scanId: 'test-scan',
           createdAt: 0,
@@ -197,8 +197,8 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: const ScanPreviewPage(),
+          child: const MaterialApp(
+            home: ScanPreviewPage(),
           ),
         ),
       );

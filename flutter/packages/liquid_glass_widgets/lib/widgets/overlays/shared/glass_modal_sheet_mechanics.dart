@@ -109,7 +109,7 @@ class SheetGeometry {
           return target > 1.0 ? target / screenHeight : target;
         }
         // Strictly use the specified inset (default 90.0) for accurate top positioning
-        final topInset = 90.0;
+        const topInset = 90.0;
         return (screenHeight - topInset) / screenHeight;
     }
   }

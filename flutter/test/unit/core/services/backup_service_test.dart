@@ -92,7 +92,7 @@ void main() {
     });
 
     test('_decodeProfileFromString round-trips ProfileData', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         unifiedObjects: null,
         schemaVersion: 4,
       );

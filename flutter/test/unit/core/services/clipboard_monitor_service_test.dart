@@ -82,7 +82,7 @@ void main() {
     test('notifySensitiveCopied with Never setting does not start timer', () async {
       // Initialize SecurityService with clipboardClearDelaySeconds = -1 (Never)
       await SecurityService.instance.setClipboardClearDelay(-1);
-      service.notifySensitiveCopied();
+      await service.notifySensitiveCopied();
       // Since timer is not started, dispose should be safe
       expect(service.dispose, returnsNormally);
       // Reset to default

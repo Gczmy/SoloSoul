@@ -17,7 +17,7 @@ void main() {
       service = ScanImportService(notifier, []);
     });
 
-    ScanResult _makeResult(List<ScanSection> sections) {
+    ScanResult makeResult(List<ScanSection> sections) {
       return ScanResult(
         meta: ScanMeta(
           scanId: 's1',
@@ -30,8 +30,8 @@ void main() {
     }
 
     test('maps identity section to profile_identity candidate', () {
-      final result = _makeResult([
-        ScanSection(
+      final result = makeResult([
+        const ScanSection(
           section: 'identity',
           display: 'Identity',
           fields: [
@@ -51,8 +51,8 @@ void main() {
     });
 
     test('skips unknown sections', () {
-      final result = _makeResult([
-        ScanSection(
+      final result = makeResult([
+        const ScanSection(
           section: 'unknown',
           display: 'Unknown',
           fields: [ScanField(key: 'x', value: 'y', sensitivity: SensitivityLevel.public)],
@@ -63,8 +63,8 @@ void main() {
     });
 
     test('maps passport section to travel_passport', () {
-      final result = _makeResult([
-        ScanSection(
+      final result = makeResult([
+        const ScanSection(
           section: 'passport',
           display: 'Passport',
           fields: [
@@ -78,14 +78,14 @@ void main() {
     });
 
     test('links candidate to existing object of same type', () {
-      final existing = UnifiedObject(
+      const existing = UnifiedObject(
         id: 'existing-1',
         typeId: 'profile_identity',
         name: 'Identity',
         iconName: 'person',
         parentId: 'section-1',
-        childrenIds: const [],
-        properties: const {},
+        childrenIds: [],
+        properties: {},
         isDeleted: false,
         deletedAt: null,
         createdAt: 0,
@@ -95,8 +95,8 @@ void main() {
       final notifier = container.read(unifiedObjectProvider.notifier);
       service = ScanImportService(notifier, [existing]);
 
-      final result = _makeResult([
-        ScanSection(
+      final result = makeResult([
+        const ScanSection(
           section: 'identity',
           display: 'Identity',
           fields: [ScanField(key: 'fullName', value: 'Zhang San', sensitivity: SensitivityLevel.public)],
@@ -116,7 +116,7 @@ void main() {
       service = ScanImportService(notifier, []);
     });
 
-    ScanResult _makeResult() {
+    ScanResult makeResult() {
       return ScanResult(
         meta: ScanMeta(
           scanId: 's1',
@@ -125,7 +125,7 @@ void main() {
           confidence: 0.9,
         ),
         sections: [
-          ScanSection(
+          const ScanSection(
             section: 'identity',
             display: 'Identity',
             fields: [
@@ -138,8 +138,8 @@ void main() {
     }
 
     test('uses rule mapping when no LLM suggestion', () {
-      final result = _makeResult();
-      final llmResult = const LlmFieldMappingResult(mappings: [], unmapped: []);
+      final result = makeResult();
+      const llmResult = LlmFieldMappingResult(mappings: [], unmapped: []);
       final candidates = service.mapScanResultWithLlm(result, llmResult);
 
       final field = candidates.first.fields.firstWhere((f) => f.source.key == 'fullName');
@@ -149,10 +149,10 @@ void main() {
     });
 
     test('overrides with LLM high-confidence suggestion', () {
-      final result = _makeResult();
-      final llmResult = LlmFieldMappingResult(
+      final result = makeResult();
+      const llmResult = LlmFieldMappingResult(
         mappings: [
-          const LlmFieldSuggestion(
+          LlmFieldSuggestion(
             sourceField: 'nickname',
             targetPropertyId: 'givenName',
             confidence: 0.9,
@@ -171,10 +171,10 @@ void main() {
     });
 
     test('marks both when LLM agrees with rule', () {
-      final result = _makeResult();
-      final llmResult = LlmFieldMappingResult(
+      final result = makeResult();
+      const llmResult = LlmFieldMappingResult(
         mappings: [
-          const LlmFieldSuggestion(
+          LlmFieldSuggestion(
             sourceField: 'fullName',
             targetPropertyId: 'fullName',
             confidence: 0.95,
@@ -192,10 +192,10 @@ void main() {
     });
 
     test('ignores low-confidence LLM suggestion', () {
-      final result = _makeResult();
-      final llmResult = LlmFieldMappingResult(
+      final result = makeResult();
+      const llmResult = LlmFieldMappingResult(
         mappings: [
-          const LlmFieldSuggestion(
+          LlmFieldSuggestion(
             sourceField: 'nickname',
             targetPropertyId: 'familyName',
             confidence: 0.5,
@@ -214,10 +214,10 @@ void main() {
     });
 
     test('matches LLM suggestion by value for short values', () {
-      final result = _makeResult();
-      final llmResult = LlmFieldMappingResult(
+      final result = makeResult();
+      const llmResult = LlmFieldMappingResult(
         mappings: [
-          const LlmFieldSuggestion(
+          LlmFieldSuggestion(
             sourceField: 'Zhang San',
             targetPropertyId: 'fullName',
             confidence: 0.85,
@@ -234,10 +234,10 @@ void main() {
     });
 
     test('matches LLM suggestion by case-insensitive key', () {
-      final result = _makeResult();
-      final llmResult = LlmFieldMappingResult(
+      final result = makeResult();
+      const llmResult = LlmFieldMappingResult(
         mappings: [
-          const LlmFieldSuggestion(
+          LlmFieldSuggestion(
             sourceField: 'FULLNAME',
             targetPropertyId: 'fullName',
             confidence: 0.85,
@@ -257,7 +257,7 @@ void main() {
   group('ScanImportService.detectConflicts', () {
     late ScanImportService service;
 
-    UnifiedObject _makeObject({
+    UnifiedObject makeObject({
       required String id,
       required String typeId,
       Map<String, PropertyValue> properties = const {},
@@ -285,7 +285,7 @@ void main() {
     });
 
     test('detects conflict when existing value differs for non-identity field', () {
-      final existing = _makeObject(
+      final existing = makeObject(
         id: 'obj-1',
         typeId: 'profile_identity',
         properties: {
@@ -298,7 +298,7 @@ void main() {
 
       final candidates = [
         ImportCandidate(
-          source: ScanSection(
+          source: const ScanSection(
             section: 'identity',
             display: 'Identity',
             fields: [
@@ -309,12 +309,12 @@ void main() {
           existingObjectId: 'obj-1',
           fields: [
             ImportFieldCandidate(
-              source: ScanField(key: 'fullName', value: 'Zhang San', sensitivity: SensitivityLevel.public),
+              source: const ScanField(key: 'fullName', value: 'Zhang San', sensitivity: SensitivityLevel.public),
               targetPropertyId: 'fullName',
               suggestedAction: ImportAction.createNew,
             ),
             ImportFieldCandidate(
-              source: ScanField(key: 'dateOfBirth', value: '1995-05-05', sensitivity: SensitivityLevel.internal),
+              source: const ScanField(key: 'dateOfBirth', value: '1995-05-05', sensitivity: SensitivityLevel.internal),
               targetPropertyId: 'dateOfBirth',
               suggestedAction: ImportAction.createNew,
             ),
@@ -330,7 +330,7 @@ void main() {
     });
 
     test('marks skip when values are identical', () {
-      final existing = _makeObject(
+      final existing = makeObject(
         id: 'obj-1',
         typeId: 'profile_identity',
         properties: {
@@ -343,7 +343,7 @@ void main() {
 
       final candidates = [
         ImportCandidate(
-          source: ScanSection(
+          source: const ScanSection(
             section: 'identity',
             display: 'Identity',
             fields: [
@@ -353,7 +353,7 @@ void main() {
           existingObjectId: 'obj-1',
           fields: [
             ImportFieldCandidate(
-              source: ScanField(key: 'dateOfBirth', value: '1990-01-01', sensitivity: SensitivityLevel.internal),
+              source: const ScanField(key: 'dateOfBirth', value: '1990-01-01', sensitivity: SensitivityLevel.internal),
               targetPropertyId: 'dateOfBirth',
               suggestedAction: ImportAction.createNew,
             ),
@@ -367,7 +367,7 @@ void main() {
     });
 
     test('clears existingObjectId when entity identity differs', () {
-      final existing = _makeObject(
+      final existing = makeObject(
         id: 'obj-1',
         typeId: 'financial_bank_account',
         properties: {
@@ -379,7 +379,7 @@ void main() {
       service = ScanImportService(notifier, [existing]);
 
       final candidate = ImportCandidate(
-        source: ScanSection(
+        source: const ScanSection(
           section: 'bankAccount',
           display: 'Bank Account',
           fields: [
@@ -389,7 +389,7 @@ void main() {
         existingObjectId: 'obj-1',
         fields: [
           ImportFieldCandidate(
-            source: ScanField(key: 'bankName', value: 'Bank B', sensitivity: SensitivityLevel.internal),
+            source: const ScanField(key: 'bankName', value: 'Bank B', sensitivity: SensitivityLevel.internal),
             targetPropertyId: 'bankName',
             suggestedAction: ImportAction.createNew,
           ),
@@ -401,7 +401,7 @@ void main() {
     });
 
     test('keeps existingObjectId when no identity property conflicts', () {
-      final existing = _makeObject(
+      final existing = makeObject(
         id: 'obj-1',
         typeId: 'profile_identity',
         properties: {
@@ -413,7 +413,7 @@ void main() {
       service = ScanImportService(notifier, [existing]);
 
       final candidate = ImportCandidate(
-        source: ScanSection(
+        source: const ScanSection(
           section: 'identity',
           display: 'Identity',
           fields: [
@@ -423,7 +423,7 @@ void main() {
         existingObjectId: 'obj-1',
         fields: [
           ImportFieldCandidate(
-            source: ScanField(key: 'dateOfBirth', value: '1990-01-01', sensitivity: SensitivityLevel.internal),
+            source: const ScanField(key: 'dateOfBirth', value: '1990-01-01', sensitivity: SensitivityLevel.internal),
             targetPropertyId: 'dateOfBirth',
             suggestedAction: ImportAction.createNew,
           ),
@@ -440,7 +440,7 @@ void main() {
       service = ScanImportService(notifier, []);
 
       final candidate = ImportCandidate(
-        source: ScanSection(
+        source: const ScanSection(
           section: 'identity',
           display: 'Identity',
           fields: [],

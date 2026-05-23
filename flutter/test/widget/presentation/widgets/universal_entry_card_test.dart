@@ -50,8 +50,8 @@ void main() {
 
     testWidgets('renders action buttons in top-right', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: const Scaffold(
+        const MaterialApp(
+          home: Scaffold(
             body: UniversalEntryCard(
               title: Text('Title'),
               actions: [

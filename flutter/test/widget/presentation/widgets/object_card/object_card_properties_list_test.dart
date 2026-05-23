@@ -7,21 +7,21 @@ import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_pr
 
 void main() {
   group('ObjectCardPropertiesList', () {
-    final object = UnifiedObject(
+    const object = UnifiedObject(
       id: 'o1',
       typeId: 'item',
       name: 'Test',
       iconName: 'folder',
       parentId: null,
-      childrenIds: const [],
-      properties: const {},
+      childrenIds: [],
+      properties: {},
       isDeleted: false,
       deletedAt: null,
       createdAt: 0,
       updatedAt: 0,
     );
 
-    PropertyValue _prop(dynamic value, SensitivityLevel sensitivity) {
+    PropertyValue prop(dynamic value, SensitivityLevel sensitivity) {
       return TextProperty(text: value.toString(), sensitivity: sensitivity);
     }
 
@@ -32,9 +32,9 @@ void main() {
             home: Scaffold(
               body: ObjectCardPropertiesList(
                 item: object.copyWith(properties: {
-                  'Title': _prop('My Title', SensitivityLevel.public),
-                  'Description': _prop('Details', SensitivityLevel.public),
-                  'Amount': _prop('100', SensitivityLevel.public),
+                  'Title': prop('My Title', SensitivityLevel.public),
+                  'Description': prop('Details', SensitivityLevel.public),
+                  'Amount': prop('100', SensitivityLevel.public),
                 }),
               ),
             ),
@@ -54,7 +54,7 @@ void main() {
             home: Scaffold(
               body: ObjectCardPropertiesList(
                 item: object.copyWith(properties: {
-                  'EmptyField': _prop('', SensitivityLevel.public),
+                  'EmptyField': prop('', SensitivityLevel.public),
                 }),
               ),
             ),
@@ -73,10 +73,10 @@ void main() {
               body: SingleChildScrollView(
                 child: ObjectCardPropertiesList(
                   item: object.copyWith(properties: {
-                    'Public': _prop('x', SensitivityLevel.public),
-                    'Internal': _prop('x', SensitivityLevel.internal),
-                    'Sensitive': _prop('x', SensitivityLevel.sensitive),
-                    'Critical': _prop('x', SensitivityLevel.critical),
+                    'Public': prop('x', SensitivityLevel.public),
+                    'Internal': prop('x', SensitivityLevel.internal),
+                    'Sensitive': prop('x', SensitivityLevel.sensitive),
+                    'Critical': prop('x', SensitivityLevel.critical),
                   }),
                 ),
               ),
@@ -99,8 +99,8 @@ void main() {
             home: Scaffold(
               body: ObjectCardPropertiesList(
                 item: object.copyWith(properties: {
-                  'Name': _prop('My Name', SensitivityLevel.public),
-                  'Other': _prop('Other Value', SensitivityLevel.public),
+                  'Name': prop('My Name', SensitivityLevel.public),
+                  'Other': prop('Other Value', SensitivityLevel.public),
                 }),
                 titlePropertyKey: 'Name',
               ),
@@ -120,7 +120,7 @@ void main() {
             home: Scaffold(
               body: ObjectCardPropertiesList(
                 item: object.copyWith(properties: {
-                  'ShortName': _prop('val', SensitivityLevel.public),
+                  'ShortName': prop('val', SensitivityLevel.public),
                 }),
               ),
             ),
@@ -139,7 +139,7 @@ void main() {
             home: Scaffold(
               body: ObjectCardPropertiesList(
                 item: object.copyWith(properties: {
-                  'Normal': _prop('Plaintext', SensitivityLevel.public),
+                  'Normal': prop('Plaintext', SensitivityLevel.public),
                 }),
               ),
             ),

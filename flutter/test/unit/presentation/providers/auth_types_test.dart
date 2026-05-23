@@ -32,7 +32,7 @@ void main() {
 
   group('AccountInfo', () {
     test('creates with required fields only', () {
-      final info = AccountInfo(id: 'acc-1', name: 'Test User');
+      const info = AccountInfo(id: 'acc-1', name: 'Test User');
       expect(info.id, 'acc-1');
       expect(info.name, 'Test User');
       expect(info.passwordHint, isNull);
@@ -64,7 +64,7 @@ void main() {
 
     group('JSON serialization', () {
       test('toJson produces correct map', () {
-        final info = AccountInfo(
+        const info = AccountInfo(
           id: 'acc-1',
           name: 'Test',
           passwordHint: 'my hint',
@@ -117,14 +117,14 @@ void main() {
 
     group('copyWith', () {
       test('copies with no changes', () {
-        final original = AccountInfo(id: 'acc-1', name: 'Test');
+        const original = AccountInfo(id: 'acc-1', name: 'Test');
         final copy = original.copyWith();
         expect(copy.id, 'acc-1');
         expect(copy.name, 'Test');
       });
 
       test('copies with changes', () {
-        final original = AccountInfo(id: 'acc-1', name: 'Test');
+        const original = AccountInfo(id: 'acc-1', name: 'Test');
         final copy = original.copyWith(name: 'Updated');
         expect(copy.id, 'acc-1');
         expect(copy.name, 'Updated');

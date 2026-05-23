@@ -251,9 +251,9 @@ class LiquidGlassWidgets {
 
       // Instantiating the layer triggers Impeller pipeline compilation.
       // We don't need to render it.
-      final _ = LiquidGlassLayer(
+      const _ = LiquidGlassLayer(
         settings: warmUpSettings,
-        child: const SizedBox.shrink(),
+        child: SizedBox.shrink(),
       );
 
       // Brief delay to allow pipeline compilation to complete.

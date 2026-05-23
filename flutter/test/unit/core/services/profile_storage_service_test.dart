@@ -1,13 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solosoul_flutter/core/models/profile_data.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 
 void main() {
   group('ProfileStorageService.migrateIfNeeded', () {
     test('returns same profile when schema is current', () {
-      final profile = ProfileData(
-        unifiedObjects: const UnifiedObjectData(objects: [], customTypes: []),
+      const profile = ProfileData(
+        unifiedObjects: UnifiedObjectData(objects: [], customTypes: []),
         schemaVersion: ProfileStorageService.kSchemaVersion,
       );
       final result = ProfileStorageService.migrateIfNeeded(profile, {});
@@ -15,8 +14,8 @@ void main() {
     });
 
     test('bumps schema version when older', () {
-      final profile = ProfileData(
-        unifiedObjects: const UnifiedObjectData(objects: [], customTypes: []),
+      const profile = ProfileData(
+        unifiedObjects: UnifiedObjectData(objects: [], customTypes: []),
         schemaVersion: 2,
       );
       final result = ProfileStorageService.migrateIfNeeded(profile, {});
@@ -24,8 +23,8 @@ void main() {
     });
 
     test('bumps schema version when null', () {
-      final profile = ProfileData(
-        unifiedObjects: const UnifiedObjectData(objects: [], customTypes: []),
+      const profile = ProfileData(
+        unifiedObjects: UnifiedObjectData(objects: [], customTypes: []),
         schemaVersion: null,
       );
       final result = ProfileStorageService.migrateIfNeeded(profile, {});
@@ -35,8 +34,8 @@ void main() {
 
   group('ProfileStorageService.validateAndRepairProfile', () {
     test('returns original when no objects', () {
-      final profile = ProfileData(
-        unifiedObjects: const UnifiedObjectData(objects: [], customTypes: []),
+      const profile = ProfileData(
+        unifiedObjects: UnifiedObjectData(objects: [], customTypes: []),
         schemaVersion: 4,
       );
       final (result, wasRepaired) = ProfileStorageService.validateAndRepairProfile(profile);
@@ -45,7 +44,7 @@ void main() {
     });
 
     test('returns original when data is valid', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         unifiedObjects: UnifiedObjectData(
           objects: [
             UnifiedObject(
@@ -54,7 +53,7 @@ void main() {
               id: 'parent1',
               name: 'Parent',
               typeId: 'page',
-              childrenIds: const ['child1'],
+              childrenIds: ['child1'],
             ),
             UnifiedObject(
               createdAt: 1,
@@ -63,7 +62,7 @@ void main() {
               name: 'Child',
               typeId: 'item',
               parentId: 'parent1',
-              childrenIds: const [],
+              childrenIds: [],
             ),
           ],
           customTypes: [],
@@ -76,7 +75,7 @@ void main() {
     });
 
     test('removes duplicate objects keeping first occurrence', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         unifiedObjects: UnifiedObjectData(
           objects: [
             UnifiedObject(
@@ -100,7 +99,7 @@ void main() {
     });
 
     test('removes invalid childrenIds references', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         unifiedObjects: UnifiedObjectData(
           objects: [
             UnifiedObject(
@@ -109,7 +108,7 @@ void main() {
               id: 'parent1',
               name: 'Parent',
               typeId: 'page',
-              childrenIds: const ['child1', 'nonexistent'],
+              childrenIds: ['child1', 'nonexistent'],
             ),
             UnifiedObject(
               createdAt: 1,
@@ -118,7 +117,7 @@ void main() {
               name: 'Child',
               typeId: 'item',
               parentId: 'parent1',
-              childrenIds: const [],
+              childrenIds: [],
             ),
           ],
           customTypes: [],
@@ -132,7 +131,7 @@ void main() {
     });
 
     test('nulls out parentId when parent no longer exists', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         unifiedObjects: UnifiedObjectData(
           objects: [
             UnifiedObject(
@@ -142,7 +141,7 @@ void main() {
               name: 'Orphan',
               typeId: 'item',
               parentId: 'deleted_parent',
-              childrenIds: const [],
+              childrenIds: [],
             ),
           ],
           customTypes: [],
@@ -156,7 +155,7 @@ void main() {
     });
 
     test('repairs all issues in combined profile', () {
-      final profile = ProfileData(
+      const profile = ProfileData(
         unifiedObjects: UnifiedObjectData(
           objects: [
             UnifiedObject(
@@ -165,7 +164,7 @@ void main() {
               id: 'parent1',
               name: 'Parent',
               typeId: 'page',
-              childrenIds: const ['child1', 'missing_child'],
+              childrenIds: ['child1', 'missing_child'],
             ),
             UnifiedObject(
               createdAt: 1,
@@ -174,7 +173,7 @@ void main() {
               name: 'Child',
               typeId: 'item',
               parentId: 'parent1',
-              childrenIds: const [],
+              childrenIds: [],
             ),
             UnifiedObject(
               createdAt: 1,
@@ -183,7 +182,7 @@ void main() {
               name: 'Duplicate Child',
               typeId: 'item',
               parentId: 'parent1',
-              childrenIds: const [],
+              childrenIds: [],
             ),
             UnifiedObject(
               createdAt: 1,
@@ -192,7 +191,7 @@ void main() {
               name: 'Orphan',
               typeId: 'item',
               parentId: 'missing_parent',
-              childrenIds: const ['missing_child2'],
+              childrenIds: ['missing_child2'],
             ),
           ],
           customTypes: [],

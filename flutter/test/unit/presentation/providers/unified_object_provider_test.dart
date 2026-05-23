@@ -44,7 +44,7 @@ void main() {
 
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    UnifiedObject _makeObject({
+    UnifiedObject makeObject({
       required String id,
       required String name,
       String? typeId,
@@ -70,14 +70,14 @@ void main() {
     test('returns data unchanged when no orphans', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(id: 'page1', name: 'Page', typeId: 'page'),
-          _makeObject(
+          makeObject(id: 'page1', name: 'Page', typeId: 'page'),
+          makeObject(
             id: 'sec1',
             name: 'Section',
             typeId: 'collection',
             parentId: 'page1',
           ),
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'Item',
             typeId: 'item',
@@ -95,7 +95,7 @@ void main() {
     test('repairs orphan item with missing parent by clearing parentId', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'Passport',
             typeId: 'travel_passport',
@@ -115,7 +115,7 @@ void main() {
     test('does not create missing page for orphan repair', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'Credit Card',
             typeId: 'financial_card',
@@ -134,7 +134,7 @@ void main() {
     test('does not create missing section for orphan repair', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'ID Card',
             typeId: 'profile_id_card',
@@ -153,8 +153,8 @@ void main() {
     test('does not modify items with valid parents', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(id: 'page1', name: 'Page', typeId: 'page'),
-          _makeObject(
+          makeObject(id: 'page1', name: 'Page', typeId: 'page'),
+          makeObject(
             id: 'item1',
             name: 'Item',
             typeId: 'item',
@@ -172,13 +172,13 @@ void main() {
     test('skips page and collection objects in orphan detection', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'page1',
             name: 'Orphan Page',
             typeId: 'page',
             parentId: 'missing',
           ),
-          _makeObject(
+          makeObject(
             id: 'sec1',
             name: 'Orphan Section',
             typeId: 'collection',
@@ -196,7 +196,7 @@ void main() {
     test('skips items with null typeId', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'Unknown',
             typeId: null,
@@ -213,7 +213,7 @@ void main() {
     test('clears parentId when target section is missing', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'Passport',
             typeId: 'travel_passport',
@@ -232,13 +232,13 @@ void main() {
     test('handles multiple orphans of same type by clearing parentIds', () {
       final data = UnifiedObjectData(
         objects: [
-          _makeObject(
+          makeObject(
             id: 'item1',
             name: 'Passport A',
             typeId: 'travel_passport',
             parentId: 'missing',
           ),
-          _makeObject(
+          makeObject(
             id: 'item2',
             name: 'Passport B',
             typeId: 'travel_passport',
@@ -261,24 +261,24 @@ void main() {
     test('rootObjectsProvider filters root and non-deleted', () {
       final container = ProviderContainer();
       final objects = [
-        UnifiedObject(
+        const UnifiedObject(
           id: 'p1', typeId: 'page', name: 'Page1',
           iconName: 'article', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'c1', typeId: 'collection', name: 'Sec1',
           iconName: 'folder', parentId: 'p1',
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'd1', typeId: 'page', name: 'Deleted',
           iconName: 'article', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: true, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
@@ -295,17 +295,17 @@ void main() {
     test('deletedObjectsProvider returns only deleted', () {
       final container = ProviderContainer();
       final objects = [
-        UnifiedObject(
+        const UnifiedObject(
           id: 'a1', typeId: 'item', name: 'Active',
           iconName: 'folder', parentId: 'p1',
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'd1', typeId: 'item', name: 'Deleted',
           iconName: 'folder', parentId: 'p1',
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: true, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
@@ -322,17 +322,17 @@ void main() {
     test('objectByIdProvider returns correct object', () {
       final container = ProviderContainer();
       final objects = [
-        UnifiedObject(
+        const UnifiedObject(
           id: 'o1', typeId: 'item', name: 'One',
           iconName: 'folder', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'o2', typeId: 'item', name: 'Two',
           iconName: 'folder', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
@@ -349,24 +349,24 @@ void main() {
     test('objectsByTypeProvider filters by type', () {
       final container = ProviderContainer();
       final objects = [
-        UnifiedObject(
+        const UnifiedObject(
           id: 'o1', typeId: 'passport', name: 'P1',
           iconName: 'folder', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'o2', typeId: 'credit_card', name: 'C1',
           iconName: 'folder', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'o3', typeId: 'passport', name: 'P2',
           iconName: 'folder', parentId: null,
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: true, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
@@ -383,25 +383,25 @@ void main() {
     test('unifiedObjectCacheProvider builds indexes', () {
       final container = ProviderContainer();
       final objects = [
-        UnifiedObject(
+        const UnifiedObject(
           id: 'p1', typeId: 'page', name: 'Page',
           iconName: 'article', parentId: null,
-          childrenIds: const ['c1', 'i1'],
-          properties: const {},
+          childrenIds: ['c1', 'i1'],
+          properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'c1', typeId: 'collection', name: 'Sec',
           iconName: 'folder', parentId: 'p1',
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),
-        UnifiedObject(
+        const UnifiedObject(
           id: 'i1', typeId: 'item', name: 'Item',
           iconName: 'folder', parentId: 'p1',
-          childrenIds: const [], properties: const {},
+          childrenIds: [], properties: {},
           isDeleted: false, deletedAt: null,
           createdAt: 0, updatedAt: 0,
         ),

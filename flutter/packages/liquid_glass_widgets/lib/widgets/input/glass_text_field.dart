@@ -355,8 +355,8 @@ class _GlassTextFieldState extends State<GlassTextField> {
   @override
   Widget build(BuildContext context) {
     // Use static constants for default styles
-    final defaultTextStyle = _defaultTextStyle;
-    final defaultPlaceholderStyle = _defaultPlaceholderStyle;
+    const defaultTextStyle = _defaultTextStyle;
+    const defaultPlaceholderStyle = _defaultPlaceholderStyle;
 
     // Build text field content
     final textFieldContent = Padding(
