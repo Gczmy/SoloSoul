@@ -74,28 +74,33 @@ class _SectionTemplatePageState extends ConsumerState<SectionTemplatePage> {
                       if (templates.isEmpty)
                         _buildEmptyState(theme)
                       else
-                        ...templates.map((template) => _TemplateCard(
-                              template: template,
-                              isExpanded: _expandedTemplates.contains(template.id),
-                              isSelected: _selectedTemplateId == template.id,
-                              onToggleExpand: () {
-                                setState(() {
-                                  if (_expandedTemplates.contains(template.id)) {
-                                    _expandedTemplates.remove(template.id);
-                                  } else {
-                                    _expandedTemplates.add(template.id);
-                                  }
-                                });
-                              },
-                              onSelect: () {
-                                setState(() {
-                                  _selectedTemplateId =
-                                      _selectedTemplateId == template.id
-                                          ? null
-                                          : template.id;
-                                });
-                              },
-                            )),
+                        RadioGroup<String>(
+                          groupValue: _selectedTemplateId,
+                          onChanged: (String? value) {
+                            setState(() {
+                              _selectedTemplateId = value;
+                            });
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ...templates.map((template) => _TemplateCard(
+                                    template: template,
+                                    isExpanded: _expandedTemplates.contains(template.id),
+                                    isSelected: _selectedTemplateId == template.id,
+                                    onToggleExpand: () {
+                                      setState(() {
+                                        if (_expandedTemplates.contains(template.id)) {
+                                          _expandedTemplates.remove(template.id);
+                                        } else {
+                                          _expandedTemplates.add(template.id);
+                                        }
+                                      });
+                                    },
+                                  )),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -264,14 +269,12 @@ class _TemplateCard extends ConsumerWidget {
     required this.isExpanded,
     required this.isSelected,
     required this.onToggleExpand,
-    required this.onSelect,
   });
 
   final SectionTemplate template;
   final bool isExpanded;
   final bool isSelected;
   final VoidCallback onToggleExpand;
-  final VoidCallback onSelect;
 
   String _getTemplateName(SectionTemplate t, AppLocalizations l) {
     switch (t.nameKey) {
@@ -464,8 +467,6 @@ class _TemplateCard extends ConsumerWidget {
                   // Radio button for selection
                   Radio<String>(
                     value: template.id,
-                    groupValue: isSelected ? template.id : null,
-                    onChanged: (_) => onSelect(),
                     activeColor: theme.colorScheme.primary,
                   ),
                 ],

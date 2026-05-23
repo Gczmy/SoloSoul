@@ -36,18 +36,24 @@ void showOcrScannerSectionPicker(
     context: context,
     builder: (ctx) => SimpleDialog(
       title: Text(l10n.workspaceAddSectionButton),
-      children: ocrScannerSectionOptions.map((opt) {
-        final current = currentTargetSectionId ?? ocrScannerDetectedSectionId(mrz);
-        return RadioListTile<String>(
-          value: opt.$1,
-          groupValue: current,
+      children: [
+        RadioGroup<String>(
+          groupValue: currentTargetSectionId ?? ocrScannerDetectedSectionId(mrz),
           onChanged: (v) {
             onSectionChanged(v);
             Navigator.pop(ctx);
           },
-          title: Text(opt.$2),
-        );
-      }).toList(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: ocrScannerSectionOptions.map((opt) {
+              return RadioListTile<String>(
+                value: opt.$1,
+                title: Text(opt.$2),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     ),
   );
 }
