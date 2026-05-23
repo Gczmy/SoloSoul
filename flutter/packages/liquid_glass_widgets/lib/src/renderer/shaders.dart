@@ -5,16 +5,18 @@ import 'package:meta/meta.dart';
 
 import '_env_web.dart' if (dart.library.io) '_env_io.dart';
 
-const String _shadersRoot =
+// isTestEnvironment is const on web but final on IO, so this must remain final.
+// ignore: prefer_const_declarations
+final String _shadersRoot =
     !kIsWeb && isTestEnvironment ? '' : 'packages/liquid_glass_widgets/';
 
 @internal
 abstract class ShaderKeys {
   const ShaderKeys._();
 
-  static const blendedGeometry =
+  static final blendedGeometry =
       '${_shadersRoot}shaders/liquid_glass_geometry_blended.frag';
 
-  static const liquidGlassRender =
+  static final liquidGlassRender =
       '${_shadersRoot}shaders/liquid_glass_final_render.frag';
 }
