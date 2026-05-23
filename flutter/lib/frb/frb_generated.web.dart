@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
+import 'plugin/manifest.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustLibApiImplPlatform({
@@ -46,6 +47,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LoadedProfile dco_decode_box_autoadd_loaded_profile(dynamic raw);
 
   @protected
+  NetworkPolicy dco_decode_box_autoadd_network_policy(dynamic raw);
+
+  @protected
   ChangePasswordResult dco_decode_change_password_result(dynamic raw);
 
   @protected
@@ -79,6 +83,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
@@ -92,6 +99,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<FrbOcrBlock> dco_decode_list_frb_ocr_block(dynamic raw);
+
+  @protected
+  List<PluginSessionInfo> dco_decode_list_plugin_session_info(dynamic raw);
 
   @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
@@ -113,6 +123,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LoadedProfile dco_decode_loaded_profile(dynamic raw);
 
   @protected
+  NetworkPolicy dco_decode_network_policy(dynamic raw);
+
+  @protected
   OcrEngineStatus dco_decode_ocr_engine_status(dynamic raw);
 
   @protected
@@ -123,6 +136,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   LoadedProfile? dco_decode_opt_box_autoadd_loaded_profile(dynamic raw);
+
+  @protected
+  NetworkPolicy? dco_decode_opt_box_autoadd_network_policy(dynamic raw);
+
+  @protected
+  PluginManifest dco_decode_plugin_manifest(dynamic raw);
+
+  @protected
+  PluginSessionInfo dco_decode_plugin_session_info(dynamic raw);
 
   @protected
   ProfileSummary dco_decode_profile_summary(dynamic raw);
@@ -203,6 +225,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  NetworkPolicy sse_decode_box_autoadd_network_policy(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChangePasswordResult sse_decode_change_password_result(
     SseDeserializer deserializer,
   );
@@ -242,6 +269,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
@@ -259,6 +289,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<FrbOcrBlock> sse_decode_list_frb_ocr_block(SseDeserializer deserializer);
+
+  @protected
+  List<PluginSessionInfo> sse_decode_list_plugin_session_info(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
@@ -282,6 +317,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LoadedProfile sse_decode_loaded_profile(SseDeserializer deserializer);
 
   @protected
+  NetworkPolicy sse_decode_network_policy(SseDeserializer deserializer);
+
+  @protected
   OcrEngineStatus sse_decode_ocr_engine_status(SseDeserializer deserializer);
 
   @protected
@@ -292,6 +330,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   LoadedProfile? sse_decode_opt_box_autoadd_loaded_profile(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NetworkPolicy? sse_decode_opt_box_autoadd_network_policy(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PluginManifest sse_decode_plugin_manifest(SseDeserializer deserializer);
+
+  @protected
+  PluginSessionInfo sse_decode_plugin_session_info(
     SseDeserializer deserializer,
   );
 
@@ -379,6 +430,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_network_policy(
+    NetworkPolicy self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_change_password_result(
     ChangePasswordResult self,
     SseSerializer serializer,
@@ -427,6 +484,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
@@ -450,6 +510,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_frb_ocr_block(
     List<FrbOcrBlock> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_plugin_session_info(
+    List<PluginSessionInfo> self,
     SseSerializer serializer,
   );
 
@@ -478,6 +544,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_loaded_profile(LoadedProfile self, SseSerializer serializer);
 
   @protected
+  void sse_encode_network_policy(NetworkPolicy self, SseSerializer serializer);
+
+  @protected
   void sse_encode_ocr_engine_status(
     OcrEngineStatus self,
     SseSerializer serializer,
@@ -492,6 +561,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_loaded_profile(
     LoadedProfile? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_network_policy(
+    NetworkPolicy? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_plugin_manifest(
+    PluginManifest self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_plugin_session_info(
+    PluginSessionInfo self,
     SseSerializer serializer,
   );
 

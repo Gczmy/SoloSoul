@@ -80,10 +80,16 @@ dependencies:
   # Version info (SSOT: read version from platform build)
   package_info_plus: ^8.0.0
 
-  # HTTP client for LLM cloud APIs
+  # HTTP client for LLM cloud APIs + Plugin registry
   http: ^1.2.0
   file_picker: ^11.0.2
   pdfx: ^2.9.2
+
+  # SHA-256 hashing for plugin wasm verification
+  crypto: ^3.0.0
+
+  # SemVer version parsing for plugin compatibility checks
+  version: ^3.0.0
 
 dev_dependencies:
   flutter_test:

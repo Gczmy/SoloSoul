@@ -1,0 +1,3 @@
+[submodule "SoloSoul_plugin_market"]
+	path = SoloSoul_plugin_market
+	url = git@github.com:Gczmy/SoloSoul_plugin_market.git

@@ -43,6 +43,7 @@ part 'settings_page_sync_section.dart';
 part 'settings_page_llm_section.dart';
 part 'settings_page_app_info_section.dart';
 part 'settings_page_ad_section.dart';
+part 'settings_page_plugin_section.dart';
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
@@ -223,6 +224,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const _SyncSettingsSection(),
             const SizedBox(height: 16),
             const _LLMSettingsSection(),
+            const SizedBox(height: 16),
+            const _PluginSettingsSection(),
             const SizedBox(height: 16),
             const _AppInfoSection(),
             const SizedBox(height: 32),

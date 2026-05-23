@@ -110,7 +110,7 @@ final class TrashTypeFilterProvider
   }
 }
 
-String _$trashTypeFilterHash() => r'44e8e0c4e5ff98b1d53561ce40297ea7c5322d36';
+String _$trashTypeFilterHash() => r'dd599e71d034f8d2d857bcdc790cee744db45c94';
 
 /// Provider for the selected type filters in trash view.
 /// Empty set means show all types.

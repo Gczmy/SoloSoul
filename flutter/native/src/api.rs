@@ -996,3 +996,109 @@ pub fn frb_ocr_status() -> OcrEngineStatus {
 pub fn frb_ocr_release() {
     crate::ocr::unload_models();
 }
+
+// ============================================================================
+// Plugin System
+// ============================================================================
+
+// StreamSink 需要通过 crate::frb_generated 导入，待 FRB 代码生成时处理
+// #[cfg(feature = "sandbox")]
+// use flutter_rust_bridge::StreamSink;
+
+/// Plugin manifest exposed to Dart (re-exported from plugin module)
+#[cfg(feature = "sandbox")]
+pub use crate::plugin::PluginManifest;
+
+/// Plugin event for StreamSink
+// PluginEvent 用于 StreamSink，待 FRB Stream 支持启用后取消注释
+// #[cfg(feature = "sandbox")]
+// pub use crate::plugin::PluginEvent;
+
+/// Plugin session info (bridge-friendly, non-opaque)
+#[cfg(feature = "sandbox")]
+#[frb(dart_metadata = ("freezed"))]
+#[derive(Debug, Clone)]
+pub struct PluginSessionInfo {
+    pub session_id: String,
+    pub plugin_id: String,
+    pub plugin_name: String,
+    pub started_at_secs: i64,
+    pub expires_at_secs: i64,
+}
+
+/// 获取插件安装基础目录（Dart/Rust 路径一致性）
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_get_plugin_base_dir() -> Result<String, String> {
+    crate::plugin::with_manager(|m| Ok(m.get_base_dir()))
+}
+
+/// 安装插件（Rust 侧直接读取文件）
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_install(wasm_path: String, manifest_path: String) -> Result<String, String> {
+    crate::plugin::with_manager(|m| m.install_plugin(wasm_path, manifest_path))
+}
+
+/// 加载插件清单
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_load_manifest(plugin_id: String) -> Result<PluginManifest, String> {
+    crate::plugin::with_manager(|m| m.load_manifest(&plugin_id))
+}
+
+/// 列出已安装插件
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_list_installed() -> Result<Vec<String>, String> {
+    crate::plugin::with_manager(|m| m.list_installed())
+}
+
+/// 列出所有活跃 Session
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_list_active_sessions() -> Result<Vec<PluginSessionInfo>, String> {
+    use crate::plugin::SessionInfo;
+    crate::plugin::with_manager(|m| {
+        Ok(m.list_active_sessions()
+            .into_iter()
+            .map(|s: SessionInfo| PluginSessionInfo {
+                session_id: s.session_id,
+                plugin_id: s.plugin_id,
+                plugin_name: s.plugin_name,
+                started_at_secs: s.started_at_secs,
+                expires_at_secs: s.expires_at_secs,
+            })
+            .collect())
+    })
+}
+
+/// 执行插件（返回事件流）
+/// TODO: StreamSink 类型需要 FRB 代码生成支持，当前为 stub
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_execute(
+    plugin_id: String,
+    session_ttl_seconds: u64,
+) -> Result<i32, String> {
+    // stub: 返回 0 表示成功
+    Ok(0)
+}
+
+/// 响应用户授权（Dart -> Rust）
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_consent_response(
+    request_id: String,
+    approved: bool,
+    value: Option<String>,
+) -> Result<(), String> {
+    crate::plugin::with_manager(|m| m.consent_response(request_id, approved, value))
+}
+
+/// 强制卸载插件
+#[cfg(feature = "sandbox")]
+#[frb]
+pub fn frb_plugin_force_unload(plugin_id: String) -> Result<(), String> {
+    crate::plugin::with_manager(|m| m.force_unload(&plugin_id))
+}

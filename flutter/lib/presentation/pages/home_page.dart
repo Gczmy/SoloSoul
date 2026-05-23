@@ -31,21 +31,7 @@ import 'package:solosoul_flutter/presentation/widgets/home/security_item.dart';
 // HomePage — Dashboard with quick actions + inline page editor (Liquid Glass)
 // =============================================================================
 
-String _localizedLabel(String route, AppLocalizations l10n) {
-  return switch (route) {
-    AppRoutes.profile => l10n.sidebarProfile,
-    AppRoutes.travel => l10n.sidebarTravel,
-    AppRoutes.financial => l10n.sidebarFinancial,
-    AppRoutes.professional => l10n.sidebarProfessional,
-    AppRoutes.trash => l10n.sidebarTrash,
-    AppRoutes.settings => l10n.sidebarSettings,
-    AppRoutes.securitySettings => l10n.sidebarSecurity,
-    AppRoutes.operationLog => l10n.sidebarOperationLog,
-    AppRoutes.sensitivitySettings => l10n.sidebarSensitivity,
-    AppRoutes.search => l10n.sidebarSearch,
-    _ => '',
-  };
-}
+
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -563,7 +549,7 @@ class _ActionSlotWidget extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return QuickActionTile(
       icon: action.icon,
-      label: _localizedLabel(action.route, l10n),
+      label: action.localizedLabel(l10n),
       color: action.color,
       onTap: onTap,
     );
@@ -603,7 +589,7 @@ class _EditingCardWidget extends StatelessWidget {
                   height: 90,
                   child: QuickActionTile(
                     icon: action.icon,
-                    label: _localizedLabel(action.route, AppLocalizations.of(context)),
+                    label: action.localizedLabel(AppLocalizations.of(context)),
                     color: action.color,
                   ),
                 ),
@@ -619,7 +605,7 @@ class _EditingCardWidget extends StatelessWidget {
                 },
                 child: QuickActionTile(
                   icon: action.icon,
-                  label: _localizedLabel(action.route, AppLocalizations.of(context)),
+                  label: action.localizedLabel(AppLocalizations.of(context)),
                   color: action.color,
                 ),
               ),

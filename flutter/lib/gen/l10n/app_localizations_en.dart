@@ -3465,4 +3465,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get operationRevertedSensitivity => 'Reverted sensitivity';
+
+  @override
+  String get pluginManagement => 'Plugin Management';
+
+  @override
+  String get pluginManagementSubtitle =>
+      'Manage installed plugins and browse the marketplace';
+
+  @override
+  String get pluginDashboardTitle => 'Plugin Management';
+
+  @override
+  String get pluginTabAll => 'All';
+
+  @override
+  String get pluginTabInstalled => 'Installed';
+
+  @override
+  String get pluginTabAvailable => 'Available';
+
+  @override
+  String get pluginSearchHint => 'Search plugins...';
+
+  @override
+  String get pluginEmptyStateTitle => 'No plugins available';
+
+  @override
+  String get pluginEmptyStateSubtitle =>
+      'Connect to the internet to browse the plugin marketplace';
+
+  @override
+  String get pluginOfflineBanner => 'Offline mode. Cannot fetch new plugins.';
+
+  @override
+  String get pluginStatusInstalled => 'Installed';
+
+  @override
+  String get pluginStatusNotInstalled => 'Not installed';
+
+  @override
+  String get pluginStatusUpdateAvailable => 'Update available';
+
+  @override
+  String get pluginStatusIncompatible => 'Incompatible';
+
+  @override
+  String get pluginStatusRunning => 'Running';
+
+  @override
+  String get pluginActionInstall => 'Install';
+
+  @override
+  String get pluginActionUpdate => 'Update';
+
+  @override
+  String get pluginActionRun => 'Run';
+
+  @override
+  String get pluginActionStop => 'Stop';
+
+  @override
+  String get pluginActionUninstall => 'Uninstall';
+
+  @override
+  String get pluginConsentDialogTitle => 'Plugin Data Authorization';
+
+  @override
+  String pluginConsentDialogSubtitle(String pluginName) {
+    return 'The plugin \"$pluginName\" requests access to the following data:';
+  }
+
+  @override
+  String get pluginConsentDialogDataLifetime =>
+      'Data is only available during this session and will be automatically destroyed when it expires.';
+
+  @override
+  String get pluginConsentButtonDeny => 'Deny';
+
+  @override
+  String get pluginConsentButtonAuthorize => 'Authorize';
+
+  @override
+  String get pluginSensitivityPublic => 'Public';
+
+  @override
+  String get pluginSensitivityInternal => 'Internal';
+
+  @override
+  String get pluginSensitivitySensitive => 'Sensitive';
+
+  @override
+  String get pluginSensitivityCritical => 'Critical';
+
+  @override
+  String get pluginUninstallConfirmTitle => 'Uninstall Plugin?';
+
+  @override
+  String get pluginUninstallConfirmMessage =>
+      'This will delete the plugin files and revoke all data authorizations. Audit logs will be retained.';
+
+  @override
+  String get pluginInstallSuccess => 'Plugin installed successfully';
+
+  @override
+  String get pluginUninstallSuccess => 'Plugin uninstalled successfully';
+
+  @override
+  String get pluginRunSuccess => 'Plugin executed successfully';
+
+  @override
+  String get pluginErrorNotFound => 'Plugin not found';
+
+  @override
+  String get pluginErrorIncompatible =>
+      'Plugin is incompatible with this app version';
+
+  @override
+  String get pluginErrorSecurity => 'Security verification failed';
+
+  @override
+  String get pluginErrorNetwork =>
+      'Network error. Please check your connection.';
 }

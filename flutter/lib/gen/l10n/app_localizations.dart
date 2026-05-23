@@ -6341,6 +6341,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reverted sensitivity'**
   String get operationRevertedSensitivity;
+
+  /// Settings tile label for plugin management
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Management'**
+  String get pluginManagement;
+
+  /// No description provided for @pluginManagementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage installed plugins and browse the marketplace'**
+  String get pluginManagementSubtitle;
+
+  /// No description provided for @pluginDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Management'**
+  String get pluginDashboardTitle;
+
+  /// No description provided for @pluginTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get pluginTabAll;
+
+  /// No description provided for @pluginTabInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginTabInstalled;
+
+  /// No description provided for @pluginTabAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get pluginTabAvailable;
+
+  /// No description provided for @pluginSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search plugins...'**
+  String get pluginSearchHint;
+
+  /// No description provided for @pluginEmptyStateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No plugins available'**
+  String get pluginEmptyStateTitle;
+
+  /// No description provided for @pluginEmptyStateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the internet to browse the plugin marketplace'**
+  String get pluginEmptyStateSubtitle;
+
+  /// No description provided for @pluginOfflineBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode. Cannot fetch new plugins.'**
+  String get pluginOfflineBanner;
+
+  /// No description provided for @pluginStatusInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginStatusInstalled;
+
+  /// No description provided for @pluginStatusNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not installed'**
+  String get pluginStatusNotInstalled;
+
+  /// No description provided for @pluginStatusUpdateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get pluginStatusUpdateAvailable;
+
+  /// No description provided for @pluginStatusIncompatible.
+  ///
+  /// In en, this message translates to:
+  /// **'Incompatible'**
+  String get pluginStatusIncompatible;
+
+  /// No description provided for @pluginStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get pluginStatusRunning;
+
+  /// No description provided for @pluginActionInstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Install'**
+  String get pluginActionInstall;
+
+  /// No description provided for @pluginActionUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get pluginActionUpdate;
+
+  /// No description provided for @pluginActionRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get pluginActionRun;
+
+  /// No description provided for @pluginActionStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get pluginActionStop;
+
+  /// No description provided for @pluginActionUninstall.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall'**
+  String get pluginActionUninstall;
+
+  /// No description provided for @pluginConsentDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Data Authorization'**
+  String get pluginConsentDialogTitle;
+
+  /// No description provided for @pluginConsentDialogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The plugin \"{pluginName}\" requests access to the following data:'**
+  String pluginConsentDialogSubtitle(String pluginName);
+
+  /// No description provided for @pluginConsentDialogDataLifetime.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is only available during this session and will be automatically destroyed when it expires.'**
+  String get pluginConsentDialogDataLifetime;
+
+  /// No description provided for @pluginConsentButtonDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get pluginConsentButtonDeny;
+
+  /// No description provided for @pluginConsentButtonAuthorize.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorize'**
+  String get pluginConsentButtonAuthorize;
+
+  /// No description provided for @pluginSensitivityPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get pluginSensitivityPublic;
+
+  /// No description provided for @pluginSensitivityInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal'**
+  String get pluginSensitivityInternal;
+
+  /// No description provided for @pluginSensitivitySensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive'**
+  String get pluginSensitivitySensitive;
+
+  /// No description provided for @pluginSensitivityCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get pluginSensitivityCritical;
+
+  /// No description provided for @pluginUninstallConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall Plugin?'**
+  String get pluginUninstallConfirmTitle;
+
+  /// No description provided for @pluginUninstallConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete the plugin files and revoke all data authorizations. Audit logs will be retained.'**
+  String get pluginUninstallConfirmMessage;
+
+  /// No description provided for @pluginInstallSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin installed successfully'**
+  String get pluginInstallSuccess;
+
+  /// No description provided for @pluginUninstallSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin uninstalled successfully'**
+  String get pluginUninstallSuccess;
+
+  /// No description provided for @pluginRunSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin executed successfully'**
+  String get pluginRunSuccess;
+
+  /// No description provided for @pluginErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin not found'**
+  String get pluginErrorNotFound;
+
+  /// No description provided for @pluginErrorIncompatible.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin is incompatible with this app version'**
+  String get pluginErrorIncompatible;
+
+  /// No description provided for @pluginErrorSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security verification failed'**
+  String get pluginErrorSecurity;
+
+  /// No description provided for @pluginErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Please check your connection.'**
+  String get pluginErrorNetwork;
 }
 
 class _AppLocalizationsDelegate

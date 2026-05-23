@@ -1989,5 +1989,53 @@
   "operationChangedSensitivity": "Changed sensitivity",
   "operationUpgradedSensitivity": "Upgraded sensitivity",
   "operationDowngradedSensitivity": "Downgraded sensitivity",
-  "operationRevertedSensitivity": "Reverted sensitivity"
+  "operationRevertedSensitivity": "Reverted sensitivity",
+  "pluginManagement": "Plugin Management",
+  "@pluginManagement": {
+    "description": "Settings tile label for plugin management"
+  },
+  "pluginManagementSubtitle": "Manage installed plugins and browse the marketplace",
+  "pluginDashboardTitle": "Plugin Management",
+  "pluginTabAll": "All",
+  "pluginTabInstalled": "Installed",
+  "pluginTabAvailable": "Available",
+  "pluginSearchHint": "Search plugins...",
+  "pluginEmptyStateTitle": "No plugins available",
+  "pluginEmptyStateSubtitle": "Connect to the internet to browse the plugin marketplace",
+  "pluginOfflineBanner": "Offline mode. Cannot fetch new plugins.",
+  "pluginStatusInstalled": "Installed",
+  "pluginStatusNotInstalled": "Not installed",
+  "pluginStatusUpdateAvailable": "Update available",
+  "pluginStatusIncompatible": "Incompatible",
+  "pluginStatusRunning": "Running",
+  "pluginActionInstall": "Install",
+  "pluginActionUpdate": "Update",
+  "pluginActionRun": "Run",
+  "pluginActionStop": "Stop",
+  "pluginActionUninstall": "Uninstall",
+  "pluginConsentDialogTitle": "Plugin Data Authorization",
+  "pluginConsentDialogSubtitle": "The plugin \"{pluginName}\" requests access to the following data:",
+  "@pluginConsentDialogSubtitle": {
+    "placeholders": {
+      "pluginName": {
+        "type": "String"
+      }
+    }
+  },
+  "pluginConsentDialogDataLifetime": "Data is only available during this session and will be automatically destroyed when it expires.",
+  "pluginConsentButtonDeny": "Deny",
+  "pluginConsentButtonAuthorize": "Authorize",
+  "pluginSensitivityPublic": "Public",
+  "pluginSensitivityInternal": "Internal",
+  "pluginSensitivitySensitive": "Sensitive",
+  "pluginSensitivityCritical": "Critical",
+  "pluginUninstallConfirmTitle": "Uninstall Plugin?",
+  "pluginUninstallConfirmMessage": "This will delete the plugin files and revoke all data authorizations. Audit logs will be retained.",
+  "pluginInstallSuccess": "Plugin installed successfully",
+  "pluginUninstallSuccess": "Plugin uninstalled successfully",
+  "pluginRunSuccess": "Plugin executed successfully",
+  "pluginErrorNotFound": "Plugin not found",
+  "pluginErrorIncompatible": "Plugin is incompatible with this app version",
+  "pluginErrorSecurity": "Security verification failed",
+  "pluginErrorNetwork": "Network error. Please check your connection."
 }

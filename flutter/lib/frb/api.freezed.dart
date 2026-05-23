@@ -2929,6 +2929,269 @@ as BigInt,
 }
 
 /// @nodoc
+mixin _$PluginSessionInfo {
+
+ String get sessionId; String get pluginId; String get pluginName; PlatformInt64 get startedAtSecs; PlatformInt64 get expiresAtSecs;
+/// Create a copy of PluginSessionInfo
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PluginSessionInfoCopyWith<PluginSessionInfo> get copyWith => _$PluginSessionInfoCopyWithImpl<PluginSessionInfo>(this as PluginSessionInfo, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PluginSessionInfo&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.pluginId, pluginId) || other.pluginId == pluginId)&&(identical(other.pluginName, pluginName) || other.pluginName == pluginName)&&(identical(other.startedAtSecs, startedAtSecs) || other.startedAtSecs == startedAtSecs)&&(identical(other.expiresAtSecs, expiresAtSecs) || other.expiresAtSecs == expiresAtSecs));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,sessionId,pluginId,pluginName,startedAtSecs,expiresAtSecs);
+
+@override
+String toString() {
+  return 'PluginSessionInfo(sessionId: $sessionId, pluginId: $pluginId, pluginName: $pluginName, startedAtSecs: $startedAtSecs, expiresAtSecs: $expiresAtSecs)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PluginSessionInfoCopyWith<$Res>  {
+  factory $PluginSessionInfoCopyWith(PluginSessionInfo value, $Res Function(PluginSessionInfo) _then) = _$PluginSessionInfoCopyWithImpl;
+@useResult
+$Res call({
+ String sessionId, String pluginId, String pluginName, PlatformInt64 startedAtSecs, PlatformInt64 expiresAtSecs
+});
+
+
+
+
+}
+/// @nodoc
+class _$PluginSessionInfoCopyWithImpl<$Res>
+    implements $PluginSessionInfoCopyWith<$Res> {
+  _$PluginSessionInfoCopyWithImpl(this._self, this._then);
+
+  final PluginSessionInfo _self;
+  final $Res Function(PluginSessionInfo) _then;
+
+/// Create a copy of PluginSessionInfo
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? sessionId = null,Object? pluginId = null,Object? pluginName = null,Object? startedAtSecs = null,Object? expiresAtSecs = null,}) {
+  return _then(_self.copyWith(
+sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String,pluginId: null == pluginId ? _self.pluginId : pluginId // ignore: cast_nullable_to_non_nullable
+as String,pluginName: null == pluginName ? _self.pluginName : pluginName // ignore: cast_nullable_to_non_nullable
+as String,startedAtSecs: null == startedAtSecs ? _self.startedAtSecs : startedAtSecs // ignore: cast_nullable_to_non_nullable
+as PlatformInt64,expiresAtSecs: null == expiresAtSecs ? _self.expiresAtSecs : expiresAtSecs // ignore: cast_nullable_to_non_nullable
+as PlatformInt64,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PluginSessionInfo].
+extension PluginSessionInfoPatterns on PluginSessionInfo {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PluginSessionInfo value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PluginSessionInfo() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PluginSessionInfo value)  $default,){
+final _that = this;
+switch (_that) {
+case _PluginSessionInfo():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PluginSessionInfo value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PluginSessionInfo() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String sessionId,  String pluginId,  String pluginName,  PlatformInt64 startedAtSecs,  PlatformInt64 expiresAtSecs)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PluginSessionInfo() when $default != null:
+return $default(_that.sessionId,_that.pluginId,_that.pluginName,_that.startedAtSecs,_that.expiresAtSecs);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String sessionId,  String pluginId,  String pluginName,  PlatformInt64 startedAtSecs,  PlatformInt64 expiresAtSecs)  $default,) {final _that = this;
+switch (_that) {
+case _PluginSessionInfo():
+return $default(_that.sessionId,_that.pluginId,_that.pluginName,_that.startedAtSecs,_that.expiresAtSecs);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String sessionId,  String pluginId,  String pluginName,  PlatformInt64 startedAtSecs,  PlatformInt64 expiresAtSecs)?  $default,) {final _that = this;
+switch (_that) {
+case _PluginSessionInfo() when $default != null:
+return $default(_that.sessionId,_that.pluginId,_that.pluginName,_that.startedAtSecs,_that.expiresAtSecs);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _PluginSessionInfo implements PluginSessionInfo {
+  const _PluginSessionInfo({required this.sessionId, required this.pluginId, required this.pluginName, required this.startedAtSecs, required this.expiresAtSecs});
+  
+
+@override final  String sessionId;
+@override final  String pluginId;
+@override final  String pluginName;
+@override final  PlatformInt64 startedAtSecs;
+@override final  PlatformInt64 expiresAtSecs;
+
+/// Create a copy of PluginSessionInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PluginSessionInfoCopyWith<_PluginSessionInfo> get copyWith => __$PluginSessionInfoCopyWithImpl<_PluginSessionInfo>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PluginSessionInfo&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.pluginId, pluginId) || other.pluginId == pluginId)&&(identical(other.pluginName, pluginName) || other.pluginName == pluginName)&&(identical(other.startedAtSecs, startedAtSecs) || other.startedAtSecs == startedAtSecs)&&(identical(other.expiresAtSecs, expiresAtSecs) || other.expiresAtSecs == expiresAtSecs));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,sessionId,pluginId,pluginName,startedAtSecs,expiresAtSecs);
+
+@override
+String toString() {
+  return 'PluginSessionInfo(sessionId: $sessionId, pluginId: $pluginId, pluginName: $pluginName, startedAtSecs: $startedAtSecs, expiresAtSecs: $expiresAtSecs)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PluginSessionInfoCopyWith<$Res> implements $PluginSessionInfoCopyWith<$Res> {
+  factory _$PluginSessionInfoCopyWith(_PluginSessionInfo value, $Res Function(_PluginSessionInfo) _then) = __$PluginSessionInfoCopyWithImpl;
+@override @useResult
+$Res call({
+ String sessionId, String pluginId, String pluginName, PlatformInt64 startedAtSecs, PlatformInt64 expiresAtSecs
+});
+
+
+
+
+}
+/// @nodoc
+class __$PluginSessionInfoCopyWithImpl<$Res>
+    implements _$PluginSessionInfoCopyWith<$Res> {
+  __$PluginSessionInfoCopyWithImpl(this._self, this._then);
+
+  final _PluginSessionInfo _self;
+  final $Res Function(_PluginSessionInfo) _then;
+
+/// Create a copy of PluginSessionInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? sessionId = null,Object? pluginId = null,Object? pluginName = null,Object? startedAtSecs = null,Object? expiresAtSecs = null,}) {
+  return _then(_PluginSessionInfo(
+sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String,pluginId: null == pluginId ? _self.pluginId : pluginId // ignore: cast_nullable_to_non_nullable
+as String,pluginName: null == pluginName ? _self.pluginName : pluginName // ignore: cast_nullable_to_non_nullable
+as String,startedAtSecs: null == startedAtSecs ? _self.startedAtSecs : startedAtSecs // ignore: cast_nullable_to_non_nullable
+as PlatformInt64,expiresAtSecs: null == expiresAtSecs ? _self.expiresAtSecs : expiresAtSecs // ignore: cast_nullable_to_non_nullable
+as PlatformInt64,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$ProfileSummary {
 
  String get id; String get name; String get createdAt; String get updatedAt; int get version;

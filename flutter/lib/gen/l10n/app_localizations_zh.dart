@@ -3371,4 +3371,120 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get operationRevertedSensitivity => '恢复敏感度';
+
+  @override
+  String get pluginManagement => '插件管理';
+
+  @override
+  String get pluginManagementSubtitle => '管理已安装插件并浏览插件市场';
+
+  @override
+  String get pluginDashboardTitle => '插件管理';
+
+  @override
+  String get pluginTabAll => '全部';
+
+  @override
+  String get pluginTabInstalled => '已安装';
+
+  @override
+  String get pluginTabAvailable => '可安装';
+
+  @override
+  String get pluginSearchHint => '搜索插件...';
+
+  @override
+  String get pluginEmptyStateTitle => '暂无可用的插件';
+
+  @override
+  String get pluginEmptyStateSubtitle => '连接网络以浏览插件市场';
+
+  @override
+  String get pluginOfflineBanner => '离线模式，无法获取新插件';
+
+  @override
+  String get pluginStatusInstalled => '已安装';
+
+  @override
+  String get pluginStatusNotInstalled => '未安装';
+
+  @override
+  String get pluginStatusUpdateAvailable => '有更新';
+
+  @override
+  String get pluginStatusIncompatible => '不兼容';
+
+  @override
+  String get pluginStatusRunning => '运行中';
+
+  @override
+  String get pluginActionInstall => '安装';
+
+  @override
+  String get pluginActionUpdate => '更新';
+
+  @override
+  String get pluginActionRun => '运行';
+
+  @override
+  String get pluginActionStop => '停止';
+
+  @override
+  String get pluginActionUninstall => '卸载';
+
+  @override
+  String get pluginConsentDialogTitle => '插件数据授权';
+
+  @override
+  String pluginConsentDialogSubtitle(String pluginName) {
+    return '插件 \"$pluginName\" 请求访问以下数据：';
+  }
+
+  @override
+  String get pluginConsentDialogDataLifetime => '数据仅在本次会话期间可用，到期后自动销毁。';
+
+  @override
+  String get pluginConsentButtonDeny => '拒绝';
+
+  @override
+  String get pluginConsentButtonAuthorize => '授权访问';
+
+  @override
+  String get pluginSensitivityPublic => '公开';
+
+  @override
+  String get pluginSensitivityInternal => '内部';
+
+  @override
+  String get pluginSensitivitySensitive => '敏感';
+
+  @override
+  String get pluginSensitivityCritical => '关键';
+
+  @override
+  String get pluginUninstallConfirmTitle => '确定卸载插件？';
+
+  @override
+  String get pluginUninstallConfirmMessage => '此操作将删除插件文件并撤销所有数据授权，审计日志将保留。';
+
+  @override
+  String get pluginInstallSuccess => '插件安装成功';
+
+  @override
+  String get pluginUninstallSuccess => '插件卸载成功';
+
+  @override
+  String get pluginRunSuccess => '插件执行成功';
+
+  @override
+  String get pluginErrorNotFound => '插件未找到';
+
+  @override
+  String get pluginErrorIncompatible => '插件与当前应用版本不兼容';
+
+  @override
+  String get pluginErrorSecurity => '安全校验失败';
+
+  @override
+  String get pluginErrorNetwork => '网络错误，请检查网络连接';
 }

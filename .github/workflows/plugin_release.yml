@@ -1,0 +1,112 @@
+name: Plugin Release
+
+on:
+  push:
+    branches: [main]
+    paths: ['SoloSoul_plugin_market/**']
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: wasm32-wasi
+
+      - name: Validate manifest.json files
+        run: |
+          cd SoloSoul_plugin_market
+          pip install jsonschema
+          for manifest in plugins/*/manifest.json examples/*/manifest.json; do
+            echo "Validating $manifest"
+            python3 -c "
+              import json, jsonschema
+              with open('SDK/schema/manifest.schema.json') as f:
+                schema = json.load(f)
+              with open('$manifest') as f:
+                manifest = json.load(f)
+              jsonschema.validate(manifest, schema)
+            "
+          done
+
+      - name: Build plugins
+        run: |
+          cd SoloSoul_plugin_market
+          for dir in plugins/*/ examples/*/; do
+            if [ -f "$dir/Cargo.toml" ]; then
+              echo "Building $dir"
+              cd "$dir"
+              cargo build --target wasm32-wasi --release
+              # 产物统一重命名为 plugin.wasm
+              cp target/wasm32-wasi/release/*.wasm plugin.wasm || true
+              cd -
+            fi
+          done
+
+      - name: Compute SHA-256 hashes
+        run: |
+          cd SoloSoul_plugin_market
+          python3 << 'EOF'
+          import hashlib, json, os
+
+          registry = {"version": "1", "updated_at": "", "plugins": {}}
+
+          for plugin_dir in sorted(os.listdir("plugins")):
+            path = os.path.join("plugins", plugin_dir)
+            if not os.path.isdir(path):
+              continue
+            wasm_path = os.path.join(path, "plugin.wasm")
+            manifest_path = os.path.join(path, "manifest.json")
+            if not os.path.exists(wasm_path) or not os.path.exists(manifest_path):
+              continue
+
+            with open(wasm_path, "rb") as f:
+              sha256 = hashlib.sha256(f.read()).hexdigest()
+            with open(manifest_path) as f:
+              manifest = json.load(f)
+
+            plugin_id = manifest["plugin_id"]
+            version = manifest["version"]
+
+            if plugin_id not in registry["plugins"]:
+              registry["plugins"][plugin_id] = {
+                "name": manifest["name"],
+                "publisher": manifest["publisher"],
+                "latest_version": version,
+                "versions": {}
+              }
+
+            registry["plugins"][plugin_id]["versions"][version] = {
+              "sha256": sha256,
+              "plugin_api_version": manifest["plugin_api_version"],
+              "min_app_version": manifest["min_app_version"],
+              "max_app_version": manifest["max_app_version"],
+              "download_url": f"https://plugins.solosoul.dev/{plugin_id}/{version}/",
+              "released_at": ""
+            }
+
+            # 更新 latest_version
+            versions = registry["plugins"][plugin_id]["versions"]
+            latest = max(versions.keys(), key=lambda v: [int(x) for x in v.split(".")])
+            registry["plugins"][plugin_id]["latest_version"] = latest
+
+          from datetime import datetime, timezone
+          registry["updated_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+          with open("registry.json", "w") as f:
+            json.dump(registry, f, indent=2, ensure_ascii=False)
+          EOF
+
+      - name: Upload to CDN (mock)
+        run: |
+          echo "TODO: Upload SoloSoul_plugin_market/plugins/ to S3/R2/CloudFront"
+          echo "TODO: Upload SoloSoul_plugin_market/registry.json to CDN root"
+          # aws s3 sync SoloSoul_plugin_market/plugins/ s3://plugins.solosoul.dev/
+          # aws s3 cp SoloSoul_plugin_market/registry.json s3://plugins.solosoul.dev/registry.json

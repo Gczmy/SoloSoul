@@ -442,22 +442,52 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 
 ## P4: 插件系统
 
-### Wasm 沙盒架构
-- [ ] Wasmtime/Wasmer 集成
-- [ ] Host Functions 接口定义
-- [ ] 插件权限 manifest.json 解析
-- [ ] 用户交互授权弹窗
-- [ ] 插件握手协议 (SHA-256 白名单)
+### Phase 1 — 插件市场基础设施 ✅
+- [x] Rust SDK Host Functions 绑定 (`SDK/rust/src/lib.rs`)
+- [x] `hello_world` 示例插件
+- [x] `registry.json` 格式定义 + JSON Schema
+- [x] 插件市场 CI/CD workflow
+
+### Phase 2 — Rust Host 核心 ✅
+- [x] Wasmtime 集成 (`wasmtime` + `wasmtime-wasi` preview1)
+- [x] `PluginManifest` 扩展解析（version/api_version/compatibility/publisher/signature/network_policy）
+- [x] `PluginStore` — `~/.solosoul/plugins/` 目录管理（0700 权限 + manifest/wasm 校验）
+- [x] `SoloHostFunctions` — 4 个 Host Functions（`request_field` / `post_data` / `log` / `get_timestamp`）
+- [x] `RateLimiter` — 10次/分钟/字段限流
+- [x] `ConsentChannel` — oneshot 跨语言授权弹窗通道（60s 超时）
+- [x] `AuditEntry` — 操作审计日志
+- [x] `WasmSandbox` — Fuel 限制（Debug 100M / Release 10M）+ Trap 捕获
+- [x] `PluginSessionManager` — 活跃 Session 跟踪 + TTL 自动清理
+- [x] `FIELD_MAP` — 运行时字段敏感度映射
+- [x] 8 个 FRB API 函数（install / execute / consent_response / revoke_session / force_unload / list_active_sessions / load_manifest / get_base_dir）
+
+### Phase 3 — Flutter Service 层 ✅
+- [x] `PluginRegistry` / `PluginRegistryEntry` / `PluginUpdateInfo` / `InstalledPluginInfo` 模型
+- [x] `PluginRegistryService` — 远程 registry + 24h 缓存 + 离线回退
+- [x] `PluginInstallerService` — 安装/更新/卸载，10MB wasm 限制，`installed.json` reconcile
+- [x] `PluginService` — 加载已安装插件、运行插件（调用 FRB）
+
+### Phase 4 — Flutter UI 层 ✅
+- [x] `PluginConsentDialog` — 敏感度色标 + i18n
+- [x] `PluginDashboardPage` — Tab 切换 + PluginCard + 搜索筛选 + 离线空状态
+- [x] `settings_page_plugin_section` — 设置页插件管理入口
+- [x] `AppRoutes.pluginDashboard` + GoRoute
+- [x] `app_en.arb` / `app_zh.arb` — 30+ 插件相关本地化字符串
 
 ### 安全机制
-- [ ] mlock 内存锁定
-- [ ] Zeroize 敏感数据清理
-- [ ] JIT 即时解密
-- [ ] 网络白名单策略
-- [ ] Rate Limiting + Circuit Breaker
+- [x] 字段级敏感度分支（Public/Internal 直接返回，Sensitive/Critical 走 Consent）
+- [x] 网络域名白名单校验（`NetworkPolicy.allowed_domains`）
+- [x] Rate Limiting（Host 层 10次/分钟/字段）
+- [ ] mlock 内存锁定（WASM 内存不由 Rust 直接分配，暂无法实施）
+- [ ] Zeroize 敏感数据清理（WASM linear memory 生命周期由 wasmtime 管理，待研究）
+- [ ] JIT 即时解密（预留，需 Vault 层配合）
 
-### 官方插件
-- [ ] SlotGo (UK Visa 预约插件)
+### 已知限制 / 待办
+- [ ] **FRB StreamSink 事件流**：`plugin_execute` 当前返回 `Future<int>`，Consent 通过独立 `frbPluginConsentResponse` 处理。事件流架构（`PluginEvent` → Dart）已预留但未接线。
+- [ ] **`frb_plugin_execute` 当前为 stub**：实际执行逻辑待与 `WasmSandbox.execute` 完全集成（WASM 线程 + Store 隔离已就绪）。
+- [ ] **iOS 构建**：`sandbox` feature 默认启用，iOS 需 `--no-default-features`（wasmtime asm 兼容性问题）。
+- [ ] **SlotGo 官方插件**：未开始
+- [ ] **Rust 未使用变量警告**：`manager.rs` 中 `plugin_id`、`session_ttl_seconds` 等（不影响编译）
 
 ---
 
@@ -505,10 +535,10 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 | Go Backend | 6 | 2 | 75% |
 | Cloud Sync | 0 | 8 | 0% |
 | Cross-platform Build | 2 | 13 | 13% |
-| Plugin System | 0 | 9 | 0% |
+| Plugin System | 24 | 5 | 83% |
 | LLM Features | 0 | 3 | 0% |
 | Testing | 1 | 5 | 17% |
-| **总计** | **34** | **43** | **44%** |
+| **总计** | **58** | **39** | **60%** |
 
 ---
 

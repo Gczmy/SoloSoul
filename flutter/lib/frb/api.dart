@@ -6,11 +6,12 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'plugin/manifest.dart';
 part 'api.freezed.dart';
 
 // These functions are ignored because they are not marked as `pub`: `decrypt_profile_data_bytes`, `encrypt_profile_data_bytes`, `get_session_key`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DeriveKeyResult`, `FrbKdfPreset`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
 /// Initialize the account manager with a base path.
 /// Must be called before any other vault operations.
@@ -243,6 +244,56 @@ Future<OcrEngineStatus> frbOcrStatus() =>
 /// Release OCR engine resources.
 Future<void> frbOcrRelease() => RustLib.instance.api.crateApiFrbOcrRelease();
 
+/// 获取插件安装基础目录（Dart/Rust 路径一致性）
+Future<String> frbGetPluginBaseDir() =>
+    RustLib.instance.api.crateApiFrbGetPluginBaseDir();
+
+/// 安装插件（Rust 侧直接读取文件）
+Future<String> frbPluginInstall({
+  required String wasmPath,
+  required String manifestPath,
+}) => RustLib.instance.api.crateApiFrbPluginInstall(
+  wasmPath: wasmPath,
+  manifestPath: manifestPath,
+);
+
+/// 加载插件清单
+Future<PluginManifest> frbPluginLoadManifest({required String pluginId}) =>
+    RustLib.instance.api.crateApiFrbPluginLoadManifest(pluginId: pluginId);
+
+/// 列出已安装插件
+Future<List<String>> frbPluginListInstalled() =>
+    RustLib.instance.api.crateApiFrbPluginListInstalled();
+
+/// 列出所有活跃 Session
+Future<List<PluginSessionInfo>> frbPluginListActiveSessions() =>
+    RustLib.instance.api.crateApiFrbPluginListActiveSessions();
+
+/// 执行插件（返回事件流）
+/// TODO: StreamSink 类型需要 FRB 代码生成支持，当前为 stub
+Future<int> frbPluginExecute({
+  required String pluginId,
+  required BigInt sessionTtlSeconds,
+}) => RustLib.instance.api.crateApiFrbPluginExecute(
+  pluginId: pluginId,
+  sessionTtlSeconds: sessionTtlSeconds,
+);
+
+/// 响应用户授权（Dart -> Rust）
+Future<void> frbPluginConsentResponse({
+  required String requestId,
+  required bool approved,
+  String? value,
+}) => RustLib.instance.api.crateApiFrbPluginConsentResponse(
+  requestId: requestId,
+  approved: approved,
+  value: value,
+);
+
+/// 强制卸载插件
+Future<void> frbPluginForceUnload({required String pluginId}) =>
+    RustLib.instance.api.crateApiFrbPluginForceUnload(pluginId: pluginId);
+
 /// Account info from Rust vault
 @freezed
 sealed class AccountInfo with _$AccountInfo {
@@ -363,6 +414,19 @@ sealed class OcrEngineStatus with _$OcrEngineStatus {
     required bool recLoaded,
     required BigInt uptimeSecs,
   }) = _OcrEngineStatus;
+}
+
+/// Plugin event for StreamSink
+/// Plugin session info (bridge-friendly, non-opaque)
+@freezed
+sealed class PluginSessionInfo with _$PluginSessionInfo {
+  const factory PluginSessionInfo({
+    required String sessionId,
+    required String pluginId,
+    required String pluginName,
+    required PlatformInt64 startedAtSecs,
+    required PlatformInt64 expiresAtSecs,
+  }) = _PluginSessionInfo;
 }
 
 /// Profile summary from Rust vault
