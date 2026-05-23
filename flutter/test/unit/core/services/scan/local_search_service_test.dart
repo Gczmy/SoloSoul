@@ -113,15 +113,15 @@ void main() {
 
     group('filename hints personal', () {
       test('resume hints personal', () {
-        expect(LocalSearchService.filenameHintsPersonal('my_resume.pdf'), isTrue);
+        expect(ScanSectionDetector.filenameHintsPersonal('my_resume.pdf'), isTrue);
       });
 
       test('passport hints personal', () {
-        expect(LocalSearchService.filenameHintsPersonal('passport_scan.pdf'), isTrue);
+        expect(ScanSectionDetector.filenameHintsPersonal('passport_scan.pdf'), isTrue);
       });
 
       test('random file does not hint personal', () {
-        expect(LocalSearchService.filenameHintsPersonal('report_2024.pdf'), isFalse);
+        expect(ScanSectionDetector.filenameHintsPersonal('report_2024.pdf'), isFalse);
       });
     });
   });
