@@ -64,6 +64,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   String? _selectedTypeId;
   String? _selectedParentId;
   final List<_PropertyField> _propertyFields = [];
+  bool _fieldsInitialized = false;
   bool _showDeprecated = false;
   bool _localizedNameInitialized = false;
 
@@ -100,6 +101,17 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       }
     }
     return _existingObject?.properties ?? {};
+  }
+
+  void _initFieldDisplayLabels() {
+    if (_fieldsInitialized) return;
+    for (final field in _propertyFields) {
+      final localized = _getFieldKeyLabel(field.key);
+      if (localized != field.key) {
+        field.controller.text = localized;
+      }
+    }
+    _fieldsInitialized = true;
   }
 
   UnifiedObject? _existingObject;
@@ -278,6 +290,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   @override
   Widget build(BuildContext context) {
     if (_isEditing) {
+      _initFieldDisplayLabels();
       _initLocalizedName();
     }
     final theme = Theme.of(context);
@@ -1008,7 +1021,6 @@ class _PropertyFieldRow extends ConsumerWidget {
               maxLength: 24,
           buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
           decoration: InputDecoration(
-            labelText: translateFieldLabel(field.key, AppLocalizations.of(context)),
             hintText: AppLocalizations.of(context).objectEditorKeyName,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
