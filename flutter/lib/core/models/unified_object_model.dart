@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'base_models.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 
@@ -596,6 +597,11 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   @PropertyValueConverter()
   final Map<String, PropertyValue> properties;
 
+  /// Optional display labels for properties (schema-level metadata).
+  /// Key is the property key, value is the user-defined display label.
+  /// If absent or empty, UI falls back to translateFieldLabel(key).
+  final Map<String, String>? propertyLabels;
+
   /// File attachments associated with this object.
   /// Actual encrypted files are stored on disk via [AttachmentStorageService].
   final List<Attachment> attachments;
@@ -614,6 +620,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     this.parentId,
     this.childrenIds = const [],
     this.properties = const {},
+    this.propertyLabels,
     this.attachments = const [],
     this.isDeleted = false,
     this.deletedAt,
@@ -624,6 +631,12 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
 
   @override
   String get entryType => 'UnifiedObject';
+
+  /// Get the display label for a property key.
+  /// Uses [propertyLabels] if available, otherwise falls back to [translateFieldLabel].
+  String getDisplayLabelFor(String key, AppLocalizations l10n) {
+    return propertyLabels?[key] ?? translateFieldLabel(key, l10n);
+  }
 
   @override
   Map<String, dynamic> toMap([AppLocalizations? l10n]) => {
@@ -637,6 +650,8 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
         'createdAt': createdAt,
         'updatedAt': updatedAt,
         for (final e in properties.entries) e.key: _propValueToDisplay(e.value, l10n),
+        if (propertyLabels != null && propertyLabels!.isNotEmpty)
+          '__propertyLabels': propertyLabels,
       };
 
   factory UnifiedObject.fromJson(Map<String, dynamic> json) =>
@@ -654,6 +669,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     Object? parentId = _nullSentinel,
     List<String>? childrenIds,
     Map<String, PropertyValue>? properties,
+    Map<String, String>? propertyLabels,
     List<Attachment>? attachments,
     bool? isDeleted,
     DateTime? deletedAt,
@@ -669,6 +685,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       parentId: parentId == _nullSentinel ? this.parentId : parentId as String?,
       childrenIds: childrenIds ?? this.childrenIds,
       properties: properties ?? this.properties,
+      propertyLabels: propertyLabels ?? this.propertyLabels,
       attachments: attachments ?? this.attachments,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,

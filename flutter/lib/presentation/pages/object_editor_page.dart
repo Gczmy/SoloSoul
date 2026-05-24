@@ -56,6 +56,9 @@ class _PropertyField {
     this.isDeprecated = false,
     this.storedValue,
   }) : controller = TextEditingController(text: displayLabel ?? key);
+
+  /// Current display label (synced with controller.text).
+  String get displayLabel => controller.text.trim();
 }
 
 class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
@@ -147,6 +150,10 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     if (_isEditingItem) {
       // Item: use parent section's properties as schema authority.
       final schemaProps = _schemaProperties;
+      final schemaObj = _existingObject?.parentId != null
+          ? ref.read(objectByIdProvider(_existingObject!.parentId!))
+          : null;
+      final parentLabels = schemaObj?.propertyLabels;
 
       // Add all schema properties (parent section's current properties).
       for (final entry in schemaProps.entries) {
@@ -165,6 +172,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             key: entry.key,
             type: storedProp != null ? _inferTypeFromValue(storedProp) : _inferTypeFromValue(entry.value),
             sensitivity: sensitivity,
+            displayLabel: parentLabels?[entry.key],
             storedValue: storedProp != null ? _propertyValueToString(storedProp) : null,
           ));
         }
@@ -179,6 +187,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
           key: entry.key,
           type: _inferTypeFromValue(entry.value),
           sensitivity: entry.value.sensitivity,
+          displayLabel: parentLabels?[entry.key],
           storedValue: _propertyValueToString(entry.value),
           isDeprecated: true,
         ));
@@ -200,6 +209,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             key: entry.key,
             type: _inferTypeFromValue(entry.value),
             sensitivity: sensitivity,
+            displayLabel: object.propertyLabels?[entry.key],
           ));
         }
       }
@@ -225,6 +235,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         _propertyFields.add(_PropertyField(
           key: propDef.id,
           type: propDef.type.name,
+          displayLabel: propDef.name.isNotEmpty ? propDef.name : null,
         ));
       }
     }
@@ -439,7 +450,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     final keyCounts = <String, int>{};
     for (final field in _propertyFields) {
       if (field.isDeprecated) continue;
-      final key = field.isDefaultName == true ? AppLocalizations.of(context).objectEditorDefaultFieldTitle : field.controller.text.trim();
+      final key = field.isDefaultName == true ? AppLocalizations.of(context).objectEditorDefaultFieldTitle : field.key.trim();
       if (key.isNotEmpty) {
         keyCounts[key] = (keyCounts[key] ?? 0) + 1;
       }
@@ -456,6 +467,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     // For items: preserve stored values for active properties, always include deprecated data.
     // For sections: properties map IS the schema for child items.
     final properties = <String, PropertyValue>{};
+    final propertyLabels = <String, String>{};
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
@@ -474,6 +486,11 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         properties[key] = _createPropertyValueWithValue(field.type, field.storedValue!, field.sensitivity);
       } else {
         properties[key] = _createEmptyPropertyValue(field.type, field.sensitivity);
+      }
+      // Collect display labels (only if different from key)
+      final displayLabel = field.displayLabel;
+      if (displayLabel.isNotEmpty && displayLabel != key) {
+        propertyLabels[key] = displayLabel;
       }
     }
 
@@ -495,6 +512,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         typeId: _selectedTypeId,
         iconName: _iconController.text.trim(),
         properties: properties,
+        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
       );
     } else {
       await notifier.createObject(
@@ -503,6 +521,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         parentId: _selectedParentId,
         iconName: _iconController.text.trim(),
         properties: properties,
+        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
       );
     }
 
@@ -1016,20 +1035,33 @@ class _PropertyFieldRow extends ConsumerWidget {
         children: [
           Expanded(
             flex: 2,
-            child: TextField(
-              controller: field.controller,
-              maxLength: 24,
-          buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-          decoration: InputDecoration(
-            hintText: AppLocalizations.of(context).objectEditorKeyName,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            border: const OutlineInputBorder(),
+            child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Read-only key display
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 2),
+                child: Text(
+                  field.key,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              TextField(
+                controller: field.controller,
+                maxLength: 24,
+            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).objectEditorKeyName,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              border: const OutlineInputBorder(),
+            ),
           ),
-          onChanged: (value) {
-            field.key = value;
-          },
-        ),
+            ],
+          ),
       ),
       const SizedBox(width: 8),
       SizedBox(

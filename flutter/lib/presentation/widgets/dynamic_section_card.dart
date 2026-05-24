@@ -90,6 +90,7 @@ class DynamicSectionCard extends ConsumerWidget {
       itemData: itemMap,
       fieldPrefix: config.fieldPrefix,
       excludeFields: config.excludeFields,
+      propertyLabels: section.propertyLabels,
     );
   }
 }

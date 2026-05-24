@@ -161,6 +161,9 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       final schemaProps = itemTypeId != null
           ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
           : <String, PropertyValue>{};
+      final propertyLabels = itemTypeId != null
+          ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
+          : <String, String>{};
 
       objects.add(UnifiedObject(
         id: sectionId,
@@ -170,6 +173,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         parentId: meta.parentPageId,
         childrenIds: const [],
         properties: schemaProps,
+        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
         isDeleted: false,
         deletedAt: null,
         createdAt: now,
@@ -219,8 +223,13 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
       final schemaProps = ObjectTypeRegistry.buildPropertiesFromType(itemTypeId);
       if (schemaProps.isEmpty) continue;
+      final propertyLabels = ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId);
 
-      objects[i] = obj.copyWith(properties: schemaProps, updatedAt: now);
+      objects[i] = obj.copyWith(
+        properties: schemaProps,
+        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
+        updatedAt: now,
+      );
       changed = true;
     }
 
@@ -260,6 +269,9 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       final schemaProps = itemTypeId != null
           ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
           : <String, PropertyValue>{};
+      final propertyLabels = itemTypeId != null
+          ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
+          : <String, String>{};
 
       objects.add(UnifiedObject(
         id: sectionId,
@@ -269,6 +281,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         parentId: meta.parentPageId,
         childrenIds: const [],
         properties: schemaProps,
+        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
         isDeleted: false,
         deletedAt: null,
         createdAt: now,
@@ -347,6 +360,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? parentId,
     String? iconName,
     Map<String, PropertyValue>? properties,
+    Map<String, String>? propertyLabels,
   }) async {
     final object = _service.createObject(
       name: name,
@@ -354,6 +368,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       parentId: parentId,
       iconName: iconName,
       properties: properties,
+      propertyLabels: propertyLabels,
     );
 
     var updatedObjects = _service.addObject(state.objects, object);
@@ -376,6 +391,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? parentId,
     String? iconName,
     Map<String, PropertyValue>? properties,
+    Map<String, String>? propertyLabels,
   }) async {
     final object = _service.createObject(
       name: name,
@@ -383,6 +399,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       parentId: parentId,
       iconName: iconName,
       properties: properties,
+      propertyLabels: propertyLabels,
     );
 
     var updatedObjects = _service.addObject(state.objects, object);
@@ -408,6 +425,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? iconName,
     String? parentId,
     Map<String, PropertyValue>? properties,
+    Map<String, String>? propertyLabels,
     List<String>? childrenIds,
     List<Attachment>? attachments,
     int? schemaVersionWhenSaved,
@@ -422,6 +440,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       iconName: iconName,
       parentId: parentId,
       properties: properties,
+      propertyLabels: propertyLabels,
       childrenIds: childrenIds,
       attachments: attachments,
       schemaVersionWhenSaved: schemaVersionWhenSaved,
@@ -667,6 +686,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           objects = _service.addObject(objects, page);
         }
         final schemaProps = ObjectTypeRegistry.buildPropertiesFromType(typeId);
+        final propertyLabels = ObjectTypeRegistry.buildPropertyLabelsFromType(typeId);
         final section = UnifiedObject(
           id: sectionId,
           typeId: 'collection',
@@ -675,6 +695,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
           parentId: meta.parentPageId,
           childrenIds: const [],
           properties: schemaProps,
+          propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
           isDeleted: false,
           deletedAt: null,
           createdAt: now,

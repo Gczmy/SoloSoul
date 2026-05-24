@@ -78,6 +78,7 @@ class ObjectCardEditModeWidget extends StatelessWidget {
               propertyKey: '__name__',
               controller: editControllers['__name__'],
               isTitle: true,
+              displayLabel: item.getDisplayLabelFor(titlePropertyKey, l10n),
             ),
             const SizedBox(height: 12),
           ],
@@ -93,6 +94,7 @@ class ObjectCardEditModeWidget extends StatelessWidget {
                 propertyKey: key,
                 value: value!,
                 controller: editControllers[key],
+                displayLabel: item.getDisplayLabelFor(key, l10n),
                 onCheckboxChanged: (newValue) {
                   onCheckboxChanged(key, newValue);
                 },

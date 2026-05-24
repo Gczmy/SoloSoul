@@ -64,6 +64,24 @@ class ObjectTypeRegistry {
     }
     return result;
   }
+
+  /// Build display labels map from a built-in type definition.
+  /// Returns {propertyKey: displayLabel} for properties that have a non-empty name.
+  static Map<String, String> buildPropertyLabelsFromType(
+    String typeId, {
+    List<ObjectTypeDefinition> customTypes = const [],
+  }) {
+    final type = getType(typeId, customTypes: customTypes);
+    if (type == null) return {};
+
+    final result = <String, String>{};
+    for (final prop in type.properties) {
+      if (prop.name.isNotEmpty && prop.name != prop.id) {
+        result[prop.id] = prop.name;
+      }
+    }
+    return result;
+  }
 }
 
 // =============================================================================
@@ -567,6 +585,7 @@ class UnifiedObjectService {
     String? parentId,
     String? iconName,
     Map<String, PropertyValue>? properties,
+    Map<String, String>? propertyLabels,
     List<String>? childrenIds,
   }) {
     final now = _currentTimestamp();
@@ -581,6 +600,7 @@ class UnifiedObjectService {
       parentId: parentId,
       childrenIds: childrenIds ?? const [],
       properties: properties ?? const {},
+      propertyLabels: propertyLabels,
       createdAt: now,
       updatedAt: now,
     );
@@ -597,6 +617,7 @@ class UnifiedObjectService {
     String? iconName,
     String? parentId,
     Map<String, PropertyValue>? properties,
+    Map<String, String>? propertyLabels,
     List<String>? childrenIds,
     List<Attachment>? attachments,
     int? schemaVersionWhenSaved,
@@ -607,6 +628,7 @@ class UnifiedObjectService {
       iconName: iconName,
       parentId: parentId,
       properties: properties,
+      propertyLabels: propertyLabels,
       childrenIds: childrenIds,
       attachments: attachments,
       schemaVersionWhenSaved: schemaVersionWhenSaved,

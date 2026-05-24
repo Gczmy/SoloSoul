@@ -72,6 +72,9 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
   /// Field keys to exclude from auto-built fields (e.g., 'label' when already used as title).
   final Set<String>? excludeFields;
 
+  /// Optional display labels for properties (key -> label).
+  final Map<String, String>? propertyLabels;
+
   const EntryCardWidget({
     super.key,
     required this.item,
@@ -90,6 +93,7 @@ class EntryCardWidget<T> extends ConsumerStatefulWidget {
     this.itemData,
     this.sensitivityLevel,
     this.excludeFields,
+    this.propertyLabels,
   });
 
   @override
@@ -188,7 +192,10 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     return ref.watch(effectiveSensitivityProvider(fieldId));
   }
 
-  String _formatLabel(String key) => translateFieldLabel(key, AppLocalizations.of(context));
+  String _formatLabel(String key) {
+    final l10n = AppLocalizations.of(context);
+    return widget.propertyLabels?[key] ?? translateFieldLabel(key, l10n);
+  }
 
   List<LabelValueField> _autoBuildFields() {
     final fields = <LabelValueField>[];

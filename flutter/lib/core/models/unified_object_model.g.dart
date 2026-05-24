@@ -271,6 +271,9 @@ UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
             ),
           ) ??
           const {},
+      propertyLabels: (json['propertyLabels'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
       attachments:
           (json['attachments'] as List<dynamic>?)
               ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
@@ -296,6 +299,7 @@ Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
       'properties': instance.properties.map(
         (k, e) => MapEntry(k, const PropertyValueConverter().toJson(e)),
       ),
+      'propertyLabels': instance.propertyLabels,
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'isDeleted': instance.isDeleted,
       'deletedAt': instance.deletedAt?.toIso8601String(),

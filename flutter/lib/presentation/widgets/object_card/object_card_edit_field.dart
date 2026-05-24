@@ -13,6 +13,7 @@ class ObjectCardEditField extends StatelessWidget {
   final TextEditingController? controller;
   final bool isTitle;
   final ValueChanged<bool?>? onCheckboxChanged;
+  final String? displayLabel;
 
   const ObjectCardEditField({
     super.key,
@@ -21,6 +22,7 @@ class ObjectCardEditField extends StatelessWidget {
     required this.controller,
     this.isTitle = false,
     this.onCheckboxChanged,
+    this.displayLabel,
   });
 
   static final _dummyValueNotifier = ValueNotifier<TextEditingValue>(const TextEditingValue());
@@ -75,7 +77,7 @@ class ObjectCardEditField extends StatelessWidget {
             maxLength: kMaxPropertyLength,
             buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
             decoration: InputDecoration(
-              labelText: isTitle ? AppLocalizations.of(context).commonTitle : translateFieldLabel(propertyKey, AppLocalizations.of(context)),
+              labelText: isTitle ? AppLocalizations.of(context).commonTitle : (displayLabel ?? translateFieldLabel(propertyKey, AppLocalizations.of(context))),
               border: const OutlineInputBorder(),
               suffixIcon: !isTitle && value != null
                   ? Padding(
