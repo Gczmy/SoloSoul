@@ -205,6 +205,27 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     return items;
   }
 
+  LiquidGlassSettings _glassSettings(bool isDark) => isDark
+      ? const LiquidGlassSettings(
+          thickness: 30,
+          blur: 20,
+          glassColor: Color(0x1AFFFFFF),
+          refractiveIndex: 1.3,
+          lightIntensity: 0.8,
+          ambientStrength: 0.15,
+        )
+      : const LiquidGlassSettings(
+          thickness: 20,
+          blur: 15,
+          glassColor: Color(0x15D2DCF0),
+          refractiveIndex: 1.15,
+          lightIntensity: 0.9,
+          ambientStrength: 0.1,
+        );
+
+  Color _glassBackground(bool isDark) =>
+      isDark ? const Color(0x0DFFFFFF) : const Color(0x08D2DCF0);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -225,28 +246,10 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
             width: sidebarWidth,
             child: AdaptiveGlass(
               shape: const LiquidRoundedRectangle(borderRadius: 0),
-              settings: isDark
-                  ? const LiquidGlassSettings(
-                      thickness: 30,
-                      blur: 20,
-                      glassColor: Color(0x1AFFFFFF),
-                      refractiveIndex: 1.3,
-                      lightIntensity: 0.8,
-                      ambientStrength: 0.15,
-                    )
-                  : const LiquidGlassSettings(
-                      thickness: 20,
-                      blur: 15,
-                      glassColor: Color(0x15D2DCF0),
-                      refractiveIndex: 1.15,
-                      lightIntensity: 0.9,
-                      ambientStrength: 0.1,
-                    ),
+              settings: _glassSettings(isDark),
               quality: GlassQuality.standard,
               child: Container(
-                color: isDark
-                    ? const Color(0x0DFFFFFF)
-                    : const Color(0x08D2DCF0),
+                color: _glassBackground(isDark),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
