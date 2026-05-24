@@ -14,15 +14,15 @@
 | P004 | P0     | 代码规范   | `test/unit/rust_vault_service_test.dart:9` | 未使用的局部变量 `skipOnLinux` | `[x]` 已修复 |
 | P005 | P0     | 代码质量   | `lib/core/services/debug_logger.dart:118,216` 等 | 生产代码中残留 `print` 语句 | `[x]` 已修复 |
 | P006 | P1     | 代码规范   | `lib/core/services/native_vault_service.dart` 等 8 处 | 未使用的 import 别名 | `[x]` 误报/设计如此 |
-| P007 | P1     | 代码规范   | `lib/presentation/pages/plugin_dashboard_page.dart:531` | TODO 注释未处理 | `[ ]` 待修复 |
+| P007 | P1     | 代码规范   | `lib/presentation/pages/plugin_dashboard_page.dart:531` | TODO 注释未处理 | `[x]` 已修复 |
 | P008 | P1     | 可优化     | `lib/presentation/widgets/app_sidebar.dart` 等 | build 方法过长（>150 行），应拆分子 Widget | `[ ]` 待修复 |
 | P009 | P1     | 性能       | `lib/presentation/providers/scan/local_search_provider.dart:375` 等 | 嵌套循环遍历大集合，O(n²) 风险 | `[ ]` 待修复 |
 | P010 | P2     | 可优化     | `lib/presentation/widgets/settings/all_accounts_sheet.dart` 等 | Widget 深层嵌套（>7 层），可读性差 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：6 / 10
-- 当前处理：P007
+- 已完成：7 / 10
+- 当前处理：P008
 
 ## 详细问题描述与修复指引
 

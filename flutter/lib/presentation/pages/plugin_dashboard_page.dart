@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version/version.dart';
 
 import 'dart:io' show Platform;
@@ -528,13 +529,17 @@ class _PluginCard extends ConsumerWidget {
     if (entry == null) return;
 
     try {
-      // TODO: 获取实际 appVersion 和 pluginApiVersion
+      final packageInfo = await PackageInfo.fromPlatform();
+      final versionKey = targetVersion ?? entry.latestVersion;
+      final versionInfo = entry.versions[versionKey];
+      final appVersion = packageInfo.version;
+      final pluginApiVersion = versionInfo?.pluginApiVersion ?? '1.0';
       await installPlugin(
         ref,
         pluginId,
         entry,
-        '1.0.0',
-        '1.0',
+        appVersion,
+        pluginApiVersion,
         targetVersion: targetVersion,
       );
       if (context.mounted) {
