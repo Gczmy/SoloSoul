@@ -297,7 +297,7 @@ class PluginBatchConsentDialog extends StatelessWidget {
             Container(
               constraints: const BoxConstraints(maxHeight: 280),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListView.separated(
@@ -326,9 +326,9 @@ class PluginBatchConsentDialog extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.12),
+                            color: color.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: color.withOpacity(0.3)),
+                            border: Border.all(color: color.withValues(alpha: 0.3)),
                           ),
                           child: Text(
                             label,
@@ -365,7 +365,7 @@ class PluginBatchConsentDialog extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
-          child: Text('全部授权'),
+          child: const Text('全部授权'),
         ),
       ],
     );
