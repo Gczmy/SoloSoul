@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/core/models/plugin_models.dart';
 import 'package:solosoul_flutter/core/services/plugin_installer_service.dart';
 import 'package:solosoul_flutter/core/services/plugin_registry_service.dart';
 import 'package:solosoul_flutter/core/services/plugin_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
@@ -25,8 +26,7 @@ final pluginRegistryProvider = Provider<PluginRegistryService>((ref) {
   try {
     return PluginRegistryService();
   } catch (e, stack) {
-    // ignore: avoid_print
-    print('[pluginRegistryProvider] ERROR creating PluginRegistryService: $e\n$stack');
+    SoloLog.e('PluginRegistry', 'ERROR creating PluginRegistryService: $e\n$stack');
     rethrow;
   }
 });
@@ -53,8 +53,7 @@ final _initializedPluginRegistryProvider = FutureProvider<PluginRegistryService>
     await service.initialize();
     return service;
   } catch (e, stack) {
-    // ignore: avoid_print
-    print('[_initializedPluginRegistryProvider] ERROR: $e\n$stack');
+    SoloLog.e('PluginRegistry', 'ERROR initializing PluginRegistryService: $e\n$stack');
     rethrow;
   }
 });
@@ -68,8 +67,7 @@ final pluginRegistryStateProvider = FutureProvider<PluginRegistry>((ref) async {
     final registryService = await ref.watch(_initializedPluginRegistryProvider.future);
     return await registryService.getRegistry();
   } catch (e, stack) {
-    // ignore: avoid_print
-    print('[pluginRegistryStateProvider] ERROR: $e\n$stack');
+    SoloLog.e('PluginRegistry', 'ERROR getting registry: $e\n$stack');
     rethrow;
   }
 });
@@ -83,8 +81,7 @@ final installedPluginsProvider = FutureProvider<List<frb_manifest.PluginManifest
     final service = await ref.watch(_initializedPluginServiceProvider.future);
     return await service.loadInstalledPlugins();
   } catch (e, stack) {
-    // ignore: avoid_print
-    print('[installedPluginsProvider] ERROR: $e\n$stack');
+    SoloLog.e('Plugin', 'ERROR loading installed plugins: $e\n$stack');
     rethrow;
   }
 });
@@ -98,8 +95,7 @@ final activeSessionsProvider = FutureProvider<List<frb.PluginSessionInfo>>((ref)
     final service = await ref.watch(_initializedPluginServiceProvider.future);
     return await service.listActiveSessions();
   } catch (e, stack) {
-    // ignore: avoid_print
-    print('[activeSessionsProvider] ERROR: $e\n$stack');
+    SoloLog.e('Plugin', 'ERROR listing active sessions: $e\n$stack');
     rethrow;
   }
 });

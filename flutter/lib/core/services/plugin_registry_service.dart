@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:solosoul_flutter/core/models/plugin_models.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 /// 插件注册表服务：管理远程 registry 的拉取与本地缓存
@@ -239,7 +240,6 @@ class PluginRegistryService {
 
   void _log(String message) {
     if (const bool.fromEnvironment('dart.vm.product')) return;
-    // ignore: avoid_print
-    print('[PluginRegistryService] $message');
+    SoloLog.d('PluginRegistryService', message);
   }
 }

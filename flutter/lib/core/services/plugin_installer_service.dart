@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:version/version.dart';
 
 import 'package:solosoul_flutter/core/models/plugin_models.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 
 
@@ -309,7 +310,6 @@ class PluginInstallerService {
 
   void _log(String message) {
     if (kReleaseMode) return;
-    // ignore: avoid_print
-    print('[PluginInstallerService] $message');
+    SoloLog.d('PluginInstallerService', message);
   }
 }

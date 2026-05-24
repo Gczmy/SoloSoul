@@ -12,7 +12,7 @@
 | P002 | P0     | 代码规范   | `lib/core/services/profile_storage_service.dart:185,211` | catch 子句未使用 `on` 指定异常类型 | `[x]` 已修复 |
 | P003 | P0     | 代码规范   | `lib/core/services/debug_logger.dart:1` | 依赖 `meta` 包但未在 pubspec.yaml 中声明 | `[x]` 已修复 |
 | P004 | P0     | 代码规范   | `test/unit/rust_vault_service_test.dart:9` | 未使用的局部变量 `skipOnLinux` | `[x]` 已修复 |
-| P005 | P0     | 代码质量   | `lib/core/services/debug_logger.dart:118,216` 等 | 生产代码中残留 `print` 语句 | `[ ]` 待修复 |
+| P005 | P0     | 代码质量   | `lib/core/services/debug_logger.dart:118,216` 等 | 生产代码中残留 `print` 语句 | `[x]` 已修复 |
 | P006 | P1     | 代码规范   | `lib/core/services/native_vault_service.dart` 等 8 处 | 未使用的 import 别名 | `[ ]` 待修复 |
 | P007 | P1     | 代码规范   | `lib/presentation/pages/plugin_dashboard_page.dart:531` | TODO 注释未处理 | `[ ]` 待修复 |
 | P008 | P1     | 可优化     | `lib/presentation/widgets/app_sidebar.dart` 等 | build 方法过长（>150 行），应拆分子 Widget | `[ ]` 待修复 |
@@ -21,8 +21,8 @@
 
 ## 修复进度
 
-- 已完成：4 / 10
-- 当前处理：P005
+- 已完成：5 / 10
+- 当前处理：P006
 
 ## 详细问题描述与修复指引
 
