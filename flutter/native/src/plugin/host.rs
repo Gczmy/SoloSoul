@@ -3,13 +3,14 @@
 //! Plugins can only access data through these strictly defined functions.
 //! All access is logged, rate-limited, and subject to user consent.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::mpsc;
 use wasmtime::{Caller, Linker};
 
 use super::manifest::PluginManifest;
+use super::rust_log;
 use crate::vault::{ProfileData, VersionedProfileData};
 
 // ============================================================================
@@ -31,7 +32,7 @@ pub struct ConsentRequest {
     pub field: String,
     pub session_id: String,
     pub sensitivity: SensitivityLevel,
-    pub response: oneshot::Sender<ConsentResult>,
+    pub response: std::sync::mpsc::Sender<ConsentResult>,
 }
 
 /// 用户授权结果
@@ -70,13 +71,22 @@ impl SensitivityLevel {
 }
 
 /// 根据字段路径解析敏感度（运行时映射表）
-fn resolve_field_sensitivity(field_id: &str) -> SensitivityLevel {
+pub(crate) fn resolve_field_sensitivity(field_id: &str) -> SensitivityLevel {
     match field_id {
         "identity.full_name" => SensitivityLevel::Public,
         "identity.contact.emails" | "identity.contact.phones" => SensitivityLevel::Internal,
         "identity.id_card.number"
         | "travel.primary_passport.number"
         | "financial.primary_bank_account.number" => SensitivityLevel::Critical,
+        // address: country/count 为公开，其余为敏感
+        "address.country" | "address.count" => SensitivityLevel::Public,
+        f if f.starts_with("address[") => {
+            if f.ends_with("].country") || f.ends_with("].label") {
+                SensitivityLevel::Public
+            } else {
+                SensitivityLevel::Sensitive
+            }
+        }
         _ => SensitivityLevel::Sensitive,
     }
 }
@@ -183,9 +193,12 @@ pub struct SoloHostFunctions {
     pub manifest: PluginManifest,
     pub consent_tx: mpsc::Sender<ConsentRequest>,
     pub audit_tx: mpsc::Sender<AuditEntry>,
+    pub log_tx: mpsc::Sender<(String, String)>,
     pub rate_limiter: Arc<RateLimiter>,
     pub session_expires_at: Instant,
     pub wasi: wasmtime_wasi::preview1::WasiP1Ctx,
+    /// 预授权的字段集合（批量授权后填充）
+    pub pre_approved_fields: HashSet<String>,
 }
 
 impl SoloHostFunctions {
@@ -196,8 +209,10 @@ impl SoloHostFunctions {
         manifest: PluginManifest,
         consent_tx: mpsc::Sender<ConsentRequest>,
         audit_tx: mpsc::Sender<AuditEntry>,
+        log_tx: mpsc::Sender<(String, String)>,
         rate_limiter: Arc<RateLimiter>,
         ttl_seconds: u64,
+        pre_approved_fields: HashSet<String>,
     ) -> Self {
         let wasi = wasmtime_wasi::WasiCtxBuilder::new()
             .inherit_stdio()
@@ -209,9 +224,11 @@ impl SoloHostFunctions {
             manifest,
             consent_tx,
             audit_tx,
+            log_tx,
             rate_limiter,
             session_expires_at: Instant::now() + Duration::from_secs(ttl_seconds),
             wasi,
+            pre_approved_fields,
         }
     }
 
@@ -220,8 +237,8 @@ impl SoloHostFunctions {
         // solosoul_request_field(field_id_ptr, field_id_len, out_ptr, out_cap) -> i32
         linker
             .func_wrap(
-                "solosoul",
-                "request_field",
+                "env",
+                "solosoul_request_field",
                 |mut caller: Caller<'_, Self>,
                  field_id_ptr: i32,
                  field_id_len: i32,
@@ -232,7 +249,7 @@ impl SoloHostFunctions {
                         read_memory(&mut caller, field_id_ptr as usize, field_id_len as usize);
 
                     // 使用独立作用域获取 funcs 数据，避免与后续 write_memory 的 mutable borrow 冲突
-                    let (plugin_id, session_id, manifest, rate_limiter, consent_tx, audit_tx, plugin_name, session_expires_at) = {
+                    let (plugin_id, session_id, manifest, rate_limiter, consent_tx, audit_tx, plugin_name, session_expires_at, pre_approved_fields) = {
                         let funcs = caller.data();
                         (
                             funcs.plugin_id.clone(),
@@ -243,6 +260,7 @@ impl SoloHostFunctions {
                             funcs.audit_tx.clone(),
                             funcs.plugin_name.clone(),
                             funcs.session_expires_at,
+                            funcs.pre_approved_fields.clone(),
                         )
                     };
 
@@ -277,7 +295,33 @@ impl SoloHostFunctions {
                         return -3; // TtlExpired
                     }
 
-                    // 4. 根据敏感度决定是否需要用户确认
+                    // 4. 检查是否为预授权字段（批量授权模式，支持通配符匹配）
+                    let is_pre_approved = pre_approved_fields.iter().any(|f| crate::plugin::manifest::PluginManifest::field_matches(f, &field_id));
+                    if is_pre_approved {
+                        match decrypt_field_value(&field_id) {
+                            Ok(value) => {
+                                if value.len() >= out_cap as usize {
+                                    return -4; // BufferTooSmall
+                                }
+                                write_memory(&mut caller, out_ptr as usize, &value);
+                                log_audit(
+                                    &audit_tx,
+                                    &plugin_id,
+                                    &session_id,
+                                    AuditAction::FieldAccessGranted {
+                                        field: field_id,
+                                        confirmed_by_user: true,
+                                    },
+                                );
+                                return 0;
+                            }
+                            Err(_e) => {
+                                return -5; // InvalidField
+                            }
+                        }
+                    }
+
+                    // 5. 根据敏感度决定是否需要用户确认
                     let sensitivity = resolve_field_sensitivity(&field_id);
                     let needs_confirmation = sensitivity.needs_confirmation();
 
@@ -299,13 +343,15 @@ impl SoloHostFunctions {
                                 );
                                 return 0;
                             }
-                            Err(_) => return -5, // InvalidField
+                            Err(_e) => {
+                                return -5; // InvalidField
+                            }
                         }
                     }
 
                     // 5. 敏感字段：通过 Flutter 通道请求用户确认
                     let request_id = uuid::Uuid::new_v4().to_string();
-                    let (tx, rx) = oneshot::channel();
+                    let (tx, rx) = std::sync::mpsc::channel();
                     let request = ConsentRequest {
                         request_id: request_id.clone(),
                         plugin_id: plugin_id.clone(),
@@ -321,9 +367,16 @@ impl SoloHostFunctions {
                     }
 
                     // 6. 阻塞等待 Flutter 用户响应（超时 60s）
-                    // 注意：若超时，Rust 侧的 oneshot::Receiver 被 drop，但 Flutter 端弹窗可能仍然存在。
-                    // Dart 端应通过 PluginEvent::ConsentTimeout 关闭弹窗，防止状态泄漏。
-                    match rx.blocking_recv() {
+                    // 使用 std::sync::mpsc::recv_timeout 防止 Dart 端因死锁或异常永远无法响应
+                    {
+                        use std::fs::OpenOptions;
+                        use std::io::Write;
+                        let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+                        if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("/tmp/solosoul_rust.log") {
+                            let _ = writeln!(file, "[{}] request_field waiting consent: field={}, request_id={}", now, field_id, request_id);
+                        }
+                    }
+                    match rx.recv_timeout(Duration::from_secs(60)) {
                         Ok(ConsentResult::Approved(value)) => {
                             if value.len() >= out_cap as usize {
                                 return -4;
@@ -341,7 +394,8 @@ impl SoloHostFunctions {
                             0
                         }
                         Ok(ConsentResult::Denied) => -2,        // UserDenied
-                        Ok(ConsentResult::Expired) | Err(_) => -3, // TtlExpired / Timeout
+                        Ok(ConsentResult::Expired) => -3,
+                        Err(_) => -3, // Timeout / Disconnected
                     }
                 },
             )
@@ -350,8 +404,8 @@ impl SoloHostFunctions {
         // solosoul_post_data(url_ptr, url_len, body_ptr, body_len, out_ptr, out_cap) -> i32
         linker
             .func_wrap(
-                "solosoul",
-                "post_data",
+                "env",
+                "solosoul_post_data",
                 |mut caller: Caller<'_, Self>,
                  url_ptr: i32,
                  url_len: i32,
@@ -415,8 +469,8 @@ impl SoloHostFunctions {
         // solosoul_log(level_ptr, level_len, msg_ptr, msg_len)
         linker
             .func_wrap(
-                "solosoul",
-                "log",
+                "env",
+                "solosoul_log",
                 |mut caller: Caller<'_, Self>,
                  level_ptr: i32,
                  level_len: i32,
@@ -434,6 +488,7 @@ impl SoloHostFunctions {
                             url: format!("[LOG:{}] {}", level, message),
                         },
                     });
+                    let _ = funcs.log_tx.try_send((level, message));
                 },
             )
             .map_err(|e| e.to_string())?;
@@ -441,8 +496,8 @@ impl SoloHostFunctions {
         // solosoul_get_timestamp() -> i64
         linker
             .func_wrap(
-                "solosoul",
-                "get_timestamp",
+                "env",
+                "solosoul_get_timestamp",
                 |_caller: Caller<'_, Self>| -> i64 {
                     std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
@@ -516,18 +571,74 @@ fn decrypt_field_value(field_id: &str) -> Result<String, String> {
     let plaintext = crate::crypto::decrypt_profile_data(&session_key, &profile.data)
         .map_err(|e| format!("Decryption failed: {}", e))?;
 
-    // 7. 反序列化
+    // 7. 反序列化（支持 VersionedProfileData 和旧格式 ProfileData）
     let json_str = String::from_utf8_lossy(&plaintext);
-    let versioned: VersionedProfileData = serde_json::from_str(&json_str)
-        .map_err(|e| format!("Failed to parse profile data: {}", e))?;
+    let data: ProfileData = match serde_json::from_str::<VersionedProfileData>(&json_str) {
+        Ok(versioned) => versioned.data,
+        Err(_) => {
+            // 向后兼容：旧格式没有 version 包装层
+            serde_json::from_str(&json_str)
+                .map_err(|e| format!("Failed to parse profile data: {}", e))?
+        }
+    };
 
-    // 8. 按字段路径取值
-    extract_field_value(field_id, &versioned.data)
-        .ok_or_else(|| format!("Field '{}' not found or empty", field_id))
+    // 8. 按字段路径取值（旧格式）
+    let result = extract_field_value(field_id, &data);
+    if result.is_some() {
+        return result.ok_or_else(|| format!("Field '{}' not found or empty", field_id));
+    }
+
+    // 9. 尝试从 Unified Object Model 提取（Flutter 新格式）
+    let json_value: serde_json::Value = serde_json::from_str(&json_str)
+        .map_err(|e| format!("Failed to parse as JSON: {}", e))?;
+    let uom_result = extract_from_unified_object_model(field_id, &json_value);
+    uom_result.ok_or_else(|| format!("Field '{}' not found or empty", field_id))
 }
 
 /// 从 ProfileData 中按字段路径提取值
 fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
+    // 支持 address 数组索引语法，如 address[0].street
+    if let Some(addr_field) = field_id.strip_prefix("address[") {
+        if let Some((idx_str, rest)) = addr_field.split_once("].") {
+            if let Ok(idx) = idx_str.parse::<usize>() {
+                let identity = data.identity.as_ref()?;
+                let addrs: Vec<_> = identity.addresses.iter().filter(|a| !a.is_deleted).collect();
+                let addr = addrs.get(idx)?;
+                return match rest {
+                    "street" => addr.street.clone(),
+                    "city" => addr.city.clone(),
+                    "state" => addr.state.clone(),
+                    "postalCode" => addr.postal_code.clone(),
+                    "country" => addr.country.clone(),
+                    "label" => addr.label.clone(),
+                    _ => None,
+                };
+            }
+        }
+    }
+
+    // address.count 返回未删除地址数量
+    if field_id == "address.count" {
+        let count = data.identity.as_ref()?.addresses.iter().filter(|a| !a.is_deleted).count();
+        return Some(count.to_string());
+    }
+
+    // address.xxx 简写路径：默认映射到第一个未删除地址（主地址）
+    if let Some(addr_key) = field_id.strip_prefix("address.") {
+        let identity = data.identity.as_ref()?;
+        let addr = identity.addresses.iter().find(|a| !a.is_deleted)?;
+        return match addr_key {
+            "street" => addr.street.clone(),
+            "city" => addr.city.clone(),
+            "state" => addr.state.clone(),
+            "postalCode" => addr.postal_code.clone(),
+            "country" => addr.country.clone(),
+            "label" => addr.label.clone(),
+            // district 在 AddressData 中不存在，返回 None
+            _ => None,
+        };
+    }
+
     match field_id {
         "identity.full_name" => data.identity.as_ref()?.full_name.clone(),
         "identity.contact.emails" => {
@@ -587,6 +698,186 @@ fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
             .and_then(|b| b.account_number.clone()),
         _ => None,
     }
+}
+
+/// 从 Unified Object Model（Flutter 新格式）中提取字段值
+///
+/// UOM JSON 结构：
+/// {
+///   "unified_objects": {
+///     "objects": [
+///       {
+///         "name": "Home Address",
+///         "properties": {
+///           "street": {"type": "text", "text": "...", "sensitivity": "..."},
+///           ...
+///         }
+///       }
+///     ]
+///   }
+/// }
+/// 获取所有非删除的 profile_address 对象（按数组索引顺序）
+fn get_address_objects(objects: &[serde_json::Value]) -> Vec<&serde_json::Value> {
+    let mut addrs: Vec<&serde_json::Value> = Vec::new();
+    for obj in objects {
+        if obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+        if type_id == "profile_address" {
+            addrs.push(obj);
+        }
+    }
+    addrs
+}
+
+fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Value) -> Option<String> {
+    let objects = json_value
+        .get("unified_objects")?
+        .get("objects")?
+        .as_array()?;
+
+    // 1. 处理 address.count
+    if field_id == "address.count" {
+        let addrs = get_address_objects(objects);
+        return Some(addrs.len().to_string());
+    }
+
+    // 2. 处理 address[N].xxx 数组索引语法
+    if let Some(addr_field) = field_id.strip_prefix("address[") {
+        if let Some((idx_str, rest)) = addr_field.split_once("].") {
+            if let Ok(idx) = idx_str.parse::<usize>() {
+                let addrs = get_address_objects(objects);
+                let addr = addrs.get(idx)?;
+                let properties = addr.get("properties")?;
+                let prop_key = match rest {
+                    "street" => "street",
+                    "city" => "city",
+                    "state" => "state",
+                    "postalCode" => "postalCode",
+                    "country" => "country",
+                    "district" => "district",
+                    "label" => "label",
+                    _ => rest,
+                };
+                let prop = properties.get(prop_key)?;
+                return prop.get("text").and_then(|t| t.as_str()).map(|s| s.to_string());
+            }
+        }
+    }
+
+    // 3. 处理 address.xxx 简写路径（返回第一个非空地址的对应字段）
+    if let Some(addr_key) = field_id.strip_prefix("address.") {
+        let prop_key = match addr_key {
+            "street" => "street",
+            "city" => "city",
+            "state" => "state",
+            "postalCode" => "postalCode",
+            "country" => "country",
+            "district" => "district",
+            "label" => "label",
+            _ => addr_key,
+        };
+        let addrs = get_address_objects(objects);
+        let mut first_empty: Option<String> = None;
+        for addr in addrs {
+            let properties = match addr.get("properties") {
+                Some(p) => p,
+                None => continue,
+            };
+            let prop = match properties.get(prop_key) {
+                Some(p) => p,
+                None => continue,
+            };
+            if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+                if !text.is_empty() {
+                    return Some(text.to_string());
+                }
+                if first_empty.is_none() {
+                    first_empty = Some(text.to_string());
+                }
+            }
+        }
+        return first_empty;
+    }
+
+    // 4. 通用字段路径映射（identity 等）
+    let property_key = match field_id {
+        "identity.full_name" => "fullName",
+        "identity.given_name" => "givenName",
+        "identity.family_name" => "familyName",
+        "identity.date_of_birth" => "dateOfBirth",
+        "identity.gender" => "gender",
+        "identity.nationality" => "nationality",
+        _ => {
+            field_id.split('.').last().unwrap_or(field_id)
+        }
+    };
+
+    let mut first_empty: Option<String> = None;
+    for obj in objects {
+        if obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false) {
+            continue;
+        }
+        let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+        if type_id == "page" || type_id == "collection" {
+            continue;
+        }
+        let properties = match obj.get("properties") {
+            Some(p) => p,
+            None => continue,
+        };
+        let prop = match properties.get(property_key) {
+            Some(p) => p,
+            None => continue,
+        };
+        if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+            if !text.is_empty() {
+                return Some(text.to_string());
+            }
+            if first_empty.is_none() {
+                first_empty = Some(text.to_string());
+            }
+            continue;
+        }
+        if let Some(value) = prop.get("value").and_then(|v| v.as_f64()) {
+            return Some(value.to_string());
+        }
+        if let Some(iso_date) = prop.get("isoDate").and_then(|d| d.as_str()) {
+            if !iso_date.is_empty() {
+                return Some(iso_date.to_string());
+            }
+            if first_empty.is_none() {
+                first_empty = Some(iso_date.to_string());
+            }
+            continue;
+        }
+        if let Some(checked) = prop.get("checked").and_then(|c| c.as_bool()) {
+            return Some(checked.to_string());
+        }
+        if let Some(selected_id) = prop.get("selectedId").and_then(|s| s.as_str()) {
+            if !selected_id.is_empty() {
+                return Some(selected_id.to_string());
+            }
+            if first_empty.is_none() {
+                first_empty = Some(selected_id.to_string());
+            }
+            continue;
+        }
+        if let Some(selected_ids) = prop.get("selectedIds").and_then(|s| s.as_array()) {
+            let ids: Vec<String> = selected_ids.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            let joined = ids.join(", ");
+            if !joined.is_empty() {
+                return Some(joined);
+            }
+            if first_empty.is_none() {
+                first_empty = Some(joined);
+            }
+            continue;
+        }
+    }
+
+    first_empty
 }
 
 async fn proxy_http_post(url: &str, body: &str) -> Result<String, HttpError> {

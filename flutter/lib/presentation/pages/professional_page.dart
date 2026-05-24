@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart'
-    show DefaultPageIds, DefaultSectionIds;
+    show DefaultPageIds;
 import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
-import 'package:solosoul_flutter/presentation/widgets/scan_document_button.dart';
 
 class ProfessionalPage extends ConsumerWidget {
   const ProfessionalPage({super.key});
@@ -15,10 +14,6 @@ class ProfessionalPage extends ConsumerWidget {
     return ObjectCategoryPage(
       title: l10n.professionalTitle,
       pageId: DefaultPageIds.professional,
-      headerWidgets: const [
-        ScanDocumentButton(parentId: DefaultSectionIds.employment),
-        SizedBox(height: 16),
-      ],
     );
   }
 }

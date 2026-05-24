@@ -34,14 +34,19 @@ import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_result_card.da
 /// 若检测到 MRZ 则展示结构化结果，否则展示通用文本。
 ///
 /// 用户无感获得 MRZ 结构化体验。
-class OcrScannerSheet extends ConsumerStatefulWidget {
-  const OcrScannerSheet({super.key});
+/// OCR 扫描器核心内容（无 sheet 包装）。
+/// 可直接嵌入页面（如 TabView），也可被 [OcrScannerSheet] 包裹作为底部弹窗。
+class OcrScannerBody extends ConsumerStatefulWidget {
+  final VoidCallback? onClose;
+  final ValueChanged<SmartOcrResult>? onResult;
+
+  const OcrScannerBody({super.key, this.onClose, this.onResult});
 
   @override
-  ConsumerState<OcrScannerSheet> createState() => _OcrScannerSheetState();
+  ConsumerState<OcrScannerBody> createState() => _OcrScannerBodyState();
 }
 
-class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
+class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
   bool _isLoading = false;
   String? _errorMessage;
   SmartOcrResult? _result;
@@ -67,59 +72,36 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.only(bottom: bottomPadding),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return Column(
+      children: [
+        // 标题 + 可选关闭按钮
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
             children: [
-              // 拖拽指示器
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              Text(
+                AppLocalizations.of(context).ocrScanDocument,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              // 标题
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context).ocrScanDocument,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
+              const Spacer(),
+              if (widget.onClose != null)
+                IconButton(
+                  onPressed: widget.onClose,
+                  icon: const Icon(Icons.close),
                 ),
-              ),
-              const SizedBox(height: 8),
-              // 内容区
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _buildContent(),
-                ),
-              ),
-              const SizedBox(height: 16),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        // 内容区
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildContent(),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -351,9 +333,17 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
                       rawText: textResult.extraction.rawText,
                     ),
                   );
-                  Navigator.of(context).pop(filtered);
+                  if (widget.onResult != null) {
+                    widget.onResult!(filtered);
+                  } else {
+                    _resetState();
+                  }
                 } else {
-                  Navigator.of(context).pop(_result);
+                  if (widget.onResult != null) {
+                    widget.onResult!(_result!);
+                  } else {
+                    _resetState();
+                  }
                 }
               },
               icon: const Icon(Icons.download),
@@ -606,9 +596,23 @@ class _OcrScannerSheetState extends ConsumerState<OcrScannerSheet> {
       );
 
       if (result.success) {
-        Navigator.of(context).pop(_result);
+        if (widget.onResult != null) {
+          widget.onResult!(_result!);
+        } else {
+          _resetState();
+        }
       }
     }
+  }
+
+  void _resetState() {
+    setState(() {
+      _result = null;
+      _errorMessage = null;
+      _originalImageBytes = null;
+      _selectedFieldKeys = {};
+      _isSaving = false;
+    });
   }
 
   Future<void> _loadModelOptions() async {
@@ -870,6 +874,48 @@ class _OcrPrivacyNotice extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 底部 Sheet 包装的 OCR 扫描器。
+/// 内部使用 [OcrScannerBody]，添加拖拽指示器、关闭按钮与顶部圆角。
+class OcrScannerSheet extends StatelessWidget {
+  const OcrScannerSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 拖拽指示器
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Expanded(
+                child: OcrScannerBody(
+                  onClose: () => Navigator.of(context).pop(),
+                  onResult: (result) => Navigator.of(context).pop(result),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

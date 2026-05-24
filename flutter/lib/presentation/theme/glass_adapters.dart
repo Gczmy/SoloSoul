@@ -318,8 +318,16 @@ class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Typically [AppRoutes.home] for pages reached via [context.go()].
   final String? backRoute;
 
+  /// Optional widget to place at the bottom of the app bar (e.g. a [TabBar]).
+  final PreferredSizeWidget? bottom;
+
+  final Size _basePreferredSize;
+
   @override
-  final Size preferredSize;
+  Size get preferredSize => Size(
+        _basePreferredSize.width,
+        _basePreferredSize.height + (bottom?.preferredSize.height ?? 0),
+      );
 
   const SoloGlassAppBar({
     super.key,
@@ -329,8 +337,9 @@ class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitle = true,
     this.automaticallyImplyLeading = true,
     this.backRoute,
-    this.preferredSize = const Size.fromHeight(56.0),
-  });
+    this.bottom,
+    Size preferredSize = const Size.fromHeight(56.0),
+  }) : _basePreferredSize = preferredSize;
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +359,7 @@ class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       }
     }
 
-    return GlassAppBar(
+    final bar = GlassAppBar(
       title: DefaultTextStyle.merge(
         style: TextStyle(
           color: iconColor,
@@ -361,12 +370,24 @@ class SoloGlassAppBar extends StatelessWidget implements PreferredSizeWidget {
       leading: effectiveLeading,
       actions: actions,
       centerTitle: centerTitle,
-      preferredSize: preferredSize,
+      preferredSize: _basePreferredSize,
       useOwnLayer: true,
       settings: const LiquidGlassSettings(
         blur: 15,
         thickness: 20,
         glassColor: Color(0x1AFFFFFF),
+      ),
+    );
+
+    if (bottom == null) return bar;
+
+    return SizedBox.fromSize(
+      size: preferredSize,
+      child: Column(
+        children: [
+          bar,
+          bottom!,
+        ],
       ),
     );
   }

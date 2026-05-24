@@ -26,6 +26,20 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use thiserror::Error;
 
+/// 全局日志文件 Mutex，防止多线程竞争
+static LOG_FILE_MUTEX: Mutex<()> = Mutex::new(());
+
+/// 写日志到 /tmp/solosoul_rust.log
+pub(crate) fn log_to_file(msg: &str) {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+    let _guard = LOG_FILE_MUTEX.lock();
+    let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("/tmp/solosoul_rust.log") {
+        let _ = writeln!(file, "[{}] {}", now, msg);
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum CoreError {
     #[error("Crypto error: {0}")]

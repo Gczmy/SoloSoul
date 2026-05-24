@@ -1,6 +1,7 @@
 //! Plugin manifest - Plugin configuration and permissions
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Plugin manifest (manifest.json)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +33,10 @@ pub struct PluginManifest {
     pub require_user_confirmation: bool,
     #[serde(default = "default_consent_validity_hours")]
     pub consent_validity_hours: u64,
+    /// 多语言信息：locale -> {key -> value}
+    /// 例如 {"zh": {"name": "地址格式化器", "description": "..."}}
+    #[serde(default)]
+    pub i18n: HashMap<String, HashMap<String, String>>,
 }
 
 fn default_data_ttl_seconds() -> u64 {
@@ -119,7 +124,7 @@ impl PluginManifest {
     }
 
     /// Check if field pattern matches
-    fn field_matches(pattern: &str, field: &str) -> bool {
+    pub fn field_matches(pattern: &str, field: &str) -> bool {
         if pattern == "*" {
             return true;
         }

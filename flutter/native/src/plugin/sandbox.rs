@@ -3,6 +3,7 @@
 //! 每个插件运行在独立的 wasmtime::Store 中，敏感数据仅在 Store 存活期间可访问。
 //! TTL 到期后整个 Store 被 drop，Wasm 内存（含可能的敏感数据副本）彻底销毁。
 
+use std::collections::HashSet;
 use std::sync::Arc;
 use wasmtime::{Config, Engine, Linker, Module, Store};
 
@@ -76,8 +77,10 @@ impl WasmSandbox {
         manifest: &PluginManifest,
         consent_channel: &ConsentChannel,
         audit_tx: tokio::sync::mpsc::Sender<AuditEntry>,
+        log_tx: tokio::sync::mpsc::Sender<(String, String)>,
         rate_limiter: Arc<RateLimiter>,
         ttl_seconds: u64,
+        pre_approved_fields: HashSet<String>,
     ) -> Result<PluginResult, PluginError> {
 
         let host = SoloHostFunctions::new(
@@ -87,8 +90,10 @@ impl WasmSandbox {
             manifest.clone(),
             consent_channel.tx.clone(),
             audit_tx.clone(),
+            log_tx,
             rate_limiter,
             ttl_seconds,
+            pre_approved_fields,
         );
 
         let mut linker = Linker::new(&self.engine);

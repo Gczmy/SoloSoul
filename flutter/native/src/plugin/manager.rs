@@ -4,12 +4,30 @@
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use tokio::sync::oneshot;
+
+use std::sync::Mutex as StdMutex;
+
+/// 写日志到 /tmp/solosoul_rust.log，用全局 Mutex 防止多线程竞争导致格式混乱
+static LOG_FILE_MUTEX: StdMutex<()> = StdMutex::new(());
+
+pub fn rust_log(msg: &str) {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+    let _guard = LOG_FILE_MUTEX.lock();
+    let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("/tmp/solosoul_rust.log") {
+        let _ = writeln!(file, "[{}] {}", now, msg);
+    }
+}
+
 
 #[cfg(feature = "sandbox")]
 use crate::frb_generated::StreamSink;
 
-use super::host::{AuditAction, AuditEntry, ConsentChannel, ConsentRequest, ConsentResult, RateLimiter};
+use std::collections::HashSet;
+use std::time::Duration;
+
+use super::host::{AuditAction, AuditEntry, ConsentChannel, ConsentRequest, ConsentResult, RateLimiter, resolve_field_sensitivity};
 use super::manifest::PluginManifest;
 use super::sandbox::WasmSandbox;
 use super::session::{PluginSessionManager, SessionInfo};
@@ -49,8 +67,8 @@ pub struct PluginManager {
     sandbox: WasmSandbox,
     session_manager: PluginSessionManager,
     rate_limiter: Arc<RateLimiter>,
-    /// request_id -> oneshot::Sender<ConsentResult>
-    pending_consents: Arc<Mutex<HashMap<String, oneshot::Sender<ConsentResult>>>>,
+    /// request_id -> std::sync::mpsc::Sender<ConsentResult>
+    pending_consents: Arc<Mutex<HashMap<String, std::sync::mpsc::Sender<ConsentResult>>>>,
 }
 
 impl PluginManager {
@@ -150,9 +168,10 @@ impl PluginManager {
         self.session_manager
             .register(&plugin_id, &plugin_name, &session_id, session_ttl_seconds);
 
-        // 4. 创建 Consent 和 Audit 通道
+        // 4. 创建 Consent、Audit 和 Log 通道
         let (consent_tx, mut consent_rx) = tokio::sync::mpsc::channel::<ConsentRequest>(16);
         let (audit_tx, mut audit_rx) = tokio::sync::mpsc::channel::<AuditEntry>(64);
+        let (log_tx, mut log_rx) = tokio::sync::mpsc::channel::<(String, String)>(256);
 
         let pending_consents = Arc::clone(&self.pending_consents);
         let rate_limiter = Arc::clone(&self.rate_limiter);
@@ -218,7 +237,95 @@ impl PluginManager {
             }
         });
 
-        // 6. 执行插件（在独立线程中运行，避免阻塞 Dart UI）
+        // 5c. 启动 Log 后台处理线程
+        //     消费 log_rx，将插件日志通过 StreamSink 推送到 Dart 端
+        let sink_log = sink.clone();
+        let log_thread = std::thread::spawn(move || {
+            while let Some((level, message)) = log_rx.blocking_recv() {
+                let _ = sink_log.add(PluginEvent::Log {
+                    level,
+                    message,
+                });
+            }
+        });
+
+        // 6. 批量预授权：收集 manifest 中所有敏感字段，一次性请求用户确认
+        //    若用户拒绝任何字段，直接终止插件执行
+        let mut pre_approved_fields: HashSet<String> = HashSet::new();
+        let all_fields: Vec<String> = manifest_clone.required_fields.iter()
+            .chain(manifest_clone.optional_fields.iter())
+            .cloned()
+            .collect();
+        
+        if !all_fields.is_empty() {
+            let sensitive_fields: Vec<String> = all_fields.iter()
+                .filter(|field| resolve_field_sensitivity(field).needs_confirmation())
+                .cloned()
+                .collect();
+            
+            if !sensitive_fields.is_empty() {
+                let mut pending_rxs: Vec<(String, std::sync::mpsc::Receiver<ConsentResult>)> = Vec::new();
+                
+                // 为每个敏感字段发送 ConsentRequest
+                for field in &sensitive_fields {
+                    let request_id = uuid::Uuid::new_v4().to_string();
+                    let (tx, rx) = std::sync::mpsc::channel();
+                    
+                    // 将 sender 存入 pending_consents（供 Dart 响应时查找）
+                    if let Ok(mut guard) = self.pending_consents.lock() {
+                        guard.insert(request_id.clone(), tx);
+                    }
+                    
+                    // 通过 StreamSink 推送 ConsentRequest 事件到 Dart 端
+                    let _ = sink.add(PluginEvent::ConsentRequest {
+                        request_id: request_id.clone(),
+                        plugin_id: plugin_id.clone(),
+                        plugin_name: plugin_name.clone(),
+                        field: field.clone(),
+                        sensitivity: format!("{:?}", resolve_field_sensitivity(field)),
+                    });
+                    
+                    pending_rxs.push((field.clone(), rx));
+                }
+                
+                // 发送批量结束标志，通知 Dart 显示批量对话框
+                let _ = sink.add(PluginEvent::Log {
+                    level: "batch_end".to_string(),
+                    message: format!("pre-consent|{}", plugin_id),
+                });
+                
+                // 等待所有用户响应（超时 60s）
+                let mut any_denied = false;
+                for (field, rx) in pending_rxs {
+                    match rx.recv_timeout(Duration::from_secs(60)) {
+                        Ok(ConsentResult::Approved(_)) => {
+                            pre_approved_fields.insert(field);
+                        }
+                        Ok(ConsentResult::Denied) => {
+                            any_denied = true;
+                            break;
+                        }
+                        Ok(ConsentResult::Expired) | Err(_) => {
+                            any_denied = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if any_denied {
+                    // 用户拒绝或超时，立即撤销 Session 并通过 Stream 通知 Dart
+                    // ⚠️ 不可返回 Err，否则 FRB 的 unawaited Future 会抛出 Unhandled Exception
+                    self.session_manager.revoke(&plugin_id);
+                    let _ = sink.add(PluginEvent::Error {
+                        message: "User denied or timed out field access".to_string(),
+                    });
+                    return Ok(0);
+                }
+                
+            }
+        }
+
+        // 7. 执行插件（在独立线程中运行，避免阻塞 Dart UI）
         let sink_execute = sink.clone();
 
         let result = self.sandbox.execute(
@@ -229,16 +336,23 @@ impl PluginManager {
             &manifest_clone,
             &ConsentChannel { tx: consent_tx },
             audit_tx,
+            log_tx,
             rate_limiter,
             session_ttl_seconds,
+            pre_approved_fields,
         );
 
         // 7. 根据执行结果处理 Session，并通过 StreamSink 推送 Completed/Error 事件
+        //    ⚠️ 必须先等待 log_thread 结束，确保所有插件日志已推送到 Dart，
+        //       否则 StreamSink 关闭后日志事件会丢失。
         match result {
             Ok(r) => {
                 let _ = sink_execute.add(PluginEvent::Completed {
                     exit_code: r.exit_code,
                 });
+                // 执行完成后清理 Session（成功或失败均清理）
+                self.session_manager.revoke(&plugin_id);
+                let _ = log_thread.join();
                 Ok(r.exit_code)
             }
             Err(e) => {
@@ -247,6 +361,7 @@ impl PluginManager {
                 let _ = sink_execute.add(PluginEvent::Error {
                     message: format!("{:?}", e),
                 });
+                let _ = log_thread.join();
                 Err(format!("{:?}", e))
             }
         }
@@ -270,12 +385,11 @@ impl PluginManager {
             } else {
                 ConsentResult::Denied
             };
-            sender
-                .send(result)
-                .map_err(|_| "Consent receiver dropped".to_string())?;
+            // 忽略发送错误：receiver 可能已超时关闭
+            let _ = sender.send(result);
             Ok(())
         } else {
-            Err("Consent request not found or expired".to_string())
+            Err("Plugin consent request not found or expired".to_string())
         }
     }
 }
@@ -285,10 +399,10 @@ impl PluginManager {
 // ============================================================================
 
 lazy_static::lazy_static! {
-    static ref PLUGIN_MANAGER: Mutex<Option<PluginManager>> = Mutex::new(None);
+    static ref PLUGIN_MANAGER: Mutex<Option<Arc<PluginManager>>> = Mutex::new(None);
 }
 
-fn get_plugin_manager() -> Result<std::sync::MutexGuard<'static, Option<PluginManager>>, String> {
+fn get_plugin_manager() -> Result<std::sync::MutexGuard<'static, Option<Arc<PluginManager>>>, String> {
     PLUGIN_MANAGER
         .lock()
         .map_err(|e| format!("Lock poisoned: {}", e))
@@ -297,7 +411,7 @@ fn get_plugin_manager() -> Result<std::sync::MutexGuard<'static, Option<PluginMa
 fn init_plugin_manager() -> Result<(), String> {
     let mut guard = get_plugin_manager()?;
     if guard.is_none() {
-        *guard = Some(PluginManager::new()?);
+        *guard = Some(Arc::new(PluginManager::new()?));
     }
     Ok(())
 }
@@ -307,9 +421,12 @@ where
     F: FnOnce(&PluginManager) -> Result<R, String>,
 {
     init_plugin_manager()?;
-    let guard = get_plugin_manager()?;
-    let manager = guard.as_ref().ok_or("PluginManager not initialized")?;
-    f(manager)
+    let manager = {
+        let guard = get_plugin_manager()?;
+        guard.as_ref().ok_or("PluginManager not initialized")?.clone()
+    };
+    let result = f(&manager);
+    result
 }
 
 // ============================================================================

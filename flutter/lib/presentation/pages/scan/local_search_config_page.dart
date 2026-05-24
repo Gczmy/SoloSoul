@@ -12,6 +12,11 @@ import 'package:solosoul_flutter/presentation/widgets/folder_picker_dialog.dart'
 import 'package:solosoul_flutter/core/router/app_router.dart';
 import 'package:solosoul_flutter/presentation/providers/scan/local_search_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/scan/scan_config_provider.dart';
+import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_sheet.dart';
+import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
+import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 // =============================================================================
 // Local Search Config Page
@@ -66,142 +71,26 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final searchState = ref.watch(localSearchProvider);
-    final notifier = ref.read(localSearchProvider.notifier);
 
-    final useDefaultPaths = searchState.paths.isEmpty;
-    final customPaths = searchState.paths;
-    final selectedExtensions = searchState.extensions;
-    final scanDepth = searchState.scanDepth;
-    final sizeLimits = searchState.maxFileSizeByExtension;
-
-    return Scaffold(
-      appBar: SoloGlassAppBar(
-        backRoute: AppRoutes.home,
-        title: Text(l10n.localSearchTitle),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: SoloGlassAppBar(
+          backRoute: AppRoutes.home,
+          title: Text(l10n.localSearchTitle),
+          centerTitle: true,
+          bottom: TabBar(
+            tabs: [
+              Tab(text: l10n.localSearchTabDocumentScan),
+              Tab(text: l10n.localSearchTabLocalImport),
+            ],
+          ),
+        ),
+        body: TabBarView(
           children: [
-            Text(
-              l10n.localSearchScanLocalFiles,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.localSearchDescription,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 32),
-            _SectionTitle(icon: Icons.folder_outlined, title: l10n.localSearchPaths),
-            const SizedBox(height: 12),
-            _SearchPathsSection(
-              useDefaultPaths: useDefaultPaths,
-              customPaths: customPaths,
-              onUseDefaultPaths: () => notifier.setPaths([]),
-              onUseCustomPaths: () {
-                if (customPaths.isEmpty) {
-                  _pickFolder();
-                }
-              },
-              onRemovePath: (p) {
-                final updated = [...customPaths]..remove(p);
-                notifier.setPaths(updated);
-              },
-              onAddPath: _pickFolder,
-            ),
-            const SizedBox(height: 24),
-            _SectionTitle(icon: Icons.file_present_outlined, title: l10n.localSearchFileTypes),
-            const SizedBox(height: 8),
-            Text(
-              l10n.localSearchSelectHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _FileTypeFilterSection(
-              options: _kExtensionOptions,
-              selectedExtensions: selectedExtensions,
-              sizeLimits: sizeLimits,
-              onToggleExtension: (ext) {
-                final updated = [...selectedExtensions];
-                if (updated.contains(ext)) {
-                  updated.remove(ext);
-                } else {
-                  updated.add(ext);
-                }
-                notifier.setExtensions(updated);
-              },
-              onShowSizeLimitDialog: _showSizeLimitDialog,
-            ),
-            const SizedBox(height: 24),
-            _SectionTitle(icon: Icons.tune_outlined, title: l10n.localSearchScanDepth),
-            const SizedBox(height: 12),
-            Card(
-              child: Column(
-                children: [
-                  RadioListTile<String>(
-                    title: Text(l10n.localSearchFilenameOnly),
-                    subtitle: Text(l10n.localSearchFilenameOnlyDesc),
-                    value: 'filename',
-                    groupValue: scanDepth,
-                    onChanged: (v) => notifier.setScanDepth(v!),
-                  ),
-                  RadioListTile<String>(
-                    title: Text(l10n.localSearchFingerprint),
-                    subtitle: Text(l10n.localSearchFingerprintDesc),
-                    value: 'fingerprint',
-                    groupValue: scanDepth,
-                    onChanged: (v) => notifier.setScanDepth(v!),
-                  ),
-                  RadioListTile<String>(
-                    title: Text(l10n.localSearchFullText),
-                    subtitle: Text(l10n.localSearchFullTextDesc),
-                    value: 'full',
-                    groupValue: scanDepth,
-                    onChanged: (v) => notifier.setScanDepth(v!),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.shield_outlined,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      l10n.localSearchPrivacyNotice,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            _SearchActionButtons(
-              isEnabled: selectedExtensions.isNotEmpty,
-              onStartScan: _startScan,
+            const _DocumentRecognitionTab(),
+            _LocalImportTab(
+              pageState: this,
             ),
           ],
         ),
@@ -291,6 +180,206 @@ class _LocalSearchConfigPageState extends ConsumerState<LocalSearchConfigPage> {
     if (newValue != null && mounted) {
       ref.read(localSearchProvider.notifier).setMaxFileSizeForExtension(ext, newValue);
     }
+  }
+}
+
+// =============================================================================
+// Document Recognition Tab
+// =============================================================================
+
+class _DocumentRecognitionTab extends ConsumerWidget {
+  const _DocumentRecognitionTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: OcrScannerBody(
+        onResult: (result) => _handleResult(context, ref, result),
+      ),
+    );
+  }
+
+  Future<void> _handleResult(BuildContext context, WidgetRef ref, SmartOcrResult result) async {
+    final l10n = AppLocalizations.of(context);
+
+    // MRZ 结果已在 OcrScannerBody 内部保存到 Vault
+    if (result is SmartOcrMrzResult) return;
+
+    if (result is SmartOcrTextResult) {
+      final notifier = ref.read(unifiedObjectProvider.notifier);
+      final rawText = result.ocrResult.rawText;
+      var name = rawText.trim().replaceAll('\n', ' ');
+      if (name.length > 30) name = '${name.substring(0, 30).trimRight()}...';
+      if (name.isEmpty) name = l10n.ocrScannedDocument;
+
+      final saved = await notifier.createObject(
+        name: name,
+        typeId: 'note',
+        iconName: 'note',
+        properties: {
+          'content': TextProperty(text: rawText, sensitivity: SensitivityLevel.internal),
+        },
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(saved ? l10n.ocrDocumentSavedAsNote : l10n.objectEditorSaveFailed('')),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+}
+
+// =============================================================================
+// Local Import Tab
+// =============================================================================
+
+class _LocalImportTab extends ConsumerWidget {
+  final _LocalSearchConfigPageState pageState;
+
+  const _LocalImportTab({required this.pageState});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final searchState = ref.watch(localSearchProvider);
+    final notifier = ref.read(localSearchProvider.notifier);
+
+    final useDefaultPaths = searchState.paths.isEmpty;
+    final customPaths = searchState.paths;
+    final selectedExtensions = searchState.extensions;
+    final scanDepth = searchState.scanDepth;
+    final sizeLimits = searchState.maxFileSizeByExtension;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.localSearchScanLocalFiles,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.localSearchDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 32),
+          _SectionTitle(icon: Icons.folder_outlined, title: l10n.localSearchPaths),
+          const SizedBox(height: 12),
+          _SearchPathsSection(
+            useDefaultPaths: useDefaultPaths,
+            customPaths: customPaths,
+            onUseDefaultPaths: () => notifier.setPaths([]),
+            onUseCustomPaths: () {
+              if (customPaths.isEmpty) {
+                pageState._pickFolder();
+              }
+            },
+            onRemovePath: (p) {
+              final updated = [...customPaths]..remove(p);
+              notifier.setPaths(updated);
+            },
+            onAddPath: pageState._pickFolder,
+          ),
+          const SizedBox(height: 24),
+          _SectionTitle(icon: Icons.file_present_outlined, title: l10n.localSearchFileTypes),
+          const SizedBox(height: 8),
+          Text(
+            l10n.localSearchSelectHint,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _FileTypeFilterSection(
+            options: _LocalSearchConfigPageState._kExtensionOptions,
+            selectedExtensions: selectedExtensions,
+            sizeLimits: sizeLimits,
+            onToggleExtension: (ext) {
+              final updated = [...selectedExtensions];
+              if (updated.contains(ext)) {
+                updated.remove(ext);
+              } else {
+                updated.add(ext);
+              }
+              notifier.setExtensions(updated);
+            },
+            onShowSizeLimitDialog: pageState._showSizeLimitDialog,
+          ),
+          const SizedBox(height: 24),
+          _SectionTitle(icon: Icons.tune_outlined, title: l10n.localSearchScanDepth),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              children: [
+                RadioListTile<String>(
+                  title: Text(l10n.localSearchFilenameOnly),
+                  subtitle: Text(l10n.localSearchFilenameOnlyDesc),
+                  value: 'filename',
+                  groupValue: scanDepth,
+                  onChanged: (v) => notifier.setScanDepth(v!),
+                ),
+                RadioListTile<String>(
+                  title: Text(l10n.localSearchFingerprint),
+                  subtitle: Text(l10n.localSearchFingerprintDesc),
+                  value: 'fingerprint',
+                  groupValue: scanDepth,
+                  onChanged: (v) => notifier.setScanDepth(v!),
+                ),
+                RadioListTile<String>(
+                  title: Text(l10n.localSearchFullText),
+                  subtitle: Text(l10n.localSearchFullTextDesc),
+                  value: 'full',
+                  groupValue: scanDepth,
+                  onChanged: (v) => notifier.setScanDepth(v!),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.shield_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.localSearchPrivacyNotice,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          _SearchActionButtons(
+            isEnabled: selectedExtensions.isNotEmpty,
+            onStartScan: pageState._startScan,
+          ),
+        ],
+      ),
+    );
   }
 }
 

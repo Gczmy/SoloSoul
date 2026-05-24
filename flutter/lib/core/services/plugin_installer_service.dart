@@ -24,15 +24,20 @@ class PluginInstallerService {
   }
 
   /// 从远程市场安装插件
+  /// [targetVersion] 为 null 时安装最新版本
   Future<void> installFromMarket(
     String pluginId,
     PluginRegistryEntry entry,
     String appVersion,
-    String pluginApiVersion,
-  ) async {
-    final versionInfo = entry.versions[entry.latestVersion];
+    String pluginApiVersion, {
+    String? targetVersion,
+  }) async {
+    final versionToInstall = targetVersion ?? entry.latestVersion;
+    final versionInfo = entry.versions[versionToInstall];
     if (versionInfo == null) {
-      throw PluginSecurityException('Version info missing for $pluginId');
+      throw PluginSecurityException(
+        'Version $versionToInstall not found for $pluginId',
+      );
     }
 
     // 1. 版本兼容性检查
@@ -90,8 +95,35 @@ class PluginInstallerService {
     // 1. 撤销所有活跃 Session（Rust 侧）
     await frb.frbPluginForceUnload(pluginId: pluginId);
 
-    // 2. 更新 installed.json（标记为已卸载）
+    // 2. 删除插件目录（Rust 侧的 list_installed 直接扫描目录，必须物理删除）
+    final pluginDir = Directory('${_pluginDir.path}/$pluginId');
+    if (await pluginDir.exists()) {
+      await pluginDir.delete(recursive: true);
+    }
+
+    // 3. 更新 installed.json（标记为已卸载）
     await _updateInstalledIndex(pluginId, null, 'uninstalled');
+  }
+
+  /// 记录插件最近使用时间
+  Future<void> recordLastUsed(String pluginId) async {
+    final index = await _loadInstalledIndex();
+    final info = index[pluginId];
+    if (info == null || info.status != 'installed') return;
+    index[pluginId] = InstalledPluginInfo(
+      version: info.version,
+      status: info.status,
+      installedAt: info.installedAt,
+      uninstalledAt: info.uninstalledAt,
+      lastUsedAt: DateTime.now(),
+    );
+    await _saveInstalledIndex(index);
+  }
+
+  /// 获取已安装插件的详细信息
+  Future<InstalledPluginInfo?> getInstalledInfo(String pluginId) async {
+    final index = await _loadInstalledIndex();
+    return index[pluginId];
   }
 
   /// 检查更新
@@ -214,24 +246,32 @@ class PluginInstallerService {
     String? version,
     String status,
   ) async {
-    final indexFile = File('${_pluginDir.path}/installed.json');
-    Map<String, dynamic> index = {};
-    if (await indexFile.exists()) {
-      index = jsonDecode(await indexFile.readAsString()) as Map<String, dynamic>;
-    }
+    final index = await _loadInstalledIndex();
     if (version == null) {
-      index[pluginId] = {
-        'status': status,
-        'uninstalled_at': DateTime.now().toIso8601String(),
-      };
+      index[pluginId] = InstalledPluginInfo(
+        version: '',
+        status: status,
+        uninstalledAt: DateTime.now(),
+      );
     } else {
-      index[pluginId] = {
-        'version': version,
-        'status': status,
-        'installed_at': DateTime.now().toIso8601String(),
-      };
+      index[pluginId] = InstalledPluginInfo(
+        version: version,
+        status: status,
+        installedAt: DateTime.now(),
+      );
     }
-    await indexFile.writeAsString(jsonEncode(index));
+    await _saveInstalledIndex(index);
+  }
+
+  Future<void> _saveInstalledIndex(
+    Map<String, InstalledPluginInfo> index,
+  ) async {
+    final indexFile = File('${_pluginDir.path}/installed.json');
+    final map = <String, dynamic>{};
+    for (final entry in index.entries) {
+      map[entry.key] = entry.value.toJson();
+    }
+    await indexFile.writeAsString(jsonEncode(map));
   }
 
   Future<Map<String, InstalledPluginInfo>> _loadInstalledIndex() async {

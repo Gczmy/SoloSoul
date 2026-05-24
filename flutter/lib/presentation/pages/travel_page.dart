@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart'
-    show DefaultPageIds, DefaultSectionIds;
+    show DefaultPageIds;
 import 'package:solosoul_flutter/presentation/widgets/object_category_page.dart';
-import 'package:solosoul_flutter/presentation/widgets/scan_document_button.dart';
 
 class TravelPage extends ConsumerWidget {
   const TravelPage({super.key});
@@ -15,11 +14,6 @@ class TravelPage extends ConsumerWidget {
     return ObjectCategoryPage(
       title: l10n.travelTitle,
       pageId: DefaultPageIds.travel,
-      headerWidgets: const [
-        SizedBox(height: 8),
-        ScanDocumentButton(parentId: DefaultSectionIds.passport),
-        SizedBox(height: 16),
-      ],
     );
   }
 }

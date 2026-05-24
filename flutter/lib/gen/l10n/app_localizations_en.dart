@@ -3583,6 +3583,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pluginUninstallSuccess => 'Plugin uninstalled successfully';
 
   @override
+  String get pluginUpdateSuccess => 'Plugin updated successfully';
+
+  @override
   String get pluginRunSuccess => 'Plugin executed successfully';
 
   @override
@@ -3598,4 +3601,245 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pluginErrorNetwork =>
       'Network error. Please check your connection.';
+
+  @override
+  String get pluginNameAddressFmt => 'Address Formatter';
+
+  @override
+  String get pluginNameCalendarEvents => 'Calendar Events';
+
+  @override
+  String get pluginNameContactExporter => 'Contact Exporter';
+
+  @override
+  String get pluginNameDataCompleteness => 'Data Completeness';
+
+  @override
+  String get pluginNameDigitalWill => 'Digital Will';
+
+  @override
+  String get pluginNameDocChecklist => 'Doc Checklist';
+
+  @override
+  String get pluginNameEmergencyCard => 'Emergency Card';
+
+  @override
+  String get pluginNameExpiryGuardian => 'Expiry Guardian';
+
+  @override
+  String get pluginNameFormPrefiller => 'Form Prefiller';
+
+  @override
+  String get pluginNameIdValidator => 'ID Validator';
+
+  @override
+  String get pluginNameIdentityTimeline => 'Identity Timeline';
+
+  @override
+  String get pluginNameMrzEncoder => 'MRZ Encoder';
+
+  @override
+  String get pluginNameNamecardGen => 'Namecard Generator';
+
+  @override
+  String get pluginNamePackingList => 'Packing List';
+
+  @override
+  String get pluginNamePhoneFmt => 'Phone Formatter';
+
+  @override
+  String get pluginNameResumeBuilder => 'Resume Builder';
+
+  @override
+  String get pluginNameTaxProfile => 'Tax Profile';
+
+  @override
+  String get pluginNameTotpGen => 'TOTP Generator';
+
+  @override
+  String get pluginNameTravelFootprint => 'Travel Footprint';
+
+  @override
+  String get pluginNameSlotgo => 'SlotGo';
+
+  @override
+  String get pluginDescAddressFmt =>
+      'Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea.';
+
+  @override
+  String get pluginDescCalendarEvents =>
+      'Extract date-related information from the Vault and generate a calendar event preview list.';
+
+  @override
+  String get pluginDescContactExporter =>
+      'Export contact information from the Vault into standard vCard format.';
+
+  @override
+  String get pluginDescDataCompleteness =>
+      'Scan all sections in the Vault, calculate completeness percentage, and generate a report highlighting missing key fields.';
+
+  @override
+  String get pluginDescDigitalWill =>
+      'Generate digital estate allocation suggestions based on data stored in the Vault.';
+
+  @override
+  String get pluginDescDocChecklist =>
+      'Infer existing and missing materials from the Vault based on target scenarios (visa application, bank account opening, etc.).';
+
+  @override
+  String get pluginDescEmergencyCard =>
+      'Generate an emergency medical/contact information card. Data is stored locally with no network required.';
+
+  @override
+  String get pluginDescExpiryGuardian =>
+      'Scan all documents (passports, visas, ID cards, credit cards) for expiration dates and sort by urgency (30/60/90/180 days).';
+
+  @override
+  String get pluginDescFormPrefiller =>
+      'Generate a mapping table from Vault fields to target form fields based on the scenario (visa, bank, hotel, etc.).';
+
+  @override
+  String get pluginDescIdValidator =>
+      'Validate ID number formats and check digits for various countries, including Chinese ID, US SSN, and UK NI Number.';
+
+  @override
+  String get pluginDescIdentityTimeline =>
+      'Display the user\'s identity evolution over time, including education, work, visas, and asset acquisition milestones.';
+
+  @override
+  String get pluginDescMrzEncoder =>
+      'Encode passport/ID card information from the Vault into ICAO Doc 9303 standard Machine Readable Zone (MRZ) format.';
+
+  @override
+  String get pluginDescNamecardGen =>
+      'Generate an encrypted digital business card as a QR code, decryptable only by scanning with SoloSoul.';
+
+  @override
+  String get pluginDescPackingList =>
+      'Intelligently generate a packing list suggestion based on travel records and destination information in the Vault.';
+
+  @override
+  String get pluginDescPhoneFmt =>
+      'Format phone numbers from the Vault according to target country/region dialing standards.';
+
+  @override
+  String get pluginDescResumeBuilder =>
+      'Automatically generate a standard-format resume by extracting education, work experience, skills, and languages from the Vault.';
+
+  @override
+  String get pluginDescTaxProfile =>
+      'Summarize basic tax filing data based on the user\'s country of residence, income sources, and tax residency status.';
+
+  @override
+  String get pluginDescTotpGen =>
+      'Generate 6-digit TOTP dynamic verification codes based on the 2FA Secret stored in the Vault, following RFC 6238.';
+
+  @override
+  String get pluginDescTravelFootprint =>
+      'Analyze visa and travel records in the Vault to generate country visit statistics, favorite regions, and travel timeline reports.';
+
+  @override
+  String get pluginDescSlotgo =>
+      'UK Visa appointment system assistant framework to help auto-fill and submit booking forms to the TLScontact system.';
+
+  @override
+  String get pluginDetailTitleIntro => 'Introduction';
+
+  @override
+  String get pluginDetailTitleChangelog => 'Changelog';
+
+  @override
+  String get pluginDetailTitleInfo => 'Info';
+
+  @override
+  String get pluginDetailFeatureIntro => 'Features';
+
+  @override
+  String get pluginDetailRequiredFields => 'Required Data Fields';
+
+  @override
+  String get pluginDetailRequired => 'Required';
+
+  @override
+  String get pluginDetailOptional => 'Optional';
+
+  @override
+  String get pluginDetailVersionCompat => 'Version Compatibility';
+
+  @override
+  String get pluginDetailMinAppVersion => 'Min App Version';
+
+  @override
+  String get pluginDetailMaxAppVersion => 'Max App Version';
+
+  @override
+  String get pluginDetailPluginApiVersion => 'Plugin API Version';
+
+  @override
+  String get pluginDetailBasicInfo => 'Basic Info';
+
+  @override
+  String get pluginDetailInstallInfo => 'Installation Info';
+
+  @override
+  String get pluginDetailPluginId => 'Plugin ID';
+
+  @override
+  String get pluginDetailPluginName => 'Name';
+
+  @override
+  String get pluginDetailPublisher => 'Publisher';
+
+  @override
+  String get pluginDetailHomepage => 'Homepage';
+
+  @override
+  String get pluginDetailStatus => 'Status';
+
+  @override
+  String get pluginDetailStatusInstalled => 'Installed';
+
+  @override
+  String get pluginDetailStatusNotInstalled => 'Not Installed';
+
+  @override
+  String get pluginDetailInstalledVersion => 'Installed Version';
+
+  @override
+  String get pluginDetailLatestVersion => 'Latest Version';
+
+  @override
+  String get pluginDetailInstallTime => 'Installed At';
+
+  @override
+  String get pluginDetailLastUsed => 'Last Used';
+
+  @override
+  String get pluginDetailNeverUsed => 'Never used';
+
+  @override
+  String get pluginDetailNoChangelog => 'No changelog';
+
+  @override
+  String get pluginDetailNoVersions => 'No version records';
+
+  @override
+  String get pluginDetailCurrent => 'Current';
+
+  @override
+  String get pluginVersionHistoryTitle => 'Version History';
+
+  @override
+  String pluginVersionCurrentLabel(Object version) {
+    return 'v$version (Current)';
+  }
+
+  @override
+  String get pluginActionDetail => 'Details';
+
+  @override
+  String get localSearchTabDocumentScan => 'Document Scan';
+
+  @override
+  String get localSearchTabLocalImport => 'Local Import';
 }

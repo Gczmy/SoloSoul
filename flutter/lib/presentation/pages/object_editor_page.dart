@@ -18,6 +18,7 @@ import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/core/models/section_template.dart';
 import 'package:solosoul_flutter/presentation/pages/section_template_page.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -63,8 +64,8 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   String? _selectedTypeId;
   String? _selectedParentId;
   final List<_PropertyField> _propertyFields = [];
-  bool _fieldsInitialized = false;
   bool _showDeprecated = false;
+  bool _localizedNameInitialized = false;
 
   bool get _isEditing => widget.objectId != null;
 
@@ -101,16 +102,6 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     return _existingObject?.properties ?? {};
   }
 
-  void _initFieldDisplayLabels() {
-    if (_fieldsInitialized) return;
-    for (final field in _propertyFields) {
-      final localized = _getFieldKeyLabel(field.key);
-      if (localized != field.key) {
-        field.controller.text = localized;
-      }
-    }
-    _fieldsInitialized = true;
-  }
   UnifiedObject? _existingObject;
 
   @override
@@ -135,6 +126,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _existingObject = object;
     _nameController.text = object.name;
     _iconController.text = object.iconName;
+    // Name localization will be applied on first build via _initLocalizedName()
     _selectedTypeId = object.typeId;
     _selectedParentId = object.parentId;
     _propertyFields.clear();
@@ -272,10 +264,21 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     super.dispose();
   }
 
+  void _initLocalizedName() {
+    if (_localizedNameInitialized) return;
+    if (_existingObject == null) return;
+    final l10n = AppLocalizations.of(context);
+    final localizedName = getLocalizedObjectName(l10n, _existingObject!);
+    if (localizedName != _existingObject!.name) {
+      _nameController.text = localizedName;
+    }
+    _localizedNameInitialized = true;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isEditing) {
-      _initFieldDisplayLabels();
+      _initLocalizedName();
     }
     final theme = Theme.of(context);
 
@@ -621,6 +624,8 @@ class _TypeDropdown extends ConsumerWidget {
           value: effectiveTypeId,
           hint: Text(AppLocalizations.of(context).objectEditorSelectType),
           items: allTypes.map((type) {
+            final l10n = AppLocalizations.of(context);
+            final displayName = SectionRendererRegistry.getConfig(type.id)?.l10nTitle(l10n) ?? type.name;
             return DropdownMenuItem(
               value: type.id,
               child: Row(
@@ -630,7 +635,7 @@ class _TypeDropdown extends ConsumerWidget {
                     size: 20,
                   ),
                   const SizedBox(width: 12),
-                  Text(type.name),
+                  Text(displayName),
                 ],
               ),
             );
@@ -968,8 +973,8 @@ class _DeprecatedPropertyRow extends StatelessWidget {
   }
 
   String _getPropertyDisplayValue(_PropertyField field) {
-    final value = field.storedValue ?? field.controller.text;
-    if (value.isEmpty) return '—';
+    final value = field.storedValue;
+    if (value == null || value.isEmpty) return '—';
     return value;
   }
 }
@@ -1003,6 +1008,7 @@ class _PropertyFieldRow extends ConsumerWidget {
               maxLength: 24,
           buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
           decoration: InputDecoration(
+            labelText: translateFieldLabel(field.key, AppLocalizations.of(context)),
             hintText: AppLocalizations.of(context).objectEditorKeyName,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),

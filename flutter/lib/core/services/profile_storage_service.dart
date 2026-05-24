@@ -182,7 +182,7 @@ class ProfileStorageService {
         'Profile load failed in isolate: ${e.toString()}',
       );
       return null;
-    } on Exception catch (e, st) {
+    } catch (e, st) {
       DebugLogger.instance.logError('PROFILE', 'loadProfile failed: $e\n$st');
       return null;
     }
@@ -208,9 +208,9 @@ class ProfileStorageService {
 
       _addToCache(accountId, profile);
       return true;
-    } on Exception catch (e) {
+    } catch (e, st) {
       DebugLogger.instance
-          .logError('PROFILE', 'saveProfile failed for $accountId: $e');
+          .logError('PROFILE', 'saveProfile failed for $accountId: $e\n$st');
       return false;
     }
   }

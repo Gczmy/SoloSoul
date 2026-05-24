@@ -6558,6 +6558,12 @@ abstract class AppLocalizations {
   /// **'Plugin uninstalled successfully'**
   String get pluginUninstallSuccess;
 
+  /// No description provided for @pluginUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin updated successfully'**
+  String get pluginUpdateSuccess;
+
   /// No description provided for @pluginRunSuccess.
   ///
   /// In en, this message translates to:
@@ -6587,6 +6593,444 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Network error. Please check your connection.'**
   String get pluginErrorNetwork;
+
+  /// No description provided for @pluginNameAddressFmt.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Formatter'**
+  String get pluginNameAddressFmt;
+
+  /// No description provided for @pluginNameCalendarEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar Events'**
+  String get pluginNameCalendarEvents;
+
+  /// No description provided for @pluginNameContactExporter.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Exporter'**
+  String get pluginNameContactExporter;
+
+  /// No description provided for @pluginNameDataCompleteness.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Completeness'**
+  String get pluginNameDataCompleteness;
+
+  /// No description provided for @pluginNameDigitalWill.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Will'**
+  String get pluginNameDigitalWill;
+
+  /// No description provided for @pluginNameDocChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Doc Checklist'**
+  String get pluginNameDocChecklist;
+
+  /// No description provided for @pluginNameEmergencyCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Card'**
+  String get pluginNameEmergencyCard;
+
+  /// No description provided for @pluginNameExpiryGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Guardian'**
+  String get pluginNameExpiryGuardian;
+
+  /// No description provided for @pluginNameFormPrefiller.
+  ///
+  /// In en, this message translates to:
+  /// **'Form Prefiller'**
+  String get pluginNameFormPrefiller;
+
+  /// No description provided for @pluginNameIdValidator.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Validator'**
+  String get pluginNameIdValidator;
+
+  /// No description provided for @pluginNameIdentityTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Timeline'**
+  String get pluginNameIdentityTimeline;
+
+  /// No description provided for @pluginNameMrzEncoder.
+  ///
+  /// In en, this message translates to:
+  /// **'MRZ Encoder'**
+  String get pluginNameMrzEncoder;
+
+  /// No description provided for @pluginNameNamecardGen.
+  ///
+  /// In en, this message translates to:
+  /// **'Namecard Generator'**
+  String get pluginNameNamecardGen;
+
+  /// No description provided for @pluginNamePackingList.
+  ///
+  /// In en, this message translates to:
+  /// **'Packing List'**
+  String get pluginNamePackingList;
+
+  /// No description provided for @pluginNamePhoneFmt.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Formatter'**
+  String get pluginNamePhoneFmt;
+
+  /// No description provided for @pluginNameResumeBuilder.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume Builder'**
+  String get pluginNameResumeBuilder;
+
+  /// No description provided for @pluginNameTaxProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Profile'**
+  String get pluginNameTaxProfile;
+
+  /// No description provided for @pluginNameTotpGen.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTP Generator'**
+  String get pluginNameTotpGen;
+
+  /// No description provided for @pluginNameTravelFootprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel Footprint'**
+  String get pluginNameTravelFootprint;
+
+  /// No description provided for @pluginNameSlotgo.
+  ///
+  /// In en, this message translates to:
+  /// **'SlotGo'**
+  String get pluginNameSlotgo;
+
+  /// No description provided for @pluginDescAddressFmt.
+  ///
+  /// In en, this message translates to:
+  /// **'Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea.'**
+  String get pluginDescAddressFmt;
+
+  /// No description provided for @pluginDescCalendarEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Extract date-related information from the Vault and generate a calendar event preview list.'**
+  String get pluginDescCalendarEvents;
+
+  /// No description provided for @pluginDescContactExporter.
+  ///
+  /// In en, this message translates to:
+  /// **'Export contact information from the Vault into standard vCard format.'**
+  String get pluginDescContactExporter;
+
+  /// No description provided for @pluginDescDataCompleteness.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan all sections in the Vault, calculate completeness percentage, and generate a report highlighting missing key fields.'**
+  String get pluginDescDataCompleteness;
+
+  /// No description provided for @pluginDescDigitalWill.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate digital estate allocation suggestions based on data stored in the Vault.'**
+  String get pluginDescDigitalWill;
+
+  /// No description provided for @pluginDescDocChecklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Infer existing and missing materials from the Vault based on target scenarios (visa application, bank account opening, etc.).'**
+  String get pluginDescDocChecklist;
+
+  /// No description provided for @pluginDescEmergencyCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate an emergency medical/contact information card. Data is stored locally with no network required.'**
+  String get pluginDescEmergencyCard;
+
+  /// No description provided for @pluginDescExpiryGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan all documents (passports, visas, ID cards, credit cards) for expiration dates and sort by urgency (30/60/90/180 days).'**
+  String get pluginDescExpiryGuardian;
+
+  /// No description provided for @pluginDescFormPrefiller.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a mapping table from Vault fields to target form fields based on the scenario (visa, bank, hotel, etc.).'**
+  String get pluginDescFormPrefiller;
+
+  /// No description provided for @pluginDescIdValidator.
+  ///
+  /// In en, this message translates to:
+  /// **'Validate ID number formats and check digits for various countries, including Chinese ID, US SSN, and UK NI Number.'**
+  String get pluginDescIdValidator;
+
+  /// No description provided for @pluginDescIdentityTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Display the user\'s identity evolution over time, including education, work, visas, and asset acquisition milestones.'**
+  String get pluginDescIdentityTimeline;
+
+  /// No description provided for @pluginDescMrzEncoder.
+  ///
+  /// In en, this message translates to:
+  /// **'Encode passport/ID card information from the Vault into ICAO Doc 9303 standard Machine Readable Zone (MRZ) format.'**
+  String get pluginDescMrzEncoder;
+
+  /// No description provided for @pluginDescNamecardGen.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate an encrypted digital business card as a QR code, decryptable only by scanning with SoloSoul.'**
+  String get pluginDescNamecardGen;
+
+  /// No description provided for @pluginDescPackingList.
+  ///
+  /// In en, this message translates to:
+  /// **'Intelligently generate a packing list suggestion based on travel records and destination information in the Vault.'**
+  String get pluginDescPackingList;
+
+  /// No description provided for @pluginDescPhoneFmt.
+  ///
+  /// In en, this message translates to:
+  /// **'Format phone numbers from the Vault according to target country/region dialing standards.'**
+  String get pluginDescPhoneFmt;
+
+  /// No description provided for @pluginDescResumeBuilder.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically generate a standard-format resume by extracting education, work experience, skills, and languages from the Vault.'**
+  String get pluginDescResumeBuilder;
+
+  /// No description provided for @pluginDescTaxProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Summarize basic tax filing data based on the user\'s country of residence, income sources, and tax residency status.'**
+  String get pluginDescTaxProfile;
+
+  /// No description provided for @pluginDescTotpGen.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate 6-digit TOTP dynamic verification codes based on the 2FA Secret stored in the Vault, following RFC 6238.'**
+  String get pluginDescTotpGen;
+
+  /// No description provided for @pluginDescTravelFootprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze visa and travel records in the Vault to generate country visit statistics, favorite regions, and travel timeline reports.'**
+  String get pluginDescTravelFootprint;
+
+  /// No description provided for @pluginDescSlotgo.
+  ///
+  /// In en, this message translates to:
+  /// **'UK Visa appointment system assistant framework to help auto-fill and submit booking forms to the TLScontact system.'**
+  String get pluginDescSlotgo;
+
+  /// No description provided for @pluginDetailTitleIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Introduction'**
+  String get pluginDetailTitleIntro;
+
+  /// No description provided for @pluginDetailTitleChangelog.
+  ///
+  /// In en, this message translates to:
+  /// **'Changelog'**
+  String get pluginDetailTitleChangelog;
+
+  /// No description provided for @pluginDetailTitleInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get pluginDetailTitleInfo;
+
+  /// No description provided for @pluginDetailFeatureIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get pluginDetailFeatureIntro;
+
+  /// No description provided for @pluginDetailRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Required Data Fields'**
+  String get pluginDetailRequiredFields;
+
+  /// No description provided for @pluginDetailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get pluginDetailRequired;
+
+  /// No description provided for @pluginDetailOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get pluginDetailOptional;
+
+  /// No description provided for @pluginDetailVersionCompat.
+  ///
+  /// In en, this message translates to:
+  /// **'Version Compatibility'**
+  String get pluginDetailVersionCompat;
+
+  /// No description provided for @pluginDetailMinAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Min App Version'**
+  String get pluginDetailMinAppVersion;
+
+  /// No description provided for @pluginDetailMaxAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Max App Version'**
+  String get pluginDetailMaxAppVersion;
+
+  /// No description provided for @pluginDetailPluginApiVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin API Version'**
+  String get pluginDetailPluginApiVersion;
+
+  /// No description provided for @pluginDetailBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Info'**
+  String get pluginDetailBasicInfo;
+
+  /// No description provided for @pluginDetailInstallInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation Info'**
+  String get pluginDetailInstallInfo;
+
+  /// No description provided for @pluginDetailPluginId.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin ID'**
+  String get pluginDetailPluginId;
+
+  /// No description provided for @pluginDetailPluginName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pluginDetailPluginName;
+
+  /// No description provided for @pluginDetailPublisher.
+  ///
+  /// In en, this message translates to:
+  /// **'Publisher'**
+  String get pluginDetailPublisher;
+
+  /// No description provided for @pluginDetailHomepage.
+  ///
+  /// In en, this message translates to:
+  /// **'Homepage'**
+  String get pluginDetailHomepage;
+
+  /// No description provided for @pluginDetailStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get pluginDetailStatus;
+
+  /// No description provided for @pluginDetailStatusInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get pluginDetailStatusInstalled;
+
+  /// No description provided for @pluginDetailStatusNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Installed'**
+  String get pluginDetailStatusNotInstalled;
+
+  /// No description provided for @pluginDetailInstalledVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed Version'**
+  String get pluginDetailInstalledVersion;
+
+  /// No description provided for @pluginDetailLatestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Version'**
+  String get pluginDetailLatestVersion;
+
+  /// No description provided for @pluginDetailInstallTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed At'**
+  String get pluginDetailInstallTime;
+
+  /// No description provided for @pluginDetailLastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Used'**
+  String get pluginDetailLastUsed;
+
+  /// No description provided for @pluginDetailNeverUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Never used'**
+  String get pluginDetailNeverUsed;
+
+  /// No description provided for @pluginDetailNoChangelog.
+  ///
+  /// In en, this message translates to:
+  /// **'No changelog'**
+  String get pluginDetailNoChangelog;
+
+  /// No description provided for @pluginDetailNoVersions.
+  ///
+  /// In en, this message translates to:
+  /// **'No version records'**
+  String get pluginDetailNoVersions;
+
+  /// No description provided for @pluginDetailCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get pluginDetailCurrent;
+
+  /// No description provided for @pluginVersionHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Version History'**
+  String get pluginVersionHistoryTitle;
+
+  /// No description provided for @pluginVersionCurrentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'v{version} (Current)'**
+  String pluginVersionCurrentLabel(Object version);
+
+  /// No description provided for @pluginActionDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get pluginActionDetail;
+
+  /// No description provided for @localSearchTabDocumentScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Scan'**
+  String get localSearchTabDocumentScan;
+
+  /// No description provided for @localSearchTabLocalImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Import'**
+  String get localSearchTabLocalImport;
 }
 
 class _AppLocalizationsDelegate

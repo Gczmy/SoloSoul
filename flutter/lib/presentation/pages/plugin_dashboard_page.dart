@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:version/version.dart';
 
 import 'dart:io' show Platform;
 
@@ -12,6 +14,8 @@ import 'package:solosoul_flutter/presentation/providers/plugin_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_consent_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/plugin_detail_dialog.dart';
+import 'package:solosoul_flutter/core/models/plugin_models.dart' show resolvePluginI18n;
 
 /// 插件看板页面 — 管理插件生命周期（安装/卸载/更新/运行）
 class PluginDashboardPage extends ConsumerStatefulWidget {
@@ -177,10 +181,14 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
     String searchQuery,
   ) {
     // 搜索过滤
+    final locale = Localizations.localeOf(context).toString();
     final filtered = pluginIds.where((id) {
       final manifest = _getManifest(data, id);
-      final name = manifest?.name.toLowerCase() ?? id.toLowerCase();
-      return name.contains(searchQuery);
+      final entry = data.registry.plugins[id];
+      final displayName = resolvePluginI18n(
+        entry?.i18n, 'name', locale, manifest?.name ?? id,
+      );
+      return displayName.toLowerCase().contains(searchQuery);
     }).toList();
 
     if (filtered.isEmpty) {
@@ -236,13 +244,14 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
         pluginApiVersion: '',
         minAppVersion: '',
         maxAppVersion: '',
-        description: '',
+        description: entry.description ?? '',
         publisher: entry.publisher,
         requiredFields: [],
         optionalFields: [],
         dataTtlSeconds: BigInt.from(300),
         requireUserConfirmation: true,
         consentValidityHours: BigInt.from(24),
+        i18N: entry.i18n ?? {},
       );
     }
     return null;
@@ -263,14 +272,17 @@ class _PluginCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final manifest = _getManifest();
-    final name = manifest?.name ?? pluginId;
+    final registryEntry = data.registry.plugins[pluginId];
+    final locale = Localizations.localeOf(context).toString();
+    final name = resolvePluginI18n(
+      registryEntry?.i18n, 'name', locale, manifest?.name ?? pluginId,
+    );
     final version = manifest?.version ?? '';
     final publisher = manifest?.publisher ?? '';
 
     final isInstalled = data.isInstalled(pluginId);
     final isRunning = data.isRunning(pluginId);
     final hasUpdate = data.hasUpdate(pluginId);
-    final registryEntry = data.registry.plugins[pluginId];
 
     // 确定状态标签
     String statusLabel;
@@ -302,19 +314,6 @@ class _PluginCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.extension,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,12 +326,28 @@ class _PluginCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        '$publisher · v$version',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            '$publisher · v$version',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          if (registryEntry != null)
+                            GestureDetector(
+                              onTap: () => _showVersionHistory(context, ref),
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: Icon(
+                                  Icons.history,
+                                  size: 14,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -380,9 +395,16 @@ class _PluginCard extends ConsumerWidget {
       final dash = ref.read(pluginDashboardProvider).asData?.value;
       if (dash != null && dash.registry.plugins.containsKey(pluginId)) {
         buttons.push(
-          FilledButton.tonal(
+          OutlinedButton.icon(
             onPressed: () => _onInstall(context, ref),
-            child: Text(l10n.pluginActionInstall),
+            icon: const Icon(Icons.download_rounded, size: 16),
+            label: Text(l10n.pluginActionInstall),
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              visualDensity: VisualDensity.compact,
+              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ),
         );
       }
@@ -390,16 +412,30 @@ class _PluginCard extends ConsumerWidget {
       // 已安装：显示运行/停止按钮
       if (isRunning) {
         buttons.push(
-          OutlinedButton(
+          OutlinedButton.icon(
             onPressed: Platform.isIOS ? null : () => _onStop(context, ref),
-            child: Text(l10n.pluginActionStop),
+            icon: const Icon(Icons.stop_rounded, size: 16),
+            label: Text(l10n.pluginActionStop),
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              visualDensity: VisualDensity.compact,
+              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ),
         );
       } else {
         buttons.push(
-          FilledButton(
+          OutlinedButton.icon(
             onPressed: Platform.isIOS ? null : () => _onRun(context, ref),
-            child: Text(l10n.pluginActionRun),
+            icon: const Icon(Icons.play_arrow_rounded, size: 16),
+            label: Text(l10n.pluginActionRun),
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              visualDensity: VisualDensity.compact,
+              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ),
         );
       }
@@ -407,9 +443,16 @@ class _PluginCard extends ConsumerWidget {
       // 有更新：显示更新按钮
       if (hasUpdate) {
         buttons.push(
-          FilledButton.tonal(
+          OutlinedButton.icon(
             onPressed: () => _onUpdate(context, ref),
-            child: Text(l10n.pluginActionUpdate),
+            icon: const Icon(Icons.update_rounded, size: 16),
+            label: Text(l10n.pluginActionUpdate),
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              visualDensity: VisualDensity.compact,
+              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
           ),
         );
       }
@@ -424,10 +467,59 @@ class _PluginCard extends ConsumerWidget {
       );
     }
 
+    // 详细信息按钮（始终显示在最右侧）
+    buttons.push(
+      TextButton(
+        onPressed: () => _showPluginDetail(context, ref),
+        child: Text(l10n.pluginActionDetail),
+      ),
+    );
+
     return buttons;
   }
 
+  Future<void> _showPluginDetail(BuildContext context, WidgetRef ref) async {
+    final installer = await ref.read(initializedPluginInstallerProvider.future);
+    final installedInfo = await installer.getInstalledInfo(pluginId);
+
+    frb_manifest.PluginManifest? installedManifest;
+    if (data.isInstalled(pluginId)) {
+      for (final m in data.installed) {
+        if (m.pluginId == pluginId) {
+          installedManifest = m;
+          break;
+        }
+      }
+    }
+
+    if (context.mounted) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => PluginDetailDialog(
+          pluginId: pluginId,
+          registryEntry: data.registry.plugins[pluginId],
+          installedManifest: installedManifest,
+          installedInfo: installedInfo,
+          isInstalled: data.isInstalled(pluginId),
+        ),
+      );
+    }
+  }
+
   Future<void> _onInstall(BuildContext context, WidgetRef ref) async {
+    await _performInstallOrUpdate(context, ref, isUpdate: false);
+  }
+
+  Future<void> _onUpdate(BuildContext context, WidgetRef ref) async {
+    await _performInstallOrUpdate(context, ref, isUpdate: true);
+  }
+
+  Future<void> _performInstallOrUpdate(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isUpdate,
+    String? targetVersion,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final dashboard = ref.read(pluginDashboardProvider).asData?.value;
     if (dashboard == null) return;
@@ -437,10 +529,21 @@ class _PluginCard extends ConsumerWidget {
 
     try {
       // TODO: 获取实际 appVersion 和 pluginApiVersion
-      await installPlugin(ref, pluginId, entry, '1.0.0', '1.0');
+      await installPlugin(
+        ref,
+        pluginId,
+        entry,
+        '1.0.0',
+        '1.0',
+        targetVersion: targetVersion,
+      );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.pluginInstallSuccess)),
+          SnackBar(
+            content: Text(
+              isUpdate ? l10n.pluginUpdateSuccess : l10n.pluginInstallSuccess,
+            ),
+          ),
         );
       }
     } on Exception catch (e) {
@@ -452,57 +555,345 @@ class _PluginCard extends ConsumerWidget {
     }
   }
 
-  Future<void> _onUpdate(BuildContext context, WidgetRef ref) async {
-    // 更新逻辑与安装相同（覆盖安装）
-    await _onInstall(context, ref);
+  Future<void> _showVersionHistory(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final registryEntry = data.registry.plugins[pluginId];
+    if (registryEntry == null) return;
+
+    final installedVersion = data.installedVersion(pluginId);
+    final versions = registryEntry.versions.entries.toList()
+      ..sort((a, b) {
+        try {
+          return Version.parse(b.key).compareTo(Version.parse(a.key));
+        } on Exception {
+          return b.key.compareTo(a.key);
+        }
+      });
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.pluginVersionHistoryTitle,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: versions.length,
+                    itemBuilder: (context, index) {
+                      final ver = versions[index].key;
+                      final info = versions[index].value;
+                      final isCurrent = ver == installedVersion;
+
+                      return ListTile(
+                        leading: Container(
+                          width: 56,
+                          alignment: Alignment.center,
+                          child: isCurrent
+                              ? Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary,
+                                )
+                              : Text(
+                                  'v$ver',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                        ),
+                        title: Text(
+                          isCurrent ? l10n.pluginVersionCurrentLabel(ver) : 'v$ver',
+                          style: TextStyle(
+                            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                            color: isCurrent
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              info.releasedAt.toLocal().toString().split(' ').first,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            if (info.changelog != null && info.changelog!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  info.changelog!,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                          ],
+                        ),
+                        trailing: isCurrent
+                            ? Chip(
+                                label: Text(l10n.pluginDetailCurrent),
+                                visualDensity: VisualDensity.compact,
+                                backgroundColor: Colors.transparent,
+                                side: BorderSide(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.5),
+                                ),
+                              )
+                            : TextButton(
+                                onPressed: () async {
+                                  Navigator.of(ctx).pop();
+                                  await _performInstallOrUpdate(
+                                    context,
+                                    ref,
+                                    isUpdate: data.isInstalled(pluginId),
+                                    targetVersion: ver,
+                                  );
+                                },
+                                child: Text(l10n.pluginActionInstall),
+                              ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _onRun(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
     final stream = runPlugin(ref, pluginId);
+    final List<String> formattedResults = [];
+    final List<String> errorMessages = [];
+    final batchRequests = <frb_plugin.PluginEvent_ConsentRequest>[];
+    String? batchPluginName;
 
     try {
       await for (final event in stream) {
         switch (event) {
           case frb_plugin.PluginEvent_ConsentRequest(
-              requestId: final requestId,
-              pluginId: final pid,
               pluginName: final pname,
-              field: final field,
-              sensitivity: final sensitivityStr,
             ):
-            final approved = await showDialog<bool>(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => PluginConsentDialog(
-                pluginId: pid,
-                pluginName: pname,
-                fieldId: field,
-                requestId: requestId,
-                sensitivity: _parseSensitivity(sensitivityStr),
-              ),
-            );
-            await frb.frbPluginConsentResponse(
-              requestId: requestId,
-              approved: approved ?? false,
-              value: null,
-            );
-          case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${l10n.pluginRunSuccess} (exit: $exitCode)'),
-                ),
+            // 批量模式：缓存请求，等待 batch_end 信号后统一弹窗
+            batchRequests.add(event);
+            if (batchPluginName == null) {
+              final entry = data.registry.plugins[pluginId];
+              final locale = Localizations.localeOf(context).toString();
+              batchPluginName = resolvePluginI18n(
+                entry?.i18n, 'name', locale, pname,
               );
             }
+          case frb_plugin.PluginEvent_Log(level: final level, message: final message):
+            // 批量预授权结束信号：显示批量授权对话框
+            if (level == 'batch_end' && batchRequests.isNotEmpty) {
+              final approved = await showDialog<bool>(
+                context: context,
+                barrierDismissible: false,
+                builder: (ctx) => PluginBatchConsentDialog(
+                  pluginId: pluginId,
+                  pluginName: batchPluginName ?? pluginId,
+                  requests: batchRequests.map((r) => BatchConsentRequest(
+                    requestId: r.requestId,
+                    field: r.field,
+                    sensitivity: r.sensitivity,
+                  )).toList(),
+                ),
+              );
+              // 逐个响应所有预授权请求
+              for (final req in batchRequests) {
+                try {
+                  await frb.frbPluginConsentResponse(
+                    requestId: req.requestId,
+                    approved: approved == true,
+                    value: null,
+                  );
+                } on Exception catch (_) {
+                  // 忽略 consent 响应错误
+                }
+              }
+              batchRequests.clear();
+              // 如果用户拒绝，本次执行后续不会再有 ConsentRequest（Rust 已终止）
+            }
+            // 收集插件输出的格式化结果日志
+            if (level == 'info' && message.contains('格式化结果:')) {
+              final result = message.split('格式化结果:').last.trim();
+              if (result.isNotEmpty) {
+                formattedResults.add(result);
+              }
+            }
+            // 收集插件错误日志
+            if (level == 'error') {
+              errorMessages.add(message);
+            }
+          case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
+            // 记录最近使用时间
+            final installer = await ref.read(initializedPluginInstallerProvider.future);
+            await installer.recordLastUsed(pluginId);
+            if (context.mounted) {
+              if (formattedResults.isNotEmpty) {
+                final registryEntry = data.registry.plugins[pluginId];
+                final locale = Localizations.localeOf(context).toString();
+                final pluginName = resolvePluginI18n(
+                  registryEntry?.i18n, 'name', locale, _getManifest()?.name ?? pluginId,
+                );
+                await showDialog<void>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    insetPadding: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(ctx).size.width * 0.2,
+                      vertical: 24,
+                    ),
+                    title: Row(
+                      children: [
+                        const Icon(Icons.check_circle_outline),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('$pluginName 结果')),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    content: SizedBox(
+                      width: double.maxFinite,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: formattedResults.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: SelectableText(
+                                    formattedResults[index],
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.copy,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  tooltip: '复制',
+                                  onPressed: () {
+                                    Clipboard.setData(
+                                      ClipboardData(text: formattedResults[index]),
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('已复制到剪贴板'),
+                                        duration: Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                  visualDensity: VisualDensity.compact,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: Text(l10n.commonClose),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (exitCode == 0) {
+                // 只有真正成功且没有结果时才显示成功提示
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${l10n.pluginRunSuccess} (exit: $exitCode)'),
+                  ),
+                );
+              } else {
+                // 插件执行失败，显示收集到的错误日志
+                final errorMsg = errorMessages.isNotEmpty
+                    ? errorMessages.join('\n')
+                    : '插件执行失败 (exit: $exitCode)';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(errorMsg),
+                    backgroundColor: AppTheme.errorColor,
+                  ),
+                );
+              }
+            }
           case frb_plugin.PluginEvent_Error(message: final message):
+            // 用户主动拒绝授权或超时，属于正常流程，不显示错误提示
+            if (message.contains('User denied or timed out field access')) {
+              break;
+            }
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('${l10n.commonError}: $message')),
               );
             }
           default:
-            // 忽略 ConsentTimeout / Log / Progress 等事件
+            // 忽略 ConsentTimeout / Progress 等事件
             break;
         }
       }
@@ -513,16 +904,6 @@ class _PluginCard extends ConsumerWidget {
         );
       }
     }
-  }
-
-  SensitivityLevel _parseSensitivity(String value) {
-    return switch (value.toLowerCase()) {
-      'public' => SensitivityLevel.public,
-      'internal' => SensitivityLevel.internal,
-      'sensitive' => SensitivityLevel.sensitive,
-      'critical' => SensitivityLevel.critical,
-      _ => SensitivityLevel.sensitive,
-    };
   }
 
   Future<void> _onStop(BuildContext context, WidgetRef ref) async {
@@ -584,13 +965,14 @@ class _PluginCard extends ConsumerWidget {
         pluginApiVersion: '',
         minAppVersion: '',
         maxAppVersion: '',
-        description: '',
+        description: entry.description ?? '',
         publisher: entry.publisher,
         requiredFields: [],
         optionalFields: [],
         dataTtlSeconds: BigInt.from(300),
         requireUserConfirmation: true,
         consentValidityHours: BigInt.from(24),
+        i18N: entry.i18n ?? {},
       );
     }
     return null;

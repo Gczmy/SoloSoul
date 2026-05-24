@@ -878,6 +878,8 @@ impl AccountManager {
             "[MANAGER] unlock_with_key called for account_id: {}",
             account_id
         ));
+        let was_unlocked = self.is_unlocked();
+        log_to_file(&format!("[MANAGER] unlock_with_key: was_unlocked before={}", was_unlocked));
 
         // Decode session key from base64
         let session_key_bytes = match base64_decode(session_key_b64) {
@@ -1027,6 +1029,8 @@ impl AccountManager {
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 log_to_file("[MANAGER] Vault opened successfully with session key");
+                let now_unlocked = self.is_unlocked();
+                log_to_file(&format!("[MANAGER] unlock_with_key: is_unlocked after open={}, session_key={}", now_unlocked, self.get_session_key().is_some()));
                 let mut vault_store = match self.vault_store.write() {
                     Ok(guard) => guard,
                     Err(e) => {
@@ -1090,6 +1094,7 @@ impl AccountManager {
 
     /// Lock the vault
     pub fn lock(&self) {
+        log_to_file("[MANAGER] lock() called");
         // Lock vault to clear SQLCipher key
         {
             let mut vault_store = match self.vault_store.write() {

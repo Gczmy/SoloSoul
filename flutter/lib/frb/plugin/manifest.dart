@@ -53,6 +53,10 @@ class PluginManifest {
   final bool requireUserConfirmation;
   final BigInt consentValidityHours;
 
+  /// 多语言信息：locale -> {key -> value}
+  /// 例如 {"zh": {"name": "地址格式化器", "description": "..."}}
+  final Map<String, Map<String, String>> i18N;
+
   const PluginManifest({
     required this.pluginId,
     required this.name,
@@ -70,6 +74,7 @@ class PluginManifest {
     required this.dataTtlSeconds,
     required this.requireUserConfirmation,
     required this.consentValidityHours,
+    required this.i18N,
   });
 
   @override
@@ -89,7 +94,8 @@ class PluginManifest {
       networkPolicy.hashCode ^
       dataTtlSeconds.hashCode ^
       requireUserConfirmation.hashCode ^
-      consentValidityHours.hashCode;
+      consentValidityHours.hashCode ^
+      i18N.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -111,5 +117,6 @@ class PluginManifest {
           networkPolicy == other.networkPolicy &&
           dataTtlSeconds == other.dataTtlSeconds &&
           requireUserConfirmation == other.requireUserConfirmation &&
-          consentValidityHours == other.consentValidityHours;
+          consentValidityHours == other.consentValidityHours &&
+          i18N == other.i18N;
 }

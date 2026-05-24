@@ -266,7 +266,7 @@
   "syncRemoteAddress": "Remote Address",
   "syncRemoteAddressHint": "192.168.1.5:9900",
   "syncPairingKey": "Pairing Key",
-  "syncPairingKeyHint": "Enter shared pairing key",
+  "syncPairingKeyHint": "Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.",
   "syncGenerateAndCopyKey": "Generate & Copy Key",
   "syncWithDevice": "Sync with {name}",
   "@syncWithDevice": {
@@ -1041,10 +1041,10 @@
   },
   "sensitivityNoResults": "No results found",
   "sensitivityAdjustHint": "Adjust the sensitivity level for each field. Restricted fields require additional verification to view.",
-  "sensitivityNoFieldsMatch": "No fields match \"{name}\"",
+  "sensitivityNoFieldsMatch": "No fields match \"{query}\"",
   "@sensitivityNoFieldsMatch": {
     "placeholders": {
-      "name": {
+      "query": {
         "type": "String"
       }
     }
@@ -1097,7 +1097,7 @@
       }
     }
   },
-  "debugLogSanitizeWarning": "Logs will be sanitized before copying, but clipboard content is accessible to all apps on this device.\n\nThe clipboard should be cleared after use.",
+  "debugLogSanitizeWarning": "Logs will be sanitized before copying, but clipboard content is visible to other apps. The clipboard should be cleared after use.",
   "debugLogActiveNotice": "Debug mode is active. Logs are being recorded.",
   "homeVaultUnlocked": "Vault Unlocked",
   "homeOnline": "Online",
@@ -1127,7 +1127,6 @@
       }
     }
   },
-  "syncPairingKeyHint": "Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.",
   "syncTestFailed": "Failed",
   "syncDirectionPush": "Push",
   "syncDirectionPull": "Pull",
@@ -1257,231 +1256,16 @@
   "ocrRecognitionTimeoutImage": "Recognition timed out. Please try again with a clearer image.",
   "ocrRecognitionTimeoutPdf": "Recognition timed out. Please try again with a clearer PDF.",
   "ocrPdfRenderFailed": "Failed to render PDF page. The file may be corrupted or password-protected.",
-  "versionUnavailable": "Unavailable",
-  "versionUpToDate": "Up to date",
-  "versionUpdateAvailable": "Update available",
-  "settingsAllAccountsTitle": "All Accounts",
-  "accountIdLabel": "Account ID: {id}",
-  "@accountIdLabel": {
-    "placeholders": {
-      "id": {
-        "type": "String"
-      }
-    }
-  },
-  "accountNoRecentOps": "No recent operations",
-  "accountNoDevices": "No devices recorded",
-  "accountRecentDevices": "Recent Devices",
-  "accountLastLoginLabel": "Last login: {time}",
-  "@accountLastLoginLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "commonNA": "N/A",
-  "debugLogSanitizeWarning": "Logs will be sanitized before copying, but clipboard content is visible to other apps. The clipboard should be cleared after use.",
-  "debugLogActiveNotice": "Debug mode is active. Logs are being recorded.",
-  "commonCopiedToClipboard": "Copied to clipboard",
-  "commonUntitled": "Untitled",
-  "commonObject": "Object",
-  "commonShowMore": "Show {count} more",
-  "@commonShowMore": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "commonErrorWithMessage": "Error: {message}",
-  "@commonErrorWithMessage": {
-    "placeholders": {
-      "message": {
-        "type": "String"
-      }
-    }
-  },
   "commonAddItem": "Add Item",
   "profileAddContact": "Add Contact",
   "profileEditContact": "Edit Contact",
   "commonAddButton": "Add",
   "profileIdCard": "ID Card",
   "profileAddress": "Address",
-  "scanDeselectAll": "Deselect All",
-  "localSearchScanningFiles": "Scanning files...",
-  "localSearchScanCanceled": "Scan canceled",
-  "localSearchScanComplete": "Scan complete",
-  "localSearchNoFiles": "No files",
-  "localSearchPrivacyNotice": "All scanning is done locally. No data leaves your device. You will preview all results before importing.",
-  "localSearchSelectHint": "Tap to select. Long press to adjust size limit.",
-  "localSearchSkipLargerThan": "Skip {label} files larger than:",
-  "@localSearchSkipLargerThan": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "syncScanHint": "Scan for nearby SoloSoul devices on your local network.",
   "syncPairingHint": "Generate a shared pairing key to establish a secure connection between devices. Both devices must use the same key.",
-  "syncFoundDevices": "Found {count} device(s)",
-  "@syncFoundDevices": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "syncFailed": "Sync failed: {error}",
-  "@syncFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "syncComplete": "Sync complete",
-  "syncDirectionPush": "Push",
-  "syncDirectionPushed": "Pushed local changes",
-  "syncDirectionPulled": "Pulled remote changes",
-  "syncDirectionMerged": "Merged changes from both devices",
-  "syncDirectionNoChange": "Already in sync",
   "syncTestSuccess": "Success",
-  "syncTestFailed": "Failed",
-  "trashPasswordRequired": "Password Required",
-  "trashEmptyConfirm": "Are you sure you want to permanently delete all {count} items in trash?",
-  "@trashEmptyConfirm": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "trashEmptyWarning": "This action cannot be undone. All items will be permanently removed.",
-  "trashPermanentDeleteWarning": "This action cannot be undone. The item will be permanently removed.",
-  "trashEmptyComplete": "All {count} items permanently deleted",
-  "@trashEmptyComplete": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "trashRestoreConfirmBody": "Are you sure you want to restore \"{name}\"?",
-  "@trashRestoreConfirmBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "trashRestoredItem": "Restored \"{name}\"",
-  "@trashRestoredItem": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "trashPermanentDeleteConfirm": "Are you sure you want to permanently delete \"{name}\"?",
-  "@trashPermanentDeleteConfirm": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "trashPermanentDeletedItem": "Permanently deleted \"{name}\"",
-  "@trashPermanentDeletedItem": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "trashEmptyMessage": "Trash is empty",
-  "trashNoMatching": "No matching items",
-  "trashAdjustSearch": "Try adjusting your search",
-  "operationLogPasswordRequired": "Password Required",
-  "operationLogClearConfirm": "Are you sure you want to clear all operation history?",
-  "operationLogFoundResults": "Found {count} result(s)",
-  "@operationLogFoundResults": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "operationLogNoMatching": "No matching entries",
-  "operationLogTryDifferent": "Try a different search term",
-  "operationLogAdjustFilters": "Try adjusting your filters",
-  "operationLogFilters": "Filters",
-  "sensitivityPasswordRequired": "Password Required",
-  "sensitivityNoFields": "No fields in this section",
-  "sensitivityKeepHighest": "Keep at Highest",
-  "sensitivityMoveHigher": "Move to Higher",
-  "sensitivityKeepLowest": "Keep at Lowest",
-  "sensitivityMoveLower": "Move to Lower",
-  "sensitivityAdjustHint": "Adjust the sensitivity level for each field. Restricted fields require additional verification to view.",
-  "sensitivityNoFieldsMatch": "No fields match \"{query}\"",
-  "@sensitivityNoFieldsMatch": {
-    "placeholders": {
-      "query": {
-        "type": "String"
-      }
-    }
-  },
-  "sensitivityFoundResults": "Found {count} result(s)",
-  "@sensitivityFoundResults": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "ocrBusinessCard": "Business Card",
-  "ocrInvoice": "Invoice",
-  "ocrResume": "Resume",
-  "ocrScannedDocument": "Scanned Document",
-  "ocrUseCamera": "Use camera to capture document",
-  "ocrPhotoOrPdf": "Photo or PDF file",
-  "ocrBusinessCardSaved": "Business card saved",
-  "ocrInvoiceSaved": "Invoice saved",
-  "ocrDocumentSavedAsNote": "Document saved as a note",
-  "ocrNoTextDetected": "No text detected",
-  "ocrNoResumeSections": "No resume sections detected",
-  "ocrResumeSaved": "Resume saved",
-  "ocrResumeSavedSections": "Resume saved with {count} sections",
-  "@ocrResumeSavedSections": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "ocrSavedSectionsFailed": "Saved {success} sections, {fail} failed",
-  "@ocrSavedSectionsFailed": {
-    "placeholders": {
-      "success": {
-        "type": "int"
-      },
-      "fail": {
-        "type": "int"
-      }
-    }
-  },
-  "predefinedDeletedItem": "Deleted {title}: {name}",
-  "@predefinedDeletedItem": {
-    "placeholders": {
-      "title": {
-        "type": "String"
-      },
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "accountDeviceCount": "{count} device(s)",
   "@accountDeviceCount": {
     "placeholders": {
@@ -1491,39 +1275,119 @@
     }
   },
   "profileEncryptionTitle": "End-to-End Encrypted",
-  "profileEncryptionDesc": "Your data is encrypted with AES-256-GCM",
-  "financialEncryptionDesc": "Your financial data is encrypted with AES-256-GCM",
-  "profileIdCard": "ID Card",
   "profileIdCardSection": "ID card",
-  "profileAddress": "Address",
   "profileFormatIdentity": "Identity\n{data}",
-  "@profileFormatIdentity": { "placeholders": { "data": { "type": "String" } } },
+  "@profileFormatIdentity": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "profileFormatIdCard": "ID Card\n{data}",
-  "@profileFormatIdCard": { "placeholders": { "data": { "type": "String" } } },
+  "@profileFormatIdCard": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "travelFormatPassport": "Passport\n{data}",
-  "@travelFormatPassport": { "placeholders": { "data": { "type": "String" } } },
+  "@travelFormatPassport": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "travelFormatVisa": "Visa\n{data}",
-  "@travelFormatVisa": { "placeholders": { "data": { "type": "String" } } },
+  "@travelFormatVisa": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "travelFormatHistory": "Travel History\n{data}",
-  "@travelFormatHistory": { "placeholders": { "data": { "type": "String" } } },
+  "@travelFormatHistory": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "financialFormatBankAccount": "Bank Account\n{data}",
-  "@financialFormatBankAccount": { "placeholders": { "data": { "type": "String" } } },
+  "@financialFormatBankAccount": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "financialFormatCard": "Card\n{data}",
-  "@financialFormatCard": { "placeholders": { "data": { "type": "String" } } },
+  "@financialFormatCard": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "financialFormatTaxId": "Tax ID\n{data}",
-  "@financialFormatTaxId": { "placeholders": { "data": { "type": "String" } } },
+  "@financialFormatTaxId": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "professionalFormatEducation": "Education\n{data}",
-  "@professionalFormatEducation": { "placeholders": { "data": { "type": "String" } } },
+  "@professionalFormatEducation": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "professionalFormatEmployment": "Employment\n{data}",
-  "@professionalFormatEmployment": { "placeholders": { "data": { "type": "String" } } },
+  "@professionalFormatEmployment": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "professionalFormatAward": "Award\n{data}",
-  "@professionalFormatAward": { "placeholders": { "data": { "type": "String" } } },
+  "@professionalFormatAward": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "professionalFormatSkill": "Skill\n{data}",
-  "@professionalFormatSkill": { "placeholders": { "data": { "type": "String" } } },
+  "@professionalFormatSkill": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "professionalFormatLanguage": "Language\n{data}",
-  "@professionalFormatLanguage": { "placeholders": { "data": { "type": "String" } } },
+  "@professionalFormatLanguage": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "professionalFormatArticle": "Article\n{data}",
-  "@professionalFormatArticle": { "placeholders": { "data": { "type": "String" } } },
+  "@professionalFormatArticle": {
+    "placeholders": {
+      "data": {
+        "type": "String"
+      }
+    }
+  },
   "fieldFullName": "Full Name",
   "fieldGivenName": "Given Name",
   "fieldFamilyName": "Family Name",
@@ -1611,19 +1475,36 @@
   "datePickerSelectDate": "Select date",
   "headerSensitiveAccessLocked": "Sensitive access locked",
   "operationLogPropertySnapshot": "Property Snapshot",
-  "commonEmpty": "(empty)",
   "dataMgmtVaultDataSize": "Vault data size",
   "dataMgmtAppVersion": "App version",
   "dataMgmtRestoreOverwrite": "This will overwrite your current data with the backup from {time}. A safety backup of the current state will be created first.",
-  "@dataMgmtRestoreOverwrite": { "placeholders": { "time": { "type": "String" } } },
+  "@dataMgmtRestoreOverwrite": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dataMgmtRestoreSuccess": "Restore successful. Please restart the app.",
   "dataMgmtRestoreFailed": "Restore failed",
   "dataMgmtDeleteBackupConfirm": "Delete backup from {time}?",
-  "@dataMgmtDeleteBackupConfirm": { "placeholders": { "time": { "type": "String" } } },
+  "@dataMgmtDeleteBackupConfirm": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dataMgmtBackupCreated": "Backup created successfully",
   "dataMgmtBackupFailed": "Backup failed",
   "dataMgmtBackupError": "Backup error: {error}",
-  "@dataMgmtBackupError": { "placeholders": { "error": { "type": "String" } } },
+  "@dataMgmtBackupError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "dataMgmtBackupDeleted": "Backup deleted",
   "dataMgmtOperationCreatedBackup": "Created backup",
   "dataMgmtOperationRestoredBackup": "Restored backup",
@@ -1633,17 +1514,47 @@
   "dataMgmtOperationRenamedSpecial": "Renamed special backup",
   "dataMgmtOperationRestoredSpecial": "Restored special backup",
   "dataMgmtSpecialBackupSaved": "Saved as special backup \"{name}\"",
-  "@dataMgmtSpecialBackupSaved": { "placeholders": { "name": { "type": "String" } } },
+  "@dataMgmtSpecialBackupSaved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dataMgmtSpecialBackupFailed": "Failed to save as special backup",
   "dataMgmtSpecialBackupCreated": "Special backup \"{name}\" created",
-  "@dataMgmtSpecialBackupCreated": { "placeholders": { "name": { "type": "String" } } },
+  "@dataMgmtSpecialBackupCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dataMgmtSpecialBackupCreateFailed": "Special backup failed",
   "dataMgmtRenamedTo": "Renamed to \"{name}\"",
-  "@dataMgmtRenamedTo": { "placeholders": { "name": { "type": "String" } } },
+  "@dataMgmtRenamedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "dataMgmtSpecialBackupLimit": "You can keep up to {max} special backups. Please delete an existing one before creating a new special backup.",
-  "@dataMgmtSpecialBackupLimit": { "placeholders": { "max": { "type": "int" } } },
+  "@dataMgmtSpecialBackupLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "dataMgmtSpecialBackupPromoteLimit": "You can keep up to {max} special backups. Please delete an existing one before promoting.",
-  "@dataMgmtSpecialBackupPromoteLimit": { "placeholders": { "max": { "type": "int" } } },
+  "@dataMgmtSpecialBackupPromoteLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "dataMgmtSafetyBackupNotice": "A safety backup of the current state will be created first.",
   "dataMgmtSpecialBackupRestored": "Special backup restored. Please restart the app.",
   "dataMgmtOperationDeletedSpecial": "Deleted special backup",
@@ -1654,7 +1565,6 @@
   "dataMgmtBackupEncryptionDesc": "Backups are encrypted with your vault key. Auto-backup runs on every unlock.",
   "dataMgmtRegularBackups": "Regular Backups",
   "dataMgmtNoBackups": "No backups yet",
-  "dataMgmtOperationRestoredSpecial": "Restored special backup",
   "loginDataYourControl": "Your data, your control",
   "loginEnterMasterPassword": "Enter Master Password",
   "loginUnlockYourVault": "Unlock your vault",
@@ -1812,8 +1722,6 @@
   "fieldAccountNumber": "Account Number",
   "fieldAccountHolder": "Account Holder",
   "fieldBranchName": "Branch Name",
-  "fieldSortCode": "Sort Code",
-  "fieldIban": "IBAN",
   "fieldRoutingNumber": "Routing Number",
   "fieldAccountType": "Account Type",
   "fieldChecking": "Checking",
@@ -2036,9 +1944,83 @@
   "pluginUninstallConfirmMessage": "This will delete the plugin files and revoke all data authorizations. Audit logs will be retained.",
   "pluginInstallSuccess": "Plugin installed successfully",
   "pluginUninstallSuccess": "Plugin uninstalled successfully",
+  "pluginUpdateSuccess": "Plugin updated successfully",
   "pluginRunSuccess": "Plugin executed successfully",
   "pluginErrorNotFound": "Plugin not found",
   "pluginErrorIncompatible": "Plugin is incompatible with this app version",
   "pluginErrorSecurity": "Security verification failed",
-  "pluginErrorNetwork": "Network error. Please check your connection."
+  "pluginErrorNetwork": "Network error. Please check your connection.",
+  "pluginNameAddressFmt": "Address Formatter",
+  "pluginNameCalendarEvents": "Calendar Events",
+  "pluginNameContactExporter": "Contact Exporter",
+  "pluginNameDataCompleteness": "Data Completeness",
+  "pluginNameDigitalWill": "Digital Will",
+  "pluginNameDocChecklist": "Doc Checklist",
+  "pluginNameEmergencyCard": "Emergency Card",
+  "pluginNameExpiryGuardian": "Expiry Guardian",
+  "pluginNameFormPrefiller": "Form Prefiller",
+  "pluginNameIdValidator": "ID Validator",
+  "pluginNameIdentityTimeline": "Identity Timeline",
+  "pluginNameMrzEncoder": "MRZ Encoder",
+  "pluginNameNamecardGen": "Namecard Generator",
+  "pluginNamePackingList": "Packing List",
+  "pluginNamePhoneFmt": "Phone Formatter",
+  "pluginNameResumeBuilder": "Resume Builder",
+  "pluginNameTaxProfile": "Tax Profile",
+  "pluginNameTotpGen": "TOTP Generator",
+  "pluginNameTravelFootprint": "Travel Footprint",
+  "pluginNameSlotgo": "SlotGo",
+  "pluginDescAddressFmt": "Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea.",
+  "pluginDescCalendarEvents": "Extract date-related information from the Vault and generate a calendar event preview list.",
+  "pluginDescContactExporter": "Export contact information from the Vault into standard vCard format.",
+  "pluginDescDataCompleteness": "Scan all sections in the Vault, calculate completeness percentage, and generate a report highlighting missing key fields.",
+  "pluginDescDigitalWill": "Generate digital estate allocation suggestions based on data stored in the Vault.",
+  "pluginDescDocChecklist": "Infer existing and missing materials from the Vault based on target scenarios (visa application, bank account opening, etc.).",
+  "pluginDescEmergencyCard": "Generate an emergency medical/contact information card. Data is stored locally with no network required.",
+  "pluginDescExpiryGuardian": "Scan all documents (passports, visas, ID cards, credit cards) for expiration dates and sort by urgency (30/60/90/180 days).",
+  "pluginDescFormPrefiller": "Generate a mapping table from Vault fields to target form fields based on the scenario (visa, bank, hotel, etc.).",
+  "pluginDescIdValidator": "Validate ID number formats and check digits for various countries, including Chinese ID, US SSN, and UK NI Number.",
+  "pluginDescIdentityTimeline": "Display the user's identity evolution over time, including education, work, visas, and asset acquisition milestones.",
+  "pluginDescMrzEncoder": "Encode passport/ID card information from the Vault into ICAO Doc 9303 standard Machine Readable Zone (MRZ) format.",
+  "pluginDescNamecardGen": "Generate an encrypted digital business card as a QR code, decryptable only by scanning with SoloSoul.",
+  "pluginDescPackingList": "Intelligently generate a packing list suggestion based on travel records and destination information in the Vault.",
+  "pluginDescPhoneFmt": "Format phone numbers from the Vault according to target country/region dialing standards.",
+  "pluginDescResumeBuilder": "Automatically generate a standard-format resume by extracting education, work experience, skills, and languages from the Vault.",
+  "pluginDescTaxProfile": "Summarize basic tax filing data based on the user's country of residence, income sources, and tax residency status.",
+  "pluginDescTotpGen": "Generate 6-digit TOTP dynamic verification codes based on the 2FA Secret stored in the Vault, following RFC 6238.",
+  "pluginDescTravelFootprint": "Analyze visa and travel records in the Vault to generate country visit statistics, favorite regions, and travel timeline reports.",
+  "pluginDescSlotgo": "UK Visa appointment system assistant framework to help auto-fill and submit booking forms to the TLScontact system.",
+  "pluginDetailTitleIntro": "Introduction",
+  "pluginDetailTitleChangelog": "Changelog",
+  "pluginDetailTitleInfo": "Info",
+  "pluginDetailFeatureIntro": "Features",
+  "pluginDetailRequiredFields": "Required Data Fields",
+  "pluginDetailRequired": "Required",
+  "pluginDetailOptional": "Optional",
+  "pluginDetailVersionCompat": "Version Compatibility",
+  "pluginDetailMinAppVersion": "Min App Version",
+  "pluginDetailMaxAppVersion": "Max App Version",
+  "pluginDetailPluginApiVersion": "Plugin API Version",
+  "pluginDetailBasicInfo": "Basic Info",
+  "pluginDetailInstallInfo": "Installation Info",
+  "pluginDetailPluginId": "Plugin ID",
+  "pluginDetailPluginName": "Name",
+  "pluginDetailPublisher": "Publisher",
+  "pluginDetailHomepage": "Homepage",
+  "pluginDetailStatus": "Status",
+  "pluginDetailStatusInstalled": "Installed",
+  "pluginDetailStatusNotInstalled": "Not Installed",
+  "pluginDetailInstalledVersion": "Installed Version",
+  "pluginDetailLatestVersion": "Latest Version",
+  "pluginDetailInstallTime": "Installed At",
+  "pluginDetailLastUsed": "Last Used",
+  "pluginDetailNeverUsed": "Never used",
+  "pluginDetailNoChangelog": "No changelog",
+  "pluginDetailNoVersions": "No version records",
+  "pluginDetailCurrent": "Current",
+  "pluginVersionHistoryTitle": "Version History",
+  "pluginVersionCurrentLabel": "v{version} (Current)",
+  "pluginActionDetail": "Details",
+  "localSearchTabDocumentScan": "Document Scan",
+  "localSearchTabLocalImport": "Local Import"
 }

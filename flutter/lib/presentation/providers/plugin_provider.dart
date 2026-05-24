@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:version/version.dart';
 
 import 'package:solosoul_flutter/core/models/plugin_models.dart';
 import 'package:solosoul_flutter/core/services/plugin_installer_service.dart';
@@ -21,7 +22,13 @@ final pluginInstallerProvider = Provider<PluginInstallerService>((ref) {
 });
 
 final pluginRegistryProvider = Provider<PluginRegistryService>((ref) {
-  return PluginRegistryService();
+  try {
+    return PluginRegistryService();
+  } catch (e, stack) {
+    // ignore: avoid_print
+    print('[pluginRegistryProvider] ERROR creating PluginRegistryService: $e\n$stack');
+    rethrow;
+  }
 });
 
 // ============================================================================
@@ -34,16 +41,22 @@ final _initializedPluginServiceProvider = FutureProvider<PluginService>((ref) as
   return service;
 });
 
-final _initializedPluginInstallerProvider = FutureProvider<PluginInstallerService>((ref) async {
+final initializedPluginInstallerProvider = FutureProvider<PluginInstallerService>((ref) async {
   final service = ref.read(pluginInstallerProvider);
   await service.initialize();
   return service;
 });
 
 final _initializedPluginRegistryProvider = FutureProvider<PluginRegistryService>((ref) async {
-  final service = ref.read(pluginRegistryProvider);
-  await service.initialize();
-  return service;
+  try {
+    final service = ref.read(pluginRegistryProvider);
+    await service.initialize();
+    return service;
+  } catch (e, stack) {
+    // ignore: avoid_print
+    print('[_initializedPluginRegistryProvider] ERROR: $e\n$stack');
+    rethrow;
+  }
 });
 
 // ============================================================================
@@ -51,8 +64,14 @@ final _initializedPluginRegistryProvider = FutureProvider<PluginRegistryService>
 // ============================================================================
 
 final pluginRegistryStateProvider = FutureProvider<PluginRegistry>((ref) async {
-  final registryService = await ref.watch(_initializedPluginRegistryProvider.future);
-  return registryService.getRegistry();
+  try {
+    final registryService = await ref.watch(_initializedPluginRegistryProvider.future);
+    return await registryService.getRegistry();
+  } catch (e, stack) {
+    // ignore: avoid_print
+    print('[pluginRegistryStateProvider] ERROR: $e\n$stack');
+    rethrow;
+  }
 });
 
 // ============================================================================
@@ -60,8 +79,14 @@ final pluginRegistryStateProvider = FutureProvider<PluginRegistry>((ref) async {
 // ============================================================================
 
 final installedPluginsProvider = FutureProvider<List<frb_manifest.PluginManifest>>((ref) async {
-  final service = await ref.watch(_initializedPluginServiceProvider.future);
-  return service.loadInstalledPlugins();
+  try {
+    final service = await ref.watch(_initializedPluginServiceProvider.future);
+    return await service.loadInstalledPlugins();
+  } catch (e, stack) {
+    // ignore: avoid_print
+    print('[installedPluginsProvider] ERROR: $e\n$stack');
+    rethrow;
+  }
 });
 
 // ============================================================================
@@ -69,8 +94,14 @@ final installedPluginsProvider = FutureProvider<List<frb_manifest.PluginManifest
 // ============================================================================
 
 final activeSessionsProvider = FutureProvider<List<frb.PluginSessionInfo>>((ref) async {
-  final service = await ref.watch(_initializedPluginServiceProvider.future);
-  return service.listActiveSessions();
+  try {
+    final service = await ref.watch(_initializedPluginServiceProvider.future);
+    return await service.listActiveSessions();
+  } catch (e, stack) {
+    // ignore: avoid_print
+    print('[activeSessionsProvider] ERROR: $e\n$stack');
+    rethrow;
+  }
 });
 
 
@@ -80,13 +111,10 @@ final activeSessionsProvider = FutureProvider<List<frb.PluginSessionInfo>>((ref)
 // ============================================================================
 
 final pluginDashboardProvider = FutureProvider<PluginDashboardData>((ref) async {
-  final registryAsync = ref.watch(pluginRegistryStateProvider);
-  final installedAsync = ref.watch(installedPluginsProvider);
-  final sessionsAsync = ref.watch(activeSessionsProvider);
-
-  final registry = registryAsync.asData?.value ?? PluginRegistry.empty();
-  final installed = installedAsync.asData?.value ?? <frb_manifest.PluginManifest>[];
-  final activeSessions = sessionsAsync.asData?.value ?? <frb.PluginSessionInfo>[];
+  // 等待所有依赖的 FutureProvider 完成，避免在 loading 时显示空数据
+  final registry = await ref.watch(pluginRegistryStateProvider.future);
+  final installed = await ref.watch(installedPluginsProvider.future);
+  final activeSessions = await ref.watch(activeSessionsProvider.future);
 
   return PluginDashboardData(
     registry: registry,
@@ -133,7 +161,13 @@ class PluginDashboardData {
   bool hasUpdate(String pluginId) {
     final local = installedVersion(pluginId);
     final remote = latestVersion(pluginId);
-    return local != null && remote != null && local != remote;
+    if (local == null || remote == null) return false;
+    try {
+      return Version.parse(remote) > Version.parse(local);
+    } on Exception {
+      // 回退到字符串比较
+      return remote != local;
+    }
   }
 
   List<String> get allPluginIds {
@@ -195,16 +229,23 @@ Future<void> installPlugin(
   String pluginId,
   PluginRegistryEntry entry,
   String appVersion,
-  String pluginApiVersion,
-) async {
-  final installer = await ref.read(_initializedPluginInstallerProvider.future);
-  await installer.installFromMarket(pluginId, entry, appVersion, pluginApiVersion);
+  String pluginApiVersion, {
+  String? targetVersion,
+}) async {
+  final installer = await ref.read(initializedPluginInstallerProvider.future);
+  await installer.installFromMarket(
+    pluginId,
+    entry,
+    appVersion,
+    pluginApiVersion,
+    targetVersion: targetVersion,
+  );
   ref.invalidate(installedPluginsProvider);
   ref.invalidate(pluginRegistryStateProvider);
 }
 
 Future<void> uninstallPlugin(WidgetRef ref, String pluginId) async {
-  final installer = await ref.read(_initializedPluginInstallerProvider.future);
+  final installer = await ref.read(initializedPluginInstallerProvider.future);
   await installer.uninstall(pluginId);
   ref.invalidate(installedPluginsProvider);
   ref.invalidate(activeSessionsProvider);

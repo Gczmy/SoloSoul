@@ -19,9 +19,7 @@ import 'package:solosoul_flutter/presentation/widgets/home/dashed_placeholder.da
 import 'package:solosoul_flutter/presentation/widgets/home/add_button.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/add_quick_action_dialog.dart';
-import 'package:solosoul_flutter/core/models/smart_ocr_result.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/delete_badge.dart';
-import 'package:solosoul_flutter/presentation/widgets/ocr_scanner_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/page_editor.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/quick_action.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/quick_action_tile.dart';
@@ -62,24 +60,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               onClose: _closeEditor,
             )
           : const _MainDashboard(),
-      floatingActionButton: _isEditingPage
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _showOcrScanner(context),
-              icon: const Icon(Icons.document_scanner_outlined),
-              label: Text(AppLocalizations.of(context).homeScan),
-            ),
+      floatingActionButton: _isEditingPage ? null : null,
     );
   }
 
-  Future<void> _showOcrScanner(BuildContext context) async {
-    await showModalBottomSheet<SmartOcrResult?>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const OcrScannerSheet(),
-    );
-  }
 }
 
 // =============================================================================

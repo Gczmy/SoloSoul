@@ -3483,6 +3483,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pluginUninstallSuccess => '插件卸载成功';
 
   @override
+  String get pluginUpdateSuccess => '插件更新成功';
+
+  @override
   String get pluginRunSuccess => '插件执行成功';
 
   @override
@@ -3496,4 +3499,227 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pluginErrorNetwork => '网络错误，请检查网络连接';
+
+  @override
+  String get pluginNameAddressFmt => '地址格式化器';
+
+  @override
+  String get pluginNameCalendarEvents => '日历事件';
+
+  @override
+  String get pluginNameContactExporter => '联系人导出';
+
+  @override
+  String get pluginNameDataCompleteness => '档案完整度';
+
+  @override
+  String get pluginNameDigitalWill => '数字遗嘱';
+
+  @override
+  String get pluginNameDocChecklist => '材料清单';
+
+  @override
+  String get pluginNameEmergencyCard => '紧急联系卡';
+
+  @override
+  String get pluginNameExpiryGuardian => '到期卫士';
+
+  @override
+  String get pluginNameFormPrefiller => '表单预填';
+
+  @override
+  String get pluginNameIdValidator => '证件校验';
+
+  @override
+  String get pluginNameIdentityTimeline => '身份时间线';
+
+  @override
+  String get pluginNameMrzEncoder => 'MRZ 编码器';
+
+  @override
+  String get pluginNameNamecardGen => '名片生成器';
+
+  @override
+  String get pluginNamePackingList => '行李清单';
+
+  @override
+  String get pluginNamePhoneFmt => '电话格式化';
+
+  @override
+  String get pluginNameResumeBuilder => '简历生成器';
+
+  @override
+  String get pluginNameTaxProfile => '税务档案';
+
+  @override
+  String get pluginNameTotpGen => 'TOTP 生成器';
+
+  @override
+  String get pluginNameTravelFootprint => '旅行足迹';
+
+  @override
+  String get pluginNameSlotgo => 'SlotGo';
+
+  @override
+  String get pluginDescAddressFmt =>
+      '将 Vault 中的所有地址按目标国家/地区规范格式化输出。支持中国、美国、英国、日本、德国、法国、加拿大、澳大利亚、新加坡、韩国等10个国家/地区的地址格式。';
+
+  @override
+  String get pluginDescCalendarEvents => '从 Vault 中提取日期相关信息，生成日历事件预览列表。';
+
+  @override
+  String get pluginDescContactExporter => '将 Vault 中的联系信息导出为标准 vCard 格式。';
+
+  @override
+  String get pluginDescDataCompleteness => '扫描 Vault 中的所有档案分区，计算完整度百分比并生成报告。';
+
+  @override
+  String get pluginDescDigitalWill => '基于 Vault 数据生成数字遗产分配建议。';
+
+  @override
+  String get pluginDescDocChecklist => '根据目标场景反推 Vault 中已有和缺失的材料清单。';
+
+  @override
+  String get pluginDescEmergencyCard => '生成紧急情况下使用的医疗/联系信息卡片，纯本地运行。';
+
+  @override
+  String get pluginDescExpiryGuardian =>
+      '扫描 Vault 中证件有效期，按 30/60/90/180 天分级提醒。';
+
+  @override
+  String get pluginDescFormPrefiller => '根据场景生成 Vault 字段到目标表单字段的映射表。';
+
+  @override
+  String get pluginDescIdValidator => '校验各国证件号码格式与校验位。';
+
+  @override
+  String get pluginDescIdentityTimeline => '按时间线展示用户身份变迁历程。';
+
+  @override
+  String get pluginDescMrzEncoder => '将护照/身份证信息编码为 ICAO Doc 9303 MRZ 格式。';
+
+  @override
+  String get pluginDescNamecardGen => '生成加密数字名片二维码，需 SoloSoul 扫码解密。';
+
+  @override
+  String get pluginDescPackingList => '根据旅行记录智能生成行李清单建议。';
+
+  @override
+  String get pluginDescPhoneFmt => '按目标国家/地区规范格式化电话号码。';
+
+  @override
+  String get pluginDescResumeBuilder => '从 Vault 提取信息自动生成标准简历。';
+
+  @override
+  String get pluginDescTaxProfile => '根据居住国与收入来源汇总税务申报基础数据。';
+
+  @override
+  String get pluginDescTotpGen => '基于 Vault 中 2FA Secret 生成 TOTP 动态验证码。';
+
+  @override
+  String get pluginDescTravelFootprint => '分析签证与旅行记录，生成到访国家统计与时间线。';
+
+  @override
+  String get pluginDescSlotgo => 'UK Visa 预约系统辅助框架。';
+
+  @override
+  String get pluginDetailTitleIntro => '插件介绍';
+
+  @override
+  String get pluginDetailTitleChangelog => '更新日志';
+
+  @override
+  String get pluginDetailTitleInfo => '插件信息';
+
+  @override
+  String get pluginDetailFeatureIntro => '功能介绍';
+
+  @override
+  String get pluginDetailRequiredFields => '所需数据字段';
+
+  @override
+  String get pluginDetailRequired => '必需字段';
+
+  @override
+  String get pluginDetailOptional => '可选字段';
+
+  @override
+  String get pluginDetailVersionCompat => '版本兼容性';
+
+  @override
+  String get pluginDetailMinAppVersion => '最低 App 版本';
+
+  @override
+  String get pluginDetailMaxAppVersion => '最高 App 版本';
+
+  @override
+  String get pluginDetailPluginApiVersion => '插件 API 版本';
+
+  @override
+  String get pluginDetailBasicInfo => '基本信息';
+
+  @override
+  String get pluginDetailInstallInfo => '安装信息';
+
+  @override
+  String get pluginDetailPluginId => '插件 ID';
+
+  @override
+  String get pluginDetailPluginName => '插件名称';
+
+  @override
+  String get pluginDetailPublisher => '发布者';
+
+  @override
+  String get pluginDetailHomepage => '主页';
+
+  @override
+  String get pluginDetailStatus => '当前状态';
+
+  @override
+  String get pluginDetailStatusInstalled => '已安装';
+
+  @override
+  String get pluginDetailStatusNotInstalled => '未安装';
+
+  @override
+  String get pluginDetailInstalledVersion => '已安装版本';
+
+  @override
+  String get pluginDetailLatestVersion => '最新版本';
+
+  @override
+  String get pluginDetailInstallTime => '安装时间';
+
+  @override
+  String get pluginDetailLastUsed => '最近使用';
+
+  @override
+  String get pluginDetailNeverUsed => '从未使用';
+
+  @override
+  String get pluginDetailNoChangelog => '无更新说明';
+
+  @override
+  String get pluginDetailNoVersions => '暂无版本记录';
+
+  @override
+  String get pluginDetailCurrent => '当前';
+
+  @override
+  String get pluginVersionHistoryTitle => '版本历史';
+
+  @override
+  String pluginVersionCurrentLabel(Object version) {
+    return 'v$version（当前版本）';
+  }
+
+  @override
+  String get pluginActionDetail => '详情';
+
+  @override
+  String get localSearchTabDocumentScan => '文档识别';
+
+  @override
+  String get localSearchTabLocalImport => '导入本地文件';
 }

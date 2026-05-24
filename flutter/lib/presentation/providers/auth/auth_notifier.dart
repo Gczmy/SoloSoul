@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
+import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_storage.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_services.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
@@ -255,8 +256,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
     SoloLog.d('Auth', 'Biometric unlock succeeded');
 
-    // Step 3: Rust vault is the single source of truth for account credentials.
-    // No Dart-side Keychain migration needed.
+    // Step 3: Verify vault is actually unlocked via C FFI
+    final isUnlocked = NativeVaultService.instance.isVaultUnlocked();
+    SoloLog.d('Auth', 'Vault unlocked check after biometric: isUnlocked=$isUnlocked');
+    if (!isUnlocked) {
+      SoloLog.e('Auth', 'Vault reported unlocked but isVaultUnlocked() returns false');
+      state = const AsyncData(AuthState.locked);
+      return false;
+    }
 
     // Step 4: Session key is now managed by Rust — no need to set on Dart side
     _secureWipe(sessionKey);

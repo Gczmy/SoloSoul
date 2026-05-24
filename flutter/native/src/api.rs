@@ -228,6 +228,10 @@ pub fn frb_encrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
         .as_ref()
         .ok_or("Account manager not initialized")?;
 
+    let is_unlocked = manager.is_unlocked();
+    let has_session_key = manager.get_session_key().is_some();
+    crate::log_to_file(&format!("[API] frb_encrypt_bytes: is_unlocked={}, has_session_key={}", is_unlocked, has_session_key));
+
     let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
 
     let key: [u8; 32] = session_key
@@ -333,6 +337,10 @@ pub fn frb_load_profile(id: String) -> Result<Option<LoadedProfile>, String> {
     let manager = manager_guard
         .as_ref()
         .ok_or("Account manager not initialized")?;
+
+    let is_unlocked = manager.is_unlocked();
+    let has_vault = manager.get_vault_store().is_some();
+    crate::log_to_file(&format!("[API] frb_load_profile: is_unlocked={}, has_vault={}", is_unlocked, has_vault));
 
     let vault_guard = manager.get_vault_store();
     let vault_lock = vault_guard.ok_or("Vault not unlocked")?;

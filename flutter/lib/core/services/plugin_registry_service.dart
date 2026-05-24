@@ -10,20 +10,24 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 /// 插件注册表服务：管理远程 registry 的拉取与本地缓存
 ///
 /// 支持多插件源配置，每个源对应一个 GitHub 公开仓库。
-/// 默认使用官方市场（jsDelivr CDN 加速）。
+/// 默认使用官方市场（jsDelivr CDN 加速 + GitHub Raw 回退）。
 ///
 /// ⚠️ 路径必须与 Rust 侧 PluginStore::base_dir() 完全一致。
 class PluginRegistryService {
   static const _builtinAssetPath = 'assets/registry.json';
 
-  /// 已配置的插件源列表，默认包含官方源
-  final List<PluginSource> sources;
+  /// 已配置的插件源列表，默认包含官方源。
+  ///
+  /// 使用 nullable 内部字段 + getter，防御热重载后旧实例字段为 null 的边缘情况。
+  final List<PluginSource>? _sources;
+
+  List<PluginSource> get sources => _sources ?? [PluginSource.official];
 
   late final Directory _pluginDir;
 
   PluginRegistryService({
     List<PluginSource>? sources,
-  }) : sources = sources ?? const [PluginSource.official];
+  }) : _sources = sources ?? [PluginSource.official];
 
   Future<void> initialize() async {
     final baseDir = await frb.frbGetPluginBaseDir();
@@ -57,7 +61,9 @@ class PluginRegistryService {
     return PluginRegistry.empty();
   }
 
-  /// 从所有已配置源获取注册表并合并
+  /// 从所有已配置源获取注册表并合并。
+  ///
+  /// 对每个源，同时请求主 URL 和备用 URL，合并结果保留所有历史版本。
   Future<PluginRegistry?> _fetchFromSources() async {
     final mergedPlugins = <String, PluginRegistryEntry>{};
     DateTime? latestUpdatedAt;
@@ -65,10 +71,22 @@ class PluginRegistryService {
 
     for (final source in sources) {
       try {
-        final registry = await _fetchSingleSource(source.registryUrl);
+        final registry = await _fetchWithFallback(source);
         if (registry != null) {
           anySuccess = true;
-          mergedPlugins.addAll(registry.plugins);
+          // 合并插件：保留所有历史版本（取版本并集）
+          for (final entry in registry.plugins.entries) {
+            final pluginId = entry.key;
+            final newEntry = entry.value;
+            if (mergedPlugins.containsKey(pluginId)) {
+              mergedPlugins[pluginId] = _mergePluginEntry(
+                mergedPlugins[pluginId]!,
+                newEntry,
+              );
+            } else {
+              mergedPlugins[pluginId] = newEntry;
+            }
+          }
           if (latestUpdatedAt == null || registry.updatedAt.isAfter(latestUpdatedAt)) {
             latestUpdatedAt = registry.updatedAt;
           }
@@ -88,13 +106,108 @@ class PluginRegistryService {
     );
   }
 
-  /// 获取单个源的注册表
+  /// 对一个源同时请求主 URL 和备用 URL，合并结果。
+  Future<PluginRegistry?> _fetchWithFallback(PluginSource source) async {
+    // 并行请求主 URL 和备用 URL
+    final primaryFuture = _fetchSingleSource(source.registryUrl);
+    final fallbackFuture = _fetchSingleSource(source.fallbackRegistryUrl);
+
+    final results = await Future.wait([primaryFuture, fallbackFuture]);
+    final primary = results[0];
+    final fallback = results[1];
+
+    if (primary == null && fallback == null) return null;
+    if (primary == null) return fallback;
+    if (fallback == null) return primary;
+
+    // 两者都成功：合并结果，保留所有历史版本
+    return _mergeRegistries(primary, fallback);
+  }
+
+  /// 合并两个注册表结果，保留所有历史版本。
+  PluginRegistry _mergeRegistries(PluginRegistry a, PluginRegistry b) {
+    final mergedPlugins = <String, PluginRegistryEntry>{};
+    mergedPlugins.addAll(a.plugins);
+
+    for (final entry in b.plugins.entries) {
+      final pluginId = entry.key;
+      final bEntry = entry.value;
+      if (mergedPlugins.containsKey(pluginId)) {
+        mergedPlugins[pluginId] = _mergePluginEntry(mergedPlugins[pluginId]!, bEntry);
+      } else {
+        mergedPlugins[pluginId] = bEntry;
+      }
+    }
+
+    return PluginRegistry(
+      version: '1',
+      updatedAt: a.updatedAt.isAfter(b.updatedAt) ? a.updatedAt : b.updatedAt,
+      plugins: mergedPlugins,
+    );
+  }
+
+  /// 合并两个插件条目，保留所有历史版本（取版本并集，latest_version 取较新者）。
+  PluginRegistryEntry _mergePluginEntry(PluginRegistryEntry a, PluginRegistryEntry b) {
+    final mergedVersions = <String, PluginVersionInfo>{};
+    mergedVersions.addAll(a.versions);
+    mergedVersions.addAll(b.versions);
+
+    // 合并 i18n：取并集，b 中额外的语言覆盖 a
+    final mergedI18n = <String, Map<String, String>>{};
+    if (a.i18n != null) {
+      for (final entry in a.i18n!.entries) {
+        mergedI18n[entry.key] = Map<String, String>.from(entry.value);
+      }
+    }
+    if (b.i18n != null) {
+      for (final entry in b.i18n!.entries) {
+        mergedI18n[entry.key] = Map<String, String>.from(entry.value);
+      }
+    }
+
+    // 取较新的 latest_version
+    final latestVersion = _compareVersion(a.latestVersion, b.latestVersion) >= 0
+        ? a.latestVersion
+        : b.latestVersion;
+
+    return PluginRegistryEntry(
+      name: a.name.isNotEmpty ? a.name : b.name,
+      publisher: a.publisher.isNotEmpty ? a.publisher : b.publisher,
+      latestVersion: latestVersion,
+      description: a.description?.isNotEmpty == true ? a.description : b.description,
+      homepage: a.homepage?.isNotEmpty == true ? a.homepage : b.homepage,
+      versions: mergedVersions,
+      i18n: mergedI18n.isNotEmpty ? mergedI18n : null,
+    );
+  }
+
+  /// 简单的语义化版本比较（x.y.z）。
+  /// 返回 >0 表示 a 较新，<0 表示 b 较新，0 表示相等。
+  int _compareVersion(String a, String b) {
+    try {
+      final aParts = a.split('.').map(int.parse).toList();
+      final bParts = b.split('.').map(int.parse).toList();
+      for (var i = 0; i < aParts.length && i < bParts.length; i++) {
+        final diff = aParts[i] - bParts[i];
+        if (diff != 0) return diff;
+      }
+      return aParts.length - bParts.length;
+    } on Exception {
+      return a.compareTo(b);
+    }
+  }
+
+  /// 获取单个 URL 的注册表
   Future<PluginRegistry?> _fetchSingleSource(String url) async {
-    final response = await http
-        .get(Uri.parse(url))
-        .timeout(const Duration(seconds: 15));
-    if (response.statusCode == 200) {
-      return PluginRegistry.fromJson(jsonDecode(response.body));
+    try {
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        return PluginRegistry.fromJson(jsonDecode(response.body));
+      }
+    } on Exception catch (_) {
+      // 忽略单个请求失败
     }
     return null;
   }
@@ -125,7 +238,6 @@ class PluginRegistryService {
   }
 
   void _log(String message) {
-    // ignore: avoid_print
     if (const bool.fromEnvironment('dart.vm.product')) return;
     // ignore: avoid_print
     print('[PluginRegistryService] $message');
