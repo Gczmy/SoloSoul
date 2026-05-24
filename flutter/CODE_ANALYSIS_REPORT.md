@@ -10,7 +10,7 @@
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
 | P001 | P0     | 代码规范   | `lib/presentation/widgets/plugin_consent_dialog.dart:300,329,331,368` | `withOpacity` 已废弃，应替换为 `withValues()` | `[x]` 已修复 |
 | P002 | P0     | 代码规范   | `lib/core/services/profile_storage_service.dart:185,211` | catch 子句未使用 `on` 指定异常类型 | `[x]` 已修复 |
-| P003 | P0     | 代码规范   | `lib/core/services/debug_logger.dart:1` | 依赖 `meta` 包但未在 pubspec.yaml 中声明 | `[ ]` 待修复 |
+| P003 | P0     | 代码规范   | `lib/core/services/debug_logger.dart:1` | 依赖 `meta` 包但未在 pubspec.yaml 中声明 | `[x]` 已修复 |
 | P004 | P0     | 代码规范   | `test/unit/rust_vault_service_test.dart:9` | 未使用的局部变量 `skipOnLinux` | `[ ]` 待修复 |
 | P005 | P0     | 代码质量   | `lib/core/services/debug_logger.dart:118,216` 等 | 生产代码中残留 `print` 语句 | `[ ]` 待修复 |
 | P006 | P1     | 代码规范   | `lib/core/services/native_vault_service.dart` 等 8 处 | 未使用的 import 别名 | `[ ]` 待修复 |
@@ -21,8 +21,8 @@
 
 ## 修复进度
 
-- 已完成：2 / 10
-- 当前处理：P003
+- 已完成：3 / 10
+- 当前处理：P004
 
 ## 详细问题描述与修复指引
 
