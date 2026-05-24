@@ -16,13 +16,13 @@
 | P006 | P1     | 代码规范   | `lib/core/services/native_vault_service.dart` 等 8 处 | 未使用的 import 别名 | `[x]` 误报/设计如此 |
 | P007 | P1     | 代码规范   | `lib/presentation/pages/plugin_dashboard_page.dart:531` | TODO 注释未处理 | `[x]` 已修复 |
 | P008 | P1     | 可优化     | `lib/presentation/widgets/app_sidebar.dart` 等 | build 方法过长（>150 行），应拆分子 Widget | `[x]` 部分修复（提取 _glassSettings / _glassBackground） |
-| P009 | P1     | 性能       | `lib/presentation/providers/scan/local_search_provider.dart:375` 等 | 嵌套循环遍历大集合，O(n²) 风险 | `[ ]` 待修复 |
+| P009 | P1     | 性能       | `lib/presentation/providers/scan/local_search_provider.dart:375` 等 | 嵌套循环遍历大集合，O(n²) 风险 | `[x]` 误报/设计如此（数据规模小或线性复杂度） |
 | P010 | P2     | 可优化     | `lib/presentation/widgets/settings/all_accounts_sheet.dart` 等 | Widget 深层嵌套（>7 层），可读性差 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：8 / 10
-- 当前处理：P009
+- 已完成：9 / 10
+- 当前处理：P010
 
 ## 详细问题描述与修复指引
 
