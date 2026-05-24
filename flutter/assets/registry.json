@@ -1,7 +1,119 @@
 {
   "version": "1",
-  "updated_at": "2026-05-23T23:54:48Z",
+  "updated_at": "2026-05-24T00:40:24Z",
   "plugins": {
+    "com.solosoul.official.address-fmt": {
+      "name": "Address Formatter",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "c48186c49a486ad795d3dc7fdfcf8030d7cfc76973b87bcb3938013e30d00ea8",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "released_at": "2026-05-24T00:08:13Z"
+        }
+      }
+    },
+    "com.solosoul.official.calendar-events": {
+      "name": "Calendar Events",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "d29c4a8a4d1961eb9d4109007e68dbe439e00753a985b2d16d596118a5b2f9a4",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
+          "released_at": "2026-05-24T00:34:41Z"
+        }
+      }
+    },
+    "com.solosoul.official.contact-exporter": {
+      "name": "Contact Exporter",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "86ed4baf1a5e96a2b11cf91d42b6d65dc0545cb558b4affc8d56bdc6a3272f8f",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
+          "released_at": "2026-05-24T00:38:31Z"
+        }
+      }
+    },
+    "com.solosoul.official.data-completeness": {
+      "name": "Data Completeness",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "4264164f885d78e574201e98c7a3d11ee42f2c56f2a0c3427095e10220d1c8fa",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.data-completeness/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.data-completeness/plugin.wasm",
+          "released_at": "2026-05-24T00:25:47Z"
+        }
+      }
+    },
+    "com.solosoul.official.digital-will": {
+      "name": "Digital Will",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "9ba2dd6e09ff097ebb2aa062c2101b8894d1ff975fba244de2442b7191e1e83d",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.digital-will/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.digital-will/plugin.wasm",
+          "released_at": "2026-05-24T00:32:51Z"
+        }
+      }
+    },
+    "com.solosoul.official.doc-checklist": {
+      "name": "Doc Checklist",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "e474d5b8df8f4e791154e3cb3d0b457a3259be068a4d7084689f8e49ddfd7e14",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
+          "released_at": "2026-05-24T00:22:05Z"
+        }
+      }
+    },
+    "com.solosoul.official.emergency-card": {
+      "name": "Emergency Card",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "1393aeb8367f818d63254b2489a50725459517aca14303718e09273f1b67c966",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
+          "released_at": "2026-05-24T00:10:17Z"
+        }
+      }
+    },
     "com.solosoul.official.expiry-guardian": {
       "name": "Expiry Guardian",
       "publisher": "SoloSoul Official",
@@ -18,6 +130,22 @@
         }
       }
     },
+    "com.solosoul.official.form-prefiller": {
+      "name": "Form Prefiller",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "c3f7d542d97667406f36a7db7932e5b524e89e72ccf4a29fe4724cc121bce391",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "released_at": "2026-05-24T00:29:23Z"
+        }
+      }
+    },
     "com.solosoul.official.id-validator": {
       "name": "ID Validator",
       "publisher": "SoloSoul Official",
@@ -31,6 +159,150 @@
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.id-validator/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.id-validator/plugin.wasm",
           "released_at": "2026-05-24T00:00:00Z"
+        }
+      }
+    },
+    "com.solosoul.official.identity-timeline": {
+      "name": "Identity Timeline",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "7ef3b7b6aad73df653ff78f2b301805123adc33422a4de7ff4e3ec35ad5ea732",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
+          "released_at": "2026-05-24T00:31:11Z"
+        }
+      }
+    },
+    "com.solosoul.official.mrz-encoder": {
+      "name": "MRZ Encoder",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "a66d68f4b7104fc6ed912edf24ae88c17cfa54548c12286940e611ef5269ab26",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
+          "released_at": "2026-05-24T00:06:05Z"
+        }
+      }
+    },
+    "com.solosoul.official.namecard-gen": {
+      "name": "Namecard Generator",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "7308b27a9a7e29e2c500716a0883f2f6717d29298846b35a4f74cd29be6895c7",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
+          "released_at": "2026-05-24T00:23:49Z"
+        }
+      }
+    },
+    "com.solosoul.official.packing-list": {
+      "name": "Packing List",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "9cda98dec66db9240c70c3aa33bd587468f92d85280574e463967fc89cc6eb58",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.packing-list/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.packing-list/plugin.wasm",
+          "released_at": "2026-05-24T00:37:00Z"
+        }
+      }
+    },
+    "com.solosoul.official.phone-fmt": {
+      "name": "Phone Formatter",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "8d6bcfabedc34fe4dad927484b037e2d3770775567e8cc41a27b67b26bd1caae",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
+          "released_at": "2026-05-24T00:40:24Z"
+        }
+      }
+    },
+    "com.solosoul.official.resume-builder": {
+      "name": "Resume Builder",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "91143b337e0b90b212b5fcf08f07378c25ffa20a9e0bf7604afa6eaec7a9b8b3",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
+          "released_at": "2026-05-24T00:17:17Z"
+        }
+      }
+    },
+    "com.solosoul.official.tax-profile": {
+      "name": "Tax Profile",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "3c333f3180dd9de06ecbb8cc627370ddb0e36db191da0398d2e3d44773849367",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
+          "released_at": "2026-05-24T00:27:22Z"
+        }
+      }
+    },
+    "com.solosoul.official.totp-gen": {
+      "name": "TOTP Generator",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "e4ca5f0bcace1a76b638e0a80da56a3c9e4e8b7250b39c255560a427fc2b8236",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
+          "released_at": "2026-05-24T00:13:53Z"
+        }
+      }
+    },
+    "com.solosoul.official.travel-footprint": {
+      "name": "Travel Footprint",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "757311f207739383b2ea6d7288bcf22e69f9cf9cd8c4def13bb42567cdf9d793",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
+          "released_at": "2026-05-24T00:20:07Z"
         }
       }
     },
