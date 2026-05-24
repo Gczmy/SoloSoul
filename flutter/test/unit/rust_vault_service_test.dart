@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 
 void main() {
   // Skip tests that require FFI (macOS/Android only) when running on Linux CI
-  final isLinux = Platform.operatingSystem == 'linux';
-  final skipOnLinux = isLinux ? 'RustVaultService requires FFI (macOS/Android only)' : null;
+  // final isLinux = Platform.operatingSystem == 'linux';
   group('BridgeProfileSummary', () {
     test('creates with all fields', () {
       const summary = BridgeProfileSummary(
