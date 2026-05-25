@@ -350,7 +350,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'contact_mail',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'type', name: 'Type', type: PropertyType.text),
       PropertyDefinition(id: 'value', name: 'Value', type: PropertyType.text),
     ],
@@ -361,7 +361,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'badge',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'number', name: 'ID Card Number', type: PropertyType.text),
       PropertyDefinition(id: 'issueDate', name: 'Issue Date', type: PropertyType.date),
       PropertyDefinition(id: 'expiryDate', name: 'Expiry Date', type: PropertyType.date),
@@ -375,7 +375,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'home',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'street', name: 'Street', type: PropertyType.text),
       PropertyDefinition(id: 'city', name: 'City', type: PropertyType.text),
       PropertyDefinition(id: 'district', name: 'District', type: PropertyType.text),
@@ -392,7 +392,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'book',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Type', type: PropertyType.text),
+      PropertyDefinition(id: 'type', name: 'Type', type: PropertyType.text),
       PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
       PropertyDefinition(id: 'countryCode', name: 'Country Code', type: PropertyType.text),
       PropertyDefinition(id: 'number', name: 'Passport Number', type: PropertyType.text),
@@ -413,7 +413,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'assignment_ind',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
       PropertyDefinition(id: 'visaType', name: 'Visa Type', type: PropertyType.text),
       PropertyDefinition(id: 'number', name: 'Visa Number', type: PropertyType.text),
@@ -446,7 +446,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'account_balance',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'bankName', name: 'Bank Name', type: PropertyType.text),
       PropertyDefinition(id: 'accountNumber', name: 'Account Number', type: PropertyType.text),
       PropertyDefinition(id: 'currency', name: 'Currency', type: PropertyType.text),
@@ -460,7 +460,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'credit_card',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'cardNumber', name: 'Card Number', type: PropertyType.text),
       PropertyDefinition(id: 'cardType', name: 'Card Type', type: PropertyType.text),
       PropertyDefinition(id: 'expiryDate', name: 'Expiry Date', type: PropertyType.date),
@@ -474,7 +474,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'description',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'taxIdNumber', name: 'Tax ID Number', type: PropertyType.text),
       PropertyDefinition(id: 'taxIdType', name: 'Tax ID Type', type: PropertyType.text),
       PropertyDefinition(id: 'issuingAuthority', name: 'Issuing Authority', type: PropertyType.text),
@@ -536,7 +536,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'emoji_events',
     defaultLayout: ObjectLayout.document,
     properties: [
-      PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'issuer', name: 'Issuer', type: PropertyType.text),
       PropertyDefinition(id: 'date', name: 'Date', type: PropertyType.date),
       PropertyDefinition(id: 'description', name: 'Description', type: PropertyType.text),

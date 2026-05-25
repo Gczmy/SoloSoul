@@ -209,7 +209,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       // Add all schema properties (parent section's current properties).
       for (final entry in schemaProps.entries) {
         final sensitivity = entry.value.sensitivity;
-        if (entry.key == 'Title' || entry.key == 'Item Name') {
+        if (entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name') {
           _propertyFields.add(_PropertyField(
             key: 'Title',
             type: 'text',
@@ -234,7 +234,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       final schemaKeys = schemaProps.keys.toSet();
       for (final entry in object.properties.entries) {
         if (schemaKeys.contains(entry.key)) continue;
-        if (entry.key == 'Title' || entry.key == 'Item Name') continue;
+        if (entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name') continue;
         _propertyFields.add(_PropertyField(
           key: entry.key,
           type: _inferTypeFromValue(entry.value),
@@ -250,7 +250,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       final orderedProps = _orderedProperties(object);
       for (final entry in orderedProps.entries) {
         final sensitivity = entry.value.sensitivity;
-        if (entry.key == 'Title' || entry.key == 'Item Name') {
+        if (entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name') {
           _propertyFields.add(_PropertyField(
             key: 'Title',
             type: 'text',

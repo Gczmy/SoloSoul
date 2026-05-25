@@ -126,16 +126,28 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
   /// Resolved template: [itemTemplate] takes precedence over [object.properties].
   /// Returns properties ordered by the section's [propertyOrder].
+  /// Normalizes legacy 'title' key to 'Title' for consistency.
   Map<String, PropertyValue> get _template {
     final raw = widget.itemTemplate ?? widget.object.properties;
+    // Normalize legacy 'title' → 'Title'
+    final normalized = <String, PropertyValue>{};
+    for (final entry in raw.entries) {
+      final key = entry.key == 'title' ? 'Title' : entry.key;
+      normalized[key] = entry.value;
+    }
     final order = widget.object.propertyOrder;
-    if (order.isEmpty) return raw;
+    if (order.isEmpty) return normalized;
     final ordered = <String, PropertyValue>{};
     for (final key in order) {
-      if (raw.containsKey(key)) ordered[key] = raw[key]!;
+      final normalizedKey = key == 'title' ? 'Title' : key;
+      if (normalized.containsKey(normalizedKey)) {
+        ordered[normalizedKey] = normalized[normalizedKey]!;
+      }
     }
-    for (final entry in raw.entries) {
-      if (!ordered.containsKey(entry.key)) ordered[entry.key] = entry.value;
+    for (final entry in normalized.entries) {
+      if (!ordered.containsKey(entry.key)) {
+        ordered[entry.key] = entry.value;
+      }
     }
     return ordered;
   }
