@@ -56,7 +56,7 @@ class ObjectCardHeader extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
-              const SizedBox(width: 32),
+              const SizedBox(width: 16),
               if (showEditActions && !showEditSection)
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 18),
