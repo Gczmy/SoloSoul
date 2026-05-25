@@ -458,7 +458,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     final keyCounts = <String, int>{};
     for (final field in _propertyFields) {
       if (field.isDeprecated) continue;
-      final key = field.isDefaultName == true ? AppLocalizations.of(context).objectEditorDefaultFieldTitle : field.key.trim();
+      final key = field.isDefaultName == true
+          ? AppLocalizations.of(context).objectEditorDefaultFieldTitle
+          : (field.key.trim().isEmpty ? field.displayLabel : field.key.trim());
       if (key.isNotEmpty) {
         keyCounts[key] = (keyCounts[key] ?? 0) + 1;
       }
@@ -480,7 +482,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
-          : field.key.trim();
+          : (field.key.trim().isEmpty ? field.displayLabel : field.key.trim());
       if (key.isEmpty) continue;
       if (field.isDefaultName == true) {
         properties['Title'] = const TextProperty(
