@@ -699,24 +699,34 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
             // Items list
             if (items.isEmpty && !_isAddingItem)
-              Center(
+              InkWell(
+                onTap: widget.itemTemplate == null && widget.object.properties.isEmpty
+                    ? _editObject
+                    : _addItem,
+                borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: TextButton.icon(
-                    onPressed: widget.itemTemplate == null && widget.object.properties.isEmpty
-                        ? _editObject
-                        : _addItem,
-                    icon: Icon(
-                      widget.itemTemplate == null && widget.object.properties.isEmpty
-                          ? Icons.edit_note
-                          : Icons.add,
-                      size: 18,
-                    ),
-                    label: Text(
-                      widget.itemTemplate == null && widget.object.properties.isEmpty
-                          ? l10n.pageEditorEditSectionTitle
-                          : l10n.commonAddItem,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        widget.itemTemplate == null && widget.object.properties.isEmpty
+                            ? Icons.edit_note
+                            : Icons.add,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.itemTemplate == null && widget.object.properties.isEmpty
+                            ? l10n.pageEditorEditSectionTitle
+                            : l10n.commonAddItem,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -801,13 +811,28 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
 
             // 始终显示在最下面的"添加项目"按钮（有 item 时）
             if (items.isNotEmpty && !_isAddingItem)
-              Center(
+              InkWell(
+                onTap: _addItem,
+                borderRadius: BorderRadius.circular(8),
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: TextButton.icon(
-                    onPressed: _addItem,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(l10n.commonAddItem),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        l10n.commonAddItem,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
