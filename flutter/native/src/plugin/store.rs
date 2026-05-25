@@ -157,6 +157,7 @@ mod tests {
             data_ttl_seconds: 300,
             require_user_confirmation: true,
             consent_validity_hours: 24,
+            i18n: std::collections::HashMap::new(),
         }
     }
 

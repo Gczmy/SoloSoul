@@ -361,6 +361,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? iconName,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
+    Map<String, String>? semanticTypes,
   }) async {
     final object = _service.createObject(
       name: name,
@@ -369,6 +370,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       iconName: iconName,
       properties: properties,
       propertyLabels: propertyLabels,
+      semanticTypes: semanticTypes,
     );
 
     var updatedObjects = _service.addObject(state.objects, object);
@@ -392,6 +394,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? iconName,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
+    Map<String, String>? semanticTypes,
   }) async {
     final object = _service.createObject(
       name: name,
@@ -400,6 +403,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       iconName: iconName,
       properties: properties,
       propertyLabels: propertyLabels,
+      semanticTypes: semanticTypes,
     );
 
     var updatedObjects = _service.addObject(state.objects, object);
@@ -426,6 +430,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? parentId,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
+    Map<String, String>? semanticTypes,
     List<String>? childrenIds,
     List<Attachment>? attachments,
     int? schemaVersionWhenSaved,
@@ -441,6 +446,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       parentId: parentId,
       properties: properties,
       propertyLabels: propertyLabels,
+      semanticTypes: semanticTypes,
       childrenIds: childrenIds,
       attachments: attachments,
       schemaVersionWhenSaved: schemaVersionWhenSaved,

@@ -2643,6 +2643,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldCity => 'City';
 
   @override
+  String get fieldDistrict => 'District';
+
+  @override
   String get fieldState => 'State';
 
   @override
@@ -3842,4 +3845,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localSearchTabLocalImport => 'Local Import';
+
+  @override
+  String get sensitivityOverrideTitle => 'Sensitivity Override';
+
+  @override
+  String sensitivityOverrideDescription(
+    String pluginName,
+    String fieldLabel,
+    String actual,
+    String required,
+  ) {
+    return '$pluginName requests access to \"$fieldLabel\" which is set to $actual. The plugin requires sensitivity ≤ $required.';
+  }
+
+  @override
+  String get sensitivityOverrideDenyTitle => 'Deny Access';
+
+  @override
+  String get sensitivityOverrideDenyDesc =>
+      'Block plugin from accessing this field';
+
+  @override
+  String get sensitivityOverrideMaskTitle => 'Mask Value';
+
+  @override
+  String get sensitivityOverrideMaskDesc =>
+      'Return masked/redacted value to plugin';
+
+  @override
+  String get sensitivityOverrideAllowTitle => 'Allow Access';
+
+  @override
+  String get sensitivityOverrideAllowDesc =>
+      'Grant plugin access to this field for this session';
+
+  @override
+  String get sensitivityOverrideRemember => 'Remember my choice';
+
+  @override
+  String get sensitivityOverrideConfirm => 'Confirm Override';
+
+  @override
+  String get semanticTypeDuplicateTitle => 'Duplicate Semantic Type';
+
+  @override
+  String semanticTypeDuplicateMessage(
+    String typeLabel,
+    String existingFieldLabel,
+  ) {
+    return 'The semantic type \"$typeLabel\" is already assigned to \"$existingFieldLabel\". Assigning it here will remove it from the other field.';
+  }
+
+  @override
+  String get semanticTypeDuplicateHint =>
+      'Each semantic type can only be assigned to one field at a time.';
+
+  @override
+  String get semanticTypeDuplicateContinue => 'Reassign Anyway';
+
+  @override
+  String get semanticTypePickerTitle => 'Select Semantic Type';
+
+  @override
+  String get semanticTypeSearchHint => 'Search semantic types...';
+
+  @override
+  String get semanticTypeNone => 'None (Remove)';
+
+  @override
+  String pluginAccessReviewTitle(String pluginName) {
+    return 'Plugin Access Review: $pluginName';
+  }
+
+  @override
+  String get pluginAccessReviewSubtitle =>
+      'Review the fields this plugin wants to access before installation';
+
+  @override
+  String get pluginAccessReviewModifySensitivity => 'Modify Sensitivity';
+
+  @override
+  String get pluginAccessReviewCreateMissing => 'Create Missing Fields';
+
+  @override
+  String get pluginAccessReviewContinue => 'Continue Install';
+
+  @override
+  String get pluginAccessReviewHeaderField => 'Field';
+
+  @override
+  String get pluginAccessReviewHeaderSection => 'Section';
+
+  @override
+  String get pluginAccessReviewHeaderSensitivity => 'Sensitivity';
+
+  @override
+  String get pluginAccessReviewHeaderStatus => 'Status';
+
+  @override
+  String get pluginAccessReviewNoSection => '(none)';
+
+  @override
+  String get pluginAccessReviewMissing => 'Missing';
+
+  @override
+  String get pluginAccessReviewExceededTitle => 'Sensitivity Exceeded';
+
+  @override
+  String pluginAccessReviewExceededItem(
+    String label,
+    String actual,
+    String required,
+  ) {
+    return '$label: $actual → requires ≤ $required';
+  }
+
+  @override
+  String get pluginAccessReviewMissingTitle => 'Missing Fields';
+
+  @override
+  String pluginAccessReviewMissingItem(String label) {
+    return '$label';
+  }
 }

@@ -195,6 +195,7 @@ pub struct AddressData {
     pub street: Option<String>,
     pub city: Option<String>,
     pub state: Option<String>,
+    pub district: Option<String>,
     #[serde(alias = "postalCode", rename = "postalCode")]
     pub postal_code: Option<String>,
     pub country: Option<String>,

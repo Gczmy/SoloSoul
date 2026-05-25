@@ -264,6 +264,8 @@ const addressFields = [
   FieldSensitivity(fieldId: 'address.title', fieldName: 'Title', fieldSection: 'address', level: SensitivityLevel.public),
   FieldSensitivity(fieldId: 'address.street', fieldName: 'Street', fieldSection: 'address', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'address.city', fieldName: 'City', fieldSection: 'address', level: SensitivityLevel.sensitive),
+  FieldSensitivity(fieldId: 'address.district', fieldName: 'District', fieldSection: 'address', level: SensitivityLevel.sensitive),
+  FieldSensitivity(fieldId: 'address.state', fieldName: 'State', fieldSection: 'address', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'address.postalCode', fieldName: 'Postal Code', fieldSection: 'address', level: SensitivityLevel.sensitive),
   FieldSensitivity(fieldId: 'address.country', fieldName: 'Country', fieldSection: 'address', level: SensitivityLevel.public),
 ];

@@ -378,6 +378,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
       PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'street', name: 'Street', type: PropertyType.text),
       PropertyDefinition(id: 'city', name: 'City', type: PropertyType.text),
+      PropertyDefinition(id: 'district', name: 'District', type: PropertyType.text),
       PropertyDefinition(id: 'state', name: 'State', type: PropertyType.text),
       PropertyDefinition(id: 'postalCode', name: 'Postal Code', type: PropertyType.text),
       PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
@@ -586,6 +587,7 @@ class UnifiedObjectService {
     String? iconName,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
+    Map<String, String>? semanticTypes,
     List<String>? childrenIds,
   }) {
     final now = _currentTimestamp();
@@ -601,6 +603,7 @@ class UnifiedObjectService {
       childrenIds: childrenIds ?? const [],
       properties: properties ?? const {},
       propertyLabels: propertyLabels,
+      semanticTypes: semanticTypes,
       createdAt: now,
       updatedAt: now,
     );
@@ -618,6 +621,7 @@ class UnifiedObjectService {
     String? parentId,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
+    Map<String, String>? semanticTypes,
     List<String>? childrenIds,
     List<Attachment>? attachments,
     int? schemaVersionWhenSaved,
@@ -629,6 +633,7 @@ class UnifiedObjectService {
       parentId: parentId,
       properties: properties,
       propertyLabels: propertyLabels,
+      semanticTypes: semanticTypes,
       childrenIds: childrenIds,
       attachments: attachments,
       schemaVersionWhenSaved: schemaVersionWhenSaved,

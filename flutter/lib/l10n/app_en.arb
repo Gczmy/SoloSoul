@@ -1406,6 +1406,7 @@
   "fieldCountry": "Country",
   "fieldStreet": "Street",
   "fieldCity": "City",
+  "fieldDistrict": "District",
   "fieldState": "State",
   "fieldPostalCode": "Postal Code",
   "fieldPassportNumber": "Passport Number",
@@ -2022,5 +2023,73 @@
   "pluginVersionCurrentLabel": "v{version} (Current)",
   "pluginActionDetail": "Details",
   "localSearchTabDocumentScan": "Document Scan",
-  "localSearchTabLocalImport": "Local Import"
+  "localSearchTabLocalImport": "Local Import",
+  "sensitivityOverrideTitle": "Sensitivity Override",
+  "sensitivityOverrideDescription": "{pluginName} requests access to \"{fieldLabel}\" which is set to {actual}. The plugin requires sensitivity ≤ {required}.",
+  "@sensitivityOverrideDescription": {
+    "description": "Description of sensitivity override request",
+    "placeholders": {
+      "pluginName": {"type": "String"},
+      "fieldLabel": {"type": "String"},
+      "actual": {"type": "String"},
+      "required": {"type": "String"}
+    }
+  },
+  "sensitivityOverrideDenyTitle": "Deny Access",
+  "sensitivityOverrideDenyDesc": "Block plugin from accessing this field",
+  "sensitivityOverrideMaskTitle": "Mask Value",
+  "sensitivityOverrideMaskDesc": "Return masked/redacted value to plugin",
+  "sensitivityOverrideAllowTitle": "Allow Access",
+  "sensitivityOverrideAllowDesc": "Grant plugin access to this field for this session",
+  "sensitivityOverrideRemember": "Remember my choice",
+  "sensitivityOverrideConfirm": "Confirm Override",
+  "semanticTypeDuplicateTitle": "Duplicate Semantic Type",
+  "@semanticTypeDuplicateMessage": {
+    "description": "Message shown when a semantic type is already assigned to another field",
+    "placeholders": {
+      "typeLabel": {"type": "String"},
+      "existingFieldLabel": {"type": "String"}
+    }
+  },
+  "semanticTypeDuplicateMessage": "The semantic type \"{typeLabel}\" is already assigned to \"{existingFieldLabel}\". Assigning it here will remove it from the other field.",
+  "semanticTypeDuplicateHint": "Each semantic type can only be assigned to one field at a time.",
+  "semanticTypeDuplicateContinue": "Reassign Anyway",
+  "semanticTypePickerTitle": "Select Semantic Type",
+  "semanticTypeSearchHint": "Search semantic types...",
+  "semanticTypeNone": "None (Remove)",
+  "pluginAccessReviewTitle": "Plugin Access Review: {pluginName}",
+  "@pluginAccessReviewTitle": {
+    "description": "Title for plugin access review dialog",
+    "placeholders": {
+      "pluginName": {"type": "String"}
+    }
+  },
+  "pluginAccessReviewSubtitle": "Review the fields this plugin wants to access before installation",
+  "pluginAccessReviewModifySensitivity": "Modify Sensitivity",
+  "pluginAccessReviewCreateMissing": "Create Missing Fields",
+  "pluginAccessReviewContinue": "Continue Install",
+  "pluginAccessReviewHeaderField": "Field",
+  "pluginAccessReviewHeaderSection": "Section",
+  "pluginAccessReviewHeaderSensitivity": "Sensitivity",
+  "pluginAccessReviewHeaderStatus": "Status",
+  "pluginAccessReviewNoSection": "(none)",
+  "pluginAccessReviewMissing": "Missing",
+  "pluginAccessReviewExceededTitle": "Sensitivity Exceeded",
+  "pluginAccessReviewExceededItem": "{label}: {actual} → requires ≤ {required}",
+  "@pluginAccessReviewExceededItem": {
+    "description": "Exceeded sensitivity item",
+    "placeholders": {
+      "label": {"type": "String"},
+      "actual": {"type": "String"},
+      "required": {"type": "String"}
+    }
+  },
+  "pluginAccessReviewMissingTitle": "Missing Fields",
+  "pluginAccessReviewMissingItem": "{label}",
+  "@pluginAccessReviewMissingItem": {
+    "description": "Missing field item",
+    "placeholders": {
+      "label": {"type": "String"}
+    }
+  }
 }

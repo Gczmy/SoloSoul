@@ -4874,6 +4874,12 @@ abstract class AppLocalizations {
   /// **'City'**
   String get fieldCity;
 
+  /// No description provided for @fieldDistrict.
+  ///
+  /// In en, this message translates to:
+  /// **'District'**
+  String get fieldDistrict;
+
   /// No description provided for @fieldState.
   ///
   /// In en, this message translates to:
@@ -7031,6 +7037,210 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local Import'**
   String get localSearchTabLocalImport;
+
+  /// No description provided for @sensitivityOverrideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity Override'**
+  String get sensitivityOverrideTitle;
+
+  /// Description of sensitivity override request
+  ///
+  /// In en, this message translates to:
+  /// **'{pluginName} requests access to \"{fieldLabel}\" which is set to {actual}. The plugin requires sensitivity ≤ {required}.'**
+  String sensitivityOverrideDescription(
+    String pluginName,
+    String fieldLabel,
+    String actual,
+    String required,
+  );
+
+  /// No description provided for @sensitivityOverrideDenyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny Access'**
+  String get sensitivityOverrideDenyTitle;
+
+  /// No description provided for @sensitivityOverrideDenyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Block plugin from accessing this field'**
+  String get sensitivityOverrideDenyDesc;
+
+  /// No description provided for @sensitivityOverrideMaskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mask Value'**
+  String get sensitivityOverrideMaskTitle;
+
+  /// No description provided for @sensitivityOverrideMaskDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Return masked/redacted value to plugin'**
+  String get sensitivityOverrideMaskDesc;
+
+  /// No description provided for @sensitivityOverrideAllowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Access'**
+  String get sensitivityOverrideAllowTitle;
+
+  /// No description provided for @sensitivityOverrideAllowDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant plugin access to this field for this session'**
+  String get sensitivityOverrideAllowDesc;
+
+  /// No description provided for @sensitivityOverrideRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember my choice'**
+  String get sensitivityOverrideRemember;
+
+  /// No description provided for @sensitivityOverrideConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Override'**
+  String get sensitivityOverrideConfirm;
+
+  /// No description provided for @semanticTypeDuplicateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate Semantic Type'**
+  String get semanticTypeDuplicateTitle;
+
+  /// Message shown when a semantic type is already assigned to another field
+  ///
+  /// In en, this message translates to:
+  /// **'The semantic type \"{typeLabel}\" is already assigned to \"{existingFieldLabel}\". Assigning it here will remove it from the other field.'**
+  String semanticTypeDuplicateMessage(
+    String typeLabel,
+    String existingFieldLabel,
+  );
+
+  /// No description provided for @semanticTypeDuplicateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Each semantic type can only be assigned to one field at a time.'**
+  String get semanticTypeDuplicateHint;
+
+  /// No description provided for @semanticTypeDuplicateContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Reassign Anyway'**
+  String get semanticTypeDuplicateContinue;
+
+  /// No description provided for @semanticTypePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Semantic Type'**
+  String get semanticTypePickerTitle;
+
+  /// No description provided for @semanticTypeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search semantic types...'**
+  String get semanticTypeSearchHint;
+
+  /// No description provided for @semanticTypeNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None (Remove)'**
+  String get semanticTypeNone;
+
+  /// Title for plugin access review dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Access Review: {pluginName}'**
+  String pluginAccessReviewTitle(String pluginName);
+
+  /// No description provided for @pluginAccessReviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the fields this plugin wants to access before installation'**
+  String get pluginAccessReviewSubtitle;
+
+  /// No description provided for @pluginAccessReviewModifySensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Modify Sensitivity'**
+  String get pluginAccessReviewModifySensitivity;
+
+  /// No description provided for @pluginAccessReviewCreateMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Missing Fields'**
+  String get pluginAccessReviewCreateMissing;
+
+  /// No description provided for @pluginAccessReviewContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Install'**
+  String get pluginAccessReviewContinue;
+
+  /// No description provided for @pluginAccessReviewHeaderField.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get pluginAccessReviewHeaderField;
+
+  /// No description provided for @pluginAccessReviewHeaderSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get pluginAccessReviewHeaderSection;
+
+  /// No description provided for @pluginAccessReviewHeaderSensitivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity'**
+  String get pluginAccessReviewHeaderSensitivity;
+
+  /// No description provided for @pluginAccessReviewHeaderStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get pluginAccessReviewHeaderStatus;
+
+  /// No description provided for @pluginAccessReviewNoSection.
+  ///
+  /// In en, this message translates to:
+  /// **'(none)'**
+  String get pluginAccessReviewNoSection;
+
+  /// No description provided for @pluginAccessReviewMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing'**
+  String get pluginAccessReviewMissing;
+
+  /// No description provided for @pluginAccessReviewExceededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitivity Exceeded'**
+  String get pluginAccessReviewExceededTitle;
+
+  /// Exceeded sensitivity item
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {actual} → requires ≤ {required}'**
+  String pluginAccessReviewExceededItem(
+    String label,
+    String actual,
+    String required,
+  );
+
+  /// No description provided for @pluginAccessReviewMissingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing Fields'**
+  String get pluginAccessReviewMissingTitle;
+
+  /// Missing field item
+  ///
+  /// In en, this message translates to:
+  /// **'{label}'**
+  String pluginAccessReviewMissingItem(String label);
 }
 
 class _AppLocalizationsDelegate

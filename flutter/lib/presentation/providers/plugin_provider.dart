@@ -240,6 +240,36 @@ Future<void> installPlugin(
   ref.invalidate(pluginRegistryStateProvider);
 }
 
+/// 下载插件工件（不安装），用于安装前审查。
+Future<PluginArtifacts> downloadPluginArtifacts(
+  WidgetRef ref,
+  String pluginId,
+  PluginRegistryEntry entry,
+  String appVersion,
+  String pluginApiVersion, {
+  String? targetVersion,
+}) async {
+  final installer = await ref.read(initializedPluginInstallerProvider.future);
+  return installer.downloadPluginArtifacts(
+    pluginId,
+    entry,
+    appVersion,
+    pluginApiVersion,
+    targetVersion: targetVersion,
+  );
+}
+
+/// 从已下载的工件安装插件。
+Future<void> installFromArtifacts(
+  WidgetRef ref,
+  PluginArtifacts artifacts,
+) async {
+  final installer = await ref.read(initializedPluginInstallerProvider.future);
+  await installer.installFromArtifacts(artifacts);
+  ref.invalidate(installedPluginsProvider);
+  ref.invalidate(pluginRegistryStateProvider);
+}
+
 Future<void> uninstallPlugin(WidgetRef ref, String pluginId) async {
   final installer = await ref.read(initializedPluginInstallerProvider.future);
   await installer.uninstall(pluginId);

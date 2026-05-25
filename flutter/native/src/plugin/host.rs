@@ -51,22 +51,39 @@ pub enum ConsentResult {
 // ============================================================================
 
 /// 字段敏感度分级
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
 pub enum SensitivityLevel {
     /// 公开数据，无需确认
-    Public,
+    Public = 0,
     /// 内部数据，无需确认
-    Internal,
+    Internal = 1,
     /// 敏感数据，需要用户确认
-    Sensitive,
+    Sensitive = 2,
     /// 关键数据，需要用户确认
-    Critical,
+    Critical = 3,
 }
 
 impl SensitivityLevel {
     /// 是否需要用户显式确认
     pub fn needs_confirmation(&self) -> bool {
         matches!(self, SensitivityLevel::Sensitive | SensitivityLevel::Critical)
+    }
+
+    /// 数值比较：self > other
+    pub fn is_stricter_than(&self, other: SensitivityLevel) -> bool {
+        (*self as u8) > (other as u8)
+    }
+
+    /// 从字符串解析
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "public" => Some(SensitivityLevel::Public),
+            "internal" => Some(SensitivityLevel::Internal),
+            "sensitive" => Some(SensitivityLevel::Sensitive),
+            "critical" => Some(SensitivityLevel::Critical),
+            _ => None,
+        }
     }
 }
 
@@ -247,6 +264,7 @@ impl SoloHostFunctions {
                  -> i32 {
                     let field_id =
                         read_memory(&mut caller, field_id_ptr as usize, field_id_len as usize);
+                    rust_log(&format!("[host:solosoul_request_field] field_id='{}' out_cap={}", field_id, out_cap));
 
                     // 使用独立作用域获取 funcs 数据，避免与后续 write_memory 的 mutable borrow 冲突
                     let (plugin_id, session_id, manifest, rate_limiter, consent_tx, audit_tx, plugin_name, session_expires_at, pre_approved_fields) = {
@@ -266,6 +284,7 @@ impl SoloHostFunctions {
 
                     // 1. 速率限制检查
                     if !rate_limiter.check(&plugin_id, &field_id) {
+                        rust_log(&format!("[host:solosoul_request_field] RateLimited field='{}'", field_id));
                         log_audit(
                             &audit_tx,
                             &plugin_id,
@@ -278,7 +297,11 @@ impl SoloHostFunctions {
                     }
 
                     // 2. 校验字段是否在 manifest 声明范围内
-                    if !manifest.is_field_requested(&field_id) {
+                    let manifest_has_field = manifest.is_field_requested(&field_id);
+                    rust_log(&format!("[host:solosoul_request_field] manifest.is_field_requested('{}') => {}", field_id, manifest_has_field));
+                    rust_log(&format!("[host:solosoul_request_field] manifest.required_fields={:?}", manifest.required_fields));
+                    rust_log(&format!("[host:solosoul_request_field] manifest.optional_fields={:?}", manifest.optional_fields));
+                    if !manifest_has_field {
                         log_audit(
                             &audit_tx,
                             &plugin_id,
@@ -287,20 +310,25 @@ impl SoloHostFunctions {
                                 field: field_id.clone(),
                             },
                         );
+                        rust_log(&format!("[host:solosoul_request_field] RETURN -1 PermissionDenied field='{}' not in manifest", field_id));
                         return -1; // PermissionDenied
                     }
 
                     // 3. 校验 Session 未过期
                     if Instant::now() > session_expires_at {
+                        rust_log(&format!("[host:solosoul_request_field] RETURN -3 TtlExpired"));
                         return -3; // TtlExpired
                     }
 
                     // 4. 检查是否为预授权字段（批量授权模式，支持通配符匹配）
                     let is_pre_approved = pre_approved_fields.iter().any(|f| crate::plugin::manifest::PluginManifest::field_matches(f, &field_id));
+                    rust_log(&format!("[host:solosoul_request_field] is_pre_approved={} pre_approved_fields={:?}", is_pre_approved, pre_approved_fields));
                     if is_pre_approved {
                         match decrypt_field_value(&field_id) {
                             Ok(value) => {
-                                if value.len() >= out_cap as usize {
+                                rust_log(&format!("[host:solosoul_request_field] pre_approved decrypt OK value_len={}", value.len()));
+                                if value.len() + 1 > out_cap as usize {
+                                    rust_log(&format!("[host:solosoul_request_field] RETURN -4 BufferTooSmall (value_len={} + null >= out_cap={})", value.len(), out_cap));
                                     return -4; // BufferTooSmall
                                 }
                                 write_memory(&mut caller, out_ptr as usize, &value);
@@ -313,9 +341,11 @@ impl SoloHostFunctions {
                                         confirmed_by_user: true,
                                     },
                                 );
+                                rust_log(&format!("[host:solosoul_request_field] RETURN 0 pre_approved granted"));
                                 return 0;
                             }
-                            Err(_e) => {
+                            Err(e) => {
+                                rust_log(&format!("[host:solosoul_request_field] pre_approved decrypt FAILED: {}", e));
                                 return -5; // InvalidField
                             }
                         }
@@ -324,11 +354,14 @@ impl SoloHostFunctions {
                     // 5. 根据敏感度决定是否需要用户确认
                     let sensitivity = resolve_field_sensitivity(&field_id);
                     let needs_confirmation = sensitivity.needs_confirmation();
+                    rust_log(&format!("[host:solosoul_request_field] sensitivity={:?} needs_confirmation={}", sensitivity, needs_confirmation));
 
                     if !needs_confirmation {
                         match decrypt_field_value(&field_id) {
                             Ok(value) => {
-                                if value.len() >= out_cap as usize {
+                                rust_log(&format!("[host:solosoul_request_field] public/internal decrypt OK value_len={}", value.len()));
+                                if value.len() + 1 > out_cap as usize {
+                                    rust_log(&format!("[host:solosoul_request_field] RETURN -4 BufferTooSmall"));
                                     return -4; // BufferTooSmall
                                 }
                                 write_memory(&mut caller, out_ptr as usize, &value);
@@ -341,9 +374,11 @@ impl SoloHostFunctions {
                                         confirmed_by_user: false,
                                     },
                                 );
+                                rust_log(&format!("[host:solosoul_request_field] RETURN 0 public/internal granted"));
                                 return 0;
                             }
-                            Err(_e) => {
+                            Err(e) => {
+                                rust_log(&format!("[host:solosoul_request_field] public/internal decrypt FAILED: {}", e));
                                 return -5; // InvalidField
                             }
                         }
@@ -378,7 +413,9 @@ impl SoloHostFunctions {
                     }
                     match rx.recv_timeout(Duration::from_secs(60)) {
                         Ok(ConsentResult::Approved(value)) => {
-                            if value.len() >= out_cap as usize {
+                            rust_log(&format!("[host:solosoul_request_field] consent APPROVED value_len={}", value.len()));
+                            if value.len() + 1 > out_cap as usize {
+                                rust_log(&format!("[host:solosoul_request_field] RETURN -4 BufferTooSmall after consent"));
                                 return -4;
                             }
                             write_memory(&mut caller, out_ptr as usize, &value);
@@ -391,11 +428,21 @@ impl SoloHostFunctions {
                                     confirmed_by_user: true,
                                 },
                             );
+                            rust_log(&format!("[host:solosoul_request_field] RETURN 0 consent granted"));
                             0
                         }
-                        Ok(ConsentResult::Denied) => -2,        // UserDenied
-                        Ok(ConsentResult::Expired) => -3,
-                        Err(_) => -3, // Timeout / Disconnected
+                        Ok(ConsentResult::Denied) => {
+                            rust_log(&format!("[host:solosoul_request_field] RETURN -2 UserDenied"));
+                            -2
+                        }        // UserDenied
+                        Ok(ConsentResult::Expired) => {
+                            rust_log(&format!("[host:solosoul_request_field] RETURN -3 Expired"));
+                            -3
+                        }
+                        Err(_) => {
+                            rust_log(&format!("[host:solosoul_request_field] RETURN -3 Timeout/Disconnected"));
+                            -3
+                        } // Timeout / Disconnected
                     }
                 },
             )
@@ -453,7 +500,7 @@ impl SoloHostFunctions {
 
                     match response {
                         Ok(data) => {
-                            if data.len() >= out_cap as usize {
+                            if data.len() + 1 > out_cap as usize {
                                 return -4; // BufferTooSmall
                             }
                             write_memory(&mut caller, out_ptr as usize, &data);
@@ -535,6 +582,8 @@ fn is_network_allowed(manifest: &PluginManifest, url: &str) -> bool {
 /// 3. 用 session_key 解密（支持 SOLO blob 和 Legacy Dart 格式）
 /// 4. 反序列化为 ProfileData，按字段路径提取值
 fn decrypt_field_value(field_id: &str) -> Result<String, String> {
+    rust_log(&format!("[decrypt_field_value] START field_id={}", field_id));
+
     // 1. 获取 AccountManager
     let manager_guard = crate::get_account_manager()
         .map_err(|e| format!("Account manager error: {}", e))?;
@@ -546,6 +595,7 @@ fn decrypt_field_value(field_id: &str) -> Result<String, String> {
     let session_key = manager
         .get_session_key()
         .ok_or("Vault not unlocked")?;
+    rust_log("[decrypt_field_value] session_key obtained");
 
     // 3. 获取 vault_store
     let vault_guard = manager
@@ -559,7 +609,9 @@ fn decrypt_field_value(field_id: &str) -> Result<String, String> {
     let profiles = vault_store
         .list_profiles()
         .map_err(|e| format!("Failed to list profiles: {}", e))?;
+    rust_log(&format!("[decrypt_field_value] profiles count={}", profiles.len()));
     let profile_summary = profiles.first().ok_or("No profiles found")?;
+    rust_log(&format!("[decrypt_field_value] using profile_id={}", profile_summary.id));
 
     // 5. 加载 profile 的加密 data
     let profile = vault_store
@@ -570,12 +622,20 @@ fn decrypt_field_value(field_id: &str) -> Result<String, String> {
     // 6. 解密
     let plaintext = crate::crypto::decrypt_profile_data(&session_key, &profile.data)
         .map_err(|e| format!("Decryption failed: {}", e))?;
+    let plaintext_len = plaintext.len();
+    rust_log(&format!("[decrypt_field_value] plaintext decrypted, len={}", plaintext_len));
 
     // 7. 反序列化（支持 VersionedProfileData 和旧格式 ProfileData）
     let json_str = String::from_utf8_lossy(&plaintext);
+    let is_versioned = json_str.trim_start().starts_with('{') && json_str.contains("\"version\"");
+    rust_log(&format!("[decrypt_field_value] json_str prefix={}", &json_str[..json_str.len().min(200)]));
     let data: ProfileData = match serde_json::from_str::<VersionedProfileData>(&json_str) {
-        Ok(versioned) => versioned.data,
-        Err(_) => {
+        Ok(versioned) => {
+            rust_log(&format!("[decrypt_field_value] parsed as VersionedProfileData, version={}", versioned.version));
+            versioned.data
+        }
+        Err(e) => {
+            rust_log(&format!("[decrypt_field_value] NOT VersionedProfileData: {}, trying direct ProfileData", e));
             // 向后兼容：旧格式没有 version 包装层
             serde_json::from_str(&json_str)
                 .map_err(|e| format!("Failed to parse profile data: {}", e))?
@@ -584,35 +644,71 @@ fn decrypt_field_value(field_id: &str) -> Result<String, String> {
 
     // 8. 按字段路径取值（旧格式）
     let result = extract_field_value(field_id, &data);
+    rust_log(&format!("[decrypt_field_value] legacy extract_field_value result={:?}", result.as_ref().map(|s| &s[..s.len().min(50)])));
     if result.is_some() {
+        rust_log(&format!("[decrypt_field_value] RETURN legacy result"));
         return result.ok_or_else(|| format!("Field '{}' not found or empty", field_id));
     }
 
     // 9. 尝试从 Unified Object Model 提取（Flutter 新格式）
     let json_value: serde_json::Value = serde_json::from_str(&json_str)
         .map_err(|e| format!("Failed to parse as JSON: {}", e))?;
+    rust_log(&format!("[decrypt_field_value] parsed as serde_json::Value, has_data={}, has_unified_objects={}",
+        json_value.get("data").is_some(), json_value.get("unified_objects").is_some()));
+
+    // 【新增】语义类型路径分支（semantic://）
+    if field_id.contains("semantic://") {
+        rust_log(&format!("[decrypt_field_value] semantic path detected: {}", field_id));
+        let semantic_result = extract_by_semantic_type(field_id, &json_value, None);
+        rust_log(&format!("[decrypt_field_value] semantic result={:?}", semantic_result.as_ref().map(|s| &s[..s.len().min(50)])));
+        return semantic_result.ok_or_else(|| format!("Semantic field '{}' not found or empty", field_id));
+    }
+
     let uom_result = extract_from_unified_object_model(field_id, &json_value);
+    rust_log(&format!("[decrypt_field_value] UOM result={:?}", uom_result.as_ref().map(|s| &s[..s.len().min(50)])));
+    if uom_result.is_some() {
+        rust_log(&format!("[decrypt_field_value] RETURN UOM result"));
+    } else {
+        rust_log(&format!("[decrypt_field_value] UOM returned None, will return Err"));
+    }
     uom_result.ok_or_else(|| format!("Field '{}' not found or empty", field_id))
 }
 
 /// 从 ProfileData 中按字段路径提取值
 fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
+    rust_log(&format!("[extract_field_value] START field_id={}", field_id));
     // 支持 address 数组索引语法，如 address[0].street
     if let Some(addr_field) = field_id.strip_prefix("address[") {
         if let Some((idx_str, rest)) = addr_field.split_once("].") {
             if let Ok(idx) = idx_str.parse::<usize>() {
-                let identity = data.identity.as_ref()?;
+                let identity = match data.identity.as_ref() {
+                    Some(i) => i,
+                    None => {
+                        rust_log("[extract_field_value] data.identity is None");
+                        return None;
+                    }
+                };
                 let addrs: Vec<_> = identity.addresses.iter().filter(|a| !a.is_deleted).collect();
-                let addr = addrs.get(idx)?;
-                return match rest {
+                rust_log(&format!("[extract_field_value] legacy addrs count={}", addrs.len()));
+                let addr = match addrs.get(idx) {
+                    Some(a) => a,
+                    None => {
+                        rust_log(&format!("[extract_field_value] legacy addrs[{}] not found", idx));
+                        return None;
+                    }
+                };
+                let result = match rest {
                     "street" => addr.street.clone(),
                     "city" => addr.city.clone(),
                     "state" => addr.state.clone(),
+                    "district" => addr.district.clone(),
                     "postalCode" => addr.postal_code.clone(),
                     "country" => addr.country.clone(),
                     "label" => addr.label.clone(),
                     _ => None,
                 };
+                rust_log(&format!("[extract_field_value] legacy address[{}].{} => {:?}", idx, rest, result.as_ref().map(|s| &s[..s.len().min(50)])));
+                return result;
             }
         }
     }
@@ -620,23 +716,38 @@ fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
     // address.count 返回未删除地址数量
     if field_id == "address.count" {
         let count = data.identity.as_ref()?.addresses.iter().filter(|a| !a.is_deleted).count();
+        rust_log(&format!("[extract_field_value] legacy address.count => {}", count));
         return Some(count.to_string());
     }
 
     // address.xxx 简写路径：默认映射到第一个未删除地址（主地址）
     if let Some(addr_key) = field_id.strip_prefix("address.") {
-        let identity = data.identity.as_ref()?;
-        let addr = identity.addresses.iter().find(|a| !a.is_deleted)?;
-        return match addr_key {
+        let identity = match data.identity.as_ref() {
+            Some(i) => i,
+            None => {
+                rust_log("[extract_field_value] data.identity is None for shorthand");
+                return None;
+            }
+        };
+        let addr = match identity.addresses.iter().find(|a| !a.is_deleted) {
+            Some(a) => a,
+            None => {
+                rust_log("[extract_field_value] legacy no non-deleted address found");
+                return None;
+            }
+        };
+        let result = match addr_key {
             "street" => addr.street.clone(),
             "city" => addr.city.clone(),
             "state" => addr.state.clone(),
+            "district" => addr.district.clone(),
             "postalCode" => addr.postal_code.clone(),
             "country" => addr.country.clone(),
             "label" => addr.label.clone(),
-            // district 在 AddressData 中不存在，返回 None
             _ => None,
         };
+        rust_log(&format!("[extract_field_value] legacy address.{} => {:?}", addr_key, result.as_ref().map(|s| &s[..s.len().min(50)])));
+        return result;
     }
 
     match field_id {
@@ -718,36 +829,54 @@ fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
 /// }
 /// 获取所有非删除的 profile_address 对象（按数组索引顺序）
 fn get_address_objects(objects: &[serde_json::Value]) -> Vec<&serde_json::Value> {
+    rust_log(&format!("[get_address_objects] input objects count={}", objects.len()));
     let mut addrs: Vec<&serde_json::Value> = Vec::new();
-    for obj in objects {
-        if obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false) {
+    for (i, obj) in objects.iter().enumerate() {
+        let is_deleted = obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false);
+        let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+        rust_log(&format!("[get_address_objects] obj[{}] typeId={} isDeleted={}", i, type_id, is_deleted));
+        if is_deleted {
             continue;
         }
-        let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
         if type_id == "profile_address" {
             addrs.push(obj);
         }
     }
+    rust_log(&format!("[get_address_objects] filtered address count={}", addrs.len()));
     addrs
 }
 
 fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Value) -> Option<String> {
-    let objects = json_value
-        .get("unified_objects")?
-        .get("objects")?
-        .as_array()?;
+    rust_log(&format!("[extract_from_uom] START field_id={}", field_id));
+    // 支持两种 JSON 结构：
+    // 1. VersionedProfileData 包装层: { "version": 1, "data": { "unified_objects": { "objects": [...] } } }
+    // 2. 直接 ProfileData: { "unified_objects": { "objects": [...] } }
+    let root = if json_value.get("data").is_some() && json_value.get("unified_objects").is_none() {
+        rust_log("[extract_from_uom] using json_value.data (VersionedProfileData wrapper)");
+        json_value.get("data")?
+    } else {
+        rust_log("[extract_from_uom] using json_value directly (ProfileData)");
+        json_value
+    };
+    let unified_objects = root.get("unified_objects")?;
+    let objects = unified_objects.get("objects")?.as_array()?;
+    rust_log(&format!("[extract_from_uom] total objects count={}", objects.len()));
 
     // 1. 处理 address.count
     if field_id == "address.count" {
         let addrs = get_address_objects(objects);
+        rust_log(&format!("[extract_from_uom] address.count => {}", addrs.len()));
         return Some(addrs.len().to_string());
     }
 
     // 2. 处理 address[N].xxx 数组索引语法
     if let Some(addr_field) = field_id.strip_prefix("address[") {
+        rust_log(&format!("[extract_from_uom] matched address[N].xxx syntax, addr_field={}", addr_field));
         if let Some((idx_str, rest)) = addr_field.split_once("].") {
+            rust_log(&format!("[extract_from_uom] idx_str={}, rest={}", idx_str, rest));
             if let Ok(idx) = idx_str.parse::<usize>() {
                 let addrs = get_address_objects(objects);
+                rust_log(&format!("[extract_from_uom] looking up addrs[{}], total_addrs={}", idx, addrs.len()));
                 let addr = addrs.get(idx)?;
                 let properties = addr.get("properties")?;
                 let prop_key = match rest {
@@ -757,17 +886,29 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
                     "postalCode" => "postalCode",
                     "country" => "country",
                     "district" => "district",
-                    "label" => "label",
+                    // UOM 中地址对象的标签字段是 "title"，插件侧习惯称为 "label"
+                    "label" => "title",
                     _ => rest,
                 };
+                rust_log(&format!("[extract_from_uom] looking for prop_key='{}' in properties", prop_key));
+                // 打印所有 properties key 用于调试
+                if let Some(props_map) = properties.as_object() {
+                    let keys: Vec<String> = props_map.keys().cloned().collect();
+                    rust_log(&format!("[extract_from_uom] available property keys: {:?}", keys));
+                }
                 let prop = properties.get(prop_key)?;
-                return prop.get("text").and_then(|t| t.as_str()).map(|s| s.to_string());
+                let result = prop.get("text").and_then(|t| t.as_str()).map(|s| s.to_string());
+                rust_log(&format!("[extract_from_uom] found text={:?}", result.as_ref().map(|s| &s[..s.len().min(50)])));
+                return result;
+            } else {
+                rust_log(&format!("[extract_from_uom] failed to parse idx_str='{}' as usize", idx_str));
             }
         }
     }
 
     // 3. 处理 address.xxx 简写路径（返回第一个非空地址的对应字段）
     if let Some(addr_key) = field_id.strip_prefix("address.") {
+        rust_log(&format!("[extract_from_uom] matched address.xxx shorthand, addr_key={}", addr_key));
         let prop_key = match addr_key {
             "street" => "street",
             "city" => "city",
@@ -775,29 +916,40 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             "postalCode" => "postalCode",
             "country" => "country",
             "district" => "district",
-            "label" => "label",
+            // UOM 中地址对象的标签字段是 "title"，插件侧习惯称为 "label"
+            "label" => "title",
             _ => addr_key,
         };
         let addrs = get_address_objects(objects);
         let mut first_empty: Option<String> = None;
-        for addr in addrs {
+        for (i, addr) in addrs.iter().enumerate() {
             let properties = match addr.get("properties") {
                 Some(p) => p,
-                None => continue,
+                None => {
+                    rust_log(&format!("[extract_from_uom] addr[{}] has no properties", i));
+                    continue;
+                }
             };
             let prop = match properties.get(prop_key) {
                 Some(p) => p,
-                None => continue,
+                None => {
+                    rust_log(&format!("[extract_from_uom] addr[{}] missing prop_key='{}'", i, prop_key));
+                    continue;
+                }
             };
             if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+                rust_log(&format!("[extract_from_uom] addr[{}] text='{}' (empty={})", i, &text[..text.len().min(50)], text.is_empty()));
                 if !text.is_empty() {
                     return Some(text.to_string());
                 }
                 if first_empty.is_none() {
                     first_empty = Some(text.to_string());
                 }
+            } else {
+                rust_log(&format!("[extract_from_uom] addr[{}] prop has no 'text' field", i));
             }
         }
+        rust_log(&format!("[extract_from_uom] shorthand returning first_empty={:?}", first_empty.as_ref().map(|s| &s[..s.len().min(50)])));
         return first_empty;
     }
 
@@ -813,6 +965,7 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             field_id.split('.').last().unwrap_or(field_id)
         }
     };
+    rust_log(&format!("[extract_from_uom] generic field lookup, property_key='{}'", property_key));
 
     let mut first_empty: Option<String> = None;
     for obj in objects {
@@ -877,7 +1030,260 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         }
     }
 
+    rust_log(&format!("[extract_from_uom] END returning first_empty={:?}", first_empty.as_ref().map(|s| &s[..s.len().min(50)])));
     first_empty
+}
+
+// ============================================================================
+// Semantic Type Resolution (新增)
+// ============================================================================
+
+/// 解析语义路径并返回字段值
+///
+/// 路径格式："{section_ref}.semantic://{semantic_type}"
+/// 示例："section_pet_dog.semantic://pet.name"、"宠物狗.semantic://pet.name"
+fn extract_by_semantic_type(
+    field_id: &str,
+    json_value: &serde_json::Value,
+    plugin_mappings: Option<&std::collections::HashMap<String, String>>,
+) -> Option<String> {
+    rust_log(&format!("[extract_by_semantic_type] START field_id={}", field_id));
+
+    let (section_ref, semantic_type) = parse_semantic_path(field_id)?;
+    rust_log(&format!("[extract_by_semantic_type] section_ref={}, semantic_type={}", section_ref, semantic_type));
+
+    // 解析 section_ref 为 section_id
+    let section_id = resolve_section_reference(section_ref, json_value)?;
+    rust_log(&format!("[extract_by_semantic_type] resolved section_id={}", section_id));
+
+    // 获取 section 对象
+    let section = find_section_by_id(&section_id, json_value)?;
+
+    // 获取所有 objects 数组引用
+    let all_objects = json_value
+        .get("unified_objects")
+        .and_then(|uo| uo.get("objects"))
+        .and_then(|arr| arr.as_array())?;
+
+    // 优先使用插件级映射
+    if let Some(mappings) = plugin_mappings {
+        if let Some(machine_key) = mappings.get(semantic_type) {
+            rust_log(&format!("[extract_by_semantic_type] using plugin mapping: {} -> {}", semantic_type, machine_key));
+            return find_value_in_section_children(section, machine_key, all_objects)
+                .or_else(|| find_value_in_section_self(section, machine_key));
+        }
+    }
+
+    // 使用 section 的 __semanticTypes 查找机器 key
+    let semantic_types = section.get("__semanticTypes").and_then(|st: &serde_json::Value| st.as_object())?;
+    let machine_key = find_machine_key_by_semantic_type(semantic_types, semantic_type)?;
+    rust_log(&format!("[extract_by_semantic_type] found machine_key={} for semantic_type={}", machine_key, semantic_type));
+
+    // 在 section 的子对象或自身中查找值
+    let result = find_value_in_section_children(section, &machine_key, all_objects)
+        .or_else(|| find_value_in_section_self(section, &machine_key));
+    rust_log(&format!("[extract_by_semantic_type] result={:?}", result.as_ref().map(|s| &s[..s.len().min(50)])));
+    result
+}
+
+/// 解析语义路径为 (section_ref, semantic_type)
+fn parse_semantic_path(field_id: &str) -> Option<(&str, &str)> {
+    let parts: Vec<&str> = field_id.split(".semantic://").collect();
+    if parts.len() != 2 {
+        return None;
+    }
+    Some((parts[0], parts[1]))
+}
+
+/// 通过名称或 ID 解析 section 引用
+fn resolve_section_reference(
+    section_ref: &str,
+    json_value: &serde_json::Value,
+) -> Option<String> {
+    // 1. 内置 section 映射（向后兼容）
+    let built_in = match section_ref {
+        "identity" | "Identity" => Some("__section_identity"),
+        "contact" | "Contact" => Some("__section_contact"),
+        "passport" | "Passport" => Some("__section_passport"),
+        "bankAccount" | "Bank Account" | "bank_account" => Some("__section_bank_account"),
+        _ => None,
+    };
+    if let Some(id) = built_in {
+        return Some(id.to_string());
+    }
+
+    // 2. 如果 section_ref 看起来已经是 ID（以 __ 开头或包含 auto_），直接使用
+    if section_ref.starts_with("__") || section_ref.starts_with("section_") {
+        return Some(section_ref.to_string());
+    }
+
+    // 3. 动态 section 查找：遍历 objects，匹配 name
+    let objects = json_value
+        .get("unified_objects")
+        .and_then(|uo| uo.get("objects"))
+        .and_then(|arr| arr.as_array())?;
+
+    let normalized_ref = section_ref.trim().to_lowercase();
+    for obj in objects {
+        let obj_name = obj.get("name").and_then(|n| n.as_str()).unwrap_or("");
+        let type_id = obj.get("typeId").and_then(|t| t.as_str()).unwrap_or("");
+        if (type_id == "collection" || type_id == "page")
+            && obj_name.trim().to_lowercase() == normalized_ref {
+            return obj.get("id").and_then(|id| id.as_str()).map(|s| s.to_string());
+        }
+    }
+
+    None
+}
+
+/// 在 objects 中通过 ID 查找 section
+fn find_section_by_id<'a>(
+    section_id: &str,
+    json_value: &'a serde_json::Value,
+) -> Option<&'a serde_json::Value> {
+    let objects = json_value
+        .get("unified_objects")
+        .and_then(|uo| uo.get("objects"))
+        .and_then(|arr| arr.as_array())?;
+
+    objects.iter().find(|obj| {
+        obj.get("id").and_then(|id| id.as_str()) == Some(section_id)
+    })
+}
+
+/// 通过语义类型查找机器 key（取第一个匹配）
+fn find_machine_key_by_semantic_type(
+    semantic_types: &serde_json::Map<String, serde_json::Value>,
+    target: &str,
+) -> Option<String> {
+    for (key, value) in semantic_types {
+        if value.as_str() == Some(target) {
+            return Some(key.clone());
+        }
+    }
+    None
+}
+
+/// 获取字段的实际敏感度
+fn get_field_sensitivity_value(
+    section: &serde_json::Value,
+    machine_key: &str,
+) -> SensitivityLevel {
+    section
+        .get("properties")
+        .and_then(|p| p.as_object())
+        .and_then(|props| props.get(machine_key))
+        .and_then(|prop| prop.get("sensitivity"))
+        .and_then(|s| s.as_str())
+        .and_then(|s| SensitivityLevel::from_str(s))
+        .unwrap_or(SensitivityLevel::Public)
+}
+
+/// 在 section 的子对象中查找指定 key 的值
+fn find_value_in_section_children(
+    section: &serde_json::Value,
+    key: &str,
+    all_objects: &[serde_json::Value],
+) -> Option<String> {
+    let child_ids: Vec<&str> = section
+        .get("childrenIds")
+        .and_then(|c| c.as_array())
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+
+    for obj in all_objects {
+        let obj_id = obj.get("id").and_then(|id| id.as_str()).unwrap_or("");
+        if !child_ids.contains(&obj_id) {
+            continue;
+        }
+        if obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false) {
+            continue;
+        }
+
+        if let Some(props) = obj.get("properties").and_then(|p| p.as_object()) {
+            if let Some(prop) = props.get(key) {
+                if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+                    if !text.is_empty() {
+                        return Some(text.to_string());
+                    }
+                }
+                if let Some(value) = prop.get("value").and_then(|v| v.as_f64()) {
+                    return Some(value.to_string());
+                }
+                if let Some(iso_date) = prop.get("isoDate").and_then(|d| d.as_str()) {
+                    if !iso_date.is_empty() {
+                        return Some(iso_date.to_string());
+                    }
+                }
+                if let Some(checked) = prop.get("checked").and_then(|c| c.as_bool()) {
+                    return Some(checked.to_string());
+                }
+            }
+        }
+    }
+
+    None
+}
+
+/// 在 section 自身的 properties 中查找（用于 section 直接存储数据的场景）
+fn find_value_in_section_self(section: &serde_json::Value, key: &str) -> Option<String> {
+    let props = section.get("properties").and_then(|p| p.as_object())?;
+    let prop = props.get(key)?;
+
+    if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+        if !text.is_empty() {
+            return Some(text.to_string());
+        }
+    }
+    if let Some(value) = prop.get("value").and_then(|v| v.as_f64()) {
+        return Some(value.to_string());
+    }
+    if let Some(iso_date) = prop.get("isoDate").and_then(|d| d.as_str()) {
+        if !iso_date.is_empty() {
+            return Some(iso_date.to_string());
+        }
+    }
+    if let Some(checked) = prop.get("checked").and_then(|c| c.as_bool()) {
+        return Some(checked.to_string());
+    }
+
+    None
+}
+
+/// 【新增 Host Function】获取包含指定语义类型的所有 section
+fn get_sections_with_semantic_type(
+    semantic_type: &str,
+    json_value: &serde_json::Value,
+) -> Vec<serde_json::Value> {
+    let mut results = Vec::new();
+
+    let empty_vec: Vec<serde_json::Value> = Vec::new();
+    let objects = json_value
+        .get("unified_objects")
+        .and_then(|uo| uo.get("objects"))
+        .and_then(|arr| arr.as_array())
+        .unwrap_or(&empty_vec);
+
+    for obj in objects {
+        let type_id = obj.get("typeId").and_then(|t| t.as_str()).unwrap_or("");
+        if type_id != "collection" && type_id != "page" {
+            continue;
+        }
+
+        if let Some(st_map) = obj.get("__semanticTypes").and_then(|st: &serde_json::Value| st.as_object()) {
+            for (_, value) in st_map {
+                if value.as_str() == Some(semantic_type) {
+                    results.push(serde_json::json!({
+                        "section_id": obj.get("id").and_then(|id| id.as_str()).unwrap_or(""),
+                        "section_name": obj.get("name").and_then(|n| n.as_str()).unwrap_or(""),
+                    }));
+                    break;
+                }
+            }
+        }
+    }
+
+    results
 }
 
 async fn proxy_http_post(url: &str, body: &str) -> Result<String, HttpError> {
@@ -958,8 +1364,90 @@ fn read_memory(caller: &mut Caller<'_, SoloHostFunctions>, ptr: usize, len: usiz
     String::from_utf8_lossy(&buf).to_string()
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_from_uom_versioned_wrapper() {
+        let json = serde_json::json!({
+            "version": 1,
+            "data": {
+                "unified_objects": {
+                    "objects": [
+                        {
+                            "typeId": "profile_address",
+                            "name": "Home",
+                            "isDeleted": false,
+                            "properties": {
+                                "street": {"type": "text", "text": "123 Main St"},
+                                "city": {"type": "text", "text": "Springfield"},
+                                "country": {"type": "text", "text": "US"}
+                            }
+                        }
+                    ]
+                },
+                "schema_version": 4
+            }
+        });
+
+        assert_eq!(
+            extract_from_unified_object_model("address.count", &json),
+            Some("1".to_string())
+        );
+        assert_eq!(
+            extract_from_unified_object_model("address[0].street", &json),
+            Some("123 Main St".to_string())
+        );
+        assert_eq!(
+            extract_from_unified_object_model("address[0].city", &json),
+            Some("Springfield".to_string())
+        );
+        assert_eq!(
+            extract_from_unified_object_model("address[0].country", &json),
+            Some("US".to_string())
+        );
+    }
+
+    #[test]
+    fn test_extract_from_uom_direct_profile_data() {
+        let json = serde_json::json!({
+            "unified_objects": {
+                "objects": [
+                    {
+                        "typeId": "profile_address",
+                        "name": "Home",
+                        "isDeleted": false,
+                        "properties": {
+                            "street": {"type": "text", "text": "456 Oak Ave"},
+                            "city": {"type": "text", "text": "Metro City"},
+                            "country": {"type": "text", "text": "CN"}
+                        }
+                    }
+                ]
+            },
+            "schema_version": 4
+        });
+
+        assert_eq!(
+            extract_from_unified_object_model("address.count", &json),
+            Some("1".to_string())
+        );
+        assert_eq!(
+            extract_from_unified_object_model("address[0].street", &json),
+            Some("456 Oak Ave".to_string())
+        );
+        assert_eq!(
+            extract_from_unified_object_model("address[0].country", &json),
+            Some("CN".to_string())
+        );
+    }
+}
+
 fn write_memory(caller: &mut Caller<'_, SoloHostFunctions>, ptr: usize, value: &str) {
     let memory = caller.get_export("memory").and_then(|e| e.into_memory());
     let Some(memory) = memory else { return };
-    memory.write(caller, ptr, value.as_bytes()).unwrap_or(());
+    memory.write(&mut *caller, ptr, value.as_bytes()).unwrap_or(());
+    // 追加 null terminator，SDK 侧通过查找 \0 确定字符串长度
+    memory.write(&mut *caller, ptr + value.len(), &[0]).unwrap_or(());
 }

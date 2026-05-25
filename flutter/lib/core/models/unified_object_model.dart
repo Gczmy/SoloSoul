@@ -80,8 +80,16 @@ class SelectOption {
 /// Tells the UI what properties an object of a given type should have.
 @JsonSerializable(explicitToJson: true)
 class PropertyDefinition {
+  /// 机器 key（稳定标识符）
+  /// 预定义字段：保持现有英文 camelCase（如 "fullName"）
+  /// 自定义字段：自动生成，如 "auto_a3f7d2e1"
   final String id;
+
+  /// 显示名称
+  /// 预定义字段：从 ARB 读取
+  /// 自定义字段：用户输入的字段名称
   final String name;
+
   final PropertyType type;
 
   /// Type-specific config:
@@ -93,6 +101,16 @@ class PropertyDefinition {
   final bool required;
   final int order;
 
+  /// 【新增】语义类型标识符
+  /// 如 "pet.name"、"person.birth_date"
+  /// 为 null 表示未指定语义类型（对插件不可见）
+  final String? semanticType;
+
+  /// 【新增】机器 key 生成方式标记
+  /// true = 机器自动生成（auto_ 前缀）
+  /// false = 预定义/手动指定
+  final bool isAutoKey;
+
   const PropertyDefinition({
     required this.id,
     required this.name,
@@ -100,6 +118,8 @@ class PropertyDefinition {
     this.config,
     this.required = false,
     this.order = 0,
+    this.semanticType,
+    this.isAutoKey = false,
   });
 
   factory PropertyDefinition.fromJson(Map<String, dynamic> json) =>
@@ -114,6 +134,8 @@ class PropertyDefinition {
     Map<String, dynamic>? config,
     bool? required,
     int? order,
+    String? semanticType,
+    bool? isAutoKey,
   }) {
     return PropertyDefinition(
       id: id ?? this.id,
@@ -122,6 +144,8 @@ class PropertyDefinition {
       config: config ?? this.config,
       required: required ?? this.required,
       order: order ?? this.order,
+      semanticType: semanticType ?? this.semanticType,
+      isAutoKey: isAutoKey ?? this.isAutoKey,
     );
   }
 }
@@ -602,6 +626,12 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   /// If absent or empty, UI falls back to translateFieldLabel(key).
   final Map<String, String>? propertyLabels;
 
+  /// 【新增】语义类型映射（Schema 层元数据）。
+  /// Key 是机器 key，value 是语义类型 ID（如 "pet.name"）。
+  /// 存储在 JSON 中时为 `__semanticTypes`。
+  /// 仅用于 section/collection 对象的 Schema 定义。
+  final Map<String, String>? semanticTypes;
+
   /// File attachments associated with this object.
   /// Actual encrypted files are stored on disk via [AttachmentStorageService].
   final List<Attachment> attachments;
@@ -621,6 +651,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     this.childrenIds = const [],
     this.properties = const {},
     this.propertyLabels,
+    this.semanticTypes,
     this.attachments = const [],
     this.isDeleted = false,
     this.deletedAt,
@@ -652,6 +683,8 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
         for (final e in properties.entries) e.key: _propValueToDisplay(e.value, l10n),
         if (propertyLabels != null && propertyLabels!.isNotEmpty)
           '__propertyLabels': propertyLabels,
+        if (semanticTypes != null && semanticTypes!.isNotEmpty)
+          '__semanticTypes': semanticTypes,
       };
 
   factory UnifiedObject.fromJson(Map<String, dynamic> json) =>
@@ -670,6 +703,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     List<String>? childrenIds,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
+    Map<String, String>? semanticTypes,
     List<Attachment>? attachments,
     bool? isDeleted,
     DateTime? deletedAt,
@@ -686,6 +720,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       childrenIds: childrenIds ?? this.childrenIds,
       properties: properties ?? this.properties,
       propertyLabels: propertyLabels ?? this.propertyLabels,
+      semanticTypes: semanticTypes ?? this.semanticTypes,
       attachments: attachments ?? this.attachments,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,

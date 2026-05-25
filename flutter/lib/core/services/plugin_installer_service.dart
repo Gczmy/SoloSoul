@@ -24,9 +24,9 @@ class PluginInstallerService {
     await _pluginDir.create(recursive: true);
   }
 
-  /// 从远程市场安装插件
-  /// [targetVersion] 为 null 时安装最新版本
-  Future<void> installFromMarket(
+  /// 从远程市场下载插件工件（wasm + manifest），返回原始字节和 JSON。
+  /// [targetVersion] 为 null 时下载最新版本。
+  Future<PluginArtifacts> downloadPluginArtifacts(
     String pluginId,
     PluginRegistryEntry entry,
     String appVersion,
@@ -66,13 +66,21 @@ class PluginInstallerService {
     // 5. 下载 manifest.json（从 wasm URL 推断 manifest URL）
     final manifestJson = await _downloadManifest(versionInfo);
 
-    // 6. 保存到临时文件，然后调用 Rust FFI 安装
+    return PluginArtifacts(
+      wasmBytes: wasmBytes,
+      manifestJson: manifestJson,
+      version: versionToInstall,
+    );
+  }
+
+  /// 从已下载的工件安装插件。
+  Future<void> installFromArtifacts(PluginArtifacts artifacts) async {
     final tempDir = await Directory.systemTemp.createTemp('solosoul_plugin_');
     try {
       final tempWasmPath = '${tempDir.path}/plugin.wasm';
       final tempManifestPath = '${tempDir.path}/manifest.json';
-      await File(tempWasmPath).writeAsBytes(wasmBytes);
-      await File(tempManifestPath).writeAsString(manifestJson);
+      await File(tempWasmPath).writeAsBytes(artifacts.wasmBytes);
+      await File(tempManifestPath).writeAsString(artifacts.manifestJson);
 
       await frb.frbPluginInstall(
         wasmPath: tempWasmPath,
@@ -81,6 +89,24 @@ class PluginInstallerService {
     } finally {
       await tempDir.delete(recursive: true);
     }
+  }
+
+  /// 便捷方法：下载并直接安装（跳过审查流程）。
+  Future<void> installFromMarket(
+    String pluginId,
+    PluginRegistryEntry entry,
+    String appVersion,
+    String pluginApiVersion, {
+    String? targetVersion,
+  }) async {
+    final artifacts = await downloadPluginArtifacts(
+      pluginId,
+      entry,
+      appVersion,
+      pluginApiVersion,
+      targetVersion: targetVersion,
+    );
+    await installFromArtifacts(artifacts);
   }
 
   /// 从本地文件安装（开发者模式 / 侧载）

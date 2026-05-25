@@ -2574,6 +2574,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fieldCity => '城市';
 
   @override
+  String get fieldDistrict => '区/县';
+
+  @override
   String get fieldState => '州/省';
 
   @override
@@ -3722,4 +3725,122 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get localSearchTabLocalImport => '导入本地文件';
+
+  @override
+  String get sensitivityOverrideTitle => '敏感度覆盖';
+
+  @override
+  String sensitivityOverrideDescription(
+    String pluginName,
+    String fieldLabel,
+    String actual,
+    String required,
+  ) {
+    return '$pluginName 请求访问「$fieldLabel」，该字段当前敏感度为 $actual。插件要求敏感度 ≤ $required。';
+  }
+
+  @override
+  String get sensitivityOverrideDenyTitle => '拒绝访问';
+
+  @override
+  String get sensitivityOverrideDenyDesc => '阻止插件访问此字段';
+
+  @override
+  String get sensitivityOverrideMaskTitle => '掩码值';
+
+  @override
+  String get sensitivityOverrideMaskDesc => '向插件返回掩码/脱敏后的值';
+
+  @override
+  String get sensitivityOverrideAllowTitle => '允许访问';
+
+  @override
+  String get sensitivityOverrideAllowDesc => '允许插件在此会话中访问此字段';
+
+  @override
+  String get sensitivityOverrideRemember => '记住我的选择';
+
+  @override
+  String get sensitivityOverrideConfirm => '确认覆盖';
+
+  @override
+  String get semanticTypeDuplicateTitle => '语义类型重复';
+
+  @override
+  String semanticTypeDuplicateMessage(
+    String typeLabel,
+    String existingFieldLabel,
+  ) {
+    return '语义类型「$typeLabel」已分配给「$existingFieldLabel」。将其分配到这里将从其他字段移除。';
+  }
+
+  @override
+  String get semanticTypeDuplicateHint => '每个语义类型同一时间只能分配给一个字段。';
+
+  @override
+  String get semanticTypeDuplicateContinue => '仍然重新分配';
+
+  @override
+  String get semanticTypePickerTitle => '选择语义类型';
+
+  @override
+  String get semanticTypeSearchHint => '搜索语义类型...';
+
+  @override
+  String get semanticTypeNone => '无（移除）';
+
+  @override
+  String pluginAccessReviewTitle(String pluginName) {
+    return '插件访问审查：$pluginName';
+  }
+
+  @override
+  String get pluginAccessReviewSubtitle => '安装前审查此插件请求访问的所有字段';
+
+  @override
+  String get pluginAccessReviewModifySensitivity => '修改敏感度';
+
+  @override
+  String get pluginAccessReviewCreateMissing => '创建缺失字段';
+
+  @override
+  String get pluginAccessReviewContinue => '继续安装';
+
+  @override
+  String get pluginAccessReviewHeaderField => '字段';
+
+  @override
+  String get pluginAccessReviewHeaderSection => '分区';
+
+  @override
+  String get pluginAccessReviewHeaderSensitivity => '敏感度';
+
+  @override
+  String get pluginAccessReviewHeaderStatus => '状态';
+
+  @override
+  String get pluginAccessReviewNoSection => '（无）';
+
+  @override
+  String get pluginAccessReviewMissing => '缺失';
+
+  @override
+  String get pluginAccessReviewExceededTitle => '敏感度超出限制';
+
+  @override
+  String pluginAccessReviewExceededItem(
+    String label,
+    String actual,
+    String required,
+  ) {
+    return '$label：$actual → 要求 ≤ $required';
+  }
+
+  @override
+  String get pluginAccessReviewMissingTitle => '缺失字段';
+
+  @override
+  String pluginAccessReviewMissingItem(String label) {
+    return '$label';
+  }
 }

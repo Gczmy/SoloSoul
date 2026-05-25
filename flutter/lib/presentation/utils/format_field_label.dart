@@ -38,6 +38,7 @@ String translateFieldLabel(String key, AppLocalizations l10n) {
     'country' => l10n.fieldCountry,
     'street' => l10n.fieldStreet,
     'city' => l10n.fieldCity,
+    'district' => l10n.fieldDistrict,
     'state' => l10n.fieldState,
     'postalCode' => l10n.fieldPostalCode,
     'passportNumber' => l10n.fieldPassportNumber,

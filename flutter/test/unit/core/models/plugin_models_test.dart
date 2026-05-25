@@ -290,4 +290,55 @@ void main() {
       expect(result.exitCode, 0);
     });
   });
+
+  group('PluginArtifacts', () {
+    test('creates with required fields', () {
+      final artifacts = PluginArtifacts(
+        wasmBytes: [1, 2, 3],
+        manifestJson: '{"version": "1.0"}',
+        version: '1.0.0',
+      );
+      expect(artifacts.wasmBytes, [1, 2, 3]);
+      expect(artifacts.manifestJson, '{"version": "1.0"}');
+      expect(artifacts.version, '1.0.0');
+    });
+
+    test('parseFieldAccess returns field_access list', () {
+      final artifacts = PluginArtifacts(
+        wasmBytes: [],
+        manifestJson: '{'
+            '"field_access": ['
+            '  {"semantic_type": "pet.name", "required_sensitivity": "public"},'
+            '  {"key": "fullName", "required_sensitivity": "internal"}'
+            ']'
+            '}',
+        version: '1.0.0',
+      );
+      final fieldAccess = artifacts.parseFieldAccess();
+      expect(fieldAccess, isNotNull);
+      expect(fieldAccess!.length, 2);
+      expect(fieldAccess[0]['semantic_type'], 'pet.name');
+      expect(fieldAccess[1]['key'], 'fullName');
+    });
+
+    test('parseFieldAccess returns null when no field_access', () {
+      final artifacts = PluginArtifacts(
+        wasmBytes: [],
+        manifestJson: '{"version": "1.0"}',
+        version: '1.0.0',
+      );
+      final fieldAccess = artifacts.parseFieldAccess();
+      expect(fieldAccess, isNull);
+    });
+
+    test('parseFieldAccess returns null on invalid JSON', () {
+      final artifacts = PluginArtifacts(
+        wasmBytes: [],
+        manifestJson: 'not valid json',
+        version: '1.0.0',
+      );
+      final fieldAccess = artifacts.parseFieldAccess();
+      expect(fieldAccess, isNull);
+    });
+  });
 }

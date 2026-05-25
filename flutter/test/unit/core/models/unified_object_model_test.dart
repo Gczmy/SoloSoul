@@ -269,4 +269,87 @@ void main() {
       expect(PropertyType.values, contains(PropertyType.url));
     });
   });
+
+  group('UnifiedObject semanticTypes', () {
+    test('serializes semanticTypes as __semanticTypes', () {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final obj = UnifiedObject(
+        id: 'section_1',
+        name: 'Pet Dog',
+        typeId: 'collection',
+        properties: {
+          'auto_a3f7d2e1': const TextProperty(text: 'Buddy'),
+        },
+        semanticTypes: {'auto_a3f7d2e1': 'pet.name'},
+        createdAt: now,
+        updatedAt: now,
+      );
+      final json = obj.toJson();
+      expect(json['__semanticTypes'], {'auto_a3f7d2e1': 'pet.name'});
+      expect(json.containsKey('semanticTypes'), isFalse);
+    });
+
+    test('deserializes __semanticTypes from JSON', () {
+      final json = {
+        'id': 'section_1',
+        'name': 'Pet Dog',
+        'typeId': 'collection',
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+        'properties': {
+          'auto_a3f7d2e1': {'type': 'text', 'text': 'Buddy'},
+        },
+        '__semanticTypes': {'auto_a3f7d2e1': 'pet.name'},
+      };
+      final obj = UnifiedObject.fromJson(json);
+      expect(obj.semanticTypes, isNotNull);
+      expect(obj.semanticTypes!['auto_a3f7d2e1'], 'pet.name');
+    });
+
+    test('copyWith updates semanticTypes', () {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final obj = UnifiedObject(
+        id: 'section_1',
+        name: 'Pet Dog',
+        typeId: 'collection',
+        properties: {},
+        semanticTypes: {'auto_a3f7d2e1': 'pet.name'},
+        createdAt: now,
+        updatedAt: now,
+      );
+      final updated = obj.copyWith(
+        semanticTypes: {'auto_a3f7d2e1': 'pet.name', 'auto_b2e18f4a': 'pet.breed'},
+      );
+      expect(updated.semanticTypes!.length, 2);
+      expect(updated.semanticTypes!['auto_b2e18f4a'], 'pet.breed');
+    });
+
+    test('null semanticTypes serializes as null', () {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final obj1 = UnifiedObject(
+        id: 'section_1',
+        name: 'Pet Dog',
+        typeId: 'collection',
+        properties: {},
+        createdAt: now,
+        updatedAt: now,
+      );
+      // Generated toJson() includes null semanticTypes
+      expect(obj1.toJson()['__semanticTypes'], isNull);
+    });
+
+    test('includes __semanticTypes when not empty', () {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final obj = UnifiedObject(
+        id: 'section_1',
+        name: 'Pet Dog',
+        typeId: 'collection',
+        properties: {},
+        semanticTypes: {'auto_a3f7d2e1': 'pet.name'},
+        createdAt: now,
+        updatedAt: now,
+      );
+      expect(obj.toJson()['__semanticTypes'], {'auto_a3f7d2e1': 'pet.name'});
+    });
+  });
 }

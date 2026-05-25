@@ -27,6 +27,8 @@ PropertyDefinition _$PropertyDefinitionFromJson(Map<String, dynamic> json) =>
       config: json['config'] as Map<String, dynamic>?,
       required: json['required'] as bool? ?? false,
       order: (json['order'] as num?)?.toInt() ?? 0,
+      semanticType: json['semanticType'] as String?,
+      isAutoKey: json['isAutoKey'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$PropertyDefinitionToJson(PropertyDefinition instance) =>
@@ -37,6 +39,8 @@ Map<String, dynamic> _$PropertyDefinitionToJson(PropertyDefinition instance) =>
       'config': instance.config,
       'required': instance.required,
       'order': instance.order,
+      'semanticType': instance.semanticType,
+      'isAutoKey': instance.isAutoKey,
     };
 
 const _$PropertyTypeEnumMap = {
@@ -274,6 +278,9 @@ UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
       propertyLabels: (json['propertyLabels'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
+      semanticTypes: (json['__semanticTypes'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
       attachments:
           (json['attachments'] as List<dynamic>?)
               ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
@@ -300,6 +307,7 @@ Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
         (k, e) => MapEntry(k, const PropertyValueConverter().toJson(e)),
       ),
       'propertyLabels': instance.propertyLabels,
+      '__semanticTypes': instance.semanticTypes,
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'isDeleted': instance.isDeleted,
       'deletedAt': instance.deletedAt?.toIso8601String(),

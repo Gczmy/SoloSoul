@@ -3,6 +3,8 @@
 // 注意：PluginManifest 类型由 FRB 从 Rust 侧自动生成，位于 lib/frb/plugin/manifest.dart。
 // 本文件仅包含 Dart 端本地需要的模型（registry.json 解析等）。
 
+import 'dart:convert';
+
 
 /// 插件注册表（registry.json）
 class PluginRegistry {
@@ -314,6 +316,31 @@ String resolvePluginI18n(
   if (enFallback != null && enFallback.isNotEmpty) return enFallback;
 
   return fallback;
+}
+
+/// 插件下载工件（wasm + manifest）
+class PluginArtifacts {
+  final List<int> wasmBytes;
+  final String manifestJson;
+  final String version;
+
+  PluginArtifacts({
+    required this.wasmBytes,
+    required this.manifestJson,
+    required this.version,
+  });
+
+  /// 从 manifest JSON 中解析 field_access 列表
+  List<Map<String, dynamic>>? parseFieldAccess() {
+    try {
+      final manifest = jsonDecode(manifestJson) as Map<String, dynamic>;
+      final fieldAccess = manifest['field_access'] as List<dynamic>?;
+      if (fieldAccess == null || fieldAccess.isEmpty) return null;
+      return fieldAccess.cast<Map<String, dynamic>>();
+    } on Exception {
+      return null;
+    }
+  }
 }
 
 class PluginExecutionException implements Exception {

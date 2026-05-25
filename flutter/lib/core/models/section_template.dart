@@ -257,6 +257,11 @@ class PresetSectionTemplates {
           sensitivity: SensitivityLevel.sensitive,
         ),
         TemplateField(
+          key: 'district',
+          type: 'text',
+          sensitivity: SensitivityLevel.sensitive,
+        ),
+        TemplateField(
           key: 'state',
           type: 'text',
           sensitivity: SensitivityLevel.sensitive,

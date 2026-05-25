@@ -14,9 +14,12 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/plugin_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/models/plugin_models.dart' show PluginArtifacts, PluginRegistryEntry, resolvePluginI18n;
+import 'package:solosoul_flutter/core/models/semantic_type_registry.dart';
+import 'package:solosoul_flutter/presentation/widgets/plugin_access_review_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_consent_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_detail_dialog.dart';
-import 'package:solosoul_flutter/core/models/plugin_models.dart' show resolvePluginI18n;
 
 /// 插件看板页面 — 管理插件生命周期（安装/卸载/更新/运行）
 class PluginDashboardPage extends ConsumerStatefulWidget {
@@ -534,7 +537,9 @@ class _PluginCard extends ConsumerWidget {
       final versionInfo = entry.versions[versionKey];
       final appVersion = packageInfo.version;
       final pluginApiVersion = versionInfo?.pluginApiVersion ?? '1.0';
-      await installPlugin(
+
+      // 1. 下载插件工件（wasm + manifest）
+      final artifacts = await downloadPluginArtifacts(
         ref,
         pluginId,
         entry,
@@ -542,6 +547,24 @@ class _PluginCard extends ConsumerWidget {
         pluginApiVersion,
         targetVersion: targetVersion,
       );
+
+      // 2. 解析 field_access 并进行安装前审查
+      final fieldAccess = artifacts.parseFieldAccess();
+      if (fieldAccess != null &&
+          fieldAccess.isNotEmpty &&
+          context.mounted) {
+        final shouldContinue = await _showAccessReview(
+          context,
+          ref,
+          entry,
+          fieldAccess,
+        );
+        if (!shouldContinue) return;
+      }
+
+      // 3. 执行安装
+      await installFromArtifacts(ref, artifacts);
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -558,6 +581,80 @@ class _PluginCard extends ConsumerWidget {
         );
       }
     }
+  }
+
+  /// 显示插件字段访问审查弹窗。
+  /// 返回 `true` 表示用户选择继续安装，`false` 表示取消。
+  Future<bool> _showAccessReview(
+    BuildContext context,
+    WidgetRef ref,
+    PluginRegistryEntry entry,
+    List<Map<String, dynamic>> fieldAccess,
+  ) async {
+    final locale = Localizations.localeOf(context).toString();
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final pluginName = resolvePluginI18n(
+      entry.i18n, 'name', locale, entry.name,
+    );
+
+    // 构建 FieldAccessStatus 列表（基于 manifest 声明，不扫描实际数据）
+    final fieldStatuses = fieldAccess.map((access) {
+      final semanticType = access['semantic_type'] as String?;
+      final key = access['key'] as String?;
+      final requiredSensitivityStr = access['required_sensitivity'] as String?;
+
+      final requiredSensitivity = _parseSensitivity(requiredSensitivityStr);
+
+      // 尝试从语义类型注册表获取标签
+      String? fieldLabel;
+      if (semanticType != null) {
+        final type = SemanticTypeRegistry.getType(semanticType);
+        fieldLabel = type?.getLabel(languageCode) ?? semanticType;
+      }
+
+      return FieldAccessStatus(
+        fieldKey: key,
+        fieldLabel: fieldLabel ?? key ?? semanticType ?? 'Unknown',
+        semanticType: semanticType,
+        sectionName: null,
+        actualSensitivity: null,
+        requiredSensitivity: requiredSensitivity,
+        status: AccessStatus.ok,
+      );
+    }).toList();
+
+    if (!context.mounted) return false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PluginAccessReviewDialog(
+        pluginName: pluginName,
+        fieldStatuses: fieldStatuses,
+        onModifySensitivity: () {
+          Navigator.of(ctx).pop(false);
+        },
+        onCreateMissingFields: () {
+          Navigator.of(ctx).pop(false);
+        },
+        onContinueInstall: () => Navigator.of(ctx).pop(true),
+        onCancel: () => Navigator.of(ctx).pop(false),
+      ),
+    );
+
+    return result == true;
+  }
+
+  SensitivityLevel? _parseSensitivity(String? value) {
+    return switch (value?.toLowerCase()) {
+      'public' => SensitivityLevel.public,
+      'internal' => SensitivityLevel.internal,
+      'private' => SensitivityLevel.internal,
+      'sensitive' => SensitivityLevel.sensitive,
+      'restricted' => SensitivityLevel.sensitive,
+      'critical' => SensitivityLevel.critical,
+      _ => null,
+    };
   }
 
   Future<void> _showVersionHistory(BuildContext context, WidgetRef ref) async {
@@ -801,32 +898,31 @@ class _PluginCard extends ConsumerWidget {
                         shrinkWrap: true,
                         itemCount: formattedResults.length,
                         itemBuilder: (context, index) {
+                          final parts = formattedResults[index].split(' | ');
+                          final label = parts.length > 1 ? parts[0] : null;
+                          final address = parts.length > 1 ? parts[1] : formattedResults[index];
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
+                                Chip(
+                                  label: Text(label ?? '${index + 1}'),
+                                  visualDensity: VisualDensity.compact,
+                                  backgroundColor: Colors.transparent,
+                                  side: BorderSide(
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                                   ),
-                                  child: Text(
-                                    '${index + 1}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
+                                  labelStyle: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: SelectableText(
-                                    formattedResults[index],
+                                    address,
                                     style: Theme.of(context).textTheme.bodyMedium,
                                   ),
                                 ),
@@ -840,7 +936,7 @@ class _PluginCard extends ConsumerWidget {
                                   tooltip: '复制',
                                   onPressed: () {
                                     Clipboard.setData(
-                                      ClipboardData(text: formattedResults[index]),
+                                      ClipboardData(text: address),
                                     );
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(

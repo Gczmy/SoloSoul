@@ -17,8 +17,10 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppThem
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:solosoul_flutter/core/models/section_template.dart';
+import 'package:solosoul_flutter/core/models/semantic_type_registry.dart';
 import 'package:solosoul_flutter/presentation/pages/section_template_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
+import 'package:solosoul_flutter/presentation/widgets/semantic_type_picker.dart';
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -46,6 +48,8 @@ class _PropertyField {
   bool isDeprecated;
   /// The actual stored value for this property (used by deprecated properties).
   String? storedValue;
+  /// 语义类型 ID（如 "pet.name"）
+  String? semanticType;
 
   _PropertyField({
     this.key = '',
@@ -55,6 +59,7 @@ class _PropertyField {
     String? displayLabel,
     this.isDeprecated = false,
     this.storedValue,
+    this.semanticType,
   }) : controller = TextEditingController(text: displayLabel ?? key);
 
   /// Current display label (synced with controller.text).
@@ -174,6 +179,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             sensitivity: sensitivity,
             displayLabel: parentLabels?[entry.key],
             storedValue: storedProp != null ? _propertyValueToString(storedProp) : null,
+            semanticType: object.semanticTypes?[entry.key],
           ));
         }
       }
@@ -189,6 +195,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
           sensitivity: entry.value.sensitivity,
           displayLabel: parentLabels?[entry.key],
           storedValue: _propertyValueToString(entry.value),
+          semanticType: object.semanticTypes?[entry.key],
           isDeprecated: true,
         ));
       }
@@ -210,6 +217,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
             type: _inferTypeFromValue(entry.value),
             sensitivity: sensitivity,
             displayLabel: object.propertyLabels?[entry.key],
+            semanticType: object.semanticTypes?[entry.key],
           ));
         }
       }
@@ -468,6 +476,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     // For sections: properties map IS the schema for child items.
     final properties = <String, PropertyValue>{};
     final propertyLabels = <String, String>{};
+    final semanticTypes = <String, String>{};
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
@@ -492,6 +501,10 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       if (displayLabel.isNotEmpty && displayLabel != key) {
         propertyLabels[key] = displayLabel;
       }
+      // Collect semantic types
+      if (field.semanticType != null && field.semanticType!.isNotEmpty) {
+        semanticTypes[key] = field.semanticType!;
+      }
     }
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
@@ -513,6 +526,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         iconName: _iconController.text.trim(),
         properties: properties,
         propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
+        semanticTypes: semanticTypes.isNotEmpty ? semanticTypes : null,
       );
     } else {
       await notifier.createObject(
@@ -522,6 +536,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         iconName: _iconController.text.trim(),
         properties: properties,
         propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
+        semanticTypes: semanticTypes.isNotEmpty ? semanticTypes : null,
       );
     }
 
@@ -1028,6 +1043,7 @@ class _PropertyFieldRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -1038,28 +1054,42 @@ class _PropertyFieldRow extends ConsumerWidget {
             child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Read-only key display
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 2),
-                child: Text(
-                  field.key,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
+              // 显示标签输入框
               TextField(
                 controller: field.controller,
                 maxLength: 24,
-            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-            decoration: InputDecoration(
-              hintText: AppLocalizations.of(context).objectEditorKeyName,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              border: const OutlineInputBorder(),
-            ),
-          ),
+                buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                decoration: InputDecoration(
+                  hintText: l10n.objectEditorKeyName,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              // 语义类型 Chip
+              if (field.semanticType != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: _SemanticTypeChip(
+                    semanticType: field.semanticType!,
+                    onTap: () async {
+                      final selected = await showModalBottomSheet<String?>(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (ctx) => SemanticTypePickerSheet(
+                          currentSemanticType: field.semanticType,
+                          languageCode: Localizations.localeOf(context).languageCode,
+                          onSelected: (type) => Navigator.of(ctx).pop(type),
+                        ),
+                      );
+                      if (selected != null) {
+                        field.semanticType = selected;
+                        onFieldChanged();
+                      }
+                    },
+                  ),
+                ),
             ],
           ),
       ),
@@ -1138,7 +1168,7 @@ class _PropertyFieldRow extends ConsumerWidget {
       ),
       IconButton(
         icon: Icon(Icons.delete_outline, size: 20, color: theme.colorScheme.error),
-        tooltip: AppLocalizations.of(context).commonDelete,
+        tooltip: l10n.commonDelete,
         onPressed: () async {
           final keyName = field.key.trim().isNotEmpty ? field.key.trim() : AppLocalizations.of(context).objectEditorItemProperties;
           final confirmed = await showDialog<bool>(
@@ -1168,6 +1198,62 @@ class _PropertyFieldRow extends ConsumerWidget {
   ),
 );
 
+  }
+}
+
+/// 语义类型选择 Chip
+class _SemanticTypeChip extends StatelessWidget {
+  final String semanticType;
+  final VoidCallback onTap;
+
+  const _SemanticTypeChip({required this.semanticType, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final type = SemanticTypeRegistry.getType(semanticType);
+    final label = type?.getLabel(Localizations.localeOf(context).languageCode) ?? semanticType;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              type?.icon ?? Icons.label,
+              size: 12,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.edit,
+              size: 10,
+              color: theme.colorScheme.primary.withValues(alpha: 0.7),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
