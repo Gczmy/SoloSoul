@@ -632,6 +632,10 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   /// 仅用于 section/collection 对象的 Schema 定义。
   final Map<String, String>? semanticTypes;
 
+  /// 字段属性顺序（仅用于 section/collection 的 Schema 定义）。
+  /// 存储 property key 的列表，决定字段在编辑页和卡片中的显示顺序。
+  final List<String> propertyOrder;
+
   /// File attachments associated with this object.
   /// Actual encrypted files are stored on disk via [AttachmentStorageService].
   final List<Attachment> attachments;
@@ -652,6 +656,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     this.properties = const {},
     this.propertyLabels,
     this.semanticTypes,
+    this.propertyOrder = const [],
     this.attachments = const [],
     this.isDeleted = false,
     this.deletedAt,
@@ -685,6 +690,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
           '__propertyLabels': propertyLabels,
         if (semanticTypes != null && semanticTypes!.isNotEmpty)
           '__semanticTypes': semanticTypes,
+        if (propertyOrder.isNotEmpty) 'propertyOrder': propertyOrder,
       };
 
   factory UnifiedObject.fromJson(Map<String, dynamic> json) =>
@@ -704,6 +710,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
     Map<String, String>? semanticTypes,
+    List<String>? propertyOrder,
     List<Attachment>? attachments,
     bool? isDeleted,
     DateTime? deletedAt,
@@ -721,6 +728,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       properties: properties ?? this.properties,
       propertyLabels: propertyLabels ?? this.propertyLabels,
       semanticTypes: semanticTypes ?? this.semanticTypes,
+      propertyOrder: propertyOrder ?? this.propertyOrder,
       attachments: attachments ?? this.attachments,
       isDeleted: isDeleted ?? this.isDeleted,
       deletedAt: deletedAt ?? this.deletedAt,

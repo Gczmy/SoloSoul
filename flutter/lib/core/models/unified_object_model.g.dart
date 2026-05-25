@@ -281,6 +281,11 @@ UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
       semanticTypes: (json['__semanticTypes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
+      propertyOrder:
+          (json['propertyOrder'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       attachments:
           (json['attachments'] as List<dynamic>?)
               ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
@@ -308,6 +313,7 @@ Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
       ),
       'propertyLabels': instance.propertyLabels,
       '__semanticTypes': instance.semanticTypes,
+      'propertyOrder': instance.propertyOrder,
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'isDeleted': instance.isDeleted,
       'deletedAt': instance.deletedAt?.toIso8601String(),

@@ -588,6 +588,7 @@ class UnifiedObjectService {
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
     Map<String, String>? semanticTypes,
+    List<String>? propertyOrder,
     List<String>? childrenIds,
   }) {
     final now = _currentTimestamp();
@@ -604,6 +605,7 @@ class UnifiedObjectService {
       properties: properties ?? const {},
       propertyLabels: propertyLabels,
       semanticTypes: semanticTypes,
+      propertyOrder: propertyOrder ?? const [],
       createdAt: now,
       updatedAt: now,
     );
@@ -622,6 +624,7 @@ class UnifiedObjectService {
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
     Map<String, String>? semanticTypes,
+    List<String>? propertyOrder,
     List<String>? childrenIds,
     List<Attachment>? attachments,
     int? schemaVersionWhenSaved,
@@ -634,6 +637,7 @@ class UnifiedObjectService {
       properties: properties,
       propertyLabels: propertyLabels,
       semanticTypes: semanticTypes,
+      propertyOrder: propertyOrder,
       childrenIds: childrenIds,
       attachments: attachments,
       schemaVersionWhenSaved: schemaVersionWhenSaved,

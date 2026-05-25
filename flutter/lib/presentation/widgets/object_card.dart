@@ -125,8 +125,20 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
   bool _showDeprecated = false;
 
   /// Resolved template: [itemTemplate] takes precedence over [object.properties].
-  Map<String, PropertyValue> get _template =>
-      widget.itemTemplate ?? widget.object.properties;
+  /// Returns properties ordered by the section's [propertyOrder].
+  Map<String, PropertyValue> get _template {
+    final raw = widget.itemTemplate ?? widget.object.properties;
+    final order = widget.object.propertyOrder;
+    if (order.isEmpty) return raw;
+    final ordered = <String, PropertyValue>{};
+    for (final key in order) {
+      if (raw.containsKey(key)) ordered[key] = raw[key]!;
+    }
+    for (final entry in raw.entries) {
+      if (!ordered.containsKey(entry.key)) ordered[entry.key] = entry.value;
+    }
+    return ordered;
+  }
 
   /// Keys in the currently-editing item that are NOT in the template (deprecated).
   List<String> _deprecatedKeysFor(UnifiedObject item) {

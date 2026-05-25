@@ -105,10 +105,56 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     if (_isEditingItem && _existingObject?.parentId != null) {
       final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
       if (parent != null && parent.typeId != 'page') {
-        return parent.properties;
+        return _orderedProperties(parent);
       }
     }
-    return _existingObject?.properties ?? {};
+    return _orderedProperties(_existingObject);
+  }
+
+  void _handlePropertyReorder(int oldIndex, int newIndex) {
+    setState(() {
+      final normalIndices = <int>[];
+      for (int i = 0; i < _propertyFields.length; i++) {
+        if (!_propertyFields[i].isDeprecated && _propertyFields[i].isDefaultName != true) {
+          normalIndices.add(i);
+        }
+      }
+      if (oldIndex < 0 || oldIndex >= normalIndices.length) return;
+
+      final oldFieldIndex = normalIndices[oldIndex];
+
+      int newFieldIndex;
+      if (newIndex >= normalIndices.length) {
+        newFieldIndex = normalIndices.last + 1;
+      } else {
+        newFieldIndex = normalIndices[newIndex];
+      }
+
+      if (oldFieldIndex < newFieldIndex) {
+        newFieldIndex--;
+      }
+
+      final field = _propertyFields.removeAt(oldFieldIndex);
+      _propertyFields.insert(newFieldIndex, field);
+    });
+  }
+
+  /// 按 propertyOrder 排序返回 properties，保证字段顺序一致。
+  Map<String, PropertyValue> _orderedProperties(UnifiedObject? obj) {
+    if (obj == null || obj.propertyOrder.isEmpty) return obj?.properties ?? {};
+    final ordered = <String, PropertyValue>{};
+    for (final key in obj.propertyOrder) {
+      if (obj.properties.containsKey(key)) {
+        ordered[key] = obj.properties[key]!;
+      }
+    }
+    // 追加不在 propertyOrder 中的字段
+    for (final entry in obj.properties.entries) {
+      if (!ordered.containsKey(entry.key)) {
+        ordered[entry.key] = entry.value;
+      }
+    }
+    return ordered;
   }
 
   void _initFieldDisplayLabels() {
@@ -201,7 +247,8 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       }
     } else {
       // Section: load own properties directly (they ARE the schema).
-      for (final entry in object.properties.entries) {
+      final orderedProps = _orderedProperties(object);
+      for (final entry in orderedProps.entries) {
         final sensitivity = entry.value.sensitivity;
         if (entry.key == 'Title' || entry.key == 'Item Name') {
           _propertyFields.add(_PropertyField(
@@ -375,6 +422,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                       field.isDeprecated = false;
                     });
                   },
+                  onReorder: _handlePropertyReorder,
                 ),
                 const SizedBox(height: 24),
 
@@ -473,12 +521,13 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       return;
     }
 
-    // Build properties from property fields.
+    // Build properties from property fields in list order.
     // For items: preserve stored values for active properties, always include deprecated data.
     // For sections: properties map IS the schema for child items.
     final properties = <String, PropertyValue>{};
     final propertyLabels = <String, String>{};
     final semanticTypes = <String, String>{};
+    final propertyOrder = <String>[];
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
@@ -507,6 +556,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       if (field.semanticType != null && field.semanticType!.isNotEmpty) {
         semanticTypes[key] = field.semanticType!;
       }
+      if (!field.isDeprecated && field.isDefaultName != true) {
+        propertyOrder.add(key);
+      }
     }
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
@@ -529,6 +581,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         properties: properties,
         propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
         semanticTypes: semanticTypes.isNotEmpty ? semanticTypes : null,
+        propertyOrder: propertyOrder,
       );
     } else {
       await notifier.createObject(
@@ -539,6 +592,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         properties: properties,
         propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
         semanticTypes: semanticTypes.isNotEmpty ? semanticTypes : null,
+        propertyOrder: propertyOrder,
       );
     }
 
@@ -853,6 +907,7 @@ class _PropertyFieldsSection extends StatelessWidget {
   final void Function(int index, String key) onDeleteConfirmed;
   final VoidCallback onFieldChanged;
   final ValueChanged<String> onRestoreDeprecated;
+  final void Function(int oldIndex, int newIndex) onReorder;
 
   const _PropertyFieldsSection({
     required this.fields,
@@ -863,6 +918,7 @@ class _PropertyFieldsSection extends StatelessWidget {
     required this.onDeleteConfirmed,
     required this.onFieldChanged,
     required this.onRestoreDeprecated,
+    required this.onReorder,
   });
 
   @override
@@ -906,16 +962,26 @@ class _PropertyFieldsSection extends StatelessWidget {
         if (titleField != null)
           _TitleFieldRow(theme: theme, sensitivity: titleField.sensitivity),
 
-        // Normal property fields
-        ...normalFields.map((field) {
-          final index = fields.indexOf(field);
-          return _PropertyFieldRow(
-            field: field,
-            index: index,
-            onDeleteConfirmed: (i, k) => onDeleteConfirmed(i, k),
-            onFieldChanged: onFieldChanged,
-          );
-        }),
+        // Normal property fields (reorderable)
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: normalFields.length,
+          onReorder: onReorder,
+          buildDefaultDragHandles: false,
+          itemBuilder: (context, index) {
+            final field = normalFields[index];
+            final fieldIndex = fields.indexOf(field);
+            return _PropertyFieldRow(
+              key: ObjectKey(field),
+              field: field,
+              index: fieldIndex,
+              onDeleteConfirmed: onDeleteConfirmed,
+              onFieldChanged: onFieldChanged,
+              showDragHandle: true,
+            );
+          },
+        ),
 
         // Deprecated property fields (collapsible)
         if (deprecatedFields.isNotEmpty && showDeprecated) ...[
@@ -1034,12 +1100,15 @@ class _PropertyFieldRow extends ConsumerWidget {
   final int index;
   final void Function(int index, String key) onDeleteConfirmed;
   final VoidCallback onFieldChanged;
+  final bool showDragHandle;
 
   const _PropertyFieldRow({
+    super.key,
     required this.field,
     required this.index,
     required this.onDeleteConfirmed,
     required this.onFieldChanged,
+    this.showDragHandle = false,
   });
 
   @override
@@ -1051,6 +1120,17 @@ class _PropertyFieldRow extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          if (showDragHandle) ...[
+            ReorderableDragStartListener(
+              index: index,
+              child: Icon(
+                Icons.drag_handle,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
           Expanded(
             flex: 2,
             child: Column(

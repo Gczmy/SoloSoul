@@ -28,7 +28,9 @@ class ObjectCardPropertiesList extends StatelessWidget {
     // hidden from view — they can be accessed via "Show Deprecated" in
     // edit mode.
     final visibleEntries = template != null
-        ? item.properties.entries.where((e) => template!.containsKey(e.key))
+        ? template!.keys
+            .where((k) => item.properties.containsKey(k))
+            .map((k) => MapEntry(k, item.properties[k]!))
         : item.properties.entries;
 
     return Column(
