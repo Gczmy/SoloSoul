@@ -44,7 +44,7 @@ class ObjectCardHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Expanded(
+        Flexible(
           child: Text(
             displayName,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -53,18 +53,27 @@ class ObjectCardHeader extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        // Edit & Delete紧贴分区名字
         if (showEditActions && !showEditSection)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              onPressed: onEdit,
-              tooltip: l10n.commonEdit,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              visualDensity: VisualDensity.compact,
-            ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            onPressed: onEdit,
+            tooltip: l10n.commonEdit,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
           ),
+        if (showEditActions)
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 18),
+            onPressed: onDelete,
+            tooltip: l10n.commonDelete,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
+          ),
+        const Spacer(),
+        // Add 放到最右侧
         if (showAddButton)
           if (showEditSection)
             IconButton(
@@ -84,18 +93,6 @@ class ObjectCardHeader extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               visualDensity: VisualDensity.compact,
             ),
-        if (showEditActions)
-          Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: IconButton(
-              icon: const Icon(Icons.delete_outline, size: 18),
-              onPressed: onDelete,
-              tooltip: l10n.commonDelete,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              visualDensity: VisualDensity.compact,
-            ),
-          ),
       ],
     );
   }
