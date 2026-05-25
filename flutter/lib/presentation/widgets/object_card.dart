@@ -135,6 +135,13 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
       final key = entry.key == 'title' ? 'Title' : entry.key;
       normalized[key] = entry.value;
     }
+    // If the type has a custom title key (e.g. 'fullName'), remove the
+    // redundant 'Title' that may exist in old data to avoid duplicate
+    // title inputs in the add-item form.
+    final titleKey = widget.titlePropertyKey;
+    if (titleKey != 'Title' && normalized.containsKey(titleKey) && normalized.containsKey('Title')) {
+      normalized.remove('Title');
+    }
     final order = widget.object.propertyOrder;
     if (order.isEmpty) return normalized;
     final ordered = <String, PropertyValue>{};

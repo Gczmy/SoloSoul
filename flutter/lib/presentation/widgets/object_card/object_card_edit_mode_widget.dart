@@ -76,6 +76,7 @@ class ObjectCardEditModeWidget extends StatelessWidget {
           if (hasTitleField) ...[
             ObjectCardEditField(
               propertyKey: '__name__',
+              value: item.properties[titlePropertyKey],
               controller: editControllers['__name__'],
               isTitle: true,
               displayLabel: item.getDisplayLabelFor(titlePropertyKey, l10n),

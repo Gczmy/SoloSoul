@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/core/services/unified_object_service.dart'
+    show ObjectTypeRegistry;
 
 import 'package:solosoul_flutter/presentation/widgets/entry_card_widget.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
@@ -46,10 +48,19 @@ class DynamicSectionCard extends ConsumerWidget {
     List<UnifiedObject> items,
     PresetSectionConfig config,
   ) {
+    // If the section's stored properties are missing the Title key (outdated
+    // data from before the schema included Title), fall back to the built-in
+    // schema so that new items get the complete field set.
+    final bool needsBuiltinTemplate =
+        !section.properties.containsKey(config.titlePropertyKey);
+    final itemTemplate = needsBuiltinTemplate
+        ? ObjectTypeRegistry.buildPropertiesFromType(config.typeId)
+        : null;
     return ObjectCard(
       object: section,
       items: items,
       itemTypeId: config.typeId,
+      itemTemplate: itemTemplate?.isNotEmpty == true ? itemTemplate : null,
       historyFieldIdPrefix: config.fieldPrefix,
       titlePropertyKey: config.titlePropertyKey,
       displayItemBuilder: (context, item, {required isEditing}) {

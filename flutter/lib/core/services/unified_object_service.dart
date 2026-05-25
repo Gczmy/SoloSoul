@@ -336,6 +336,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'person',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'fullName', name: 'Full Name', type: PropertyType.text),
       PropertyDefinition(id: 'givenName', name: 'Given Name', type: PropertyType.text),
       PropertyDefinition(id: 'familyName', name: 'Family Name', type: PropertyType.text),
@@ -392,6 +393,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'book',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'type', name: 'Type', type: PropertyType.text),
       PropertyDefinition(id: 'country', name: 'Country', type: PropertyType.text),
       PropertyDefinition(id: 'countryCode', name: 'Country Code', type: PropertyType.text),
@@ -427,6 +429,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'history',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'destination', name: 'Destination', type: PropertyType.text),
       PropertyDefinition(id: 'travelType', name: 'Travel Type', type: PropertyType.text),
       PropertyDefinition(id: 'date', name: 'Date', type: PropertyType.date),
@@ -489,6 +492,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'school',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'institution', name: 'Institution', type: PropertyType.text),
       PropertyDefinition(id: 'degree', name: 'Degree', type: PropertyType.text),
       PropertyDefinition(id: 'degreeCustom', name: 'Custom Degree', type: PropertyType.text),
@@ -503,6 +507,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'work',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'company', name: 'Company', type: PropertyType.text),
       PropertyDefinition(id: 'position', name: 'Position', type: PropertyType.text),
       PropertyDefinition(id: 'responsibilities', name: 'Responsibilities', type: PropertyType.text),
@@ -516,6 +521,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'star',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'name', name: 'Skill Name', type: PropertyType.text),
       PropertyDefinition(id: 'level', name: 'Proficiency Level', type: PropertyType.text),
     ],
@@ -526,6 +532,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'language',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'name', name: 'Language', type: PropertyType.text),
       PropertyDefinition(id: 'proficiency', name: 'Proficiency Level', type: PropertyType.text),
     ],
@@ -548,6 +555,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     iconName: 'article',
     defaultLayout: ObjectLayout.document,
     properties: [
+      PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
       PropertyDefinition(id: 'authors', name: 'Authors', type: PropertyType.text),
       PropertyDefinition(id: 'institution', name: 'Institution', type: PropertyType.text),
       PropertyDefinition(id: 'contact', name: 'Contact', type: PropertyType.text),

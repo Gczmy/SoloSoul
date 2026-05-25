@@ -77,9 +77,11 @@ class ObjectCardEditField extends StatelessWidget {
             maxLength: kMaxPropertyLength,
             buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
             decoration: InputDecoration(
-              labelText: isTitle ? AppLocalizations.of(context).commonTitle : (displayLabel ?? translateFieldLabel(propertyKey, AppLocalizations.of(context))),
+              labelText: isTitle
+                  ? (displayLabel ?? AppLocalizations.of(context).commonTitle)
+                  : (displayLabel ?? translateFieldLabel(propertyKey, AppLocalizations.of(context))),
               border: const OutlineInputBorder(),
-              suffixIcon: !isTitle && value != null
+              suffixIcon: value != null
                   ? Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: Align(

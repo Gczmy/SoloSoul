@@ -163,6 +163,10 @@ class ObjectTypeDefinition {
   final int schemaVersion;
   final List<String> deprecatedProperties;
 
+  /// The property key that serves as the title/name field for items of this type.
+  /// When null, defaults to `'Title'`.
+  final String? titlePropertyKey;
+
   const ObjectTypeDefinition({
     required this.id,
     required this.name,
@@ -172,6 +176,7 @@ class ObjectTypeDefinition {
     this.properties = const [],
     this.schemaVersion = 1,
     this.deprecatedProperties = const [],
+    this.titlePropertyKey,
   });
 
   factory ObjectTypeDefinition.fromJson(Map<String, dynamic> json) =>

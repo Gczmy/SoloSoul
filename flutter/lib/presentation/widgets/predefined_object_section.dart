@@ -130,15 +130,22 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
       itemTemplate = null; // Use section.properties as schema
     }
 
+    final typeDef = ObjectTypeRegistry.getType(widget.typeId);
+    final titleKey = typeDef?.titlePropertyKey ?? 'Title';
+
     return ObjectCard(
       object: sectionObject,
       items: items,
       itemTypeId: widget.typeId,
       itemTemplate: itemTemplate,
       historyFieldIdPrefix: prefix,
-      titlePropertyKey: _titlePropertyKeyForTypeId(widget.typeId),
+      titlePropertyKey: titleKey,
       nameExtractor: (props) {
-        for (final key in ['title', 'name', 'fullName', 'destination', 'institution', 'company']) {
+        // Prefer the type's designated title property key
+        final primary = props[titleKey];
+        if (primary?.isNotEmpty == true) return primary!;
+        // Fallback to common title keys
+        for (final key in ['title', 'Title', 'name', 'fullName', 'destination', 'institution', 'company', 'full_name']) {
           if (props[key]?.isNotEmpty == true) return props[key]!;
         }
         return l10n.commonUntitled;
@@ -236,17 +243,6 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
   LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
 
   /// Infer the property key that acts as the title/name field for a given type.
-  String _titlePropertyKeyForTypeId(String typeId) {
-    return switch (typeId) {
-      'profile_identity' => 'fullName',
-      'travel_history' => 'destination',
-      'professional_education' => 'institution',
-      'professional_employment' => 'company',
-      'professional_skill' => 'name',
-      'professional_language' => 'name',
-      _ => 'title',
-    };
-  }
 }
 
 

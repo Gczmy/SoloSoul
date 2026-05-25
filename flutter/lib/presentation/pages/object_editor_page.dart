@@ -198,6 +198,16 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     _propertyFields.clear();
     bool hasDefaultName = false;
 
+    // Check if the object type has a custom title property key.
+    final typeDef = ObjectTypeRegistry.getType(object.typeId ?? '');
+    final typeTitleKey = typeDef?.titlePropertyKey;
+    // When a type has a designated title key, only that key is treated as the title.
+    // Otherwise fall back to the standard Title/title/Item Name detection.
+    bool isTitleKey(String key) {
+      if (typeTitleKey != null) return key == typeTitleKey;
+      return key == 'Title' || key == 'title' || key == 'Item Name';
+    }
+
     if (_isEditingItem) {
       // Item: use parent section's properties as schema authority.
       final schemaProps = _schemaProperties;
@@ -209,11 +219,10 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       // Add all schema properties (parent section's current properties).
       for (final entry in schemaProps.entries) {
         final sensitivity = entry.value.sensitivity;
-        final isTitleKey = entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name';
-        if (isTitleKey) {
+        if (isTitleKey(entry.key)) {
           if (!hasDefaultName) {
             _propertyFields.add(_PropertyField(
-              key: 'Title',
+              key: entry.key,
               type: 'text',
               isDefaultName: true,
               sensitivity: sensitivity,
@@ -238,7 +247,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       final schemaKeys = schemaProps.keys.toSet();
       for (final entry in object.properties.entries) {
         if (schemaKeys.contains(entry.key)) continue;
-        if (entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name') continue;
+        if (isTitleKey(entry.key)) continue;
         _propertyFields.add(_PropertyField(
           key: entry.key,
           type: _inferTypeFromValue(entry.value),
@@ -254,11 +263,10 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       final orderedProps = _orderedProperties(object);
       for (final entry in orderedProps.entries) {
         final sensitivity = entry.value.sensitivity;
-        final isTitleKey = entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name';
-        if (isTitleKey) {
+        if (isTitleKey(entry.key)) {
           if (!hasDefaultName) {
             _propertyFields.add(_PropertyField(
-              key: 'Title',
+              key: entry.key,
               type: 'text',
               isDefaultName: true,
               sensitivity: sensitivity,
@@ -280,7 +288,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
     if (!hasDefaultName) {
       _propertyFields.insert(0, _PropertyField(
-        key: 'Title',
+        key: typeTitleKey ?? 'Title',
         type: 'text',
         isDefaultName: true,
       ));
@@ -290,11 +298,12 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
   void _initPropertiesFromType(String typeId) {
     _propertyFields.clear();
-    _propertyFields.add(_PropertyField(key: 'Title', type: 'text', isDefaultName: true));
     final type = ObjectTypeRegistry.getType(typeId);
+    final titleKey = type?.titlePropertyKey ?? 'Title';
+    _propertyFields.add(_PropertyField(key: titleKey, type: 'text', isDefaultName: true));
     if (type == null) return;
     for (final propDef in type.properties) {
-      if (propDef.id != 'Title' && propDef.id != 'Item Name') {
+      if (propDef.id != titleKey && propDef.id != 'Title' && propDef.id != 'Item Name') {
         _propertyFields.add(_PropertyField(
           key: propDef.id,
           type: propDef.type.name,
@@ -302,6 +311,14 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         ));
       }
     }
+  }
+
+  /// Convert snake_case keys to camelCase to align with ObjectTypeRegistry.
+  static String _snakeToCamelCase(String key) {
+    final parts = key.split('_');
+    if (parts.length <= 1) return key;
+    return parts[0] +
+        parts.sublist(1).map((p) => p.isEmpty ? '' : p[0].toUpperCase() + p.substring(1)).join();
   }
 
   /// 从现有 PropertyValue 推断其字符串类型标识。
@@ -462,13 +479,16 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                     if (template != null) {
                       setState(() {
                         for (final field in template.fields) {
+                          // Normalize template keys from snake_case to camelCase
+                          // to match ObjectTypeRegistry conventions.
+                          final normalizedKey = _snakeToCamelCase(field.key);
                           final existingKeys = _propertyFields.map((f) => f.key).toSet();
-                          if (!existingKeys.contains(field.key)) {
+                          if (!existingKeys.contains(normalizedKey)) {
                             _propertyFields.add(_PropertyField(
-                              key: field.key,
+                              key: normalizedKey,
                               type: field.type,
                               sensitivity: field.sensitivity,
-                              displayLabel: _getFieldKeyLabel(field.key),
+                              displayLabel: _getFieldKeyLabel(normalizedKey),
                             ));
                           }
                         }
@@ -558,7 +578,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
           : (field.key.trim().isEmpty ? field.displayLabel : field.key.trim());
       if (key.isEmpty) continue;
       if (field.isDefaultName == true) {
-        properties['Title'] = const TextProperty(
+        properties[key] = const TextProperty(
           text: '',
           sensitivity: SensitivityLevel.public,
         );

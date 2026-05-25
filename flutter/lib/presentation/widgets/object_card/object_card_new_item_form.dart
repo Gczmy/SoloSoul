@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_edit_field.dart';
 
 /// Form widget for adding a new item to the ObjectCard.
@@ -66,8 +67,10 @@ class ObjectCardNewItemForm extends StatelessWidget {
           if (hasTitleField) ...[
             ObjectCardEditField(
               propertyKey: '__name__',
+              value: template[titlePropertyKey],
               controller: editControllers['__name__'],
               isTitle: true,
+              displayLabel: translateFieldLabel(titlePropertyKey, l10n),
             ),
             const SizedBox(height: 12),
           ],

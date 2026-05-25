@@ -31,6 +31,16 @@ void main() {
 
   // 配置全局错误捕获（不依赖 Rust）
   FlutterError.onError = (FlutterErrorDetails details) {
+    // Suppress known Flutter framework bugs that don't affect functionality.
+    final exception = details.exception.toString();
+    if (exception.contains('HardwareKeyboard') &&
+        exception.contains('KeyDownEvent is dispatched')) {
+      DebugLogger.instance.logWarning(
+        'FLUTTER_KEYBOARD',
+        'Ignored known HardwareKeyboard assertion: $exception',
+      );
+      return;
+    }
     DebugLogger.instance.logError(
       'FLUTTER_ERROR',
       '${details.exception}\n${details.stack}',

@@ -81,8 +81,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 1,
       historyFieldId: 'identity',
       fieldPrefix: 'identity',
-      titlePropertyKey: 'fullName',
-      excludeFields: const {'fullName'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           '${l10n.profileIdentity}\n${item.toFormattedStringLocalized(l10n)}',
     ),
@@ -94,8 +94,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'contact',
       fieldPrefix: 'contact',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) {
         final map = itemToMap(item);
         final type = (map['type'] ?? 'contact').trim().isNotEmpty
@@ -112,8 +112,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'idCard',
       fieldPrefix: 'idCard',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           '${l10n.profileIdCard}\n${item.toFormattedStringLocalized(l10n)}',
     ),
@@ -125,8 +125,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'address',
       fieldPrefix: 'address',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
     ),
 
     // ── Travel ──
@@ -138,8 +138,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'passport',
       fieldPrefix: 'passport',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       isRestricted: true,
       formatAllFields: (l10n, item) =>
           l10n.travelFormatPassport(item.toFormattedStringLocalized(l10n)),
@@ -152,8 +152,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'visa',
       fieldPrefix: 'visa',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       isRestricted: true,
       formatAllFields: (l10n, item) =>
           l10n.travelFormatVisa(item.toFormattedStringLocalized(l10n)),
@@ -166,8 +166,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'travel',
       fieldPrefix: 'travel',
-      titlePropertyKey: 'destination',
-      excludeFields: const {'destination'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           l10n.travelFormatHistory(item.toFormattedStringLocalized(l10n)),
     ),
@@ -181,8 +181,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'bankAccount',
       fieldPrefix: 'bankAccount',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       isRestricted: true,
       formatAllFields: (l10n, item) =>
           l10n.financialFormatBankAccount(item.toFormattedStringLocalized(l10n)),
@@ -195,8 +195,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'card',
       fieldPrefix: 'card',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       isRestricted: true,
       formatAllFields: (l10n, item) =>
           l10n.financialFormatCard(item.toFormattedStringLocalized(l10n)),
@@ -209,8 +209,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'taxId',
       fieldPrefix: 'taxId',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       isRestricted: true,
       formatAllFields: (l10n, item) =>
           l10n.financialFormatTaxId(item.toFormattedStringLocalized(l10n)),
@@ -225,8 +225,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'education',
       fieldPrefix: 'education',
-      titlePropertyKey: 'institution',
-      excludeFields: const {'institution'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatEducation(item.toFormattedStringLocalized(l10n)),
     ),
@@ -238,8 +238,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'employment',
       fieldPrefix: 'employment',
-      titlePropertyKey: 'company',
-      excludeFields: const {'company'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatEmployment(item.toFormattedStringLocalized(l10n)),
     ),
@@ -251,8 +251,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'skill',
       fieldPrefix: 'skill',
-      titlePropertyKey: 'name',
-      excludeFields: const {'name'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatSkill(item.toFormattedStringLocalized(l10n)),
     ),
@@ -264,8 +264,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'language',
       fieldPrefix: 'language',
-      titlePropertyKey: 'name',
-      excludeFields: const {'name'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatLanguage(item.toFormattedStringLocalized(l10n)),
     ),
@@ -277,8 +277,8 @@ class SectionRendererRegistry {
       maxVisibleItems: 3,
       historyFieldId: 'award',
       fieldPrefix: 'award',
-      titlePropertyKey: 'title',
-      excludeFields: const {'title'},
+      titlePropertyKey: 'Title',
+      excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatAward(item.toFormattedStringLocalized(l10n)),
     ),

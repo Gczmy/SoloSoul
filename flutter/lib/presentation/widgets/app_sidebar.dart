@@ -391,6 +391,13 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           NavTile(
+                            icon: Icons.extension_outlined,
+                            label: AppLocalizations.of(context).sidebarPlugin,
+                            expanded: _expanded,
+                            selected: location == AppRoutes.pluginDashboard,
+                            onTap: () => context.go(AppRoutes.pluginDashboard),
+                          ),
+                          NavTile(
                             icon: Icons.lock_outline,
                             label: AppLocalizations.of(context).sidebarLockVault,
                             expanded: _expanded,
