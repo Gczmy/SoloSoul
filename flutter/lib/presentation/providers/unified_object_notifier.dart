@@ -431,7 +431,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     String? name,
     String? typeId,
     String? iconName,
-    String? parentId,
+    Object? parentId = UnifiedObject.kNullSentinel,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
     Map<String, String>? semanticTypes,

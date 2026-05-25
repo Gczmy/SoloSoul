@@ -519,7 +519,14 @@ class AccountManager {
 
     // Clean up Keychain if possible, but don't fail if Keychain is unavailable
     // Rust is the source of truth for account data
-    await _storage.deleteAccount(_selectedAccountId!);
+    final storageDeleted = await _storage.deleteAccount(_selectedAccountId!);
+    if (!storageDeleted) {
+      DebugLogger.instance.logError(
+        'AUTH',
+        'Rust delete succeeded but Keychain delete failed for $_selectedAccountId. '
+        'Account list may be out of sync.',
+      );
+    }
 
     if (rustDeleted) {
       _selectedAccountId = null;

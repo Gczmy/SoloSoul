@@ -698,14 +698,15 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
 
   Map<String, dynamic> toJson() => _$UnifiedObjectToJson(this);
 
-  static const _nullSentinel = Object();
+  static const Object kNullSentinel = Object();
 
   UnifiedObject copyWith({
     String? id,
     String? typeId,
     String? name,
     String? iconName,
-    Object? parentId = _nullSentinel,
+    Object? parentId = kNullSentinel,
+    Object? deletedAt = kNullSentinel,
     List<String>? childrenIds,
     Map<String, PropertyValue>? properties,
     Map<String, String>? propertyLabels,
@@ -713,7 +714,6 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
     List<String>? propertyOrder,
     List<Attachment>? attachments,
     bool? isDeleted,
-    DateTime? deletedAt,
     int? createdAt,
     int? updatedAt,
     int? schemaVersionWhenSaved,
@@ -723,7 +723,8 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       typeId: typeId ?? this.typeId,
       name: name ?? this.name,
       iconName: iconName ?? this.iconName,
-      parentId: parentId == _nullSentinel ? this.parentId : parentId as String?,
+      parentId: parentId == kNullSentinel ? this.parentId : parentId as String?,
+      deletedAt: deletedAt == kNullSentinel ? this.deletedAt : deletedAt as DateTime?,
       childrenIds: childrenIds ?? this.childrenIds,
       properties: properties ?? this.properties,
       propertyLabels: propertyLabels ?? this.propertyLabels,
@@ -731,7 +732,6 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       propertyOrder: propertyOrder ?? this.propertyOrder,
       attachments: attachments ?? this.attachments,
       isDeleted: isDeleted ?? this.isDeleted,
-      deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       schemaVersionWhenSaved: schemaVersionWhenSaved ?? this.schemaVersionWhenSaved,

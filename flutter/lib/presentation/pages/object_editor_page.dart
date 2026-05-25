@@ -865,7 +865,7 @@ class ObjectParentDropdown extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      o.name,
+                      getLocalizedObjectName(AppLocalizations.of(context), o),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

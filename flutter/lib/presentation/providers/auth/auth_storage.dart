@@ -158,13 +158,47 @@ class SecureAccountStorage {
     }
 
     final accounts = await listAccounts();
-    if (accounts.any((a) => a.name.toLowerCase() == name.toLowerCase())) {
-      return (
-        success: false,
-        error: 'This account name is already taken',
-        account: null,
-        sessionKey: null
-      );
+    final existingWithSameName = accounts.where((a) => a.name.toLowerCase() == name.toLowerCase()).toList();
+    if (existingWithSameName.isNotEmpty) {
+      // If the existing account has a different id than the one Rust generated,
+      // it's likely stale Keychain data. Remove it and continue.
+      final staleAccounts = existingWithSameName.where((a) => a.id != accountId).toList();
+      if (staleAccounts.isNotEmpty) {
+        for (final stale in staleAccounts) {
+          DebugLogger.instance.logWarning(
+            'STORAGE',
+            'Removing stale account ${stale.id} ($name) from Keychain before creation',
+          );
+          await deleteAccount(stale.id);
+        }
+        // Re-check after cleanup
+        final refreshed = await listAccounts();
+        final stillConflicts = refreshed.where((a) => a.name.toLowerCase() == name.toLowerCase()).toList();
+        if (stillConflicts.isNotEmpty) {
+          // If the only remaining conflict is the accountId we're about to create,
+          // delete it so we can re-create with fresh data.
+          if (accountId != null && stillConflicts.length == 1 && stillConflicts.first.id == accountId) {
+            await deleteAccount(accountId);
+          } else {
+            return (
+              success: false,
+              error: 'This account name is already taken',
+              account: null,
+              sessionKey: null
+            );
+          }
+        }
+      } else if (accountId != null && existingWithSameName.any((a) => a.id == accountId)) {
+        // Same id exists — delete old record so we can re-create
+        await deleteAccount(accountId);
+      } else {
+        return (
+          success: false,
+          error: 'This account name is already taken',
+          account: null,
+          sessionKey: null
+        );
+      }
     }
 
     final effectiveAccountId =
@@ -282,15 +316,39 @@ class SecureAccountStorage {
 
   Future<bool> deleteAccount(String accountId) async {
     var success = true;
+
+    // Step 1: Remove from accounts list and save
     try {
       final accounts = await listAccounts();
+      final beforeCount = accounts.length;
       accounts.removeWhere((a) => a.id == accountId);
-      await _saveAccounts(accounts);
+      if (accounts.length < beforeCount) {
+        await _saveAccounts(accounts);
+      }
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('STORAGE', 'deleteAccount _saveAccounts error: $e\nStack trace: $st');
       success = false;
     }
 
+    // Step 2: Verify deletion succeeded; retry if stale data remains
+    try {
+      final remaining = await listAccounts();
+      if (remaining.any((a) => a.id == accountId)) {
+        DebugLogger.instance.logWarning('STORAGE', 'deleteAccount verification failed for $accountId, retrying...');
+        final cleaned = remaining.where((a) => a.id != accountId).toList();
+        await _saveAccounts(cleaned);
+        final afterRetry = await listAccounts();
+        if (afterRetry.any((a) => a.id == accountId)) {
+          DebugLogger.instance.logError('STORAGE', 'deleteAccount retry failed for $accountId');
+          success = false;
+        }
+      }
+    } on Exception catch (e, st) {
+      DebugLogger.instance.logError('STORAGE', 'deleteAccount verification error: $e\nStack trace: $st');
+      success = false;
+    }
+
+    // Step 3: Delete per-account data key
     try {
       await _secureStorage.delete(key: '$_accountDataPrefix$accountId');
     } on Exception catch (e, st) {
