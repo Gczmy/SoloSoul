@@ -1,3 +1,28 @@
+## [1.6.5] - 2026-05-25
+
+### Added
+
+- **Plugin Ecosystem v2** — 20 plugins available (TOTP Generator, Emergency Card, Address Formatter, MRZ Encoder, Expiry Guardian, ID Validator, and more) with semantic type system and field-level access review
+- **Plugin Market** — Browse and install plugins directly from GitHub with CDN fallback; works offline after first sync
+- **Drag-to-Reorder Fields** — Reorder property fields in section editor by dragging
+- **Move Sections Between Pages** — Change a section's parent page from the editor
+- **Editable Field Names** — Rename display labels without affecting underlying data keys
+- **Plugins Quick Action** — New shortcut on home page to quickly open plugins
+
+### Fixed
+
+- **Section Move Reliability** — Moving a section between pages no longer leaves ghost copies or causes unexpected deletions
+- **Account Re-creation** — Deleting and re-creating an account with the same name now works correctly
+- **Card UI Polish** — Collapse threshold lowered to 1 item; persistent add button; cleaner header layout
+- **Title Handling** — Fixed duplicate Title fields and ensured Title always appears first in item cards
+- **First-Launch Offline** — Plugin market works without internet on first launch
+
+### Refactored
+
+- Code quality audit resolved 160+ analyzer warnings across 41 files
+- Reduced app bundle size by removing unnecessary native build artifacts from repository
+
+
 # Changelog
 
 All notable changes to SoloSoul are documented in this file.
