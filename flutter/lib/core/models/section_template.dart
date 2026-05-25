@@ -462,11 +462,6 @@ class PresetSectionTemplates {
       pageTag: 'professional',
       fields: [
         TemplateField(
-          key: 'name',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
-        TemplateField(
           key: 'level',
           type: 'text',
           sensitivity: SensitivityLevel.public,
@@ -481,11 +476,6 @@ class PresetSectionTemplates {
       icon: '🌐',
       pageTag: 'professional',
       fields: [
-        TemplateField(
-          key: 'name',
-          type: 'text',
-          sensitivity: SensitivityLevel.public,
-        ),
         TemplateField(
           key: 'proficiency',
           type: 'text',

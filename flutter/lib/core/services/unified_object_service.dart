@@ -522,7 +522,6 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     defaultLayout: ObjectLayout.document,
     properties: [
       PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
-      PropertyDefinition(id: 'name', name: 'Skill Name', type: PropertyType.text),
       PropertyDefinition(id: 'level', name: 'Proficiency Level', type: PropertyType.text),
     ],
   ),
@@ -533,7 +532,6 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     defaultLayout: ObjectLayout.document,
     properties: [
       PropertyDefinition(id: 'Title', name: 'Title', type: PropertyType.text),
-      PropertyDefinition(id: 'name', name: 'Language', type: PropertyType.text),
       PropertyDefinition(id: 'proficiency', name: 'Proficiency Level', type: PropertyType.text),
     ],
   ),
