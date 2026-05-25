@@ -61,17 +61,6 @@
 			name = "Bundle Framework";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		S0L0C0R3CPY000000000001 /* Copy Dylib to Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Contents/Frameworks;
-			dstSubfolderSpec = 10;
-			files = (
-				32B9E9BA2F923FDE00A569E7 /* libsolosoul_core.dylib in Copy Dylib to Frameworks */,
-			);
-			name = "Copy Dylib to Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -256,7 +245,6 @@
 				33CC10EA2044A3C60003C045 /* Frameworks */,
 				33CC10EB2044A3C60003C045 /* Resources */,
 				33CC110E2044A8840003C045 /* Bundle Framework */,
-				S0L0C0R3CPY000000000001 /* Copy Dylib to Frameworks */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				EA847A079FFDEC86710B2370 /* [CP] Embed Pods Frameworks */,
 				32B9E9BB2F923FF800A569E7 /* ShellScript */,
