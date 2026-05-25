@@ -209,14 +209,18 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       // Add all schema properties (parent section's current properties).
       for (final entry in schemaProps.entries) {
         final sensitivity = entry.value.sensitivity;
-        if (entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name') {
-          _propertyFields.add(_PropertyField(
-            key: 'Title',
-            type: 'text',
-            isDefaultName: true,
-            sensitivity: sensitivity,
-          ));
-          hasDefaultName = true;
+        final isTitleKey = entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name';
+        if (isTitleKey) {
+          if (!hasDefaultName) {
+            _propertyFields.add(_PropertyField(
+              key: 'Title',
+              type: 'text',
+              isDefaultName: true,
+              sensitivity: sensitivity,
+            ));
+            hasDefaultName = true;
+          }
+          continue;
         } else {
           final storedProp = object.properties[entry.key];
           _propertyFields.add(_PropertyField(
@@ -250,14 +254,18 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       final orderedProps = _orderedProperties(object);
       for (final entry in orderedProps.entries) {
         final sensitivity = entry.value.sensitivity;
-        if (entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name') {
-          _propertyFields.add(_PropertyField(
-            key: 'Title',
-            type: 'text',
-            isDefaultName: true,
-            sensitivity: sensitivity,
-          ));
-          hasDefaultName = true;
+        final isTitleKey = entry.key == 'Title' || entry.key == 'title' || entry.key == 'Item Name';
+        if (isTitleKey) {
+          if (!hasDefaultName) {
+            _propertyFields.add(_PropertyField(
+              key: 'Title',
+              type: 'text',
+              isDefaultName: true,
+              sensitivity: sensitivity,
+            ));
+            hasDefaultName = true;
+          }
+          continue;
         } else {
           _propertyFields.add(_PropertyField(
             key: entry.key,
