@@ -826,11 +826,11 @@ class _TitleFieldRow extends StatelessWidget {
 class ObjectParentDropdown extends ConsumerWidget {
   final String? selectedParentId;
   final String? objectId;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<String> onChanged;
 
   const ObjectParentDropdown({
     super.key,
-    required this.selectedParentId,
+    this.selectedParentId,
     this.objectId,
     required this.onChanged,
   });
@@ -838,55 +838,44 @@ class ObjectParentDropdown extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allObjects = ref.watch(unifiedObjectProvider.select((d) => d.objects));
-    final validParentIds = <String?>[null];
-    for (final o in allObjects) {
-      if (!o.isDeleted && o.id != objectId && o.typeId == 'page') {
-        validParentIds.add(o.id);
-      }
-    }
-    final effectiveParentId = validParentIds.contains(selectedParentId)
+    final pages = allObjects
+        .where((o) => !o.isDeleted && o.id != objectId && o.typeId == 'page')
+        .toList();
+    final effectiveParentId = pages.any((o) => o.id == selectedParentId)
         ? selectedParentId
-        : null;
+        : (pages.isNotEmpty ? pages.first.id : null);
 
     return InputDecorator(
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        hintText: AppLocalizations.of(context).objectEditorNoParent,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
+        child: DropdownButton<String>(
           isExpanded: true,
           value: effectiveParentId,
-          hint: Text(AppLocalizations.of(context).objectEditorNoParent),
-          items: [
-            DropdownMenuItem(
-              value: null,
-              child: Text(AppLocalizations.of(context).objectEditorNoParent),
-            ),
-            ...allObjects
-                .where((o) => !o.isDeleted && o.id != objectId && o.typeId == 'page')
-                .map((o) {
-              return DropdownMenuItem(
-                value: o.id,
-                child: Row(
-                  children: [
-                    Icon(
-                      UnifiedObjectService.getIconFromName(o.iconName),
-                      size: 18,
+          items: pages.map((o) {
+            return DropdownMenuItem(
+              value: o.id,
+              child: Row(
+                children: [
+                  Icon(
+                    UnifiedObjectService.getIconFromName(o.iconName),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      o.name,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        o.name,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-          onChanged: onChanged,
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) onChanged(value);
+          },
         ),
       ),
     );
