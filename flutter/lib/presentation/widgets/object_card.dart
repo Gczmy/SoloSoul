@@ -673,8 +673,8 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final items = widget.items;
-    final shouldCollapse = items.length > 3;
-    final visibleItems = _isExpanded ? items : items.take(3).toList();
+    final shouldCollapse = items.length > 1;
+    final visibleItems = _isExpanded ? items : items.take(1).toList();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -786,7 +786,7 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
                         Text(
                           _isExpanded
                               ? l10n.commonShowLess
-                              : l10n.commonShowMore(items.length - 3),
+                              : l10n.commonShowMore(items.length - 1),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w500,
