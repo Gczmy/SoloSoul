@@ -564,7 +564,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
       if (field.semanticType != null && field.semanticType!.isNotEmpty) {
         semanticTypes[key] = field.semanticType!;
       }
-      if (!field.isDeprecated && field.isDefaultName != true) {
+      if (!field.isDeprecated) {
         propertyOrder.add(key);
       }
     }
