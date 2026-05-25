@@ -15,7 +15,7 @@ echo "=== SoloSoul Native Library Builder ==="
 if [ ! -f "$RUST_TARGET/libsolosoul_core.dylib" ]; then
     echo "Building Rust library..."
     cd "$RUST_DIR"
-    /opt/homebrew/bin/cargo build --release
+    /opt/homebrew/bin/cargo build --release --features sandbox
     cd "$FLUTTER_DIR"
 fi
 

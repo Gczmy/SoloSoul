@@ -395,7 +395,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p \"$PROJECT_DIR/Runner/Frameworks\"\ncp \"$PROJECT_DIR/../native/target/aarch64-apple-ios-sim/release/libsolosoul_core.a\" \"$PROJECT_DIR/Runner/Frameworks/\"\n";
+			shellScript = "mkdir -p \"$PROJECT_DIR/Runner/Frameworks\"\nRUST_DIR=\"$PROJECT_DIR/../native\"\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n  RUST_TARGET=\"$RUST_DIR/target/aarch64-apple-ios-sim/release\"\n  if [ ! -f \"$RUST_TARGET/libsolosoul_core.a\" ]; then\n    cd \"$RUST_DIR\" && cargo build --release --features sandbox --target aarch64-apple-ios-sim\n  fi\n  cp \"$RUST_TARGET/libsolosoul_core.a\" \"$PROJECT_DIR/Runner/Frameworks/\"\nelse\n  RUST_TARGET=\"$RUST_DIR/target/aarch64-apple-ios/release\"\n  if [ ! -f \"$RUST_TARGET/libsolosoul_core.a\" ]; then\n    cd \"$RUST_DIR\" && cargo build --release --features sandbox --target aarch64-apple-ios\n  fi\n  cp \"$RUST_TARGET/libsolosoul_core.a\" \"$PROJECT_DIR/Runner/Frameworks/\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
