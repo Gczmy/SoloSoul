@@ -1,3 +1,44 @@
+## [1.6.5] - 2026-05-25
+
+### Added
+
+- **Plugin Runtime v2** — Semantic type system, access review dialog, and address formatter plugin. Plugins now declare semantic types (e.g., `pet.name`) and request field-level consent before execution.
+- **Plugin Market Expansion** — 20 plugins available via GitHub-as-market with multi-source support and CDN fallback:
+  - TOTP Generator, Emergency Card, Address Formatter, MRZ Encoder
+  - Expiry Guardian, ID Validator, Phone Formatter, Contact Exporter
+  - Packing List, Calendar Events, Digital Will, Identity Timeline
+  - Form Prefiller, Tax Profile, Data Completeness, Namecard Generator
+  - Doc Checklist, Travel Footprint, Resume Builder
+- **Plugin Home Quick Action** — Added Plugins shortcut to home page quick actions grid.
+- **Schema propertyLabels** — Storage key, display label, and semantic type are now three independent layers. `propertyLabels` map allows editable field display names without changing storage keys.
+- **Drag-to-Reorder Fields** — Section editor supports drag-to-reorder property fields via `ReorderableListView`. Order persists via `propertyOrder` on `UnifiedObject`.
+- **Parent Page Selector** — Section editor now includes a "所属页面" dropdown to move sections between pages. Sections are prepended to the front of the new page's children.
+- **Xcode Auto-Build Rust** — Debug builds now auto-compile `cargo build --features sandbox` when the native library is missing, eliminating manual Rust build steps.
+
+### Fixed
+
+- **Section Move-Delete Cascade** — `updateObject` no longer silently overwrites `parentId` with `null` when `parentId` is not explicitly passed. Fixed by introducing `UnifiedObject.kNullSentinel` in `_service.updateObject` and `notifier.updateObject`. Also fixed `restoreObject` unable to clear `deletedAt`.
+- **Account Delete-Recreate Conflict** — `SecureAccountStorage.deleteAccount` now verifies removal and retries on stale data. `createAccount` auto-cleans stale Keychain records before creation. `AccountManager.deleteAccount` no longer silently ignores Keychain failures.
+- **ObjectCard UI Polish Cycle** — Collapse threshold reduced from 3 to 1 items; persistent full-width "add item" button at bottom; edit/delete buttons grouped next to section name with add button pushed to far right.
+- **Title Key Normalization** — All built-in type definitions now use `id: 'Title'` (capitalized). Legacy `'title'` is normalized at load time and in card templates to prevent duplication.
+- **Title Order in Items** — Title is now included in `propertyOrder` so it stays at the top of item cards instead of falling to the bottom.
+- **Empty Key Save Fallback** — New fields with empty `key` now use `displayLabel` as the fallback property key on save.
+- **Editor Drag Handle** — `ReorderableDragStartListener` now uses the ReorderableListView's local index instead of the global `_propertyFields` index, fixing "non-visible item" exceptions.
+- **Localized Field Display** — Restored localized display labels in the object editor schema view.
+- **Registry Offline Fallback** — Bundled `registry.json` ships with the app so plugin market works on first launch without internet.
+- **P001–P018 Code Quality** — Comprehensive static-analysis cleanup: replaced deprecated `withOpacity` with `withValues()`, added `on Exception` to catch clauses, removed dead code, extracted oversized widgets, fixed unawaited futures, and resolved 160+ analyzer warnings across 41 files.
+
+### Refactored
+
+- **Widget Extraction** — Extracted `_buildAccountTile` and glass settings methods from `app_sidebar` to reduce nesting and file size.
+- **Git Cleanup** — Removed 33.7MB prebuilt `libsolosoul_core.a` from git tracking; updated `.gitignore` for Flutter ephemeral artifacts.
+
+### Tests
+
+- Added `PluginManager`, MRZ parser, and Vault path tests.
+- Fixed failing tests from second wave test coverage push.
+
+
 # Changelog
 
 All notable changes to SoloSoul are documented in this file.
