@@ -35,44 +35,48 @@ class ObjectCardHeader extends StatelessWidget {
 
     return Row(
       children: [
-        InkWell(
-          onTap: onChangeIcon,
-          borderRadius: BorderRadius.circular(6),
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: Icon(icon, color: theme.colorScheme.primary, size: 20),
+        // 左侧组：icon + 名称 + 编辑 + 删除（edit/delete 紧贴名称）
+        Expanded(
+          child: Row(
+            children: [
+              InkWell(
+                onTap: onChangeIcon,
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(icon, color: theme.colorScheme.primary, size: 20),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                displayName,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              if (showEditActions && !showEditSection)
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  onPressed: onEdit,
+                  tooltip: l10n.commonEdit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  visualDensity: VisualDensity.compact,
+                ),
+              if (showEditActions)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  onPressed: onDelete,
+                  tooltip: l10n.commonDelete,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
           ),
         ),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            displayName,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        // Edit & Delete紧贴分区名字
-        if (showEditActions && !showEditSection)
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            onPressed: onEdit,
-            tooltip: l10n.commonEdit,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            visualDensity: VisualDensity.compact,
-          ),
-        if (showEditActions)
-          IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18),
-            onPressed: onDelete,
-            tooltip: l10n.commonDelete,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            visualDensity: VisualDensity.compact,
-          ),
-        const Spacer(),
         // Add 放到最右侧
         if (showAddButton)
           if (showEditSection)
