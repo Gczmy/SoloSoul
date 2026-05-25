@@ -799,7 +799,18 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
               ],
             ],
 
-
+            // 始终显示在最下面的"添加项目"按钮（有 item 时）
+            if (items.isNotEmpty && !_isAddingItem)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: TextButton.icon(
+                    onPressed: _addItem,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(l10n.commonAddItem),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
