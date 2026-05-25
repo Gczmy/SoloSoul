@@ -1,3 +1,12 @@
+## [1.6.5] - 2026-05-25
+
+### Fixed
+
+- **Section Move Reliability** — Fixed a bug where moving a section between pages could leave it visible in both locations, or deleting it from one page removed it from both
+- **Account Re-creation** — Fixed "name already exists" error when re-creating an account immediately after deletion
+- **UI Localization** — Default page names in parent page dropdown are now properly localized
+
+
 # Changelog
 
 All notable changes to SoloSoul are documented in this file.
