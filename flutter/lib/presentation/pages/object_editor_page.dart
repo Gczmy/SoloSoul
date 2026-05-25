@@ -979,6 +979,7 @@ class _PropertyFieldsSection extends StatelessWidget {
               onDeleteConfirmed: onDeleteConfirmed,
               onFieldChanged: onFieldChanged,
               showDragHandle: true,
+              dragIndex: index,
             );
           },
         ),
@@ -1101,6 +1102,8 @@ class _PropertyFieldRow extends ConsumerWidget {
   final void Function(int index, String key) onDeleteConfirmed;
   final VoidCallback onFieldChanged;
   final bool showDragHandle;
+  /// Index within the ReorderableListView (not _propertyFields).
+  final int? dragIndex;
 
   const _PropertyFieldRow({
     super.key,
@@ -1109,6 +1112,7 @@ class _PropertyFieldRow extends ConsumerWidget {
     required this.onDeleteConfirmed,
     required this.onFieldChanged,
     this.showDragHandle = false,
+    this.dragIndex,
   });
 
   @override
@@ -1122,7 +1126,7 @@ class _PropertyFieldRow extends ConsumerWidget {
         children: [
           if (showDragHandle) ...[
             ReorderableDragStartListener(
-              index: index,
+              index: dragIndex ?? index,
               child: Icon(
                 Icons.drag_handle,
                 size: 20,
