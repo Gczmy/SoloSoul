@@ -405,6 +405,22 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
                   const SizedBox(height: 24),
                 ],
 
+                // 所属页面
+                if (!_isEditingItem) ...[
+                  Text(AppLocalizations.of(context).objectEditorParentPage, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 12),
+                  ObjectParentDropdown(
+                    selectedParentId: _selectedParentId,
+                    objectId: widget.objectId,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedParentId = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
                 _PropertyFieldsSection(
                   fields: _propertyFields,
                   showDeprecated: _showDeprecated,

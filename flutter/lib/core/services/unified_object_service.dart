@@ -755,7 +755,7 @@ class UnifiedObjectService {
           o.id == newParentId &&
           !o.childrenIds.contains(objectId)) {
         result[i] = o.copyWith(
-          childrenIds: [...o.childrenIds, objectId],
+          childrenIds: [objectId, ...o.childrenIds],
           updatedAt: now,
         );
       } else if (o.id == objectId) {

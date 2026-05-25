@@ -312,6 +312,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get objectEditorNoParent => 'No parent (root)';
 
   @override
+  String get objectEditorParentPage => 'Parent Page';
+
+  @override
   String get objectEditorItemProperties => 'Item Properties';
 
   @override

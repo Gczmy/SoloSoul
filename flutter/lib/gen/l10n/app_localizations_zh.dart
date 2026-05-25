@@ -306,6 +306,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get objectEditorNoParent => '无父级（根）';
 
   @override
+  String get objectEditorParentPage => '所属页面';
+
+  @override
   String get objectEditorItemProperties => '项目属性';
 
   @override

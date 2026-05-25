@@ -91,6 +91,7 @@
   "objectEditorEnterSectionName": "输入分区名称",
   "objectEditorSelectType": "选择类型",
   "objectEditorNoParent": "无父级（根）",
+  "objectEditorParentPage": "所属页面",
   "objectEditorItemProperties": "项目属性",
   "objectEditorAddProperty": "添加属性",
   "objectEditorKeyName": "键名",

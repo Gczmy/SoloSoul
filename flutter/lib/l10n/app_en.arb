@@ -181,6 +181,7 @@
   "objectEditorEnterSectionName": "Enter section name",
   "objectEditorSelectType": "Select type",
   "objectEditorNoParent": "No parent (root)",
+  "objectEditorParentPage": "Parent Page",
   "objectEditorItemProperties": "Item Properties",
   "objectEditorAddProperty": "Add Property",
   "objectEditorKeyName": "Key name",

@@ -644,6 +644,12 @@ abstract class AppLocalizations {
   /// **'No parent (root)'**
   String get objectEditorNoParent;
 
+  /// No description provided for @objectEditorParentPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent Page'**
+  String get objectEditorParentPage;
+
   /// No description provided for @objectEditorItemProperties.
   ///
   /// In en, this message translates to:
