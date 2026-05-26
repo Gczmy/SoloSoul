@@ -22,8 +22,9 @@ final Map<String, String> _fieldNameMapEn = {
   'address.state': 'State / Province',
   'address.postalCode': 'Postal Code',
   'address.country': 'Country',
-  'address.district': 'District / Label',
-  'address.label': 'Label',
+  'address.district': 'District / County',
+  'address.title': 'Title',
+  'address.label': 'Title',
   'address.count': 'Address Count',
 };
 
@@ -39,8 +40,9 @@ final Map<String, String> _fieldNameMapZh = {
   'address.state': '省/州',
   'address.postalCode': '邮政编码',
   'address.country': '国家/地区',
-  'address.district': '区/标签',
-  'address.label': '标签',
+  'address.district': '区/县',
+  'address.title': '标题',
+  'address.label': '标题',
   'address.count': '地址数量',
 };
 
@@ -48,6 +50,7 @@ final Map<String, String> _fieldNameMapZh = {
 List<String> _expandWildcardField(String fieldId) {
   if (fieldId == 'address.*') {
     return const [
+      'address.title',
       'address.street',
       'address.city',
       'address.state',

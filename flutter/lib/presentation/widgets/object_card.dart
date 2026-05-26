@@ -503,7 +503,14 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
     // Sync __name__ input to the title property so title and property stay aligned
     final titleKey = widget.titlePropertyKey;
     final nameInput = _editControllers['__name__']?.text.trim() ?? item.name;
-    if (updatedProps.containsKey(titleKey)) {
+    // 规范化：小写 'title' → 大写 'Title'，避免 host.rs 读取不到
+    if (updatedProps.containsKey('title') && titleKey == 'Title') {
+      final oldTitle = updatedProps.remove('title')!;
+      updatedProps[titleKey] = TextProperty(
+        text: nameInput,
+        sensitivity: oldTitle.sensitivity,
+      );
+    } else if (updatedProps.containsKey(titleKey)) {
       final oldTitle = updatedProps[titleKey]!;
       updatedProps[titleKey] = TextProperty(
         text: nameInput,

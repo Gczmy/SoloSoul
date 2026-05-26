@@ -95,10 +95,10 @@ pub(crate) fn resolve_field_sensitivity(field_id: &str) -> SensitivityLevel {
         "identity.id_card.number"
         | "travel.primary_passport.number"
         | "financial.primary_bank_account.number" => SensitivityLevel::Critical,
-        // address: country/count 为公开，其余为敏感
-        "address.country" | "address.count" => SensitivityLevel::Public,
+        // address: country/count/title/label 为公开，其余为敏感
+        "address.country" | "address.count" | "address.title" | "address.label" => SensitivityLevel::Public,
         f if f.starts_with("address[") => {
-            if f.ends_with("].country") || f.ends_with("].label") {
+            if f.ends_with("].country") || f.ends_with("].title") || f.ends_with("].label") {
                 SensitivityLevel::Public
             } else {
                 SensitivityLevel::Sensitive
@@ -704,7 +704,7 @@ fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
                     "district" => addr.district.clone(),
                     "postalCode" => addr.postal_code.clone(),
                     "country" => addr.country.clone(),
-                    "label" => addr.label.clone(),
+                    "title" | "label" => addr.label.clone(),
                     _ => None,
                 };
                 rust_log(&format!("[extract_field_value] legacy address[{}].{} => {:?}", idx, rest, result.as_ref().map(|s| &s[..s.len().min(50)])));
@@ -743,7 +743,7 @@ fn extract_field_value(field_id: &str, data: &ProfileData) -> Option<String> {
             "district" => addr.district.clone(),
             "postalCode" => addr.postal_code.clone(),
             "country" => addr.country.clone(),
-            "label" => addr.label.clone(),
+            "title" | "label" => addr.label.clone(),
             _ => None,
         };
         rust_log(&format!("[extract_field_value] legacy address.{} => {:?}", addr_key, result.as_ref().map(|s| &s[..s.len().min(50)])));
@@ -886,8 +886,8 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
                     "postalCode" => "postalCode",
                     "country" => "country",
                     "district" => "district",
-                    // UOM 中地址对象的标签字段是 "title"，插件侧习惯称为 "label"
-                    "label" => "title",
+                    // UOM 中地址对象的标签字段 id 是 "Title"（大写 T）
+                    "title" | "label" => "Title",
                     _ => rest,
                 };
                 rust_log(&format!("[extract_from_uom] looking for prop_key='{}' in properties", prop_key));
@@ -896,9 +896,30 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
                     let keys: Vec<String> = props_map.keys().cloned().collect();
                     rust_log(&format!("[extract_from_uom] available property keys: {:?}", keys));
                 }
-                let prop = properties.get(prop_key)?;
-                let result = prop.get("text").and_then(|t| t.as_str()).map(|s| s.to_string());
-                rust_log(&format!("[extract_from_uom] found text={:?}", result.as_ref().map(|s| &s[..s.len().min(50)])));
+                // 支持大小写回退：优先 "Title"，其次 "title"，最后回退到 name 字段
+                let prop = properties.get(prop_key).or_else(|| {
+                    if prop_key == "Title" {
+                        properties.get("title")
+                    } else {
+                        None
+                    }
+                });
+                let result = match prop {
+                    Some(p) => {
+                        let text = p.get("text").and_then(|t| t.as_str()).map(|s| s.to_string());
+                        rust_log(&format!("[extract_from_uom] found prop_key='{}' text={:?}", prop_key, text.as_ref().map(|s| &s[..s.len().min(50)])));
+                        text
+                    }
+                    None if prop_key == "Title" => {
+                        let name_fallback = addr.get("name").and_then(|n| n.as_str()).map(|s| s.to_string());
+                        rust_log(&format!("[extract_from_uom] prop_key='Title' not found in properties, falling back to name={:?}", name_fallback.as_ref().map(|s| &s[..s.len().min(50)])));
+                        name_fallback
+                    }
+                    None => {
+                        rust_log(&format!("[extract_from_uom] prop_key='{}' not found in properties", prop_key));
+                        None
+                    }
+                };
                 return result;
             } else {
                 rust_log(&format!("[extract_from_uom] failed to parse idx_str='{}' as usize", idx_str));
@@ -916,8 +937,8 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             "postalCode" => "postalCode",
             "country" => "country",
             "district" => "district",
-            // UOM 中地址对象的标签字段是 "title"，插件侧习惯称为 "label"
-            "label" => "title",
+            // UOM 中地址对象的标签字段 id 是 "Title"（大写 T）
+            "title" | "label" => "Title",
             _ => addr_key,
         };
         let addrs = get_address_objects(objects);
@@ -930,14 +951,29 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
                     continue;
                 }
             };
-            let prop = match properties.get(prop_key) {
-                Some(p) => p,
+            // 支持大小写回退：优先 prop_key，其次小写变体，最后回退到 name 字段
+            let prop_value = properties.get(prop_key).or_else(|| {
+                if prop_key == "Title" {
+                    properties.get("title")
+                } else {
+                    None
+                }
+            });
+            let text_value = match prop_value {
+                Some(p) => p.get("text").and_then(|t| t.as_str()).map(|s| s.to_string()),
+                None if prop_key == "Title" => {
+                    let name_fallback = addr.get("name").and_then(|n| n.as_str()).map(|s| s.to_string());
+                    if name_fallback.is_some() {
+                        rust_log(&format!("[extract_from_uom] addr[{}] prop_key='Title' not found, falling back to name={:?}", i, name_fallback.as_ref().map(|s| &s[..s.len().min(50)])));
+                    }
+                    name_fallback
+                }
                 None => {
                     rust_log(&format!("[extract_from_uom] addr[{}] missing prop_key='{}'", i, prop_key));
                     continue;
                 }
             };
-            if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+            if let Some(text) = text_value {
                 rust_log(&format!("[extract_from_uom] addr[{}] text='{}' (empty={})", i, &text[..text.len().min(50)], text.is_empty()));
                 if !text.is_empty() {
                     return Some(text.to_string());

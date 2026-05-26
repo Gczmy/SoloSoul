@@ -249,8 +249,8 @@ impl PluginManager {
             }
         });
 
-        // 6. 批量预授权：收集 manifest 中所有敏感字段，一次性请求用户确认
-        //    若用户拒绝任何字段，直接终止插件执行
+        // 6. 批量授权：收集 manifest 中所有声明字段，一次性请求用户确认
+        //    显示所有字段的敏感度等级，用户有权拒绝任何字段
         let mut pre_approved_fields: HashSet<String> = HashSet::new();
         let all_fields: Vec<String> = manifest_clone.required_fields.iter()
             .chain(manifest_clone.optional_fields.iter())
@@ -258,70 +258,62 @@ impl PluginManager {
             .collect();
         
         if !all_fields.is_empty() {
-            let sensitive_fields: Vec<String> = all_fields.iter()
-                .filter(|field| resolve_field_sensitivity(field).needs_confirmation())
-                .cloned()
-                .collect();
+            let mut pending_rxs: Vec<(String, std::sync::mpsc::Receiver<ConsentResult>)> = Vec::new();
             
-            if !sensitive_fields.is_empty() {
-                let mut pending_rxs: Vec<(String, std::sync::mpsc::Receiver<ConsentResult>)> = Vec::new();
+            // 为每个声明字段发送 ConsentRequest（包括 Public/Internal/Sensitive/Critical）
+            for field in &all_fields {
+                let request_id = uuid::Uuid::new_v4().to_string();
+                let (tx, rx) = std::sync::mpsc::channel();
                 
-                // 为每个敏感字段发送 ConsentRequest
-                for field in &sensitive_fields {
-                    let request_id = uuid::Uuid::new_v4().to_string();
-                    let (tx, rx) = std::sync::mpsc::channel();
-                    
-                    // 将 sender 存入 pending_consents（供 Dart 响应时查找）
-                    if let Ok(mut guard) = self.pending_consents.lock() {
-                        guard.insert(request_id.clone(), tx);
-                    }
-                    
-                    // 通过 StreamSink 推送 ConsentRequest 事件到 Dart 端
-                    let _ = sink.add(PluginEvent::ConsentRequest {
-                        request_id: request_id.clone(),
-                        plugin_id: plugin_id.clone(),
-                        plugin_name: plugin_name.clone(),
-                        field: field.clone(),
-                        sensitivity: format!("{:?}", resolve_field_sensitivity(field)),
-                    });
-                    
-                    pending_rxs.push((field.clone(), rx));
+                // 将 sender 存入 pending_consents（供 Dart 响应时查找）
+                if let Ok(mut guard) = self.pending_consents.lock() {
+                    guard.insert(request_id.clone(), tx);
                 }
                 
-                // 发送批量结束标志，通知 Dart 显示批量对话框
-                let _ = sink.add(PluginEvent::Log {
-                    level: "batch_end".to_string(),
-                    message: format!("pre-consent|{}", plugin_id),
+                // 通过 StreamSink 推送 ConsentRequest 事件到 Dart 端
+                let _ = sink.add(PluginEvent::ConsentRequest {
+                    request_id: request_id.clone(),
+                    plugin_id: plugin_id.clone(),
+                    plugin_name: plugin_name.clone(),
+                    field: field.clone(),
+                    sensitivity: format!("{:?}", resolve_field_sensitivity(field)),
                 });
                 
-                // 等待所有用户响应（超时 60s）
-                let mut any_denied = false;
-                for (field, rx) in pending_rxs {
-                    match rx.recv_timeout(Duration::from_secs(60)) {
-                        Ok(ConsentResult::Approved(_)) => {
-                            pre_approved_fields.insert(field);
-                        }
-                        Ok(ConsentResult::Denied) => {
-                            any_denied = true;
-                            break;
-                        }
-                        Ok(ConsentResult::Expired) | Err(_) => {
-                            any_denied = true;
-                            break;
-                        }
+                pending_rxs.push((field.clone(), rx));
+            }
+            
+            // 发送批量结束标志，通知 Dart 显示批量对话框
+            let _ = sink.add(PluginEvent::Log {
+                level: "batch_end".to_string(),
+                message: format!("pre-consent|{}", plugin_id),
+            });
+            
+            // 等待所有用户响应（超时 60s）
+            let mut any_denied = false;
+            for (field, rx) in pending_rxs {
+                match rx.recv_timeout(Duration::from_secs(60)) {
+                    Ok(ConsentResult::Approved(_)) => {
+                        pre_approved_fields.insert(field);
+                    }
+                    Ok(ConsentResult::Denied) => {
+                        any_denied = true;
+                        break;
+                    }
+                    Ok(ConsentResult::Expired) | Err(_) => {
+                        any_denied = true;
+                        break;
                     }
                 }
-                
-                if any_denied {
-                    // 用户拒绝或超时，立即撤销 Session 并通过 Stream 通知 Dart
-                    // ⚠️ 不可返回 Err，否则 FRB 的 unawaited Future 会抛出 Unhandled Exception
-                    self.session_manager.revoke(&plugin_id);
-                    let _ = sink.add(PluginEvent::Error {
-                        message: "User denied or timed out field access".to_string(),
-                    });
-                    return Ok(0);
-                }
-                
+            }
+            
+            if any_denied {
+                // 用户拒绝或超时，立即撤销 Session 并通过 Stream 通知 Dart
+                // ⚠️ 不可返回 Err，否则 FRB 的 unhandled Future 会抛出 Unhandled Exception
+                self.session_manager.revoke(&plugin_id);
+                let _ = sink.add(PluginEvent::Error {
+                    message: "User denied or timed out field access".to_string(),
+                });
+                return Ok(0);
             }
         }
 
