@@ -335,11 +335,47 @@ class _TextResultCard extends StatelessWidget {
   }
 }
 
-/// 键值对结果卡片
+/// 键值对结果卡片（支持 tag、逐条复制、入场动画）
 class _KeyValueResultCard extends StatelessWidget {
   final Map<String, dynamic> data;
 
   const _KeyValueResultCard({required this.data});
+
+  Color _tagColor(String? code) {
+    final upper = (code ?? '').toUpperCase();
+    switch (upper) {
+      case 'CN': return Colors.red.shade100;
+      case 'US': return Colors.blue.shade100;
+      case 'GB': case 'UK': return Colors.indigo.shade100;
+      case 'JP': return Colors.pink.shade100;
+      case 'KR': return Colors.purple.shade100;
+      case 'DE': return Colors.amber.shade100;
+      case 'FR': return Colors.lightBlue.shade100;
+      case 'AU': return Colors.green.shade100;
+      case 'CA': return Colors.orange.shade100;
+      case 'SG': return Colors.teal.shade100;
+      default:
+        final hue = (upper.codeUnits.fold<int>(0, (a, b) => a + b) * 37) % 360;
+        return HSLColor.fromAHSL(1.0, hue.toDouble(), 0.6, 0.88).toColor();
+    }
+  }
+
+  Color _tagTextColor(String? code) {
+    final upper = (code ?? '').toUpperCase();
+    switch (upper) {
+      case 'CN': return Colors.red.shade900;
+      case 'US': return Colors.blue.shade900;
+      case 'GB': case 'UK': return Colors.indigo.shade900;
+      case 'JP': return Colors.pink.shade900;
+      case 'KR': return Colors.purple.shade900;
+      case 'DE': return Colors.amber.shade900;
+      case 'FR': return Colors.lightBlue.shade900;
+      case 'AU': return Colors.green.shade900;
+      case 'CA': return Colors.orange.shade900;
+      case 'SG': return Colors.teal.shade900;
+      default: return Colors.grey.shade800;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,26 +392,88 @@ class _KeyValueResultCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
         ],
-        ...pairs.map<Widget>((p) {
-          final pair = p as Map<String, dynamic>;
+        ...pairs.asMap().entries.map<Widget>((entry) {
+          final index = entry.key;
+          final pair = entry.value as Map<String, dynamic>;
           final key = pair['key'] as String? ?? '';
           final value = pair['value'] as String? ?? '';
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+          final tag = pair['tag'] as String?;
+          final tagCode = pair['tagCode'] as String?;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+            ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  '$key: ',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                // 标签 chip
+                Chip(
+                  label: Text(key, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
+                  side: BorderSide.none,
+                  labelStyle: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                  padding: EdgeInsets.zero,
                 ),
+                const SizedBox(width: 10),
+                // 值
                 Expanded(
-                  child: SelectableText(value),
+                  child: SelectableText(
+                    value,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 国家 tag
+                if (tag != null && tag.isNotEmpty)
+                  Chip(
+                    label: Text(tag, style: const TextStyle(fontSize: 11)),
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: _tagColor(tagCode),
+                    side: BorderSide.none,
+                    labelStyle: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _tagTextColor(tagCode),
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+                const SizedBox(width: 6),
+                // 单条复制按钮
+                IconButton(
+                  icon: Icon(Icons.copy, size: 18, color: Theme.of(context).colorScheme.primary),
+                  tooltip: '复制',
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: value));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('已复制到剪贴板'), duration: Duration(seconds: 1)),
+                    );
+                  },
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
+          ).animate().fadeIn(delay: (index * 80).ms, duration: 300.ms).slideY(
+            begin: 0.15,
+            end: 0,
+            delay: (index * 80).ms,
+            duration: 300.ms,
+            curve: Curves.easeOutCubic,
           );
         }),
       ],

@@ -1079,7 +1079,8 @@ fn get_address_objects(objects: &[serde_json::Value]) -> Vec<&serde_json::Value>
         if is_deleted {
             continue;
         }
-        if type_id == "profile_address" {
+        // 支持旧版 profile_address 和新版 __preset_address
+        if type_id == "profile_address" || type_id == "__preset_address" {
             addrs.push(obj);
         }
     }
