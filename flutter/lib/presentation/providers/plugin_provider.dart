@@ -10,6 +10,24 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
 
+/// 跟踪每个插件的安装/更新中状态（pluginId -> isLoading）
+class PluginInstallingNotifier extends Notifier<Map<String, bool>> {
+  @override
+  Map<String, bool> build() => const {};
+
+  void setLoading(String pluginId, bool loading) {
+    state = {...state, pluginId: loading};
+  }
+
+  void clear(String pluginId) {
+    state = {...state}..remove(pluginId);
+  }
+}
+
+final pluginInstallingProvider = NotifierProvider<PluginInstallingNotifier, Map<String, bool>>(() {
+  return PluginInstallingNotifier();
+});
+
 // ============================================================================
 // Service Providers
 // ============================================================================

@@ -1429,6 +1429,8 @@ class _PluginCard extends ConsumerWidget {
     final isInstalled = data.isInstalled(pluginId);
     final isRunning = data.isRunning(pluginId);
     final hasUpdate = data.hasUpdate(pluginId);
+    final installingMap = ref.watch(pluginInstallingProvider);
+    final isUpdating = installingMap[pluginId] ?? false;
 
     // 确定状态标签
     String statusLabel;
@@ -1518,7 +1520,7 @@ class _PluginCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
-              children: _buildActionButtons(context, ref, l10n, isInstalled, isRunning, hasUpdate),
+              children: _buildActionButtons(context, ref, l10n, isInstalled, isRunning, hasUpdate, isUpdating),
             ),
           ],
         ),
@@ -1533,18 +1535,25 @@ class _PluginCard extends ConsumerWidget {
     bool isInstalled,
     bool isRunning,
     bool hasUpdate,
+    bool isUpdating,
   ) {
     final buttons = <Widget>[];
 
     if (!isInstalled) {
-      // 未安装：显示安装按钮
+      // 未安装：显示安装按钮（安装中时显示 loading）
       final dash = ref.read(pluginDashboardProvider).asData?.value;
       if (dash != null && dash.registry.plugins.containsKey(pluginId)) {
         buttons.push(
           OutlinedButton.icon(
-            onPressed: () => _onInstall(context, ref),
-            icon: const Icon(Icons.download_rounded, size: 16),
-            label: Text(l10n.pluginActionInstall),
+            onPressed: isUpdating ? null : () => _onInstall(context, ref),
+            icon: isUpdating
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.download_rounded, size: 16),
+            label: Text(isUpdating ? '安装中' : l10n.pluginActionInstall),
             style: OutlinedButton.styleFrom(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1586,13 +1595,19 @@ class _PluginCard extends ConsumerWidget {
         );
       }
 
-      // 有更新：显示更新按钮
+      // 有更新：显示更新按钮（更新中时显示 loading）
       if (hasUpdate) {
         buttons.push(
           OutlinedButton.icon(
-            onPressed: () => _onUpdate(context, ref),
-            icon: const Icon(Icons.update_rounded, size: 16),
-            label: Text(l10n.pluginActionUpdate),
+            onPressed: isUpdating ? null : () => _onUpdate(context, ref),
+            icon: isUpdating
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.update_rounded, size: 16),
+            label: Text(isUpdating ? '更新中' : l10n.pluginActionUpdate),
             style: OutlinedButton.styleFrom(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1673,6 +1688,9 @@ class _PluginCard extends ConsumerWidget {
     final entry = dashboard.registry.plugins[pluginId];
     if (entry == null) return;
 
+    // 标记安装/更新中
+    ref.read(pluginInstallingProvider.notifier).setLoading(pluginId, true);
+
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       final versionKey = targetVersion ?? entry.latestVersion;
@@ -1733,6 +1751,9 @@ class _PluginCard extends ConsumerWidget {
           SnackBar(content: Text('${l10n.commonError}: $e')),
         );
       }
+    } finally {
+      // 清除安装/更新中状态
+      ref.read(pluginInstallingProvider.notifier).clear(pluginId);
     }
   }
 
