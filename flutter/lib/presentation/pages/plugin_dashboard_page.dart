@@ -1546,6 +1546,7 @@ class _PluginCard extends ConsumerWidget {
         pluginApiVersion,
         targetVersion: targetVersion,
       );
+      if (!context.mounted) return;
 
       // 2. 解析 field_access 并进行安装前审查
       final fieldAccess = artifacts.parseFieldAccess();
@@ -1558,11 +1559,17 @@ class _PluginCard extends ConsumerWidget {
           entry,
           fieldAccess,
         );
+        if (!context.mounted) return;
         if (!shouldContinue) return;
       }
 
       // 3. 执行安装
-      await installFromArtifacts(ref, artifacts);
+      final installer = await ref.read(initializedPluginInstallerProvider.future);
+      if (!context.mounted) return;
+      await installer.installFromArtifacts(artifacts);
+      if (!context.mounted) return;
+      ref.invalidate(installedPluginsProvider);
+      ref.invalidate(pluginRegistryStateProvider);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2013,7 +2020,12 @@ class _PluginCard extends ConsumerWidget {
 
     if (confirmed == true) {
       try {
-        await uninstallPlugin(ref, pluginId);
+        final installer = await ref.read(initializedPluginInstallerProvider.future);
+        if (!context.mounted) return;
+        await installer.uninstall(pluginId);
+        if (!context.mounted) return;
+        ref.invalidate(installedPluginsProvider);
+        ref.invalidate(activeSessionsProvider);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.pluginUninstallSuccess)),
