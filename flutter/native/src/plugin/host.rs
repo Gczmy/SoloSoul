@@ -623,6 +623,35 @@ impl SoloHostFunctions {
             )
             .map_err(|e| e.to_string())?;
 
+        // solosoul_get_data_structure_tree(out_ptr, out_cap) -> i32
+        // Phase 3: 数据结构树查询 — 插件获取用户数据结构元数据（页面 → 分区 → 字段）
+        linker
+            .func_wrap(
+                "env",
+                "solosoul_get_data_structure_tree",
+                |mut caller: Caller<'_, Self>,
+                 out_ptr: i32,
+                 out_cap: i32|
+                 -> i32 {
+                    match build_data_structure_tree() {
+                        Ok(json) => {
+                            if json.len() + 1 > out_cap as usize {
+                                rust_log(&format!("[host:solosoul_get_data_structure_tree] BufferTooSmall: need {} got {}", json.len() + 1, out_cap));
+                                return -4; // BufferTooSmall
+                            }
+                            write_memory(&mut caller, out_ptr as usize, &json);
+                            rust_log(&format!("[host:solosoul_get_data_structure_tree] OK, {} bytes", json.len()));
+                            0 // Success
+                        }
+                        Err(e) => {
+                            rust_log(&format!("[host:solosoul_get_data_structure_tree] error: {}", e));
+                            -1 // Error
+                        }
+                    }
+                },
+            )
+            .map_err(|e| e.to_string())?;
+
         Ok(())
     }
 }
@@ -650,6 +679,149 @@ fn is_network_allowed(manifest: &PluginManifest, url: &str) -> bool {
 /// 2. 加载第一个 Profile 的加密 data
 /// 3. 用 session_key 解密（支持 SOLO blob 和 Legacy Dart 格式）
 /// 4. 反序列化为 ProfileData，按字段路径提取值
+/// 构建用户数据结构树（页面 → 分区 → 字段元数据）。
+/// 供插件通过 `solosoul_get_data_structure_tree` Host Function 查询。
+/// 返回 JSON 字符串，不包含任何字段值。
+fn build_data_structure_tree() -> Result<String, String> {
+    rust_log("[build_data_structure_tree] START");
+
+    // 1. 获取 AccountManager
+    let manager_guard = crate::get_account_manager()
+        .map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+
+    // 2. 获取 session_key
+    let session_key = manager
+        .get_session_key()
+        .ok_or("Vault not unlocked")?;
+    rust_log("[build_data_structure_tree] session_key obtained");
+
+    // 3. 获取 vault_store
+    let vault_guard = manager
+        .get_vault_store()
+        .ok_or("Vault store not available")?;
+    let vault_store = vault_guard
+        .as_ref()
+        .ok_or("Vault store not open")?;
+
+    // 4. 列出 profiles 并取第一个
+    let profiles = vault_store
+        .list_profiles()
+        .map_err(|e| format!("Failed to list profiles: {}", e))?;
+    rust_log(&format!("[build_data_structure_tree] profiles count={}", profiles.len()));
+    let profile_summary = profiles.first().ok_or("No profiles found")?;
+
+    // 5. 加载 profile 的加密 data
+    let profile = vault_store
+        .load_profile(&profile_summary.id)
+        .map_err(|e| format!("Failed to load profile: {}", e))?
+        .ok_or("Profile not found")?;
+
+    // 6. 解密
+    let plaintext = crate::crypto::decrypt_profile_data(&session_key, &profile.data)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
+    rust_log(&format!("[build_data_structure_tree] plaintext decrypted, len={}", plaintext.len()));
+
+    // 7. 解析 JSON
+    let json_str = String::from_utf8_lossy(&plaintext);
+    let json_value: serde_json::Value = serde_json::from_str(&json_str)
+        .map_err(|e| format!("Failed to parse profile data: {}", e))?;
+
+    // 8. 获取 unified_objects.objects
+    let root = if json_value.get("data").is_some() && json_value.get("unified_objects").is_none() {
+        json_value.get("data").ok_or("Missing data field")?
+    } else {
+        &json_value
+    };
+    let unified_objects = root.get("unified_objects")
+        .ok_or("Missing unified_objects field")?;
+    let objects = unified_objects.get("objects")
+        .and_then(|o| o.as_array())
+        .ok_or("Missing objects array")?;
+    rust_log(&format!("[build_data_structure_tree] total objects count={}", objects.len()));
+
+    // 9. 构建树结构
+    let mut tree = Vec::new();
+
+    // 找到所有页面（typeId == "page" 且 parentId == null）
+    for obj in objects {
+        let is_deleted = obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false);
+        if is_deleted { continue; }
+
+        let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+        let parent_id = obj.get("parentId").and_then(|v| v.as_str());
+
+        if type_id == "page" && parent_id.is_none() {
+            let page_id = obj.get("id").and_then(|v| v.as_str()).unwrap_or("");
+            let page_name = obj.get("name").and_then(|v| v.as_str()).unwrap_or(page_id);
+
+            let mut sections = Vec::new();
+
+            // 找到该页面下的所有分区
+            for child in objects {
+                let child_deleted = child.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false);
+                if child_deleted { continue; }
+
+                let child_parent_id = child.get("parentId").and_then(|v| v.as_str());
+                let child_type_id = child.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+
+                if child_parent_id == Some(page_id) && child_type_id != "page" {
+                    let section_id = child.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                    let section_name = child.get("name").and_then(|v| v.as_str()).unwrap_or(section_id);
+                    let section_type_id = child_type_id;
+
+                    let mut fields = Vec::new();
+
+                    // 从 properties 中提取字段（仅元数据：id、name、type，不包含值）
+                    if let Some(props) = child.get("properties").and_then(|p| p.as_object()) {
+                        let prop_labels = child.get("propertyLabels")
+                            .and_then(|p| p.as_object())
+                            .map(|m| m.clone())
+                            .unwrap_or_default();
+
+                        for (key, value) in props {
+                            let field_type = value.get("type")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("unknown");
+                            let label = prop_labels.get(key)
+                                .and_then(|v| v.as_str())
+                                .unwrap_or(key);
+
+                            fields.push(serde_json::json!({
+                                "id": key,
+                                "name": label,
+                                "fieldType": field_type,
+                            }));
+                        }
+                    }
+
+                    sections.push(serde_json::json!({
+                        "id": section_id,
+                        "type": "section",
+                        "name": section_name,
+                        "typeId": section_type_id,
+                        "fields": fields,
+                    }));
+                }
+            }
+
+            tree.push(serde_json::json!({
+                "id": page_id,
+                "type": "page",
+                "name": page_name,
+                "sections": sections,
+            }));
+        }
+    }
+
+    let result = serde_json::to_string(&tree)
+        .map_err(|e| format!("Failed to serialize tree: {}", e))?;
+    rust_log(&format!("[build_data_structure_tree] OK, {} bytes", result.len()));
+    Ok(result)
+}
+
 fn decrypt_field_value(field_id: &str) -> Result<String, String> {
     rust_log(&format!("[decrypt_field_value] START field_id={}", field_id));
 

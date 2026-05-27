@@ -2366,6 +2366,102 @@ abstract class AppLocalizations {
   /// **'Articles'**
   String get professionalArticles;
 
+  /// No description provided for @builtinSectionIdentityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get builtinSectionIdentityTitle;
+
+  /// No description provided for @builtinSectionContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get builtinSectionContactTitle;
+
+  /// No description provided for @builtinSectionIdentityDocumentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Documents'**
+  String get builtinSectionIdentityDocumentTitle;
+
+  /// No description provided for @builtinSectionAddressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get builtinSectionAddressTitle;
+
+  /// No description provided for @builtinSectionPassportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Passports'**
+  String get builtinSectionPassportTitle;
+
+  /// No description provided for @builtinSectionVisaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visas'**
+  String get builtinSectionVisaTitle;
+
+  /// No description provided for @builtinSectionTravelHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel History'**
+  String get builtinSectionTravelHistoryTitle;
+
+  /// No description provided for @builtinSectionBankAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Accounts'**
+  String get builtinSectionBankAccountTitle;
+
+  /// No description provided for @builtinSectionPaymentCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Cards'**
+  String get builtinSectionPaymentCardTitle;
+
+  /// No description provided for @builtinSectionTaxIdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax Identification'**
+  String get builtinSectionTaxIdTitle;
+
+  /// No description provided for @builtinSectionEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get builtinSectionEducationTitle;
+
+  /// No description provided for @builtinSectionEmploymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Employment'**
+  String get builtinSectionEmploymentTitle;
+
+  /// No description provided for @builtinSectionSkillTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills'**
+  String get builtinSectionSkillTitle;
+
+  /// No description provided for @builtinSectionLanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get builtinSectionLanguageTitle;
+
+  /// No description provided for @builtinSectionAwardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Awards'**
+  String get builtinSectionAwardTitle;
+
+  /// No description provided for @builtinSectionArticleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Articles'**
+  String get builtinSectionArticleTitle;
+
   /// No description provided for @localSearchTitle.
   ///
   /// In en, this message translates to:
@@ -2879,7 +2975,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensitivityCritical.
   ///
   /// In en, this message translates to:
-  /// **'Restricted'**
+  /// **'Critical'**
   String get sensitivityCritical;
 
   /// No description provided for @sensitivityCriticalDesc.
@@ -3062,11 +3158,11 @@ abstract class AppLocalizations {
   /// **'Reveal'**
   String get searchReveal;
 
-  /// No description provided for @searchRestrictedHint.
+  /// No description provided for @searchCriticalHint.
   ///
   /// In en, this message translates to:
-  /// **'Restricted - password required to view'**
-  String get searchRestrictedHint;
+  /// **'Critical - password required to view'**
+  String get searchCriticalHint;
 
   /// No description provided for @searchPrivateHint.
   ///
@@ -3074,11 +3170,11 @@ abstract class AppLocalizations {
   /// **'Private - reveal to view'**
   String get searchPrivateHint;
 
-  /// No description provided for @sensitivityRestricted.
+  /// No description provided for @sensitivityCriticalOnly.
   ///
   /// In en, this message translates to:
-  /// **'Restricted'**
-  String get sensitivityRestricted;
+  /// **'Critical only'**
+  String get sensitivityCriticalOnly;
 
   /// No description provided for @commonAdd.
   ///
@@ -3488,11 +3584,11 @@ abstract class AppLocalizations {
   /// **'No hint available'**
   String get settingsNoHintAvailable;
 
-  /// No description provided for @sensitiveRestrictedMessage.
+  /// No description provided for @sensitiveCriticalMessage.
   ///
   /// In en, this message translates to:
-  /// **'Restricted field. Enter your master password to view.'**
-  String get sensitiveRestrictedMessage;
+  /// **'Critical field. Enter your master password to view.'**
+  String get sensitiveCriticalMessage;
 
   /// No description provided for @syncUnknownError.
   ///
@@ -3812,11 +3908,11 @@ abstract class AppLocalizations {
   /// **'{count} regular backup(s) · total {totalSize}'**
   String dataManagementBackupsSummary(int count, String totalSize);
 
-  /// No description provided for @passwordVerificationRestricted.
+  /// No description provided for @passwordVerificationCritical.
   ///
   /// In en, this message translates to:
-  /// **'Restricted field. Enter your master password to proceed.'**
-  String get passwordVerificationRestricted;
+  /// **'Critical field. Enter your master password to proceed.'**
+  String get passwordVerificationCritical;
 
   /// No description provided for @passwordVerificationInvalid.
   ///
@@ -4067,7 +4163,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensitivityAdjustHint.
   ///
   /// In en, this message translates to:
-  /// **'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.'**
+  /// **'Adjust the sensitivity level for each field. Critical fields require additional verification to view.'**
   String get sensitivityAdjustHint;
 
   /// No description provided for @sensitivityNoFieldsMatch.
@@ -5977,6 +6073,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Savings'**
   String get fieldSavings;
+
+  /// No description provided for @sectionContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get sectionContact;
+
+  /// No description provided for @sectionFinancial.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial'**
+  String get sectionFinancial;
+
+  /// No description provided for @sectionMedical.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical'**
+  String get sectionMedical;
+
+  /// No description provided for @sectionSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get sectionSecurity;
+
+  /// No description provided for @sectionDigitalAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Accounts'**
+  String get sectionDigitalAccounts;
+
+  /// No description provided for @sectionInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get sectionInsurance;
 
   /// No description provided for @templateProfileIdentityName.
   ///

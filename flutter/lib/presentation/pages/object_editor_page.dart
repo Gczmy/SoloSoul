@@ -12,7 +12,7 @@ import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_editor/character_counter.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
-import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/core/utils/field_label_resolver.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -79,7 +79,7 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   bool get _isEditing => widget.objectId != null;
 
   String _getFieldKeyLabel(String key) {
-    return translateFieldLabel(key, AppLocalizations.of(context));
+    return FieldLabelResolver.resolve(key);
   }
 
   /// Whether we're editing an item (child of a section/collection).
@@ -1078,7 +1078,7 @@ class _DeprecatedPropertyRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              translateFieldLabel(field.key, l),
+              FieldLabelResolver.resolve(field.key),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 decoration: TextDecoration.lineThrough,

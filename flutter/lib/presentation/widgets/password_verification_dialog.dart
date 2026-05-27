@@ -103,7 +103,7 @@ Future<String?> showPasswordVerificationDialog({
 }) async {
   // Capture context before async operations to avoid lint warning
   final dialogContext = context;
-  final effectiveMessage = message ?? AppLocalizations.of(context).passwordVerificationRestricted;
+  final effectiveMessage = message ?? AppLocalizations.of(context).passwordVerificationCritical;
 
   // Check if biometric auth is available and enabled
   final biometricService = BiometricService.instance;

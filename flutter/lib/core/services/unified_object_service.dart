@@ -74,6 +74,14 @@ class ObjectTypeRegistry {
     final type = getType(typeId, customTypes: customTypes);
     if (type == null) return {};
 
+    // 内置类型（__preset_* 及通用类型）的字段标签通过 translateFieldLabel
+    // 动态本地化，不需要存储静态英文 propertyLabels。
+    // 仅自定义类型保留用户定义的 propertyLabels。
+    final isBuiltin = typeId.startsWith('__preset_') ||
+        {'page', 'collection', 'note', 'task', 'contact', 'item'}
+            .contains(typeId);
+    if (isBuiltin) return {};
+
     final result = <String, String>{};
     for (final prop in type.properties) {
       if (prop.name.isNotEmpty && prop.name != prop.id) {
@@ -132,6 +140,9 @@ class SectionMeta {
   const SectionMeta(this.name, this.iconName, this.parentPageId);
 }
 
+/// @deprecated 页面-分区元数据已迁移至 [SectionRendererRegistry._configs] 和
+/// [PageSectionLinkRegistry]。保留以兼容旧代码，将在阶段 2 迁移完成后移除。
+@Deprecated('Use SectionRendererRegistry and PageSectionLinkRegistry instead')
 const Map<String, SectionMeta> _kSectionMeta = {
   DefaultSectionIds.identity: SectionMeta('Identity', 'person', DefaultPageIds.profile),
   DefaultSectionIds.contact: SectionMeta('Contact Information', 'contact_mail', DefaultPageIds.profile),
@@ -168,22 +179,22 @@ List<String> getDefaultSectionIdsForPage(String pageId) {
 /// Mapping from section ID to its item type ID.
 /// Prefixes avoid collisions with generic built-in types (e.g. 'contact').
 const Map<String, String> _kSectionItemTypes = {
-  DefaultSectionIds.identity: 'profile_identity',
-  DefaultSectionIds.contact: 'profile_contact',
-  DefaultSectionIds.idCard: 'profile_id_card',
-  DefaultSectionIds.address: 'profile_address',
-  DefaultSectionIds.passport: 'travel_passport',
-  DefaultSectionIds.visa: 'travel_visa',
-  DefaultSectionIds.travelHistory: 'travel_history',
-  DefaultSectionIds.bankAccount: 'financial_bank_account',
-  DefaultSectionIds.card: 'financial_card',
-  DefaultSectionIds.taxId: 'financial_tax_id',
-  DefaultSectionIds.education: 'professional_education',
-  DefaultSectionIds.employment: 'professional_employment',
-  DefaultSectionIds.skill: 'professional_skill',
-  DefaultSectionIds.language: 'professional_language',
-  DefaultSectionIds.award: 'professional_award',
-  DefaultSectionIds.article: 'professional_article',
+  DefaultSectionIds.identity: '__preset_identity',
+  DefaultSectionIds.contact: '__preset_contact',
+  DefaultSectionIds.idCard: '__preset_identity_document',
+  DefaultSectionIds.address: '__preset_address',
+  DefaultSectionIds.passport: '__preset_passport',
+  DefaultSectionIds.visa: '__preset_visa',
+  DefaultSectionIds.travelHistory: '__preset_travel_history',
+  DefaultSectionIds.bankAccount: '__preset_bank_account',
+  DefaultSectionIds.card: '__preset_payment_card',
+  DefaultSectionIds.taxId: '__preset_tax_id',
+  DefaultSectionIds.education: '__preset_education',
+  DefaultSectionIds.employment: '__preset_employment',
+  DefaultSectionIds.skill: '__preset_skill',
+  DefaultSectionIds.language: '__preset_language',
+  DefaultSectionIds.award: '__preset_award',
+  DefaultSectionIds.article: '__preset_article',
 };
 
 /// 根据 item type ID 反向查找对应的默认 section ID。
@@ -200,22 +211,22 @@ String? getItemTypeIdForSection(String sectionId) => _kSectionItemTypes[sectionI
 /// Map typeId to the field-prefix used by FieldRegistry.
 String fieldPrefixForTypeId(String typeId) {
   return switch (typeId) {
-    'profile_identity' => 'identity',
-    'profile_contact' => 'contact',
-    'profile_id_card' => 'idCard',
-    'profile_address' => 'address',
-    'travel_passport' => 'passport',
-    'travel_visa' => 'visa',
-    'travel_history' => 'travel',
-    'financial_bank_account' => 'bankAccount',
-    'financial_card' => 'card',
-    'financial_tax_id' => 'taxId',
-    'professional_education' => 'education',
-    'professional_employment' => 'employment',
-    'professional_skill' => 'skill',
-    'professional_language' => 'language',
-    'professional_award' => 'award',
-    'professional_article' => 'article',
+    '__preset_identity' => 'identity',
+    '__preset_contact' => 'contact',
+    '__preset_identity_document' => 'idCard',
+    '__preset_address' => 'address',
+    '__preset_passport' => 'passport',
+    '__preset_visa' => 'visa',
+    '__preset_travel_history' => 'travel',
+    '__preset_bank_account' => 'bankAccount',
+    '__preset_payment_card' => 'card',
+    '__preset_tax_id' => 'taxId',
+    '__preset_education' => 'education',
+    '__preset_employment' => 'employment',
+    '__preset_skill' => 'skill',
+    '__preset_language' => 'language',
+    '__preset_award' => 'award',
+    '__preset_article' => 'article',
     _ => typeId,
   };
 }
@@ -331,7 +342,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
   // ---------------------------------------------------------------------------
   // Profile
   const ObjectTypeDefinition(
-    id: 'profile_identity',
+    id: '__preset_identity',
     name: 'Identity',
     iconName: 'person',
     defaultLayout: ObjectLayout.document,
@@ -346,7 +357,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'profile_contact',
+    id: '__preset_contact',
     name: 'Contact',
     iconName: 'contact_mail',
     defaultLayout: ObjectLayout.document,
@@ -357,7 +368,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'profile_id_card',
+    id: '__preset_identity_document',
     name: 'ID Card',
     iconName: 'badge',
     defaultLayout: ObjectLayout.document,
@@ -371,7 +382,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'profile_address',
+    id: '__preset_address',
     name: 'Address',
     iconName: 'home',
     defaultLayout: ObjectLayout.document,
@@ -388,7 +399,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
 
   // Travel
   const ObjectTypeDefinition(
-    id: 'travel_passport',
+    id: '__preset_passport',
     name: 'Passport',
     iconName: 'book',
     defaultLayout: ObjectLayout.document,
@@ -410,7 +421,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'travel_visa',
+    id: '__preset_visa',
     name: 'Visa',
     iconName: 'assignment_ind',
     defaultLayout: ObjectLayout.document,
@@ -424,7 +435,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'travel_history',
+    id: '__preset_travel_history',
     name: 'Travel History',
     iconName: 'history',
     defaultLayout: ObjectLayout.document,
@@ -444,7 +455,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
 
   // Financial
   const ObjectTypeDefinition(
-    id: 'financial_bank_account',
+    id: '__preset_bank_account',
     name: 'Bank Account',
     iconName: 'account_balance',
     defaultLayout: ObjectLayout.document,
@@ -458,7 +469,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'financial_card',
+    id: '__preset_payment_card',
     name: 'Card',
     iconName: 'credit_card',
     defaultLayout: ObjectLayout.document,
@@ -472,7 +483,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'financial_tax_id',
+    id: '__preset_tax_id',
     name: 'Tax ID',
     iconName: 'description',
     defaultLayout: ObjectLayout.document,
@@ -487,7 +498,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
 
   // Professional
   const ObjectTypeDefinition(
-    id: 'professional_education',
+    id: '__preset_education',
     name: 'Education',
     iconName: 'school',
     defaultLayout: ObjectLayout.document,
@@ -502,7 +513,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'professional_employment',
+    id: '__preset_employment',
     name: 'Employment',
     iconName: 'work',
     defaultLayout: ObjectLayout.document,
@@ -516,7 +527,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'professional_skill',
+    id: '__preset_skill',
     name: 'Skill',
     iconName: 'star',
     defaultLayout: ObjectLayout.document,
@@ -526,7 +537,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'professional_language',
+    id: '__preset_language',
     name: 'Language',
     iconName: 'language',
     defaultLayout: ObjectLayout.document,
@@ -536,7 +547,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'professional_award',
+    id: '__preset_award',
     name: 'Award',
     iconName: 'emoji_events',
     defaultLayout: ObjectLayout.document,
@@ -548,7 +559,7 @@ final List<ObjectTypeDefinition> _kBuiltinTypes = [
     ],
   ),
   const ObjectTypeDefinition(
-    id: 'professional_article',
+    id: '__preset_article',
     name: 'Article',
     iconName: 'article',
     defaultLayout: ObjectLayout.document,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
+import 'package:solosoul_flutter/core/utils/field_label_resolver.dart';
 
 /// 展示规则引擎提取出的结构化字段卡片，支持 checkbox 选择导入。
 class ExtractedFieldsPreview extends StatelessWidget {
@@ -104,27 +105,8 @@ class ExtractedFieldsPreview extends StatelessWidget {
   }
 
   String _fieldLabel(String key) {
-    final map = {
-      'name': 'Name',
-      'title': 'Title',
-      'email': 'Email',
-      'phone': 'Phone',
-      'website': 'Website',
-      'linkedin': 'LinkedIn',
-      'invoice_number': 'Invoice Number',
-      'date': 'Date',
-      'total': 'Total Amount',
-      'url': 'URL',
-      'education': 'Education',
-      'work_experience': 'Work Experience',
-      'publications': 'Publications',
-      'skills': 'Skills',
-      'languages': 'Languages',
-      'awards': 'Awards & Honors',
-      'projects': 'Projects',
-      'certifications': 'Certifications',
-    };
-    return map[key] ?? key[0].toUpperCase() + key.substring(1);
+    // 统一通过 FieldLabelResolver 解析，消除硬编码映射
+    return FieldLabelResolver.resolve(key);
   }
 }
 

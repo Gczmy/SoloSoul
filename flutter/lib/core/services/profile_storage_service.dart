@@ -50,18 +50,78 @@ class ProfileStorageService {
   }
 
   /// Current schema version for unified object model.
-  static const int kSchemaVersion = 4;
+  static const int kSchemaVersion = 6;
 
   /// Migrate profile to latest schema if needed.
   /// Legacy migration paths (v0→v3, v3→v4) have been removed since
   /// all production data is now on v4+ unified object model.
   static ProfileData migrateIfNeeded(ProfileData profile, Map<String, dynamic> rawJson) {
-    final currentVersion = profile.schemaVersion ?? 0;
+    var currentVersion = profile.schemaVersion ?? 0;
     if (currentVersion >= kSchemaVersion) return profile;
 
-    // For any older version, just bump schema version.
-    // Legacy data fields (identity/travel/financial/professional) no longer exist.
+    // v4 → v5: typeId 去页面化（内置分区 typeId 从 profile_* / travel_* / financial_* / professional_* 迁移到 __preset_*）
+    if (currentVersion < 5) {
+      final objects = profile.unifiedObjects?.objects;
+      if (objects != null && objects.isNotEmpty) {
+        _migrateTypeIdsV4ToV5(objects);
+      }
+      currentVersion = 5;
+    }
+
+    // v5 → v6: 清除内置类型的英文 propertyLabels，让字段标签走 translateFieldLabel 动态本地化
+    if (currentVersion < 6) {
+      final objects = profile.unifiedObjects?.objects;
+      if (objects != null && objects.isNotEmpty) {
+        _migrateClearBuiltinPropertyLabels(objects);
+      }
+      currentVersion = 6;
+    }
+
     return profile.copyWith(schemaVersion: kSchemaVersion);
+  }
+
+  /// v4 → v5: 迁移内置分区的 typeId，去除页面前缀。
+  static void _migrateTypeIdsV4ToV5(List<UnifiedObject> objects) {
+    const migrationMap = <String, String>{
+      'profile_identity': '__preset_identity',
+      'profile_contact': '__preset_contact',
+      'profile_id_card': '__preset_identity_document',
+      'profile_address': '__preset_address',
+      'travel_passport': '__preset_passport',
+      'travel_visa': '__preset_visa',
+      'travel_history': '__preset_travel_history',
+      'financial_bank_account': '__preset_bank_account',
+      'financial_card': '__preset_payment_card',
+      'financial_tax_id': '__preset_tax_id',
+      'professional_education': '__preset_education',
+      'professional_employment': '__preset_employment',
+      'professional_skill': '__preset_skill',
+      'professional_language': '__preset_language',
+      'professional_award': '__preset_award',
+      'professional_article': '__preset_article',
+    };
+    for (var i = 0; i < objects.length; i++) {
+      final obj = objects[i];
+      final newTypeId = migrationMap[obj.typeId];
+      if (newTypeId != null) {
+        objects[i] = obj.copyWith(typeId: newTypeId);
+      }
+    }
+  }
+
+  /// v4 → v5: 清除内置类型的英文 propertyLabels，让字段标签走 translateFieldLabel 动态本地化。
+  static void _migrateClearBuiltinPropertyLabels(List<UnifiedObject> objects) {
+    for (var i = 0; i < objects.length; i++) {
+      final obj = objects[i];
+      final typeId = obj.typeId;
+      final isBuiltin = typeId != null &&
+          (typeId.startsWith('__preset_') ||
+              {'page', 'collection', 'note', 'task', 'contact', 'item'}
+                  .contains(typeId));
+      if (isBuiltin && obj.propertyLabels != null && obj.propertyLabels!.isNotEmpty) {
+        objects[i] = obj.copyWith(propertyLabels: {});
+      }
+    }
   }
 
   /// Validate and repair data integrity after migration.

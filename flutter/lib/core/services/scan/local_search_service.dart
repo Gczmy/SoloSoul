@@ -221,21 +221,21 @@ class LocalSearchService {
   /// Map a scan section to the corresponding item type ID.
   static String? mapSectionToTypeId(String sectionId) {
     const mapping = {
-      'identity': 'profile_identity',
-      'contact': 'profile_contact',
-      'idCard': 'profile_id_card',
-      'address': 'profile_address',
-      'passport': 'travel_passport',
-      'visa': 'travel_visa',
-      'travel': 'travel_history',
-      'bankAccount': 'financial_bank_account',
-      'card': 'financial_card',
-      'taxId': 'financial_tax_id',
-      'education': 'professional_education',
-      'employment': 'professional_employment',
-      'skill': 'professional_skill',
-      'language': 'professional_language',
-      'award': 'professional_award',
+      'identity': '__preset_identity',
+      'contact': '__preset_contact',
+      'idCard': '__preset_identity_document',
+      'address': '__preset_address',
+      'passport': '__preset_passport',
+      'visa': '__preset_visa',
+      'travel': '__preset_travel_history',
+      'bankAccount': '__preset_bank_account',
+      'card': '__preset_payment_card',
+      'taxId': '__preset_tax_id',
+      'education': '__preset_education',
+      'employment': '__preset_employment',
+      'skill': '__preset_skill',
+      'language': '__preset_language',
+      'award': '__preset_award',
     };
     return mapping[sectionId];
   }

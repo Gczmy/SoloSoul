@@ -24,7 +24,7 @@ Color typeColorForId(String? typeId) {
     'page' => Colors.blue.shade700,
     'collection' => Colors.green.shade700,
     'item' => Colors.orange.shade700,
-    _ => Colors.orange.shade700, // Predefined items (travel_passport, profile_identity, etc.)
+    _ => Colors.orange.shade700, // Predefined items (__preset_passport, __preset_identity, etc.)
   };
 }
 

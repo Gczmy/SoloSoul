@@ -111,7 +111,7 @@ class SearchResultTile extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Text(
                       result.sensitivityLevel == SensitivityLevel.critical
-                          ? l10n.searchRestrictedHint
+                          ? l10n.searchCriticalHint
                           : l10n.searchPrivateHint,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.outline,

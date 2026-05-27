@@ -17,8 +17,8 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 /// 将解析后的 MRZ 数据保存为 Vault 中的结构化对象。
 ///
 /// 支持自动判断证件类型：
-/// - `P`（护照）→ `travel_passport`
-/// - `I` / `C` / `A`（身份证/居留证/其他）→ `profile_id_card`
+/// - `P`（护照）→ `__preset_passport`
+/// - `I` / `C` / `A`（身份证/居留证/其他）→ `__preset_identity_document`
 class MrzVaultService {
   MrzVaultService._();
 
@@ -78,7 +78,7 @@ class MrzVaultService {
     bool saveImage = false,
   }) async {
     final properties = <String, PropertyValue>{
-      'title': TextProperty(
+      'Title': TextProperty(
         text: mrz.documentType,
         sensitivity: SensitivityLevel.public,
       ),
@@ -118,7 +118,7 @@ class MrzVaultService {
 
     final objectId = await notifier.createObjectAndReturnId(
       name: '${mrz.surname} ${mrz.givenNames}'.trim(),
-      typeId: 'travel_passport',
+      typeId: '__preset_passport',
       iconName: 'book',
       parentId: DefaultSectionIds.passport,
       properties: properties,
@@ -154,7 +154,7 @@ class MrzVaultService {
     bool saveImage = false,
   }) async {
     final properties = <String, PropertyValue>{
-      'title': TextProperty(
+      'Title': TextProperty(
         text: mrz.documentType,
         sensitivity: SensitivityLevel.public,
       ),
@@ -186,7 +186,7 @@ class MrzVaultService {
 
     final objectId = await notifier.createObjectAndReturnId(
       name: 'Visa ${mrz.country}',
-      typeId: 'travel_visa',
+      typeId: '__preset_visa',
       iconName: 'assignment_ind',
       parentId: DefaultSectionIds.visa,
       properties: properties,
@@ -221,7 +221,7 @@ class MrzVaultService {
     bool saveImage = false,
   }) async {
     final properties = <String, PropertyValue>{
-      'title': TextProperty(
+      'Title': TextProperty(
         text: mrz.documentType,
         sensitivity: SensitivityLevel.public,
       ),
@@ -253,7 +253,7 @@ class MrzVaultService {
 
     final objectId = await notifier.createObjectAndReturnId(
       name: '${mrz.surname} ${mrz.givenNames}'.trim(),
-      typeId: 'profile_id_card',
+      typeId: '__preset_identity_document',
       iconName: 'badge',
       parentId: DefaultSectionIds.idCard,
       properties: properties,

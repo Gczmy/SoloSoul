@@ -28,7 +28,7 @@ class _SearchFiltersState extends ConsumerState<SearchFilters> {
       if (searchState.searchPublic) SensitivityLevel.public,
       if (searchState.searchInternal) SensitivityLevel.internal,
       if (searchState.searchSensitive) SensitivityLevel.sensitive,
-      if (searchState.searchRestricted) SensitivityLevel.critical,
+      if (searchState.searchCriticalOnly) SensitivityLevel.critical,
     };
 
     final sensitivityOptions = [
@@ -52,7 +52,7 @@ class _SearchFiltersState extends ConsumerState<SearchFilters> {
       ),
       FilterOption(
         id: SensitivityLevel.critical,
-        label: l.sensitivityRestricted,
+        label: l.sensitivityCriticalOnly,
         icon: Icons.lock,
         color: Colors.red.shade600,
       ),
@@ -74,7 +74,7 @@ class _SearchFiltersState extends ConsumerState<SearchFilters> {
                   searchPublic: ids.contains(SensitivityLevel.public),
                   searchInternal: ids.contains(SensitivityLevel.internal),
                   searchSensitive: ids.contains(SensitivityLevel.sensitive),
-                  searchRestricted: ids.contains(SensitivityLevel.critical),
+                  searchCriticalOnly: ids.contains(SensitivityLevel.critical),
                 );
               },
             ),
@@ -88,18 +88,18 @@ class _SearchFiltersState extends ConsumerState<SearchFilters> {
               searchPublic: true,
               searchInternal: true,
               searchSensitive: true,
-              searchRestricted: true,
+              searchCriticalOnly: true,
             );
           },
         ),
-        if (searchState.searchRestricted)
+        if (searchState.searchCriticalOnly)
           Padding(
             padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
             child: TextButton.icon(
               icon: const Icon(Icons.lock_open, size: 18),
               label: Text(l.searchUnlock),
               onPressed: () {
-                ref.read(searchProvider.notifier).unlockAllRestricted(context, ref);
+                ref.read(searchProvider.notifier).unlockAllCritical(context, ref);
               },
             ),
           ),

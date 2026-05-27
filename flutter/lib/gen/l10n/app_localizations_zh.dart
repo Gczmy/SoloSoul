@@ -1205,6 +1205,54 @@ class AppLocalizationsZh extends AppLocalizations {
   String get professionalArticles => '文章';
 
   @override
+  String get builtinSectionIdentityTitle => '身份信息';
+
+  @override
+  String get builtinSectionContactTitle => '联系信息';
+
+  @override
+  String get builtinSectionIdentityDocumentTitle => '身份证件';
+
+  @override
+  String get builtinSectionAddressTitle => '地址';
+
+  @override
+  String get builtinSectionPassportTitle => '护照';
+
+  @override
+  String get builtinSectionVisaTitle => '签证';
+
+  @override
+  String get builtinSectionTravelHistoryTitle => '旅行记录';
+
+  @override
+  String get builtinSectionBankAccountTitle => '银行账户';
+
+  @override
+  String get builtinSectionPaymentCardTitle => '支付卡片';
+
+  @override
+  String get builtinSectionTaxIdTitle => '税务识别号';
+
+  @override
+  String get builtinSectionEducationTitle => '教育';
+
+  @override
+  String get builtinSectionEmploymentTitle => '就业';
+
+  @override
+  String get builtinSectionSkillTitle => '技能';
+
+  @override
+  String get builtinSectionLanguageTitle => '语言';
+
+  @override
+  String get builtinSectionAwardTitle => '奖项';
+
+  @override
+  String get builtinSectionArticleTitle => '文章';
+
+  @override
   String get localSearchTitle => '本地搜索导入';
 
   @override
@@ -1460,7 +1508,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sensitivityVerifyPassword => '请输入主密码以访问敏感度设置。';
 
   @override
-  String get sensitivityCritical => '受限';
+  String get sensitivityCritical => '机密';
 
   @override
   String get sensitivityCriticalDesc => '最高敏感度 - 始终遮罩，需要验证';
@@ -1553,13 +1601,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get searchReveal => '显示';
 
   @override
-  String get searchRestrictedHint => '受限 - 需要密码查看';
+  String get searchCriticalHint => '机密 - 需要密码查看';
 
   @override
   String get searchPrivateHint => '私密 - 点击显示';
 
   @override
-  String get sensitivityRestricted => '受限';
+  String get sensitivityCriticalOnly => '仅机密';
 
   @override
   String get commonAdd => '添加';
@@ -1774,7 +1822,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsNoHintAvailable => '无可用提示';
 
   @override
-  String get sensitiveRestrictedMessage => '受限字段。请输入主密码查看。';
+  String get sensitiveCriticalMessage => '机密字段。请输入主密码查看。';
 
   @override
   String get syncUnknownError => '未知错误';
@@ -1942,7 +1990,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get passwordVerificationRestricted => '受限字段。请输入主密码以继续。';
+  String get passwordVerificationCritical => '机密字段。请输入主密码以继续。';
 
   @override
   String get passwordVerificationInvalid => '密码无效';
@@ -2098,7 +2146,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sensitivityNoResults => '未找到结果';
 
   @override
-  String get sensitivityAdjustHint => '调整每个字段的敏感度级别。受限字段需要额外验证才能查看。';
+  String get sensitivityAdjustHint => '调整每个字段的敏感度级别。机密字段需要额外验证才能查看。';
 
   @override
   String sensitivityNoFieldsMatch(String query) {
@@ -3160,6 +3208,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get fieldSavings => '储蓄账户';
 
   @override
+  String get sectionContact => '联系方式';
+
+  @override
+  String get sectionFinancial => '财务';
+
+  @override
+  String get sectionMedical => '医疗';
+
+  @override
+  String get sectionSecurity => '安全';
+
+  @override
+  String get sectionDigitalAccounts => '数字账户';
+
+  @override
+  String get sectionInsurance => '保险';
+
+  @override
   String get templateProfileIdentityName => '身份信息';
 
   @override
@@ -3474,7 +3540,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pluginSensitivitySensitive => '敏感';
 
   @override
-  String get pluginSensitivityCritical => '关键';
+  String get pluginSensitivityCritical => '机密';
 
   @override
   String get pluginUninstallConfirmTitle => '确定卸载插件？';

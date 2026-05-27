@@ -141,6 +141,14 @@ String translateFieldLabel(String key, AppLocalizations l10n) {
     'flight_number' => l10n.fieldFlightNumber,
     'ticket_price' => l10n.fieldTicketPrice,
     'date' => l10n.fieldDate,
+    // Section names — 仅保留无 preset 的 section（financial/medical/security/
+    // digitalAccounts/insurance），其余 section 标签由 SectionRendererRegistry
+    // 提供（与页面/Sidebar 分区名称保持一致）。
+    'financial' => l10n.sectionFinancial,
+    'medical' => l10n.sectionMedical,
+    'security' => l10n.sectionSecurity,
+    'digitalAccounts' => l10n.sectionDigitalAccounts,
+    'insurance' => l10n.sectionInsurance,
     _ => formatFieldLabel(key),
   };
 }

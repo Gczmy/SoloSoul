@@ -13,7 +13,7 @@ import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.
 /// Renders a single section (preset or generic) using the appropriate
 /// configuration from [SectionRendererRegistry].
 ///
-/// For preset types (e.g. 'profile_identity'), preserves the rich
+/// For preset types (e.g. '__preset_identity'), preserves the rich
 /// [EntryCardWidget] rendering. For generic types (e.g. 'collection'),
 /// falls back to the standard [ObjectCard].
 class DynamicSectionCard extends ConsumerWidget {

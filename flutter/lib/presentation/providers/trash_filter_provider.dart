@@ -15,7 +15,7 @@ const timeFilterOptions = [
 /// Object type IDs to display name mapping for trash filter.
 /// 'page' and 'collection' map directly to UnifiedObject.typeId values.
 /// 'item' is a special category that matches all predefined section item types
-/// (e.g., travel_passport, profile_identity, financial_bank_account, etc.).
+/// (e.g., __preset_passport, __preset_identity, __preset_bank_account, etc.).
 const objectTypeIds = {
   'page': 'Page',
   'collection': 'Section',
@@ -27,7 +27,7 @@ const _genericTypeIds = {'page', 'collection', 'note', 'task', 'contact'};
 
 /// Returns true if the typeId represents an item (not a page, collection,
 /// or other generic type). Items include predefined section types like
-/// travel_passport, profile_identity, financial_bank_account, etc.
+/// __preset_passport, __preset_identity, __preset_bank_account, etc.
 bool isItemType(String? typeId) {
   if (typeId == null) return false;
   if (_genericTypeIds.contains(typeId)) return false;

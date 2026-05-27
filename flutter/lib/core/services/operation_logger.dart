@@ -1,6 +1,7 @@
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/utils/field_label_resolver.dart';
 
 /// Utility class for auto-generating operation log entries
 /// This provides a clean API for creating descriptive log messages
@@ -391,7 +392,9 @@ class OperationLogger {
     String? fieldPath,
     String? itemName,
   }) {
-    final fieldLabel = _getFieldLabel(fieldPath);
+    final fieldLabel = fieldPath != null && fieldPath.isNotEmpty
+        ? FieldLabelResolver.resolve(fieldPath)
+        : 'field';
     switch (action) {
       case LogAction.create:
         return 'Added ${itemName ?? fieldLabel}';
@@ -466,16 +469,4 @@ class OperationLogger {
     }
   }
 
-  /// Get a readable field label from field path
-  static String _getFieldLabel(String? fieldPath) {
-    if (fieldPath == null || fieldPath.isEmpty) return 'field';
-    return fieldPath
-        .split('.')
-        .last
-        .replaceAllMapped(
-          RegExp(r'([a-z])([A-Z])'),
-          (match) => '${match.group(1)} ${match.group(2)}',
-        )
-        .toLowerCase();
-  }
 }

@@ -6,7 +6,7 @@ import 'package:solosoul_flutter/presentation/widgets/generic_filter_section.dar
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
-import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
+import 'package:solosoul_flutter/core/utils/field_label_resolver.dart';
 
 /// Standalone page for browsing and selecting a section template.
 /// Returns the selected [SectionTemplate] via [Navigator.pop] when applied.
@@ -513,7 +513,7 @@ class _TemplateFieldRow extends ConsumerWidget {
   final TemplateField field;
 
   String _getFieldKeyLabel(String key, AppLocalizations l) {
-    return translateFieldLabel(key, l);
+    return FieldLabelResolver.resolve(key);
   }
 
   String _getFieldTypeLabel(String type, AppLocalizations l) {

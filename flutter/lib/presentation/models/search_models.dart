@@ -27,7 +27,7 @@ class SearchState {
   final bool searchPublic;
   final bool searchInternal;
   final bool searchSensitive;
-  final bool searchRestricted;
+  final bool searchCriticalOnly;
   final List<SearchResultItem> results;
   final bool isSearching;
 
@@ -36,7 +36,7 @@ class SearchState {
     this.searchPublic = true,
     this.searchInternal = true,
     this.searchSensitive = true,
-    this.searchRestricted = true,
+    this.searchCriticalOnly = true,
     this.results = const [],
     this.isSearching = false,
   });
@@ -46,7 +46,7 @@ class SearchState {
     bool? searchPublic,
     bool? searchInternal,
     bool? searchSensitive,
-    bool? searchRestricted,
+    bool? searchCriticalOnly,
     List<SearchResultItem>? results,
     bool? isSearching,
   }) {
@@ -55,12 +55,12 @@ class SearchState {
       searchPublic: searchPublic ?? this.searchPublic,
       searchInternal: searchInternal ?? this.searchInternal,
       searchSensitive: searchSensitive ?? this.searchSensitive,
-      searchRestricted: searchRestricted ?? this.searchRestricted,
+      searchCriticalOnly: searchCriticalOnly ?? this.searchCriticalOnly,
       results: results ?? this.results,
       isSearching: isSearching ?? this.isSearching,
     );
   }
 
   bool get hasActiveFilters =>
-      searchPublic || searchInternal || searchSensitive || searchRestricted;
+      searchPublic || searchInternal || searchSensitive || searchCriticalOnly;
 }

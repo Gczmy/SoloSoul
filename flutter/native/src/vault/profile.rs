@@ -465,6 +465,7 @@ mod tests {
                     street: Some("123 Main St".to_string()),
                     city: Some("NYC".to_string()),
                     state: Some("NY".to_string()),
+                    district: None,
                     postal_code: Some("10001".to_string()),
                     country: Some("US".to_string()),
                     is_deleted: false,

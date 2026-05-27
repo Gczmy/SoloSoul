@@ -1231,6 +1231,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get professionalArticles => 'Articles';
 
   @override
+  String get builtinSectionIdentityTitle => 'Identity';
+
+  @override
+  String get builtinSectionContactTitle => 'Contact Information';
+
+  @override
+  String get builtinSectionIdentityDocumentTitle => 'Identity Documents';
+
+  @override
+  String get builtinSectionAddressTitle => 'Addresses';
+
+  @override
+  String get builtinSectionPassportTitle => 'Passports';
+
+  @override
+  String get builtinSectionVisaTitle => 'Visas';
+
+  @override
+  String get builtinSectionTravelHistoryTitle => 'Travel History';
+
+  @override
+  String get builtinSectionBankAccountTitle => 'Bank Accounts';
+
+  @override
+  String get builtinSectionPaymentCardTitle => 'Payment Cards';
+
+  @override
+  String get builtinSectionTaxIdTitle => 'Tax Identification';
+
+  @override
+  String get builtinSectionEducationTitle => 'Education';
+
+  @override
+  String get builtinSectionEmploymentTitle => 'Employment';
+
+  @override
+  String get builtinSectionSkillTitle => 'Skills';
+
+  @override
+  String get builtinSectionLanguageTitle => 'Languages';
+
+  @override
+  String get builtinSectionAwardTitle => 'Awards';
+
+  @override
+  String get builtinSectionArticleTitle => 'Articles';
+
+  @override
   String get localSearchTitle => 'Local Search Import';
 
   @override
@@ -1492,7 +1540,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter your master password to access sensitivity settings.';
 
   @override
-  String get sensitivityCritical => 'Restricted';
+  String get sensitivityCritical => 'Critical';
 
   @override
   String get sensitivityCriticalDesc =>
@@ -1591,13 +1639,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchReveal => 'Reveal';
 
   @override
-  String get searchRestrictedHint => 'Restricted - password required to view';
+  String get searchCriticalHint => 'Critical - password required to view';
 
   @override
   String get searchPrivateHint => 'Private - reveal to view';
 
   @override
-  String get sensitivityRestricted => 'Restricted';
+  String get sensitivityCriticalOnly => 'Critical only';
 
   @override
   String get commonAdd => 'Add';
@@ -1816,8 +1864,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNoHintAvailable => 'No hint available';
 
   @override
-  String get sensitiveRestrictedMessage =>
-      'Restricted field. Enter your master password to view.';
+  String get sensitiveCriticalMessage =>
+      'Critical field. Enter your master password to view.';
 
   @override
   String get syncUnknownError => 'Unknown error';
@@ -1986,8 +2034,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get passwordVerificationRestricted =>
-      'Restricted field. Enter your master password to proceed.';
+  String get passwordVerificationCritical =>
+      'Critical field. Enter your master password to proceed.';
 
   @override
   String get passwordVerificationInvalid => 'Invalid password';
@@ -2149,7 +2197,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sensitivityAdjustHint =>
-      'Adjust the sensitivity level for each field. Restricted fields require additional verification to view.';
+      'Adjust the sensitivity level for each field. Critical fields require additional verification to view.';
 
   @override
   String sensitivityNoFieldsMatch(String query) {
@@ -3236,6 +3284,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fieldSavings => 'Savings';
+
+  @override
+  String get sectionContact => 'Contact';
+
+  @override
+  String get sectionFinancial => 'Financial';
+
+  @override
+  String get sectionMedical => 'Medical';
+
+  @override
+  String get sectionSecurity => 'Security';
+
+  @override
+  String get sectionDigitalAccounts => 'Digital Accounts';
+
+  @override
+  String get sectionInsurance => 'Insurance';
 
   @override
   String get templateProfileIdentityName => 'Identity';

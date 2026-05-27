@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -147,18 +146,17 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
         selected: location == AppRoutes.search,
         onTap: () => context.go(AppRoutes.search),
       ),
-      // Local Search Import (debug only)
-      if (kDebugMode)
-        NavTile(
-          icon: Icons.document_scanner_outlined,
-          label: AppLocalizations.of(context).sidebarLocalImport,
-          expanded: _expanded,
-          selected: location == AppRoutes.localSearch ||
-              location == AppRoutes.localSearchProgress ||
-              location == AppRoutes.scanPreview ||
-              location == AppRoutes.scanImportResult,
-          onTap: () => context.go(AppRoutes.localSearch),
-        ),
+      // Local Search Import
+      NavTile(
+        icon: Icons.document_scanner_outlined,
+        label: AppLocalizations.of(context).sidebarLocalImport,
+        expanded: _expanded,
+        selected: location == AppRoutes.localSearch ||
+            location == AppRoutes.localSearchProgress ||
+            location == AppRoutes.scanPreview ||
+            location == AppRoutes.scanImportResult,
+        onTap: () => context.go(AppRoutes.localSearch),
+      ),
       // AI Chat
       NavTile(
         icon: Icons.chat_bubble_outline,
@@ -167,7 +165,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
         selected: location == AppRoutes.llmChat,
         onTap: () => context.go(AppRoutes.llmChat),
       ),
-      if (kDebugMode) const SizedBox(height: 4),
+      const SizedBox(height: 4),
       const Divider(height: 1),
       const SizedBox(height: 8),
       // All pages (default + custom), default pages first

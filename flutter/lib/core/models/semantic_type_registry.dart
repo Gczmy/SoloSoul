@@ -47,11 +47,26 @@ class SemanticFieldType {
   });
 
   /// 获取当前语言下的显示标签
+  ///
+  /// 回退逻辑：指定语言 → 英文 → 中文 → 机械格式化最后一段
   String getLabel(String languageCode) {
-    return labels[languageCode] ??
+    final label = labels[languageCode] ??
         labels['en'] ??
-        labels['zh'] ??
-        id;
+        labels['zh'];
+    if (label != null && label.isNotEmpty) return label;
+    // 最终降级：使用 id 最后一段的机械格式化
+    return _formatFieldLabel(id.split('.').last);
+  }
+
+  static String _formatFieldLabel(String key) {
+    final spaced = key.replaceAllMapped(
+      RegExp(r'([a-z])([A-Z])'),
+      (m) => '${m[1]} ${m[2]}',
+    );
+    return spaced.replaceAll('_', ' ').split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 
   /// 获取当前语言下的说明
@@ -829,6 +844,157 @@ class SemanticTypeRegistry {
 
     return results.isEmpty ? [getType('custom.untyped')!] : results.take(5).toList();
   }
+
+  // ============================================================================
+  // 字段路径 → 语义类型映射（供 FieldLabelResolver 使用）
+  // ============================================================================
+
+  /// 插件 manifest / Vault 存储字段路径 → 语义类型 ID 的集中映射。
+  ///
+  /// 这是**预定义字段**的静态映射。用户自定义字段通过 [resolveByFieldPath]
+  /// 的 [sectionId] + [machineKey] 参数从运行时数据动态查找。
+  static const Map<String, String> _fieldPathToSemanticType = {
+    // 映射原则：
+    // 1. 仅保留"一对一"或"语义类型标签明显比 ARB 更精确"的映射。
+    // 2. 多个字段路径映射到同一语义类型会导致 UI 重复标签（如 address.*
+    //    全部显示为"地址"），此类映射删除，让字段 fallback 到 ARB
+    //    的独立翻译（street→"街道", city→"城市" 等）。
+    // 3. ARB 中无翻译的字段（如 emergencyName）保留映射以保证中文显示。
+
+    // ========== Identity ==========
+    // fullName: ARB "真实姓名" vs 语义类型 "姓名" — 语义类型更简洁通用，保留
+    'identity.fullName': 'person.name',
+    'identity.full_name': 'person.name',
+    // 其余 identity 子字段 ARB 翻译完整（dateOfBirth→出生日期, nationality→国籍,
+    // sex→性别, title→标题），删除映射避免重复且精确度足够
+
+    // ========== Contact ==========
+    'contact.email': 'contact.email',
+    'contact.phone': 'contact.phone',
+    // emergencyName 无 ARB 翻译，保留映射保证中文"紧急联系人"
+    'contact.emergencyName': 'contact.emergency_contact',
+    // emergencyPhone 无 ARB 翻译，但映射到 contact.phone 会导致与 contact.phone
+    // 显示相同标签（"电话号码"），不如删除让其显示为 "Emergency Phone"
+
+    // ========== Address ==========
+    // 所有 address 子字段删除映射：ARB 有独立精确翻译
+    // (street→街道, city→城市, state→省/州, postalCode→邮政编码,
+    //  country→国家/地区, district→区/县, title→标题)
+    // 避免全部显示为重复的 "地址"
+
+    // ========== Passport ==========
+    // number: ARB "号码" vs 语义类型 "护照号码" — 语义类型更精确，保留
+    'passport.number': 'travel.passport_number',
+    // surname / givenNames: 无 ARB 翻译，保留映射保证中文"姓"/"名"
+    'passport.surname': 'person.family_name',
+    'passport.givenNames': 'person.given_name',
+    // 其余 passport 子字段 ARB 翻译完整（expiryDate→到期日, issueDate→签发日,
+    // issuingAuthority→签发机关, placeOfBirth→出生地, nationality→国籍,
+    // sex→性别, dateOfBirth→出生日期），删除映射
+
+    // ========== Visa ==========
+    // number: ARB "号码" vs 语义类型 "签证号码" — 语义类型更精确，保留
+    'visa.number': 'travel.visa_number',
+    // 其余 visa 子字段 ARB 翻译完整（type→类型, expiryDate→到期日, issueDate→签发日）
+
+    // ========== ID Card / Card ==========
+    // 无合适语义类型，ARB 有 number→号码 / expiryDate→到期日
+
+    // ========== Financial ==========
+    // accountNumber: ARB "账号" vs 语义类型 "账号" — 相同，保留
+    'financial.accountNumber': 'financial.account_number',
+    'financial.bankName': 'financial.bank_name',
+    'financial.swiftCode': 'financial.swift_code',
+    'financial.iban': 'financial.iban',
+    'financial.taxIdNumber': 'financial.tax_id',
+
+    // ========== Education ==========
+    // institution: ARB "院校" vs 语义类型 "学校" — 语义类型更通用，保留
+    'education.institution': 'education.institution',
+    'education.degree': 'education.degree',
+    // year 无 ARB 翻译时 fallback 到 "Year"，保留映射 "日期" 也无意义，删除
+    // field 映射到 major（"专业"）但 ARB 有 field→"领域"，删除
+
+    // ========== Employment ==========
+    'employment.company': 'professional.company',
+    'employment.position': 'professional.position',
+    // startDate / endDate: 语义类型 "入职日期"/"离职日期" 比 ARB "开始日期"/"结束日期" 更精确
+    'employment.startDate': 'professional.start_date',
+    'employment.endDate': 'professional.end_date',
+    // description: ARB "描述" vs 映射到 generic.note（"备注"），ARB 更准确
+
+    // ========== Travel ==========
+    // flightNumber: ARB "航班号" vs 语义类型 "航班号" — 相同，保留
+    'travel.flightNumber': 'travel.flight_number',
+    // destination / hotelBooking 无 ARB 翻译，但映射到 hotel_name（"酒店名称"）
+    // 会导致两者都显示为"酒店名称"，不如删除显示原始英文
+
+    // ========== Medical / Security ==========
+    // bloodType 映射到 gender（"性别"）明显错误；allergies 映射到 note（"备注"）
+    // 也不合适。security.* 全部映射到 note 同样错误。全部删除。
+
+    // ========== Digital Accounts / Tax ==========
+    'digitalAccounts.email': 'contact.email',
+    'taxId.number': 'financial.tax_id',
+
+    // ========== Legacy nested ==========
+    // 全部删除，legacy 路径应逐步淘汰
+  };
+
+  /// 根据字段路径解析对应的语义类型。
+  ///
+  /// 解析优先级：
+  /// 1. 静态映射表 [_fieldPathToSemanticType]
+  /// 2. 动态查找：如果提供了 [sectionId] 和 [machineKey]，从该 section 的
+  ///    `__semanticTypes` 中读取该 machine key 对应的语义类型
+  /// 3. 模糊匹配：提取最后一段尝试匹配语义类型 ID
+  static SemanticFieldType? resolveByFieldPath(
+    String fieldPath, {
+    String? sectionId,
+    String? machineKey,
+  }) {
+    // 1. 静态映射表（规范化路径）
+    final normalized = _normalizeFieldPath(fieldPath);
+    final staticId = _fieldPathToSemanticType[normalized];
+    if (staticId != null) return getType(staticId);
+
+    // 2. 动态查找：从用户 section 数据的 __semanticTypes 获取
+    if (sectionId != null && machineKey != null) {
+      final semanticId = _getSemanticTypeFromSection(sectionId, machineKey);
+      if (semanticId != null) return getType(semanticId);
+    }
+
+    // 3. 模糊匹配
+    return _tryFuzzyMatch(fieldPath);
+  }
+
+  /// 规范化字段路径：移除数组索引。
+  static String _normalizeFieldPath(String fieldPath) {
+    return fieldPath.replaceAll(RegExp(r'\[\d+\]'), '');
+  }
+
+  /// 从 section 数据中动态获取字段的语义类型。
+  ///
+  /// 读取 UnifiedObject section 的 `__semanticTypes` 映射（machineKey → semanticTypeId）。
+  /// TODO: 接入 UnifiedObjectService 或 ProfileStorageService 的实际数据读取。
+  static String? _getSemanticTypeFromSection(String sectionId, String machineKey) {
+    // 当前为架构接入点，待接入实际数据层。
+    // 实现后应通过服务定位器或 Provider 读取 section 的 __semanticTypes 字段。
+    return null;
+  }
+
+  /// 模糊匹配：提取字段路径最后一段，尝试匹配语义类型 ID。
+  static SemanticFieldType? _tryFuzzyMatch(String fieldPath) {
+    final last = fieldPath.replaceAll(RegExp(r'\[\d+\]'), '').split('.').last;
+    for (final type in _allTypes) {
+      if (type.id == last || type.id.endsWith('.$last')) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  // ============================================================================
 
   /// 检查语义类型是否存在
   static bool hasType(String id) {

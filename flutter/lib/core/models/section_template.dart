@@ -145,7 +145,7 @@ class PresetSectionTemplates {
     ),
     // 身份信息模板
     SectionTemplate(
-      id: 'profile_identity',
+      id: '__preset_identity',
       nameKey: 'templateProfileIdentityName',
       descriptionKey: 'templateProfileIdentityDesc',
       icon: '👤',
@@ -185,7 +185,7 @@ class PresetSectionTemplates {
     ),
     // 联系信息模板
     SectionTemplate(
-      id: 'profile_contact',
+      id: '__preset_contact',
       nameKey: 'templateProfileContactName',
       descriptionKey: 'templateProfileContactDesc',
       icon: '📞',
@@ -205,7 +205,7 @@ class PresetSectionTemplates {
     ),
     // 身份证件模板
     SectionTemplate(
-      id: 'profile_id_card',
+      id: '__preset_identity_document',
       nameKey: 'templateProfileIdCardName',
       descriptionKey: 'templateProfileIdCardDesc',
       icon: '🪪',
@@ -240,7 +240,7 @@ class PresetSectionTemplates {
     ),
     // 地址模板
     SectionTemplate(
-      id: 'profile_address',
+      id: '__preset_address',
       nameKey: 'templateProfileAddressName',
       descriptionKey: 'templateProfileAddressDesc',
       icon: '🏠',
@@ -280,7 +280,7 @@ class PresetSectionTemplates {
     ),
     // 银行账户模板
     SectionTemplate(
-      id: 'financial_bank_account',
+      id: '__preset_bank_account',
       nameKey: 'templateFinancialBankAccountName',
       descriptionKey: 'templateFinancialBankAccountDesc',
       icon: '🏦',
@@ -315,7 +315,7 @@ class PresetSectionTemplates {
     ),
     // 卡片模板
     SectionTemplate(
-      id: 'financial_card',
+      id: '__preset_payment_card',
       nameKey: 'templateFinancialCardName',
       descriptionKey: 'templateFinancialCardDesc',
       icon: '💳',
@@ -350,7 +350,7 @@ class PresetSectionTemplates {
     ),
     // 税务识别号模板
     SectionTemplate(
-      id: 'financial_tax_id',
+      id: '__preset_tax_id',
       nameKey: 'templateFinancialTaxIdName',
       descriptionKey: 'templateFinancialTaxIdDesc',
       icon: '🔢',
@@ -380,7 +380,7 @@ class PresetSectionTemplates {
     ),
     // 教育模板
     SectionTemplate(
-      id: 'professional_education',
+      id: '__preset_education',
       nameKey: 'templateProfessionalEducationName',
       descriptionKey: 'templateProfessionalEducationDesc',
       icon: '🎓',
@@ -420,7 +420,7 @@ class PresetSectionTemplates {
     ),
     // 就业模板
     SectionTemplate(
-      id: 'professional_employment',
+      id: '__preset_employment',
       nameKey: 'templateProfessionalEmploymentName',
       descriptionKey: 'templateProfessionalEmploymentDesc',
       icon: '💼',
@@ -455,7 +455,7 @@ class PresetSectionTemplates {
     ),
     // 技能模板
     SectionTemplate(
-      id: 'professional_skill',
+      id: '__preset_skill',
       nameKey: 'templateProfessionalSkillName',
       descriptionKey: 'templateProfessionalSkillDesc',
       icon: '🛠️',
@@ -470,7 +470,7 @@ class PresetSectionTemplates {
     ),
     // 语言模板
     SectionTemplate(
-      id: 'professional_language',
+      id: '__preset_language',
       nameKey: 'templateProfessionalLanguageName',
       descriptionKey: 'templateProfessionalLanguageDesc',
       icon: '🌐',
@@ -485,7 +485,7 @@ class PresetSectionTemplates {
     ),
     // 奖项模板
     SectionTemplate(
-      id: 'professional_award',
+      id: '__preset_award',
       nameKey: 'templateProfessionalAwardName',
       descriptionKey: 'templateProfessionalAwardDesc',
       icon: '🏆',
@@ -510,7 +510,7 @@ class PresetSectionTemplates {
     ),
     // 文章模板
     SectionTemplate(
-      id: 'professional_article',
+      id: '__preset_article',
       nameKey: 'templateProfessionalArticleName',
       descriptionKey: 'templateProfessionalArticleDesc',
       icon: '📄',
@@ -565,7 +565,7 @@ class PresetSectionTemplates {
     ),
     // 护照模板
     SectionTemplate(
-      id: 'travel_passport',
+      id: '__preset_passport',
       nameKey: 'templateTravelPassportName',
       descriptionKey: 'templateTravelPassportDesc',
       icon: '🛂',
@@ -635,7 +635,7 @@ class PresetSectionTemplates {
     ),
     // 签证模板
     SectionTemplate(
-      id: 'travel_visa',
+      id: '__preset_visa',
       nameKey: 'templateTravelVisaName',
       descriptionKey: 'templateTravelVisaDesc',
       icon: '📋',
@@ -670,7 +670,7 @@ class PresetSectionTemplates {
     ),
     // 旅行历史模板
     SectionTemplate(
-      id: 'travel_history',
+      id: '__preset_travel_history',
       nameKey: 'templateTravelHistoryName',
       descriptionKey: 'templateTravelHistoryDesc',
       icon: '✈️',

@@ -59,8 +59,8 @@ class SearchNotifier extends Notifier<SearchState> {
     if (state.query.length >= 2) _performSearch();
   }
 
-  void toggleRestricted() {
-    state = state.copyWith(searchRestricted: !state.searchRestricted);
+  void toggleCriticalOnly() {
+    state = state.copyWith(searchCriticalOnly: !state.searchCriticalOnly);
     if (state.query.length >= 2) _performSearch();
   }
 
@@ -68,13 +68,13 @@ class SearchNotifier extends Notifier<SearchState> {
     required bool searchPublic,
     required bool searchInternal,
     required bool searchSensitive,
-    required bool searchRestricted,
+    required bool searchCriticalOnly,
   }) {
     state = state.copyWith(
       searchPublic: searchPublic,
       searchInternal: searchInternal,
       searchSensitive: searchSensitive,
-      searchRestricted: searchRestricted,
+      searchCriticalOnly: searchCriticalOnly,
     );
     if (state.query.length >= 2) _performSearch();
   }
@@ -99,7 +99,7 @@ class SearchNotifier extends Notifier<SearchState> {
         final password = await showPasswordVerificationDialog(
           context: context,
           ref: ref,
-          message: AppLocalizations.of(context).sensitiveRestrictedMessage,
+          message: AppLocalizations.of(context).sensitiveCriticalMessage,
           onVerify: (password) async {
             final authNotifier = ref.read(authNotifierProvider.notifier);
             return authNotifier.verifyPasswordForSensitiveData(password);
@@ -113,7 +113,7 @@ class SearchNotifier extends Notifier<SearchState> {
     ref.read(accountStyleProvider.notifier).revealField(fieldPath);
   }
 
-  Future<void> unlockAllRestricted(
+  Future<void> unlockAllCritical(
     BuildContext context,
     WidgetRef ref,
   ) async {
@@ -121,7 +121,7 @@ class SearchNotifier extends Notifier<SearchState> {
       final password = await showPasswordVerificationDialog(
         context: context,
         ref: ref,
-        message: AppLocalizations.of(context).sensitiveRestrictedMessage,
+        message: AppLocalizations.of(context).sensitiveCriticalMessage,
         onVerify: (password) async {
           final authNotifier = ref.read(authNotifierProvider.notifier);
           return authNotifier.verifyPasswordForSensitiveData(password);
@@ -155,7 +155,7 @@ class SearchNotifier extends Notifier<SearchState> {
       searchPublic: state.searchPublic,
       searchInternal: state.searchInternal,
       searchSensitive: state.searchSensitive,
-      searchRestricted: state.searchRestricted,
+      searchCriticalOnly: state.searchCriticalOnly,
     );
 
     state = state.copyWith(results: results, isSearching: false);
@@ -169,7 +169,7 @@ class SearchNotifier extends Notifier<SearchState> {
     required bool searchPublic,
     required bool searchInternal,
     required bool searchSensitive,
-    required bool searchRestricted,
+    required bool searchCriticalOnly,
   }) {
     return Isolate.run(() => executeSearch(
       objects,
@@ -177,7 +177,7 @@ class SearchNotifier extends Notifier<SearchState> {
       searchPublic,
       searchInternal,
       searchSensitive,
-      searchRestricted,
+      searchCriticalOnly,
     ));
   }
 
@@ -189,7 +189,7 @@ class SearchNotifier extends Notifier<SearchState> {
     bool searchPublic,
     bool searchInternal,
     bool searchSensitive,
-    bool searchRestricted,
+    bool searchCriticalOnly,
   ) {
     final results = <SearchResultItem>[];
     final lowerQuery = query.toLowerCase();
@@ -209,7 +209,7 @@ class SearchNotifier extends Notifier<SearchState> {
           if (!searchSensitive) return null;
           break;
         case SensitivityLevel.critical:
-          if (!searchRestricted) return null;
+          if (!searchCriticalOnly) return null;
           break;
       }
       return level;

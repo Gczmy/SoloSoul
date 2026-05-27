@@ -45,7 +45,7 @@ void main() {
       expect(state.searchPublic, isTrue);
       expect(state.searchInternal, isTrue);
       expect(state.searchSensitive, isTrue);
-      expect(state.searchRestricted, isTrue);
+      expect(state.searchCriticalOnly, isTrue);
       expect(state.results, isEmpty);
       expect(state.isSearching, isFalse);
     });
@@ -55,7 +55,7 @@ void main() {
         searchPublic: true,
         searchInternal: false,
         searchSensitive: false,
-        searchRestricted: false,
+        searchCriticalOnly: false,
       );
       expect(state.hasActiveFilters, isTrue);
     });
@@ -65,7 +65,7 @@ void main() {
         searchPublic: false,
         searchInternal: false,
         searchSensitive: false,
-        searchRestricted: false,
+        searchCriticalOnly: false,
       );
       expect(state.hasActiveFilters, isFalse);
     });
@@ -127,7 +127,7 @@ void main() {
         expect(state.searchPublic, isTrue);
         expect(state.searchInternal, isTrue);
         expect(state.searchSensitive, isTrue);
-        expect(state.searchRestricted, isTrue);
+        expect(state.searchCriticalOnly, isTrue);
       });
 
       test('setQuery updates query', () {
@@ -166,11 +166,11 @@ void main() {
         expect(container.read(searchProvider).searchSensitive, isFalse);
       });
 
-      test('toggleRestricted flips state', () {
+      test('toggleCriticalOnly flips state', () {
         final notifier = container.read(searchProvider.notifier);
-        expect(container.read(searchProvider).searchRestricted, isTrue);
-        notifier.toggleRestricted();
-        expect(container.read(searchProvider).searchRestricted, isFalse);
+        expect(container.read(searchProvider).searchCriticalOnly, isTrue);
+        notifier.toggleCriticalOnly();
+        expect(container.read(searchProvider).searchCriticalOnly, isFalse);
       });
     });
   });

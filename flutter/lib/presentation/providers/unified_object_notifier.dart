@@ -134,19 +134,18 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final objects = List<UnifiedObject>.from(data.objects);
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    for (final entry in allSectionMeta) {
-      final sectionId = entry.key;
-      final meta = entry.value;
-      final itemTypeId = getItemTypeIdForSection(sectionId);
+    for (final entry in PageSectionLinkRegistry.allDefaultLinks.entries) {
+      final pageId = entry.key;
+      final sectionIds = entry.value;
 
       // Ensure page exists
-      final pageExists = objects.any((o) => o.id == meta.parentPageId);
+      final pageExists = objects.any((o) => o.id == pageId);
       if (!pageExists) {
         objects.add(UnifiedObject(
-          id: meta.parentPageId,
+          id: pageId,
           typeId: 'page',
-          name: pageNameFromId(meta.parentPageId),
-          iconName: pageIconNameFromId(meta.parentPageId),
+          name: pageNameFromId(pageId),
+          iconName: pageIconNameFromId(pageId),
           parentId: null,
           childrenIds: const [],
           properties: const {},
@@ -157,37 +156,42 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         ));
       }
 
-      // Build schema from builtin type definition
-      final schemaProps = itemTypeId != null
-          ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
-          : <String, PropertyValue>{};
-      final propertyLabels = itemTypeId != null
-          ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
-          : <String, String>{};
+      for (final sectionId in sectionIds) {
+        final itemTypeId = getItemTypeIdForSection(sectionId);
+        final config = SectionRendererRegistry.getConfigBySectionId(sectionId);
 
-      objects.add(UnifiedObject(
-        id: sectionId,
-        typeId: 'collection',
-        name: meta.name,
-        iconName: meta.iconName,
-        parentId: meta.parentPageId,
-        childrenIds: const [],
-        properties: schemaProps,
-        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
-        isDeleted: false,
-        deletedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      ));
+        // Build schema from builtin type definition
+        final schemaProps = itemTypeId != null
+            ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
+            : <String, PropertyValue>{};
+        final propertyLabels = itemTypeId != null
+            ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
+            : <String, String>{};
 
-      // Add section to page's childrenIds
-      final pageIndex = objects.indexWhere((o) => o.id == meta.parentPageId);
-      if (pageIndex >= 0) {
-        final page = objects[pageIndex];
-        objects[pageIndex] = page.copyWith(
-          childrenIds: [...page.childrenIds, sectionId],
+        objects.add(UnifiedObject(
+          id: sectionId,
+          typeId: 'collection',
+          name: config?.defaultName ?? sectionId,
+          iconName: config?.iconName ?? 'folder',
+          parentId: pageId,
+          childrenIds: const [],
+          properties: schemaProps,
+          propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
           updatedAt: now,
-        );
+        ));
+
+        // Add section to page's childrenIds
+        final pageIndex = objects.indexWhere((o) => o.id == pageId);
+        if (pageIndex >= 0) {
+          final page = objects[pageIndex];
+          objects[pageIndex] = page.copyWith(
+            childrenIds: [...page.childrenIds, sectionId],
+            updatedAt: now,
+          );
+        }
       }
     }
 
@@ -259,48 +263,49 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     }
 
     // Create missing default sections (never existed before)
-    for (final entry in allSectionMeta) {
-      final sectionId = entry.key;
-      final meta = entry.value;
+    for (final entry in PageSectionLinkRegistry.allDefaultLinks.entries) {
+      final pageId = entry.key;
+      for (final sectionId in entry.value) {
+        if (objects.any((o) => o.id == sectionId)) continue;
 
-      if (objects.any((o) => o.id == sectionId)) continue;
+        final itemTypeId = getItemTypeIdForSection(sectionId);
+        final config = SectionRendererRegistry.getConfigBySectionId(sectionId);
+        final schemaProps = itemTypeId != null
+            ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
+            : <String, PropertyValue>{};
+        final propertyLabels = itemTypeId != null
+            ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
+            : <String, String>{};
 
-      final itemTypeId = getItemTypeIdForSection(sectionId);
-      final schemaProps = itemTypeId != null
-          ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
-          : <String, PropertyValue>{};
-      final propertyLabels = itemTypeId != null
-          ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
-          : <String, String>{};
+        objects.add(UnifiedObject(
+          id: sectionId,
+          typeId: 'collection',
+          name: config?.defaultName ?? sectionId,
+          iconName: config?.iconName ?? 'folder',
+          parentId: pageId,
+          childrenIds: const [],
+          properties: schemaProps,
+          propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
+          isDeleted: false,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        ));
 
-      objects.add(UnifiedObject(
-        id: sectionId,
-        typeId: 'collection',
-        name: meta.name,
-        iconName: meta.iconName,
-        parentId: meta.parentPageId,
-        childrenIds: const [],
-        properties: schemaProps,
-        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
-        isDeleted: false,
-        deletedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      ));
-
-      // Add section to page's childrenIds
-      final pageIndex = objects.indexWhere((o) => o.id == meta.parentPageId);
-      if (pageIndex >= 0) {
-        final page = objects[pageIndex];
-        if (!page.childrenIds.contains(sectionId)) {
-          objects[pageIndex] = page.copyWith(
-            childrenIds: [...page.childrenIds, sectionId],
-            updatedAt: now,
-          );
+        // Add section to page's childrenIds
+        final pageIndex = objects.indexWhere((o) => o.id == pageId);
+        if (pageIndex >= 0) {
+          final page = objects[pageIndex];
+          if (!page.childrenIds.contains(sectionId)) {
+            objects[pageIndex] = page.copyWith(
+              childrenIds: [...page.childrenIds, sectionId],
+              updatedAt: now,
+            );
+          }
         }
-      }
 
-      changed = true;
+        changed = true;
+      }
     }
 
     return changed ? data.copyWith(objects: objects) : data;

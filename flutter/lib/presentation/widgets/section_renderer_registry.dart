@@ -26,6 +26,12 @@ class PresetSectionConfig {
   /// Section header icon.
   final IconData icon;
 
+  /// Material icon name string for storage in [UnifiedObject.iconName].
+  final String iconName;
+
+  /// Default English name used when no [AppLocalizations] is available.
+  final String defaultName;
+
   /// Icon shown inside each item's [EntryCardWidget].
   final IconData itemIcon;
 
@@ -55,6 +61,8 @@ class PresetSectionConfig {
     required this.typeId,
     required this.l10nTitle,
     required this.icon,
+    required this.iconName,
+    required this.defaultName,
     required this.itemIcon,
     this.maxVisibleItems = 3,
     required this.historyFieldId,
@@ -73,10 +81,12 @@ class PresetSectionConfig {
 class SectionRendererRegistry {
   static final Map<String, PresetSectionConfig> _configs = {
     // ── Profile ──
-    'profile_identity': PresetSectionConfig(
-      typeId: 'profile_identity',
-      l10nTitle: (l) => l.profileIdentity,
+    '__preset_identity': PresetSectionConfig(
+      typeId: '__preset_identity',
+      l10nTitle: (l) => l.builtinSectionIdentityTitle,
       icon: Icons.person_outlined,
+      iconName: 'person',
+      defaultName: 'Identity',
       itemIcon: Icons.person,
       maxVisibleItems: 1,
       historyFieldId: 'identity',
@@ -84,12 +94,14 @@ class SectionRendererRegistry {
       titlePropertyKey: 'Title',
       excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
-          '${l10n.profileIdentity}\n${item.toFormattedStringLocalized(l10n)}',
+          '${l10n.builtinSectionIdentityTitle}\n${item.toFormattedStringLocalized(l10n)}',
     ),
-    'profile_contact': PresetSectionConfig(
-      typeId: 'profile_contact',
-      l10nTitle: (l) => l.profileContactInfo,
+    '__preset_contact': PresetSectionConfig(
+      typeId: '__preset_contact',
+      l10nTitle: (l) => l.builtinSectionContactTitle,
       icon: Icons.contact_mail_outlined,
+      iconName: 'contact_mail',
+      defaultName: 'Contact Information',
       itemIcon: Icons.email_outlined,
       maxVisibleItems: 3,
       historyFieldId: 'contact',
@@ -104,10 +116,12 @@ class SectionRendererRegistry {
         return '$type: ${map['value'] ?? ''}';
       },
     ),
-    'profile_id_card': PresetSectionConfig(
-      typeId: 'profile_id_card',
-      l10nTitle: (l) => l.profileIdentityDocuments,
+    '__preset_identity_document': PresetSectionConfig(
+      typeId: '__preset_identity_document',
+      l10nTitle: (l) => l.builtinSectionIdentityDocumentTitle,
       icon: Icons.badge_outlined,
+      iconName: 'badge',
+      defaultName: 'ID Cards',
       itemIcon: Icons.badge_outlined,
       maxVisibleItems: 3,
       historyFieldId: 'idCard',
@@ -115,12 +129,14 @@ class SectionRendererRegistry {
       titlePropertyKey: 'Title',
       excludeFields: const {'Title'},
       formatAllFields: (l10n, item) =>
-          '${l10n.profileIdCard}\n${item.toFormattedStringLocalized(l10n)}',
+          '${l10n.builtinSectionIdentityDocumentTitle}\n${item.toFormattedStringLocalized(l10n)}',
     ),
-    'profile_address': PresetSectionConfig(
-      typeId: 'profile_address',
-      l10nTitle: (l) => l.profileAddresses,
+    '__preset_address': PresetSectionConfig(
+      typeId: '__preset_address',
+      l10nTitle: (l) => l.builtinSectionAddressTitle,
       icon: Icons.location_on_outlined,
+      iconName: 'home',
+      defaultName: 'Addresses',
       itemIcon: Icons.home_outlined,
       maxVisibleItems: 3,
       historyFieldId: 'address',
@@ -130,10 +146,12 @@ class SectionRendererRegistry {
     ),
 
     // ── Travel ──
-    'travel_passport': PresetSectionConfig(
-      typeId: 'travel_passport',
-      l10nTitle: (l) => l.travelPassports,
+    '__preset_passport': PresetSectionConfig(
+      typeId: '__preset_passport',
+      l10nTitle: (l) => l.builtinSectionPassportTitle,
       icon: Icons.flight_outlined,
+      iconName: 'flight',
+      defaultName: 'Passports',
       itemIcon: Icons.book,
       maxVisibleItems: 3,
       historyFieldId: 'passport',
@@ -144,10 +162,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.travelFormatPassport(item.toFormattedStringLocalized(l10n)),
     ),
-    'travel_visa': PresetSectionConfig(
-      typeId: 'travel_visa',
-      l10nTitle: (l) => l.travelVisas,
+    '__preset_visa': PresetSectionConfig(
+      typeId: '__preset_visa',
+      l10nTitle: (l) => l.builtinSectionVisaTitle,
       icon: Icons.assignment_ind_outlined,
+      iconName: 'description',
+      defaultName: 'Visas',
       itemIcon: Icons.article,
       maxVisibleItems: 3,
       historyFieldId: 'visa',
@@ -158,10 +178,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.travelFormatVisa(item.toFormattedStringLocalized(l10n)),
     ),
-    'travel_history': PresetSectionConfig(
-      typeId: 'travel_history',
-      l10nTitle: (l) => l.travelHistory,
+    '__preset_travel_history': PresetSectionConfig(
+      typeId: '__preset_travel_history',
+      l10nTitle: (l) => l.builtinSectionTravelHistoryTitle,
       icon: Icons.history_outlined,
+      iconName: 'history',
+      defaultName: 'Travel History',
       itemIcon: Icons.place,
       maxVisibleItems: 3,
       historyFieldId: 'travel',
@@ -173,10 +195,12 @@ class SectionRendererRegistry {
     ),
 
     // ── Financial ──
-    'financial_bank_account': PresetSectionConfig(
-      typeId: 'financial_bank_account',
-      l10nTitle: (l) => l.financialBankAccounts,
+    '__preset_bank_account': PresetSectionConfig(
+      typeId: '__preset_bank_account',
+      l10nTitle: (l) => l.builtinSectionBankAccountTitle,
       icon: Icons.account_balance_outlined,
+      iconName: 'account_balance',
+      defaultName: 'Bank Accounts',
       itemIcon: Icons.account_balance,
       maxVisibleItems: 3,
       historyFieldId: 'bankAccount',
@@ -187,10 +211,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.financialFormatBankAccount(item.toFormattedStringLocalized(l10n)),
     ),
-    'financial_card': PresetSectionConfig(
-      typeId: 'financial_card',
-      l10nTitle: (l) => l.financialCards,
+    '__preset_payment_card': PresetSectionConfig(
+      typeId: '__preset_payment_card',
+      l10nTitle: (l) => l.builtinSectionPaymentCardTitle,
       icon: Icons.credit_card_outlined,
+      iconName: 'credit_card',
+      defaultName: 'Cards',
       itemIcon: Icons.credit_card,
       maxVisibleItems: 3,
       historyFieldId: 'card',
@@ -201,10 +227,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.financialFormatCard(item.toFormattedStringLocalized(l10n)),
     ),
-    'financial_tax_id': PresetSectionConfig(
-      typeId: 'financial_tax_id',
-      l10nTitle: (l) => l.financialTaxIdentification,
+    '__preset_tax_id': PresetSectionConfig(
+      typeId: '__preset_tax_id',
+      l10nTitle: (l) => l.builtinSectionTaxIdTitle,
       icon: Icons.receipt_long_outlined,
+      iconName: 'receipt',
+      defaultName: 'Tax IDs',
       itemIcon: Icons.badge,
       maxVisibleItems: 3,
       historyFieldId: 'taxId',
@@ -217,10 +245,12 @@ class SectionRendererRegistry {
     ),
 
     // ── Professional ──
-    'professional_education': PresetSectionConfig(
-      typeId: 'professional_education',
-      l10nTitle: (l) => l.professionalEducation,
+    '__preset_education': PresetSectionConfig(
+      typeId: '__preset_education',
+      l10nTitle: (l) => l.builtinSectionEducationTitle,
       icon: Icons.school_outlined,
+      iconName: 'school',
+      defaultName: 'Education',
       itemIcon: Icons.school,
       maxVisibleItems: 3,
       historyFieldId: 'education',
@@ -230,10 +260,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatEducation(item.toFormattedStringLocalized(l10n)),
     ),
-    'professional_employment': PresetSectionConfig(
-      typeId: 'professional_employment',
-      l10nTitle: (l) => l.professionalEmployment,
+    '__preset_employment': PresetSectionConfig(
+      typeId: '__preset_employment',
+      l10nTitle: (l) => l.builtinSectionEmploymentTitle,
       icon: Icons.work_outlined,
+      iconName: 'work',
+      defaultName: 'Employment',
       itemIcon: Icons.work,
       maxVisibleItems: 3,
       historyFieldId: 'employment',
@@ -243,10 +275,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatEmployment(item.toFormattedStringLocalized(l10n)),
     ),
-    'professional_skill': PresetSectionConfig(
-      typeId: 'professional_skill',
-      l10nTitle: (l) => l.professionalSkills,
+    '__preset_skill': PresetSectionConfig(
+      typeId: '__preset_skill',
+      l10nTitle: (l) => l.builtinSectionSkillTitle,
       icon: Icons.star_outline,
+      iconName: 'stars',
+      defaultName: 'Skills',
       itemIcon: Icons.star,
       maxVisibleItems: 3,
       historyFieldId: 'skill',
@@ -256,10 +290,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatSkill(item.toFormattedStringLocalized(l10n)),
     ),
-    'professional_language': PresetSectionConfig(
-      typeId: 'professional_language',
-      l10nTitle: (l) => l.professionalLanguages,
+    '__preset_language': PresetSectionConfig(
+      typeId: '__preset_language',
+      l10nTitle: (l) => l.builtinSectionLanguageTitle,
       icon: Icons.translate,
+      iconName: 'language',
+      defaultName: 'Languages',
       itemIcon: Icons.translate,
       maxVisibleItems: 3,
       historyFieldId: 'language',
@@ -269,10 +305,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatLanguage(item.toFormattedStringLocalized(l10n)),
     ),
-    'professional_award': PresetSectionConfig(
-      typeId: 'professional_award',
-      l10nTitle: (l) => l.professionalAwards,
+    '__preset_award': PresetSectionConfig(
+      typeId: '__preset_award',
+      l10nTitle: (l) => l.builtinSectionAwardTitle,
       icon: Icons.emoji_events_outlined,
+      iconName: 'emoji_events',
+      defaultName: 'Awards',
       itemIcon: Icons.emoji_events,
       maxVisibleItems: 3,
       historyFieldId: 'award',
@@ -282,10 +320,12 @@ class SectionRendererRegistry {
       formatAllFields: (l10n, item) =>
           l10n.professionalFormatAward(item.toFormattedStringLocalized(l10n)),
     ),
-    'professional_article': PresetSectionConfig(
-      typeId: 'professional_article',
-      l10nTitle: (l) => l.professionalArticles,
+    '__preset_article': PresetSectionConfig(
+      typeId: '__preset_article',
+      l10nTitle: (l) => l.builtinSectionArticleTitle,
       icon: Icons.article_outlined,
+      iconName: 'article',
+      defaultName: 'Articles',
       itemIcon: Icons.article,
       maxVisibleItems: 3,
       historyFieldId: 'article',
@@ -312,6 +352,26 @@ class SectionRendererRegistry {
     final itemTypeId = getItemTypeIdForSection(sectionId);
     if (itemTypeId == null) return null;
     return _configs[itemTypeId];
+  }
+
+  /// 根据字段路径的 section key（即 [PresetSectionConfig.fieldPrefix]）
+  /// 获取对应的显示标签。
+  ///
+  /// 这是页面/Sidebar 分区名称的唯一来源。
+  /// 授权对话框通过此方法复用分区标题，确保与页面显示一致。
+  ///
+  /// 返回 `null` 表示无匹配的 preset（如 `financial`、`medical` 等
+  /// page 级别的分组），调用方应 fallback 到 ARB 通用翻译。
+  static String? getSectionLabelByFieldPrefix(
+    String fieldPrefix,
+    AppLocalizations l10n,
+  ) {
+    for (final config in _configs.values) {
+      if (config.fieldPrefix == fieldPrefix) {
+        return config.l10nTitle(l10n);
+      }
+    }
+    return null;
   }
 }
 

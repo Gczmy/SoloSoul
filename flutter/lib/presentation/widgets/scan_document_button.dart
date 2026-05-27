@@ -293,11 +293,11 @@ class ScanDocumentButton extends ConsumerWidget {
     };
 
     final sectionTargets = <String, ({String typeId, String sectionId, String iconName})>{
-      'education': (typeId: 'professional_education', sectionId: DefaultSectionIds.education, iconName: 'school'),
-      'work_experience': (typeId: 'professional_employment', sectionId: DefaultSectionIds.employment, iconName: 'work'),
-      'skills': (typeId: 'professional_skill', sectionId: DefaultSectionIds.skill, iconName: 'stars'),
-      'languages': (typeId: 'professional_language', sectionId: DefaultSectionIds.language, iconName: 'language'),
-      'awards': (typeId: 'professional_award', sectionId: DefaultSectionIds.award, iconName: 'emoji_events'),
+      'education': (typeId: '__preset_education', sectionId: DefaultSectionIds.education, iconName: 'school'),
+      'work_experience': (typeId: '__preset_employment', sectionId: DefaultSectionIds.employment, iconName: 'work'),
+      'skills': (typeId: '__preset_skill', sectionId: DefaultSectionIds.skill, iconName: 'stars'),
+      'languages': (typeId: '__preset_language', sectionId: DefaultSectionIds.language, iconName: 'language'),
+      'awards': (typeId: '__preset_award', sectionId: DefaultSectionIds.award, iconName: 'emoji_events'),
     };
 
     for (final entry in sectionMappings.entries) {
@@ -322,7 +322,7 @@ class ScanDocumentButton extends ConsumerWidget {
     // ── 3. 其他 section 映射到最合适的类型与分区 ──
     final otherMappings = <String, ({String typeId, String sectionId, String iconName, Map<String, PropertyValue> Function(String) builder})>{
       'publications': (
-        typeId: 'professional_award',
+        typeId: '__preset_award',
         sectionId: DefaultSectionIds.award,
         iconName: 'emoji_events',
         builder: (text) {
@@ -334,7 +334,7 @@ class ScanDocumentButton extends ConsumerWidget {
         },
       ),
       'projects': (
-        typeId: 'professional_employment',
+        typeId: '__preset_employment',
         sectionId: DefaultSectionIds.employment,
         iconName: 'work',
         builder: (text) {
@@ -346,7 +346,7 @@ class ScanDocumentButton extends ConsumerWidget {
         },
       ),
       'certifications': (
-        typeId: 'professional_education',
+        typeId: '__preset_education',
         sectionId: DefaultSectionIds.education,
         iconName: 'school',
         builder: (text) {
@@ -358,7 +358,7 @@ class ScanDocumentButton extends ConsumerWidget {
         },
       ),
       'research': (
-        typeId: 'professional_award',
+        typeId: '__preset_award',
         sectionId: DefaultSectionIds.award,
         iconName: 'emoji_events',
         builder: (text) {

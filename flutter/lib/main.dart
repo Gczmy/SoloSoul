@@ -23,6 +23,7 @@ import 'package:solosoul_flutter/frb/frb_generated.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/core/utils/field_label_resolver.dart';
 import 'package:solosoul_flutter/presentation/providers/language_provider.dart';
 
 void main() {
@@ -453,6 +454,11 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
                 Locale('zh'),
               ],
               locale: ref.watch(languageProvider).value,
+              builder: (context, child) {
+                // 注入当前 locale 的 AppLocalizations，语言切换时自动更新
+                FieldLabelResolver.init(AppLocalizations.of(context));
+                return child!;
+              },
             ),
           ),
         ),

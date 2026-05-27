@@ -13,7 +13,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 /// Widget that displays a value with sensitivity-based masking.
 /// - Public fields: Always shown as plaintext
 /// - Private fields: Plaintext when privacy shield is OFF, masked when ON
-/// - Restricted fields: Always masked, requires password verification to reveal
+/// - Critical fields: Always masked, requires password verification to reveal
 ///
 /// When [requireVerification] is false, critical fields behave like sensitive
 /// fields (tap to reveal, no password dialog). Useful in import preview pages
@@ -117,7 +117,7 @@ class _SensitiveValueWidgetState extends ConsumerState<SensitiveValueWidget> {
     final password = await showPasswordVerificationDialog(
       context: context,
       ref: ref,
-      message: AppLocalizations.of(context).sensitiveRestrictedMessage,
+      message: AppLocalizations.of(context).sensitiveCriticalMessage,
       passwordHint: selectedAccount?.passwordHint,
       onVerify: authNotifier.verifyPasswordForSensitiveData,
     );
