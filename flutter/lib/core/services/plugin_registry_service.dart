@@ -40,23 +40,33 @@ class PluginRegistryService {
   ///
   /// 多个源的插件按 ID 合并，同名插件后覆盖前（用户自定义源优先级更高）。
   Future<PluginRegistry> getRegistry() async {
-    // 1. 尝试从远程源获取并合并
+    // 1. 尝试从远程源获取
     final remoteRegistry = await _fetchFromSources();
+
+    // 2. 获取内置注册表（作为版本基准，防御 CDN 缓存延迟）
+    final builtinRegistry = await _loadBuiltinRegistry();
+
+    // 3. 合并：远程 + 内置，取每个插件的较新版本
+    if (remoteRegistry != null && builtinRegistry != null) {
+      final merged = _mergeRegistries(remoteRegistry, builtinRegistry);
+      await _saveLocalCache(jsonEncode(merged.toJson()));
+      return merged;
+    }
+
     if (remoteRegistry != null) {
       await _saveLocalCache(jsonEncode(remoteRegistry.toJson()));
       return remoteRegistry;
     }
 
-    // 2. 离线回退：本地缓存（即使过期）
+    // 4. 离线回退：本地缓存（即使过期）
     final cached = await _loadLocalCache();
     if (cached != null) {
       return cached;
     }
 
-    // 3. 首次启动兜底：内置资源
-    final builtin = await _loadBuiltinRegistry();
-    if (builtin != null) {
-      return builtin;
+    // 5. 首次启动兜底：内置资源
+    if (builtinRegistry != null) {
+      return builtinRegistry;
     }
 
     return PluginRegistry.empty();

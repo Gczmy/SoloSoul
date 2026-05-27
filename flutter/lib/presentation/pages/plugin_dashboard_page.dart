@@ -317,6 +317,7 @@ final Map<String, _ResultCardBuilder> _resultCardRenderers = {
   'key_value': (context, result) => _KeyValueResultCard(data: result.data),
   'table': (context, result) => _TableResultCard(data: result.data),
   'markdown': (context, result) => _MarkdownResultCard(data: result.data),
+  'calendar_events': (context, result) => _CalendarEventsResultCard(data: result.data),
 };
 
 /// 纯文本结果卡片
@@ -476,6 +477,182 @@ class _KeyValueResultCard extends StatelessWidget {
             begin: 0.15,
             end: 0,
             delay: (index * 80).ms,
+            duration: 300.ms,
+            curve: Curves.easeOutCubic,
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// 日历事件结果卡片
+class _CalendarEventsResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _CalendarEventsResultCard({required this.data});
+
+  IconData _kindIcon(String? kind) {
+    switch (kind) {
+      case 'passport': return Icons.book_outlined;
+      case 'visa': return Icons.fact_check_outlined;
+      case 'idcard': return Icons.badge_outlined;
+      case 'card': return Icons.credit_card_outlined;
+      default: return Icons.event_outlined;
+    }
+  }
+
+  Color _kindColor(String? kind) {
+    switch (kind) {
+      case 'passport': return const Color(0xFF1565C0);
+      case 'visa': return const Color(0xFF6A1B9A);
+      case 'idcard': return const Color(0xFF2E7D32);
+      case 'card': return const Color(0xFFEF6C00);
+      default: return Colors.grey;
+    }
+  }
+
+  String _kindLabel(String? kind) {
+    switch (kind) {
+      case 'passport': return '护照';
+      case 'visa': return '签证';
+      case 'idcard': return '身份证';
+      case 'card': return '信用卡';
+      default: return '事件';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = data['title'] as String? ?? '日历提醒事件';
+    final eventCount = data['eventCount'] as int? ?? 0;
+    final events = (data['events'] as List<dynamic>?) ?? [];
+    final ics = data['ics'] as String? ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 标题 + 事件数量
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '$title ($eventCount)',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            // 导出 ICS 按钮
+            if (ics.isNotEmpty)
+              TextButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: ics));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('已复制 ICS 到剪贴板'), duration: Duration(seconds: 1)),
+                  );
+                },
+                icon: const Icon(Icons.calendar_month, size: 16),
+                label: const Text('复制 ICS', style: TextStyle(fontSize: 12)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // 事件列表
+        ...events.asMap().entries.map<Widget>((entry) {
+          final index = entry.key;
+          final event = entry.value as Map<String, dynamic>;
+          final kind = event['kind'] as String?;
+          final summary = event['summary'] as String? ?? '';
+          final date = event['date'] as String? ?? '';
+          final alarmDays = event['alarmDays'] as int? ?? 0;
+          final description = event['description'] as String? ?? '';
+          final color = _kindColor(kind);
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 图标
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(_kindIcon(kind), color: color, size: 22),
+                ),
+                const SizedBox(width: 12),
+                // 内容
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              summary,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          // 提前提醒 badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '$alarmDays 天前提醒',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: color,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '到期日: $date',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      if (description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: (index * 100).ms, duration: 300.ms).slideY(
+            begin: 0.15,
+            end: 0,
+            delay: (index * 100).ms,
             duration: 300.ms,
             curve: Curves.easeOutCubic,
           );
@@ -935,6 +1112,8 @@ class _ResultCard extends StatelessWidget {
         return Icons.map_outlined;
       case 'markdown':
         return Icons.text_format;
+      case 'calendar_events':
+        return Icons.event_outlined;
       default:
         return Icons.extension_outlined;
     }
@@ -952,6 +1131,8 @@ class _ResultCard extends StatelessWidget {
         return '地图';
       case 'markdown':
         return '富文本';
+      case 'calendar_events':
+        return '日历事件';
       default:
         return '未知类型';
     }

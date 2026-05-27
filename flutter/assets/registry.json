@@ -1,6 +1,10 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T20:36:36Z",
+<<<<<<< HEAD
+  "updated_at": "2026-05-27T21:17:09Z",
+=======
+  "updated_at": "2026-05-27T21:17:09Z",
+>>>>>>> d93d235 (feat(calendar-events): 结构化结果输出，支持 calendar_events 卡片 + ICS 导出)
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -14,8 +18,7 @@
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T20:23:20Z",
-          "changelog": "结果卡片支持 tag 元数据（国家标签），优化展示格式"
+          "released_at": "2026-05-27T20:23:20Z"
         },
         "1.0.2": {
           "sha256": "12aab248f83b2162c799b40b3d8f51f5801ce5a173a5728d1752d957e82ff3a2",
@@ -63,10 +66,10 @@
     "com.solosoul.official.calendar-events": {
       "name": "Calendar Events",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.0",
+      "latest_version": "1.0.1",
       "versions": {
-        "1.0.0": {
-          "sha256": "d29c4a8a4d1961eb9d4109007e68dbe439e00753a985b2d16d596118a5b2f9a4",
+        "1.0.1": {
+          "sha256": "e67172a09cc68bada3af790c34e0f6145b2d2d437c8166477014905f9b3da598",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",

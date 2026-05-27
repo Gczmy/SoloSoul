@@ -559,7 +559,7 @@ impl SoloHostFunctions {
                     // JSON 校验
                     const MAX_SIZE: usize = 64 * 1024; // 64KB
                     const MAX_DEPTH: usize = 10;
-                    const VALID_TYPES: &[&str] = &["text", "key_value", "table", "map", "markdown"];
+                    const VALID_TYPES: &[&str] = &["text", "key_value", "table", "map", "markdown", "calendar_events"];
 
                     if data.len() > MAX_SIZE {
                         rust_log(&format!("[host:solosoul_result] rejected: size {} > {}", data.len(), MAX_SIZE));
@@ -1231,19 +1231,34 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         return first_empty;
     }
 
-    // 4. 通用字段路径映射（identity 等）
-    let property_key = match field_id {
-        "identity.full_name" => "fullName",
-        "identity.given_name" => "givenName",
-        "identity.family_name" => "familyName",
-        "identity.date_of_birth" => "dateOfBirth",
-        "identity.gender" => "gender",
-        "identity.nationality" => "nationality",
-        _ => {
-            field_id.split('.').last().unwrap_or(field_id)
-        }
+    // 4. 通用字段路径映射（identity / passport / visa / idCard / card 等）
+    // 解析 field_id 为 (type_filter, property_key)
+    // 示例: "passport.expiryDate" -> ("__preset_passport" or "profile_passport", "expiryDate")
+    let (type_filter, property_key) = if let Some((prefix, key)) = field_id.split_once('.') {
+        let filter = match prefix {
+            "passport" => Some("__preset_passport"),
+            "visa" => Some("__preset_visa"),
+            "idCard" => Some("__preset_idcard"),
+            "card" => Some("__preset_card"),
+            "identity" => Some("__preset_identity"),
+            "travel" => Some("__preset_travel"),
+            "financial" => Some("__preset_financial"),
+            "professional" => Some("__preset_professional"),
+            "health" => Some("__preset_health"),
+            "education" => Some("__preset_education"),
+            "property" => Some("__preset_property"),
+            "vehicle" => Some("__preset_vehicle"),
+            "pet" => Some("__preset_pet"),
+            "insurance" => Some("__preset_insurance"),
+            "membership" => Some("__preset_membership"),
+            "subscription" => Some("__preset_subscription"),
+            _ => None,
+        };
+        (filter, key)
+    } else {
+        (None, field_id)
     };
-    rust_log(&format!("[extract_from_uom] generic field lookup, property_key='{}'", property_key));
+    rust_log(&format!("[extract_from_uom] generic field lookup, type_filter={:?} property_key='{}'", type_filter, property_key));
 
     let mut first_empty: Option<String> = None;
     for obj in objects {
@@ -1253,6 +1268,12 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
         if type_id == "page" || type_id == "collection" {
             continue;
+        }
+        // 如果指定了 type_filter，只匹配对应类型的对象
+        if let Some(filter) = type_filter {
+            if type_id != filter && !type_id.ends_with(filter.strip_prefix("__preset_").unwrap_or(filter)) {
+                continue;
+            }
         }
         let properties = match obj.get("properties") {
             Some(p) => p,
