@@ -64,7 +64,7 @@ class PluginInstallerService {
     }
 
     // 5. 下载 manifest.json（从 wasm URL 推断 manifest URL）
-    final manifestJson = await _downloadManifest(versionInfo);
+    final manifestJson = await _downloadManifest(versionInfo, versionToInstall);
 
     return PluginArtifacts(
       wasmBytes: wasmBytes,
@@ -227,32 +227,46 @@ class PluginInstallerService {
     );
   }
 
-  /// 下载 manifest.json（从 wasm URL 推断 manifest 路径）
-  Future<String> _downloadManifest(PluginVersionInfo info) async {
-    // 尝试从 downloadUrl 推断 manifest URL
+  /// 下载 manifest.json（从 wasm URL 推断 manifest 路径）。
+  /// 支持 CDN → Raw fallback，并校验 manifest 中的 version 字段。
+  Future<String> _downloadManifest(PluginVersionInfo info, String expectedVersion) async {
     String? manifestUrl;
+
+    // 尝试从 downloadUrl 推断 manifest URL（jsDelivr CDN）
     try {
       manifestUrl = _inferManifestUrl(info.downloadUrl);
       final bytes = await _download(manifestUrl);
-      return utf8.decode(bytes);
+      final jsonStr = utf8.decode(bytes);
+      final parsed = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final version = parsed['version'] as String?;
+      if (version == expectedVersion) {
+        return jsonStr;
+      }
+      _log('Manifest CDN returned stale version: expected $expectedVersion, got $version');
     } on Exception catch (e) {
       _log('Manifest CDN download failed ($manifestUrl): $e');
     }
 
-    // fallback 到 rawUrl
+    // fallback 到 rawUrl（GitHub Raw，无 CDN 缓存问题）
     final rawUrl = info.rawUrl;
     if (rawUrl != null) {
       try {
         manifestUrl = _inferManifestUrl(rawUrl);
         final bytes = await _download(manifestUrl);
-        return utf8.decode(bytes);
+        final jsonStr = utf8.decode(bytes);
+        final parsed = jsonDecode(jsonStr) as Map<String, dynamic>;
+        final version = parsed['version'] as String?;
+        if (version == expectedVersion) {
+          return jsonStr;
+        }
+        _log('Manifest Raw returned stale version: expected $expectedVersion, got $version');
       } on Exception catch (e) {
         _log('Manifest raw download failed ($manifestUrl): $e');
       }
     }
 
     throw PluginSecurityException(
-      'Failed to download manifest.json from all available URLs',
+      'Failed to download manifest.json from all available URLs (CDN cache stale?)',
     );
   }
 
