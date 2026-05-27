@@ -137,11 +137,14 @@ class PluginDashboardNotifier extends AsyncNotifier<PluginDashboardData> {
     });
   }
 
-  /// 安装成功后局部添加插件 — 避免全页 loading
+  /// 安装成功后局部添加/替换插件 — 避免全页 loading
   void addInstalledPlugin(frb_manifest.PluginManifest manifest) {
     final current = state.value;
     if (current == null) return;
-    final updated = [...current.installed, manifest];
+    final updated = [
+      ...current.installed.where((m) => m.pluginId != manifest.pluginId),
+      manifest,
+    ];
     state = AsyncData(current.copyWith(installed: updated));
   }
 
