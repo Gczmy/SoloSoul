@@ -1,12 +1,21 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T19:45:27Z",
+  "updated_at": "2026-05-27T19:45:58Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.2",
+      "latest_version": "1.0.3",
       "versions": {
+        "1.0.3": {
+          "sha256": "12aab248f83b2162c799b40b3d8f51f5801ce5a173a5728d1752d957e82ff3a2",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "released_at": "2026-05-27T19:09:22Z"
+        },
         "1.0.2": {
           "sha256": "12aab248f83b2162c799b40b3d8f51f5801ce5a173a5728d1752d957e82ff3a2",
           "plugin_api_version": "1.0",
@@ -35,16 +44,6 @@
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "released_at": "2026-05-24T00:08:13Z",
           "changelog": "初始版本：支持单条地址格式化（中/美/英/日/德等10国）"
-        },
-        "1.0.3": {
-          "sha256": "12aab248f83b2162c799b40b3d8f51f5801ce5a173a5728d1752d957e82ff3a2",
-          "plugin_api_version": "1.0",
-          "min_app_version": "1.0.0",
-          "max_app_version": "999.999.999",
-          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T19:09:22Z",
-          "changelog": "修复结果 JSON key/value 重复问题，加强 JSON 转义处理"
         }
       },
       "description": "地址格式化器 — 按目标国家/地区规范格式化 Vault 中的所有地址（中/美/英/日/德等）",

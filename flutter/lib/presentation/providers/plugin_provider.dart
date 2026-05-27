@@ -109,9 +109,11 @@ final activeSessionsProvider = FutureProvider<List<frb.PluginSessionInfo>>((ref)
 class PluginDashboardNotifier extends AsyncNotifier<PluginDashboardData> {
   @override
   Future<PluginDashboardData> build() async {
-    final registry = await ref.watch(pluginRegistryStateProvider.future);
-    final installed = await ref.watch(installedPluginsProvider.future);
-    final activeSessions = await ref.watch(activeSessionsProvider.future);
+    // 使用 ref.read 避免底层 provider 变化时自动 rebuild，
+    // 安装/卸载通过 add/removeInstalledPlugin 局部更新，保持 UI 不闪动。
+    final registry = await ref.read(pluginRegistryStateProvider.future);
+    final installed = await ref.read(installedPluginsProvider.future);
+    final activeSessions = await ref.read(activeSessionsProvider.future);
 
     return PluginDashboardData(
       registry: registry,
