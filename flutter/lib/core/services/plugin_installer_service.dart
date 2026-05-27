@@ -190,27 +190,40 @@ class PluginInstallerService {
     return app >= min && app <= max;
   }
 
-  /// 下载 wasm，优先 CDN，fallback 到 Raw
+  /// 下载 wasm，优先 CDN，fallback 到 Raw。
+  /// CDN 返回缓存旧版本时（hash 不匹配），自动 fallback 到 Raw。
   Future<List<int>> _downloadWasm(PluginVersionInfo info) async {
+    final expectedHash = info.sha256;
+
     // 优先尝试 downloadUrl（jsDelivr CDN）
     try {
-      return await _download(info.downloadUrl);
+      final bytes = await _download(info.downloadUrl);
+      final hash = sha256.convert(bytes).toString();
+      if (hash == expectedHash) {
+        return bytes;
+      }
+      _log('CDN returned stale wasm (hash mismatch): expected $expectedHash, got $hash');
     } on Exception catch (e) {
       _log('CDN download failed (${info.downloadUrl}): $e');
     }
 
-    // fallback 到 rawUrl（GitHub Raw）
+    // fallback 到 rawUrl（GitHub Raw，无 CDN 缓存问题）
     final rawUrl = info.rawUrl;
     if (rawUrl != null && rawUrl != info.downloadUrl) {
       try {
-        return await _download(rawUrl);
+        final bytes = await _download(rawUrl);
+        final hash = sha256.convert(bytes).toString();
+        if (hash == expectedHash) {
+          return bytes;
+        }
+        _log('Raw returned stale wasm (hash mismatch): expected $expectedHash, got $hash');
       } on Exception catch (e) {
         _log('Raw download failed ($rawUrl): $e');
       }
     }
 
     throw PluginSecurityException(
-      'Failed to download wasm from all available URLs',
+      'Failed to download wasm from all available URLs (hash mismatch — CDN cache stale?)',
     );
   }
 
