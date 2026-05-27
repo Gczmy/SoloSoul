@@ -323,6 +323,7 @@ final Map<String, _ResultCardBuilder> _resultCardRenderers = {
   'table': (context, result) => _TableResultCard(data: result.data),
   'markdown': (context, result) => _MarkdownResultCard(data: result.data),
   'calendar_events': (context, result) => _CalendarEventsResultCard(data: result.data),
+  'data_completeness': (context, result) => _DataCompletenessResultCard(data: result.data),
 };
 
 /// 纯文本结果卡片
@@ -386,6 +387,7 @@ class _KeyValueResultCard extends StatelessWidget {
   /// 插件结果 key 的本地化映射
   String _localizeKey(String key) {
     switch (key) {
+      // 通用联系信息
       case 'Name': return '姓名';
       case 'Email': return '邮箱';
       case 'Phone': return '电话';
@@ -400,6 +402,71 @@ class _KeyValueResultCard extends StatelessWidget {
       case 'Country': return '国家';
       case 'Field': return '字段';
       case 'Value': return '值';
+      // resume-builder
+      case 'LinkedIn': return 'LinkedIn';
+      case '工作': return '工作';
+      case '在职时间': return '在职时间';
+      case '教育': return '教育';
+      case '核心技能': return '核心技能';
+      case '其他技能': return '其他技能';
+      case '母语': return '母语';
+      case '其他语言': return '其他语言';
+      // tax-profile
+      case '纳税人': return '纳税人';
+      case '出生日期': return '出生日期';
+      case '税务居民国': return '税务居民国';
+      case '税号': return '税号';
+      case '住址': return '住址';
+      case '雇主': return '雇主';
+      case '职位': return '职位';
+      case '收入来源': return '收入来源';
+      // totp-gen
+      case '标签': return '标签';
+      case '验证码': return '验证码';
+      case '剩余时间': return '剩余时间';
+      // travel-footprint
+      case '国籍': return '国籍';
+      case '到访国家数': return '到访国家数';
+      case '签证数量': return '签证数量';
+      case '亚洲': return '亚洲';
+      case '欧洲': return '欧洲';
+      case '北美洲': return '北美洲';
+      case '大洋洲': return '大洋洲';
+      case '南美洲': return '南美洲';
+      case '非洲': return '非洲';
+      case '其他': return '其他';
+      // phone-fmt
+      case '原始号码': return '原始号码';
+      case '格式化后': return '格式化后';
+      // emergency-card
+      case '血型': return '血型';
+      case '过敏': return '过敏';
+      case '用药': return '用药';
+      case '紧急联系人': return '紧急联系人';
+      // id-validator
+      case '证件类型': return '证件类型';
+      case '校验结果': return '校验结果';
+      case '脱敏号码': return '脱敏号码';
+      // expiry-guardian
+      case '证件列表': return '证件列表';
+      case '剩余天数': return '剩余天数';
+      case '紧急程度': return '紧急程度';
+      // form-prefiller
+      case '场景': return '场景';
+      case '字段就绪状态': return '字段就绪状态';
+      // doc-checklist
+      case '场景名称': return '场景名称';
+      case '材料项状态列表': return '材料项状态列表';
+      // identity-timeline
+      case '时间线事件列表': return '时间线事件列表';
+      // mrz-encoder
+      case 'MRZ 行': return 'MRZ 行';
+      case '脱敏预览': return '脱敏预览';
+      // digital-will
+      case '立嘱人': return '立嘱人';
+      case '紧急联系人': return '紧急联系人';
+      case '资产': return '资产';
+      case '数字账户': return '数字账户';
       default: return key;
     }
   }
@@ -684,6 +751,173 @@ class _CalendarEventsResultCard extends StatelessWidget {
             curve: Curves.easeOutCubic,
           );
         }),
+      ],
+    );
+  }
+}
+
+/// 档案完整度结果卡片
+class _DataCompletenessResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _DataCompletenessResultCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final overall = data['overall'] as int? ?? 0;
+    final sections = (data['sections'] as List<dynamic>?) ?? [];
+    final message = data['message'] as String? ?? '';
+    final color = overall >= 80
+        ? Colors.green
+        : overall >= 50
+            ? Colors.orange
+            : Colors.red;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 总体完成度
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            children: [
+              Text(
+                '$overall%',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '档案完整度',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 总体进度条
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: overall / 100,
+                  minHeight: 8,
+                  backgroundColor: color.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // 各分区进度
+        ...sections.asMap().entries.map<Widget>((entry) {
+          final index = entry.key;
+          final section = entry.value as Map<String, dynamic>;
+          final name = section['name'] as String? ?? '';
+          final icon = section['icon'] as String? ?? '📋';
+          final percentage = section['percentage'] as int? ?? 0;
+          final totalFields = section['totalFields'] as int? ?? 0;
+          final filledFields = section['filledFields'] as int? ?? 0;
+          final missing = (section['missing'] as List<dynamic>?)?.cast<String>() ?? [];
+          final sectionColor = percentage >= 80
+              ? Colors.green
+              : percentage >= 50
+                  ? Colors.orange
+                  : Colors.red;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(icon, style: const TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '$filledFields/$totalFields',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: (percentage / 100).clamp(0.0, 1.0),
+                    minHeight: 6,
+                    backgroundColor: sectionColor.withValues(alpha: 0.12),
+                    valueColor: AlwaysStoppedAnimation<Color>(sectionColor),
+                  ),
+                ),
+                if (missing.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    '💡 建议补充: ${missing.join(", ")}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ).animate().fadeIn(delay: (index * 80).ms, duration: 300.ms).slideY(
+            begin: 0.1,
+            end: 0,
+            delay: (index * 80).ms,
+            duration: 300.ms,
+            curve: Curves.easeOutCubic,
+          );
+        }),
+        if (message.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: color.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1141,6 +1375,8 @@ class _ResultCard extends StatelessWidget {
         return Icons.text_format;
       case 'calendar_events':
         return Icons.event_outlined;
+      case 'data_completeness':
+        return Icons.data_usage_outlined;
       default:
         return Icons.extension_outlined;
     }
@@ -1160,6 +1396,8 @@ class _ResultCard extends StatelessWidget {
         return '富文本';
       case 'calendar_events':
         return '日历事件';
+      case 'data_completeness':
+        return '档案完整度';
       default:
         return '未知类型';
     }

@@ -559,7 +559,7 @@ impl SoloHostFunctions {
                     // JSON 校验
                     const MAX_SIZE: usize = 64 * 1024; // 64KB
                     const MAX_DEPTH: usize = 10;
-                    const VALID_TYPES: &[&str] = &["text", "key_value", "table", "map", "markdown", "calendar_events"];
+                    const VALID_TYPES: &[&str] = &["text", "key_value", "table", "map", "markdown", "calendar_events", "data_completeness"];
 
                     if data.len() > MAX_SIZE {
                         rust_log(&format!("[host:solosoul_result] rejected: size {} > {}", data.len(), MAX_SIZE));
