@@ -103,21 +103,58 @@ final activeSessionsProvider = FutureProvider<List<frb.PluginSessionInfo>>((ref)
 
 
 // ============================================================================
-// Plugin Dashboard Combined State
+// Plugin Dashboard Combined State (AsyncNotifier — 支持局部更新，避免全页刷新)
 // ============================================================================
 
-final pluginDashboardProvider = FutureProvider<PluginDashboardData>((ref) async {
-  // 等待所有依赖的 FutureProvider 完成，避免在 loading 时显示空数据
-  final registry = await ref.watch(pluginRegistryStateProvider.future);
-  final installed = await ref.watch(installedPluginsProvider.future);
-  final activeSessions = await ref.watch(activeSessionsProvider.future);
+class PluginDashboardNotifier extends AsyncNotifier<PluginDashboardData> {
+  @override
+  Future<PluginDashboardData> build() async {
+    final registry = await ref.watch(pluginRegistryStateProvider.future);
+    final installed = await ref.watch(installedPluginsProvider.future);
+    final activeSessions = await ref.watch(activeSessionsProvider.future);
 
-  return PluginDashboardData(
-    registry: registry,
-    installed: installed,
-    activeSessions: activeSessions,
-  );
-});
+    return PluginDashboardData(
+      registry: registry,
+      installed: installed,
+      activeSessions: activeSessions,
+    );
+  }
+
+  /// 全量刷新 — 用户手动点击刷新按钮时使用
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final registry = await ref.read(pluginRegistryStateProvider.future);
+      final installed = await ref.read(installedPluginsProvider.future);
+      final activeSessions = await ref.read(activeSessionsProvider.future);
+      return PluginDashboardData(
+        registry: registry,
+        installed: installed,
+        activeSessions: activeSessions,
+      );
+    });
+  }
+
+  /// 安装成功后局部添加插件 — 避免全页 loading
+  void addInstalledPlugin(frb_manifest.PluginManifest manifest) {
+    final current = state.value;
+    if (current == null) return;
+    final updated = [...current.installed, manifest];
+    state = AsyncData(current.copyWith(installed: updated));
+  }
+
+  /// 卸载成功后局部移除插件 — 避免全页 loading
+  void removeInstalledPlugin(String pluginId) {
+    final current = state.value;
+    if (current == null) return;
+    final updated = current.installed.where((m) => m.pluginId != pluginId).toList();
+    state = AsyncData(current.copyWith(installed: updated));
+  }
+}
+
+final pluginDashboardProvider = AsyncNotifierProvider<PluginDashboardNotifier, PluginDashboardData>(
+  () => PluginDashboardNotifier(),
+);
 
 /// 插件看板聚合数据
 class PluginDashboardData {
@@ -184,6 +221,18 @@ class PluginDashboardData {
 
   List<String> get availableIds =>
       registry.plugins.keys.where((id) => !isInstalled(id)).toList();
+
+  PluginDashboardData copyWith({
+    PluginRegistry? registry,
+    List<frb_manifest.PluginManifest>? installed,
+    List<frb.PluginSessionInfo>? activeSessions,
+  }) {
+    return PluginDashboardData(
+      registry: registry ?? this.registry,
+      installed: installed ?? this.installed,
+      activeSessions: activeSessions ?? this.activeSessions,
+    );
+  }
 }
 
 // ============================================================================

@@ -65,7 +65,7 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => refreshPluginDashboard(ref),
+            onPressed: () => ref.read(pluginDashboardProvider.notifier).refresh(),
           ),
         ],
       ),
@@ -1568,8 +1568,12 @@ class _PluginCard extends ConsumerWidget {
       if (!context.mounted) return;
       await installer.installFromArtifacts(artifacts);
       if (!context.mounted) return;
-      ref.invalidate(installedPluginsProvider);
-      ref.invalidate(pluginRegistryStateProvider);
+
+      // 4. 局部更新安装状态，避免全页刷新
+      final manifest = artifacts.toManifest();
+      if (manifest != null) {
+        ref.read(pluginDashboardProvider.notifier).addInstalledPlugin(manifest);
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2024,8 +2028,10 @@ class _PluginCard extends ConsumerWidget {
         if (!context.mounted) return;
         await installer.uninstall(pluginId);
         if (!context.mounted) return;
-        ref.invalidate(installedPluginsProvider);
-        ref.invalidate(activeSessionsProvider);
+
+        // 局部更新安装状态，避免全页刷新
+        ref.read(pluginDashboardProvider.notifier).removeInstalledPlugin(pluginId);
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.pluginUninstallSuccess)),

@@ -5,6 +5,8 @@
 
 import 'dart:convert';
 
+import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
+
 
 /// 插件注册表（registry.json）
 class PluginRegistry {
@@ -337,6 +339,49 @@ class PluginArtifacts {
       final fieldAccess = manifest['field_access'] as List<dynamic>?;
       if (fieldAccess == null || fieldAccess.isEmpty) return null;
       return fieldAccess.cast<Map<String, dynamic>>();
+    } on Exception {
+      return null;
+    }
+  }
+
+  /// 将 manifest JSON 解析为 PluginManifest 对象
+  frb_manifest.PluginManifest? toManifest() {
+    try {
+      final m = jsonDecode(manifestJson) as Map<String, dynamic>;
+      frb_manifest.NetworkPolicy? parseNetworkPolicy() {
+        final np = m['network_policy'] as Map<String, dynamic>?;
+        if (np == null) return null;
+        return frb_manifest.NetworkPolicy(
+          allowedDomains: (np['allowed_domains'] as List<dynamic>? ?? []).cast<String>(),
+          blockAllOutbound: np['block_all_outbound'] as bool? ?? false,
+        );
+      }
+
+      Map<String, Map<String, String>> parseI18N() {
+        final raw = m['i18n'] as Map<String, dynamic>?;
+        if (raw == null) return {};
+        return raw.map((k, v) => MapEntry(k, (v as Map<String, dynamic>).cast<String, String>()));
+      }
+
+      return frb_manifest.PluginManifest(
+        pluginId: m['plugin_id'] as String? ?? '',
+        name: m['name'] as String? ?? '',
+        version: m['version'] as String? ?? '',
+        pluginApiVersion: m['plugin_api_version'] as String? ?? '',
+        minAppVersion: m['min_app_version'] as String? ?? '',
+        maxAppVersion: m['max_app_version'] as String? ?? '',
+        description: m['description'] as String? ?? '',
+        publisher: m['publisher'] as String? ?? '',
+        homepage: m['homepage'] as String?,
+        signature: m['signature'] as String?,
+        requiredFields: (m['required_fields'] as List<dynamic>? ?? []).cast<String>(),
+        optionalFields: (m['optional_fields'] as List<dynamic>? ?? []).cast<String>(),
+        networkPolicy: parseNetworkPolicy(),
+        dataTtlSeconds: BigInt.from(m['data_ttl_seconds'] as int? ?? 300),
+        requireUserConfirmation: m['require_user_confirmation'] as bool? ?? true,
+        consentValidityHours: BigInt.from(m['consent_validity_hours'] as int? ?? 24),
+        i18N: parseI18N(),
+      );
     } on Exception {
       return null;
     }
