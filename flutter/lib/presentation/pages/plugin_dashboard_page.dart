@@ -286,6 +286,11 @@ class _PluginResultData {
       case 'text':
         return data['content'] as String? ?? '';
       case 'key_value':
+        // 如果提供了 csv 字段，优先返回 CSV 格式（如联系人导出）
+        final csv = data['csv'] as String?;
+        if (csv != null && csv.isNotEmpty) {
+          return csv;
+        }
         final pairs = (data['pairs'] as List<dynamic>?) ?? [];
         return pairs.map((p) {
           final pair = p as Map<String, dynamic>;
@@ -378,6 +383,27 @@ class _KeyValueResultCard extends StatelessWidget {
     }
   }
 
+  /// 插件结果 key 的本地化映射
+  String _localizeKey(String key) {
+    switch (key) {
+      case 'Name': return '姓名';
+      case 'Email': return '邮箱';
+      case 'Phone': return '电话';
+      case 'Website': return '网站';
+      case 'Title': return '职位';
+      case 'Organization': return '组织';
+      case 'Address': return '地址';
+      case 'Street': return '街道';
+      case 'City': return '城市';
+      case 'State': return '省份';
+      case 'Postal Code': return '邮编';
+      case 'Country': return '国家';
+      case 'Field': return '字段';
+      case 'Value': return '值';
+      default: return key;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = data['title'] as String?;
@@ -398,7 +424,8 @@ class _KeyValueResultCard extends StatelessWidget {
         ...pairs.asMap().entries.map<Widget>((entry) {
           final index = entry.key;
           final pair = entry.value as Map<String, dynamic>;
-          final key = pair['key'] as String? ?? '';
+          final rawKey = pair['key'] as String? ?? '';
+          final key = _localizeKey(rawKey);
           final value = pair['value'] as String? ?? '';
           final tag = pair['tag'] as String?;
           final tagCode = pair['tagCode'] as String?;
