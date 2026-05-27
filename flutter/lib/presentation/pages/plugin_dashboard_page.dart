@@ -415,18 +415,22 @@ class _KeyValueResultCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 标签 chip
+                // 标签 chip（空心 outline 风格）
                 Chip(
-                  label: Text(key, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  label: Text(key),
                   visualDensity: VisualDensity.compact,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
-                  side: BorderSide.none,
-                  labelStyle: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  backgroundColor: Colors.transparent,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+                    width: 1,
                   ),
-                  padding: EdgeInsets.zero,
+                  labelStyle: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 const SizedBox(width: 10),
                 // 值
