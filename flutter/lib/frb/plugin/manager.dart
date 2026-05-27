@@ -25,6 +25,10 @@ sealed class PluginEvent with _$PluginEvent {
     required String level,
     required String message,
   }) = PluginEvent_Log;
+
+  /// 结构化结果（Phase 2: solosoul_result 通道）
+  const factory PluginEvent.result({required String jsonData}) =
+      PluginEvent_Result;
   const factory PluginEvent.progress({required int percent}) =
       PluginEvent_Progress;
   const factory PluginEvent.completed({required int exitCode}) =

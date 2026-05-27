@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version/version.dart';
 
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io' show Platform;
 
 import 'package:solosoul_flutter/frb/api.dart' as frb;
@@ -17,6 +18,7 @@ import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/plugin_models.dart' show PluginArtifacts, PluginRegistryEntry, resolvePluginI18n;
 import 'package:solosoul_flutter/core/models/semantic_type_registry.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_access_review_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_consent_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_detail_dialog.dart';
@@ -593,6 +595,45 @@ class _AddressFormatterResultDialogState extends State<_AddressFormatterResultDi
                     );
                   },
                 ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '无结果返回',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '具体细节请查看执行日志',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
             if (widget.hasErrors)
@@ -628,26 +669,248 @@ class _AddressFormatterResultDialogState extends State<_AddressFormatterResultDi
 }
 
 // ============================================================================
+// Phase 2: 结构化结果卡片渲染系统
+// ============================================================================
+
+/// 插件结构化结果数据（从 solosoul_result 通道的 JSON 解析）
+class _PluginResultData {
+  final String type;
+  final Map<String, dynamic> data;
+
+  const _PluginResultData({required this.type, required this.data});
+
+  factory _PluginResultData.fromJson(String jsonStr) {
+    final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+    final type = json['type'] as String? ?? 'text';
+    return _PluginResultData(type: type, data: json);
+  }
+
+  /// 生成适合复制的纯文本格式
+  String toCopyText() {
+    switch (type) {
+      case 'text':
+        return data['content'] as String? ?? '';
+      case 'key_value':
+        final pairs = (data['pairs'] as List<dynamic>?) ?? [];
+        return pairs.map((p) {
+          final pair = p as Map<String, dynamic>;
+          return '${pair['key']}: ${pair['value']}';
+        }).join('\n');
+      case 'table':
+        final headers = (data['headers'] as List<dynamic>?)?.cast<String>() ?? [];
+        final rows = (data['rows'] as List<dynamic>?)?.cast<List<dynamic>>() ?? [];
+        final buffer = StringBuffer();
+        buffer.writeln(headers.join('\t'));
+        for (final row in rows) {
+          buffer.writeln(row.cast<String?>().join('\t'));
+        }
+        return buffer.toString();
+      case 'markdown':
+        return data['content'] as String? ?? '';
+      default:
+        return jsonEncode(data);
+    }
+  }
+}
+
+/// 结果卡片渲染器函数签名
+typedef _ResultCardBuilder = Widget Function(BuildContext context, _PluginResultData result);
+
+/// 渲染器注册表（策略模式）
+final Map<String, _ResultCardBuilder> _resultCardRenderers = {
+  'text': (context, result) => _TextResultCard(data: result.data),
+  'key_value': (context, result) => _KeyValueResultCard(data: result.data),
+  'table': (context, result) => _TableResultCard(data: result.data),
+  'markdown': (context, result) => _MarkdownResultCard(data: result.data),
+};
+
+/// 纯文本结果卡片
+class _TextResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _TextResultCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final content = data['content'] as String? ?? '';
+    return SelectableText(
+      content,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+    );
+  }
+}
+
+/// 键值对结果卡片
+class _KeyValueResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _KeyValueResultCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = data['title'] as String?;
+    final pairs = (data['pairs'] as List<dynamic>?) ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title != null && title.isNotEmpty) ...[
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        ...pairs.map<Widget>((p) {
+          final pair = p as Map<String, dynamic>;
+          final key = pair['key'] as String? ?? '';
+          final value = pair['value'] as String? ?? '';
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$key: ',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Expanded(
+                  child: SelectableText(value),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// 表格结果卡片
+class _TableResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _TableResultCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final headers = (data['headers'] as List<dynamic>?)?.cast<String>() ?? [];
+    final rows = (data['rows'] as List<dynamic>?)?.cast<List<dynamic>>() ?? [];
+
+    if (headers.isEmpty && rows.isEmpty) {
+      return const Text('空表格');
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowColor: WidgetStateProperty.all(
+          Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+        ),
+        border: TableBorder.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+        ),
+        columns: headers.map((h) => DataColumn(label: Text(h))).toList(),
+        rows: rows.map((row) {
+          final cells = row.cast<String?>();
+          return DataRow(
+            cells: cells.map((c) => DataCell(Text(c ?? ''))).toList(),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+/// Markdown 结果卡片（安全子集）
+class _MarkdownResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _MarkdownResultCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final content = data['content'] as String? ?? '';
+
+    return MarkdownBody(
+      data: content,
+      selectable: true,
+      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+        p: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+      ),
+      onTapLink: (text, href, title) {
+        // 禁用外部链接跳转，仅展示提示
+        if (href != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('链接: $href'),
+              duration: const Duration(seconds: 2),
+              action: SnackBarAction(
+                label: '复制',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: href));
+                },
+              ),
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
+/// 未知类型结果卡片（降级展示原始 JSON）
+class _UnknownResultCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _UnknownResultCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectableText(
+      jsonEncode(data),
+      style: TextStyle(
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+        fontSize: 12,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+// ============================================================================
 // Plugin Result Dialog — 通用插件结果展示对话框
 // ============================================================================
 
-class _PluginResultDialog extends StatelessWidget {
+class _PluginResultDialog extends StatefulWidget {
   final String pluginName;
   final List<String> logs;
+  final List<_PluginResultData> results;
   final int exitCode;
   final bool hasErrors;
 
   const _PluginResultDialog({
     required this.pluginName,
     required this.logs,
+    this.results = const [],
     required this.exitCode,
     required this.hasErrors,
   });
 
   @override
+  State<_PluginResultDialog> createState() => _PluginResultDialogState();
+}
+
+class _PluginResultDialogState extends State<_PluginResultDialog> {
+  bool _logsExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final allText = logs.join('\n');
+    final allText = widget.logs.join('\n');
+    final hasResults = widget.results.isNotEmpty;
 
     return AlertDialog(
       insetPadding: EdgeInsets.symmetric(
@@ -657,11 +920,11 @@ class _PluginResultDialog extends StatelessWidget {
       title: Row(
         children: [
           Icon(
-            hasErrors ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-            color: hasErrors ? Colors.orange.shade700 : Colors.green.shade600,
+            widget.hasErrors ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+            color: widget.hasErrors ? Colors.orange.shade700 : Colors.green.shade600,
           ),
           const SizedBox(width: 8),
-          Expanded(child: Text('$pluginName 结果')),
+          Expanded(child: Text('${widget.pluginName} 结果')),
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.of(context).pop(),
@@ -675,54 +938,171 @@ class _PluginResultDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 复制全部按钮
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: allText));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('已复制全部内容到剪贴板'),
-                      duration: Duration(seconds: 1),
+            // === 执行日志区（可展开折叠，默认折叠，放在结果上方） ===
+            Material(
+              color: Colors.transparent,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dividerColor: Colors.transparent,
+                ),
+                child: ExpansionTile(
+                  title: Text(
+                    '执行日志 (${widget.logs.length} 行)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                  );
-                },
-                icon: const Icon(Icons.copy_all, size: 18),
-                label: const Text('复制全部'),
+                  ),
+                  tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+                  childrenPadding: EdgeInsets.zero,
+                  initiallyExpanded: _logsExpanded,
+                  onExpansionChanged: (expanded) => setState(() => _logsExpanded = expanded),
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      constraints: const BoxConstraints(maxHeight: 300),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(12),
+                            child: SelectableText(
+                              allText,
+                              style: TextStyle(
+                                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                                fontSize: 12,
+                                height: 1.5,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: allText));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('已复制全部日志到剪贴板'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.copy_all, size: 16),
+                        label: const Text('复制全部日志', style: TextStyle(fontSize: 12)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            // 日志内容
-            Flexible(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
+
+            const SizedBox(height: 12),
+
+            // === 结果区 ===
+            if (hasResults)
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: widget.results.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final result = widget.results[index];
+                    final builder = _resultCardRenderers[result.type];
+                    final cardContent = builder != null
+                        ? builder(context, result)
+                        : _UnknownResultCard(data: result.data);
+
+                    return _ResultCard(
+                      result: result,
+                      child: cardContent,
+                    );
+                  },
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(12),
-                      child: SelectableText(
-                        allText,
-                        style: TextStyle(
-                          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                          fontSize: 13,
-                          height: 1.5,
-                          color: Theme.of(context).colorScheme.onSurface,
+              )
+            else if (widget.logs.isNotEmpty)
+              Flexible(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(12),
+                        child: SelectableText(
+                          allText,
+                          style: TextStyle(
+                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                            fontSize: 13,
+                            height: 1.6,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.article_outlined,
+                      size: 40,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '无结果返回',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '具体细节请查看执行日志',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            if (hasErrors)
+
+            if (widget.hasErrors)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
@@ -731,7 +1111,7 @@ class _PluginResultDialog extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '插件执行过程中出现部分错误（exit: $exitCode）',
+                        '插件执行过程中出现部分错误（exit: ${widget.exitCode}）',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.orange.shade800,
@@ -751,6 +1131,133 @@ class _PluginResultDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+/// 结构化结果卡片容器（统一提供复制按钮和卡片样式）
+class _ResultCard extends StatelessWidget {
+  final _PluginResultData result;
+  final Widget child;
+
+  const _ResultCard({required this.result, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 卡片头部：类型标签 + 复制按钮
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _typeIcon(result.type),
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _typeLabel(result.type),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const Spacer(),
+                // 复制适合阅读的文本
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 16),
+                  tooltip: '复制结果',
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: result.toCopyText()));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('已复制结果到剪贴板'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+                // 复制原始 JSON（长按菜单）
+                IconButton(
+                  icon: const Icon(Icons.code, size: 16),
+                  tooltip: '复制原始 JSON',
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: jsonEncode(result.data)));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('已复制原始 JSON 到剪贴板'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          // 卡片内容
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _typeIcon(String type) {
+    switch (type) {
+      case 'text':
+        return Icons.text_snippet_outlined;
+      case 'key_value':
+        return Icons.format_list_bulleted;
+      case 'table':
+        return Icons.table_chart_outlined;
+      case 'map':
+        return Icons.map_outlined;
+      case 'markdown':
+        return Icons.text_format;
+      default:
+        return Icons.extension_outlined;
+    }
+  }
+
+  String _typeLabel(String type) {
+    switch (type) {
+      case 'text':
+        return '文本';
+      case 'key_value':
+        return '键值对';
+      case 'table':
+        return '表格';
+      case 'map':
+        return '地图';
+      case 'markdown':
+        return '富文本';
+      default:
+        return '未知类型';
+    }
   }
 }
 
@@ -1294,6 +1801,7 @@ class _PluginCard extends ConsumerWidget {
     final stream = runPlugin(ref, pluginId);
     final List<String> pluginLogs = [];
     final List<String> errorMessages = [];
+    final List<_PluginResultData> pluginResults = [];
     final batchRequests = <frb_plugin.PluginEvent_ConsentRequest>[];
     String? batchPluginName;
 
@@ -1311,6 +1819,14 @@ class _PluginCard extends ConsumerWidget {
               batchPluginName = resolvePluginI18n(
                 entry?.i18n, 'name', locale, pname,
               );
+            }
+          case frb_plugin.PluginEvent_Result(jsonData: final jsonData):
+            // Phase 2: 收集结构化结果
+            try {
+              pluginResults.add(_PluginResultData.fromJson(jsonData));
+            } on Exception catch (e) {
+              // JSON 解析失败时降级为日志
+              pluginLogs.add('[结果解析错误] $e');
             }
           case frb_plugin.PluginEvent_Log(level: final level, message: final message):
             // 批量预授权结束信号：显示批量授权对话框
@@ -1343,17 +1859,13 @@ class _PluginCard extends ConsumerWidget {
               batchRequests.clear();
               // 如果用户拒绝，本次执行后续不会再有 ConsentRequest（Rust 已终止）
             }
-            // 收集插件输出的 info 日志（排除内部信号、空消息和调试日志）
+            // 收集插件输出的 info 日志（排除预授权信号和空消息）
             if (level == 'info' && message.isNotEmpty && !message.startsWith('pre-consent|')) {
-              if (!_isInternalDebugLog(message)) {
-                pluginLogs.add(message);
-              }
+              pluginLogs.add(message);
             }
-            // 收集插件错误日志（排除调试级错误）
+            // 收集插件错误日志
             if (level == 'error') {
-              if (!_isInternalDebugLog(message)) {
-                errorMessages.add(message);
-              }
+              errorMessages.add(message);
             }
           case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
             // 记录最近使用时间
@@ -1369,6 +1881,8 @@ class _PluginCard extends ConsumerWidget {
 
             if (pluginLogs.isNotEmpty) {
               // 有日志输出：弹出结果展示对话框
+              // TODO(Phase 2): 待 solosoul_result 结构化通道 + key_value 卡片渲染器完成后，
+              // 移除此特殊路由，所有插件统一使用 _PluginResultDialog。
               if (pluginId == 'com.solosoul.official.address-fmt') {
                 await showDialog<void>(
                   context: context,
@@ -1385,6 +1899,7 @@ class _PluginCard extends ConsumerWidget {
                   builder: (ctx) => _PluginResultDialog(
                     pluginName: pluginName,
                     logs: pluginLogs,
+                    results: pluginResults,
                     exitCode: exitCode,
                     hasErrors: exitCode != 0 && errorMessages.isNotEmpty,
                   ),
@@ -1466,29 +1981,6 @@ class _PluginCard extends ConsumerWidget {
         );
       }
     }
-  }
-
-  /// 判断一条日志是否为插件内部调试日志，不应展示给用户。
-  ///
-  /// 插件的 `read_field()` 等辅助函数会输出大量调试信息（字段值、原始字符串、
-  /// host 层调用细节等），这些日志对排查问题有用，但不应作为执行结果展示。
-  static bool _isInternalDebugLog(String message) {
-    // read_field 辅助函数的调试输出（所有插件共用）
-    if (message.contains('read_field(')) return true;
-    // 原始值调试（如 address.count raw='1'）
-    if (message.contains("raw='")) return true;
-    // Host 层调试前缀（理论上不会通过 solosoul_log 传递，但做防御性过滤）
-    if (message.startsWith('[host:')) return true;
-    if (message.startsWith('[decrypt_')) return true;
-    if (message.startsWith('[extract_')) return true;
-    if (message.startsWith('[get_address_objects]')) return true;
-    if (message.startsWith('[extract_from_uom]')) return true;
-    if (message.startsWith('[extract_by_semantic_type]')) return true;
-    // 插件处理分割线（如 "--- 处理地址[0] ---"）
-    if (message.startsWith('--- ') && message.endsWith(' ---')) return true;
-    // 地址格式化器特有的字段汇总调试（如 "地址[0] street='...' city='...'"）
-    if (RegExp(r'^地址\[\d+\] street=').hasMatch(message)) return true;
-    return false;
   }
 
   Future<void> _onStop(BuildContext context, WidgetRef ref) async {

@@ -279,6 +279,7 @@ Future<List<PluginSessionInfo>> frbPluginListActiveSessions() =>
 /// - ConsentRequest: 需要用户确认字段访问
 /// - ConsentTimeout: 授权请求超时
 /// - Log: 插件日志
+/// - Result: 结构化结果（Phase 2: solosoul_result 通道）
 /// - Progress: 执行进度（0-100）
 /// - Completed: 执行完成（含 exit code）
 /// - Error: 执行错误

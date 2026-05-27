@@ -211,6 +211,8 @@ pub struct SoloHostFunctions {
     pub consent_tx: mpsc::Sender<ConsentRequest>,
     pub audit_tx: mpsc::Sender<AuditEntry>,
     pub log_tx: mpsc::Sender<(String, String)>,
+    /// Phase 2: 结构化结果通道
+    pub result_tx: mpsc::Sender<String>,
     pub rate_limiter: Arc<RateLimiter>,
     pub session_expires_at: Instant,
     pub wasi: wasmtime_wasi::preview1::WasiP1Ctx,
@@ -227,6 +229,7 @@ impl SoloHostFunctions {
         consent_tx: mpsc::Sender<ConsentRequest>,
         audit_tx: mpsc::Sender<AuditEntry>,
         log_tx: mpsc::Sender<(String, String)>,
+        result_tx: mpsc::Sender<String>,
         rate_limiter: Arc<RateLimiter>,
         ttl_seconds: u64,
         pre_approved_fields: HashSet<String>,
@@ -242,6 +245,7 @@ impl SoloHostFunctions {
             consent_tx,
             audit_tx,
             log_tx,
+            result_tx,
             rate_limiter,
             session_expires_at: Instant::now() + Duration::from_secs(ttl_seconds),
             wasi,
@@ -536,6 +540,71 @@ impl SoloHostFunctions {
                         },
                     });
                     let _ = funcs.log_tx.try_send((level, message));
+                },
+            )
+            .map_err(|e| e.to_string())?;
+
+        // solosoul_result(data_ptr, data_len) -> i32
+        // Phase 2: 结构化结果通道 — 插件发送 JSON 数据，主软件按 type 渲染卡片
+        linker
+            .func_wrap(
+                "env",
+                "solosoul_result",
+                |mut caller: Caller<'_, Self>,
+                 data_ptr: i32,
+                 data_len: i32|
+                 -> i32 {
+                    let data = read_memory(&mut caller, data_ptr as usize, data_len as usize);
+
+                    // JSON 校验
+                    const MAX_SIZE: usize = 64 * 1024; // 64KB
+                    const MAX_DEPTH: usize = 10;
+                    const VALID_TYPES: &[&str] = &["text", "key_value", "table", "map", "markdown"];
+
+                    if data.len() > MAX_SIZE {
+                        rust_log(&format!("[host:solosoul_result] rejected: size {} > {}", data.len(), MAX_SIZE));
+                        return -1; // SizeExceeded
+                    }
+
+                    let json_str = data;
+
+                    // 校验 JSON 格式和嵌套深度
+                    match serde_json::from_str::<serde_json::Value>(&json_str) {
+                        Ok(val) => {
+                            if json_depth(&val) > MAX_DEPTH {
+                                rust_log(&format!("[host:solosoul_result] rejected: depth > {}", MAX_DEPTH));
+                                return -3; // DepthExceeded
+                            }
+                            // 校验 type 字段
+                            match val.get("type").and_then(|v| v.as_str()) {
+                                Some(t) if VALID_TYPES.contains(&t) => {}
+                                Some(t) => {
+                                    rust_log(&format!("[host:solosoul_result] rejected: invalid type '{}'", t));
+                                    return -4; // InvalidType
+                                }
+                                None => {
+                                    rust_log("[host:solosoul_result] rejected: missing 'type' field");
+                                    return -5; // MissingType
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            rust_log(&format!("[host:solosoul_result] rejected: invalid JSON: {}", e));
+                            return -6; // InvalidJson
+                        }
+                    }
+
+                    let funcs = caller.data();
+                    let _ = funcs.audit_tx.try_send(AuditEntry {
+                        plugin_id: funcs.plugin_id.clone(),
+                        session_id: funcs.session_id.clone(),
+                        timestamp: Instant::now(),
+                        action: AuditAction::NetworkAllowed {
+                            url: format!("[RESULT] {} bytes", json_str.len()),
+                        },
+                    });
+                    let _ = funcs.result_tx.try_send(json_str);
+                    0 // Success
                 },
             )
             .map_err(|e| e.to_string())?;
@@ -1398,6 +1467,27 @@ fn read_memory(caller: &mut Caller<'_, SoloHostFunctions>, ptr: usize, len: usiz
     let mut buf = vec![0u8; len];
     memory.read(caller, ptr, &mut buf).unwrap_or(());
     String::from_utf8_lossy(&buf).to_string()
+}
+
+/// 计算 JSON Value 的嵌套深度
+fn json_depth(val: &serde_json::Value) -> usize {
+    match val {
+        serde_json::Value::Object(map) => {
+            if map.is_empty() {
+                1
+            } else {
+                1 + map.values().map(json_depth).max().unwrap_or(0)
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            if arr.is_empty() {
+                1
+            } else {
+                1 + arr.iter().map(json_depth).max().unwrap_or(0)
+            }
+        }
+        _ => 1,
+    }
 }
 
 #[cfg(test)]

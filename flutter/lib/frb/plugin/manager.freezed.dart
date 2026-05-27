@@ -55,13 +55,14 @@ extension PluginEventPatterns on PluginEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PluginEvent_ConsentRequest value)?  consentRequest,TResult Function( PluginEvent_ConsentTimeout value)?  consentTimeout,TResult Function( PluginEvent_Log value)?  log,TResult Function( PluginEvent_Progress value)?  progress,TResult Function( PluginEvent_Completed value)?  completed,TResult Function( PluginEvent_Error value)?  error,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( PluginEvent_ConsentRequest value)?  consentRequest,TResult Function( PluginEvent_ConsentTimeout value)?  consentTimeout,TResult Function( PluginEvent_Log value)?  log,TResult Function( PluginEvent_Result value)?  result,TResult Function( PluginEvent_Progress value)?  progress,TResult Function( PluginEvent_Completed value)?  completed,TResult Function( PluginEvent_Error value)?  error,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case PluginEvent_ConsentRequest() when consentRequest != null:
 return consentRequest(_that);case PluginEvent_ConsentTimeout() when consentTimeout != null:
 return consentTimeout(_that);case PluginEvent_Log() when log != null:
-return log(_that);case PluginEvent_Progress() when progress != null:
+return log(_that);case PluginEvent_Result() when result != null:
+return result(_that);case PluginEvent_Progress() when progress != null:
 return progress(_that);case PluginEvent_Completed() when completed != null:
 return completed(_that);case PluginEvent_Error() when error != null:
 return error(_that);case _:
@@ -82,13 +83,14 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PluginEvent_ConsentRequest value)  consentRequest,required TResult Function( PluginEvent_ConsentTimeout value)  consentTimeout,required TResult Function( PluginEvent_Log value)  log,required TResult Function( PluginEvent_Progress value)  progress,required TResult Function( PluginEvent_Completed value)  completed,required TResult Function( PluginEvent_Error value)  error,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( PluginEvent_ConsentRequest value)  consentRequest,required TResult Function( PluginEvent_ConsentTimeout value)  consentTimeout,required TResult Function( PluginEvent_Log value)  log,required TResult Function( PluginEvent_Result value)  result,required TResult Function( PluginEvent_Progress value)  progress,required TResult Function( PluginEvent_Completed value)  completed,required TResult Function( PluginEvent_Error value)  error,}){
 final _that = this;
 switch (_that) {
 case PluginEvent_ConsentRequest():
 return consentRequest(_that);case PluginEvent_ConsentTimeout():
 return consentTimeout(_that);case PluginEvent_Log():
-return log(_that);case PluginEvent_Progress():
+return log(_that);case PluginEvent_Result():
+return result(_that);case PluginEvent_Progress():
 return progress(_that);case PluginEvent_Completed():
 return completed(_that);case PluginEvent_Error():
 return error(_that);}
@@ -105,13 +107,14 @@ return error(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PluginEvent_ConsentRequest value)?  consentRequest,TResult? Function( PluginEvent_ConsentTimeout value)?  consentTimeout,TResult? Function( PluginEvent_Log value)?  log,TResult? Function( PluginEvent_Progress value)?  progress,TResult? Function( PluginEvent_Completed value)?  completed,TResult? Function( PluginEvent_Error value)?  error,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( PluginEvent_ConsentRequest value)?  consentRequest,TResult? Function( PluginEvent_ConsentTimeout value)?  consentTimeout,TResult? Function( PluginEvent_Log value)?  log,TResult? Function( PluginEvent_Result value)?  result,TResult? Function( PluginEvent_Progress value)?  progress,TResult? Function( PluginEvent_Completed value)?  completed,TResult? Function( PluginEvent_Error value)?  error,}){
 final _that = this;
 switch (_that) {
 case PluginEvent_ConsentRequest() when consentRequest != null:
 return consentRequest(_that);case PluginEvent_ConsentTimeout() when consentTimeout != null:
 return consentTimeout(_that);case PluginEvent_Log() when log != null:
-return log(_that);case PluginEvent_Progress() when progress != null:
+return log(_that);case PluginEvent_Result() when result != null:
+return result(_that);case PluginEvent_Progress() when progress != null:
 return progress(_that);case PluginEvent_Completed() when completed != null:
 return completed(_that);case PluginEvent_Error() when error != null:
 return error(_that);case _:
@@ -131,12 +134,13 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String requestId,  String pluginId,  String pluginName,  String field,  String sensitivity)?  consentRequest,TResult Function( String requestId)?  consentTimeout,TResult Function( String level,  String message)?  log,TResult Function( int percent)?  progress,TResult Function( int exitCode)?  completed,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String requestId,  String pluginId,  String pluginName,  String field,  String sensitivity)?  consentRequest,TResult Function( String requestId)?  consentTimeout,TResult Function( String level,  String message)?  log,TResult Function( String jsonData)?  result,TResult Function( int percent)?  progress,TResult Function( int exitCode)?  completed,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case PluginEvent_ConsentRequest() when consentRequest != null:
 return consentRequest(_that.requestId,_that.pluginId,_that.pluginName,_that.field,_that.sensitivity);case PluginEvent_ConsentTimeout() when consentTimeout != null:
 return consentTimeout(_that.requestId);case PluginEvent_Log() when log != null:
-return log(_that.level,_that.message);case PluginEvent_Progress() when progress != null:
+return log(_that.level,_that.message);case PluginEvent_Result() when result != null:
+return result(_that.jsonData);case PluginEvent_Progress() when progress != null:
 return progress(_that.percent);case PluginEvent_Completed() when completed != null:
 return completed(_that.exitCode);case PluginEvent_Error() when error != null:
 return error(_that.message);case _:
@@ -157,12 +161,13 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String requestId,  String pluginId,  String pluginName,  String field,  String sensitivity)  consentRequest,required TResult Function( String requestId)  consentTimeout,required TResult Function( String level,  String message)  log,required TResult Function( int percent)  progress,required TResult Function( int exitCode)  completed,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String requestId,  String pluginId,  String pluginName,  String field,  String sensitivity)  consentRequest,required TResult Function( String requestId)  consentTimeout,required TResult Function( String level,  String message)  log,required TResult Function( String jsonData)  result,required TResult Function( int percent)  progress,required TResult Function( int exitCode)  completed,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case PluginEvent_ConsentRequest():
 return consentRequest(_that.requestId,_that.pluginId,_that.pluginName,_that.field,_that.sensitivity);case PluginEvent_ConsentTimeout():
 return consentTimeout(_that.requestId);case PluginEvent_Log():
-return log(_that.level,_that.message);case PluginEvent_Progress():
+return log(_that.level,_that.message);case PluginEvent_Result():
+return result(_that.jsonData);case PluginEvent_Progress():
 return progress(_that.percent);case PluginEvent_Completed():
 return completed(_that.exitCode);case PluginEvent_Error():
 return error(_that.message);}
@@ -179,12 +184,13 @@ return error(_that.message);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String requestId,  String pluginId,  String pluginName,  String field,  String sensitivity)?  consentRequest,TResult? Function( String requestId)?  consentTimeout,TResult? Function( String level,  String message)?  log,TResult? Function( int percent)?  progress,TResult? Function( int exitCode)?  completed,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String requestId,  String pluginId,  String pluginName,  String field,  String sensitivity)?  consentRequest,TResult? Function( String requestId)?  consentTimeout,TResult? Function( String level,  String message)?  log,TResult? Function( String jsonData)?  result,TResult? Function( int percent)?  progress,TResult? Function( int exitCode)?  completed,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case PluginEvent_ConsentRequest() when consentRequest != null:
 return consentRequest(_that.requestId,_that.pluginId,_that.pluginName,_that.field,_that.sensitivity);case PluginEvent_ConsentTimeout() when consentTimeout != null:
 return consentTimeout(_that.requestId);case PluginEvent_Log() when log != null:
-return log(_that.level,_that.message);case PluginEvent_Progress() when progress != null:
+return log(_that.level,_that.message);case PluginEvent_Result() when result != null:
+return result(_that.jsonData);case PluginEvent_Progress() when progress != null:
 return progress(_that.percent);case PluginEvent_Completed() when completed != null:
 return completed(_that.exitCode);case PluginEvent_Error() when error != null:
 return error(_that.message);case _:
@@ -396,6 +402,72 @@ class _$PluginEvent_LogCopyWithImpl<$Res>
   return _then(PluginEvent_Log(
 level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
 as String,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class PluginEvent_Result extends PluginEvent {
+  const PluginEvent_Result({required this.jsonData}): super._();
+  
+
+ final  String jsonData;
+
+/// Create a copy of PluginEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PluginEvent_ResultCopyWith<PluginEvent_Result> get copyWith => _$PluginEvent_ResultCopyWithImpl<PluginEvent_Result>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PluginEvent_Result&&(identical(other.jsonData, jsonData) || other.jsonData == jsonData));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,jsonData);
+
+@override
+String toString() {
+  return 'PluginEvent.result(jsonData: $jsonData)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PluginEvent_ResultCopyWith<$Res> implements $PluginEventCopyWith<$Res> {
+  factory $PluginEvent_ResultCopyWith(PluginEvent_Result value, $Res Function(PluginEvent_Result) _then) = _$PluginEvent_ResultCopyWithImpl;
+@useResult
+$Res call({
+ String jsonData
+});
+
+
+
+
+}
+/// @nodoc
+class _$PluginEvent_ResultCopyWithImpl<$Res>
+    implements $PluginEvent_ResultCopyWith<$Res> {
+  _$PluginEvent_ResultCopyWithImpl(this._self, this._then);
+
+  final PluginEvent_Result _self;
+  final $Res Function(PluginEvent_Result) _then;
+
+/// Create a copy of PluginEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? jsonData = null,}) {
+  return _then(PluginEvent_Result(
+jsonData: null == jsonData ? _self.jsonData : jsonData // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

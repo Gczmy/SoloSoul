@@ -50,6 +50,10 @@ pub enum PluginEvent {
         level: String,
         message: String,
     },
+    /// 结构化结果（Phase 2: solosoul_result 通道）
+    Result {
+        json_data: String,
+    },
     Progress {
         percent: u8,
     },
@@ -168,10 +172,11 @@ impl PluginManager {
         self.session_manager
             .register(&plugin_id, &plugin_name, &session_id, session_ttl_seconds);
 
-        // 4. 创建 Consent、Audit 和 Log 通道
+        // 4. 创建 Consent、Audit、Log 和 Result 通道
         let (consent_tx, mut consent_rx) = tokio::sync::mpsc::channel::<ConsentRequest>(16);
         let (audit_tx, mut audit_rx) = tokio::sync::mpsc::channel::<AuditEntry>(64);
         let (log_tx, mut log_rx) = tokio::sync::mpsc::channel::<(String, String)>(256);
+        let (result_tx, mut result_rx) = tokio::sync::mpsc::channel::<String>(64);
 
         let pending_consents = Arc::clone(&self.pending_consents);
         let rate_limiter = Arc::clone(&self.rate_limiter);
@@ -246,6 +251,15 @@ impl PluginManager {
                     level,
                     message,
                 });
+            }
+        });
+
+        // 5d. 启动 Result 后台处理线程（Phase 2: 结构化结果通道）
+        //     消费 result_rx，将结构化结果通过 StreamSink 推送到 Dart 端
+        let sink_result = sink.clone();
+        let result_thread = std::thread::spawn(move || {
+            while let Some(json_data) = result_rx.blocking_recv() {
+                let _ = sink_result.add(PluginEvent::Result { json_data });
             }
         });
 
@@ -329,14 +343,15 @@ impl PluginManager {
             &ConsentChannel { tx: consent_tx },
             audit_tx,
             log_tx,
+            result_tx,
             rate_limiter,
             session_ttl_seconds,
             pre_approved_fields,
         );
 
         // 7. 根据执行结果处理 Session，并通过 StreamSink 推送 Completed/Error 事件
-        //    ⚠️ 必须先等待 log_thread 结束，确保所有插件日志已推送到 Dart，
-        //       否则 StreamSink 关闭后日志事件会丢失。
+        //    ⚠️ 必须先等待 log_thread 和 result_thread 结束，确保所有插件事件已推送到 Dart，
+        //       否则 StreamSink 关闭后事件会丢失。
         match result {
             Ok(r) => {
                 let _ = sink_execute.add(PluginEvent::Completed {
@@ -345,6 +360,7 @@ impl PluginManager {
                 // 执行完成后清理 Session（成功或失败均清理）
                 self.session_manager.revoke(&plugin_id);
                 let _ = log_thread.join();
+                let _ = result_thread.join();
                 Ok(r.exit_code)
             }
             Err(e) => {
@@ -354,6 +370,7 @@ impl PluginManager {
                     message: format!("{:?}", e),
                 });
                 let _ = log_thread.join();
+                let _ = result_thread.join();
                 Err(format!("{:?}", e))
             }
         }

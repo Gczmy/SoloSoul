@@ -75,6 +75,7 @@ ObjectTypeDefinition _$ObjectTypeDefinitionFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  titlePropertyKey: json['titlePropertyKey'] as String?,
 );
 
 Map<String, dynamic> _$ObjectTypeDefinitionToJson(
@@ -88,6 +89,7 @@ Map<String, dynamic> _$ObjectTypeDefinitionToJson(
   'properties': instance.properties.map((e) => e.toJson()).toList(),
   'schemaVersion': instance.schemaVersion,
   'deprecatedProperties': instance.deprecatedProperties,
+  'titlePropertyKey': instance.titlePropertyKey,
 };
 
 const _$ObjectLayoutEnumMap = {
@@ -278,7 +280,7 @@ UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>
       propertyLabels: (json['propertyLabels'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
-      semanticTypes: (json['__semanticTypes'] as Map<String, dynamic>?)?.map(
+      semanticTypes: (json['semanticTypes'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, e as String),
       ),
       propertyOrder:
@@ -312,7 +314,7 @@ Map<String, dynamic> _$UnifiedObjectToJson(UnifiedObject instance) =>
         (k, e) => MapEntry(k, const PropertyValueConverter().toJson(e)),
       ),
       'propertyLabels': instance.propertyLabels,
-      '__semanticTypes': instance.semanticTypes,
+      'semanticTypes': instance.semanticTypes,
       'propertyOrder': instance.propertyOrder,
       'attachments': instance.attachments.map((e) => e.toJson()).toList(),
       'isDeleted': instance.isDeleted,

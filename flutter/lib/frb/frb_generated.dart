@@ -1831,10 +1831,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           message: dco_decode_String(raw[2]),
         );
       case 3:
-        return PluginEvent_Progress(percent: dco_decode_u_8(raw[1]));
+        return PluginEvent_Result(jsonData: dco_decode_String(raw[1]));
       case 4:
-        return PluginEvent_Completed(exitCode: dco_decode_i_32(raw[1]));
+        return PluginEvent_Progress(percent: dco_decode_u_8(raw[1]));
       case 5:
+        return PluginEvent_Completed(exitCode: dco_decode_i_32(raw[1]));
+      case 6:
         return PluginEvent_Error(message: dco_decode_String(raw[1]));
       default:
         throw Exception("unreachable");
@@ -2603,12 +2605,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         var var_message = sse_decode_String(deserializer);
         return PluginEvent_Log(level: var_level, message: var_message);
       case 3:
+        var var_jsonData = sse_decode_String(deserializer);
+        return PluginEvent_Result(jsonData: var_jsonData);
+      case 4:
         var var_percent = sse_decode_u_8(deserializer);
         return PluginEvent_Progress(percent: var_percent);
-      case 4:
+      case 5:
         var var_exitCode = sse_decode_i_32(deserializer);
         return PluginEvent_Completed(exitCode: var_exitCode);
-      case 5:
+      case 6:
         var var_message = sse_decode_String(deserializer);
         return PluginEvent_Error(message: var_message);
       default:
@@ -3339,14 +3344,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         sse_encode_i_32(2, serializer);
         sse_encode_String(level, serializer);
         sse_encode_String(message, serializer);
-      case PluginEvent_Progress(percent: final percent):
+      case PluginEvent_Result(jsonData: final jsonData):
         sse_encode_i_32(3, serializer);
+        sse_encode_String(jsonData, serializer);
+      case PluginEvent_Progress(percent: final percent):
+        sse_encode_i_32(4, serializer);
         sse_encode_u_8(percent, serializer);
       case PluginEvent_Completed(exitCode: final exitCode):
-        sse_encode_i_32(4, serializer);
+        sse_encode_i_32(5, serializer);
         sse_encode_i_32(exitCode, serializer);
       case PluginEvent_Error(message: final message):
-        sse_encode_i_32(5, serializer);
+        sse_encode_i_32(6, serializer);
         sse_encode_String(message, serializer);
     }
   }

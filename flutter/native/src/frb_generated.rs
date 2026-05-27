@@ -1880,18 +1880,24 @@ impl SseDecode for crate::plugin::manager::PluginEvent {
                 };
             }
             3 => {
+                let mut var_jsonData = <String>::sse_decode(deserializer);
+                return crate::plugin::manager::PluginEvent::Result {
+                    json_data: var_jsonData,
+                };
+            }
+            4 => {
                 let mut var_percent = <u8>::sse_decode(deserializer);
                 return crate::plugin::manager::PluginEvent::Progress {
                     percent: var_percent,
                 };
             }
-            4 => {
+            5 => {
                 let mut var_exitCode = <i32>::sse_decode(deserializer);
                 return crate::plugin::manager::PluginEvent::Completed {
                     exit_code: var_exitCode,
                 };
             }
-            5 => {
+            6 => {
                 let mut var_message = <String>::sse_decode(deserializer);
                 return crate::plugin::manager::PluginEvent::Error {
                     message: var_message,
@@ -2512,14 +2518,17 @@ impl flutter_rust_bridge::IntoDart for crate::plugin::manager::PluginEvent {
                 message.into_into_dart().into_dart(),
             ]
             .into_dart(),
+            crate::plugin::manager::PluginEvent::Result { json_data } => {
+                [3.into_dart(), json_data.into_into_dart().into_dart()].into_dart()
+            }
             crate::plugin::manager::PluginEvent::Progress { percent } => {
-                [3.into_dart(), percent.into_into_dart().into_dart()].into_dart()
+                [4.into_dart(), percent.into_into_dart().into_dart()].into_dart()
             }
             crate::plugin::manager::PluginEvent::Completed { exit_code } => {
-                [4.into_dart(), exit_code.into_into_dart().into_dart()].into_dart()
+                [5.into_dart(), exit_code.into_into_dart().into_dart()].into_dart()
             }
             crate::plugin::manager::PluginEvent::Error { message } => {
-                [5.into_dart(), message.into_into_dart().into_dart()].into_dart()
+                [6.into_dart(), message.into_into_dart().into_dart()].into_dart()
             }
             _ => {
                 unimplemented!("");
@@ -3152,16 +3161,20 @@ impl SseEncode for crate::plugin::manager::PluginEvent {
                 <String>::sse_encode(level, serializer);
                 <String>::sse_encode(message, serializer);
             }
-            crate::plugin::manager::PluginEvent::Progress { percent } => {
+            crate::plugin::manager::PluginEvent::Result { json_data } => {
                 <i32>::sse_encode(3, serializer);
+                <String>::sse_encode(json_data, serializer);
+            }
+            crate::plugin::manager::PluginEvent::Progress { percent } => {
+                <i32>::sse_encode(4, serializer);
                 <u8>::sse_encode(percent, serializer);
             }
             crate::plugin::manager::PluginEvent::Completed { exit_code } => {
-                <i32>::sse_encode(4, serializer);
+                <i32>::sse_encode(5, serializer);
                 <i32>::sse_encode(exit_code, serializer);
             }
             crate::plugin::manager::PluginEvent::Error { message } => {
-                <i32>::sse_encode(5, serializer);
+                <i32>::sse_encode(6, serializer);
                 <String>::sse_encode(message, serializer);
             }
             _ => {

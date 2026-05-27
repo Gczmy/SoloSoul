@@ -29,6 +29,9 @@ class NetworkPolicy {
 }
 
 /// Plugin manifest (manifest.json)
+///
+/// 注意：field_access 字段未纳入 FRB 绑定（避免修改生成代码）。
+/// 运行时通过 `parse_field_access_from_manifest_json` 从原始 JSON 解析。
 class PluginManifest {
   final String pluginId;
   final String name;
