@@ -1980,6 +1980,10 @@ class _PluginCard extends ConsumerWidget {
     final batchRequests = <frb_plugin.PluginEvent_ConsentRequest>[];
     String? batchPluginName;
 
+    // 延迟弹出结果对话框的状态
+    int? completedExitCode;
+    bool hasCompleted = false;
+
     try {
       await for (final event in stream) {
         switch (event) {
@@ -2000,7 +2004,11 @@ class _PluginCard extends ConsumerWidget {
             try {
               pluginResults.add(_PluginResultData.fromJson(jsonData));
             } on Exception catch (e) {
-              // JSON 解析失败时降级为日志
+              // JSON 解析失败时，将原始 JSON 作为文本结果降级展示
+              pluginResults.add(_PluginResultData(
+                type: 'text',
+                data: {'content': '结果解析失败: $e\n\n原始数据:\n$jsonData'},
+              ));
               pluginLogs.add('[结果解析错误] $e');
             }
           case frb_plugin.PluginEvent_Log(level: final level, message: final message):
@@ -2043,83 +2051,11 @@ class _PluginCard extends ConsumerWidget {
               errorMessages.add(message);
             }
           case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
-            // 记录最近使用时间
+            // 记录最近使用时间，但不在此处弹出对话框（延迟到 stream 结束后）
             final installer = await ref.read(initializedPluginInstallerProvider.future);
             await installer.recordLastUsed(pluginId);
-            if (!context.mounted) break;
-
-            final registryEntry = data.registry.plugins[pluginId];
-            final locale = Localizations.localeOf(context).toString();
-            final pluginName = resolvePluginI18n(
-              registryEntry?.i18n, 'name', locale, _getManifest()?.name ?? pluginId,
-            );
-
-            if (pluginLogs.isNotEmpty || pluginResults.isNotEmpty) {
-              // 有日志或结构化结果：弹出结果展示对话框
-              await showDialog<void>(
-                context: context,
-                builder: (ctx) => _PluginResultDialog(
-                  pluginName: pluginName,
-                  logs: pluginLogs,
-                  results: pluginResults,
-                  exitCode: exitCode,
-                  hasErrors: exitCode != 0 && errorMessages.isNotEmpty,
-                ),
-              );
-            } else if (exitCode == 0) {
-              // 无日志但执行成功：弹出执行完成确认对话框
-              await showDialog<void>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  insetPadding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(ctx).size.width * 0.25,
-                    vertical: 24,
-                  ),
-                  title: Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green.shade600),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(pluginName)),
-                    ],
-                  ),
-                  content: Text(l10n.pluginRunSuccess),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: Text(l10n.commonClose),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              // 执行失败：弹出错误对话框
-              final errorMsg = errorMessages.isNotEmpty
-                  ? errorMessages.join('\n')
-                  : '插件执行失败 (exit: $exitCode)';
-              await showDialog<void>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  insetPadding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(ctx).size.width * 0.2,
-                    vertical: 24,
-                  ),
-                  title: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: AppTheme.errorColor),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(pluginName)),
-                    ],
-                  ),
-                  content: SelectableText(errorMsg),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: Text(l10n.commonClose),
-                    ),
-                  ],
-                ),
-              );
-            }
+            completedExitCode = exitCode;
+            hasCompleted = true;
           case frb_plugin.PluginEvent_Error(message: final message):
             // 用户主动拒绝授权或超时，属于正常流程，不显示错误提示
             if (message.contains('User denied or timed out field access')) {
@@ -2133,6 +2069,84 @@ class _PluginCard extends ConsumerWidget {
           default:
             // 忽略 ConsentTimeout / Progress 等事件
             break;
+        }
+      }
+
+      // Stream 完全结束后，统一弹出结果对话框。
+      // 这样可以确保 Result 事件无论先于还是后于 Completed 到达，都会被收集到 pluginResults 中。
+      if (hasCompleted && context.mounted) {
+        final registryEntry = data.registry.plugins[pluginId];
+        final locale = Localizations.localeOf(context).toString();
+        final pluginName = resolvePluginI18n(
+          registryEntry?.i18n, 'name', locale, _getManifest()?.name ?? pluginId,
+        );
+        final exitCode = completedExitCode!;
+
+        if (pluginLogs.isNotEmpty || pluginResults.isNotEmpty) {
+          // 有日志或结构化结果：弹出结果展示对话框
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => _PluginResultDialog(
+              pluginName: pluginName,
+              logs: pluginLogs,
+              results: pluginResults,
+              exitCode: exitCode,
+              hasErrors: exitCode != 0 && errorMessages.isNotEmpty,
+            ),
+          );
+        } else if (exitCode == 0) {
+          // 无日志但执行成功：弹出执行完成确认对话框
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(ctx).size.width * 0.25,
+                vertical: 24,
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green.shade600),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(pluginName)),
+                ],
+              ),
+              content: Text(l10n.pluginRunSuccess),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l10n.commonClose),
+                ),
+              ],
+            ),
+          );
+        } else {
+          // 执行失败：弹出错误对话框
+          final errorMsg = errorMessages.isNotEmpty
+              ? errorMessages.join('\n')
+              : '插件执行失败 (exit: $exitCode)';
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(ctx).size.width * 0.2,
+                vertical: 24,
+              ),
+              title: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: AppTheme.errorColor),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(pluginName)),
+                ],
+              ),
+              content: SelectableText(errorMsg),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l10n.commonClose),
+                ),
+              ],
+            ),
+          );
         }
       }
     } on Exception catch (e) {
