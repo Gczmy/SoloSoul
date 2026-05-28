@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T22:56:39Z",
+  "updated_at": "2026-05-28T10:16:18Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -14,7 +14,8 @@
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.3": {
           "sha256": "893dd6172e2b6a67f419c3d4ef7d9ac673c97ac8e0367b3434335e49e6c1ede5",
@@ -23,7 +24,8 @@
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T21:52:43Z",
+          "changelog": "初始发布"
         }
       },
       "description": "地址格式化器 — 按目标国家/地区规范格式化 Vault 中的所有地址（中/美/英/日/德等）",
@@ -45,22 +47,24 @@
       "latest_version": "1.0.2",
       "versions": {
         "1.0.2": {
-          "sha256": "e67172a09cc68bada3af790c34e0f6145b2d2d437c8166477014905f9b3da598",
+          "sha256": "02dcf893500f1600fc810e86c22a017af04ea906cdada96359fe4cb56b18b990",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.1": {
-          "sha256": "e67172a09cc68bada3af790c34e0f6145b2d2d437c8166477014905f9b3da598",
+          "sha256": "02dcf893500f1600fc810e86c22a017af04ea906cdada96359fe4cb56b18b990",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T21:52:43Z",
+          "changelog": "初始发布"
         }
       },
       "description": "日历事件生成器 — 为护照/签证/身份证到期日生成 iCalendar (.ics) 提醒事件",
@@ -82,22 +86,24 @@
       "latest_version": "1.0.2",
       "versions": {
         "1.0.2": {
-          "sha256": "83e5e759d20d9d35a6284a84dfc8919a24edad1d6bf5772910e76749433bf250",
+          "sha256": "7cfc149ad364d80af3b3f7681d8bac05ac2ba5e03e77e6509e25c79cd0d47093",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.1": {
-          "sha256": "83e5e759d20d9d35a6284a84dfc8919a24edad1d6bf5772910e76749433bf250",
+          "sha256": "7cfc149ad364d80af3b3f7681d8bac05ac2ba5e03e77e6509e25c79cd0d47093",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T21:52:43Z",
+          "changelog": "初始发布"
         }
       },
       "description": "联系人导出器 — 将 Vault 中的个人联系信息导出为 CSV 格式",
@@ -119,22 +125,24 @@
       "latest_version": "1.0.2",
       "versions": {
         "1.0.2": {
-          "sha256": "f1744181ee06c77942d7ef75088fac6edbde7635005a9f98d0749d36807e5e36",
+          "sha256": "f57f33553cf2a886591e8948427e1a64d05edc2ef2746b1f7308a3ec271bfdf3",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.data-completeness/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.data-completeness/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.1": {
-          "sha256": "f1744181ee06c77942d7ef75088fac6edbde7635005a9f98d0749d36807e5e36",
+          "sha256": "f57f33553cf2a886591e8948427e1a64d05edc2ef2746b1f7308a3ec271bfdf3",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.data-completeness/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.data-completeness/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T21:52:43Z",
+          "changelog": "初始发布"
         }
       },
       "description": "档案完整度扫描 — 检查 Vault 各分区完成度并给出补充建议",
@@ -156,22 +164,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "9831ff7645037a67481b8bc27d970e3a6547be330ff0d61b79b6bb658391d44f",
+          "sha256": "c888303bed30ccc187e59ad2383a28ed4aaf75438276978ad31421ce2a4558dc",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.digital-will/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.digital-will/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "9831ff7645037a67481b8bc27d970e3a6547be330ff0d61b79b6bb658391d44f",
+          "sha256": "c888303bed30ccc187e59ad2383a28ed4aaf75438276978ad31421ce2a4558dc",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.digital-will/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.digital-will/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "数字遗产指示 — 基于 Vault 数据生成紧急情况下的资产与账户处理建议（仅供参考，非法律文件）",
@@ -193,22 +203,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "834b329bcce99af9e4c0ebfb65d43acbea4330042dc116b372a517dc18beeb0e",
+          "sha256": "85b52777e07005dbd5d7f0e4a9e498ff00a77a4179f4c65f074156d7aa85893f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "834b329bcce99af9e4c0ebfb65d43acbea4330042dc116b372a517dc18beeb0e",
+          "sha256": "85b52777e07005dbd5d7f0e4a9e498ff00a77a4179f4c65f074156d7aa85893f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "材料清单检查器 — 根据签证/旅行/银行场景检查 Vault 中已有/缺失的材料",
@@ -230,22 +242,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "78c05d049b463a22d9e4694e456f9a847bd08a0fb426e5af89d8b7b21c2b9aad",
+          "sha256": "757d9eaf06138c6a25ffe924eed9fef3cdc0851a5fa8da92eadc04417341c1d5",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "78c05d049b463a22d9e4694e456f9a847bd08a0fb426e5af89d8b7b21c2b9aad",
+          "sha256": "757d9eaf06138c6a25ffe924eed9fef3cdc0851a5fa8da92eadc04417341c1d5",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "紧急联系卡 — 生成包含医疗信息和紧急联系人的应急卡片",
@@ -267,22 +281,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "d33f8cc5140d1cb07b501a0813079b331f7a9f880afb872d59f01e86100b850f",
+          "sha256": "c0d3917c1eb98aa47953752e8c74b5a4c713a38624c663c6c26a07d49bd9561d",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "d33f8cc5140d1cb07b501a0813079b331f7a9f880afb872d59f01e86100b850f",
+          "sha256": "c0d3917c1eb98aa47953752e8c74b5a4c713a38624c663c6c26a07d49bd9561d",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "证件到期卫士 — 扫描所有证件有效期并预警",
@@ -304,22 +320,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "0f813459e8ed9d3906ae2acf2eda4ae6ad17af12f527c544ca073e4d7a77859d",
+          "sha256": "4747807792f0922c0156eaae714d950e594302d774075266f94bb886d520498f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "0f813459e8ed9d3906ae2acf2eda4ae6ad17af12f527c544ca073e4d7a77859d",
+          "sha256": "4747807792f0922c0156eaae714d950e594302d774075266f94bb886d520498f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "表单预填助手 — 根据签证/酒店/银行/航空等场景生成 Vault 字段映射表",
@@ -341,22 +359,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "fc795fd571edd212a37b219f5c9f58d449a8d35ffe910a0ecab7a8864955c3ce",
+          "sha256": "d8ef69d1c5ebb23b016a48d17049bd2c62d330d330252953872df83c10372603",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.id-validator/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.id-validator/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "fc795fd571edd212a37b219f5c9f58d449a8d35ffe910a0ecab7a8864955c3ce",
+          "sha256": "d8ef69d1c5ebb23b016a48d17049bd2c62d330d330252953872df83c10372603",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.id-validator/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.id-validator/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "校验证件号码格式与校验位 — 支持中国居民身份证",
@@ -378,22 +398,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "e4f784b7df03f4398f62f439ac99b019958d261d5cbb573e9bb05a3f4d86512b",
+          "sha256": "64b911abcb33a4f7d8048abc13c655ebc0c45d512a0b8ba81c758951b7fbc20f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "e4f784b7df03f4398f62f439ac99b019958d261d5cbb573e9bb05a3f4d86512b",
+          "sha256": "64b911abcb33a4f7d8048abc13c655ebc0c45d512a0b8ba81c758951b7fbc20f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "身份时间线 — 按时间顺序展示教育、工作、证件等人生里程碑",
@@ -415,22 +437,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "bc464f19576feab33917fba10d4d1e07a497bbf5b85900c67496e5031f9c2a78",
+          "sha256": "74a1977db53c0e1b6b8fb79ae83b0b2f4c277a7351178ab1310b2fddaa1a3ba7",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "bc464f19576feab33917fba10d4d1e07a497bbf5b85900c67496e5031f9c2a78",
+          "sha256": "74a1977db53c0e1b6b8fb79ae83b0b2f4c277a7351178ab1310b2fddaa1a3ba7",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "MRZ 编码器 — 将护照信息编码为 ICAO Doc 9303 TD3 标准机读区格式",
@@ -452,22 +476,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "71e520fcb709e0e6cf513ee1fc472d6aa1cddef1ad975d715cc69ed06dbb6201",
+          "sha256": "d569178214a9539d62299998ea15e67fef82a1ec5e1d1da137d35ec1333a73e3",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "71e520fcb709e0e6cf513ee1fc472d6aa1cddef1ad975d715cc69ed06dbb6201",
+          "sha256": "d569178214a9539d62299998ea15e67fef82a1ec5e1d1da137d35ec1333a73e3",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "数字名片生成器 — 从 Vault 联系信息生成标准 vCard 3.0 数字名片",
@@ -489,22 +515,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "93f8cf0e3a03bc441a8a0a6b52239c0285b8cafab33b608470dca30b5c84281e",
+          "sha256": "dfe71453f814a9e6e0bf3a64363a75e348774515acaff91305911d468e56df55",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.packing-list/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.packing-list/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "93f8cf0e3a03bc441a8a0a6b52239c0285b8cafab33b608470dca30b5c84281e",
+          "sha256": "dfe71453f814a9e6e0bf3a64363a75e348774515acaff91305911d468e56df55",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.packing-list/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.packing-list/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "行李清单生成器 — 根据目的地和季节智能推荐旅行打包清单",
@@ -526,22 +554,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "b3b724a426a1e8fedc81cbca37e832021d433c65ceeb42d302394d956e7e3e03",
+          "sha256": "e6422fa20a6b8d69785b89c47a4e28ead112d77907737f274a1462014642ac61",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "b3b724a426a1e8fedc81cbca37e832021d433c65ceeb42d302394d956e7e3e03",
+          "sha256": "e6422fa20a6b8d69785b89c47a4e28ead112d77907737f274a1462014642ac61",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
-          "released_at": "2026-05-27T22:56:20Z"
+          "released_at": "2026-05-27T22:56:20Z",
+          "changelog": "初始发布"
         }
       },
       "description": "电话格式化器 — 按国家规范格式化电话号码（中/美/英/日等）",
@@ -563,22 +593,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "764f88614edcd51ddccda0eb85fdb2903073975eaafa9acd798f0d948b0f7553",
+          "sha256": "4325de8b5a5448f67ffaff9399eb79faec2b501c4b0f903a7150d9f030fec71c",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "764f88614edcd51ddccda0eb85fdb2903073975eaafa9acd798f0d948b0f7553",
+          "sha256": "4325de8b5a5448f67ffaff9399eb79faec2b501c4b0f903a7150d9f030fec71c",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
-          "released_at": "2026-05-27T22:31:27Z"
+          "released_at": "2026-05-27T22:31:27Z",
+          "changelog": "初始发布"
         }
       },
       "description": "简历生成器 — 从 Vault 档案生成标准 Markdown 格式简历",
@@ -600,22 +632,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "d7eebe2d99467311a873e1057e1298d35c0943d826d8a880ca7874b96011fee5",
+          "sha256": "dfd712d102e13dfccf6bcf9843786a826573db20ee8014b741d39a688532b359",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "d7eebe2d99467311a873e1057e1298d35c0943d826d8a880ca7874b96011fee5",
+          "sha256": "dfd712d102e13dfccf6bcf9843786a826573db20ee8014b741d39a688532b359",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
-          "released_at": "2026-05-27T22:31:27Z"
+          "released_at": "2026-05-27T22:31:27Z",
+          "changelog": "初始发布"
         }
       },
       "description": "税务档案摘要 — 汇总税务居民身份、税号、收入来源等申报基础数据",
@@ -637,22 +671,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "d6bd9d047e70afe1de0270c849341f5057310187a5d470b30483b03283b64960",
+          "sha256": "74a4c9eaf9ad3395cbd16a9410cc36d0d6a8f7afd138887c0b641b099fe8ed96",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "d6bd9d047e70afe1de0270c849341f5057310187a5d470b30483b03283b64960",
+          "sha256": "74a4c9eaf9ad3395cbd16a9410cc36d0d6a8f7afd138887c0b641b099fe8ed96",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
-          "released_at": "2026-05-27T22:31:27Z"
+          "released_at": "2026-05-27T22:31:27Z",
+          "changelog": "初始发布"
         }
       },
       "description": "TOTP 生成器 — 基于 Vault 中存储的 2FA Secret 生成 RFC 6238 动态验证码",
@@ -674,22 +710,24 @@
       "latest_version": "1.0.1",
       "versions": {
         "1.0.1": {
-          "sha256": "805c9ad6dcc0c62c8ccae2d5ff1830bea474daa236844b4f038be9bd488c9a76",
+          "sha256": "c58c93efb1d6b24e81f70398bbc80805a20c654a13c55f8c24c06dfeb1366029",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-05-27T22:56:39Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "805c9ad6dcc0c62c8ccae2d5ff1830bea474daa236844b4f038be9bd488c9a76",
+          "sha256": "c58c93efb1d6b24e81f70398bbc80805a20c654a13c55f8c24c06dfeb1366029",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
-          "released_at": "2026-05-27T22:31:27Z"
+          "released_at": "2026-05-27T22:31:27Z",
+          "changelog": "初始发布"
         }
       },
       "description": "旅行足迹分析 — 统计到访国家、按大洲分类、生成旅行报告",
@@ -711,13 +749,14 @@
       "latest_version": "0.1.0",
       "versions": {
         "0.1.0": {
-          "sha256": "ec404120c8b4cfe6fd146794dda4c6d507c1c373589d7e5075d4dd695ec3fe22",
+          "sha256": "602aebe3ba81c142f726dcc4e8acc818491c905f374e37cd1fbdcc32eca3cb48",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/slotgo/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/slotgo/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T21:52:43Z",
+          "changelog": "优化注册表元数据与插件描述信息"
         }
       },
       "description": "UK Visa 预约时间查询助手 — 自动查询可选递签时间档",

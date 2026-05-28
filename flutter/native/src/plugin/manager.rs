@@ -351,26 +351,30 @@ impl PluginManager {
 
         // 7. 根据执行结果处理 Session，并通过 StreamSink 推送 Completed/Error 事件
         //    ⚠️ 必须先等待 log_thread 和 result_thread 结束，确保所有插件事件已推送到 Dart，
-        //       否则 StreamSink 关闭后事件会丢失。
+        //       然后再发送 Completed/Error，否则 StreamSink 关闭后事件会丢失，
+        //       或 Completed 先于 Result/Log 到达 Dart 端导致对话框提前弹出。
         match result {
             Ok(r) => {
+                // 先等待所有后台线程结束，确保 Result/Log 事件已全部进入 StreamSink
+                let _ = log_thread.join();
+                let _ = result_thread.join();
+                // 然后发送 Completed，保证 Dart 端最后收到 Completed
                 let _ = sink_execute.add(PluginEvent::Completed {
                     exit_code: r.exit_code,
                 });
                 // 执行完成后清理 Session（成功或失败均清理）
                 self.session_manager.revoke(&plugin_id);
-                let _ = log_thread.join();
-                let _ = result_thread.join();
                 Ok(r.exit_code)
             }
             Err(e) => {
-                // 执行失败时立即撤销 Session
+                // 先等待所有后台线程结束，确保 Error/Log 事件已全部进入 StreamSink
+                let _ = log_thread.join();
+                let _ = result_thread.join();
+                // 执行失败时撤销 Session 并通知 Dart
                 self.session_manager.revoke(&plugin_id);
                 let _ = sink_execute.add(PluginEvent::Error {
                     message: format!("{:?}", e),
                 });
-                let _ = log_thread.join();
-                let _ = result_thread.join();
                 Err(format!("{:?}", e))
             }
         }
