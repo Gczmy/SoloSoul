@@ -355,6 +355,59 @@ Flutter 端所有字段均有 `SensitivityLevel`：
 
 ---
 
+## 插件市场子模块（Git Submodule）提交规则
+
+`SoloSoul_plugin_market/` 是独立 Git 仓库，作为主项目的子模块引用。其工作流已优化为**本地预生成 + CI 验证**模式。
+
+### 修改插件时的正确流程
+
+```bash
+cd SoloSoul_plugin_market
+
+# 1. 首次克隆后安装 Git Hooks（只需一次）
+bash scripts/install-hooks.sh
+
+# 2. 修改插件源码 + manifest.json
+# 3. 编译：cargo build --target wasm32-wasip1 --release
+# 4. 复制产物：cp target/wasm32-wasip1/release/*.wasm plugin.wasm
+
+# 5. 回到子模块根目录，提交（pre-commit hook 会自动生成 registry.json）
+cd ../..
+git add -A
+git commit -m "feat(xxx): 描述"
+git push origin main
+```
+
+### 关键规则
+
+| 规则 | 说明 |
+|------|------|
+| **必须本地生成 `registry.json`** | 修改插件后运行 `python3 scripts/generate_registry.py`，将变更随代码提交 |
+| **已安装 hooks 则自动完成** | `bash scripts/install-hooks.sh` 后，提交 `plugins/` 变更时自动生成 |
+| **CI 会验证一致性** | `validate-registry.yml` 在 push/PR 时做 diff 检查，不一致则 ❌ 失败 |
+| **禁止远程自动提交** | 旧方案中 CI 自动 commit/push `registry.json` 已被移除，不再产生"远程自动修改" |
+| **手动触发仅作兜底** | `update-registry.yml` 保留 `workflow_dispatch`，仅维护者紧急重建时使用 |
+
+### CI 失败修复
+
+若 `validate-registry.yml` 报告 `registry.json` 不一致：
+
+```bash
+cd SoloSoul_plugin_market
+python3 scripts/generate_registry.py
+git add registry.json
+
+# PR 分支推荐：修正当前 commit
+git commit --amend --no-edit
+git push --force-with-lease
+
+# 或新增修复 commit
+git commit -m "chore: update registry.json"
+git push
+```
+
+---
+
 ## CI/CD
 
 GitHub Actions 仅覆盖 **Flutter + flutter/native Rust**，不覆盖 Go 后端和 `crypto-argon2/`。
