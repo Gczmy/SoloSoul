@@ -1035,11 +1035,11 @@ fn decrypt_field_value(field_id: &str) -> Result<String, String> {
     }
 
     let uom_result = extract_from_unified_object_model(field_id, &json_value);
-    rust_log(&format!("[decrypt_field_value] UOM result={:?}", uom_result.as_ref().map(|s| &s[..s.len().min(50)])));
-    if uom_result.is_some() {
-        rust_log(&format!("[decrypt_field_value] RETURN UOM result"));
+    rust_log(&format!("[decrypt_field_value] UOM result={:?}", uom_result.as_ref().map(|s| &s[..s.len().min(100)])));
+    if let Some(ref val) = uom_result {
+        rust_log(&format!("[decrypt_field_value] RETURN UOM field_id='{}' value_len={} value='{}'", field_id, val.len(), val));
     } else {
-        rust_log(&format!("[decrypt_field_value] UOM returned None, will return Err"));
+        rust_log(&format!("[decrypt_field_value] UOM returned None, will return Err for field_id='{}'", field_id));
     }
     uom_result.ok_or_else(|| format!("Field '{}' not found or empty", field_id))
 }
@@ -1408,6 +1408,87 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             Some(p) => p,
             None => continue,
         };
+
+        // 【新增】Passport 字段别名映射：surname / givenNames → holderName 拆分
+        // 优先级：1) 精确匹配字段  2) holderName / holder_name 拆分
+        if type_filter == Some("__preset_passport") {
+            if property_key == "surname" {
+                // 1) 尝试精确字段（多种命名风格，向前兼容）
+                for exact_key in &["surname", "family_name", "familyName"] {
+                    if let Some(p) = properties.get(exact_key) {
+                        rust_log(&format!("[extract_from_uom] passport.surname found exact key='{}'", exact_key));
+                        if let Some(text) = p.get("text").and_then(|t| t.as_str()) {
+                            if !text.is_empty() { return Some(text.to_string()); }
+                            if first_empty.is_none() { first_empty = Some(text.to_string()); }
+                        }
+                    }
+                }
+                // 2) fallback: 从 holderName / holder_name 拆分，取第一个词作为姓氏
+                for holder_key in &["holderName", "holder_name"] {
+                    if let Some(p) = properties.get(holder_key) {
+                        if let Some(text) = p.get("text").and_then(|t| t.as_str()) {
+                            let trimmed = text.trim();
+                            let surname = trimmed.split_whitespace().next().unwrap_or("");
+                            rust_log(&format!("[extract_from_uom] passport.surname split from '{}' => '{}'", holder_key, surname));
+                            if !surname.is_empty() { return Some(surname.to_string()); }
+                            if first_empty.is_none() { first_empty = Some(surname.to_string()); }
+                        }
+                    }
+                }
+                continue;
+            }
+            if property_key == "givenNames" || property_key == "given_name" {
+                // 1) 尝试精确字段（多种命名风格）
+                for exact_key in &["givenNames", "given_name", "givenName"] {
+                    if let Some(p) = properties.get(exact_key) {
+                        rust_log(&format!("[extract_from_uom] passport.givenNames found exact key='{}'", exact_key));
+                        if let Some(text) = p.get("text").and_then(|t| t.as_str()) {
+                            if !text.is_empty() { return Some(text.to_string()); }
+                            if first_empty.is_none() { first_empty = Some(text.to_string()); }
+                        }
+                    }
+                }
+                // 2) fallback: 从 holderName / holder_name 拆分，跳过第一个词作为名字
+                for holder_key in &["holderName", "holder_name"] {
+                    if let Some(p) = properties.get(holder_key) {
+                        if let Some(text) = p.get("text").and_then(|t| t.as_str()) {
+                            let trimmed = text.trim();
+                            let given = trimmed.split_whitespace().skip(1).collect::<Vec<_>>().join(" ");
+                            rust_log(&format!("[extract_from_uom] passport.givenNames split from '{}' => '{}'", holder_key, given));
+                            // givenNames 允许为空（单名情况），返回空字符串而非 None
+                            return Some(given.to_string());
+                        }
+                    }
+                }
+                continue;
+            }
+            if property_key == "nationality" {
+                // 1) 尝试 nationality 精确字段
+                if let Some(p) = properties.get("nationality") {
+                    if let Some(text) = p.get("text").and_then(|t| t.as_str()) {
+                        let normalized = normalize_country_code(text);
+                        rust_log(&format!("[extract_from_uom] passport.nationality raw='{}' normalized='{}'", text, normalized));
+                        if !normalized.is_empty() {
+                            return Some(normalized);
+                        }
+                    }
+                }
+                // 2) fallback: country / countryCode / country_code
+                for fb_key in &["country", "countryCode", "country_code"] {
+                    if let Some(p) = properties.get(fb_key) {
+                        if let Some(text) = p.get("text").and_then(|t| t.as_str()) {
+                            let normalized = normalize_country_code(text);
+                            rust_log(&format!("[extract_from_uom] passport.nationality fallback from '{}' raw='{}' normalized='{}'", fb_key, text, normalized));
+                            if !normalized.is_empty() {
+                                return Some(normalized);
+                            }
+                        }
+                    }
+                }
+                continue;
+            }
+        }
+
         let prop = match properties.get(property_key) {
             Some(p) => p,
             None => continue,
@@ -1460,6 +1541,224 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
 
     rust_log(&format!("[extract_from_uom] END returning first_empty={:?}", first_empty.as_ref().map(|s| &s[..s.len().min(50)])));
     first_empty
+}
+
+/// 将中文/英文国家名称转换为 ISO 3166-1 alpha-3 三位字母代码
+/// 如果输入已经是3位纯字母代码，直接返回大写形式
+fn normalize_country_code(raw: &str) -> String {
+    let trimmed = raw.trim();
+    let upper = trimmed.to_uppercase();
+    // 如果已经是3位纯字母，直接返回大写
+    if trimmed.len() == 3 && trimmed.chars().all(|c| c.is_ascii_alphabetic()) {
+        return upper;
+    }
+    // 中文/英文映射表（覆盖主要国家和地区）
+    let code: &str = match trimmed {
+        "中国" | "中华人民共和国" | "CHINA" | "PEOPLE'S REPUBLIC OF CHINA" => "CHN",
+        "美国" | "美利坚合众国" | "UNITED STATES" | "UNITED STATES OF AMERICA" | "AMERICA" => "USA",
+        "英国" | "大不列颠及北爱尔兰联合王国" | "UNITED KINGDOM" | "GREAT BRITAIN" | "BRITAIN" => "GBR",
+        "日本" | "JAPAN" => "JPN",
+        "韩国" | "大韩民国" | "SOUTH KOREA" | "REPUBLIC OF KOREA" | "KOREA" => "KOR",
+        "朝鲜" | "朝鲜民主主义人民共和国" | "NORTH KOREA" | "DPRK" | "DEMOCRATIC PEOPLE'S REPUBLIC OF KOREA" => "PRK",
+        "加拿大" | "CANADA" => "CAN",
+        "澳大利亚" | "澳洲" | "AUSTRALIA" => "AUS",
+        "新西兰" | "NEW ZEALAND" => "NZL",
+        "法国" | "法兰西共和国" | "FRANCE" => "FRA",
+        "德国" | "德意志联邦共和国" | "GERMANY" | "DEUTSCHLAND" | "FEDERAL REPUBLIC OF GERMANY" => "DEU",
+        "俄罗斯" | "俄罗斯联邦" | "RUSSIA" | "RUSSIAN FEDERATION" => "RUS",
+        "意大利" | "ITALY" => "ITA",
+        "西班牙" | "SPAIN" => "ESP",
+        "葡萄牙" | "PORTUGAL" => "PRT",
+        "荷兰" | "NETHERLANDS" | "HOLLAND" => "NLD",
+        "比利时" | "BELGIUM" => "BEL",
+        "瑞士" | "SWITZERLAND" => "CHE",
+        "瑞典" | "SWEDEN" => "SWE",
+        "挪威" | "NORWAY" => "NOR",
+        "丹麦" | "DENMARK" => "DNK",
+        "芬兰" | "FINLAND" => "FIN",
+        "奥地利" | "AUSTRIA" => "AUT",
+        "爱尔兰" | "IRELAND" => "IRL",
+        "波兰" | "POLAND" => "POL",
+        "捷克" | "CZECH REPUBLIC" | "CZECHIA" => "CZE",
+        "匈牙利" | "HUNGARY" => "HUN",
+        "希腊" | "GREECE" => "GRC",
+        "罗马尼亚" | "ROMANIA" => "ROU",
+        "保加利亚" | "BULGARIA" => "BGR",
+        "乌克兰" | "UKRAINE" => "UKR",
+        "塞尔维亚" | "SERBIA" => "SRB",
+        "克罗地亚" | "CROATIA" => "HRV",
+        "斯洛伐克" | "SLOVAKIA" => "SVK",
+        "斯洛文尼亚" | "SLOVENIA" => "SVN",
+        "白俄罗斯" | "BELARUS" => "BLR",
+        "立陶宛" | "LITHUANIA" => "LTU",
+        "拉脱维亚" | "LATVIA" => "LVA",
+        "爱沙尼亚" | "ESTONIA" => "EST",
+        "摩尔多瓦" | "MOLDOVA" => "MDA",
+        "冰岛" | "ICELAND" => "ISL",
+        "卢森堡" | "LUXEMBOURG" => "LUX",
+        "马耳他" | "MALTA" => "MLT",
+        "塞浦路斯" | "CYPRUS" => "CYP",
+        "土耳其" | "TURKEY" | "TÜRKIYE" => "TUR",
+        "新加坡" | "SINGAPORE" => "SGP",
+        "马来西亚" | "MALAYSIA" => "MYS",
+        "泰国" | "THAILAND" => "THA",
+        "越南" | "VIETNAM" | "VIET NAM" => "VNM",
+        "印度尼西亚" | "印尼" | "INDONESIA" => "IDN",
+        "菲律宾" | "PHILIPPINES" => "PHL",
+        "缅甸" | "MYANMAR" | "BURMA" => "MMR",
+        "柬埔寨" | "CAMBODIA" => "KHM",
+        "老挝" | "LAOS" => "LAO",
+        "文莱" | "BRUNEI" => "BRN",
+        "东帝汶" | "TIMOR-LESTE" | "EAST TIMOR" => "TLS",
+        "印度" | "INDIA" => "IND",
+        "巴基斯坦" | "PAKISTAN" => "PAK",
+        "孟加拉国" | "孟加拉" | "BANGLADESH" => "BGD",
+        "斯里兰卡" | "SRI LANKA" => "LKA",
+        "尼泊尔" | "NEPAL" => "NPL",
+        "不丹" | "BHUTAN" => "BTN",
+        "马尔代夫" | "MALDIVES" => "MDV",
+        "蒙古" | "MONGOLIA" => "MNG",
+        "阿富汗" | "AFGHANISTAN" => "AFG",
+        "伊朗" | "IRAN" => "IRN",
+        "伊拉克" | "IRAQ" => "IRQ",
+        "叙利亚" | "SYRIA" => "SYR",
+        "约旦" | "JORDAN" => "JOR",
+        "黎巴嫩" | "LEBANON" => "LBN",
+        "以色列" | "ISRAEL" => "ISR",
+        "巴勒斯坦" | "PALESTINE" | "STATE OF PALESTINE" => "PSE",
+        "沙特阿拉伯" | "沙特" | "SAUDI ARABIA" => "SAU",
+        "阿联酋" | "阿拉伯联合酋长国" | "UNITED ARAB EMIRATES" => "ARE",
+        "科威特" | "KUWAIT" => "KWT",
+        "卡塔尔" | "QATAR" => "QAT",
+        "巴林" | "BAHRAIN" => "BHR",
+        "阿曼" | "OMAN" => "OMN",
+        "也门" | "YEMEN" => "YEM",
+        "埃及" | "EGYPT" => "EGY",
+        "利比亚" | "LIBYA" => "LBY",
+        "突尼斯" | "TUNISIA" => "TUN",
+        "阿尔及利亚" | "ALGERIA" => "DZA",
+        "摩洛哥" | "MOROCCO" => "MAR",
+        "苏丹" | "SUDAN" => "SDN",
+        "南苏丹" | "SOUTH SUDAN" => "SSD",
+        "埃塞俄比亚" | "ETHIOPIA" => "ETH",
+        "厄立特里亚" | "ERITREA" => "ERI",
+        "索马里" | "SOMALIA" => "SOM",
+        "肯尼亚" | "KENYA" => "KEN",
+        "坦桑尼亚" | "TANZANIA" => "TZA",
+        "乌干达" | "UGANDA" => "UGA",
+        "卢旺达" | "RWANDA" => "RWA",
+        "布隆迪" | "BURUNDI" => "BDI",
+        "赞比亚" | "ZAMBIA" => "ZMB",
+        "津巴布韦" | "ZIMBABWE" => "ZWE",
+        "博茨瓦纳" | "BOTSWANA" => "BWA",
+        "纳米比亚" | "NAMIBIA" => "NAM",
+        "莫桑比克" | "MOZAMBIQUE" => "MOZ",
+        "马拉维" | "MALAWI" => "MWI",
+        "马达加斯加" | "MADAGASCAR" => "MDG",
+        "毛里求斯" | "MAURITIUS" => "MUS",
+        "塞舌尔" | "SEYCHELLES" => "SYC",
+        "科摩罗" | "COMOROS" => "COM",
+        "南非" | "SOUTH AFRICA" => "ZAF",
+        "尼日利亚" | "NIGERIA" => "NGA",
+        "加纳" | "GHANA" => "GHA",
+        "塞内加尔" | "SENEGAL" => "SEN",
+        "马里" | "MALI" => "MLI",
+        "布基纳法索" | "BURKINA FASO" => "BFA",
+        "尼日尔" | "NIGER" => "NER",
+        "贝宁" | "BENIN" => "BEN",
+        "多哥" | "TOGO" => "TGO",
+        "科特迪瓦" | "CÔTE D'IVOIRE" | "COTE D'IVOIRE" | "IVORY COAST" => "CIV",
+        "利比里亚" | "LIBERIA" => "LBR",
+        "塞拉利昂" | "SIERRA LEONE" => "SLE",
+        "几内亚" | "GUINEA" => "GIN",
+        "几内亚比绍" | "GUINEA-BISSAU" => "GNB",
+        "冈比亚" | "GAMBIA" => "GMB",
+        "佛得角" | "CABO VERDE" | "CAPE VERDE" => "CPV",
+        "喀麦隆" | "CAMEROON" => "CMR",
+        "中非" | "CENTRAL AFRICAN REPUBLIC" => "CAF",
+        "乍得" | "CHAD" => "TCD",
+        "赤道几内亚" | "EQUATORIAL GUINEA" => "GNQ",
+        "加蓬" | "GABON" => "GAB",
+        "刚果(布)" | "刚果共和国" | "CONGO" | "REPUBLIC OF THE CONGO" | "CONGO-BRAZZAVILLE" => "COG",
+        "刚果(金)" | "刚果民主共和国" | "DR CONGO" | "DEMOCRATIC REPUBLIC OF THE CONGO" | "CONGO-KINSHASA" => "COD",
+        "安哥拉" | "ANGOLA" => "AGO",
+        "圣多美和普林西比" | "SAO TOME AND PRINCIPE" => "STP",
+        "巴西" | "BRAZIL" => "BRA",
+        "阿根廷" | "ARGENTINA" => "ARG",
+        "智利" | "CHILE" => "CHL",
+        "秘鲁" | "PERU" => "PER",
+        "哥伦比亚" | "COLOMBIA" => "COL",
+        "委内瑞拉" | "VENEZUELA" => "VEN",
+        "厄瓜多尔" | "ECUADOR" => "ECU",
+        "玻利维亚" | "BOLIVIA" => "BOL",
+        "巴拉圭" | "PARAGUAY" => "PRY",
+        "乌拉圭" | "URUGUAY" => "URY",
+        "圭亚那" | "GUYANA" => "GUY",
+        "苏里南" | "SURINAME" => "SUR",
+        "墨西哥" | "MEXICO" => "MEX",
+        "危地马拉" | "GUATEMALA" => "GTM",
+        "伯利兹" | "BELIZE" => "BLZ",
+        "洪都拉斯" | "HONDURAS" => "HND",
+        "萨尔瓦多" | "EL SALVADOR" => "SLV",
+        "尼加拉瓜" | "NICARAGUA" => "NIC",
+        "哥斯达黎加" | "COSTA RICA" => "CRI",
+        "巴拿马" | "PANAMA" => "PAN",
+        "古巴" | "CUBA" => "CUB",
+        "牙买加" | "JAMAICA" => "JAM",
+        "海地" | "HAITI" => "HTI",
+        "多米尼加" | "DOMINICAN REPUBLIC" => "DOM",
+        "特立尼达和多巴哥" | "TRINIDAD AND TOBAGO" => "TTO",
+        "巴巴多斯" | "BARBADOS" => "BRB",
+        "圣卢西亚" | "SAINT LUCIA" => "LCA",
+        "格林纳达" | "GRENADA" => "GRD",
+        "圣文森特和格林纳丁斯" | "SAINT VINCENT AND THE GRENADINES" => "VCT",
+        "安提瓜和巴布达" | "ANTIGUA AND BARBUDA" => "ATG",
+        "圣基茨和尼维斯" | "SAINT KITTS AND NEVIS" => "KNA",
+        "多米尼克" | "DOMINICA" => "DMA",
+        "巴哈马" | "BAHAMAS" => "BHS",
+        "斐济" | "FIJI" => "FJI",
+        "巴布亚新几内亚" | "PAPUA NEW GUINEA" => "PNG",
+        "所罗门群岛" | "SOLOMON ISLANDS" => "SLB",
+        "瓦努阿图" | "VANUATU" => "VUT",
+        "萨摩亚" | "SAMOA" => "WSM",
+        "汤加" | "TONGA" => "TON",
+        "基里巴斯" | "KIRIBATI" => "KIR",
+        "图瓦卢" | "TUVALU" => "TUV",
+        "瑙鲁" | "NAURU" => "NRU",
+        "帕劳" | "PALAU" => "PLW",
+        "马绍尔群岛" | "MARSHALL ISLANDS" => "MHL",
+        "密克罗尼西亚" | "MICRONESIA" | "FEDERATED STATES OF MICRONESIA" => "FSM",
+        "库克群岛" | "COOK ISLANDS" => "COK",
+        "纽埃" | "NIUE" => "NIU",
+        "中国香港" | "香港" | "HONG KONG" | "HONGKONG" => "HKG",
+        "中国台湾" | "台湾" | "TAIWAN" => "TWN",
+        "中国澳门" | "澳门" | "MACAO" | "MACAU" => "MAC",
+        "蒙古" | "MONGOLIA" => "MNG",
+        "哈萨克斯坦" | "KAZAKHSTAN" => "KAZ",
+        "乌兹别克斯坦" | "UZBEKISTAN" => "UZB",
+        "土库曼斯坦" | "TURKMENISTAN" => "TKM",
+        "吉尔吉斯斯坦" | "KYRGYZSTAN" => "KGZ",
+        "塔吉克斯坦" | "TAJIKISTAN" => "TJK",
+        "格鲁吉亚" | "GEORGIA" => "GEO",
+        "亚美尼亚" | "ARMENIA" => "ARM",
+        "阿塞拜疆" | "AZERBAIJAN" => "AZE",
+        "列支敦士登" | "LIECHTENSTEIN" => "LIE",
+        "摩纳哥" | "MONACO" => "MCO",
+        "圣马力诺" | "SAN MARINO" => "SMR",
+        "安道尔" | "ANDORRA" => "AND",
+        "梵蒂冈" | "VATICAN" | "HOLY SEE" => "VAT",
+        "黑山" | "MONTENEGRO" => "MNE",
+        "波斯尼亚和黑塞哥维那" | "波黑" | "BOSNIA AND HERZEGOVINA" => "BIH",
+        "北马其顿" | "NORTH MACEDONIA" | "MACEDONIA" => "MKD",
+        "阿尔巴尼亚" | "ALBANIA" => "ALB",
+        _ => "",
+    };
+    if !code.is_empty() {
+        code.to_string()
+    } else {
+        // 未知值：返回原始值，让调用方处理错误
+        trimmed.to_string()
+    }
 }
 
 // ============================================================================
