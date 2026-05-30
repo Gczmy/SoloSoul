@@ -1303,13 +1303,13 @@ fn resolve_property_keys(type_filter: Option<&str>, property_key: &str) -> Vec<S
         (Some("__preset_payment_card"), "expiryDate") => Some("expiryDate"),
         (Some("__preset_payment_card"), "cardType") => Some("cardType"),
 
-        // idcard
-        (Some("__preset_idcard"), "issue_date") => Some("issueDate"),
-        (Some("__preset_idcard"), "expiry_date") => Some("expiryDate"),
-        (Some("__preset_idcard"), "holder_name") => Some("holderName"),
-        (Some("__preset_idcard"), "issueDate") => Some("issueDate"),
-        (Some("__preset_idcard"), "expiryDate") => Some("expiryDate"),
-        (Some("__preset_idcard"), "holderName") => Some("holderName"),
+        // identity_document (idCard)
+        (Some("__preset_identity_document"), "issue_date") => Some("issueDate"),
+        (Some("__preset_identity_document"), "expiry_date") => Some("expiryDate"),
+        (Some("__preset_identity_document"), "holder_name") => Some("holderName"),
+        (Some("__preset_identity_document"), "issueDate") => Some("issueDate"),
+        (Some("__preset_identity_document"), "expiryDate") => Some("expiryDate"),
+        (Some("__preset_identity_document"), "holderName") => Some("holderName"),
 
         // bank_account
         (Some("__preset_bank_account"), "account_number") => Some("accountNumber"),
@@ -1600,7 +1600,7 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         let filter = match prefix {
             "passport" => Some("__preset_passport"),
             "visa" => Some("__preset_visa"),
-            "idCard" => Some("__preset_idcard"),
+            "idCard" => Some("__preset_identity_document"),
             "card" => Some("__preset_card"),
             "identity" => Some("__preset_identity"),
             "contact" => Some("__preset_contact"),
