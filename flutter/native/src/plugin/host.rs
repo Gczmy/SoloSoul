@@ -218,6 +218,8 @@ pub struct SoloHostFunctions {
     pub wasi: wasmtime_wasi::preview1::WasiP1Ctx,
     /// 预授权的字段集合（批量授权后填充）
     pub pre_approved_fields: HashSet<String>,
+    /// Dart 端传入的初始参数（JSON 字符串）
+    pub initial_params: Option<String>,
 }
 
 impl SoloHostFunctions {
@@ -233,6 +235,7 @@ impl SoloHostFunctions {
         rate_limiter: Arc<RateLimiter>,
         ttl_seconds: u64,
         pre_approved_fields: HashSet<String>,
+        initial_params: Option<String>,
     ) -> Self {
         let wasi = wasmtime_wasi::WasiCtxBuilder::new()
             .inherit_stdio()
@@ -250,6 +253,7 @@ impl SoloHostFunctions {
             session_expires_at: Instant::now() + Duration::from_secs(ttl_seconds),
             wasi,
             pre_approved_fields,
+            initial_params,
         }
     }
 
@@ -648,6 +652,131 @@ impl SoloHostFunctions {
                             -1 // Error
                         }
                     }
+                },
+            )
+            .map_err(|e| e.to_string())?;
+
+        // solosoul_show_dialog(config_ptr, config_len, out_ptr, out_cap) -> i32
+        linker
+            .func_wrap(
+                "env",
+                "solosoul_show_dialog",
+                |mut caller: Caller<'_, Self>,
+                 config_ptr: i32,
+                 config_len: i32,
+                 out_ptr: i32,
+                 out_cap: i32|
+                 -> i32 {
+                    let config = read_memory(&mut caller, config_ptr as usize, config_len as usize);
+                    rust_log(&format!("[host:solosoul_show_dialog] config_len={}", config.len()));
+
+                    let (plugin_id, plugin_name, session_id, consent_tx, log_tx) = {
+                        let funcs = caller.data();
+                        (
+                            funcs.plugin_id.clone(),
+                            funcs.plugin_name.clone(),
+                            funcs.session_id.clone(),
+                            funcs.consent_tx.clone(),
+                            funcs.log_tx.clone(),
+                        )
+                    };
+
+                    // 0. 安全白名单：仅允许官方插件调用对话框（防止滥用）
+                    const ALLOWED_DIALOG_PLUGINS: &[&str] = &["com.solosoul.official.doc-checklist"];
+                    if !ALLOWED_DIALOG_PLUGINS.contains(&plugin_id.as_str()) {
+                        rust_log(&format!("[host:solosoul_show_dialog] RETURN -5 PermissionDenied plugin_id='{}'", plugin_id));
+                        return -5; // PermissionDenied
+                    }
+
+                    let request_id = uuid::Uuid::new_v4().to_string();
+                    let (tx, rx) = std::sync::mpsc::channel();
+
+                    // 1. 通过 Log 事件传递对话框配置（Dart 端缓存）
+                    // 发送 3 次并间隔 100ms，确保 Dart 端能收到（StreamSink 时序竞争保护）
+                    let config_payload = format!("{}|{}", request_id, config);
+                    for i in 0..3 {
+                        if log_tx.try_send(("dialog_config".to_string(), config_payload.clone())).is_err() {
+                            rust_log(&format!("[host:solosoul_show_dialog] log try_send failed at attempt {}", i));
+                            return -1;
+                        }
+                        std::thread::sleep(std::time::Duration::from_millis(100));
+                    }
+
+                    // 2. 通过 ConsentRequest 请求 Dart 弹出对话框（复用现有通道）
+                    let request = ConsentRequest {
+                        request_id: request_id.clone(),
+                        plugin_id: plugin_id.clone(),
+                        plugin_name: plugin_name.clone(),
+                        field: "__dialog__".to_string(),
+                        session_id: session_id.clone(),
+                        sensitivity: SensitivityLevel::Public,
+                        response: tx,
+                    };
+
+                    if consent_tx.try_send(request).is_err() {
+                        rust_log("[host:solosoul_show_dialog] RETURN -1 Consent channel closed");
+                        return -1; // Channel closed
+                    }
+
+                    // 3. 阻塞等待 Dart 用户响应（超时 60s）
+                    match rx.recv_timeout(Duration::from_secs(60)) {
+                        Ok(ConsentResult::Approved(result)) => {
+                            rust_log(&format!("[host:solosoul_show_dialog] APPROVED result_len={}", result.len()));
+                            if result.len() + 1 > out_cap as usize {
+                                rust_log(&format!("[host:solosoul_show_dialog] RETURN -4 BufferTooSmall (need {} got {})", result.len() + 1, out_cap));
+                                return -4; // BufferTooSmall
+                            }
+                            write_memory(&mut caller, out_ptr as usize, &result);
+                            0 // Success
+                        }
+                        Ok(ConsentResult::Denied) => {
+                            rust_log("[host:solosoul_show_dialog] RETURN -2 UserDenied");
+                            -2 // User cancelled
+                        }
+                        Ok(ConsentResult::Expired) | Err(_) => {
+                            rust_log("[host:solosoul_show_dialog] RETURN -3 Timeout");
+                            -3 // Timeout
+                        }
+                    }
+                },
+            )
+            .map_err(|e| e.to_string())?;
+
+        // solosoul_get_param(key_ptr, key_len, out_ptr, out_cap) -> i32
+        // 读取 Dart 端传入的初始参数（JSON 字符串）中的指定 key
+        linker
+            .func_wrap(
+                "env",
+                "solosoul_get_param",
+                |mut caller: Caller<'_, Self>,
+                 key_ptr: i32,
+                 key_len: i32,
+                 out_ptr: i32,
+                 out_cap: i32|
+                 -> i32 {
+                    let key = read_memory(&mut caller, key_ptr as usize, key_len as usize);
+                    rust_log(&format!("[host:solosoul_get_param] key='{}'", key));
+
+                    let params_str = {
+                        let funcs = caller.data();
+                        funcs.initial_params.clone()
+                    };
+
+                    if let Some(ref params_str) = params_str {
+                        if let Ok(params) = serde_json::from_str::<serde_json::Value>(params_str) {
+                            if let Some(value) = params.get(&key).and_then(|v| v.as_str()) {
+                                if value.len() + 1 > out_cap as usize {
+                                    rust_log(&format!("[host:solosoul_get_param] RETURN -4 BufferTooSmall (need {} got {})", value.len() + 1, out_cap));
+                                    return -4; // BufferTooSmall
+                                }
+                                write_memory(&mut caller, out_ptr as usize, value);
+                                rust_log(&format!("[host:solosoul_get_param] RETURN 0 value='{}'", value));
+                                return 0; // Success
+                            }
+                        }
+                    }
+                    rust_log("[host:solosoul_get_param] RETURN -5 NotFound");
+                    -5 // NotFound
                 },
             )
             .map_err(|e| e.to_string())?;

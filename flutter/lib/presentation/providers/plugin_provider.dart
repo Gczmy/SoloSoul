@@ -349,8 +349,8 @@ Future<void> uninstallPlugin(WidgetRef ref, String pluginId) async {
   ref.invalidate(activeSessionsProvider);
 }
 
-Stream<frb_plugin.PluginEvent> runPlugin(WidgetRef ref, String pluginId) async* {
+Stream<frb_plugin.PluginEvent> runPlugin(WidgetRef ref, String pluginId, {Map<String, dynamic>? params}) async* {
   final service = await ref.read(_initializedPluginServiceProvider.future);
-  yield* service.runPlugin(pluginId);
+  yield* service.runPlugin(pluginId, params: params);
   ref.invalidate(activeSessionsProvider);
 }

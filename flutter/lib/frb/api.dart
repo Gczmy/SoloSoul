@@ -286,9 +286,11 @@ Future<List<PluginSessionInfo>> frbPluginListActiveSessions() =>
 Stream<PluginEvent> frbPluginExecute({
   required String pluginId,
   required BigInt sessionTtlSeconds,
+  String? initialParams,
 }) => RustLib.instance.api.crateApiFrbPluginExecute(
   pluginId: pluginId,
   sessionTtlSeconds: sessionTtlSeconds,
+  initialParams: initialParams,
 );
 
 /// 响应用户授权（Dart -> Rust）

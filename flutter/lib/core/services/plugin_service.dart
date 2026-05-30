@@ -1,3 +1,4 @@
+import 'dart:convert' show jsonEncode;
 import 'dart:io';
 
 import 'package:solosoul_flutter/core/models/plugin_models.dart';
@@ -59,9 +60,12 @@ class PluginService {
     final manifest = await frb.frbPluginLoadManifest(pluginId: pluginId);
 
     // 3. 通过 Rust FFI 执行插件，返回事件流
+    //    params 将序列化为 JSON 作为 initial_params 传入 Rust，
+    //    结构约定：{"scenario_id": "...", "fields": ["..."]}
     yield* frb.frbPluginExecute(
       pluginId: pluginId,
       sessionTtlSeconds: manifest.dataTtlSeconds,
+      initialParams: params != null ? jsonEncode(params) : null,
     );
   }
 

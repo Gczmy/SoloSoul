@@ -957,6 +957,7 @@ fn wire__crate__api__frb_plugin_execute_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_plugin_id = <String>::sse_decode(&mut deserializer);
             let api_session_ttl_seconds = <u64>::sse_decode(&mut deserializer);
+            let api_initial_params = <Option<String>>::sse_decode(&mut deserializer);
             let api_sink = <StreamSink<
                 crate::plugin::manager::PluginEvent,
                 flutter_rust_bridge::for_generated::SseCodec,
@@ -967,6 +968,7 @@ fn wire__crate__api__frb_plugin_execute_impl(
                     let output_ok = crate::api::frb_plugin_execute(
                         api_plugin_id,
                         api_session_ttl_seconds,
+                        api_initial_params,
                         api_sink,
                     )?;
                     Ok(output_ok)

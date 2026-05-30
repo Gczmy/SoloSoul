@@ -170,6 +170,7 @@ abstract class RustLibApi extends BaseApi {
   Stream<PluginEvent> crateApiFrbPluginExecute({
     required String pluginId,
     required BigInt sessionTtlSeconds,
+    String? initialParams,
   });
 
   Future<void> crateApiFrbPluginForceUnload({required String pluginId});
@@ -1033,6 +1034,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Stream<PluginEvent> crateApiFrbPluginExecute({
     required String pluginId,
     required BigInt sessionTtlSeconds,
+    String? initialParams,
   }) {
     final sink = RustStreamSink<PluginEvent>();
     unawaited(
@@ -1042,6 +1044,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             final serializer = SseSerializer(generalizedFrbRustBinding);
             sse_encode_String(pluginId, serializer);
             sse_encode_u_64(sessionTtlSeconds, serializer);
+            sse_encode_opt_String(initialParams, serializer);
             sse_encode_StreamSink_plugin_event_Sse(sink, serializer);
             pdeCallFfi(
               generalizedFrbRustBinding,
@@ -1055,7 +1058,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             decodeErrorData: sse_decode_String,
           ),
           constMeta: kCrateApiFrbPluginExecuteConstMeta,
-          argValues: [pluginId, sessionTtlSeconds, sink],
+          argValues: [pluginId, sessionTtlSeconds, initialParams, sink],
           apiImpl: this,
         ),
       ),
@@ -1065,7 +1068,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiFrbPluginExecuteConstMeta => const TaskConstMeta(
     debugName: "frb_plugin_execute",
-    argNames: ["pluginId", "sessionTtlSeconds", "sink"],
+    argNames: ["pluginId", "sessionTtlSeconds", "initialParams", "sink"],
   );
 
   @override

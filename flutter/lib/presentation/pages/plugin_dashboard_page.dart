@@ -22,6 +22,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_access_review_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_consent_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_detail_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/plugin_radio_list_dialog.dart';
 
 /// 插件看板页面 — 管理插件生命周期（安装/卸载/更新/运行）
 class PluginDashboardPage extends ConsumerStatefulWidget {
@@ -1973,7 +1974,19 @@ class _PluginCard extends ConsumerWidget {
 
   Future<void> _onRun(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final stream = runPlugin(ref, pluginId);
+
+    // 材料清单插件特殊处理：先进行场景选择，再传入参数执行
+    Map<String, dynamic>? initialParams;
+    if (pluginId == 'com.solosoul.official.doc-checklist') {
+      final scenarioResult = await _showDocChecklistScenarioDialog(context);
+      if (scenarioResult == null) return; // 用户取消，终止流程
+      initialParams = {
+        'scenario_id': scenarioResult['id'],
+        'fields': scenarioResult['fields'],
+      };
+    }
+
+    final stream = runPlugin(ref, pluginId, params: initialParams);
     final List<String> pluginLogs = [];
     final List<String> errorMessages = [];
     final List<_PluginResultData> pluginResults = [];
@@ -1984,22 +1997,151 @@ class _PluginCard extends ConsumerWidget {
     int? completedExitCode;
     bool hasCompleted = false;
 
+    // 对话框配置缓存（用于 solosoul_show_dialog）
+    final dialogConfigs = <String, String>{};
+
+    // 批量预授权阶段标记：true 表示可能还在批量预授权阶段（WASM 执行前）
+    // 当 batch_end 到达或收到 WASM 执行期间的事件（Log/Result）时设为 false
+    var batchPreConsentPhase = true;
+
     try {
       await for (final event in stream) {
         switch (event) {
           case frb_plugin.PluginEvent_ConsentRequest(
+              requestId: final reqId,
+              field: '__dialog__',
+            ):
+            // 处理插件通过 solosoul_show_dialog 请求的通用对话框
+            debugPrint('[plugin_dialog] received __dialog__ ConsentRequest reqId=$reqId');
+
+            // 场景选择前置优化：如果 Dart 端已传入场景参数，直接返回结果，
+            // 避免插件再次弹出场景选择对话框。
+            // （Rust 端 solosoul_get_param 在某些情况下无法读取到参数，作为兜底方案）
+            if (initialParams != null && initialParams['scenario_id'] != null) {
+              debugPrint('[plugin_dialog] skipping dialog, using pre-selected scenario: ${initialParams['scenario_id']}');
+              await frb.frbPluginConsentResponse(
+                requestId: reqId,
+                approved: true,
+                value: jsonEncode({'selected': initialParams['scenario_id']}),
+              );
+              break;
+            }
+
+            var configJson = dialogConfigs.remove(reqId);
+            // 时序保护：dialog_config Log 事件可能晚于 ConsentRequest 到达，
+            // 短暂等待确保配置已缓存（最多重试 10 次，每次 100ms = 1s）
+            // Rust 端已发送 3 次 dialog_config（间隔 100ms），通常第一次就能命中
+            for (var retry = 0; retry < 10 && configJson == null; retry++) {
+              await Future.delayed(const Duration(milliseconds: 100));
+              configJson = dialogConfigs.remove(reqId);
+            }
+            if (configJson == null) {
+              debugPrint('[plugin_dialog] config NOT FOUND for reqId=$reqId after 2s, dialogConfigs keys=${dialogConfigs.keys.toList()}');
+            }
+            if (configJson == null || !context.mounted) {
+              await frb.frbPluginConsentResponse(
+                requestId: reqId,
+                approved: false,
+              );
+              break;
+            }
+            try {
+              final config = jsonDecode(configJson) as Map<String, dynamic>;
+              final type = config['type'] as String?;
+              if (type == 'radio_list') {
+                final locale = Localizations.localeOf(context);
+                String resolveL10n(dynamic raw) {
+                  return switch (raw) {
+                    Map<String, dynamic> map =>
+                      map[locale.toString()] ??
+                      map[locale.languageCode] ??
+                      map['en'] ??
+                      map.values.first as String,
+                    String s => s,
+                    _ => '',
+                  };
+                }
+
+                final items = (config['items'] as List).map((e) {
+                  final map = e as Map<String, dynamic>;
+                  return PluginRadioItem(
+                    id: map['id'] as String,
+                    label: resolveL10n(map['label']),
+                  );
+                }).toList();
+
+                final title = resolveL10n(config['title']);
+                final description = config['description'] != null
+                    ? resolveL10n(config['description'])
+                    : null;
+
+                final selected = await showDialog<String>(
+                  context: context,
+                  builder: (_) => PluginRadioListDialog(
+                    title: title,
+                    description: description,
+                    items: items,
+                  ),
+                );
+
+                await frb.frbPluginConsentResponse(
+                  requestId: reqId,
+                  approved: selected != null,
+                  value: selected != null
+                      ? jsonEncode({'selected': selected})
+                      : null,
+                );
+              } else {
+                await frb.frbPluginConsentResponse(
+                  requestId: reqId,
+                  approved: false,
+                );
+              }
+            } catch (e) {
+              await frb.frbPluginConsentResponse(
+                requestId: reqId,
+                approved: false,
+              );
+            }
+          case frb_plugin.PluginEvent_ConsentRequest(
+              requestId: final reqId,
+              field: final field,
+              sensitivity: final sensitivityStr,
               pluginName: final pname,
             ):
-            // 批量模式：缓存请求，等待 batch_end 信号后统一弹窗
-            batchRequests.add(event);
-            if (batchPluginName == null) {
-              final entry = data.registry.plugins[pluginId];
-              final locale = Localizations.localeOf(context).toString();
-              batchPluginName = resolvePluginI18n(
-                entry?.i18n, 'name', locale, pname,
+            if (batchPreConsentPhase) {
+              // 批量预授权阶段：缓存请求，等待 batch_end 后统一弹窗
+              batchRequests.add(event);
+              if (batchPluginName == null) {
+                final entry = data.registry.plugins[pluginId];
+                final locale = Localizations.localeOf(context).toString();
+                batchPluginName = resolvePluginI18n(
+                  entry?.i18n, 'name', locale, pname,
+                );
+              }
+            } else {
+              // WASM 执行期间的运行时单个授权：立即弹出授权对话框
+              debugPrint('[plugin_consent] runtime single consent for field=$field');
+              if (!context.mounted) {
+                await frb.frbPluginConsentResponse(requestId: reqId, approved: false);
+                break;
+              }
+              final approved = await showPluginConsentDialog(
+                context: context,
+                pluginId: pluginId,
+                pluginName: batchPluginName ?? pname,
+                fieldId: field,
+                requestId: reqId,
+                sensitivity: _parseSensitivity(sensitivityStr) ?? SensitivityLevel.sensitive,
+              );
+              await frb.frbPluginConsentResponse(
+                requestId: reqId,
+                approved: approved == true,
               );
             }
           case frb_plugin.PluginEvent_Result(jsonData: final jsonData):
+            // WASM 已执行到发送结果阶段，批量预授权阶段一定已结束
+            batchPreConsentPhase = false;
             // Phase 2: 收集结构化结果
             try {
               pluginResults.add(_PluginResultData.fromJson(jsonData));
@@ -2012,35 +2154,55 @@ class _PluginCard extends ConsumerWidget {
               pluginLogs.add('[结果解析错误] $e');
             }
           case frb_plugin.PluginEvent_Log(level: final level, message: final message):
-            // 批量预授权结束信号：显示批量授权对话框
-            if (level == 'batch_end' && batchRequests.isNotEmpty) {
-              final approved = await showDialog<bool>(
-                context: context,
-                barrierDismissible: false,
-                builder: (ctx) => PluginBatchConsentDialog(
-                  pluginId: pluginId,
-                  pluginName: batchPluginName ?? pluginId,
-                  requests: batchRequests.map((r) => BatchConsentRequest(
-                    requestId: r.requestId,
-                    field: r.field,
-                    sensitivity: r.sensitivity,
-                  )).toList(),
-                ),
-              );
-              // 逐个响应所有预授权请求
-              for (final req in batchRequests) {
-                try {
-                  await frb.frbPluginConsentResponse(
-                    requestId: req.requestId,
-                    approved: approved == true,
-                    value: null,
-                  );
-                } on Exception catch (_) {
-                  // 忽略 consent 响应错误
-                }
+            // 缓存对话框配置（solosoul_show_dialog 通过 Log 事件传递配置）
+            if (level == 'dialog_config') {
+              final idx = message.indexOf('|');
+              if (idx > 0) {
+                final reqId = message.substring(0, idx);
+                final config = message.substring(idx + 1);
+                dialogConfigs[reqId] = config;
+                debugPrint('[plugin_dialog] cached config for reqId=$reqId, config_len=${config.length}');
+              } else {
+                debugPrint('[plugin_dialog] invalid dialog_config format: $message');
               }
-              batchRequests.clear();
-              // 如果用户拒绝，本次执行后续不会再有 ConsentRequest（Rust 已终止）
+              break;
+            }
+            // 批量预授权结束信号：显示批量授权对话框
+            if (level == 'batch_end') {
+              batchPreConsentPhase = false;
+              if (batchRequests.isNotEmpty) {
+                final approved = await showDialog<bool>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (ctx) => PluginBatchConsentDialog(
+                    pluginId: pluginId,
+                    pluginName: batchPluginName ?? pluginId,
+                    requests: batchRequests.map((r) => BatchConsentRequest(
+                      requestId: r.requestId,
+                      field: r.field,
+                      sensitivity: r.sensitivity,
+                    )).toList(),
+                  ),
+                );
+                // 逐个响应所有预授权请求
+                for (final req in batchRequests) {
+                  try {
+                    await frb.frbPluginConsentResponse(
+                      requestId: req.requestId,
+                      approved: approved == true,
+                      value: null,
+                    );
+                  } on Exception catch (_) {
+                    // 忽略 consent 响应错误
+                  }
+                }
+                batchRequests.clear();
+                // 如果用户拒绝，本次执行后续不会再有 ConsentRequest（Rust 已终止）
+              }
+            }
+            // 收到 WASM 执行期间的日志，说明批量预授权阶段已结束
+            if (level == 'info' || level == 'error') {
+              batchPreConsentPhase = false;
             }
             // 收集插件输出的 info 日志（排除预授权信号和空消息）
             if (level == 'info' && message.isNotEmpty && !message.startsWith('pre-consent|')) {
@@ -2051,6 +2213,7 @@ class _PluginCard extends ConsumerWidget {
               errorMessages.add(message);
             }
           case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
+            batchPreConsentPhase = false;
             // 记录最近使用时间，但不在此处弹出对话框（延迟到 stream 结束后）
             final installer = await ref.read(initializedPluginInstallerProvider.future);
             await installer.recordLastUsed(pluginId);
@@ -2193,6 +2356,9 @@ class _PluginCard extends ConsumerWidget {
         await installer.uninstall(pluginId);
         if (!context.mounted) return;
 
+        // 清除 Riverpod 缓存，确保刷新时不再显示已卸载的插件
+        ref.invalidate(installedPluginsProvider);
+
         // 局部更新安装状态，避免全页刷新
         ref.read(pluginDashboardProvider.notifier).removeInstalledPlugin(pluginId);
 
@@ -2209,6 +2375,77 @@ class _PluginCard extends ConsumerWidget {
         }
       }
     }
+  }
+
+  /// 材料清单插件场景选择对话框
+  /// 返回 {id, fields} 或 null（用户取消）
+  Future<Map<String, dynamic>?> _showDocChecklistScenarioDialog(BuildContext context) async {
+    final locale = Localizations.localeOf(context);
+
+    // 场景定义（与 Rust 插件源码及 scenarios.json 保持一致）
+    final scenarios = [
+      {
+        'id': 'japan-visa',
+        'label': {'zh': '日本签证', 'en': 'Japan Visa'},
+        'fields': ['passport.number', 'identity.idPhoto', 'employment.company', 'financial.bankStatement', 'travel.itinerary', 'travel.hotelBooking'],
+      },
+      {
+        'id': 'us-visa',
+        'label': {'zh': '美国签证 (B1/B2)', 'en': 'US Visa (B1/B2)'},
+        'fields': ['passport.number', 'identity.idPhoto', 'visa.ds160Confirmation', 'visa.interviewAppointment', 'financial.bankStatement', 'employment.company'],
+      },
+      {
+        'id': 'schengen-visa',
+        'label': {'zh': '申根签证', 'en': 'Schengen Visa'},
+        'fields': ['passport.number', 'identity.idPhoto', 'insurance.travel', 'travel.itinerary', 'travel.hotelBooking', 'financial.bankStatement', 'employment.company'],
+      },
+      {
+        'id': 'uk-visa',
+        'label': {'zh': '英国签证', 'en': 'UK Visa'},
+        'fields': ['passport.number', 'identity.idPhoto', 'medical.tbTest', 'visa.casLetter', 'financial.bankStatement', 'travel.hotelBooking'],
+      },
+      {
+        'id': 'bank-account',
+        'label': {'zh': '银行开户', 'en': 'Bank Account'},
+        'fields': ['passport.number', 'address.street', 'employment.company'],
+      },
+      {
+        'id': 'hotel-checkin',
+        'label': {'zh': '酒店入住', 'en': 'Hotel Check-in'},
+        'fields': ['passport.number', 'travel.hotelBooking', 'card.number'],
+      },
+    ];
+
+    String resolveL10n(Map<String, String> map) {
+      return map[locale.toString()] ??
+          map[locale.languageCode] ??
+          map['en'] ??
+          map.values.first;
+    }
+
+    final items = scenarios.map((s) {
+      return PluginRadioItem(
+        id: s['id'] as String,
+        label: resolveL10n(s['label'] as Map<String, String>),
+      );
+    }).toList();
+
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (_) => PluginRadioListDialog(
+        title: '选择签证/业务类型',
+        description: '选择场景后，插件将请求访问相关字段，请继续授权。',
+        items: items,
+      ),
+    );
+
+    if (selected == null) return null;
+
+    final scenario = scenarios.firstWhere((s) => s['id'] == selected);
+    return {
+      'id': selected,
+      'fields': scenario['fields'],
+    };
   }
 
   frb_manifest.PluginManifest? _getManifest() {

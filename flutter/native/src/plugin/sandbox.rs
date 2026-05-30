@@ -82,6 +82,7 @@ impl WasmSandbox {
         rate_limiter: Arc<RateLimiter>,
         ttl_seconds: u64,
         pre_approved_fields: HashSet<String>,
+        initial_params: Option<String>,
     ) -> Result<PluginResult, PluginError> {
 
         let host = SoloHostFunctions::new(
@@ -96,6 +97,7 @@ impl WasmSandbox {
             rate_limiter,
             ttl_seconds,
             pre_approved_fields,
+            initial_params,
         );
 
         let mut linker = Linker::new(&self.engine);

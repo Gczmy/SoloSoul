@@ -154,6 +154,7 @@ impl PluginManager {
         &self,
         plugin_id: String,
         session_ttl_seconds: u64,
+        initial_params: Option<String>,
         sink: StreamSink<PluginEvent>,
     ) -> Result<i32, String> {
         // 1. 加载 manifest 和 wasm
@@ -263,19 +264,54 @@ impl PluginManager {
             }
         });
 
-        // 6. 批量授权：收集 manifest 中所有声明字段，一次性请求用户确认
-        //    显示所有字段的敏感度等级，用户有权拒绝任何字段
+        // 6. 批量授权：收集 manifest 中所有声明字段，一次性请求用户确认。
+        //    包括 required_fields 和 optional_fields，全部在批量对话框中展示。
+        //    用户统一授权后，插件运行时所有字段均已预授权，无需逐个弹窗。
+        //    ⚠️ 如果 Dart 端传入了 initial_params.fields，则使用该列表替代 manifest，
+        //       并做白名单校验（仅允许 manifest 中已声明的字段）。
         let mut pre_approved_fields: HashSet<String> = HashSet::new();
-        let all_fields: Vec<String> = manifest_clone.required_fields.iter()
+        let manifest_all_fields: Vec<String> = manifest_clone.required_fields.iter()
             .chain(manifest_clone.optional_fields.iter())
             .cloned()
             .collect();
         
-        if !all_fields.is_empty() {
+        let mut pre_consent_fields = manifest_all_fields.clone();
+        let mut initial_params_value: Option<String> = None;
+        
+        rust_log(&format!(
+            "[execute_plugin] plugin_id={} initial_params={:?}",
+            plugin_id, initial_params
+        ));
+        
+        if let Some(ref params_str) = initial_params {
+            rust_log(&format!(
+                "[execute_plugin] parsing initial_params: len={}",
+                params_str.len()
+            ));
+            if let Ok(params) = serde_json::from_str::<serde_json::Value>(params_str) {
+                if let Some(fields) = params.get("fields").and_then(|f| f.as_array()) {
+                    let requested: Vec<String> = fields.iter()
+                        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect();
+                    let requested_len = requested.len();
+                    // 白名单校验：仅保留 manifest 中已声明的字段
+                    pre_consent_fields = requested.into_iter()
+                        .filter(|f| manifest_clone.is_field_requested(f))
+                        .collect();
+                    rust_log(&format!(
+                        "[execute_plugin] initial_params.fields filtered {} -> {} fields",
+                        requested_len, pre_consent_fields.len()
+                    ));
+                }
+                initial_params_value = Some(params_str.clone());
+            }
+        }
+        
+        if !pre_consent_fields.is_empty() {
             let mut pending_rxs: Vec<(String, std::sync::mpsc::Receiver<ConsentResult>)> = Vec::new();
             
             // 为每个声明字段发送 ConsentRequest（包括 Public/Internal/Sensitive/Critical）
-            for field in &all_fields {
+            for field in &pre_consent_fields {
                 let request_id = uuid::Uuid::new_v4().to_string();
                 let (tx, rx) = std::sync::mpsc::channel();
                 
@@ -347,6 +383,7 @@ impl PluginManager {
             rate_limiter,
             session_ttl_seconds,
             pre_approved_fields,
+            initial_params_value,
         );
 
         // 7. 根据执行结果处理 Session，并通过 StreamSink 推送 Completed/Error 事件

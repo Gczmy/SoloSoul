@@ -1097,9 +1097,10 @@ pub fn frb_plugin_list_active_sessions() -> Result<Vec<PluginSessionInfo>, Strin
 pub fn frb_plugin_execute(
     plugin_id: String,
     session_ttl_seconds: u64,
+    initial_params: Option<String>,
     sink: StreamSink<PluginEvent>,
 ) -> Result<i32, String> {
-    crate::plugin::with_manager(|m| m.execute_plugin(plugin_id, session_ttl_seconds, sink))
+    crate::plugin::with_manager(|m| m.execute_plugin(plugin_id, session_ttl_seconds, initial_params, sink))
 }
 
 /// 响应用户授权（Dart -> Rust）
