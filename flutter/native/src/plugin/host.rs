@@ -1217,6 +1217,239 @@ fn get_address_objects(objects: &[serde_json::Value]) -> Vec<&serde_json::Value>
     addrs
 }
 
+/// 将 snake_case 转换为 camelCase
+/// 示例: "full_name" → "fullName", "date_of_birth" → "dateOfBirth"
+fn snake_to_camel(s: &str) -> String {
+    let mut result = String::with_capacity(s.len());
+    let mut capitalize_next = false;
+    for ch in s.chars() {
+        if ch == '_' {
+            capitalize_next = true;
+        } else if capitalize_next {
+            result.push(ch.to_ascii_uppercase());
+            capitalize_next = false;
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
+/// 将 camelCase 转换为 snake_case
+/// 示例: "fullName" → "full_name", "dateOfBirth" → "date_of_birth"
+fn camel_to_snake(s: &str) -> String {
+    let mut result = String::with_capacity(s.len() + 4);
+    for (i, ch) in s.chars().enumerate() {
+        if ch.is_uppercase() {
+            if i > 0 {
+                result.push('_');
+            }
+            result.push(ch.to_ascii_lowercase());
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
+/// 根据对象类型和请求的属性键，解析出需要尝试的所有键（按优先级排序）
+/// 三层查找策略：
+/// 1. 原始键直接匹配
+/// 2. 显式别名映射（覆盖已知 snake_case ↔ camelCase 差异）
+/// 3. 自动 case 转换兜底
+fn resolve_property_keys(type_filter: Option<&str>, property_key: &str) -> Vec<String> {
+    let mut keys = Vec::new();
+
+    // 1. 原始键
+    keys.push(property_key.to_string());
+
+    // 2. 显式别名映射（req_key → UOM 标准键）
+    let alias = match (type_filter, property_key) {
+        // identity
+        (Some("__preset_identity"), "full_name") => Some("fullName"),
+        (Some("__preset_identity"), "date_of_birth") => Some("dateOfBirth"),
+        (Some("__preset_identity"), "given_name") => Some("givenName"),
+        (Some("__preset_identity"), "family_name") => Some("familyName"),
+        (Some("__preset_identity"), "fullName") => Some("fullName"),     // 已是 camelCase，自反
+        (Some("__preset_identity"), "dateOfBirth") => Some("dateOfBirth"),
+        (Some("__preset_identity"), "givenName") => Some("givenName"),
+        (Some("__preset_identity"), "familyName") => Some("familyName"),
+
+        // passport
+        (Some("__preset_passport"), "place_of_birth") => Some("placeOfBirth"),
+        (Some("__preset_passport"), "place_of_issue") => Some("authority"),
+        (Some("__preset_passport"), "issuing_authority") => Some("authority"),
+        (Some("__preset_passport"), "issuingAuthority") => Some("authority"),
+        (Some("__preset_passport"), "holder_name") => Some("holderName"),
+        (Some("__preset_passport"), "issue_date") => Some("issueDate"),
+        (Some("__preset_passport"), "expiry_date") => Some("expiryDate"),
+        (Some("__preset_passport"), "date_of_birth") => Some("dateOfBirth"),
+        (Some("__preset_passport"), "country_code") => Some("countryCode"),
+        (Some("__preset_passport"), "placeOfBirth") => Some("placeOfBirth"),
+        (Some("__preset_passport"), "holderName") => Some("holderName"),
+        (Some("__preset_passport"), "issueDate") => Some("issueDate"),
+        (Some("__preset_passport"), "expiryDate") => Some("expiryDate"),
+        (Some("__preset_passport"), "dateOfBirth") => Some("dateOfBirth"),
+        (Some("__preset_passport"), "countryCode") => Some("countryCode"),
+
+        // payment_card
+        (Some("__preset_payment_card"), "number") => Some("cardNumber"),
+        (Some("__preset_payment_card"), "card_number") => Some("cardNumber"),
+        (Some("__preset_payment_card"), "holder_name") => Some("holderName"),
+        (Some("__preset_payment_card"), "expiry_date") => Some("expiryDate"),
+        (Some("__preset_payment_card"), "card_type") => Some("cardType"),
+        (Some("__preset_payment_card"), "cardNumber") => Some("cardNumber"),
+        (Some("__preset_payment_card"), "holderName") => Some("holderName"),
+        (Some("__preset_payment_card"), "expiryDate") => Some("expiryDate"),
+        (Some("__preset_payment_card"), "cardType") => Some("cardType"),
+
+        // idcard
+        (Some("__preset_idcard"), "issue_date") => Some("issueDate"),
+        (Some("__preset_idcard"), "expiry_date") => Some("expiryDate"),
+        (Some("__preset_idcard"), "holder_name") => Some("holderName"),
+        (Some("__preset_idcard"), "issueDate") => Some("issueDate"),
+        (Some("__preset_idcard"), "expiryDate") => Some("expiryDate"),
+        (Some("__preset_idcard"), "holderName") => Some("holderName"),
+
+        // bank_account
+        (Some("__preset_bank_account"), "account_number") => Some("accountNumber"),
+        (Some("__preset_bank_account"), "swift_bic") => Some("swiftBic"),
+        (Some("__preset_bank_account"), "bank_name") => Some("bankName"),
+        (Some("__preset_bank_account"), "accountNumber") => Some("accountNumber"),
+        (Some("__preset_bank_account"), "swiftBic") => Some("swiftBic"),
+        (Some("__preset_bank_account"), "bankName") => Some("bankName"),
+
+        // visa
+        (Some("__preset_visa"), "issue_date") => Some("issueDate"),
+        (Some("__preset_visa"), "expiry_date") => Some("expiryDate"),
+        (Some("__preset_visa"), "visa_type") => Some("visaType"),
+        (Some("__preset_visa"), "issueDate") => Some("issueDate"),
+        (Some("__preset_visa"), "expiryDate") => Some("expiryDate"),
+        (Some("__preset_visa"), "visaType") => Some("visaType"),
+
+        // travel_history
+        (Some("__preset_travel_history"), "travel_type") => Some("travelType"),
+        (Some("__preset_travel_history"), "departure_city") => Some("departureCity"),
+        (Some("__preset_travel_history"), "travelType") => Some("travelType"),
+        (Some("__preset_travel_history"), "departureCity") => Some("departureCity"),
+
+        // education
+        (Some("__preset_education"), "degree_custom") => Some("degreeCustom"),
+        (Some("__preset_education"), "field_of_study") => Some("field"),
+        (Some("__preset_education"), "degreeCustom") => Some("degreeCustom"),
+
+        // employment
+        (Some("__preset_employment"), "start_date") => Some("startDate"),
+        (Some("__preset_employment"), "end_date") => Some("endDate"),
+        (Some("__preset_employment"), "startDate") => Some("startDate"),
+        (Some("__preset_employment"), "endDate") => Some("endDate"),
+
+        // tax_id
+        (Some("__preset_tax_id"), "tax_id_number") => Some("taxIdNumber"),
+        (Some("__preset_tax_id"), "tax_id_type") => Some("taxIdType"),
+        (Some("__preset_tax_id"), "taxIdNumber") => Some("taxIdNumber"),
+        (Some("__preset_tax_id"), "taxIdType") => Some("taxIdType"),
+
+        // address（postalCode 是常见的 camelCase）
+        (Some("__preset_address"), "postal_code") => Some("postalCode"),
+        (Some("__preset_address"), "postalCode") => Some("postalCode"),
+
+        // health
+        (Some("__preset_health"), "blood_type") => Some("bloodType"),
+        (Some("__preset_health"), "bloodType") => Some("bloodType"),
+
+        // Default: no alias
+        _ => None,
+    };
+
+    if let Some(a) = alias {
+        let a_owned = a.to_string();
+        if !keys.contains(&a_owned) {
+            keys.push(a_owned);
+        }
+    }
+
+    // 3. 自动 case 转换兜底：若请求键包含下划线，尝试 camelCase；若包含大写，尝试 snake_case
+    let converted = if property_key.contains('_') {
+        snake_to_camel(property_key)
+    } else if property_key.chars().any(|c| c.is_uppercase()) {
+        camel_to_snake(property_key)
+    } else {
+        property_key.to_string()
+    };
+
+    if converted != property_key && !keys.contains(&converted) {
+        keys.push(converted);
+    }
+
+    keys
+}
+
+/// 尝试从 properties 中按多个键的顺序提取值，返回第一个非空结果
+fn try_extract_from_properties(
+    properties: &serde_json::Value,
+    keys: &[String],
+    first_empty: &mut Option<String>,
+) -> Option<String> {
+    for key in keys {
+        let prop = match properties.get(key) {
+            Some(p) => p,
+            None => continue,
+        };
+        // text
+        if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
+            if !text.is_empty() {
+                return Some(text.to_string());
+            }
+            if first_empty.is_none() {
+                *first_empty = Some(text.to_string());
+            }
+            continue;
+        }
+        // number value
+        if let Some(value) = prop.get("value").and_then(|v| v.as_f64()) {
+            return Some(value.to_string());
+        }
+        // isoDate
+        if let Some(iso_date) = prop.get("isoDate").and_then(|d| d.as_str()) {
+            if !iso_date.is_empty() {
+                return Some(iso_date.to_string());
+            }
+            if first_empty.is_none() {
+                *first_empty = Some(iso_date.to_string());
+            }
+            continue;
+        }
+        // checked
+        if let Some(checked) = prop.get("checked").and_then(|c| c.as_bool()) {
+            return Some(checked.to_string());
+        }
+        // selectedId
+        if let Some(selected_id) = prop.get("selectedId").and_then(|s| s.as_str()) {
+            if !selected_id.is_empty() {
+                return Some(selected_id.to_string());
+            }
+            if first_empty.is_none() {
+                *first_empty = Some(selected_id.to_string());
+            }
+            continue;
+        }
+        // selectedIds
+        if let Some(selected_ids) = prop.get("selectedIds").and_then(|s| s.as_array()) {
+            let ids: Vec<String> = selected_ids.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            let joined = ids.join(", ");
+            if !joined.is_empty() {
+                return Some(joined);
+            }
+            if first_empty.is_none() {
+                *first_empty = Some(joined);
+            }
+            continue;
+        }
+    }
+    None
+}
+
 fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Value) -> Option<String> {
     rust_log(&format!("[extract_from_uom] START field_id={}", field_id));
     // 支持两种 JSON 结构：
@@ -1520,67 +1753,13 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             }
         }
 
-        // 【新增】通用字段别名映射（向后兼容旧插件路径）
-        let effective_key = match (type_filter, property_key) {
-            (Some("__preset_identity"), "fullName") => "full_name",
-            (Some("__preset_identity"), "dateOfBirth") => "date_of_birth",
-            (Some("__preset_identity"), "sex") => "gender",
-            (Some("__preset_passport"), "placeOfBirth") => "place_of_birth",
-            (Some("__preset_passport"), "issuingAuthority") => "place_of_issue",
-            (Some("__preset_payment_card"), "number") => "card_number",
-            _ => property_key,
-        };
-        if effective_key != property_key {
-            rust_log(&format!("[extract_from_uom] alias mapping: '{}' -> '{}'", property_key, effective_key));
-        }
+        // 【重构】三层查找策略：直接匹配 → 显式别名 → 自动 case 转换
+        let keys_to_try = resolve_property_keys(type_filter, property_key);
+        rust_log(&format!("[extract_from_uom] resolved keys for '{}': {:?}", property_key, keys_to_try));
 
-        let prop = match properties.get(effective_key) {
-            Some(p) => p,
-            None => continue,
-        };
-        if let Some(text) = prop.get("text").and_then(|t| t.as_str()) {
-            if !text.is_empty() {
-                return Some(text.to_string());
-            }
-            if first_empty.is_none() {
-                first_empty = Some(text.to_string());
-            }
-            continue;
-        }
-        if let Some(value) = prop.get("value").and_then(|v| v.as_f64()) {
-            return Some(value.to_string());
-        }
-        if let Some(iso_date) = prop.get("isoDate").and_then(|d| d.as_str()) {
-            if !iso_date.is_empty() {
-                return Some(iso_date.to_string());
-            }
-            if first_empty.is_none() {
-                first_empty = Some(iso_date.to_string());
-            }
-            continue;
-        }
-        if let Some(checked) = prop.get("checked").and_then(|c| c.as_bool()) {
-            return Some(checked.to_string());
-        }
-        if let Some(selected_id) = prop.get("selectedId").and_then(|s| s.as_str()) {
-            if !selected_id.is_empty() {
-                return Some(selected_id.to_string());
-            }
-            if first_empty.is_none() {
-                first_empty = Some(selected_id.to_string());
-            }
-            continue;
-        }
-        if let Some(selected_ids) = prop.get("selectedIds").and_then(|s| s.as_array()) {
-            let ids: Vec<String> = selected_ids.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
-            let joined = ids.join(", ");
-            if !joined.is_empty() {
-                return Some(joined);
-            }
-            if first_empty.is_none() {
-                first_empty = Some(joined);
-            }
-            continue;
+        if let Some(result) = try_extract_from_properties(properties, &keys_to_try, &mut first_empty) {
+            rust_log(&format!("[extract_from_uom] found value via keys {:?}", keys_to_try));
+            return Some(result);
         }
     }
 
