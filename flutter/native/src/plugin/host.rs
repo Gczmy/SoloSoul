@@ -1360,7 +1360,7 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         return first_empty;
     }
 
-    // 4. 通用字段路径映射（identity / passport / visa / idCard / card 等）
+    // 4. 通用字段路径映射（identity / passport / visa / idCard / card / contact 等）
     // 解析 field_id 为 (type_filter, property_key)
     // 示例: "passport.expiryDate" -> ("__preset_passport" or "profile_passport", "expiryDate")
     let (type_filter, property_key) = if let Some((prefix, key)) = field_id.split_once('.') {
@@ -1370,6 +1370,7 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             "idCard" => Some("__preset_idcard"),
             "card" => Some("__preset_card"),
             "identity" => Some("__preset_identity"),
+            "contact" => Some("__preset_contact"),
             "travel" => Some("__preset_travel"),
             "financial" => Some("__preset_financial"),
             "professional" => Some("__preset_professional"),
@@ -1489,7 +1490,51 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             }
         }
 
-        let prop = match properties.get(property_key) {
+        // 【新增】Contact KV 数组智能提取：contact.email / contact.phone
+        // UOM contact 对象是 KV 结构：{ type: "email", value: "a@b.com" }
+        if type_filter == Some("__preset_contact") {
+            let target_type = match property_key {
+                "email" => "email",
+                "phone" => "phone",
+                _ => "",
+            };
+            if !target_type.is_empty() {
+                if let Some(type_prop) = properties.get("type") {
+                    if let Some(type_text) = type_prop.get("text").and_then(|t| t.as_str()) {
+                        if type_text.eq_ignore_ascii_case(target_type) {
+                            if let Some(value_prop) = properties.get("value") {
+                                if let Some(value_text) = value_prop.get("text").and_then(|t| t.as_str()) {
+                                    if !value_text.is_empty() {
+                                        rust_log(&format!("[extract_from_uom] contact.{} matched type='{}' value='{}'", property_key, type_text, value_text));
+                                        return Some(value_text.to_string());
+                                    }
+                                    if first_empty.is_none() {
+                                        first_empty = Some(value_text.to_string());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                continue;
+            }
+        }
+
+        // 【新增】通用字段别名映射（向后兼容旧插件路径）
+        let effective_key = match (type_filter, property_key) {
+            (Some("__preset_identity"), "fullName") => "full_name",
+            (Some("__preset_identity"), "dateOfBirth") => "date_of_birth",
+            (Some("__preset_identity"), "sex") => "gender",
+            (Some("__preset_passport"), "placeOfBirth") => "place_of_birth",
+            (Some("__preset_passport"), "issuingAuthority") => "place_of_issue",
+            (Some("__preset_payment_card"), "number") => "card_number",
+            _ => property_key,
+        };
+        if effective_key != property_key {
+            rust_log(&format!("[extract_from_uom] alias mapping: '{}' -> '{}'", property_key, effective_key));
+        }
+
+        let prop = match properties.get(effective_key) {
             Some(p) => p,
             None => continue,
         };

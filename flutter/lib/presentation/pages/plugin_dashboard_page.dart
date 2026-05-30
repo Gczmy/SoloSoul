@@ -1985,6 +1985,14 @@ class _PluginCard extends ConsumerWidget {
         'fields': scenarioResult['fields'],
       };
     }
+    // 表单预填插件特殊处理：先进行场景选择，再传入参数执行
+    if (pluginId == 'com.solosoul.official.form-prefiller') {
+      final scenarioResult = await _showFormPrefillerScenarioDialog(context);
+      if (scenarioResult == null) return; // 用户取消，终止流程
+      initialParams = {
+        'scenario_id': scenarioResult['id'],
+      };
+    }
 
     final stream = runPlugin(ref, pluginId, params: initialParams);
     final List<String> pluginLogs = [];
@@ -2446,6 +2454,57 @@ class _PluginCard extends ConsumerWidget {
       'id': selected,
       'fields': scenario['fields'],
     };
+  }
+
+  /// 表单预填插件场景选择对话框
+  /// 返回 {id} 或 null（用户取消）
+  Future<Map<String, dynamic>?> _showFormPrefillerScenarioDialog(BuildContext context) async {
+    final locale = Localizations.localeOf(context);
+
+    final scenarios = [
+      {
+        'id': 'visa-application',
+        'label': {'zh': '签证申请表', 'en': 'Visa Application'},
+      },
+      {
+        'id': 'hotel-checkin',
+        'label': {'zh': '酒店入住', 'en': 'Hotel Check-in'},
+      },
+      {
+        'id': 'bank-account',
+        'label': {'zh': '银行开户', 'en': 'Bank Account'},
+      },
+      {
+        'id': 'airline-checkin',
+        'label': {'zh': '航空值机', 'en': 'Airline Check-in'},
+      },
+    ];
+
+    String resolveL10n(Map<String, String> map) {
+      return map[locale.toString()] ??
+          map[locale.languageCode] ??
+          map['en'] ??
+          map.values.first;
+    }
+
+    final items = scenarios.map((s) {
+      return PluginRadioItem(
+        id: s['id'] as String,
+        label: resolveL10n(s['label'] as Map<String, String>),
+      );
+    }).toList();
+
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (_) => PluginRadioListDialog(
+        title: '选择表单场景',
+        description: '选择场景后，插件将生成 Vault 字段到表单字段的映射表。',
+        items: items,
+      ),
+    );
+
+    if (selected == null) return null;
+    return {'id': selected};
   }
 
   frb_manifest.PluginManifest? _getManifest() {
