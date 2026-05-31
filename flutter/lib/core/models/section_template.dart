@@ -721,6 +721,11 @@ class PresetSectionTemplates {
           type: 'text',
           sensitivity: SensitivityLevel.public,
         ),
+        TemplateField(
+          key: 'visitedCountries',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
       ],
     ),
     // 安全信息模板（TOTP Secret、恢复码等）

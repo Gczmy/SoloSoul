@@ -102,6 +102,8 @@ pub(crate) fn resolve_field_sensitivity(field_id: &str) -> SensitivityLevel {
         | "financial.primary_bank_account.number" => SensitivityLevel::Critical,
         // address: country/count/title/label 为公开，其余为敏感
         "address.country" | "address.count" | "address.title" | "address.label" => SensitivityLevel::Public,
+        // travel: visitedCountries 为公开
+        "travel.visitedCountries" => SensitivityLevel::Public,
         f if f.starts_with("address[") => {
             if f.ends_with("].country") || f.ends_with("].title") || f.ends_with("].label") {
                 SensitivityLevel::Public
@@ -1337,6 +1339,12 @@ fn resolve_property_keys(type_filter: Option<&str>, property_key: &str) -> Vec<S
         (Some("__preset_travel_history"), "departure_city") => Some("departureCity"),
         (Some("__preset_travel_history"), "travelType") => Some("travelType"),
         (Some("__preset_travel_history"), "departureCity") => Some("departureCity"),
+        (Some("__preset_travel_history"), "visited_countries") => Some("visitedCountries"),
+        (Some("__preset_travel_history"), "visitedCountries") => Some("visitedCountries"),
+
+        // employment
+        (Some("__preset_employment"), "job_title") => Some("position"),
+        (Some("__preset_employment"), "company_name") => Some("company"),
 
         // education
         (Some("__preset_education"), "degree_custom") => Some("degreeCustom"),
@@ -1486,6 +1494,17 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         return Some(addrs.len().to_string());
     }
 
+    // 1b. 处理 visa.count（统计 __preset_visa 非删除对象数量）
+    if field_id == "visa.count" {
+        let count = objects.iter().filter(|obj| {
+            let is_deleted = obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false);
+            let type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+            !is_deleted && type_id == "__preset_visa"
+        }).count();
+        rust_log(&format!("[extract_from_uom] visa.count => {}", count));
+        return Some(count.to_string());
+    }
+
     // 2. 处理 address[N].xxx 数组索引语法
     if let Some(addr_field) = field_id.strip_prefix("address[") {
         rust_log(&format!("[extract_from_uom] matched address[N].xxx syntax, addr_field={}", addr_field));
@@ -1617,9 +1636,9 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             "card" => Some("__preset_card"),
             "identity" => Some("__preset_identity"),
             "contact" => Some("__preset_contact"),
-            "travel" => Some("__preset_travel"),
+            "travel" => Some("__preset_travel_history"),
             "financial" => Some("__preset_financial"),
-            "professional" => Some("__preset_professional"),
+            "professional" => Some("__preset_employment"),
             "health" => Some("__preset_health"),
             "education" => Some("__preset_education"),
             "property" => Some("__preset_property"),

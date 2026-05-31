@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-31T00:39:20Z",
+  "updated_at": "2026-05-31T00:53:52Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -753,8 +753,17 @@
     "com.solosoul.official.travel-footprint": {
       "name": "Travel Footprint",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "4c0a2941a36d963c853b2205f5f48a5a2baa47f2030f12a2dbba1b48f2efc9dd",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
+          "released_at": "2026-05-31T00:53:52Z"
+        },
         "1.0.1": {
           "sha256": "c58c93efb1d6b24e81f70398bbc80805a20c654a13c55f8c24c06dfeb1366029",
           "plugin_api_version": "1.0",
