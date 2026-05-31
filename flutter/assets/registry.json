@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-30T18:23:50Z",
+  "updated_at": "2026-05-31T00:21:34Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -319,8 +319,26 @@
     "com.solosoul.official.form-prefiller": {
       "name": "Form Prefiller",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.3",
       "versions": {
+        "1.0.3": {
+          "sha256": "d20f21114593a9881494dfab24bdc348fbcf2c9ae443aef48ad0a37a9e8bda7f",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "released_at": "2026-05-30T23:17:40Z"
+        },
+        "1.0.2": {
+          "sha256": "3ba4f496e33f17c14c1c077370723b40dd53c0caf1fd8ac100bad5a93eaeed2a",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "released_at": "2026-05-30T22:27:19Z"
+        },
         "1.0.1": {
           "sha256": "4747807792f0922c0156eaae714d950e594302d774075266f94bb886d520498f",
           "plugin_api_version": "1.0",
@@ -357,8 +375,17 @@
     "com.solosoul.official.id-validator": {
       "name": "ID Validator",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "837fb20fbf49060c3934f6d19b93899b16fe7373feeb1148a08591606b3b60db",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.id-validator/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.id-validator/plugin.wasm",
+          "released_at": "2026-05-30T23:53:09Z"
+        },
         "1.0.1": {
           "sha256": "d8ef69d1c5ebb23b016a48d17049bd2c62d330d330252953872df83c10372603",
           "plugin_api_version": "1.0",
@@ -379,16 +406,16 @@
           "changelog": "初始发布"
         }
       },
-      "description": "校验证件号码格式与校验位 — 支持中国居民身份证",
+      "description": "校验证件号码格式与校验位 — 支持中国居民身份证校验与护照格式检查",
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.id-validator",
       "i18n": {
         "zh": {
           "name": "证件校验",
-          "description": "校验各国证件号码格式与校验位。"
+          "description": "校验各国证件号码格式与校验位。当前版本完整支持中国居民身份证校验，护照格式检查为实验性功能。"
         },
         "en": {
           "name": "ID Validator",
-          "description": "Validate ID number formats and check digits for various countries, including Chinese ID, US SSN, and UK NI Number."
+          "description": "Validate ID number formats and check digits. Current version fully supports Chinese Resident ID Card validation, with experimental passport format checking."
         }
       }
     },
@@ -433,8 +460,17 @@
     "com.solosoul.official.mrz-encoder": {
       "name": "MRZ Encoder",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "930788cc4fe3118a5ecdc9cb2c4c2d978124fecb69d926291664359e74d26ad7",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
+          "released_at": "2026-05-30T22:06:46Z"
+        },
         "1.0.1": {
           "sha256": "74a1977db53c0e1b6b8fb79ae83b0b2f4c277a7351178ab1310b2fddaa1a3ba7",
           "plugin_api_version": "1.0",
@@ -547,8 +583,17 @@
     "com.solosoul.official.phone-fmt": {
       "name": "Phone Formatter",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "bd31d94ad9c59867262183944ec4e4421395f090e94d3086054d87d5ff0d8876",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
+          "released_at": "2026-05-31T00:21:34Z"
+        },
         "1.0.1": {
           "sha256": "e6422fa20a6b8d69785b89c47a4e28ead112d77907737f274a1462014642ac61",
           "plugin_api_version": "1.0",

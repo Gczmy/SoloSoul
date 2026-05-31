@@ -92,6 +92,8 @@ pub(crate) fn resolve_field_sensitivity(field_id: &str) -> SensitivityLevel {
     match field_id {
         "identity.full_name" => SensitivityLevel::Public,
         "identity.contact.emails" | "identity.contact.phones" => SensitivityLevel::Internal,
+        // contact 独立对象与 identity.contact 对齐
+        "contact.phone" | "contact.email" => SensitivityLevel::Internal,
         "identity.id_card.number"
         | "travel.primary_passport.number"
         | "financial.primary_bank_account.number" => SensitivityLevel::Critical,
@@ -1725,18 +1727,36 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
 
         // 【新增】Contact KV 数组智能提取：contact.email / contact.phone
         // UOM contact 对象是 KV 结构：{ type: "email", value: "a@b.com" }
+        // 支持中文标签（手机/电话/邮箱等）和子串包含匹配
         if type_filter == Some("__preset_contact") {
-            let target_type = match property_key {
-                "email" => "email",
-                "phone" => "phone",
-                _ => "",
-            };
-            if !target_type.is_empty() {
+            let is_phone_req = property_key == "phone";
+            let is_email_req = property_key == "email";
+            if is_phone_req || is_email_req {
                 if let Some(type_prop) = properties.get("type") {
                     if let Some(type_text) = type_prop.get("text").and_then(|t| t.as_str()) {
-                        if type_text.eq_ignore_ascii_case(target_type) {
-                            if let Some(value_prop) = properties.get("value") {
-                                if let Some(value_text) = value_prop.get("text").and_then(|t| t.as_str()) {
+                        if let Some(value_prop) = properties.get("value") {
+                            if let Some(value_text) = value_prop.get("text").and_then(|t| t.as_str()) {
+                                let type_lower = type_text.to_lowercase();
+                                // 关键词子串包含匹配（大小写不敏感）
+                                let phone_keywords = [
+                                    "phone", "mobile", "cell", "tel",
+                                    "手机", "电话", "手机号码", "手机号",
+                                    "座机", "传真", "fax", "telephone",
+                                ];
+                                let email_keywords = [
+                                    "email", "mail", "e-mail",
+                                    "邮箱", "电子邮件", "电邮",
+                                    "邮箱地址", "电子邮箱",
+                                ];
+                                let matches_phone = phone_keywords.iter().any(|k| type_lower.contains(k));
+                                let matches_email = email_keywords.iter().any(|k| type_lower.contains(k));
+                                // 按请求的 property_key 裁决
+                                let is_match = if is_phone_req {
+                                    matches_phone
+                                } else {
+                                    matches_email
+                                };
+                                if is_match {
                                     if !value_text.is_empty() {
                                         rust_log(&format!("[extract_from_uom] contact.{} matched type='{}' value='{}'", property_key, type_text, value_text));
                                         return Some(value_text.to_string());
@@ -1760,6 +1780,59 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
         if let Some(result) = try_extract_from_properties(properties, &keys_to_try, &mut first_empty) {
             rust_log(&format!("[extract_from_uom] found value via keys {:?}", keys_to_try));
             return Some(result);
+        }
+    }
+
+    // 【新增】Contact 分级回退：关键词匹配失败后，尝试特征匹配 → 第一个非空 value
+    if type_filter == Some("__preset_contact") && first_empty.is_none() {
+        let is_phone_req = property_key == "phone";
+        let is_email_req = property_key == "email";
+        if is_phone_req || is_email_req {
+            // 收集所有非空 contact 条目
+            let mut contact_entries: Vec<(String, String)> = Vec::new();
+            for obj in objects.iter() {
+                if obj.get("isDeleted").and_then(|v| v.as_bool()).unwrap_or(false) {
+                    continue;
+                }
+                let obj_type_id = obj.get("typeId").and_then(|v| v.as_str()).unwrap_or("");
+                if obj_type_id != "__preset_contact" && !obj_type_id.ends_with("contact") {
+                    continue;
+                }
+                if let Some(props) = obj.get("properties") {
+                    let type_text = props.get("type")
+                        .and_then(|p| p.get("text"))
+                        .and_then(|t| t.as_str())
+                        .unwrap_or("");
+                    let value_text = props.get("value")
+                        .and_then(|p| p.get("text"))
+                        .and_then(|t| t.as_str())
+                        .unwrap_or("");
+                    if !value_text.is_empty() {
+                        contact_entries.push((type_text.to_lowercase(), value_text.to_string()));
+                    }
+                }
+            }
+            // 阶段 2：特征匹配回退
+            if is_phone_req {
+                for (type_lower, value) in &contact_entries {
+                    if looks_like_phone(value) {
+                        rust_log(&format!("[extract_from_uom] contact.phone fallback: type='{}' matched phone pattern", type_lower));
+                        return Some(value.clone());
+                    }
+                }
+            } else if is_email_req {
+                for (type_lower, value) in &contact_entries {
+                    if looks_like_email(value) {
+                        rust_log(&format!("[extract_from_uom] contact.email fallback: type='{}' matched email pattern", type_lower));
+                        return Some(value.clone());
+                    }
+                }
+            }
+            // 阶段 3：兜底回退 — 返回第一个非空 value
+            if let Some((type_lower, value)) = contact_entries.first() {
+                rust_log(&format!("[extract_from_uom] contact.{} fallback: using first non-empty value, type='{}'", property_key, type_lower));
+                return Some(value.clone());
+            }
         }
     }
 
@@ -2334,6 +2407,17 @@ fn json_depth(val: &serde_json::Value) -> usize {
         }
         _ => 1,
     }
+}
+
+/// 简单启发式：字符串是否符合电话号码特征（≥7位数字，≤15位，允许 + - 空格）
+fn looks_like_phone(s: &str) -> bool {
+    let digits: String = s.chars().filter(|c| c.is_ascii_digit()).collect();
+    (7..=15).contains(&digits.len())
+}
+
+/// 简单启发式：字符串是否符合邮箱特征（包含 @ 和 .）
+fn looks_like_email(s: &str) -> bool {
+    s.contains('@') && s.contains('.')
 }
 
 #[cfg(test)]

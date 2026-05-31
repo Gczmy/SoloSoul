@@ -143,6 +143,11 @@ class PluginDashboardNotifier extends AsyncNotifier<PluginDashboardData> {
   /// 全量刷新 — 用户手动点击刷新按钮时使用
   Future<void> refresh() async {
     state = const AsyncLoading();
+    // 必须先 invalidate 底层 provider，否则 ref.read 会返回缓存的旧数据
+    // （安装/更新后 addInstalledPlugin 仅修改本 notifier 状态，未刷新底层 provider）
+    ref.invalidate(pluginRegistryStateProvider);
+    ref.invalidate(installedPluginsProvider);
+    ref.invalidate(activeSessionsProvider);
     state = await AsyncValue.guard(() async {
       final registry = await ref.read(pluginRegistryStateProvider.future);
       final installed = await ref.read(installedPluginsProvider.future);
