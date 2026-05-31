@@ -2,6 +2,31 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [1.6.8] - 2026-05-31
+
+### Fixed
+
+- **JSON Serialization Key Mismatch** — Added `@JsonKey(name: '__propertyLabels')` and `@JsonKey(name: '__semanticTypes')` to `UnifiedObject` model fields. Previously `toMap()` emitted `__propertyLabels`/`__semanticTypes` while `json_serializable`-generated `fromJson()` expected `propertyLabels`/`semanticTypes`, causing roundtrip data loss.
+- **Account Duplicate-Name Logic Bug** — Fixed `SecureAccountStorage.createAccount` to correctly reject accounts with existing names when `accountId == null`. Previously the code treated all existing accounts as "stale" and silently deleted them, causing data loss.
+- **TypeId Migration Test Sync** — Updated 6 test files to match the `profile_*` → `__preset_*` typeId migration, fixing 14 pre-existing unit test failures.
+
+### Refactored
+
+- **Plugin Event Handler Decomposition** — Split `_onRun()` (285 lines, 7-level nesting) in `plugin_dashboard_page.dart` into:
+  - `_PluginRunSession` mutable state class
+  - 6 focused handler methods: `_handleDialogConsent`, `_handleFieldConsent`, `_handlePluginResult`, `_handlePluginLog`, `_handlePluginCompleted`, `_handlePluginError`
+  - `_showRunResult` for result dialog presentation
+  Nesting depth reduced from 7 to 2 levels.
+- **Object Editor Validation Extraction** — Split `_saveObject()` in `object_editor_page.dart` into:
+  - `_validateSaveInput()` — name/duplicate-key validation (early return pattern)
+  - `_buildProperties()` + `_PropertyBuildResult` — property map construction
+  - Original method now orchestrates only (validation → build → persist → navigate)
+- **Injectable FFI Wrappers** — Added `_saltGenerator` and `_keyDeriver` function pointers to `SecureAccountStorage` with `setFfiWrappersForTest()` API. All direct `frb.frbGenerateSalt` / `frb.frbDeriveKey` calls replaced with injectable wrappers, enabling full unit test coverage without initialized `flutter_rust_bridge`.
+
+### Test Infrastructure
+
+- **Unit Test Suite Green** — All 902 unit tests now pass (0 failures). Previously 16 tests failed due to typeId migration mismatches and missing Rust FFI initialization.
+
 ## [1.6.7] - 2026-05-31
 
 ### Fixed
