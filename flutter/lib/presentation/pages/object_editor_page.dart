@@ -66,6 +66,21 @@ class _PropertyField {
   String get displayLabel => controller.text.trim();
 }
 
+/// 属性构建结果，用于 `_saveObject` 方法间传递。
+class _PropertyBuildResult {
+  final Map<String, PropertyValue> properties;
+  final Map<String, String> propertyLabels;
+  final Map<String, String> semanticTypes;
+  final List<String> propertyOrder;
+
+  const _PropertyBuildResult({
+    required this.properties,
+    required this.propertyLabels,
+    required this.semanticTypes,
+    required this.propertyOrder,
+  });
+}
+
 class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _iconController;
@@ -545,18 +560,13 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     );
   }
 
-  void _saveObject() async {
-    try {
+  /// 验证保存输入：检查空名称和重复属性键。
+  /// 返回错误消息，验证通过返回 null。
+  String? _validateSaveInput() {
     if (_nameController.text.trim().isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).objectEditorNameRequired)),
-        );
-      }
-      return;
+      return AppLocalizations.of(context).objectEditorNameRequired;
     }
 
-    // Check for duplicate property keys (only among active, non-deprecated fields)
     final keyCounts = <String, int>{};
     for (final field in _propertyFields) {
       if (field.isDeprecated) continue;
@@ -569,92 +579,104 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     }
     final duplicates = keyCounts.entries.where((e) => e.value > 1).map((e) => e.key).toList();
     if (duplicates.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).objectEditorDuplicateProperties(duplicates.join(', ')))),
-      );
-      return;
+      return AppLocalizations.of(context).objectEditorDuplicateProperties(duplicates.join(', '));
     }
+    return null;
+  }
 
-    // Build properties from property fields in list order.
-    // For items: preserve stored values for active properties, always include deprecated data.
-    // For sections: properties map IS the schema for child items.
+  /// 从属性字段列表构建保存所需的属性映射。
+  _PropertyBuildResult _buildProperties() {
     final properties = <String, PropertyValue>{};
     final propertyLabels = <String, String>{};
     final semanticTypes = <String, String>{};
     final propertyOrder = <String>[];
+
     for (final field in _propertyFields) {
       final key = field.isDefaultName == true && field.key.trim().isEmpty
           ? AppLocalizations.of(context).objectEditorDefaultFieldItemName
           : (field.key.trim().isEmpty ? field.displayLabel : field.key.trim());
       if (key.isEmpty) continue;
+
       if (field.isDefaultName == true) {
-        properties[key] = const TextProperty(
-          text: '',
-          sensitivity: SensitivityLevel.public,
-        );
+        properties[key] = const TextProperty(text: '', sensitivity: SensitivityLevel.public);
       } else if (_isEditingItem && field.isDeprecated) {
-        // Always preserve deprecated data so it's not lost
         properties[key] = _createPropertyValueWithValue(field.type, field.storedValue ?? '', field.sensitivity);
       } else if (_isEditingItem && field.storedValue != null) {
-        // Preserve item's stored value for active properties
         properties[key] = _createPropertyValueWithValue(field.type, field.storedValue!, field.sensitivity);
       } else {
         properties[key] = _createEmptyPropertyValue(field.type, field.sensitivity);
       }
-      // Collect display labels (only if different from key)
+
       final displayLabel = field.displayLabel;
       if (displayLabel.isNotEmpty && displayLabel != key) {
         propertyLabels[key] = displayLabel;
       }
-      // Collect semantic types
+
       final semanticType = field.semanticType;
       if (semanticType != null && semanticType.isNotEmpty) {
         semanticTypes[key] = semanticType;
       }
+
       if (!field.isDeprecated) {
         propertyOrder.add(key);
       }
     }
 
-    final notifier = ref.read(unifiedObjectProvider.notifier);
+    return _PropertyBuildResult(
+      properties: properties,
+      propertyLabels: propertyLabels,
+      semanticTypes: semanticTypes,
+      propertyOrder: propertyOrder,
+    );
+  }
 
-    final existing = _existingObject;
-    if (_isEditing && existing != null) {
-      await _recordHistory();
-
-      final oldParentId = existing.parentId;
-      final newParentId = _selectedParentId;
-
-      if (oldParentId != newParentId) {
-        await notifier.moveObject(existing.id, newParentId);
+  Future<void> _saveObject() async {
+    try {
+      final validationError = _validateSaveInput();
+      if (validationError != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(validationError)),
+          );
+        }
+        return;
       }
 
-      await notifier.updateObject(
-        existing.id,
-        name: _nameController.text.trim(),
-        typeId: _selectedTypeId,
-        iconName: _iconController.text.trim(),
-        properties: properties,
-        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
-        semanticTypes: semanticTypes.isNotEmpty ? semanticTypes : null,
-        propertyOrder: propertyOrder,
-      );
-    } else {
-      await notifier.createObject(
-        name: _nameController.text.trim(),
-        typeId: _selectedTypeId,
-        parentId: _selectedParentId,
-        iconName: _iconController.text.trim(),
-        properties: properties,
-        propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
-        semanticTypes: semanticTypes.isNotEmpty ? semanticTypes : null,
-        propertyOrder: propertyOrder,
-      );
-    }
+      final built = _buildProperties();
+      final notifier = ref.read(unifiedObjectProvider.notifier);
+      final existing = _existingObject;
 
-    if (mounted) {
-      context.pop();
-    }
+      if (_isEditing && existing != null) {
+        await _recordHistory();
+        if (existing.parentId != _selectedParentId) {
+          await notifier.moveObject(existing.id, _selectedParentId);
+        }
+        await notifier.updateObject(
+          existing.id,
+          name: _nameController.text.trim(),
+          typeId: _selectedTypeId,
+          iconName: _iconController.text.trim(),
+          properties: built.properties,
+          propertyLabels: built.propertyLabels.isNotEmpty ? built.propertyLabels : null,
+          semanticTypes: built.semanticTypes.isNotEmpty ? built.semanticTypes : null,
+          propertyOrder: built.propertyOrder,
+        );
+      } else {
+        await notifier.createObject(
+          name: _nameController.text.trim(),
+          typeId: _selectedTypeId,
+          parentId: _selectedParentId,
+          iconName: _iconController.text.trim(),
+          properties: built.properties,
+          propertyLabels: built.propertyLabels.isNotEmpty ? built.propertyLabels : null,
+          semanticTypes: built.semanticTypes.isNotEmpty ? built.semanticTypes : null,
+          propertyOrder: built.propertyOrder,
+        );
+      }
+
+      if (mounted) {
+        context.pop();
+      }
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('OBJECT_EDITOR', 'Failed to save object: $e\n$st');
       if (mounted) {

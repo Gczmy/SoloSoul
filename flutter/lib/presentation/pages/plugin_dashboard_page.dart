@@ -272,6 +272,20 @@ frb_manifest.PluginManifest? _getPluginManifest(
 // Phase 2: 结构化结果卡片渲染系统
 // ============================================================================
 
+/// Mutable state for a single plugin run session.
+/// Extracted to reduce `_onRun` nesting and enable method extraction.
+class _PluginRunSession {
+  final List<String> pluginLogs = [];
+  final List<String> errorMessages = [];
+  final List<_PluginResultData> pluginResults = [];
+  final List<frb_plugin.PluginEvent_ConsentRequest> batchRequests = [];
+  final Map<String, String> dialogConfigs = {};
+  String? batchPluginName;
+  int? completedExitCode;
+  bool hasCompleted = false;
+  bool batchPreConsentPhase = true;
+}
+
 /// 插件结构化结果数据（从 solosoul_result 通道的 JSON 解析）
 class _PluginResultData {
   final String type;
@@ -2015,271 +2029,39 @@ class _PluginCard extends ConsumerWidget {
     }
 
     final stream = runPlugin(ref, pluginId, params: initialParams);
-    final List<String> pluginLogs = [];
-    final List<String> errorMessages = [];
-    final List<_PluginResultData> pluginResults = [];
-    final batchRequests = <frb_plugin.PluginEvent_ConsentRequest>[];
-    String? batchPluginName;
-
-    // 延迟弹出结果对话框的状态
-    int? completedExitCode;
-    bool hasCompleted = false;
-
-    // 对话框配置缓存（用于 solosoul_show_dialog）
-    final dialogConfigs = <String, String>{};
-
-    // 批量预授权阶段标记：true 表示可能还在批量预授权阶段（WASM 执行前）
-    // 当 batch_end 到达或收到 WASM 执行期间的事件（Log/Result）时设为 false
-    var batchPreConsentPhase = true;
+    final session = _PluginRunSession();
 
     try {
       await for (final event in stream) {
+        if (!context.mounted) break;
         switch (event) {
           case frb_plugin.PluginEvent_ConsentRequest(
               requestId: final reqId,
               field: '__dialog__',
             ):
-            // 处理插件通过 solosoul_show_dialog 请求的通用对话框
-            debugPrint('[plugin_dialog] received __dialog__ ConsentRequest reqId=$reqId');
-
-            // 场景选择前置优化：如果 Dart 端已传入场景参数，直接返回结果，
-            // 避免插件再次弹出场景选择对话框。
-            // （Rust 端 solosoul_get_param 在某些情况下无法读取到参数，作为兜底方案）
-            if (initialParams != null && initialParams['scenario_id'] != null) {
-              debugPrint('[plugin_dialog] skipping dialog, using pre-selected scenario: ${initialParams['scenario_id']}');
-              await frb.frbPluginConsentResponse(
-                requestId: reqId,
-                approved: true,
-                value: jsonEncode({'selected': initialParams['scenario_id']}),
-              );
-              break;
-            }
-
-            var configJson = dialogConfigs.remove(reqId);
-            // 时序保护：dialog_config Log 事件可能晚于 ConsentRequest 到达，
-            // 短暂等待确保配置已缓存（最多重试 10 次，每次 100ms = 1s）
-            // Rust 端已发送 3 次 dialog_config（间隔 100ms），通常第一次就能命中
-            for (var retry = 0; retry < 10 && configJson == null; retry++) {
-              await Future.delayed(const Duration(milliseconds: 100));
-              configJson = dialogConfigs.remove(reqId);
-            }
-            if (configJson == null) {
-              debugPrint('[plugin_dialog] config NOT FOUND for reqId=$reqId after 2s, dialogConfigs keys=${dialogConfigs.keys.toList()}');
-            }
-            if (configJson == null || !context.mounted) {
-              await frb.frbPluginConsentResponse(
-                requestId: reqId,
-                approved: false,
-              );
-              break;
-            }
-            try {
-              final config = jsonDecode(configJson) as Map<String, dynamic>;
-              final type = config['type'] as String?;
-              if (type == 'radio_list') {
-                final locale = Localizations.localeOf(context);
-                String resolveL10n(dynamic raw) {
-                  return switch (raw) {
-                    Map<String, dynamic> map =>
-                      map[locale.toString()] ??
-                      map[locale.languageCode] ??
-                      map['en'] ??
-                      map.values.first as String,
-                    String s => s,
-                    _ => '',
-                  };
-                }
-
-                final items = (config['items'] as List).map((e) {
-                  final map = e as Map<String, dynamic>;
-                  return PluginRadioItem(
-                    id: map['id'] as String,
-                    label: resolveL10n(map['label']),
-                  );
-                }).toList();
-
-                final title = resolveL10n(config['title']);
-                final description = config['description'] != null
-                    ? resolveL10n(config['description'])
-                    : null;
-
-                final selected = await showDialog<String>(
-                  context: context,
-                  builder: (_) => PluginRadioListDialog(
-                    title: title,
-                    description: description,
-                    items: items,
-                  ),
-                );
-
-                await frb.frbPluginConsentResponse(
-                  requestId: reqId,
-                  approved: selected != null,
-                  value: selected != null
-                      ? jsonEncode({'selected': selected})
-                      : null,
-                );
-              } else {
-                await frb.frbPluginConsentResponse(
-                  requestId: reqId,
-                  approved: false,
-                );
-              }
-            } on Exception catch (_) {
-              await frb.frbPluginConsentResponse(
-                requestId: reqId,
-                approved: false,
-              );
-            }
+            await _handleDialogConsent(context, reqId, session, initialParams);
           case frb_plugin.PluginEvent_ConsentRequest(
               requestId: final reqId,
               field: final field,
               sensitivity: final sensitivityStr,
               pluginName: final pname,
             ):
-            if (batchPreConsentPhase) {
-              // 批量预授权阶段：缓存请求，等待 batch_end 后统一弹窗
-              batchRequests.add(event);
-              if (batchPluginName == null) {
-                final entry = data.registry.plugins[pluginId];
-                if (!context.mounted) break;
-                final locale = Localizations.localeOf(context).toString();
-                batchPluginName = resolvePluginI18n(
-                  entry?.i18n, 'name', locale, pname,
-                );
-              }
-            } else {
-              // WASM 执行期间的运行时单个授权：立即弹出授权对话框
-              debugPrint('[plugin_consent] runtime single consent for field=$field');
-              if (!context.mounted) {
-                await frb.frbPluginConsentResponse(requestId: reqId, approved: false);
-                break;
-              }
-              final approved = await showPluginConsentDialog(
-                context: context,
-                pluginId: pluginId,
-                pluginName: batchPluginName ?? pname,
-                fieldId: field,
-                requestId: reqId,
-                sensitivity: _parseSensitivity(sensitivityStr) ?? SensitivityLevel.sensitive,
-              );
-              await frb.frbPluginConsentResponse(
-                requestId: reqId,
-                approved: approved == true,
-              );
-            }
+            await _handleFieldConsent(context, reqId, field, sensitivityStr, pname, session);
           case frb_plugin.PluginEvent_Result(jsonData: final jsonData):
-            // WASM 已执行到发送结果阶段，批量预授权阶段一定已结束
-            batchPreConsentPhase = false;
-            // Phase 2: 收集结构化结果
-            try {
-              pluginResults.add(_PluginResultData.fromJson(jsonData));
-            } on Exception catch (e) {
-              // JSON 解析失败时，将原始 JSON 作为文本结果降级展示
-              pluginResults.add(_PluginResultData(
-                type: 'text',
-                data: {'content': '结果解析失败: $e\n\n原始数据:\n$jsonData'},
-              ));
-              pluginLogs.add('[结果解析错误] $e');
-            }
+            _handlePluginResult(jsonData, session);
           case frb_plugin.PluginEvent_Log(level: final level, message: final message):
-            // 缓存对话框配置（solosoul_show_dialog 通过 Log 事件传递配置）
-            if (level == 'dialog_config') {
-              final idx = message.indexOf('|');
-              if (idx > 0) {
-                final reqId = message.substring(0, idx);
-                final config = message.substring(idx + 1);
-                dialogConfigs[reqId] = config;
-                debugPrint('[plugin_dialog] cached config for reqId=$reqId, config_len=${config.length}');
-              } else {
-                debugPrint('[plugin_dialog] invalid dialog_config format: $message');
-              }
-              break;
-            }
-            // 批量预授权结束信号：显示批量授权对话框
-            if (level == 'batch_end') {
-              batchPreConsentPhase = false;
-              if (batchRequests.isNotEmpty) {
-                if (!context.mounted) break;
-                final approved = await showDialog<bool>(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (ctx) => PluginBatchConsentDialog(
-                    pluginId: pluginId,
-                    pluginName: batchPluginName ?? pluginId,
-                    requests: batchRequests.map((r) => BatchConsentRequest(
-                      requestId: r.requestId,
-                      field: r.field,
-                      sensitivity: r.sensitivity,
-                    )).toList(),
-                  ),
-                );
-                // 逐个响应所有预授权请求
-                for (final req in batchRequests) {
-                  try {
-                    await frb.frbPluginConsentResponse(
-                      requestId: req.requestId,
-                      approved: approved == true,
-                      value: null,
-                    );
-                  } on Exception catch (_) {
-                    // 忽略 consent 响应错误
-                  }
-                }
-                batchRequests.clear();
-                // 如果用户拒绝，本次执行后续不会再有 ConsentRequest（Rust 已终止）
-              }
-            }
-            // 收到 WASM 执行期间的日志，说明批量预授权阶段已结束
-            if (level == 'info' || level == 'error') {
-              batchPreConsentPhase = false;
-            }
-            // 收集插件输出的 info 日志（排除预授权信号和空消息）
-            if (level == 'info' && message.isNotEmpty && !message.startsWith('pre-consent|')) {
-              pluginLogs.add(message);
-            }
-            // 收集插件错误日志
-            if (level == 'error') {
-              errorMessages.add(message);
-            }
+            await _handlePluginLog(context, level, message, session);
           case frb_plugin.PluginEvent_Completed(exitCode: final exitCode):
-            batchPreConsentPhase = false;
-            // 记录最近使用时间，但不在此处弹出对话框（延迟到 stream 结束后）
-            final installer = await ref.read(initializedPluginInstallerProvider.future);
-            await installer.recordLastUsed(pluginId);
-            completedExitCode = exitCode;
-            hasCompleted = true;
+            await _handlePluginCompleted(exitCode, ref, session);
           case frb_plugin.PluginEvent_Error(message: final message):
-            // 用户主动拒绝授权或超时，属于正常流程，不显示错误提示
-            if (message.contains('User denied or timed out field access')) {
-              break;
-            }
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${l10n.commonError}: $message')),
-              );
-            }
+            _handlePluginError(context, message, l10n);
           default:
-            // 忽略 ConsentTimeout / Progress 等事件
             break;
         }
       }
 
-      // Stream 完全结束后，统一弹出结果对话框。
-      if (hasCompleted && context.mounted) {
-        final registryEntry = data.registry.plugins[pluginId];
-        final locale = Localizations.localeOf(context).toString();
-        final pluginName = resolvePluginI18n(
-          registryEntry?.i18n, 'name', locale, _getPluginManifest(data, pluginId)?.name ?? pluginId,
-        );
-        await _showExecutionResult(
-          context: context,
-          pluginName: pluginName,
-          pluginLogs: pluginLogs,
-          pluginResults: pluginResults,
-          errorMessages: errorMessages,
-          exitCode: completedExitCode!,
-        );
+      if (session.hasCompleted && context.mounted) {
+        await _showRunResult(context, session);
       }
     } on Exception catch (e) {
       if (context.mounted) {
@@ -2288,6 +2070,250 @@ class _PluginCard extends ConsumerWidget {
         );
       }
     }
+  }
+
+  Future<void> _handleDialogConsent(
+    BuildContext context,
+    String reqId,
+    _PluginRunSession session,
+    Map<String, dynamic>? initialParams,
+  ) async {
+    debugPrint('[plugin_dialog] received __dialog__ ConsentRequest reqId=$reqId');
+
+    if (initialParams != null && initialParams['scenario_id'] != null) {
+      debugPrint('[plugin_dialog] skipping dialog, using pre-selected scenario: ${initialParams['scenario_id']}');
+      await frb.frbPluginConsentResponse(
+        requestId: reqId,
+        approved: true,
+        value: jsonEncode({'selected': initialParams['scenario_id']}),
+      );
+      return;
+    }
+
+    var configJson = session.dialogConfigs.remove(reqId);
+    for (var retry = 0; retry < 10 && configJson == null; retry++) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      configJson = session.dialogConfigs.remove(reqId);
+    }
+    if (configJson == null) {
+      debugPrint('[plugin_dialog] config NOT FOUND for reqId=$reqId');
+    }
+    if (configJson == null || !context.mounted) {
+      await frb.frbPluginConsentResponse(requestId: reqId, approved: false);
+      return;
+    }
+
+    try {
+      final config = jsonDecode(configJson) as Map<String, dynamic>;
+      final type = config['type'] as String?;
+      if (type != 'radio_list') {
+        await frb.frbPluginConsentResponse(requestId: reqId, approved: false);
+        return;
+      }
+
+      final locale = Localizations.localeOf(context);
+      String resolveL10n(dynamic raw) {
+        return switch (raw) {
+          Map<String, dynamic> map =>
+            map[locale.toString()] ??
+            map[locale.languageCode] ??
+            map['en'] ??
+            map.values.first as String,
+          String s => s,
+          _ => '',
+        };
+      }
+
+      final items = (config['items'] as List).map((e) {
+        final map = e as Map<String, dynamic>;
+        return PluginRadioItem(
+          id: map['id'] as String,
+          label: resolveL10n(map['label']),
+        );
+      }).toList();
+
+      final selected = await showDialog<String>(
+        context: context,
+        builder: (_) => PluginRadioListDialog(
+          title: resolveL10n(config['title']),
+          description: config['description'] != null
+              ? resolveL10n(config['description'])
+              : null,
+          items: items,
+        ),
+      );
+
+      await frb.frbPluginConsentResponse(
+        requestId: reqId,
+        approved: selected != null,
+        value: selected != null ? jsonEncode({'selected': selected}) : null,
+      );
+    } on Exception catch (_) {
+      await frb.frbPluginConsentResponse(requestId: reqId, approved: false);
+    }
+  }
+
+  Future<void> _handleFieldConsent(
+    BuildContext context,
+    String reqId,
+    String field,
+    String sensitivityStr,
+    String pname,
+    _PluginRunSession session,
+  ) async {
+    if (session.batchPreConsentPhase) {
+      session.batchRequests.add(
+        frb_plugin.PluginEvent_ConsentRequest(
+          requestId: reqId,
+          pluginId: pluginId,
+          pluginName: pname,
+          field: field,
+          sensitivity: sensitivityStr,
+        ),
+      );
+      if (session.batchPluginName == null) {
+        final entry = data.registry.plugins[pluginId];
+        if (!context.mounted) return;
+        final languageCode = Localizations.localeOf(context).languageCode;
+        session.batchPluginName = resolvePluginI18n(
+          entry?.i18n, 'name', languageCode, pname,
+        );
+      }
+      return;
+    }
+
+    debugPrint('[plugin_consent] runtime single consent for field=$field');
+    if (!context.mounted) {
+      await frb.frbPluginConsentResponse(requestId: reqId, approved: false);
+      return;
+    }
+    final approved = await showPluginConsentDialog(
+      context: context,
+      pluginId: pluginId,
+      pluginName: session.batchPluginName ?? pname,
+      fieldId: field,
+      requestId: reqId,
+      sensitivity: _parseSensitivity(sensitivityStr) ?? SensitivityLevel.sensitive,
+    );
+    await frb.frbPluginConsentResponse(
+      requestId: reqId,
+      approved: approved == true,
+    );
+  }
+
+  void _handlePluginResult(String jsonData, _PluginRunSession session) {
+    session.batchPreConsentPhase = false;
+    try {
+      session.pluginResults.add(_PluginResultData.fromJson(jsonData));
+    } on Exception catch (e) {
+      session.pluginResults.add(_PluginResultData(
+        type: 'text',
+        data: {'content': '结果解析失败: $e\n\n原始数据:\n$jsonData'},
+      ));
+      session.pluginLogs.add('[结果解析错误] $e');
+    }
+  }
+
+  Future<void> _handlePluginLog(
+    BuildContext context,
+    String level,
+    String message,
+    _PluginRunSession session,
+  ) async {
+    if (level == 'dialog_config') {
+      final idx = message.indexOf('|');
+      if (idx > 0) {
+        final reqId = message.substring(0, idx);
+        final config = message.substring(idx + 1);
+        session.dialogConfigs[reqId] = config;
+        debugPrint('[plugin_dialog] cached config for reqId=$reqId');
+      }
+      return;
+    }
+
+    if (level == 'batch_end') {
+      session.batchPreConsentPhase = false;
+      if (session.batchRequests.isNotEmpty) {
+        if (!context.mounted) return;
+        final approved = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => PluginBatchConsentDialog(
+            pluginId: pluginId,
+            pluginName: session.batchPluginName ?? pluginId,
+            requests: session.batchRequests.map((r) => BatchConsentRequest(
+              requestId: r.requestId,
+              field: r.field,
+              sensitivity: r.sensitivity,
+            )).toList(),
+          ),
+        );
+        for (final req in session.batchRequests) {
+          try {
+            await frb.frbPluginConsentResponse(
+              requestId: req.requestId,
+              approved: approved == true,
+              value: null,
+            );
+          } on Exception catch (_) {}
+        }
+        session.batchRequests.clear();
+      }
+    }
+
+    if (level == 'info' || level == 'error') {
+      session.batchPreConsentPhase = false;
+    }
+    if (level == 'info' && message.isNotEmpty && !message.startsWith('pre-consent|')) {
+      session.pluginLogs.add(message);
+    }
+    if (level == 'error') {
+      session.errorMessages.add(message);
+    }
+  }
+
+  Future<void> _handlePluginCompleted(
+    int exitCode,
+    WidgetRef ref,
+    _PluginRunSession session,
+  ) async {
+    session.batchPreConsentPhase = false;
+    final installer = await ref.read(initializedPluginInstallerProvider.future);
+    await installer.recordLastUsed(pluginId);
+    session.completedExitCode = exitCode;
+    session.hasCompleted = true;
+  }
+
+  void _handlePluginError(
+    BuildContext context,
+    String message,
+    AppLocalizations l10n,
+  ) {
+    if (message.contains('User denied or timed out field access')) return;
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.commonError}: $message')),
+      );
+    }
+  }
+
+  Future<void> _showRunResult(
+    BuildContext context,
+    _PluginRunSession session,
+  ) async {
+    final registryEntry = data.registry.plugins[pluginId];
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final pluginName = resolvePluginI18n(
+      registryEntry?.i18n, 'name', languageCode, _getPluginManifest(data, pluginId)?.name ?? pluginId,
+    );
+    await _showExecutionResult(
+      context: context,
+      pluginName: pluginName,
+      pluginLogs: session.pluginLogs,
+      pluginResults: session.pluginResults,
+      errorMessages: session.errorMessages,
+      exitCode: session.completedExitCode!,
+    );
   }
 
   /// Stream 结束后统一展示执行结果对话框。
