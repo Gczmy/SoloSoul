@@ -158,7 +158,7 @@ void main() {
           action: LogAction.create,
           fieldPath: 'identity.firstName',
         ),
-        'Added first name',
+        'Added First Name',
       );
     });
 

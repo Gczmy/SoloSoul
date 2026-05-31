@@ -6,72 +6,72 @@ void main() {
   group('logSectionForTypeId', () {
     test('maps profile types correctly', () {
       expect(
-        logSectionForTypeId('profile_identity'),
+        logSectionForTypeId('__preset_identity'),
         LogSection.identity,
       );
       expect(
-        logSectionForTypeId('profile_contact'),
+        logSectionForTypeId('__preset_contact'),
         LogSection.contactInformation,
       );
       expect(
-        logSectionForTypeId('profile_id_card'),
+        logSectionForTypeId('__preset_identity_document'),
         LogSection.idCard,
       );
       expect(
-        logSectionForTypeId('profile_address'),
+        logSectionForTypeId('__preset_address'),
         LogSection.address,
       );
     });
 
     test('maps travel types correctly', () {
       expect(
-        logSectionForTypeId('travel_passport'),
+        logSectionForTypeId('__preset_passport'),
         LogSection.passport,
       );
       expect(
-        logSectionForTypeId('travel_visa'),
+        logSectionForTypeId('__preset_visa'),
         LogSection.visa,
       );
       expect(
-        logSectionForTypeId('travel_history'),
+        logSectionForTypeId('__preset_travel_history'),
         LogSection.travelHistory,
       );
     });
 
     test('maps financial types correctly', () {
       expect(
-        logSectionForTypeId('financial_bank_account'),
+        logSectionForTypeId('__preset_bank_account'),
         LogSection.bankAccount,
       );
       expect(
-        logSectionForTypeId('financial_card'),
+        logSectionForTypeId('__preset_payment_card'),
         LogSection.card,
       );
       expect(
-        logSectionForTypeId('financial_tax_id'),
+        logSectionForTypeId('__preset_tax_id'),
         LogSection.financial,
       );
     });
 
     test('maps professional types correctly', () {
       expect(
-        logSectionForTypeId('professional_education'),
+        logSectionForTypeId('__preset_education'),
         LogSection.education,
       );
       expect(
-        logSectionForTypeId('professional_employment'),
+        logSectionForTypeId('__preset_employment'),
         LogSection.employment,
       );
       expect(
-        logSectionForTypeId('professional_skill'),
+        logSectionForTypeId('__preset_skill'),
         LogSection.skill,
       );
       expect(
-        logSectionForTypeId('professional_language'),
+        logSectionForTypeId('__preset_language'),
         LogSection.language,
       );
       expect(
-        logSectionForTypeId('professional_award'),
+        logSectionForTypeId('__preset_award'),
         LogSection.professional,
       );
     });

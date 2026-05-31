@@ -211,8 +211,8 @@ void main() {
       expect(orphan.childrenIds, isEmpty); // missing_child2 removed
     });
 
-    test('kSchemaVersion is 4', () {
-      expect(ProfileStorageService.kSchemaVersion, 4);
+    test('kSchemaVersion is 6', () {
+      expect(ProfileStorageService.kSchemaVersion, 6);
     });
   });
 }

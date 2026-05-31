@@ -80,7 +80,7 @@ void main() {
     test('links candidate to existing object of same type', () {
       const existing = UnifiedObject(
         id: 'existing-1',
-        typeId: 'profile_identity',
+        typeId: '__preset_identity',
         name: 'Identity',
         iconName: 'person',
         parentId: 'section-1',

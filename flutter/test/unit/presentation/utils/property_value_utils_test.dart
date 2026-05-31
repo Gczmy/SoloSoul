@@ -103,21 +103,21 @@ void main() {
 
   group('fieldPrefixForTypeId', () {
     test('returns correct prefix for known types', () {
-      expect(fieldPrefixForTypeId('profile_identity'), 'identity');
-      expect(fieldPrefixForTypeId('profile_contact'), 'contact');
-      expect(fieldPrefixForTypeId('profile_id_card'), 'idCard');
-      expect(fieldPrefixForTypeId('profile_address'), 'address');
-      expect(fieldPrefixForTypeId('travel_passport'), 'passport');
-      expect(fieldPrefixForTypeId('travel_visa'), 'visa');
-      expect(fieldPrefixForTypeId('travel_history'), 'travel');
-      expect(fieldPrefixForTypeId('financial_bank_account'), 'bankAccount');
-      expect(fieldPrefixForTypeId('financial_card'), 'card');
-      expect(fieldPrefixForTypeId('financial_tax_id'), 'taxId');
-      expect(fieldPrefixForTypeId('professional_education'), 'education');
-      expect(fieldPrefixForTypeId('professional_employment'), 'employment');
-      expect(fieldPrefixForTypeId('professional_skill'), 'skill');
-      expect(fieldPrefixForTypeId('professional_language'), 'language');
-      expect(fieldPrefixForTypeId('professional_award'), 'award');
+      expect(fieldPrefixForTypeId('__preset_identity'), 'identity');
+      expect(fieldPrefixForTypeId('__preset_contact'), 'contact');
+      expect(fieldPrefixForTypeId('__preset_identity_document'), 'idCard');
+      expect(fieldPrefixForTypeId('__preset_address'), 'address');
+      expect(fieldPrefixForTypeId('__preset_passport'), 'passport');
+      expect(fieldPrefixForTypeId('__preset_visa'), 'visa');
+      expect(fieldPrefixForTypeId('__preset_travel_history'), 'travel');
+      expect(fieldPrefixForTypeId('__preset_bank_account'), 'bankAccount');
+      expect(fieldPrefixForTypeId('__preset_payment_card'), 'card');
+      expect(fieldPrefixForTypeId('__preset_tax_id'), 'taxId');
+      expect(fieldPrefixForTypeId('__preset_education'), 'education');
+      expect(fieldPrefixForTypeId('__preset_employment'), 'employment');
+      expect(fieldPrefixForTypeId('__preset_skill'), 'skill');
+      expect(fieldPrefixForTypeId('__preset_language'), 'language');
+      expect(fieldPrefixForTypeId('__preset_award'), 'award');
     });
 
     test('returns typeId as-is for unknown types', () {

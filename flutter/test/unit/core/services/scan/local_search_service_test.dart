@@ -7,15 +7,15 @@ void main() {
   group('LocalSearchService', () {
     group('mapSectionToTypeId', () {
       test('maps identity to profile_identity', () {
-        expect(LocalSearchService.mapSectionToTypeId('identity'), 'profile_identity');
+        expect(LocalSearchService.mapSectionToTypeId('identity'), '__preset_identity');
       });
 
       test('maps passport to travel_passport', () {
-        expect(LocalSearchService.mapSectionToTypeId('passport'), 'travel_passport');
+        expect(LocalSearchService.mapSectionToTypeId('passport'), '__preset_passport');
       });
 
       test('maps bankAccount to financial_bank_account', () {
-        expect(LocalSearchService.mapSectionToTypeId('bankAccount'), 'financial_bank_account');
+        expect(LocalSearchService.mapSectionToTypeId('bankAccount'), '__preset_bank_account');
       });
 
       test('returns null for unknown section', () {
