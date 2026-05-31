@@ -12,7 +12,8 @@ class OperationTile extends StatelessWidget {
 
   void _showDetailDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final hasProperties = entry.properties != null && entry.properties!.isNotEmpty;
+    final props = entry.properties;
+    final hasProperties = props != null && props.isNotEmpty;
 
     showDialog(
       context: context,
@@ -182,7 +183,9 @@ class OperationTile extends StatelessWidget {
 
   List<Widget> _buildPropertyList(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return entry.properties!.entries.map((e) {
+    final properties = entry.properties;
+    if (properties == null) return [];
+    return properties.entries.map((e) {
       final levelName = entry.propertyLevels?[e.key];
       final level = levelName != null
           ? SensitivityLevel.values.firstWhere(

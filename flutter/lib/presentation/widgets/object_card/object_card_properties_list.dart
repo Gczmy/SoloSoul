@@ -27,8 +27,9 @@ class ObjectCardPropertiesList extends StatelessWidget {
     // that exist in item data but not in the schema are deprecated and
     // hidden from view — they can be accessed via "Show Deprecated" in
     // edit mode.
-    final visibleEntries = template != null
-        ? template!.keys
+    final tmpl = template;
+    final visibleEntries = tmpl != null
+        ? tmpl.keys
             .where((k) => item.properties.containsKey(k))
             .map((k) => MapEntry(k, item.properties[k]!))
         : item.properties.entries;

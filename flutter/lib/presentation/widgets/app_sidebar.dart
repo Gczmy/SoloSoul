@@ -122,8 +122,11 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
     final defaultPages = allPages
         .where((p) => defaultPageOrder.containsKey(p.id))
         .toList();
-    defaultPages.sort((a, b) =>
-        defaultPageOrder[a.id]!.compareTo(defaultPageOrder[b.id]!));
+    defaultPages.sort((a, b) {
+      final orderA = defaultPageOrder[a.id] ?? 0;
+      final orderB = defaultPageOrder[b.id] ?? 0;
+      return orderA.compareTo(orderB);
+    });
 
     final customPages = allPages
         .where((p) => !defaultPageOrder.containsKey(p.id))
