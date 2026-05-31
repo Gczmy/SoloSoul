@@ -154,8 +154,7 @@ class _SearchResultsWidget extends StatelessWidget {
 
     final groupedResults = <String, List<SearchResultItem>>{};
     for (final result in searchState.results) {
-      groupedResults.putIfAbsent(result.sectionDisplayName, () => []);
-      groupedResults[result.sectionDisplayName]!.add(result);
+      groupedResults.putIfAbsent(result.sectionDisplayName, () => []).add(result);
     }
 
     // 按 section 名称排序，确保 UI 顺序稳定
@@ -176,7 +175,8 @@ class _SearchResultsWidget extends StatelessWidget {
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final result = groupedResults[sectionName]![index];
+                  final items = groupedResults[sectionName] ?? [];
+                  final result = items[index];
                   return SearchResultTile(
                     result: result,
                     onReveal: () {
@@ -191,7 +191,7 @@ class _SearchResultsWidget extends StatelessWidget {
                     },
                   );
                 },
-                childCount: groupedResults[sectionName]!.length,
+                childCount: (groupedResults[sectionName] ?? []).length,
               ),
             ),
           ),

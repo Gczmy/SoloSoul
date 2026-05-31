@@ -523,9 +523,10 @@ class _TrashViewWidget extends ConsumerWidget {
     // Compute filtered count for the badge
     final filteredCount = deletedUnifiedObjects.where((obj) {
       if (timeFilter != null && timeFilter != 'all') {
-        if (obj.deletedAt == null) return false;
+        final deletedAt = obj.deletedAt;
+        if (deletedAt == null) return false;
         final cutoff = getTimeFilterCutoff(timeFilter);
-        if (cutoff != null && !obj.deletedAt!.isAfter(cutoff)) return false;
+        if (cutoff != null && !deletedAt.isAfter(cutoff)) return false;
       }
       if (typeFilters.isNotEmpty) {
         bool matches = false;
@@ -654,9 +655,10 @@ class _TrashContentWidget extends ConsumerWidget {
 
       // Time filter
       if (timeFilter != null && timeFilter != 'all') {
-        if (obj.deletedAt == null) return false;
+        final deletedAt = obj.deletedAt;
+        if (deletedAt == null) return false;
         final cutoff = getTimeFilterCutoff(timeFilter);
-        if (cutoff != null && !obj.deletedAt!.isAfter(cutoff)) {
+        if (cutoff != null && !deletedAt.isAfter(cutoff)) {
           return false;
         }
       }

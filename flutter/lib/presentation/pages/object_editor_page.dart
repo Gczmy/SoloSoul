@@ -85,12 +85,14 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   /// Whether we're editing an item (child of a section/collection).
   /// Items use parent section's properties as schema; sections use their own.
   bool get _isEditingItem {
-    if (_existingObject == null) return false;
-    if (_existingObject!.typeId == 'item') {
+    final obj = _existingObject;
+    if (obj == null) return false;
+    if (obj.typeId == 'item') {
       return true;
     }
-    if (_existingObject!.parentId != null) {
-      final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
+    final parentId = obj.parentId;
+    if (parentId != null) {
+      final parent = ref.read(objectByIdProvider(parentId));
       if (parent != null && parent.typeId != 'page') {
         return true;
       }
@@ -102,10 +104,13 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   /// For items: parent section's properties (the schema authority).
   /// For sections: the section's own properties.
   Map<String, PropertyValue> get _schemaProperties {
-    if (_isEditingItem && _existingObject?.parentId != null) {
-      final parent = ref.read(objectByIdProvider(_existingObject!.parentId!));
-      if (parent != null && parent.typeId != 'page') {
-        return _orderedProperties(parent);
+    if (_isEditingItem) {
+      final parentId = _existingObject?.parentId;
+      if (parentId != null) {
+        final parent = ref.read(objectByIdProvider(parentId));
+        if (parent != null && parent.typeId != 'page') {
+          return _orderedProperties(parent);
+        }
       }
     }
     return _orderedProperties(_existingObject);
@@ -211,8 +216,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
     if (_isEditingItem) {
       // Item: use parent section's properties as schema authority.
       final schemaProps = _schemaProperties;
-      final schemaObj = _existingObject?.parentId != null
-          ? ref.read(objectByIdProvider(_existingObject!.parentId!))
+      final parentId = _existingObject?.parentId;
+      final schemaObj = parentId != null
+          ? ref.read(objectByIdProvider(parentId))
           : null;
       final parentLabels = schemaObj?.propertyLabels;
 
@@ -369,10 +375,11 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
   void _initLocalizedName() {
     if (_localizedNameInitialized) return;
-    if (_existingObject == null) return;
+    final obj = _existingObject;
+    if (obj == null) return;
     final l10n = AppLocalizations.of(context);
-    final localizedName = getLocalizedObjectName(l10n, _existingObject!);
-    if (localizedName != _existingObject!.name) {
+    final localizedName = getLocalizedObjectName(l10n, obj);
+    if (localizedName != obj.name) {
       _nameController.text = localizedName;
     }
     _localizedNameInitialized = true;
@@ -518,18 +525,19 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   }
 
   Future<void> _recordHistory() async {
-    if (_existingObject == null) return;
+    final obj = _existingObject;
+    if (obj == null) return;
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     if (accountId == null) return;
 
     final allFieldValues = <String, String>{};
-    for (final entry in _existingObject!.properties.entries) {
+    for (final entry in obj.properties.entries) {
       allFieldValues[entry.key] = _propertyValueToString(entry.value);
     }
 
     await ref.read(fieldHistoriesProvider.notifier).recordSnapshot(
       accountId: accountId,
-      itemId: _existingObject!.id,
+      itemId: obj.id,
       fieldIdPrefix: 'unified',
       allFieldValues: allFieldValues,
     );
@@ -607,18 +615,19 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
 
-    if (_isEditing && _existingObject != null) {
+    final existing = _existingObject;
+    if (_isEditing && existing != null) {
       await _recordHistory();
 
-      final oldParentId = _existingObject!.parentId;
+      final oldParentId = existing.parentId;
       final newParentId = _selectedParentId;
 
       if (oldParentId != newParentId) {
-        await notifier.moveObject(_existingObject!.id, newParentId);
+        await notifier.moveObject(existing.id, newParentId);
       }
 
       await notifier.updateObject(
-        _existingObject!.id,
+        existing.id,
         name: _nameController.text.trim(),
         typeId: _selectedTypeId,
         iconName: _iconController.text.trim(),
