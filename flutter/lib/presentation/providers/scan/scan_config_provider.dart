@@ -170,10 +170,10 @@ class ScanConfigNotifier extends AsyncNotifier<ScanConfig> {
     if (accId == null) return const ScanConfig();
 
     // Skip if already loaded for this account
-    if (_currentAccountId == accId &&
-        state.hasValue &&
-        state.value!.paths.isNotEmpty) {
-      return state.value!;
+    if (_currentAccountId == accId) {
+      if (state case AsyncData(:final value)) {
+        if (value.paths.isNotEmpty) return value;
+      }
     }
 
     _currentAccountId = accId;
@@ -198,41 +198,45 @@ class ScanConfigNotifier extends AsyncNotifier<ScanConfig> {
   // ---------------------------------------------------------------------------
 
   void setPaths(List<String> paths) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(
-      paths: paths,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(
+        paths: paths,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+    }
   }
 
   void setExtensions(List<String> extensions) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(
-      extensions: extensions,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(
+        extensions: extensions,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+    }
   }
 
   void setScanDepth(String depth) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(
-      scanDepth: depth,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(
+        scanDepth: depth,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+    }
   }
 
   void setMaxFileSizeForExtension(String ext, int mb) {
-    if (!state.hasValue) return;
-    final updated = Map<String, int>.from(state.value!.maxFileSizeByExtension);
-    updated[ext] = mb;
-    state = AsyncData(state.value!.copyWith(
-      maxFileSizeByExtension: updated,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      final updated = Map<String, int>.from(value.maxFileSizeByExtension);
+      updated[ext] = mb;
+      state = AsyncData(value.copyWith(
+        maxFileSizeByExtension: updated,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+    }
   }
 
   /// Update all config fields at once (e.g. from UI form).
@@ -242,15 +246,16 @@ class ScanConfigNotifier extends AsyncNotifier<ScanConfig> {
     String? scanDepth,
     Map<String, int>? maxFileSizeByExtension,
   }) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(
-      paths: paths,
-      extensions: extensions,
-      scanDepth: scanDepth,
-      maxFileSizeByExtension: maxFileSizeByExtension,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(
+        paths: paths,
+        extensions: extensions,
+        scanDepth: scanDepth,
+        maxFileSizeByExtension: maxFileSizeByExtension,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+    }
   }
 
   // ---------------------------------------------------------------------------

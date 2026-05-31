@@ -233,8 +233,10 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
     if (accId == null) return const AccountStyle();
 
     // Skip if already loaded for this account
-    if (_currentAccountId == accId && state.hasValue && state.value!.fieldSettings.isNotEmpty) {
-      return state.value!;
+    if (_currentAccountId == accId) {
+      if (state case AsyncData(value: final value)) {
+        if (value.fieldSettings.isNotEmpty) return value;
+      }
     }
 
     _currentAccountId = accId;
@@ -257,260 +259,268 @@ class AccountStyleNotifier extends AsyncNotifier<AccountStyle> {
   /// Update field sensitivity level.
   Future<void> setFieldLevel(String fieldId, SensitivityLevel level) async {
     if (_currentAccountId == null) return;
-    if (!state.hasValue) return;
+    if (state case AsyncData(value: final currentStyle)) {
+      final oldLevel = currentStyle.fieldSettings[fieldId];
+      final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
+      newFieldSettings[fieldId] = level;
 
-    final currentStyle = state.value!;
-    final oldLevel = currentStyle.fieldSettings[fieldId];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
-    newFieldSettings[fieldId] = level;
+      final updated = currentStyle.copyWith(
+        fieldSettings: newFieldSettings,
+        lastModified: DateTime.now(),
+      );
 
-    final updated = currentStyle.copyWith(
-      fieldSettings: newFieldSettings,
-      lastModified: DateTime.now(),
-    );
+      state = AsyncData(updated);
+      _autoSave();
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Changed sensitivity'));
 
-    state = AsyncData(updated);
-    _autoSave();
-    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Changed sensitivity'));
-
-    // Log the sensitivity change
-    final entryArgs = <String, String>{'field': fieldId, 'newLevel': level.label};
-    if (oldLevel != null) entryArgs['oldLevel'] = oldLevel.label;
-    unawaited(OperationLogService.instance.addEntry(
-      OperationLogger.logSensitivitySettings(
-        action: oldLevel != null ? LogAction.update : LogAction.create,
-        description: oldLevel != null
-            ? 'Changed "$fieldId" sensitivity from ${oldLevel.label} to ${level.label}'
-            : 'Set "$fieldId" sensitivity to ${level.label}',
-        fieldPath: fieldId,
-        sensitivityLevel: level,
-        descriptionKey: oldLevel != null ? 'sensitivityChanged' : 'sensitivitySet',
-        descriptionArgs: entryArgs,
-      ),
-    ));
+      // Log the sensitivity change
+      final entryArgs = <String, String>{'field': fieldId, 'newLevel': level.label};
+      if (oldLevel != null) entryArgs['oldLevel'] = oldLevel.label;
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logSensitivitySettings(
+          action: oldLevel != null ? LogAction.update : LogAction.create,
+          description: oldLevel != null
+              ? 'Changed "$fieldId" sensitivity from ${oldLevel.label} to ${level.label}'
+              : 'Set "$fieldId" sensitivity to ${level.label}',
+          fieldPath: fieldId,
+          sensitivityLevel: level,
+          descriptionKey: oldLevel != null ? 'sensitivityChanged' : 'sensitivitySet',
+          descriptionArgs: entryArgs,
+        ),
+      ));
+    }
   }
 
   /// Remove field sensitivity override (revert to tag/global default).
   Future<bool> clearFieldLevel(String fieldId) async {
     if (_currentAccountId == null) return false;
-    if (!state.hasValue) return false;
+    if (state case AsyncData(value: final currentStyle)) {
+      final oldLevel = currentStyle.fieldSettings[fieldId];
+      final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
+      newFieldSettings.remove(fieldId);
 
-    final currentStyle = state.value!;
-    final oldLevel = currentStyle.fieldSettings[fieldId];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
-    newFieldSettings.remove(fieldId);
+      final updated = currentStyle.copyWith(
+        fieldSettings: newFieldSettings,
+        lastModified: DateTime.now(),
+      );
 
-    final updated = currentStyle.copyWith(
-      fieldSettings: newFieldSettings,
-      lastModified: DateTime.now(),
-    );
+      final saved = await AccountStyleService.instance.saveStyle(
+        _currentAccountId!,
+        updated,
+      );
 
-    final saved = await AccountStyleService.instance.saveStyle(
-      _currentAccountId!,
-      updated,
-    );
-
-    if (saved) {
-      state = AsyncData(updated);
-      // Log the sensitivity revert
-      if (oldLevel != null) {
-        final entry = OperationLogger.logSensitivitySettings(
-          action: LogAction.delete,
-          description: 'Reverted "$fieldId" sensitivity to default (was ${oldLevel.label})',
-          fieldPath: fieldId,
-          sensitivityLevel: oldLevel,
-          descriptionKey: 'sensitivityReverted',
-          descriptionArgs: {'field': fieldId, 'oldLevel': oldLevel.label},
-        );
-        unawaited(OperationLogService.instance.addEntry(entry));
-        unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Reverted sensitivity'));
+      if (saved) {
+        state = AsyncData(updated);
+        // Log the sensitivity revert
+        if (oldLevel != null) {
+          final entry = OperationLogger.logSensitivitySettings(
+            action: LogAction.delete,
+            description: 'Reverted "$fieldId" sensitivity to default (was ${oldLevel.label})',
+            fieldPath: fieldId,
+            sensitivityLevel: oldLevel,
+            descriptionKey: 'sensitivityReverted',
+            descriptionArgs: {'field': fieldId, 'oldLevel': oldLevel.label},
+          );
+          unawaited(OperationLogService.instance.addEntry(entry));
+          unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Reverted sensitivity'));
+        }
       }
-    }
 
-    return saved;
+      return saved;
+    }
+    return false;
   }
 
   /// Update tag default sensitivity level.
   Future<bool> setTagLevel(String tag, SensitivityLevel level) async {
     if (_currentAccountId == null) return false;
-    if (!state.hasValue) return false;
+    if (state case AsyncData(value: final currentStyle)) {
+      final newTagDefaults = Map<String, SensitivityLevel>.from(currentStyle.tagDefaults);
+      newTagDefaults[tag] = level;
 
-    final currentStyle = state.value!;
-    final newTagDefaults = Map<String, SensitivityLevel>.from(currentStyle.tagDefaults);
-    newTagDefaults[tag] = level;
+      final updated = currentStyle.copyWith(
+        tagDefaults: newTagDefaults,
+        lastModified: DateTime.now(),
+      );
 
-    final updated = currentStyle.copyWith(
-      tagDefaults: newTagDefaults,
-      lastModified: DateTime.now(),
-    );
+      final saved = await AccountStyleService.instance.saveStyle(
+        _currentAccountId!,
+        updated,
+      );
 
-    final saved = await AccountStyleService.instance.saveStyle(
-      _currentAccountId!,
-      updated,
-    );
+      if (saved) {
+        state = AsyncData(updated);
+      }
 
-    if (saved) {
-      state = AsyncData(updated);
+      return saved;
     }
-
-    return saved;
+    return false;
   }
 
   /// Remove tag default (revert to global default).
   Future<bool> clearTagLevel(String tag) async {
     if (_currentAccountId == null) return false;
-    if (!state.hasValue) return false;
+    if (state case AsyncData(value: final currentStyle)) {
+      final newTagDefaults = Map<String, SensitivityLevel>.from(currentStyle.tagDefaults);
+      newTagDefaults.remove(tag);
 
-    final currentStyle = state.value!;
-    final newTagDefaults = Map<String, SensitivityLevel>.from(currentStyle.tagDefaults);
-    newTagDefaults.remove(tag);
+      state = AsyncData(currentStyle.copyWith(
+        tagDefaults: newTagDefaults,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
 
-    state = AsyncData(currentStyle.copyWith(
-      tagDefaults: newTagDefaults,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
-
-    return true;
+      return true;
+    }
+    return false;
   }
 
   /// Debounced auto-save with 300ms timer.
   void _autoSave() {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(const Duration(milliseconds: 300), () async {
-      if (_currentAccountId != null && state.hasValue) {
-        await AccountStyleService.instance.saveStyle(_currentAccountId!, state.value!);
+      if (_currentAccountId != null) {
+        if (state case AsyncData(value: final value)) {
+          await AccountStyleService.instance.saveStyle(_currentAccountId!, value);
+        }
       }
     });
   }
 
   /// Set the sensitivity display mode.
   void setDisplayMode(SensitivityDisplayMode mode) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(displayMode: mode));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(displayMode: mode));
+      _autoSave();
+    }
   }
 
   /// Reveal a specific field temporarily.
   void revealField(String fieldId) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(
-      revealedFields: {...state.value!.revealedFields, fieldId},
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(
+        revealedFields: {...value.revealedFields, fieldId},
+      ));
+      _autoSave();
+    }
   }
 
   /// Hide a specific field.
   void hideField(String fieldId) {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(
-      revealedFields: state.value!.revealedFields.where((id) => id != fieldId).toSet(),
-    ));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(
+        revealedFields: value.revealedFields.where((id) => id != fieldId).toSet(),
+      ));
+      _autoSave();
+    }
   }
 
   /// Toggle field visibility.
   void toggleField(String fieldId) {
-    if (!state.hasValue) return;
-    if (state.value!.revealedFields.contains(fieldId)) {
-      hideField(fieldId);
-    } else {
-      revealField(fieldId);
+    if (state case AsyncData(:final value)) {
+      if (value.revealedFields.contains(fieldId)) {
+        hideField(fieldId);
+      } else {
+        revealField(fieldId);
+      }
     }
   }
 
   /// Hide all revealed private fields.
   void hideAllPrivate() {
-    if (!state.hasValue) return;
-    state = AsyncData(state.value!.copyWith(revealedFields: {}));
-    _autoSave();
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(revealedFields: {}));
+      _autoSave();
+    }
   }
 
   /// Upgrade field to a higher sensitivity level.
   void upgradeField(String fieldId) {
-    if (!state.hasValue || _currentAccountId == null) return;
+    if (_currentAccountId == null) return;
+    if (state case AsyncData(value: final currentStyle)) {
+      // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
+      final effectiveLevel = currentStyle.fieldSettings[fieldId] ??
+          FormFieldRegistry.getField(fieldId)?.level ??
+          firstWhereOrNull(
+              FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
+              ?.level ??
+          SensitivityLevel.public;
+      if (effectiveLevel.index >= SensitivityLevel.critical.index) return;
+      final newLevel = SensitivityLevel.values[effectiveLevel.index + 1];
+      final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
+      newFieldSettings[fieldId] = newLevel;
+      state = AsyncData(currentStyle.copyWith(
+        fieldSettings: newFieldSettings,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Upgraded sensitivity'));
 
-    final currentStyle = state.value!;
-    // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
-    final effectiveLevel = currentStyle.fieldSettings[fieldId] ??
-        FormFieldRegistry.getField(fieldId)?.level ??
-        firstWhereOrNull(
-            FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
-            ?.level ??
-        SensitivityLevel.public;
-    if (effectiveLevel.index >= SensitivityLevel.critical.index) return;
-    final newLevel = SensitivityLevel.values[effectiveLevel.index + 1];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
-    newFieldSettings[fieldId] = newLevel;
-    state = AsyncData(currentStyle.copyWith(
-      fieldSettings: newFieldSettings,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
-    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Upgraded sensitivity'));
-
-    // Log the sensitivity upgrade
-    OperationLogService.instance.addEntry(
-      OperationLogger.logSensitivitySettings(
-        action: LogAction.update,
-        description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
-        fieldPath: fieldId,
-        sensitivityLevel: newLevel,
-        descriptionKey: 'sensitivityUpgraded',
-        descriptionArgs: {
-          'field': fieldId,
-          'oldLevel': effectiveLevel.label,
-          'newLevel': newLevel.label,
-        },
-      ),
-    );
+      // Log the sensitivity upgrade
+      OperationLogService.instance.addEntry(
+        OperationLogger.logSensitivitySettings(
+          action: LogAction.update,
+          description: 'Upgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+          fieldPath: fieldId,
+          sensitivityLevel: newLevel,
+          descriptionKey: 'sensitivityUpgraded',
+          descriptionArgs: {
+            'field': fieldId,
+            'oldLevel': effectiveLevel.label,
+            'newLevel': newLevel.label,
+          },
+        ),
+      );
+    }
   }
 
   /// Downgrade field to a lower sensitivity level.
   void downgradeField(String fieldId) {
-    if (!state.hasValue || _currentAccountId == null) return;
+    if (_currentAccountId == null) return;
+    if (state case AsyncData(value: final currentStyle)) {
+      // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
+      final effectiveLevel = currentStyle.fieldSettings[fieldId] ??
+          FormFieldRegistry.getField(fieldId)?.level ??
+          firstWhereOrNull(
+              FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
+              ?.level ??
+          SensitivityLevel.public;
+      if (effectiveLevel.index <= SensitivityLevel.public.index) return;
+      final newLevel = SensitivityLevel.values[effectiveLevel.index - 1];
+      final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
+      newFieldSettings[fieldId] = newLevel;
+      state = AsyncData(currentStyle.copyWith(
+        fieldSettings: newFieldSettings,
+        lastModified: DateTime.now(),
+      ));
+      _autoSave();
+      unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Downgraded sensitivity'));
 
-    final currentStyle = state.value!;
-    // Resolve effective level: user's override takes priority, else use FormFieldRegistry (preferred) or FieldRegistry fallback
-    final effectiveLevel = currentStyle.fieldSettings[fieldId] ??
-        FormFieldRegistry.getField(fieldId)?.level ??
-        firstWhereOrNull(
-            FieldRegistry.defaultFields, (f) => f.fieldId == fieldId)
-            ?.level ??
-        SensitivityLevel.public;
-    if (effectiveLevel.index <= SensitivityLevel.public.index) return;
-    final newLevel = SensitivityLevel.values[effectiveLevel.index - 1];
-    final newFieldSettings = Map<String, SensitivityLevel>.from(currentStyle.fieldSettings);
-    newFieldSettings[fieldId] = newLevel;
-    state = AsyncData(currentStyle.copyWith(
-      fieldSettings: newFieldSettings,
-      lastModified: DateTime.now(),
-    ));
-    _autoSave();
-    unawaited(ref.read(authNotifierProvider.notifier).updateOperation('Downgraded sensitivity'));
-
-    // Log the sensitivity downgrade
-    OperationLogService.instance.addEntry(
-      OperationLogger.logSensitivitySettings(
-        action: LogAction.update,
-        description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
-        fieldPath: fieldId,
-        sensitivityLevel: newLevel,
-        descriptionKey: 'sensitivityDowngraded',
-        descriptionArgs: {
-          'field': fieldId,
-          'oldLevel': effectiveLevel.label,
-          'newLevel': newLevel.label,
-        },
-      ),
-    );
+      // Log the sensitivity downgrade
+      OperationLogService.instance.addEntry(
+        OperationLogger.logSensitivitySettings(
+          action: LogAction.update,
+          description: 'Downgraded "$fieldId" sensitivity from ${effectiveLevel.label} to ${newLevel.label}',
+          fieldPath: fieldId,
+          sensitivityLevel: newLevel,
+          descriptionKey: 'sensitivityDowngraded',
+          descriptionArgs: {
+            'field': fieldId,
+            'oldLevel': effectiveLevel.label,
+            'newLevel': newLevel.label,
+          },
+        ),
+      );
+    }
   }
 
   /// Clear style state (on lock).
   void clear() {
     _autoSaveTimer?.cancel();
-    if (_currentAccountId != null && state.hasValue) {
-      AccountStyleService.instance.saveStyle(_currentAccountId!, state.value!);
+    if (_currentAccountId != null) {
+      if (state case AsyncData(:final value)) {
+        AccountStyleService.instance.saveStyle(_currentAccountId!, value);
+      }
     }
     state = const AsyncData(AccountStyle());
     _currentAccountId = null;
