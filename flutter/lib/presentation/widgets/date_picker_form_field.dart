@@ -54,7 +54,8 @@ class DatePickerFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final hasDate = initialDate != null && initialDate!.isNotEmpty;
+    final date = initialDate;
+    final hasDate = date != null && date.isNotEmpty;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,

@@ -308,11 +308,15 @@ class InvoiceExtractor implements FieldExtractor {
     // Total Amount — 优先匹配 "Total: $xxx" 模式，否则找最大金额
     final amountMatch = _amountPattern.firstMatch(rawText);
     if (amountMatch != null) {
-      final block = _findBlockContaining(blocks, amountMatch.group(0)!);
-      fields['total'] = ExtractedField(
-        value: amountMatch.group(1)!.trim(),
-        bbox: block?.bbox ?? const BoundingBox(x: 0, y: 0, width: 0, height: 0),
-      );
+      final group0 = amountMatch.group(0);
+      final group1 = amountMatch.group(1);
+      if (group0 != null && group1 != null) {
+        final block = _findBlockContaining(blocks, group0);
+        fields['total'] = ExtractedField(
+          value: group1.trim(),
+          bbox: block?.bbox ?? const BoundingBox(x: 0, y: 0, width: 0, height: 0),
+        );
+      }
     } else {
       // 找最大的独立金额（最可能是总计）
       double maxAmount = 0;
@@ -320,8 +324,10 @@ class InvoiceExtractor implements FieldExtractor {
       for (final block in blocks) {
         final m = _standaloneAmount.firstMatch(block.text);
         if (m != null) {
+          final group0 = m.group(0);
+          if (group0 == null) continue;
           final val = double.tryParse(
-            m.group(0)!.replaceAll(RegExp(r'[^\d.]'), ''),
+            group0.replaceAll(RegExp(r'[^\d.]'), ''),
           );
           if (val != null && val > maxAmount) {
             maxAmount = val;

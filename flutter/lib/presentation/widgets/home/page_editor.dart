@@ -55,9 +55,10 @@ class _PageEditorState extends ConsumerState<PageEditor> {
     setState(() => _isSaving = true);
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
-    if (_existingPage != null) {
+    final existingPage = _existingPage;
+    if (existingPage != null) {
       await notifier.updateObject(
-        _existingPage!.id,
+        existingPage.id,
         name: _titleController.text.trim(),
         iconName: _iconName,
       );
