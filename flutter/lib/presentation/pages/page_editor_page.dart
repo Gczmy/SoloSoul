@@ -71,17 +71,18 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
 
     final notifier = ref.read(unifiedObjectProvider.notifier);
 
-    if (_isEditing && _existingObject != null) {
+    final existing = _existingObject;
+    if (_isEditing && existing != null) {
       // Handle parent change
-      final oldParentId = _existingObject!.parentId;
+      final oldParentId = existing.parentId;
       final newParentId = _selectedParentId;
 
       if (oldParentId != newParentId) {
-        await notifier.moveObject(_existingObject!.id, newParentId);
+        await notifier.moveObject(existing.id, newParentId);
       }
 
       await notifier.updateObject(
-        _existingObject!.id,
+        existing.id,
         name: _nameController.text.trim(),
         iconName: _iconController.text.trim(),
       );

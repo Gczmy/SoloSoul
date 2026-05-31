@@ -533,6 +533,7 @@ class _SyncResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final error = result.error;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -556,11 +557,11 @@ class _SyncResultCard extends StatelessWidget {
               value: '${result.bytesSent} sent / ${result.bytesReceived} received',
               icon: Icons.swap_vert,
             ),
-            if (result.error != null && result.error!.isNotEmpty) ...[
+            if (error != null && error.isNotEmpty) ...[
               const SizedBox(height: 8),
               _ResultRow(
                 label: l10n.syncError,
-                value: result.error!,
+                value: error,
                 icon: Icons.error_outline,
               ),
             ],

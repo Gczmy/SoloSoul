@@ -605,8 +605,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
         propertyLabels[key] = displayLabel;
       }
       // Collect semantic types
-      if (field.semanticType != null && field.semanticType!.isNotEmpty) {
-        semanticTypes[key] = field.semanticType!;
+      final semanticType = field.semanticType;
+      if (semanticType != null && semanticType.isNotEmpty) {
+        semanticTypes[key] = semanticType;
       }
       if (!field.isDeprecated) {
         propertyOrder.add(key);

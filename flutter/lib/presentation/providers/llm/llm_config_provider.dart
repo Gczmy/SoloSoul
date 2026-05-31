@@ -85,20 +85,18 @@ class LlmConfigNotifier extends AsyncNotifier<LlmConfigState> {
   }
 
   Future<void> setCloudProviderType(LlmCloudProviderType type) async {
-    if (!state.hasValue) return;
     final id = _accountId;
     if (id != null) await _service.setCloudProviderType(id, type);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudProviderType: type));
+    if (state case AsyncData(value: final value)) {
+      state = AsyncData(value.copyWith(cloudProviderType: type));
     }
   }
 
   Future<void> setCloudAnthropicVersion(String version) async {
-    if (!state.hasValue) return;
     final id = _accountId;
     if (id != null) await _service.setCloudAnthropicVersion(id, version);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudAnthropicVersion: version));
+    if (state case AsyncData(value: final value)) {
+      state = AsyncData(value.copyWith(cloudAnthropicVersion: version));
     }
   }
 
@@ -165,8 +163,8 @@ class LlmConfigNotifier extends AsyncNotifier<LlmConfigState> {
     final id = _accountId;
     if (id == null) return;
     await _service.setActiveCloudProfileId(id, profileId);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(activeCloudProfileId: profileId));
+    if (state case AsyncData(value: final value)) {
+      state = AsyncData(value.copyWith(activeCloudProfileId: profileId));
     }
   }
 }

@@ -218,6 +218,7 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
       itemBuilder: (context, index) {
         final ver = versions[index].key;
         final info = versions[index].value;
+        final changelog = info.changelog;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -268,9 +269,9 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
               ],
             ),
             const SizedBox(height: 8),
-            if (info.changelog != null && info.changelog!.isNotEmpty)
+            if (changelog != null && changelog.isNotEmpty)
               Text(
-                info.changelog!,
+                changelog,
                 style: theme.textTheme.bodyMedium,
               )
             else
