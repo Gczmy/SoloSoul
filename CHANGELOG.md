@@ -4,28 +4,63 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [1.6.8] - 2026-05-31
 
+### Added
+
+- **Attachment Soft-Delete & Trash** (`dabb7e4`)
+  - Added `isDeleted` + `deletedAt` fields to `Attachment` model with full `copyWith`/`toJson`/`fromJson` support.
+  - `UnifiedObjectNotifier` gained `softDeleteAttachment`, `restoreAttachment`, and `permanentlyDeleteAttachment` methods.
+  - `AttachmentListSheet` UI rebuilt to support 3-state lifecycle: active / soft-deleted (visible in trash tab) / permanently removed.
+  - `updateObject` diff logic automatically filters out soft-deleted attachments from the active list while preserving them for restoration.
+
+- **Attachment Download Service** (`dabb7e4`, `cc2c666`)
+  - New `AttachmentDownloadService` class encapsulates decryption → file write → platform share sheet flow.
+  - Downloads target a configurable directory (default: system `Downloads`). Settings page added `settings_page_download_section.dart` with custom path picker and "Restore Default" button.
+  - Filename collision handling: `report.pdf` → `report (1).pdf` → `report (2).pdf` via `_getUniqueFilePath`.
+  - Write-permission validation before every download; on macOS sandbox path invalidation, auto-fallback to default Downloads with a SnackBar notification.
+  - Debounce guard (`_activeDownloads` `Set<String>`) prevents concurrent duplicate downloads from rapid button taps.
+
+- **Attachment Preview Enhancement** (`dabb7e4`)
+  - PDF preview powered by `pdfx` package with page navigation and zoom gestures.
+  - Image preview supports full-screen zoom, pan, and tap-to-dismiss via `InteractiveViewer` + `GestureDetector`.
+  - Preview dialog close button repositioned to top-right for consistency with macOS window chrome.
+
+- **Inline Add Section Placeholder** (`78b1a4f`)
+  - New reusable `AddSectionPlaceholder` widget: dashed border, centered "+ Add Section" text, tap gesture.
+  - Replaces the FAB "+" button in `ObjectWorkspacePage` and `ObjectCategoryPage`.
+  - Appears at the end of every list (pages, root objects, default category pages), eliminating empty-state dead ends.
+  - AppBar "+" icon removed; all add flows now route through the inline placeholder for visual consistency.
+
+- **Attachment Upload Service Extraction** (`cc2c666`)
+  - New `AttachmentUploadService` unifies the file-pick → sensitivity-check → encrypt → store flow.
+  - Replaces duplicated upload logic in `ObjectCardItemTile` and `EntryCardWidget` (~100 lines removed per widget).
+  - Single call site: `AttachmentUploadService.upload(context, objectId, fileName, bytes, sensitivity)`.
+
 ### Fixed
 
-- **JSON Serialization Key Mismatch** — Added `@JsonKey(name: '__propertyLabels')` and `@JsonKey(name: '__semanticTypes')` to `UnifiedObject` model fields. Previously `toMap()` emitted `__propertyLabels`/`__semanticTypes` while `json_serializable`-generated `fromJson()` expected `propertyLabels`/`semanticTypes`, causing roundtrip data loss.
-- **Account Duplicate-Name Logic Bug** — Fixed `SecureAccountStorage.createAccount` to correctly reject accounts with existing names when `accountId == null`. Previously the code treated all existing accounts as "stale" and silently deleted them, causing data loss.
-- **TypeId Migration Test Sync** — Updated 6 test files to match the `profile_*` → `__preset_*` typeId migration, fixing 14 pre-existing unit test failures.
+- **Account Duplicate-Name Logic Bug** (`d319bd0`) — `SecureAccountStorage.createAccount` now rejects accounts with existing names when `accountId == null`. Previously all existing accounts were treated as "stale" and silently deleted, causing data loss.
+- **JSON Serialization Key Mismatch** (`54cf246`) — Added `@JsonKey(name: '__propertyLabels')` and `@JsonKey(name: '__semanticTypes')` to `UnifiedObject` to align `json_serializable`-generated `fromJson()` with hand-written `toMap()`.
+- **Orphan File Prevention** (`cc2c666`) — `permanentlyDeleteAttachment` throws `StateError` when `accountId` is null, preventing encrypted file orphans on disk.
+- **macOS Sandbox Download Fallback** (`cc2c666`) — When the user-configured download directory becomes unreachable (sandbox token expiration after restart), the service automatically falls back to `~/Downloads` instead of crashing.
+- **TypeId Migration Test Sync** (`9c40ee9`) — Updated 6 test files to match the `profile_*` → `__preset_*` typeId migration, fixing 14 pre-existing failures.
 
 ### Refactored
 
-- **Plugin Event Handler Decomposition** — Split `_onRun()` (285 lines, 7-level nesting) in `plugin_dashboard_page.dart` into:
-  - `_PluginRunSession` mutable state class
-  - 6 focused handler methods: `_handleDialogConsent`, `_handleFieldConsent`, `_handlePluginResult`, `_handlePluginLog`, `_handlePluginCompleted`, `_handlePluginError`
-  - `_showRunResult` for result dialog presentation
-  Nesting depth reduced from 7 to 2 levels.
-- **Object Editor Validation Extraction** — Split `_saveObject()` in `object_editor_page.dart` into:
-  - `_validateSaveInput()` — name/duplicate-key validation (early return pattern)
-  - `_buildProperties()` + `_PropertyBuildResult` — property map construction
-  - Original method now orchestrates only (validation → build → persist → navigate)
-- **Injectable FFI Wrappers** — Added `_saltGenerator` and `_keyDeriver` function pointers to `SecureAccountStorage` with `setFfiWrappersForTest()` API. All direct `frb.frbGenerateSalt` / `frb.frbDeriveKey` calls replaced with injectable wrappers, enabling full unit test coverage without initialized `flutter_rust_bridge`.
+- **Plugin Event Handler Decomposition** (`b919a84`) — Split `_onRun()` (285 lines, 7-level nesting) in `plugin_dashboard_page.dart` into `_PluginRunSession` state class + 6 handler methods (`_handleDialogConsent`, `_handleFieldConsent`, `_handlePluginResult`, `_handlePluginLog`, `_handlePluginCompleted`, `_handlePluginError`) + `_showRunResult`.
+- **Object Editor Validation Extraction** (`b919a84`) — Split `_saveObject()` into `_validateSaveInput()` (early-return validation) and `_buildProperties()` + `_PropertyBuildResult` (property map construction).
+- **Password Dialog Deduplication** (`e0fc878`) — Extracted `_PasswordDialogBaseMixin` containing shared `TextEditingController`, `FocusNode`, error state, `initState`/`dispose`, and focus/text-change handlers. Two dialog variants now only implement `_verify()` and `build()`.
+- **OCR Processing Pipeline** (`0b0f0ca`) — Extracted `_processOcrBytes()` unifying OCR → MRZ → field extraction. `_pickImage` and `_pickDocument` now only acquire bytes and delegate to the shared pipeline. ~80 lines of duplicate code removed.
+- **Default Structure Factory** (`e5e12e7`) — Extracted `_buildPage()` / `_buildSection()` factory methods in `unified_object_notifier.dart` for reuse between `_createDefaultStructure` and `_migrateDefaultSectionSchemas`.
+- **LLM Config Deduplication** (`cfb668e`) — Extracted `_activeProfile()` helper in `llm_config_service`, eliminating repeated `ref.read(currentProfileProvider)` lookups across 5 getters.
+- **Icon Lookup Optimization** (`cfb668e`) — Replaced 114-line `switch` in `unified_object_service.getIconFromName` with a `Map<String, String>` constant table. ~70 lines removed.
+- **Parallel I/O** (`b75808e`) — `updateObject`, `permanentlyDeleteObject`, and `permanentlyDeleteMultiple` now delete attachments in parallel via `Future.wait` instead of sequential `await`.
+- **O(n) → O(1) Lookups** (`b75808e`) — `semantic_type_registry.getType` pre-builds a `Map<String, ObjectTypeDefinition>`; `recommend()` uses a `Set<String>` for constant-time contains checks.
+- **Dead Code & Proxy Removal** (`b75808e`) — Removed unused `locale` variable in `plugin_dashboard_page`, unreachable `case 'map'` branch, and proxy methods `_logSectionForTypeId` / `_typeColor` (inlined at call sites).
+- **Context Safety** (`b75808e`) — Fixed 3 `use_build_context_synchronously` info warnings in `plugin_dashboard_page.dart` by adding `if (!context.mounted) break;` at the top of the `await for` loop.
 
 ### Test Infrastructure
 
-- **Unit Test Suite Green** — All 902 unit tests now pass (0 failures). Previously 16 tests failed due to typeId migration mismatches and missing Rust FFI initialization.
+- **Injectable FFI Wrappers** (`d319bd0`) — Added `_saltGenerator` / `_keyDeriver` function pointers to `SecureAccountStorage` with `setFfiWrappersForTest()` API. All direct `frb.frbGenerateSalt` / `frb.frbDeriveKey` calls replaced with injectable wrappers.
+- **Full Test Suite Green** — All 902 unit tests pass (0 failures). Previously 16 tests failed due to stale `typeId` formats and missing Rust FFI initialization.
 
 ## [1.6.7] - 2026-05-31
 
