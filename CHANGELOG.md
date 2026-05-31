@@ -1,15 +1,38 @@
 ## [1.6.8] - 2026-05-31
 
+### Added
+
+- **Attachment Trash & Recovery** — Attachments now support soft-delete with a 30-day recovery window. Deleted attachments move to the object-level trash where they can be restored or permanently deleted.
+- **One-Click Attachment Download** — New download button in the attachment sheet saves files directly to your system Downloads folder. Automatically handles filename conflicts (e.g. `report (1).pdf`).
+- **Custom Download Location** — Settings page now allows configuring a custom download directory. Falls back to system Downloads if the custom path becomes unavailable (e.g. macOS sandbox changes).
+- **Attachment Preview Enhancement** — PDF attachments can now be previewed inline using `pdfx`. Image previews support full-screen zoom with pan and dismiss gestures.
+- **Inline Add Section Button** — The floating "+" action button has been replaced with a dashed-border "Add Section" card at the end of every page content stream. Works consistently across workspace pages, default pages (Profile/Travel/Financial/Professional), and the root object list.
+
 ### Fixed
 
-- **JSON Serialization** — Fixed `@JsonKey` annotation mismatch for `semanticTypes` and `propertyLabels`, ensuring consistent serialization/deserialization keys
-- **Account Creation** — Fixed duplicate-name logic to correctly reject accounts with existing names instead of silently deleting old data
+- **Account Duplicate Name Protection** — Creating an account with an existing name now correctly returns an error instead of silently deleting the old account data.
+- **JSON Serialization Consistency** — Fixed `@JsonKey` annotation mismatch for `semanticTypes` and `propertyLabels`, ensuring `toMap()` and `fromJson()` use the same keys (`__semanticTypes`, `__propertyLabels`).
+- **Download Robustness** — Added write-permission validation before downloading. Prevents crashes when the configured download directory is no longer writable.
+- **Concurrent Download Guard** — Prevents duplicate download triggers when rapidly tapping the download button.
+- **Orphan File Prevention** — `permanentlyDeleteAttachment` now throws an exception when `accountId` is null, preventing orphaned encrypted files on disk.
+- **macOS Sandbox Fallback** — When the custom download path becomes invalid (common after macOS app restart in sandbox), downloads automatically fall back to the system Downloads folder.
 
 ### Refactored
 
-- **Plugin Event Handler** — Split 285-line `_onRun` method into 6 focused handler methods, reducing nesting depth from 7 to 2 levels
-- **Object Editor** — Split `_saveObject` into `_validateSaveInput` and `_buildProperties`, eliminating 6-layer nested logic
-- **Test Infrastructure** — Added injectable FFI wrappers to `SecureAccountStorage`, enabling 902 unit tests to pass without Rust bridge initialization
+- **Plugin Event Handler** — Split the 285-line `_onRun` method into 6 focused handler methods plus a `_PluginRunSession` state class, reducing nesting depth from 7 to 2 levels.
+- **Object Editor Save Flow** — Split `_saveObject` into `_validateSaveInput` and `_buildProperties` with a `_PropertyBuildResult` data class, eliminating 6-layer nested logic.
+- **Password Dialog Deduplication** — Extracted `_PasswordDialogBaseMixin` shared by two dialog variants, removing ~100 lines of duplicated field/controller/lifecycle logic.
+- **OCR Processing Pipeline** — Extracted `_processOcrBytes` to unify the OCR → MRZ → field extraction flow, removing ~80 lines of duplicated code between image and document pickers.
+- **Default Structure Factory** — Extracted `_buildPage` / `_buildSection` factory methods for reuse between `_createDefaultStructure` and `_migrateDefaultSectionSchemas`.
+- **LLM Config Deduplication** — Extracted `_activeProfile` helper in `llm_config_service`, eliminating repeated active-profile lookups across 5 getters.
+- **Icon Lookup Optimization** — Replaced the 114-line `switch` in `getIconFromName` with a `Map` constant table, reducing code by ~70 lines.
+- **Parallel I/O Operations** — Attachment deletions during `updateObject`, `permanentlyDeleteObject`, and `permanentlyDeleteMultiple` now run in parallel via `Future.wait` instead of sequential awaits.
+- **O(n) → O(1) Lookups** — `semantic_type_registry.getType` and `recommend` lookups now use pre-built `Map`/`Set` for constant-time access instead of linear scans.
+
+### Test Infrastructure
+
+- **Injectable FFI Wrappers** — Added `_saltGenerator` and `_keyDeriver` function pointers to `SecureAccountStorage`, allowing unit tests to mock Rust crypto operations without initializing `flutter_rust_bridge`.
+- **Full Test Suite Green** — All 902 unit tests now pass (0 failures), up from 16 pre-existing failures caused by stale `typeId` formats and missing FFI initialization.
 
 ## [1.6.7] - 2026-05-31
 
