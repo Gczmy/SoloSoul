@@ -1,3 +1,16 @@
+## [1.6.8] - 2026-05-31
+
+### Fixed
+
+- **JSON Serialization** — Fixed `@JsonKey` annotation mismatch for `semanticTypes` and `propertyLabels`, ensuring consistent serialization/deserialization keys
+- **Account Creation** — Fixed duplicate-name logic to correctly reject accounts with existing names instead of silently deleting old data
+
+### Refactored
+
+- **Plugin Event Handler** — Split 285-line `_onRun` method into 6 focused handler methods, reducing nesting depth from 7 to 2 levels
+- **Object Editor** — Split `_saveObject` into `_validateSaveInput` and `_buildProperties`, eliminating 6-layer nested logic
+- **Test Infrastructure** — Added injectable FFI wrappers to `SecureAccountStorage`, enabling 902 unit tests to pass without Rust bridge initialization
+
 ## [1.6.7] - 2026-05-31
 
 ### Fixed
