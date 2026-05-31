@@ -2,6 +2,30 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [1.6.7] - 2026-05-31
+
+### Fixed
+
+- **Force Unwrap Elimination** — Eliminated ~166 `!` force unwraps across 34 files. Replaced with local variable null-checks, pattern matching (`case final x?`), and `whereType<T>()` to prevent runtime crashes.
+- **Context Safety** — Fixed 3 `use_build_context_synchronously` warnings in `plugin_dashboard_page.dart` by adding `mounted` checks before using `BuildContext` after async gaps.
+- **Path Injection Hardening** — Added `_isSafePath()` validation to `Process.run` calls in `content_parser_service.dart` to prevent command injection via malicious file paths.
+- **Typed Exception Catching** — Replaced 4 bare `catch (e)` clauses with `on Exception catch (e)` to avoid swallowing `Error` subclasses.
+- **Memory Leak Fix** — Added `onDispose` cleanup for `StreamSubscription` and `Timer` in `llm_chat_session_provider.dart` to prevent leaks on provider disposal.
+
+### Refactored
+
+- **RadioGroup Migration** — Migrated deprecated `RadioListTile.groupValue` / `onChanged` to `RadioGroup` ancestor pattern in `plugin_radio_list_dialog.dart` and `plugin_sensitivity_override_dialog.dart`. Eliminates all 4 dart analyzer info warnings.
+- **Widget Extraction** — Split 4 oversized build methods (>200 lines each) into focused sub-methods:
+  - `_onRun()` (307 lines) → `_prepareInitialParams()` + `_showExecutionResult()`
+  - `app_sidebar build()` (237 lines) → `_buildSidebarContent` / `_buildPagesSection` / `_buildBottomActions` / `_buildResizeHandle`
+  - `_PluginResultDialog build()` (224 lines) → `_buildTitle` / `_buildLogsSection` / `_buildResultsSection` / `_buildErrorBanner`
+  - `trash_card build()` (214 lines) → `_buildHeader` / `_buildActionBar`
+
+### Code Quality
+
+- **Static Analysis Zero-Warnings** — `dart analyze` now reports 0 errors, 0 warnings, 0 info across the entire codebase.
+- **Dead Code Removal** — Removed unused imports, variables, and parameters across 5 files.
+
 ## [1.6.6] - 2026-05-25
 
 ### Added
