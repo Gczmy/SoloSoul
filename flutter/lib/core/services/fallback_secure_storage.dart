@@ -33,7 +33,8 @@ class FallbackSecureStorage {
           );
 
   Future<Directory> _getFallbackDir() async {
-    if (_fallbackDir != null) return _fallbackDir;
+    final existing = _fallbackDir;
+    if (existing != null) return existing;
     final supportDir = await getApplicationSupportDirectory();
     final dir = Directory('${supportDir.path}/$_fallbackDirName');
     _fallbackDir = dir;

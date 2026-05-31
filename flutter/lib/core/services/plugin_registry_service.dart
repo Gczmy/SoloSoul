@@ -165,13 +165,15 @@ class PluginRegistryService {
 
     // 合并 i18n：取并集，b 中额外的语言覆盖 a
     final mergedI18n = <String, Map<String, String>>{};
-    if (a.i18n != null) {
-      for (final entry in a.i18n.entries) {
+    final aI18n = a.i18n;
+    if (aI18n != null) {
+      for (final entry in aI18n.entries) {
         mergedI18n[entry.key] = Map<String, String>.from(entry.value);
       }
     }
-    if (b.i18n != null) {
-      for (final entry in b.i18n.entries) {
+    final bI18n = b.i18n;
+    if (bI18n != null) {
+      for (final entry in bI18n.entries) {
         mergedI18n[entry.key] = Map<String, String>.from(entry.value);
       }
     }
