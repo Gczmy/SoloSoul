@@ -366,99 +366,16 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
       maxHeight: 2048,
       imageQuality: 90,
     );
-
     if (picked == null) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    final bytes = await picked.readAsBytes();
+    _originalImageBytes = bytes;
 
-    try {
-      final bytes = await picked.readAsBytes();
-      // Store for potential attachment saving
-      _originalImageBytes = bytes;
-
-      // Step 1: 通用 OCR 识别
-      final ocrResult = await OcrService.recognizeText(Uint8List.fromList(bytes));
-      SoloLog.d('OcrScannerSheet',
-          'General OCR: ${ocrResult.blocks.length} blocks, confidence=${ocrResult.confidence}');
-
-      // Step 2: 从 OCR 结果中智能提取 MRZ 候选行
-      final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
-      SoloLog.d('OcrScannerSheet',
-          'MRZ candidate lines: ${mrzCandidates.length}, candidates=$mrzCandidates');
-
-      // Step 3: 从候选行中精确筛选并尝试解析 MRZ
-      final mrzData = OcrScannerUtils.parseMrzFromCandidates(mrzCandidates);
-      if (mrzData != null) {
-        SoloLog.d('OcrScannerSheet',
-            'MRZ parsed: docType=${mrzData.documentType}, docNo=${mrzData.documentNumber}');
-      }
-
-      final finalMrzData = mrzData;
-      if (finalMrzData != null) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _result = SmartOcrMrzResult(
-              mrzData: finalMrzData,
-              rawOcrResult: ocrResult,
-            );
-          });
-        }
-      } else {
-        var extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
-
-        // LLM 协助提取
-        if (_useLlmAssist && _selectedModelId != null) {
-          try {
-            final llmExtraction = await _performLlmExtraction(
-              rawText: ocrResult.rawText,
-              blocks: ocrResult.blocks,
-              modelId: _selectedModelId!,
-              l10n: l10n,
-            );
-            if (llmExtraction != null) {
-              extraction = llmExtraction;
-            }
-          } on Exception catch (e) {
-            SoloLog.w('OcrScannerSheet',
-                'LLM extraction failed, fallback to rule engine: $e');
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _result = SmartOcrTextResult(ocrResult, extraction);
-            _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
-          });
-        }
-      }
-    } on OcrTextNotDetectedException {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = l10n.ocrNoTextDetectedImage;
-        });
-      }
-    } on OcrTimeoutException {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = l10n.ocrRecognitionTimeoutImage;
-        });
-      }
-    } on OcrException catch (e) {
-      SoloLog.w('OcrScannerSheet', 'OCR error: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = e.toString();
-        });
-      }
-    }
+    await _processOcrBytes(
+      Uint8List.fromList(bytes),
+      noTextMessage: l10n.ocrNoTextDetectedImage,
+      timeoutMessage: l10n.ocrRecognitionTimeoutImage,
+    );
   }
 
   Future<void> _pickDocument() async {
@@ -468,7 +385,6 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
       withData: false,
     );
-
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
@@ -505,73 +421,105 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
         bytes = await File(path).readAsBytes();
       }
 
-      final ocrResult = await OcrService.recognizeText(bytes);
-      final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
-      final mrzData = OcrScannerUtils.parseMrzFromCandidates(mrzCandidates);
-      final finalMrzData = mrzData;
-      if (finalMrzData != null) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _result = SmartOcrMrzResult(
-              mrzData: finalMrzData,
-              rawOcrResult: ocrResult,
-            );
-          });
-        }
-      } else {
-        var extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
-
-        // LLM 协助提取
-        if (_useLlmAssist && _selectedModelId != null) {
-          try {
-            final llmExtraction = await _performLlmExtraction(
-              rawText: ocrResult.rawText,
-              blocks: ocrResult.blocks,
-              modelId: _selectedModelId!,
-              l10n: l10n,
-            );
-            if (llmExtraction != null) {
-              extraction = llmExtraction;
-            }
-          } on Exception catch (e) {
-            SoloLog.w('OcrScannerSheet',
-                'LLM extraction failed, fallback to rule engine: $e');
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _result = SmartOcrTextResult(ocrResult, extraction);
-            _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
-          });
-        }
-      }
-    } on OcrTextNotDetectedException {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = isPdf
-              ? l10n.ocrNoTextDetectedPdf
-              : l10n.ocrNoTextDetectedImage;
-        });
-      }
-    } on OcrTimeoutException {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = isPdf
-              ? l10n.ocrRecognitionTimeoutPdf
-              : l10n.ocrRecognitionTimeoutImage;
-        });
-      }
+      await _processOcrBytes(
+        bytes,
+        noTextMessage: isPdf
+            ? l10n.ocrNoTextDetectedPdf
+            : l10n.ocrNoTextDetectedImage,
+        timeoutMessage: isPdf
+            ? l10n.ocrRecognitionTimeoutPdf
+            : l10n.ocrRecognitionTimeoutImage,
+      );
     } on OcrException catch (e) {
       SoloLog.w('OcrScannerSheet', 'Document OCR error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
           _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
+  /// Shared OCR → MRZ → field extraction pipeline.
+  Future<void> _processOcrBytes(
+    Uint8List bytes, {
+    required String noTextMessage,
+    required String timeoutMessage,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final ocrResult = await OcrService.recognizeText(bytes);
+      SoloLog.d('OcrScannerSheet',
+          'General OCR: ${ocrResult.blocks.length} blocks, confidence=${ocrResult.confidence}');
+
+      final mrzCandidates = OcrService.extractMrzLinesFromResult(ocrResult);
+      SoloLog.d('OcrScannerSheet',
+          'MRZ candidate lines: ${mrzCandidates.length}, candidates=$mrzCandidates');
+
+      final mrzData = OcrScannerUtils.parseMrzFromCandidates(mrzCandidates);
+      if (mrzData != null) {
+        SoloLog.d('OcrScannerSheet',
+            'MRZ parsed: docType=${mrzData.documentType}, docNo=${mrzData.documentNumber}');
+      }
+
+      if (mrzData != null) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _result = SmartOcrMrzResult(
+              mrzData: mrzData,
+              rawOcrResult: ocrResult,
+            );
+          });
+        }
+        return;
+      }
+
+      var extraction = FieldExtractorPipeline.extract(ocrResult.rawText, ocrResult.blocks);
+
+      if (_useLlmAssist && _selectedModelId != null) {
+        try {
+          final llmExtraction = await _performLlmExtraction(
+            rawText: ocrResult.rawText,
+            blocks: ocrResult.blocks,
+            modelId: _selectedModelId!,
+            l10n: l10n,
+          );
+          if (llmExtraction != null) {
+            extraction = llmExtraction;
+          }
+        } on Exception catch (e) {
+          SoloLog.w('OcrScannerSheet',
+              'LLM extraction failed, fallback to rule engine: $e');
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _result = SmartOcrTextResult(ocrResult, extraction);
+          _selectedFieldKeys = Set<String>.from(extraction.fields.keys);
+        });
+      }
+    } on OcrTextNotDetectedException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = noTextMessage;
+        });
+      }
+    } on OcrTimeoutException {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = timeoutMessage;
         });
       }
     }

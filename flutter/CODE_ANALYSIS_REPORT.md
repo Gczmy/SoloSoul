@@ -15,7 +15,7 @@
 | P002 | P0 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:651-699` | `permanentlyDeleteObject`/`permanentlyDeleteMultiple` 循环内串行 I/O | `[x]` 已修复 |
 | P003 | P0 | 性能 | `lib/core/models/semantic_type_registry.dart:683-688` | `getType` 对 `_allTypes` 线性遍历 O(n)，应预构建 Map | `[x]` 已修复 |
 | P004 | P0 | 性能 | `lib/core/models/semantic_type_registry.dart:795-803` | `recommend` 内 `results.contains(type)` 在循环内 O(m×n) | `[x]` 已修复 |
-| P005 | P0 | 重复代码 | `lib/presentation/widgets/password_verification_dialog.dart` | 两个 State 类约 400+ 行重复（`PasswordVerificationDialogContentState` / `BiometricPasswordDialogContentState`） | `[ ]` 待修复（大重构） |
+| P005 | P0 | 重复代码 | `lib/presentation/widgets/password_verification_dialog.dart` | 两个 State 类约 400+ 行重复（`PasswordVerificationDialogContentState` / `BiometricPasswordDialogContentState`） | `[x]` 已修复 — 提取 `_PasswordDialogBaseMixin` 共享字段与生命周期 |
 | P006 | P0 | 重复代码 | `lib/presentation/widgets/ocr_scanner_sheet.dart:360-578` | `_pickImage` / `_pickDocument` 90%+ OCR/MRZ/LLM 逻辑重复 | `[ ]` 待修复（大重构） |
 | P007 | P1 | 过长函数 | `lib/presentation/pages/plugin_dashboard_page.dart:2006-2291` | `_onRun` 约 285 行，事件流处理 | `[ ]` 待修复 |
 | P008 | P1 | 过长函数 | `lib/presentation/pages/object_editor_page.dart:1164-1331` | `_PropertyFieldRow.build` 约 167 行 | `[ ]` 待修复 |
