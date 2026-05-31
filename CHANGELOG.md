@@ -1,3 +1,15 @@
+## [1.6.7] - 2026-05-31
+
+### Fixed
+
+- **Crash Prevention** — Eliminated ~166 potential null-dereference crash sites across the codebase through safer null-handling patterns
+- **Security Hardening** — Validated file paths before external command execution to prevent injection attacks
+- **Memory Stability** — Fixed timer and stream subscription leaks that could accumulate during extended app usage
+
+### Refactored
+
+- **Code Quality Audit** — Complete static analysis cleanup: 0 errors, 0 warnings, 0 info. Migrated deprecated Radio APIs and split oversized UI methods for better maintainability
+
 ## [1.6.6] - 2026-05-26
 
 ### Fixed
