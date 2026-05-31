@@ -18,7 +18,7 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| P001 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:1990` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[ ]` 待修复 |
+| P001 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:1990` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
 | P002 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2125` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[ ]` 待修复 |
 | P003 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2183` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[ ]` 待修复 |
 | P004 | P0 | 安全 | `core/services/scan/content_parser_service.dart:109` | `Process.run('pdftotext', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
@@ -53,8 +53,13 @@
 
 ## 修复进度
 
-- 已完成：0 / 30
-- 当前处理：无
+- 已完成：1 / 30
+- 当前处理：P002
+
+### P001 修复说明
+- **文件**：`presentation/pages/plugin_dashboard_page.dart:1990`
+- **改动**：在 `await _showFormPrefillerScenarioDialog(context)` 前添加 `if (!context.mounted) return;` 检查
+- **验证**：`dart analyze` 确认该位置 lint 已消除
 
 ---
 

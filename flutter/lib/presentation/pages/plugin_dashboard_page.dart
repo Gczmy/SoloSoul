@@ -1987,6 +1987,7 @@ class _PluginCard extends ConsumerWidget {
     }
     // 表单预填插件特殊处理：先进行场景选择，再传入参数执行
     if (pluginId == 'com.solosoul.official.form-prefiller') {
+      if (!context.mounted) return;
       final scenarioResult = await _showFormPrefillerScenarioDialog(context);
       if (scenarioResult == null) return; // 用户取消，终止流程
       initialParams = {
