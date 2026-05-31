@@ -94,6 +94,9 @@ pub(crate) fn resolve_field_sensitivity(field_id: &str) -> SensitivityLevel {
         "identity.contact.emails" | "identity.contact.phones" => SensitivityLevel::Internal,
         // contact 独立对象与 identity.contact 对齐
         "contact.phone" | "contact.email" => SensitivityLevel::Internal,
+        // security: TOTP Secret 为关键数据，issuer/account 为公开
+        "security.totpSecret" => SensitivityLevel::Critical,
+        "security.totpIssuer" | "security.totpAccount" => SensitivityLevel::Public,
         "identity.id_card.number"
         | "travel.primary_passport.number"
         | "financial.primary_bank_account.number" => SensitivityLevel::Critical,
@@ -1360,6 +1363,14 @@ fn resolve_property_keys(type_filter: Option<&str>, property_key: &str) -> Vec<S
         (Some("__preset_health"), "blood_type") => Some("bloodType"),
         (Some("__preset_health"), "bloodType") => Some("bloodType"),
 
+        // security (TOTP / 2FA)
+        (Some("__preset_security"), "totp_secret") => Some("totpSecret"),
+        (Some("__preset_security"), "totp_issuer") => Some("totpIssuer"),
+        (Some("__preset_security"), "totp_account") => Some("totpAccount"),
+        (Some("__preset_security"), "totpSecret") => Some("totpSecret"),
+        (Some("__preset_security"), "totpIssuer") => Some("totpIssuer"),
+        (Some("__preset_security"), "totpAccount") => Some("totpAccount"),
+
         // Default: no alias
         _ => None,
     };
@@ -1617,6 +1628,7 @@ fn extract_from_unified_object_model(field_id: &str, json_value: &serde_json::Va
             "insurance" => Some("__preset_insurance"),
             "membership" => Some("__preset_membership"),
             "subscription" => Some("__preset_subscription"),
+            "security" => Some("__preset_security"),
             _ => None,
         };
         (filter, key)

@@ -6302,6 +6302,18 @@ abstract class AppLocalizations {
   /// **'Records of travel including destination, dates, flights, and travel details'**
   String get templateTravelHistoryDesc;
 
+  /// No description provided for @templateSecurityName.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get templateSecurityName;
+
+  /// No description provided for @templateSecurityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Security keys and authentication info, including TOTP secrets and recovery codes'**
+  String get templateSecurityDesc;
+
   /// No description provided for @objectEditorSchemaUpdated.
   ///
   /// In en, this message translates to:

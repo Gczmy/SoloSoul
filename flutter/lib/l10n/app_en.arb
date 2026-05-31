@@ -1784,6 +1784,8 @@
   "templateTravelVisaDesc": "Contains visa information including type, number, issue date, and expiry date",
   "templateTravelHistoryName": "Travel History",
   "templateTravelHistoryDesc": "Records of travel including destination, dates, flights, and travel details",
+  "templateSecurityName": "Security",
+  "templateSecurityDesc": "Security keys and authentication info, including TOTP secrets and recovery codes",
   "objectEditorSchemaUpdated": "Property schema has been updated, syncing automatically",
   "objectEditorShowDeprecated": "{count} deprecated",
   "@objectEditorShowDeprecated": {

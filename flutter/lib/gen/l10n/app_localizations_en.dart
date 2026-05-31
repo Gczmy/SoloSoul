@@ -3416,6 +3416,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Records of travel including destination, dates, flights, and travel details';
 
   @override
+  String get templateSecurityName => 'Security';
+
+  @override
+  String get templateSecurityDesc =>
+      'Security keys and authentication info, including TOTP secrets and recovery codes';
+
+  @override
   String get objectEditorSchemaUpdated =>
       'Property schema has been updated, syncing automatically';
 

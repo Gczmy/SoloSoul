@@ -3323,6 +3323,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get templateTravelHistoryDesc => '出行记录，包括目的地、日期、航班和出行详情';
 
   @override
+  String get templateSecurityName => '安全信息';
+
+  @override
+  String get templateSecurityDesc => '安全密钥与认证信息，包括 TOTP 密钥、恢复码等';
+
+  @override
   String get objectEditorSchemaUpdated => '属性定义已更新，自动同步中';
 
   @override

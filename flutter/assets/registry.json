@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-31T00:21:34Z",
+  "updated_at": "2026-05-31T00:39:20Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -706,8 +706,17 @@
     "com.solosoul.official.totp-gen": {
       "name": "TOTP Generator",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "8a70925af2a5fd79d356b28c88a0b7baa9fb31e1ea1ee0d02df32aa55c9c2ae5",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
+          "released_at": "2026-05-31T00:39:20Z"
+        },
         "1.0.1": {
           "sha256": "74a4c9eaf9ad3395cbd16a9410cc36d0d6a8f7afd138887c0b641b099fe8ed96",
           "plugin_api_version": "1.0",

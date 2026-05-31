@@ -723,5 +723,30 @@ class PresetSectionTemplates {
         ),
       ],
     ),
+    // 安全信息模板（TOTP Secret、恢复码等）
+    SectionTemplate(
+      id: '__preset_security',
+      nameKey: 'templateSecurityName',
+      descriptionKey: 'templateSecurityDesc',
+      icon: '🔐',
+      pageTag: 'profile',
+      fields: [
+        TemplateField(
+          key: 'totpSecret',
+          type: 'text',
+          sensitivity: SensitivityLevel.critical,
+        ),
+        TemplateField(
+          key: 'totpIssuer',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+        TemplateField(
+          key: 'totpAccount',
+          type: 'text',
+          sensitivity: SensitivityLevel.public,
+        ),
+      ],
+    ),
   ];
 }
