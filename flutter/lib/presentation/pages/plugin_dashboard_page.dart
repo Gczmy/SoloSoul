@@ -16,7 +16,7 @@ import 'package:solosoul_flutter/presentation/providers/plugin_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
-import 'package:solosoul_flutter/core/models/plugin_models.dart' show PluginArtifacts, PluginRegistryEntry, resolvePluginI18n;
+import 'package:solosoul_flutter/core/models/plugin_models.dart' show PluginRegistryEntry, resolvePluginI18n;
 import 'package:solosoul_flutter/core/models/semantic_type_registry.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_access_review_dialog.dart';
@@ -465,7 +465,6 @@ class _KeyValueResultCard extends StatelessWidget {
       case '脱敏预览': return '脱敏预览';
       // digital-will
       case '立嘱人': return '立嘱人';
-      case '紧急联系人': return '紧急联系人';
       case '资产': return '资产';
       case '数字账户': return '数字账户';
       default: return key;
@@ -604,16 +603,6 @@ class _CalendarEventsResultCard extends StatelessWidget {
       case 'idcard': return const Color(0xFF2E7D32);
       case 'card': return const Color(0xFFEF6C00);
       default: return Colors.grey;
-    }
-  }
-
-  String _kindLabel(String? kind) {
-    switch (kind) {
-      case 'passport': return '护照';
-      case 'visa': return '签证';
-      case 'idcard': return '身份证';
-      case 'card': return '信用卡';
-      default: return '事件';
     }
   }
 

@@ -58,7 +58,6 @@ class AuditLogService {
   AuditLogService._internal();
 
   static const _retentionDays = 90;
-  static const _logFileName = 'audit.log';
   String? _logDir;
 
   Future<void> _ensureLogDir() async {
@@ -256,7 +255,7 @@ class AuditLogService {
           final json = jsonDecode(line) as Map<String, dynamic>;
           entries.add(AuditLogEntry.fromJson(json));
           if (entries.length >= limit) break;
-        } catch (_) {
+        } on FormatException catch (_) {
           // 忽略损坏的行
         }
       }

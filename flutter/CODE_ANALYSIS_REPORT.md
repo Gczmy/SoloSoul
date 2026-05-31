@@ -26,7 +26,7 @@
 | P006 | P0 | 安全 | `core/services/scan/windows_search_service.dart:44` | `Process.run('es', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
 | P007 | P0 | 安全 | `core/services/scan/windows_search_service.dart:105` | `Process.run('powershell', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
 | P008 | P0 | 崩溃风险 | 全库 166 处 | `!.` / `!)` 强制解包（空安全违规），可能导致运行时崩溃 | `[~]` 分批修复中 |
-| P009 | P1 | 代码质量 | `core/services/audit_log_service.dart:259` | `catch` 未指定异常类型，可能吞掉所有错误包括 `Error` | `[ ]` 待修复 |
+| P009 | P1 | 代码质量 | `core/services/audit_log_service.dart:259` | `catch` 未指定异常类型，可能吞掉所有错误包括 `Error` | `[x]` 已修复 |
 | P010 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:2108` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
 | P011 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:123` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
 | P012 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:168` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
@@ -36,24 +36,24 @@
 | P016 | P1 | 可维护性 | `presentation/widgets/trash/unified_object_trash_card.dart:53` | `build()` 方法长达 210 行 | `[ ]` 待修复 |
 | P017 | P1 | 代码质量 | `presentation/widgets/plugin_radio_list_dialog.dart:59` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged` API | `[ ]` 待修复 |
 | P018 | P1 | 代码质量 | `presentation/widgets/plugin_sensitivity_override_dialog.dart:165` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged` API | `[ ]` 待修复 |
-| P019 | P1 | 安全/崩溃 | `core/utils/mrz_date_utils.dart:19` | `int.parse()` 无 try-catch，输入非法会抛出异常崩溃 | `[ ]` 待修复 |
-| P020 | P1 | 安全/崩溃 | `presentation/widgets/mrz_preview_card.dart:102` | `int.parse()` 无 try-catch，输入非法会抛出异常崩溃 | `[ ]` 待修复 |
-| P021 | P1 | 代码质量 | `core/services/audit_log_service.dart:61` | `_logFileName` 字段声明但未使用 | `[ ]` 待修复 |
-| P022 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:19` | `PluginArtifacts` 显示导入但未使用 | `[ ]` 待修复 |
-| P023 | P1 | 逻辑错误 | `presentation/pages/plugin_dashboard_page.dart:468` | 不可达的 `switch case`，被前面的 case 覆盖 | `[ ]` 待修复 |
+| P019 | P1 | 安全/崩溃 | `core/utils/mrz_date_utils.dart:19` | `int.parse()` 无 try-catch，输入非法会抛出异常崩溃 | `[x]` 误报/设计如此 |
+| P020 | P1 | 安全/崩溃 | `presentation/widgets/mrz_preview_card.dart:102` | `int.parse()` 无 try-catch，输入非法会抛出异常崩溃 | `[x]` 误报/设计如此 |
+| P021 | P1 | 代码质量 | `core/services/audit_log_service.dart:61` | `_logFileName` 字段声明但未使用 | `[x]` 已修复 |
+| P022 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:19` | `PluginArtifacts` 显示导入但未使用 | `[x]` 已修复 |
+| P023 | P1 | 逻辑错误 | `presentation/pages/plugin_dashboard_page.dart:468` | 不可达的 `switch case`，被前面的 case 覆盖 | `[x]` 已修复 |
 | P024 | P1 | 内存泄漏 | `presentation/providers/llm/llm_model_provider.dart:29` | `StreamSubscription` 可能在 dispose 时未正确取消 | `[ ]` 待修复 |
-| P025 | P2 | 代码质量 | `core/utils/solo_log.dart:40` | `print()` 语句不应出现在生产代码中 | `[ ]` 待修复 |
-| P026 | P2 | 代码质量 | `core/services/debug_logger.dart:118` | `print()` 语句不应出现在生产代码中 | `[ ]` 待修复 |
-| P027 | P2 | 代码质量 | `core/services/debug_logger.dart:216` | `print()` 语句不应出现在生产代码中 | `[ ]` 待修复 |
+| P025 | P2 | 代码质量 | `core/utils/solo_log.dart:40` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
+| P026 | P2 | 代码质量 | `core/services/debug_logger.dart:118` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
+| P027 | P2 | 代码质量 | `core/services/debug_logger.dart:216` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
 | P028 | P2 | 可维护性 | `lib/` 全库 1241 处 | 深层嵌套（>4层），影响代码可读性 | `[ ]` 待修复 |
-| P029 | P2 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:610` | `_kindLabel` 声明但未引用 | `[ ]` 待修复 |
+| P029 | P2 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:610` | `_kindLabel` 声明但未引用 | `[x]` 已修复 |
 | P030 | P2 | 架构债务 | `core/models/semantic_type_registry.dart:979` | `TODO`：需接入实际数据读取服务 | `[ ]` 待修复 |
 
 ---
 
 ## 修复进度
 
-- 已完成：7 / 30
+- 已完成：16 / 30
 - 当前处理：P008（分批处理）
 
 ### P001 修复说明
@@ -91,6 +91,38 @@
   - `profile_data.dart:35` — 使用局部变量替代 `!`（1处）
   - `document_field_extractor.dart` — `match.group()` 使用 `?.` 和 null 检查（1处）
 - **剩余**：约 155 处，将在后续轮次继续处理
+
+### P009 修复说明
+- **文件**：`core/services/audit_log_service.dart:259`
+- **改动**：`catch (_)` → `on FormatException catch (_)`，仅忽略 JSON 解析错误，不吞掉系统错误
+
+### P010–P012 修复说明
+- **文件**：`presentation/pages/plugin_dashboard_page.dart:2109`、`core/services/llm/llm_model_manager.dart:123,168`
+- **改动**：`catch (e)` → `on Exception catch (e)`，避免吞掉 `Error` 级别的错误
+
+### P019–P020 备注
+- **文件**：`core/utils/mrz_date_utils.dart`、`presentation/widgets/mrz_preview_card.dart`
+- **说明**：两处 `int.parse()` 均已包裹在 `try-catch` 块中，dart analyze 未标记，属于误报
+
+### P021 修复说明
+- **文件**：`core/services/audit_log_service.dart:61`
+- **改动**：删除未使用的 `_logFileName` 常量
+
+### P022 修复说明
+- **文件**：`presentation/pages/plugin_dashboard_page.dart:19`
+- **改动**：从 `show` 列表中移除未使用的 `PluginArtifacts`
+
+### P023 修复说明
+- **文件**：`presentation/pages/plugin_dashboard_page.dart:468`
+- **改动**：删除重复的 `case '紧急联系人': return '紧急联系人';`（第 446 行已存在）
+
+### P025–P027 备注
+- **文件**：`core/utils/solo_log.dart`、`core/services/debug_logger.dart`
+- **说明**：所有 `print()` 均有 `// ignore: avoid_print` 注释，且被 `DebugLogger.isActive` 开关保护，仅在用户主动开启调试模式时输出，属于设计如此
+
+### P029 修复说明
+- **文件**：`presentation/pages/plugin_dashboard_page.dart:610`
+- **改动**：删除未使用的 `_kindLabel()` 方法
 
 ---
 
