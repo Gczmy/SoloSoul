@@ -115,7 +115,7 @@
   - `profile_storage_service.dart:121` — 使用局部变量替代 `!`（1处）
   - `llm_model_manager.dart` — `_service!` 使用局部变量 `svc` 替代（5处）
   - `llm_config_provider.dart` — `state.value!` 使用 `AsyncData` pattern matching 替代（7处）
-- **剩余**：约 140 处，将在后续轮次继续处理
+- **剩余**：约 84 处，将在后续轮次继续处理
 
 ### P009 修复说明
 - **文件**：`core/services/audit_log_service.dart:259`
