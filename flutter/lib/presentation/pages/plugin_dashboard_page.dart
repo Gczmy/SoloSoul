@@ -2123,6 +2123,7 @@ class _PluginCard extends ConsumerWidget {
               batchRequests.add(event);
               if (batchPluginName == null) {
                 final entry = data.registry.plugins[pluginId];
+                if (!context.mounted) break;
                 final locale = Localizations.localeOf(context).toString();
                 batchPluginName = resolvePluginI18n(
                   entry?.i18n, 'name', locale, pname,
