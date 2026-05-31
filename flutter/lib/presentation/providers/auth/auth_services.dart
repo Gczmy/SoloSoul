@@ -395,10 +395,12 @@ class AccountManager {
     }
 
     accounts.sort((a, b) {
-      if (a.lastAccessed == null && b.lastAccessed == null) return 0;
-      if (a.lastAccessed == null) return 1;
-      if (b.lastAccessed == null) return -1;
-      return b.lastAccessed!.compareTo(a.lastAccessed!);
+      final aLast = a.lastAccessed;
+      final bLast = b.lastAccessed;
+      if (aLast == null && bLast == null) return 0;
+      if (aLast == null) return 1;
+      if (bLast == null) return -1;
+      return bLast.compareTo(aLast);
     });
     SoloLog.d('AccountMgr', 'Returning ${accounts.length} accounts sorted by recent');
     return accounts;
@@ -470,14 +472,16 @@ class AccountManager {
           'AUTH',
           'CHECKPOINT: _storage.createAccount returned, success=${result.success}');
 
-      if (result.success && result.account != null && result.sessionKey != null) {
-        _selectedAccountId = result.account!.id;
-        _selectedAccountInfo = result.account;
+      final account = result.account;
+      final sessionKey = result.sessionKey;
+      if (result.success && account != null && sessionKey != null) {
+        _selectedAccountId = account.id;
+        _selectedAccountInfo = account;
         _accountsVersion++;
-        SecureAccountStorage.secureWipe(result.sessionKey!);
+        SecureAccountStorage.secureWipe(sessionKey);
         // Persist hint to Rust vault for reliable retrieval on next login
         if (passwordHint != null && passwordHint.isNotEmpty) {
-          unawaited(_storage.updatePasswordHint(_selectedAccountId!, passwordHint));
+          unawaited(_storage.updatePasswordHint(account.id, passwordHint));
         }
         return (success: true, error: null);
       } else if (result.error != null) {

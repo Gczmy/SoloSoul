@@ -319,11 +319,12 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final profile = ref.read(profileNotifierProvider).value;
 
     // 防御：如果当前 state 为空且现有数据非空，拒绝覆盖（防止未加载完成时误写）
+    final unifiedObjects = profile?.unifiedObjects;
     if (state.objects.isEmpty &&
         state.customTypes.isEmpty &&
-        profile?.unifiedObjects != null &&
-        (profile!.unifiedObjects!.objects.isNotEmpty ||
-            profile.unifiedObjects!.customTypes.isNotEmpty)) {
+        unifiedObjects != null &&
+        (unifiedObjects.objects.isNotEmpty ||
+            unifiedObjects.customTypes.isNotEmpty)) {
       // 可能处于未加载完成的空状态，禁止保存空数据覆盖已有数据
       return false;
     }

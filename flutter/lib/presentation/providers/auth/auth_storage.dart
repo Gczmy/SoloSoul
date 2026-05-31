@@ -461,8 +461,9 @@ class AttemptTracker {
   }
 
   Duration get remainingLockout {
-    if (_lockoutUntil == null) return Duration.zero;
-    final remaining = _lockoutUntil!.difference(DateTime.now());
+    final until = _lockoutUntil;
+    if (until == null) return Duration.zero;
+    final remaining = until.difference(DateTime.now());
     return remaining.isNegative ? Duration.zero : remaining;
   }
 

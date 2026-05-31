@@ -255,8 +255,9 @@ class ProfileStorageService {
     try {
       // Data protection: prevent accidental loss of unifiedObjects
       final existing = _profileCache[accountId];
-      if (existing?.unifiedObjects != null && profile.unifiedObjects == null) {
-        profile = profile.copyWith(unifiedObjects: existing!.unifiedObjects);
+      final existingObjects = existing?.unifiedObjects;
+      if (existingObjects != null && profile.unifiedObjects == null) {
+        profile = profile.copyWith(unifiedObjects: existingObjects);
       }
 
       final json = await Isolate.run(() => jsonEncode(profile.toJson()));
