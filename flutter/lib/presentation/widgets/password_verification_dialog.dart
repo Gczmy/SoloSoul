@@ -9,6 +9,10 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 
 // ignore_for_file: use_build_context_synchronously
 
+// =============================================================================
+// Overlay mixin
+// =============================================================================
+
 /// Mixin for password dialog overlay management.
 /// Extracts the duplicate showHintOverlay logic shared by both dialog states.
 mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {

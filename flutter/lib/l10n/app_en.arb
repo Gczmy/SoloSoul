@@ -2166,5 +2166,7 @@
   "folderNotWritable": "Selected folder is not writable. Using default.",
   "downloadLocationUpdated": "Download location updated",
   "downloadLocationReset": "Download location reset to default",
-  "resetToDefault": "Reset to default"
+  "resetToDefault": "Reset to default",
+  "scanNoImportableItems": "No importable items found",
+  "scanNoImportableItemsHint": "Try scanning with a different depth or more folders."
 }

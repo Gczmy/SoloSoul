@@ -140,12 +140,12 @@ class _UnifiedObjectTrashCardState
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _typeColor(object.typeId).withValues(alpha: 0.1),
+              color: typeColorForId(object.typeId).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               UnifiedObjectService.getIconFromName(object.iconName),
-              color: _typeColor(object.typeId),
+              color: typeColorForId(object.typeId),
               size: 20,
             ),
           ),
@@ -318,10 +318,6 @@ class _UnifiedObjectTrashCardState
       'item' => l10n.typeItem,
       _ => l10n.typeUnknown,
     };
-  }
-
-  Color _typeColor(String? typeId) {
-    return typeColorForId(typeId);
   }
 
   void _showDetailDialog(UnifiedObject object) {

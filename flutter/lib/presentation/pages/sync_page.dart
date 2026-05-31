@@ -193,7 +193,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
       return;
     }
 
-    final pairingKey = _hexToBytes(pairingKeyHex);
+    final pairingKey = hexToBytes(pairingKeyHex);
     if (pairingKey == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context).syncInvalidPairingKey)),
@@ -231,17 +231,23 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     }
   }
 
-  List<int>? _hexToBytes(String hex) {
-    hex = hex.replaceAll(RegExp(r'\s+'), '');
-    if (hex.length % 2 != 0) return null;
-    try {
-      return List.generate(
-        hex.length ~/ 2,
-        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
-      );
-    } on FormatException {
-      return null;
-    }
+
+}
+
+// =============================================================================
+// Utilities
+// =============================================================================
+
+List<int>? hexToBytes(String hex) {
+  hex = hex.replaceAll(RegExp(r'\s+'), '');
+  if (hex.length % 2 != 0) return null;
+  try {
+    return List.generate(
+      hex.length ~/ 2,
+      (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
+    );
+  } on FormatException {
+    return null;
   }
 }
 
@@ -681,7 +687,7 @@ class _SyncDialogState extends State<_SyncDialog> {
         FilledButton(
           onPressed: () {
             final hex = _keyController.text.trim();
-            final bytes = _hexToBytes(hex);
+            final bytes = hexToBytes(hex);
             if (bytes == null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(AppLocalizations.of(context).syncInvalidPairingKey)),
@@ -697,16 +703,5 @@ class _SyncDialogState extends State<_SyncDialog> {
     );
   }
 
-  List<int>? _hexToBytes(String hex) {
-    hex = hex.replaceAll(RegExp(r'\s+'), '');
-    if (hex.length % 2 != 0) return null;
-    try {
-      return List.generate(
-        hex.length ~/ 2,
-        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
-      );
-    } on FormatException {
-      return null;
-    }
-  }
+
 }

@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:solosoul_flutter/core/services/native_vault_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
@@ -515,15 +515,17 @@ class RustVaultService {
     String accountId,
     String jsonData,
   ) async {
-    // 诊断：对比 FRB 和 C FFI 的 vault 状态
-    try {
-      await frb.frbEncryptBytes(data: Uint8List.fromList([0]));
-      SoloLog.d('RustVault', 'DIAG: FRB encrypt success (vault unlocked in FRB)');
-    } on Object catch (e) {
-      SoloLog.d('RustVault', 'DIAG: FRB encrypt failed: $e');
+    // 诊断：对比 FRB 和 C FFI 的 vault 状态（仅在 debug 模式）
+    if (kDebugMode) {
+      try {
+        await frb.frbEncryptBytes(data: Uint8List.fromList([0]));
+        SoloLog.d('RustVault', 'DIAG: FRB encrypt success (vault unlocked in FRB)');
+      } on Object catch (e) {
+        SoloLog.d('RustVault', 'DIAG: FRB encrypt failed: $e');
+      }
+      final cffiUnlocked = isVaultUnlocked();
+      SoloLog.d('RustVault', 'DIAG: C FFI isVaultUnlocked=$cffiUnlocked');
     }
-    final cffiUnlocked = isVaultUnlocked();
-    SoloLog.d('RustVault', 'DIAG: C FFI isVaultUnlocked=$cffiUnlocked');
 
     final jsonBytes = Uint8List.fromList(utf8.encode(jsonData));
     final encryptedData = await frb.frbEncryptBytes(data: jsonBytes);

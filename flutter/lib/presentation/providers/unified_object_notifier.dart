@@ -101,12 +101,18 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final now = DateTime.now().millisecondsSinceEpoch;
     var changed = false;
 
+    // Pre-build Set for O(1) parent existence checks
+    final activeIds = {
+      for (final o in data.objects)
+        if (!o.isDeleted) o.id,
+    };
+
     for (var i = 0; i < objects.length; i++) {
       final obj = objects[i];
       if (obj.parentId == null) continue;
       if (obj.typeId == 'page' || obj.typeId == 'collection') continue;
 
-      final parentExists = data.objects.any((o) => o.id == obj.parentId && !o.isDeleted);
+      final parentExists = activeIds.contains(obj.parentId);
       if (parentExists) continue;
 
       // Parent missing — try to find the default section for this item type
@@ -457,12 +463,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       if (removedFileIds.isNotEmpty) {
         final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
         if (accountId != null) {
-          for (final fileId in removedFileIds) {
-            await AttachmentStorageService().deleteAttachment(
-              accountId: accountId,
-              fileId: fileId,
-            );
-          }
+          await Future.wait(
+            removedFileIds.map(
+              (fileId) => AttachmentStorageService().deleteAttachment(
+                accountId: accountId,
+                fileId: fileId,
+              ),
+            ),
+          );
         }
       }
     }
@@ -649,15 +657,19 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     // Cleanup attachment files before removing from state
     if (accountId != null) {
+      final futures = <Future<void>>[];
       for (final removeId in idsToRemove) {
         final obj = _service.getObjectById(state.objects, removeId);
         if (obj != null && obj.attachments.isNotEmpty) {
-          await AttachmentStorageService().deleteAttachments(
-            accountId: accountId,
-            attachments: obj.attachments,
+          futures.add(
+            AttachmentStorageService().deleteAttachments(
+              accountId: accountId,
+              attachments: obj.attachments,
+            ),
           );
         }
       }
+      await Future.wait(futures);
     }
 
     var updatedObjects = state.objects
@@ -688,15 +700,19 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     // Cleanup attachment files before removing from state
     if (accountId != null) {
+      final futures = <Future<void>>[];
       for (final removeId in idsToRemove) {
         final obj = _service.getObjectById(state.objects, removeId);
         if (obj != null && obj.attachments.isNotEmpty) {
-          await AttachmentStorageService().deleteAttachments(
-            accountId: accountId,
-            attachments: obj.attachments,
+          futures.add(
+            AttachmentStorageService().deleteAttachments(
+              accountId: accountId,
+              attachments: obj.attachments,
+            ),
           );
         }
       }
+      await Future.wait(futures);
     }
 
     var updatedObjects = state.objects

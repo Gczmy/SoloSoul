@@ -680,12 +680,11 @@ class SemanticTypeRegistry {
 
   static List<SemanticFieldType> get allTypes => List.unmodifiable(_allTypes);
 
-  static SemanticFieldType? getType(String id) {
-    for (final type in _allTypes) {
-      if (type.id == id) return type;
-    }
-    return null;
-  }
+  static final Map<String, SemanticFieldType> _typeById = {
+    for (final type in _allTypes) type.id: type,
+  };
+
+  static SemanticFieldType? getType(String id) => _typeById[id];
 
   static List<SemanticFieldType> getTypesByCategory(String category) {
     return _allTypes.where((t) => t.category == category).toList();
@@ -747,7 +746,7 @@ class SemanticTypeRegistry {
     String sectionName,
     String languageCode,
   ) {
-    final results = <SemanticFieldType>[];
+    final results = <SemanticFieldType>{};
     final lowerLabel = label.toLowerCase();
     final lowerSection = sectionName.toLowerCase();
 
@@ -796,7 +795,7 @@ class SemanticTypeRegistry {
       if (lowerLabel.contains(entry.key)) {
         for (final typeId in entry.value) {
           final type = getType(typeId);
-          if (type != null && !results.contains(type)) {
+          if (type != null) {
             results.add(type);
           }
         }
@@ -834,15 +833,18 @@ class SemanticTypeRegistry {
       }
     }
 
+    final resultList = results.toList();
     if (targetCategory != null) {
-      results.sort((a, b) {
+      resultList.sort((a, b) {
         final aMatch = a.category == targetCategory ? -1 : 0;
         final bMatch = b.category == targetCategory ? -1 : 0;
         return aMatch - bMatch;
       });
     }
 
-    return results.isEmpty ? [getType('custom.untyped')!] : results.take(5).toList();
+    return resultList.isEmpty
+        ? [getType('custom.untyped')!]
+        : resultList.take(5).toList();
   }
 
   // ============================================================================

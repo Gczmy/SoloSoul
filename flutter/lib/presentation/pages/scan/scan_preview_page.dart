@@ -544,14 +544,14 @@ class _ScanPreviewEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No importable items found',
+            AppLocalizations.of(context).scanNoImportableItems,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try scanning with a different depth or more folders.',
+            AppLocalizations.of(context).scanNoImportableItemsHint,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

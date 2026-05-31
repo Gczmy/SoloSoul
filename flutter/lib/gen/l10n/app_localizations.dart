@@ -7559,6 +7559,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset to default'**
   String get resetToDefault;
+
+  /// No description provided for @scanNoImportableItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No importable items found'**
+  String get scanNoImportableItems;
+
+  /// No description provided for @scanNoImportableItemsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try scanning with a different depth or more folders.'**
+  String get scanNoImportableItemsHint;
 }
 
 class _AppLocalizationsDelegate

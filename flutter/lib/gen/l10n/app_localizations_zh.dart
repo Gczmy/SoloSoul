@@ -4008,4 +4008,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get resetToDefault => '恢复默认';
+
+  @override
+  String get scanNoImportableItems => '未找到可导入的项目';
+
+  @override
+  String get scanNoImportableItemsHint => '尝试使用不同的扫描深度或扫描更多文件夹。';
 }

@@ -4137,4 +4137,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetToDefault => 'Reset to default';
+
+  @override
+  String get scanNoImportableItems => 'No importable items found';
+
+  @override
+  String get scanNoImportableItemsHint =>
+      'Try scanning with a different depth or more folders.';
 }

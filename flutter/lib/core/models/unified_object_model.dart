@@ -193,6 +193,7 @@ class ObjectTypeDefinition {
     List<PropertyDefinition>? properties,
     int? schemaVersion,
     List<String>? deprecatedProperties,
+    String? titlePropertyKey,
   }) {
     return ObjectTypeDefinition(
       id: id ?? this.id,
@@ -203,6 +204,7 @@ class ObjectTypeDefinition {
       properties: properties ?? this.properties,
       schemaVersion: schemaVersion ?? this.schemaVersion,
       deprecatedProperties: deprecatedProperties ?? this.deprecatedProperties,
+      titlePropertyKey: titlePropertyKey ?? this.titlePropertyKey,
     );
   }
 

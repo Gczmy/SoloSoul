@@ -189,7 +189,7 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
     // 搜索过滤
     final locale = Localizations.localeOf(context).toString();
     final filtered = pluginIds.where((id) {
-      final manifest = _getManifest(data, id);
+      final manifest = _getPluginManifest(data, id);
       final entry = data.registry.plugins[id];
       final displayName = resolvePluginI18n(
         entry?.i18n, 'name', locale, manifest?.name ?? id,
@@ -237,31 +237,36 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
     );
   }
 
-  frb_manifest.PluginManifest? _getManifest(PluginDashboardData data, String pluginId) {
-    for (final m in data.installed) {
-      if (m.pluginId == pluginId) return m;
-    }
-    final entry = data.registry.plugins[pluginId];
-    if (entry != null) {
-      return frb_manifest.PluginManifest(
-        pluginId: pluginId,
-        name: entry.name,
-        version: entry.latestVersion,
-        pluginApiVersion: '',
-        minAppVersion: '',
-        maxAppVersion: '',
-        description: entry.description ?? '',
-        publisher: entry.publisher,
-        requiredFields: [],
-        optionalFields: [],
-        dataTtlSeconds: BigInt.from(300),
-        requireUserConfirmation: true,
-        consentValidityHours: BigInt.from(24),
-        i18N: entry.i18n ?? {},
-      );
-    }
-    return null;
+}
+
+/// Resolves a plugin manifest from installed list or registry entry.
+frb_manifest.PluginManifest? _getPluginManifest(
+  PluginDashboardData data,
+  String pluginId,
+) {
+  for (final m in data.installed) {
+    if (m.pluginId == pluginId) return m;
   }
+  final entry = data.registry.plugins[pluginId];
+  if (entry != null) {
+    return frb_manifest.PluginManifest(
+      pluginId: pluginId,
+      name: entry.name,
+      version: entry.latestVersion,
+      pluginApiVersion: '',
+      minAppVersion: '',
+      maxAppVersion: '',
+      description: entry.description ?? '',
+      publisher: entry.publisher,
+      requiredFields: [],
+      optionalFields: [],
+      dataTtlSeconds: BigInt.from(300),
+      requireUserConfirmation: true,
+      consentValidityHours: BigInt.from(24),
+      i18N: entry.i18n ?? {},
+    );
+  }
+  return null;
 }
 
 // Phase 2: 结构化结果卡片渲染系统
@@ -1374,8 +1379,6 @@ class _ResultCard extends StatelessWidget {
         return Icons.format_list_bulleted;
       case 'table':
         return Icons.table_chart_outlined;
-      case 'map':
-        return Icons.map_outlined;
       case 'markdown':
         return Icons.text_format;
       case 'calendar_events':
@@ -1395,8 +1398,6 @@ class _ResultCard extends StatelessWidget {
         return '键值对';
       case 'table':
         return '表格';
-      case 'map':
-        return '地图';
       case 'markdown':
         return '富文本';
       case 'calendar_events':
@@ -1422,7 +1423,7 @@ class _PluginCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final manifest = _getManifest();
+    final manifest = _getPluginManifest(data, pluginId);
     final registryEntry = data.registry.plugins[pluginId];
     final locale = Localizations.localeOf(context).toString();
     final name = resolvePluginI18n(
@@ -1770,10 +1771,9 @@ class _PluginCard extends ConsumerWidget {
     PluginRegistryEntry entry,
     List<Map<String, dynamic>> fieldAccess,
   ) async {
-    final locale = Localizations.localeOf(context).toString();
     final languageCode = Localizations.localeOf(context).languageCode;
     final pluginName = resolvePluginI18n(
-      entry.i18n, 'name', locale, entry.name,
+      entry.i18n, 'name', languageCode, entry.name,
     );
 
     // 构建 FieldAccessStatus 列表（基于 manifest 声明，不扫描实际数据）
@@ -2270,7 +2270,7 @@ class _PluginCard extends ConsumerWidget {
         final registryEntry = data.registry.plugins[pluginId];
         final locale = Localizations.localeOf(context).toString();
         final pluginName = resolvePluginI18n(
-          registryEntry?.i18n, 'name', locale, _getManifest()?.name ?? pluginId,
+          registryEntry?.i18n, 'name', locale, _getPluginManifest(data, pluginId)?.name ?? pluginId,
         );
         await _showExecutionResult(
           context: context,
@@ -2547,31 +2547,6 @@ class _PluginCard extends ConsumerWidget {
     return {'id': selected};
   }
 
-  frb_manifest.PluginManifest? _getManifest() {
-    for (final m in data.installed) {
-      if (m.pluginId == pluginId) return m;
-    }
-    final entry = data.registry.plugins[pluginId];
-    if (entry != null) {
-      return frb_manifest.PluginManifest(
-        pluginId: pluginId,
-        name: entry.name,
-        version: entry.latestVersion,
-        pluginApiVersion: '',
-        minAppVersion: '',
-        maxAppVersion: '',
-        description: entry.description ?? '',
-        publisher: entry.publisher,
-        requiredFields: [],
-        optionalFields: [],
-        dataTtlSeconds: BigInt.from(300),
-        requireUserConfirmation: true,
-        consentValidityHours: BigInt.from(24),
-        i18N: entry.i18n ?? {},
-      );
-    }
-    return null;
-  }
 }
 
 // Dart 3 的 List.push 扩展

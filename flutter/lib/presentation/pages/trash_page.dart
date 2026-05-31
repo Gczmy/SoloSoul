@@ -17,7 +17,7 @@ import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/presentation/models/operation_log_models.dart'
-    show LogSection, LogAction;
+    show LogAction;
 import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart'
     show OperationLogService;
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
@@ -198,7 +198,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
 
     // Log operations first (before objects are removed)
     for (final obj in deletedObjects) {
-      final logSection = _logSectionForTypeId(obj.typeId ?? '');
+      final logSection = logSectionForTypeId(obj.typeId ?? '');
       if (logSection != null) {
         final properties = <String, String>{};
         final propertyLevels = <String, String>{};
@@ -270,7 +270,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     );
     if (confirmed == true) {
       await ref.read(unifiedObjectProvider.notifier).restoreObject(object.id);
-      final logSection = _logSectionForTypeId(object.typeId ?? '');
+      final logSection = logSectionForTypeId(object.typeId ?? '');
       if (logSection != null) {
         final entry = OperationLogger.logCustomSection(
           section: logSection.value,
@@ -338,7 +338,7 @@ class _TrashPageState extends ConsumerState<TrashPage> {
       await ref
           .read(unifiedObjectProvider.notifier)
           .permanentlyDeleteObject(object.id, accountId: accountId);
-      final logSection = _logSectionForTypeId(object.typeId ?? '');
+      final logSection = logSectionForTypeId(object.typeId ?? '');
       if (logSection != null) {
         final properties = <String, String>{
           for (final entry in object.properties.entries)
@@ -370,8 +370,6 @@ class _TrashPageState extends ConsumerState<TrashPage> {
     }
   }
 
-  /// Map typeId to LogSection for operation logging.
-  LogSection? _logSectionForTypeId(String typeId) => logSectionForTypeId(typeId);
 }
 
 class _TrashEmptyState extends StatelessWidget {
