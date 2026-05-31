@@ -41,7 +41,7 @@
 | P021 | P1 | 代码质量 | `core/services/audit_log_service.dart:61` | `_logFileName` 字段声明但未使用 | `[x]` 已修复 |
 | P022 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:19` | `PluginArtifacts` 显示导入但未使用 | `[x]` 已修复 |
 | P023 | P1 | 逻辑错误 | `presentation/pages/plugin_dashboard_page.dart:468` | 不可达的 `switch case`，被前面的 case 覆盖 | `[x]` 已修复 |
-| P024 | P1 | 内存泄漏 | `presentation/providers/llm/llm_model_provider.dart:29` | `StreamSubscription` 可能在 dispose 时未正确取消 | `[ ]` 待修复 |
+| P024 | P1 | 内存泄漏 | `presentation/providers/llm/llm_chat_session_provider.dart:71` | `StreamSubscription` 和 `Timer` 在 Provider dispose 时未取消 | `[x]` 已修复 |
 | P025 | P2 | 代码质量 | `core/utils/solo_log.dart:40` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
 | P026 | P2 | 代码质量 | `core/services/debug_logger.dart:118` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
 | P027 | P2 | 代码质量 | `core/services/debug_logger.dart:216` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
@@ -53,7 +53,7 @@
 
 ## 修复进度
 
-- 已完成：16 / 30
+- 已完成：17 / 30
 - 当前处理：P008（分批处理）
 
 ### P001 修复说明
@@ -119,6 +119,10 @@
 ### P025–P027 备注
 - **文件**：`core/utils/solo_log.dart`、`core/services/debug_logger.dart`
 - **说明**：所有 `print()` 均有 `// ignore: avoid_print` 注释，且被 `DebugLogger.isActive` 开关保护，仅在用户主动开启调试模式时输出，属于设计如此
+
+### P024 修复说明
+- **文件**：`presentation/providers/llm/llm_chat_session_provider.dart`
+- **改动**：在 `build()` 中添加 `ref.onDispose(() { _saveTimer?.cancel(); _streamSub?.cancel(); });`，确保 Provider 销毁时清理订阅和计时器
 
 ### P029 修复说明
 - **文件**：`presentation/pages/plugin_dashboard_page.dart:610`

@@ -101,6 +101,11 @@ class LlmChatSessionNotifier extends Notifier<List<LlmChatMessage>> {
       _loadHistoryAsync();
     }
 
+    ref.onDispose(() {
+      _saveTimer?.cancel();
+      _streamSub?.cancel();
+    });
+
     return [];
   }
 
