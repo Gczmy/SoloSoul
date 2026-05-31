@@ -3996,4 +3996,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get downloadLocationDefault => '默认 (Downloads)';
+
+  @override
+  String get folderNotWritable => '所选文件夹不可写，将使用默认路径。';
+
+  @override
+  String get downloadLocationUpdated => '下载位置已更新';
+
+  @override
+  String get downloadLocationReset => '下载位置已恢复默认';
+
+  @override
+  String get resetToDefault => '恢复默认';
 }

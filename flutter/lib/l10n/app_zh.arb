@@ -1682,5 +1682,9 @@
   "downloadLocation": "下载位置",
   "downloadLocationDesc": "附件将保存到此文件夹",
   "chooseFolder": "选择文件夹",
-  "downloadLocationDefault": "默认 (Downloads)"
+  "downloadLocationDefault": "默认 (Downloads)",
+  "folderNotWritable": "所选文件夹不可写，将使用默认路径。",
+  "downloadLocationUpdated": "下载位置已更新",
+  "downloadLocationReset": "下载位置已恢复默认",
+  "resetToDefault": "恢复默认"
 }

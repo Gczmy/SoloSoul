@@ -546,15 +546,16 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     );
 
     // Delete encrypted file first
-    if (accountId != null) {
-      try {
-        await AttachmentStorageService().deleteAttachment(
-          accountId: accountId,
-          fileId: attachment.fileId,
-        );
-      } on Exception catch (_) {
-        // Allow metadata removal even if file deletion fails (orphan file)
-      }
+    if (accountId == null) {
+      throw Exception('accountId is required for permanent attachment deletion');
+    }
+    try {
+      await AttachmentStorageService().deleteAttachment(
+        accountId: accountId,
+        fileId: attachment.fileId,
+      );
+    } on Exception catch (_) {
+      // Allow metadata removal even if file deletion fails (orphan file)
     }
 
     final updatedAttachments =

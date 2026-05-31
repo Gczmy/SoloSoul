@@ -78,11 +78,15 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
   }
 
   Future<void> _handleDownload(Attachment attachment) async {
+    // Dedup: ignore if already downloading this attachment
+    if (_downloadingMap[attachment.id] == true) return;
+
     final accountId = widget.accountId;
     if (accountId == null) {
+      final l10n = AppLocalizations.of(context);
       showOverlaySnackBar(
         context,
-        content: 'No account selected',
+        content: l10n.loginNoAccountsYet,
         type: SnackBarType.error,
       );
       return;
@@ -394,9 +398,9 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
   String _formatDeletedAt(int millis) {
     final dt = DateTime.fromMillisecondsSinceEpoch(millis);
     final days = DateTime.now().difference(dt).inDays;
-    if (days <= 0) return 'Today';
-    if (days == 1) return '1 day ago';
-    return '$days days ago';
+    final l10n = AppLocalizations.of(context);
+    if (days <= 0) return l10n.loginToday;
+    return l10n.loginDaysAgo(days);
   }
 
   Widget _buildDownloadButton(Attachment attachment) {

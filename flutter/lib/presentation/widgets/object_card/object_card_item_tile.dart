@@ -1,10 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
-import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
+import 'package:solosoul_flutter/core/services/attachment_upload_service.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
@@ -92,7 +91,7 @@ class ObjectCardItemTile extends ConsumerWidget {
         if (context.mounted) {
           showOverlaySnackBar(
             context,
-            content: 'No history available',
+            content: AppLocalizations.of(context).entryNoHistory,
             type: SnackBarType.info,
           );
         }
@@ -288,85 +287,18 @@ class _AttachmentButton extends ConsumerWidget {
   }
 
   Future<void> _addAttachment(BuildContext context, WidgetRef ref) async {
-    // Verify sensitive access if needed
-    if (_hasSensitiveProperties) {
-      final isGranted = ref.read(isSensitiveAccessGrantedProvider);
-      if (!isGranted) {
-        final authNotifier = ref.read(authNotifierProvider.notifier);
-        final selectedAccount = authNotifier.selectedAccount;
-        final password = await showPasswordVerificationDialog(
-          context: context,
-          ref: ref,
-          passwordHint: selectedAccount?.passwordHint,
-          onVerify: authNotifier.verifyPasswordForSensitiveData,
-        );
-        if (password == null) return;
-        ref.read(sensitivePageAccessProvider.notifier).markVerified();
-      }
-    }
-
-    final result = await FilePicker.pickFiles(
-      type: FileType.any,
-      allowMultiple: false,
-      withData: true,
+    final attachment = await AttachmentUploadService.pickAndUpload(
+      context: context,
+      ref: ref,
+      requiresSensitiveCheck: _hasSensitiveProperties,
     );
-    if (result == null || result.files.isEmpty) return;
+    if (attachment == null) return;
 
-    final file = result.files.first;
-    final bytes = file.bytes;
-    if (bytes == null || bytes.isEmpty) {
-      if (context.mounted) {
-        showOverlaySnackBar(
-          context,
-          content: AppLocalizations.of(context).attachmentReadFailed,
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    final fileName = file.name;
-    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
-    if (accountId == null) {
-      if (context.mounted) {
-        showOverlaySnackBar(
-          context,
-          content: 'No account selected',
-          type: SnackBarType.error,
-        );
-      }
-      return;
-    }
-
-    try {
-      final attachment = await AttachmentStorageService().saveAttachment(
-        accountId: accountId,
-        fileName: fileName,
-        bytes: bytes,
-      );
-
-      final updatedAttachments = [...item.attachments, attachment];
-      await ref.read(unifiedObjectProvider.notifier).updateObject(
-        item.id,
-        attachments: updatedAttachments,
-      );
-
-      if (context.mounted) {
-        showOverlaySnackBar(
-          context,
-          content: AppLocalizations.of(context).attachmentAdded,
-          type: SnackBarType.success,
-        );
-      }
-    } on Exception catch (e) {
-      if (context.mounted) {
-        showOverlaySnackBar(
-          context,
-          content: '${AppLocalizations.of(context).attachmentAddFailed}: $e',
-          type: SnackBarType.error,
-        );
-      }
-    }
+    final updatedAttachments = [...item.attachments, attachment];
+    await ref.read(unifiedObjectProvider.notifier).updateObject(
+      item.id,
+      attachments: updatedAttachments,
+    );
   }
 
   void _showAttachments(BuildContext context, WidgetRef ref) {

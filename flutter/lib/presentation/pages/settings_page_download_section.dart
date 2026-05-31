@@ -46,7 +46,7 @@ class _DownloadSettingsSectionState
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: 'Selected folder is not writable. Using default.',
+          content: l10n.folderNotWritable,
           type: SnackBarType.warning,
         );
       }
@@ -58,20 +58,21 @@ class _DownloadSettingsSectionState
       setState(() => _displayPath = selected);
       showOverlaySnackBar(
         context,
-        content: 'Download location updated',
+        content: l10n.downloadLocationUpdated,
         type: SnackBarType.success,
       );
     }
   }
 
   Future<void> _resetToDefault() async {
+    final l10n = AppLocalizations.of(context);
     await AttachmentDownloadService().clearDownloadDirectory();
     final defaultDir = await AttachmentDownloadService().getDefaultDownloadDirectory();
     if (mounted) {
       setState(() => _displayPath = defaultDir.path);
       showOverlaySnackBar(
         context,
-        content: 'Download location reset to default',
+        content: l10n.downloadLocationReset,
         type: SnackBarType.success,
       );
     }
@@ -114,7 +115,7 @@ class _DownloadSettingsSectionState
               if (_displayPath != null)
                 IconButton(
                   icon: const Icon(Icons.restore, size: 18),
-                  tooltip: 'Reset to default',
+                  tooltip: l10n.resetToDefault,
                   onPressed: _resetToDefault,
                   visualDensity: VisualDensity.compact,
                 ),

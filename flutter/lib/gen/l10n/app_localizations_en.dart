@@ -4124,4 +4124,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get downloadLocationDefault => 'Default (Downloads)';
+
+  @override
+  String get folderNotWritable =>
+      'Selected folder is not writable. Using default.';
+
+  @override
+  String get downloadLocationUpdated => 'Download location updated';
+
+  @override
+  String get downloadLocationReset => 'Download location reset to default';
+
+  @override
+  String get resetToDefault => 'Reset to default';
 }

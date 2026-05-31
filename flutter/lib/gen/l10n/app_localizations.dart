@@ -7535,6 +7535,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default (Downloads)'**
   String get downloadLocationDefault;
+
+  /// No description provided for @folderNotWritable.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected folder is not writable. Using default.'**
+  String get folderNotWritable;
+
+  /// No description provided for @downloadLocationUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Download location updated'**
+  String get downloadLocationUpdated;
+
+  /// No description provided for @downloadLocationReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Download location reset to default'**
+  String get downloadLocationReset;
+
+  /// No description provided for @resetToDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get resetToDefault;
 }
 
 class _AppLocalizationsDelegate

@@ -98,16 +98,31 @@ class AttachmentDownloadService {
 
   /// Downloads a decrypted attachment to the specified directory.
   ///
+  /// If [downloadDir] is not writable (e.g. macOS sandbox revoked access
+  /// after app restart), falls back to the system Downloads directory.
+  ///
   /// Returns the final saved file path on success, null on failure.
   Future<String?> downloadAttachment({
     required String accountId,
     required Attachment attachment,
     required Directory downloadDir,
   }) async {
+    Directory effectiveDir = downloadDir;
+
+    // Verify directory is writable (handles macOS sandbox revocation)
+    final isWritable = await _verifyWritable(downloadDir);
+    if (!isWritable) {
+      SoloLog.w(
+        'AttachmentDownload',
+        'Directory not writable: ${downloadDir.path}. Falling back to default.',
+      );
+      effectiveDir = await getDefaultDownloadDirectory();
+    }
+
     try {
       // Ensure download directory exists
-      if (!await downloadDir.exists()) {
-        await downloadDir.create(recursive: true);
+      if (!await effectiveDir.exists()) {
+        await effectiveDir.create(recursive: true);
       }
 
       // Decrypt attachment
@@ -121,7 +136,7 @@ class AttachmentDownloadService {
       }
 
       // Resolve unique filename
-      final targetPath = resolveUniquePath(downloadDir.path, attachment.fileName);
+      final targetPath = resolveUniquePath(effectiveDir.path, attachment.fileName);
 
       // Write to disk
       final file = File(targetPath);
@@ -135,6 +150,19 @@ class AttachmentDownloadService {
     } on Exception catch (e, stackTrace) {
       SoloLog.e('AttachmentDownload', 'Download failed', e, stackTrace);
       return null;
+    }
+  }
+
+  /// Verifies that a directory is writable by creating and deleting a test file.
+  Future<bool> _verifyWritable(Directory dir) async {
+    if (!await dir.exists()) return false;
+    try {
+      final testFile = File(p.join(dir.path, '.solosoul_write_test'));
+      await testFile.writeAsString('test', flush: true);
+      await testFile.delete();
+      return true;
+    } on Exception {
+      return false;
     }
   }
 }
