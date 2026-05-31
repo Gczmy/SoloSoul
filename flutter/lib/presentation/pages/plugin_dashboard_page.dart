@@ -2106,7 +2106,7 @@ class _PluginCard extends ConsumerWidget {
                   approved: false,
                 );
               }
-            } catch (e) {
+            } on Exception catch (_) {
               await frb.frbPluginConsentResponse(
                 requestId: reqId,
                 approved: false,

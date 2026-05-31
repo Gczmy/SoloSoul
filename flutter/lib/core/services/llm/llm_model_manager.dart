@@ -120,7 +120,7 @@ class LlmModelManager {
       _errorMessage = null;
       await _transitionTo(LlmModelState.loaded);
       _recordModelLoad('${provider.name}/$model', model, provider.name);
-    } catch (e) {
+    } on Exception catch (e) {
       _service = null;
       _errorMessage = e.toString();
       await _transitionTo(LlmModelState.error);
@@ -165,7 +165,7 @@ class LlmModelManager {
       _errorMessage = null;
       await _transitionTo(LlmModelState.loaded);
       _recordModelLoad('ollama/$modelName', modelName, 'ollama');
-    } catch (e) {
+    } on Exception catch (e) {
       _service = null;
       _errorMessage = e.toString();
       await _transitionTo(LlmModelState.error);

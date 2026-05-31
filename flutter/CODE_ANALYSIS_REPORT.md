@@ -27,9 +27,9 @@
 | P007 | P0 | 安全 | `core/services/scan/windows_search_service.dart:105` | `Process.run('powershell', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
 | P008 | P0 | 崩溃风险 | 全库 166 处 | `!.` / `!)` 强制解包（空安全违规），可能导致运行时崩溃 | `[~]` 分批修复中 |
 | P009 | P1 | 代码质量 | `core/services/audit_log_service.dart:259` | `catch` 未指定异常类型，可能吞掉所有错误包括 `Error` | `[ ]` 待修复 |
-| P010 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:2108` | `catch` 未指定异常类型，可能吞掉所有错误 | `[ ]` 待修复 |
-| P011 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:123` | `catch` 未指定异常类型，可能吞掉所有错误 | `[ ]` 待修复 |
-| P012 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:168` | `catch` 未指定异常类型，可能吞掉所有错误 | `[ ]` 待修复 |
+| P010 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:2108` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
+| P011 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:123` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
+| P012 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:168` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
 | P013 | P1 | 可维护性 | `presentation/pages/plugin_dashboard_page.dart:1975` | `_onRun()` 函数长达 307 行，严重超出 50 行建议 | `[ ]` 待修复 |
 | P014 | P1 | 可维护性 | `presentation/widgets/app_sidebar.dart:228` | `build()` 方法长达 237 行 | `[ ]` 待修复 |
 | P015 | P1 | 可维护性 | `presentation/pages/plugin_dashboard_page.dart:1046` | `build()` 方法长达 217 行 | `[ ]` 待修复 |
