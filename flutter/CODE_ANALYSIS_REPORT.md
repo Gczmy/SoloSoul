@@ -20,7 +20,7 @@
 |----|--------|------|----------|------|------|
 | P001 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:1990` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
 | P002 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2125` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
-| P003 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2183` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[ ]` 待修复 |
+| P003 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2183` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
 | P004 | P0 | 安全 | `core/services/scan/content_parser_service.dart:109` | `Process.run('pdftotext', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
 | P005 | P0 | 安全 | `core/services/scan/content_parser_service.dart:120` | `Process.run('strings', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
 | P006 | P0 | 安全 | `core/services/scan/windows_search_service.dart:44` | `Process.run('es', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
@@ -53,8 +53,8 @@
 
 ## 修复进度
 
-- 已完成：2 / 30
-- 当前处理：P003
+- 已完成：3 / 30
+- 当前处理：P004
 
 ### P001 修复说明
 - **文件**：`presentation/pages/plugin_dashboard_page.dart:1990`
@@ -65,6 +65,12 @@
 - **文件**：`presentation/pages/plugin_dashboard_page.dart:2126`
 - **改动**：在 `Localizations.localeOf(context)` 前添加 `if (!context.mounted) break;` 检查（在 `await for` 循环的 switch case 内，`break` 会退出 switch 继续下一次迭代）
 - **验证**：`dart analyze` 确认该位置 lint 已消除
+
+### P003 修复说明
+- **文件**：`presentation/pages/plugin_dashboard_page.dart:2185`
+- **改动**：在 `await showDialog<bool>(context: context, ...)` 前添加 `if (!context.mounted) break;` 检查
+- **验证**：`dart analyze` 确认该位置 lint 已消除
+- **备注**：plugin_dashboard_page.dart 中全部 3 处 `use_build_context_synchronously` 已修复完毕
 
 ---
 

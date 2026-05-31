@@ -2181,6 +2181,7 @@ class _PluginCard extends ConsumerWidget {
             if (level == 'batch_end') {
               batchPreConsentPhase = false;
               if (batchRequests.isNotEmpty) {
+                if (!context.mounted) break;
                 final approved = await showDialog<bool>(
                   context: context,
                   barrierDismissible: false,
