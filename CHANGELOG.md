@@ -1,3 +1,21 @@
+## [1.6.6] - 2026-05-26
+
+### Fixed
+
+- **Identity Section Title Fields** — Fixed duplicate title inputs and missing fullName when adding items to identity sections
+- **Preset Section Schemas** — All preset sections now include a Title field for consistent item naming
+- **Title Sensitivity Tag** — Title input fields now display the sensitivity level (Public) for unified UI
+- **macOS Keyboard Assertion** — Suppressed harmless HardwareKeyboard assertion errors
+- **Address Formatter Logs** — Removed technical prefix from user-facing error messages
+
+### Added
+
+- **Sidebar Plugin Entry** — Added Plugins shortcut to the sidebar for quick access to plugin management
+
+### Refactored
+
+- **Skill & Language Schemas** — Removed redundant 'name' property; Title now serves as the display name
+
 ## [1.6.5] - 2026-05-25
 
 ### Added
