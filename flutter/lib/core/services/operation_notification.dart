@@ -195,7 +195,7 @@ class OperationNotification {
   /// Dismiss the current notification
   static void dismiss() {
     if (_currentEntry != null && _isInserted) {
-      _currentEntry!.remove();
+      _currentEntry?.remove();
     }
     _currentEntry = null;
     _isInserted = false;

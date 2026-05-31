@@ -218,8 +218,8 @@ class BusinessCardExtractor implements FieldExtractor {
     for (final block in blocks) {
       final match = _phonePattern.firstMatch(block.text);
       if (match != null) {
-        final phone = match.group(0)!.trim();
-        if (phone.length >= 7) {
+        final phone = match.group(0)?.trim();
+        if (phone != null && phone.length >= 7) {
           fields['phone'] = ExtractedField(value: phone, bbox: block.bbox);
           break;
         }
@@ -284,11 +284,15 @@ class InvoiceExtractor implements FieldExtractor {
     // Invoice Number
     final invMatch = _invoiceNoPattern.firstMatch(rawText);
     if (invMatch != null) {
-      final block = _findBlockContaining(blocks, invMatch.group(0)!);
-      fields['invoice_number'] = ExtractedField(
-        value: invMatch.group(1)!.trim(),
-        bbox: block?.bbox ?? const BoundingBox(x: 0, y: 0, width: 0, height: 0),
-      );
+      final group0 = invMatch.group(0);
+      final group1 = invMatch.group(1);
+      if (group0 != null && group1 != null) {
+        final block = _findBlockContaining(blocks, group0);
+        fields['invoice_number'] = ExtractedField(
+          value: group1.trim(),
+          bbox: block?.bbox ?? const BoundingBox(x: 0, y: 0, width: 0, height: 0),
+        );
+      }
     }
 
     // Date

@@ -25,7 +25,7 @@
 | P005 | P0 | 安全 | `core/services/scan/content_parser_service.dart:120` | `Process.run('strings', ...)` 执行外部命令，存在命令注入风险 | `[x]` 已修复 |
 | P006 | P0 | 安全 | `core/services/scan/windows_search_service.dart:44` | `Process.run('es', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
 | P007 | P0 | 安全 | `core/services/scan/windows_search_service.dart:105` | `Process.run('powershell', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
-| P008 | P0 | 崩溃风险 | 全库 166 处 | `!.` / `!)` 强制解包（空安全违规），可能导致运行时崩溃 | `[ ]` 待修复 |
+| P008 | P0 | 崩溃风险 | 全库 166 处 | `!.` / `!)` 强制解包（空安全违规），可能导致运行时崩溃 | `[~]` 分批修复中 |
 | P009 | P1 | 代码质量 | `core/services/audit_log_service.dart:259` | `catch` 未指定异常类型，可能吞掉所有错误包括 `Error` | `[ ]` 待修复 |
 | P010 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:2108` | `catch` 未指定异常类型，可能吞掉所有错误 | `[ ]` 待修复 |
 | P011 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:123` | `catch` 未指定异常类型，可能吞掉所有错误 | `[ ]` 待修复 |
@@ -54,7 +54,7 @@
 ## 修复进度
 
 - 已完成：7 / 30
-- 当前处理：P008
+- 当前处理：P008（分批处理）
 
 ### P001 修复说明
 - **文件**：`presentation/pages/plugin_dashboard_page.dart:1990`
@@ -80,6 +80,17 @@
 ### P006–P007 备注
 - **文件**：`core/services/scan/windows_search_service.dart`
 - **说明**：已有 `_isSafePath()` 验证（第 34、91 行）和 PowerShell 双引号转义（第 100 行），属于设计时已有防护，标记为误报
+
+### P008 修复说明（分批进行）
+- **范围**：全库 166 处 `!.` / `!)` 强制解包
+- **本轮修复**：约 11 处最高风险的强制解包
+  - `plugin_models.dart:235-237` — null 检查后多余的 `!`（3处）
+  - `operation_notification.dart:198` — 使用 `?.remove()` 替代 `!.remove()`（1处）
+  - `fallback_secure_storage.dart` — 使用局部变量替代重复 `!`（3处）
+  - `plugin_registry_service.dart:169,174` — null 检查后多余的 `!`（2处）
+  - `profile_data.dart:35` — 使用局部变量替代 `!`（1处）
+  - `document_field_extractor.dart` — `match.group()` 使用 `?.` 和 null 检查（1处）
+- **剩余**：约 155 处，将在后续轮次继续处理
 
 ---
 

@@ -232,9 +232,9 @@ class InstalledPluginInfo {
       'version': version,
       'status': status,
     };
-    if (installedAt != null) map['installed_at'] = installedAt!.toIso8601String();
-    if (uninstalledAt != null) map['uninstalled_at'] = uninstalledAt!.toIso8601String();
-    if (lastUsedAt != null) map['last_used_at'] = lastUsedAt!.toIso8601String();
+    if (installedAt != null) map['installed_at'] = installedAt.toIso8601String();
+    if (uninstalledAt != null) map['uninstalled_at'] = uninstalledAt.toIso8601String();
+    if (lastUsedAt != null) map['last_used_at'] = lastUsedAt.toIso8601String();
     return map;
   }
 }

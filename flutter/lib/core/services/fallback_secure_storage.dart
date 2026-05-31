@@ -33,13 +33,14 @@ class FallbackSecureStorage {
           );
 
   Future<Directory> _getFallbackDir() async {
-    if (_fallbackDir != null) return _fallbackDir!;
+    if (_fallbackDir != null) return _fallbackDir;
     final supportDir = await getApplicationSupportDirectory();
-    _fallbackDir = Directory('${supportDir.path}/$_fallbackDirName');
-    if (!await _fallbackDir!.exists()) {
-      await _fallbackDir!.create(recursive: true);
+    final dir = Directory('${supportDir.path}/$_fallbackDirName');
+    _fallbackDir = dir;
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
     }
-    return _fallbackDir!;
+    return dir;
   }
 
   String _fallbackFilePath(Directory dir, String key) {

@@ -31,8 +31,9 @@ class ProfileData {
   /// Used for orphan history cleanup and integrity validation.
   Set<String> collectAllItemIds() {
     final ids = <String>{};
-    if (unifiedObjects != null) {
-      for (final obj in unifiedObjects!.objects) {
+    final objects = unifiedObjects;
+    if (objects != null) {
+      for (final obj in objects.objects) {
         ids.add(obj.id);
       }
     }
