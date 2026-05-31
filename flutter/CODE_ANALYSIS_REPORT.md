@@ -39,9 +39,9 @@
 | P026 | P2 | 缺失参数 | `lib/core/models/unified_object_model.dart:187` | `ObjectTypeDefinition.copyWith` 缺少 `titlePropertyKey` | `[x]` 已修复 |
 | P027 | P2 | 硬编码 | `lib/presentation/pages/scan/scan_preview_page.dart:546` | `_ScanPreviewEmptyState` 标题/副标题硬编码英文 | `[x]` 已修复 |
 | P028 | P2 | 性能 | `lib/presentation/widgets/object_card.dart:130-160` | `_template` getter 每次访问都创建新 Map | `[ ]` 待修复 |
-| P029 | P2 | 性能 | `lib/core/services/llm/llm_config_service.dart:261-362` | 5 个 getter 重复 "获取 active profile" 逻辑 | `[ ]` 待修复 |
-| P030 | P2 | 可简化 | `lib/core/services/unified_object_service.dart:884-998` | `getIconFromName` 114 行巨大 switch，可改为 Map 常量表 | `[ ]` 待修复 |
-| P031 | P2 | 可简化 | `lib/core/models/semantic_type_registry.dart:388-471` | `_localizeKey` 83 行 switch，可改为 Map 常量表 | `[ ]` 待修复 |
+| P029 | P2 | 性能 | `lib/core/services/llm/llm_config_service.dart:261-362` | 5 个 getter 重复 "获取 active profile" 逻辑 | `[x]` 已修复 |
+| P030 | P2 | 可简化 | `lib/core/services/unified_object_service.dart:884-998` | `getIconFromName` 114 行巨大 switch，可改为 Map 常量表 | `[x]` 已修复 |
+| P031 | P2 | 可简化 | `lib/core/models/semantic_type_registry.dart:388-471` | `_localizeKey` 83 行 switch，可改为 Map 常量表 | `[x]` 误报 — 函数不存在于当前代码 |
 
 ---
 

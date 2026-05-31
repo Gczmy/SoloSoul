@@ -10,6 +10,61 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 // ignore_for_file: use_build_context_synchronously
 
 // =============================================================================
+// Shared password dialog base mixin
+// =============================================================================
+
+/// 提取 [PasswordVerificationDialogContentState] 和
+/// [BiometricPasswordDialogContentState] 的共享字段与核心逻辑。
+mixin _PasswordDialogBaseMixin<T extends ConsumerStatefulWidget>
+    on ConsumerState<T> {
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  String? _errorMessage;
+  bool _isVerifying = false;
+  bool _hasError = false;
+  bool _userHasTypedAfterError = false;
+  bool _obscurePassword = true;
+  bool _hasFocus = false;
+
+  @mustCallSuper
+  void baseInitState() {
+    _controller.addListener(_onTextChanged);
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  @mustCallSuper
+  void baseDispose() {
+    _controller.removeListener(_onTextChanged);
+    _focusNode.removeListener(_onFocusChanged);
+    _controller.text = '';
+    _controller.dispose();
+    _focusNode.dispose();
+  }
+
+  void _onFocusChanged() {
+    setState(() => _hasFocus = _focusNode.hasFocus);
+  }
+
+  void _onTextChanged() {
+    if (_hasError && _controller.text.isNotEmpty && !_userHasTypedAfterError) {
+      _userHasTypedAfterError = true;
+      _hasError = false;
+    }
+    if (_hasError && _controller.text.isEmpty) {
+      _userHasTypedAfterError = false;
+    }
+    setState(() {});
+  }
+
+  Color? get _iconColor {
+    if (_hasError) return Colors.red.shade700;
+    if (_hasFocus) return AppTheme.primaryColor;
+    return null;
+  }
+}
+
+// =============================================================================
 // Overlay mixin
 // =============================================================================
 
@@ -173,52 +228,18 @@ class PasswordVerificationDialogContent extends ConsumerStatefulWidget {
 
 class PasswordVerificationDialogContentState
     extends ConsumerState<PasswordVerificationDialogContent>
-    with PasswordDialogOverlayMixin {
-  final _controller = TextEditingController();
-  final _focusNode = FocusNode();
-
-  String? _errorMessage;
-  bool _isVerifying = false;
-  bool _hasError = false;
-  bool _userHasTypedAfterError = false;
-  bool _obscurePassword = true;
-  bool _hasFocus = false;
-
+    with PasswordDialogOverlayMixin, _PasswordDialogBaseMixin {
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_onTextChanged);
-    _focusNode.addListener(_onFocusChanged);
+    baseInitState();
   }
 
   @override
   void dispose() {
     disposeOverlay();
-    _controller.removeListener(_onTextChanged);
-    _focusNode.removeListener(_onFocusChanged);
-    // Securely clear password text before disposing
-    _controller.text = '';
-    _controller.dispose();
-    _focusNode.dispose();
+    baseDispose();
     super.dispose();
-  }
-
-  void _onFocusChanged() {
-    setState(() {
-      _hasFocus = _focusNode.hasFocus;
-    });
-  }
-
-  void _onTextChanged() {
-    // Clear error only when user types after seeing an error
-    if (_hasError && _controller.text.isNotEmpty && !_userHasTypedAfterError) {
-      _userHasTypedAfterError = true;
-      _hasError = false;
-    }
-    if (_hasError && _controller.text.isEmpty) {
-      _userHasTypedAfterError = false;
-    }
-    setState(() {});
   }
 
   Future<void> _verify() async {
@@ -245,12 +266,6 @@ class PasswordVerificationDialogContentState
         e.isLockedOut,
       );
     }
-  }
-
-  Color? get _iconColor {
-    if (_hasError) return Colors.red.shade700;
-    if (_hasFocus) return AppTheme.primaryColor;
-    return null;
   }
 
   @override
@@ -444,52 +459,20 @@ class BiometricPasswordDialogContent extends ConsumerStatefulWidget {
 
 class BiometricPasswordDialogContentState
     extends ConsumerState<BiometricPasswordDialogContent>
-    with PasswordDialogOverlayMixin {
-  final _controller = TextEditingController();
-  final _focusNode = FocusNode();
-
-  String? _errorMessage;
-  bool _isVerifying = false;
-  bool _hasError = false;
-  bool _userHasTypedAfterError = false;
+    with PasswordDialogOverlayMixin, _PasswordDialogBaseMixin {
   bool _isBiometricVerified = false;
-  bool _obscurePassword = true;
-  bool _hasFocus = false;
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_onTextChanged);
-    _focusNode.addListener(_onFocusChanged);
+    baseInitState();
   }
 
   @override
   void dispose() {
     disposeOverlay();
-    _controller.removeListener(_onTextChanged);
-    _focusNode.removeListener(_onFocusChanged);
-    // Securely clear password text before disposing
-    _controller.text = '';
-    _controller.dispose();
-    _focusNode.dispose();
+    baseDispose();
     super.dispose();
-  }
-
-  void _onFocusChanged() {
-    setState(() {
-      _hasFocus = _focusNode.hasFocus;
-    });
-  }
-
-  void _onTextChanged() {
-    if (_hasError && _controller.text.isNotEmpty && !_userHasTypedAfterError) {
-      _userHasTypedAfterError = true;
-      _hasError = false;
-    }
-    if (_hasError && _controller.text.isEmpty) {
-      _userHasTypedAfterError = false;
-    }
-    setState(() {});
   }
 
   Future<void> _tryBiometric() async {
@@ -531,12 +514,6 @@ class BiometricPasswordDialogContentState
         e.isLockedOut,
       );
     }
-  }
-
-  Color? get _iconColor {
-    if (_hasError) return Colors.red.shade700;
-    if (_hasFocus) return AppTheme.primaryColor;
-    return null;
   }
 
   @override
