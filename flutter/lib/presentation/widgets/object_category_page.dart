@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/add_section_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/dynamic_section_card.dart';
+import 'package:solosoul_flutter/presentation/widgets/add_section_placeholder.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 
 /// Generic page scaffold for object category pages (Profile, Travel, Financial, Professional).
@@ -50,15 +51,7 @@ class ObjectCategoryPage extends ConsumerWidget {
       appBar: SoloGlassAppBar(
         title: Text(title),
         backRoute: AppRoutes.home,
-        actions: [
-          if (pageId != null)
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: AppLocalizations.of(context).workspaceAddSection,
-              onPressed: () => _addCustomSection(context, ref),
-            ),
-          const HeaderActionButtons(),
-        ],
+        actions: const [HeaderActionButtons()],
       ),
       body: SingleChildScrollView(
         padding: AppTheme.kPagePadding,
@@ -73,6 +66,13 @@ class ObjectCategoryPage extends ConsumerWidget {
               ),
             if (pid != null && sections.isEmpty)
               _RestoreDefaultsWidget(pageId: pid),
+            if (pid != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: AddSectionPlaceholder(
+                  onTap: () => _addCustomSection(context, ref),
+                ),
+              ),
           ],
         ),
       ),

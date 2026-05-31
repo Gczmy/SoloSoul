@@ -13,6 +13,7 @@ import 'package:solosoul_flutter/presentation/widgets/object_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/categorized_icon_grid.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
+import 'package:solosoul_flutter/presentation/widgets/add_section_placeholder.dart';
 
 /// Unified workspace for browsing objects and their children.
 ///
@@ -81,64 +82,61 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
         title: Text(title),
         actions: const [HeaderActionButtons()],
       ),
-      body: children.isEmpty
-          ? _EmptyState(
-              message: currentObject != null
-                  ? 'No items yet'
-                  : 'No objects yet',
-              hint: currentObject != null
-                  ? 'Add your first item'
-                  : 'Create your first object to get started',
+      body: isPage
+          ? ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: children.length + 1,
+              itemBuilder: (context, index) {
+                if (index == children.length) {
+                  return AddSectionPlaceholder(onTap: _showAddSectionDialog);
+                }
+                final child = children[index];
+                return RepaintBoundary(
+                  child: ObjectCard(
+                    object: child,
+                    items: cache.itemChildren[child.id] ?? [],
+                  ),
+                );
+              },
             )
-          : isPage
-              ? ListView.builder(
+          : _isReordering
+              ? ReorderableListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: children.length,
+                  onReorder: (oldIndex, newIndex) => _handleReorder(
+                    oldIndex,
+                    newIndex,
+                    children,
+                  ),
                   itemBuilder: (context, index) {
                     final child = children[index];
-                    return RepaintBoundary(
-                      child: ObjectCard(
-                        object: child,
-                        items: cache.itemChildren[child.id] ?? [],
-                      ),
+                    return ObjectTile(
+                      key: ValueKey(child.id),
+                      object: child,
+                      showDragHandle: true,
+                      dragIndex: index,
+                      onTap: null,
                     );
                   },
                 )
-              : _isReordering
-                  ? ReorderableListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: children.length,
-                      onReorder: (oldIndex, newIndex) => _handleReorder(
-                        oldIndex,
-                        newIndex,
-                        children,
-                      ),
-                      itemBuilder: (context, index) {
-                        final child = children[index];
-                        return ObjectTile(
-                          key: ValueKey(child.id),
-                          object: child,
-                          showDragHandle: true,
-                          dragIndex: index,
-                          onTap: null,
-                        );
-                      },
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: children.length,
-                      itemBuilder: (context, index) {
-                        final child = children[index];
-                        return ObjectTile(
-                          object: child,
-                          onTap: child.typeId == 'page'
-                              ? () => context.push('/objects/${child.id}')
-                              : null,
-                          onEdit: () => _editObject(child),
-                          onDelete: () => _deleteObject(child),
-                        );
-                      },
-                    ),
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: children.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == children.length) {
+                      return AddSectionPlaceholder(onTap: _showAddSectionDialog);
+                    }
+                    final child = children[index];
+                    return ObjectTile(
+                      object: child,
+                      onTap: child.typeId == 'page'
+                          ? () => context.push('/objects/${child.id}')
+                          : null,
+                      onEdit: () => _editObject(child),
+                      onDelete: () => _deleteObject(child),
+                    );
+                  },
+                ),
       floatingActionButton: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -168,15 +166,13 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
               child: Icon(_isReordering ? Icons.check : Icons.reorder),
             ),
             const SizedBox(width: 8),
+            FloatingActionButton.small(
+              heroTag: 'add',
+              onPressed: _showAddSectionDialog,
+              tooltip: l10n.workspaceAdd,
+              child: const Icon(Icons.add),
+            ),
           ],
-          FloatingActionButton.small(
-            heroTag: 'add',
-            onPressed: () => isPage
-                ? _showPageAddMenu()
-                : _showAddSectionDialog(),
-            tooltip: l10n.workspaceAdd,
-            child: const Icon(Icons.add),
-          ),
         ],
       ),
     );
@@ -291,11 +287,6 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     );
   }
 
-  void _showPageAddMenu() async {
-    // Temporarily disabled: sub-page creation has bugs
-    // Directly show add section dialog instead
-    await _showAddSectionDialog();
-  }
 }
 
 
@@ -375,45 +366,6 @@ class _AddSectionDialogState extends State<_AddSectionDialog> {
   }
 }
 
-// =============================================================================
-// Empty State
-// =============================================================================
 
-class _EmptyState extends StatelessWidget {
-  final String message;
-  final String hint;
 
-  const _EmptyState({
-    required this.message,
-    required this.hint,
-  });
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.folder_open_outlined,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: theme.textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            hint,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
