@@ -560,6 +560,12 @@ class Attachment {
   /// Creation timestamp (milliseconds since epoch).
   final int createdAt;
 
+  /// Whether this attachment has been soft-deleted.
+  final bool isDeleted;
+
+  /// Soft-deletion timestamp (milliseconds since epoch). Null if not deleted.
+  final int? deletedAt;
+
   const Attachment({
     required this.id,
     required this.fileId,
@@ -568,6 +574,8 @@ class Attachment {
     required this.size,
     this.thumbnail,
     required this.createdAt,
+    this.isDeleted = false,
+    this.deletedAt,
   });
 
   factory Attachment.fromJson(Map<String, dynamic> json) =>
@@ -583,6 +591,8 @@ class Attachment {
     int? size,
     String? thumbnail,
     int? createdAt,
+    bool? isDeleted,
+    int? deletedAt,
   }) {
     return Attachment(
       id: id ?? this.id,
@@ -592,6 +602,8 @@ class Attachment {
       size: size ?? this.size,
       thumbnail: thumbnail ?? this.thumbnail,
       createdAt: createdAt ?? this.createdAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }

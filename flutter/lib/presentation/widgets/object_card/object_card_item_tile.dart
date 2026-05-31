@@ -1,14 +1,18 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart' show translateFieldLabel;
 import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
+    show unifiedObjectProvider;
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_history_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_properties_list.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -157,16 +161,14 @@ class ObjectCardItemTile extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                   const SizedBox(width: 8),
+                  _AttachmentButton(item: item),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     tooltip: l10n.commonDelete,
                     onPressed: onDelete,
                     visualDensity: VisualDensity.compact,
                   ),
-                  if (item.attachments.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    _AttachmentButton(item: item),
-                  ],
                 ],
               ),
             ],
@@ -229,40 +231,142 @@ class _AttachmentButton extends ConsumerWidget {
 
   const _AttachmentButton({required this.item});
 
+  bool get _hasSensitiveProperties => item.properties.values.any(
+        (p) =>
+            p.sensitivity == SensitivityLevel.sensitive ||
+            p.sensitivity == SensitivityLevel.critical,
+      );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final count = item.attachments.length;
+    final count = item.attachments.where((a) => !a.isDeleted).length;
+    final hasAttachments = count > 0;
+
     return IconButton(
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(Icons.attach_file, size: 20),
-          Positioned(
-            right: -6,
-            top: -6,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontWeight: FontWeight.w500,
-                  height: 1,
+      icon: hasAttachments
+          ? Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.attach_file, size: 20),
+                Positioned(
+                  right: -6,
+                  top: -6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.w500,
+                        height: 1,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      tooltip: count == 1 ? '1 attachment' : '$count attachments',
-      onPressed: () => _showAttachments(context, ref),
+              ],
+            )
+          : const Icon(Icons.attach_file, size: 20),
+      tooltip: hasAttachments
+          ? AppLocalizations.of(context).entryAttachments(count)
+          : AppLocalizations.of(context).addAttachment,
+      onPressed: () => _handlePress(context, ref),
       visualDensity: VisualDensity.compact,
     );
+  }
+
+  Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
+    if (item.attachments.isNotEmpty) {
+      _showAttachments(context, ref);
+    } else {
+      await _addAttachment(context, ref);
+    }
+  }
+
+  Future<void> _addAttachment(BuildContext context, WidgetRef ref) async {
+    // Verify sensitive access if needed
+    if (_hasSensitiveProperties) {
+      final isGranted = ref.read(isSensitiveAccessGrantedProvider);
+      if (!isGranted) {
+        final authNotifier = ref.read(authNotifierProvider.notifier);
+        final selectedAccount = authNotifier.selectedAccount;
+        final password = await showPasswordVerificationDialog(
+          context: context,
+          ref: ref,
+          passwordHint: selectedAccount?.passwordHint,
+          onVerify: authNotifier.verifyPasswordForSensitiveData,
+        );
+        if (password == null) return;
+        ref.read(sensitivePageAccessProvider.notifier).markVerified();
+      }
+    }
+
+    final result = await FilePicker.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    final bytes = file.bytes;
+    if (bytes == null || bytes.isEmpty) {
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: AppLocalizations.of(context).attachmentReadFailed,
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    final fileName = file.name;
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) {
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'No account selected',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    try {
+      final attachment = await AttachmentStorageService().saveAttachment(
+        accountId: accountId,
+        fileName: fileName,
+        bytes: bytes,
+      );
+
+      final updatedAttachments = [...item.attachments, attachment];
+      await ref.read(unifiedObjectProvider.notifier).updateObject(
+        item.id,
+        attachments: updatedAttachments,
+      );
+
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: AppLocalizations.of(context).attachmentAdded,
+          type: SnackBarType.success,
+        );
+      }
+    } on Exception catch (e) {
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: '${AppLocalizations.of(context).attachmentAddFailed}: $e',
+          type: SnackBarType.error,
+        );
+      }
+    }
   }
 
   void _showAttachments(BuildContext context, WidgetRef ref) {
@@ -272,8 +376,9 @@ class _AttachmentButton extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AttachmentListSheet(
-        attachments: item.attachments,
+        object: item,
         accountId: accountId,
+        onAddAttachment: () => _addAttachment(context, ref),
       ),
     );
   }

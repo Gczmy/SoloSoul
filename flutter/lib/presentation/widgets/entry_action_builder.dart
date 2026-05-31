@@ -61,6 +61,11 @@ class EntryActionBuilder {
       actions.add(const SizedBox(width: 8));
     }
 
+    if (attachmentAction != null) {
+      actions.add(attachmentAction);
+      actions.add(const SizedBox(width: 8));
+    }
+
     if (config.showDelete) {
       actions.add(
         buildButton(
@@ -75,11 +80,6 @@ class EntryActionBuilder {
               : onDelete,
         ),
       );
-    }
-
-    if (attachmentAction != null) {
-      actions.add(const SizedBox(width: 8));
-      actions.add(attachmentAction);
     }
 
     return actions;

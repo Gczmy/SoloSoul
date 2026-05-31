@@ -4044,4 +4044,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String pluginAccessReviewMissingItem(String label) {
     return '$label';
   }
+
+  @override
+  String get addAttachment => 'Add attachment';
+
+  @override
+  String get attachmentAdded => 'Attachment added';
+
+  @override
+  String get attachmentAddFailed => 'Failed to add attachment';
+
+  @override
+  String get attachmentReadFailed => 'Failed to read file';
+
+  @override
+  String get deleteAttachment => 'Delete attachment';
+
+  @override
+  String get deleteAttachmentConfirm =>
+      'Are you sure you want to delete this attachment?';
+
+  @override
+  String get attachmentDeleted => 'Attachment deleted';
+
+  @override
+  String get restoreAttachment => 'Restore';
+
+  @override
+  String get permanentlyDeleteAttachment => 'Delete permanently';
+
+  @override
+  String get attachmentPermanentlyDeleteConfirm =>
+      'This attachment will be permanently deleted and cannot be recovered. Continue?';
+
+  @override
+  String get deletedAttachments => 'Deleted attachments';
+
+  @override
+  String deletedAtDaysAgo(Object days) {
+    return 'Deleted $days days ago';
+  }
+
+  @override
+  String get noAttachments => 'No attachments';
+
+  @override
+  String get attachmentRestored => 'Attachment restored';
+
+  @override
+  String attachmentMaxReached(Object count) {
+    return 'Maximum $count attachments reached. Please delete some before adding.';
+  }
+
+  @override
+  String get attachmentDeleteFailed => 'Failed to delete attachment';
+
+  @override
+  String get attachmentRestoreFailed => 'Failed to restore attachment';
+
+  @override
+  String get downloadAttachment => 'Download';
+
+  @override
+  String attachmentDownloaded(Object path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String get attachmentDownloadFailed => 'Download failed';
+
+  @override
+  String get downloadLocation => 'Download Location';
+
+  @override
+  String get downloadLocationDesc => 'Attachments will be saved to this folder';
+
+  @override
+  String get chooseFolder => 'Choose Folder';
+
+  @override
+  String get downloadLocationDefault => 'Default (Downloads)';
 }

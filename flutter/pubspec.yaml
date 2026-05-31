@@ -64,6 +64,7 @@ dependencies:
   freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
   uuid: ^4.4.0
+  path: ^1.9.0
 
   # String grapheme cluster support (fix UTF-16 surrogate split in stream fallback)
   characters: ^1.4.0

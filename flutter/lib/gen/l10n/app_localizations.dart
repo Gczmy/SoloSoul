@@ -7391,6 +7391,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{label}'**
   String pluginAccessReviewMissingItem(String label);
+
+  /// No description provided for @addAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add attachment'**
+  String get addAttachment;
+
+  /// No description provided for @attachmentAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment added'**
+  String get attachmentAdded;
+
+  /// No description provided for @attachmentAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add attachment'**
+  String get attachmentAddFailed;
+
+  /// No description provided for @attachmentReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to read file'**
+  String get attachmentReadFailed;
+
+  /// No description provided for @deleteAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete attachment'**
+  String get deleteAttachment;
+
+  /// No description provided for @deleteAttachmentConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this attachment?'**
+  String get deleteAttachmentConfirm;
+
+  /// No description provided for @attachmentDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment deleted'**
+  String get attachmentDeleted;
+
+  /// No description provided for @restoreAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreAttachment;
+
+  /// No description provided for @permanentlyDeleteAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete permanently'**
+  String get permanentlyDeleteAttachment;
+
+  /// No description provided for @attachmentPermanentlyDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This attachment will be permanently deleted and cannot be recovered. Continue?'**
+  String get attachmentPermanentlyDeleteConfirm;
+
+  /// No description provided for @deletedAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted attachments'**
+  String get deletedAttachments;
+
+  /// No description provided for @deletedAtDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {days} days ago'**
+  String deletedAtDaysAgo(Object days);
+
+  /// No description provided for @noAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'No attachments'**
+  String get noAttachments;
+
+  /// No description provided for @attachmentRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment restored'**
+  String get attachmentRestored;
+
+  /// No description provided for @attachmentMaxReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum {count} attachments reached. Please delete some before adding.'**
+  String attachmentMaxReached(Object count);
+
+  /// No description provided for @attachmentDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete attachment'**
+  String get attachmentDeleteFailed;
+
+  /// No description provided for @attachmentRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restore attachment'**
+  String get attachmentRestoreFailed;
+
+  /// No description provided for @downloadAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadAttachment;
+
+  /// No description provided for @attachmentDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {path}'**
+  String attachmentDownloaded(Object path);
+
+  /// No description provided for @attachmentDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed'**
+  String get attachmentDownloadFailed;
+
+  /// No description provided for @downloadLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Download Location'**
+  String get downloadLocation;
+
+  /// No description provided for @downloadLocationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments will be saved to this folder'**
+  String get downloadLocationDesc;
+
+  /// No description provided for @chooseFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Folder'**
+  String get chooseFolder;
+
+  /// No description provided for @downloadLocationDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (Downloads)'**
+  String get downloadLocationDefault;
 }
 
 class _AppLocalizationsDelegate

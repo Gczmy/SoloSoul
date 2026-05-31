@@ -3918,4 +3918,82 @@ class AppLocalizationsZh extends AppLocalizations {
   String pluginAccessReviewMissingItem(String label) {
     return '$label';
   }
+
+  @override
+  String get addAttachment => '添加附件';
+
+  @override
+  String get attachmentAdded => '附件已添加';
+
+  @override
+  String get attachmentAddFailed => '添加附件失败';
+
+  @override
+  String get attachmentReadFailed => '读取文件失败';
+
+  @override
+  String get deleteAttachment => '删除附件';
+
+  @override
+  String get deleteAttachmentConfirm => '确定要删除此附件吗？';
+
+  @override
+  String get attachmentDeleted => '附件已删除';
+
+  @override
+  String get restoreAttachment => '恢复';
+
+  @override
+  String get permanentlyDeleteAttachment => '永久删除';
+
+  @override
+  String get attachmentPermanentlyDeleteConfirm => '此附件将被永久删除，无法恢复。是否继续？';
+
+  @override
+  String get deletedAttachments => '已删除附件';
+
+  @override
+  String deletedAtDaysAgo(Object days) {
+    return '$days 天前删除';
+  }
+
+  @override
+  String get noAttachments => '暂无附件';
+
+  @override
+  String get attachmentRestored => '附件已恢复';
+
+  @override
+  String attachmentMaxReached(Object count) {
+    return '附件数量已达上限（$count个），请先删除部分附件。';
+  }
+
+  @override
+  String get attachmentDeleteFailed => '删除附件失败';
+
+  @override
+  String get attachmentRestoreFailed => '恢复附件失败';
+
+  @override
+  String get downloadAttachment => '下载';
+
+  @override
+  String attachmentDownloaded(Object path) {
+    return '已保存到 $path';
+  }
+
+  @override
+  String get attachmentDownloadFailed => '下载失败';
+
+  @override
+  String get downloadLocation => '下载位置';
+
+  @override
+  String get downloadLocationDesc => '附件将保存到此文件夹';
+
+  @override
+  String get chooseFolder => '选择文件夹';
+
+  @override
+  String get downloadLocationDefault => '默认 (Downloads)';
 }

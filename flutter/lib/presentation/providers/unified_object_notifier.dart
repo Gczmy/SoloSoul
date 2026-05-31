@@ -449,6 +449,24 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     final object = _service.getObjectById(state.objects, id);
     if (object == null) return false;
 
+    // Cleanup removed attachment files before updating state
+    if (attachments != null) {
+      final oldFileIds = object.attachments.map((a) => a.fileId).toSet();
+      final newFileIds = attachments.map((a) => a.fileId).toSet();
+      final removedFileIds = oldFileIds.difference(newFileIds);
+      if (removedFileIds.isNotEmpty) {
+        final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+        if (accountId != null) {
+          for (final fileId in removedFileIds) {
+            await AttachmentStorageService().deleteAttachment(
+              accountId: accountId,
+              fileId: fileId,
+            );
+          }
+        }
+      }
+    }
+
     final updated = _service.updateObject(
       object,
       name: name,
@@ -468,6 +486,84 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       objects: _service.replaceObject(state.objects, updated),
     );
     return _saveDebounced(operationDesc: 'Updated object');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Attachment lifecycle
+  // ---------------------------------------------------------------------------
+
+  /// Soft-delete an attachment by marking [isDeleted] = true.
+  /// The encrypted file on disk is preserved.
+  Future<bool> softDeleteAttachment(String objectId, String attachmentId) async {
+    final object = _service.getObjectById(state.objects, objectId);
+    if (object == null) return false;
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final updatedAttachments = object.attachments.map((a) {
+      if (a.id == attachmentId) {
+        return a.copyWith(isDeleted: true, deletedAt: now);
+      }
+      return a;
+    }).toList();
+
+    return updateObject(
+      objectId,
+      attachments: updatedAttachments,
+    );
+  }
+
+  /// Restore a soft-deleted attachment by clearing [isDeleted] and [deletedAt].
+  Future<bool> restoreAttachment(String objectId, String attachmentId) async {
+    final object = _service.getObjectById(state.objects, objectId);
+    if (object == null) return false;
+
+    final updatedAttachments = object.attachments.map((a) {
+      if (a.id == attachmentId) {
+        return a.copyWith(isDeleted: false, deletedAt: null);
+      }
+      return a;
+    }).toList();
+
+    return updateObject(
+      objectId,
+      attachments: updatedAttachments,
+    );
+  }
+
+  /// Permanently delete an attachment: remove from metadata list and delete
+  /// the encrypted file from disk.
+  Future<bool> permanentlyDeleteAttachment(
+    String objectId,
+    String attachmentId, {
+    String? accountId,
+  }) async {
+    final object = _service.getObjectById(state.objects, objectId);
+    if (object == null) return false;
+
+    final attachment = object.attachments.firstWhere(
+      (a) => a.id == attachmentId,
+      orElse: () => throw Exception('Attachment not found'),
+    );
+
+    // Delete encrypted file first
+    if (accountId != null) {
+      try {
+        await AttachmentStorageService().deleteAttachment(
+          accountId: accountId,
+          fileId: attachment.fileId,
+        );
+      } on Exception catch (_) {
+        // Allow metadata removal even if file deletion fails (orphan file)
+      }
+    }
+
+    final updatedAttachments =
+        object.attachments.where((a) => a.id != attachmentId).toList();
+
+    return updateObject(
+      objectId,
+      attachments: updatedAttachments,
+    );
   }
 
   /// Move an object to a new parent.

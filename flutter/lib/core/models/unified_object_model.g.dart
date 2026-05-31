@@ -242,6 +242,8 @@ Attachment _$AttachmentFromJson(Map<String, dynamic> json) => Attachment(
   size: (json['size'] as num).toInt(),
   thumbnail: json['thumbnail'] as String?,
   createdAt: (json['createdAt'] as num).toInt(),
+  isDeleted: json['isDeleted'] as bool? ?? false,
+  deletedAt: (json['deletedAt'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$AttachmentToJson(Attachment instance) =>
@@ -253,6 +255,8 @@ Map<String, dynamic> _$AttachmentToJson(Attachment instance) =>
       'size': instance.size,
       'thumbnail': instance.thumbnail,
       'createdAt': instance.createdAt,
+      'isDeleted': instance.isDeleted,
+      'deletedAt': instance.deletedAt,
     };
 
 UnifiedObject _$UnifiedObjectFromJson(Map<String, dynamic> json) =>

@@ -1744,14 +1744,12 @@
   "fieldAccountType": "Account Type",
   "fieldChecking": "Checking",
   "fieldSavings": "Savings",
-
   "sectionContact": "Contact",
   "sectionFinancial": "Financial",
   "sectionMedical": "Medical",
   "sectionSecurity": "Security",
   "sectionDigitalAccounts": "Digital Accounts",
   "sectionInsurance": "Insurance",
-
   "templateProfileIdentityName": "Identity",
   "templateProfileIdentityDesc": "Personal identity information including name, date of birth, gender, and nationality",
   "templateProfileContactName": "Contact Information",
@@ -2056,10 +2054,18 @@
   "@sensitivityOverrideDescription": {
     "description": "Description of sensitivity override request",
     "placeholders": {
-      "pluginName": {"type": "String"},
-      "fieldLabel": {"type": "String"},
-      "actual": {"type": "String"},
-      "required": {"type": "String"}
+      "pluginName": {
+        "type": "String"
+      },
+      "fieldLabel": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      }
     }
   },
   "sensitivityOverrideDenyTitle": "Deny Access",
@@ -2074,8 +2080,12 @@
   "@semanticTypeDuplicateMessage": {
     "description": "Message shown when a semantic type is already assigned to another field",
     "placeholders": {
-      "typeLabel": {"type": "String"},
-      "existingFieldLabel": {"type": "String"}
+      "typeLabel": {
+        "type": "String"
+      },
+      "existingFieldLabel": {
+        "type": "String"
+      }
     }
   },
   "semanticTypeDuplicateMessage": "The semantic type \"{typeLabel}\" is already assigned to \"{existingFieldLabel}\". Assigning it here will remove it from the other field.",
@@ -2088,7 +2098,9 @@
   "@pluginAccessReviewTitle": {
     "description": "Title for plugin access review dialog",
     "placeholders": {
-      "pluginName": {"type": "String"}
+      "pluginName": {
+        "type": "String"
+      }
     }
   },
   "pluginAccessReviewSubtitle": "Review the fields this plugin wants to access before installation",
@@ -2106,9 +2118,15 @@
   "@pluginAccessReviewExceededItem": {
     "description": "Exceeded sensitivity item",
     "placeholders": {
-      "label": {"type": "String"},
-      "actual": {"type": "String"},
-      "required": {"type": "String"}
+      "label": {
+        "type": "String"
+      },
+      "actual": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      }
     }
   },
   "pluginAccessReviewMissingTitle": "Missing Fields",
@@ -2116,7 +2134,33 @@
   "@pluginAccessReviewMissingItem": {
     "description": "Missing field item",
     "placeholders": {
-      "label": {"type": "String"}
+      "label": {
+        "type": "String"
+      }
     }
-  }
+  },
+  "addAttachment": "Add attachment",
+  "attachmentAdded": "Attachment added",
+  "attachmentAddFailed": "Failed to add attachment",
+  "attachmentReadFailed": "Failed to read file",
+  "deleteAttachment": "Delete attachment",
+  "deleteAttachmentConfirm": "Are you sure you want to delete this attachment?",
+  "attachmentDeleted": "Attachment deleted",
+  "restoreAttachment": "Restore",
+  "permanentlyDeleteAttachment": "Delete permanently",
+  "attachmentPermanentlyDeleteConfirm": "This attachment will be permanently deleted and cannot be recovered. Continue?",
+  "deletedAttachments": "Deleted attachments",
+  "deletedAtDaysAgo": "Deleted {days} days ago",
+  "noAttachments": "No attachments",
+  "attachmentRestored": "Attachment restored",
+  "attachmentMaxReached": "Maximum {count} attachments reached. Please delete some before adding.",
+  "attachmentDeleteFailed": "Failed to delete attachment",
+  "attachmentRestoreFailed": "Failed to restore attachment",
+  "downloadAttachment": "Download",
+  "attachmentDownloaded": "Saved to {path}",
+  "attachmentDownloadFailed": "Download failed",
+  "downloadLocation": "Download Location",
+  "downloadLocationDesc": "Attachments will be saved to this folder",
+  "chooseFolder": "Choose Folder",
+  "downloadLocationDefault": "Default (Downloads)"
 }

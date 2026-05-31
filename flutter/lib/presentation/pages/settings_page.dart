@@ -1,5 +1,5 @@
 import 'dart:convert' show jsonDecode, utf8;
-import 'dart:io' show HttpClient, Platform;
+import 'dart:io' show File, HttpClient, Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +19,8 @@ import 'package:solosoul_flutter/presentation/widgets/biometric_settings_widget.
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart';
 import 'package:solosoul_flutter/presentation/widgets/lock_vault_dialog.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:solosoul_flutter/core/services/attachment_download_service.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart'
@@ -40,6 +42,7 @@ part 'settings_page_account_section.dart';
 part 'settings_page_access_section.dart';
 part 'settings_page_security_section.dart';
 part 'settings_page_sync_section.dart';
+part 'settings_page_download_section.dart';
 part 'settings_page_llm_section.dart';
 part 'settings_page_app_info_section.dart';
 part 'settings_page_ad_section.dart';
@@ -222,6 +225,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const _SecuritySettingsSection(),
             const SizedBox(height: 16),
             const _SyncSettingsSection(),
+            const SizedBox(height: 16),
+            const _DownloadSettingsSection(),
             const SizedBox(height: 16),
             const _LLMSettingsSection(),
             const SizedBox(height: 16),

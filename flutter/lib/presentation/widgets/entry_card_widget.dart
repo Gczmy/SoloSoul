@@ -1,5 +1,6 @@
 import 'dart:async' show unawaited;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
@@ -23,6 +25,8 @@ import 'package:solosoul_flutter/presentation/providers/account_style_provider.d
     show accountStyleProvider, SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show effectiveSensitivityProvider, SensitivityLevel;
+import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
+    show unifiedObjectProvider;
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
@@ -432,40 +436,43 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     Widget? attachmentAction;
     if (widget.item is UnifiedObject) {
       final obj = widget.item as UnifiedObject;
-      if (obj.attachments.isNotEmpty) {
-        final count = obj.attachments.length;
-        attachmentAction = IconButton(
-          icon: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              const Icon(Icons.attach_file, size: 20),
-              Positioned(
-                right: -6,
-                top: -6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '$count',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.w500,
-                      height: 1,
+      final count = obj.attachments.where((a) => !a.isDeleted).length;
+      final hasAttachments = count > 0;
+      attachmentAction = IconButton(
+        icon: hasAttachments
+            ? Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.attach_file, size: 20),
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w500,
+                          height: 1,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-          tooltip: AppLocalizations.of(context).entryAttachments(count),
-          onPressed: () => _showAttachments(context, obj),
-          visualDensity: VisualDensity.compact,
-        );
-      }
+                ],
+              )
+            : const Icon(Icons.attach_file, size: 20),
+        tooltip: hasAttachments
+            ? AppLocalizations.of(context).entryAttachments(count)
+            : AppLocalizations.of(context).addAttachment,
+        onPressed: () => _handleAttachmentAction(context, obj),
+        visualDensity: VisualDensity.compact,
+      );
     }
 
     return EntryActionBuilder.buildActions(
@@ -485,6 +492,104 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
     );
   }
 
+  Future<void> _handleAttachmentAction(BuildContext context, UnifiedObject obj) async {
+    if (obj.attachments.isNotEmpty) {
+      _showAttachments(context, obj);
+    } else {
+      await _addAttachment(context, obj);
+    }
+  }
+
+  Future<void> _addAttachment(BuildContext context, UnifiedObject obj) async {
+    // Verify sensitive access if needed
+    final bool isSensitive;
+    if (obj.properties.values.any(
+          (p) => p.sensitivity == SensitivityLevel.sensitive ||
+                 p.sensitivity == SensitivityLevel.critical,
+        )) {
+      isSensitive = true;
+    } else {
+      isSensitive = widget.isSensitive;
+    }
+    if (isSensitive) {
+      final isGranted = ref.read(isSensitiveAccessGrantedProvider);
+      if (!isGranted) {
+        final authNotifier = ref.read(authNotifierProvider.notifier);
+        final selectedAccount = authNotifier.selectedAccount;
+        final password = await showPasswordVerificationDialog(
+          context: context,
+          ref: ref,
+          passwordHint: selectedAccount?.passwordHint,
+          onVerify: authNotifier.verifyPasswordForSensitiveData,
+        );
+        if (password == null) return;
+        ref.read(sensitivePageAccessProvider.notifier).markVerified();
+      }
+    }
+
+    final result = await FilePicker.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    final bytes = file.bytes;
+    if (bytes == null || bytes.isEmpty) {
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: AppLocalizations.of(context).attachmentReadFailed,
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) {
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: 'No account selected',
+          type: SnackBarType.error,
+        );
+      }
+      return;
+    }
+
+    try {
+      final attachment = await AttachmentStorageService().saveAttachment(
+        accountId: accountId,
+        fileName: file.name,
+        bytes: bytes,
+      );
+
+      final updatedAttachments = [...obj.attachments, attachment];
+      await ref.read(unifiedObjectProvider.notifier).updateObject(
+        obj.id,
+        attachments: updatedAttachments,
+      );
+
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: AppLocalizations.of(context).attachmentAdded,
+          type: SnackBarType.success,
+        );
+      }
+    } on Exception catch (e) {
+      if (context.mounted) {
+        showOverlaySnackBar(
+          context,
+          content: '${AppLocalizations.of(context).attachmentAddFailed}: $e',
+          type: SnackBarType.error,
+        );
+      }
+    }
+  }
+
   void _showAttachments(BuildContext context, UnifiedObject obj) {
     final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
     showModalBottomSheet(
@@ -492,8 +597,9 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AttachmentListSheet(
-        attachments: obj.attachments,
+        object: obj,
         accountId: accountId,
+        onAddAttachment: () => _addAttachment(context, obj),
       ),
     );
   }
