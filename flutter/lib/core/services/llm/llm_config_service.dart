@@ -258,24 +258,27 @@ class LlmConfigService {
   // Legacy getters (auto-proxy to active profile for backward compat)
   // ---------------------------------------------------------------------------
 
-  Future<String?> getCloudApiKey(String accountId) async {
-    final config = await _load(accountId);
+  /// Returns the active cloud profile, or null if none is configured.
+  LlmCloudProfile? _activeProfile(_LlmConfig config) {
     final activeId = config.activeCloudProfileId;
-    if (activeId == null || config.cloudProfiles.isEmpty) {
-      return config._legacyCloudApiKey;
-    }
-    final profile = config.cloudProfiles.firstWhere(
+    if (activeId == null || config.cloudProfiles.isEmpty) return null;
+    return config.cloudProfiles.firstWhere(
       (p) => p.id == activeId,
       orElse: () => config.cloudProfiles.first,
     );
+  }
+
+  Future<String?> getCloudApiKey(String accountId) async {
+    final config = await _load(accountId);
+    final profile = _activeProfile(config);
+    if (profile == null) return config._legacyCloudApiKey;
     return _apiKeyVault[profile.apiKeyRef];
   }
 
   Future<void> setCloudApiKey(String accountId, String apiKey) async {
     final config = await _load(accountId);
-    final activeId = config.activeCloudProfileId;
-    if (activeId != null) {
-      final profile = config.cloudProfiles.firstWhere((p) => p.id == activeId);
+    final profile = _activeProfile(config);
+    if (profile != null) {
       _apiKeyVault[profile.apiKeyRef] = apiKey;
     }
     await _save(accountId, config.copyWith(cloudApiKey: apiKey));
@@ -283,9 +286,8 @@ class LlmConfigService {
 
   Future<void> clearCloudApiKey(String accountId) async {
     final config = await _load(accountId);
-    final activeId = config.activeCloudProfileId;
-    if (activeId != null) {
-      final profile = config.cloudProfiles.firstWhere((p) => p.id == activeId);
+    final profile = _activeProfile(config);
+    if (profile != null) {
       _apiKeyVault[profile.apiKeyRef] = '';
     }
     await _save(accountId, config.copyWith(cloudApiKey: null));
@@ -293,14 +295,8 @@ class LlmConfigService {
 
   Future<String> getCloudEndpoint(String accountId) async {
     final config = await _load(accountId);
-    final activeId = config.activeCloudProfileId;
-    if (activeId == null || config.cloudProfiles.isEmpty) {
-      return config.cloudEndpoint ?? 'https://api.openai.com/v1';
-    }
-    final profile = config.cloudProfiles.firstWhere(
-      (p) => p.id == activeId,
-      orElse: () => config.cloudProfiles.first,
-    );
+    final profile = _activeProfile(config);
+    if (profile == null) return config.cloudEndpoint ?? 'https://api.openai.com/v1';
     return profile.endpoint;
   }
 
@@ -311,14 +307,8 @@ class LlmConfigService {
 
   Future<String> getCloudModel(String accountId) async {
     final config = await _load(accountId);
-    final activeId = config.activeCloudProfileId;
-    if (activeId == null || config.cloudProfiles.isEmpty) {
-      return config.cloudModel ?? 'gpt-4o-mini';
-    }
-    final profile = config.cloudProfiles.firstWhere(
-      (p) => p.id == activeId,
-      orElse: () => config.cloudProfiles.first,
-    );
+    final profile = _activeProfile(config);
+    if (profile == null) return config.cloudModel ?? 'gpt-4o-mini';
     return profile.model;
   }
 
@@ -329,14 +319,8 @@ class LlmConfigService {
 
   Future<LlmCloudProviderType> getCloudProviderType(String accountId) async {
     final config = await _load(accountId);
-    final activeId = config.activeCloudProfileId;
-    if (activeId == null || config.cloudProfiles.isEmpty) {
-      return config.cloudProviderType;
-    }
-    final profile = config.cloudProfiles.firstWhere(
-      (p) => p.id == activeId,
-      orElse: () => config.cloudProfiles.first,
-    );
+    final profile = _activeProfile(config);
+    if (profile == null) return config.cloudProviderType;
     return profile.providerType;
   }
 
@@ -350,14 +334,8 @@ class LlmConfigService {
 
   Future<String> getCloudAnthropicVersion(String accountId) async {
     final config = await _load(accountId);
-    final activeId = config.activeCloudProfileId;
-    if (activeId == null || config.cloudProfiles.isEmpty) {
-      return config.cloudAnthropicVersion ?? '2023-06-01';
-    }
-    final profile = config.cloudProfiles.firstWhere(
-      (p) => p.id == activeId,
-      orElse: () => config.cloudProfiles.first,
-    );
+    final profile = _activeProfile(config);
+    if (profile == null) return config.cloudAnthropicVersion ?? '2023-06-01';
     return profile.anthropicVersion ?? '2023-06-01';
   }
 

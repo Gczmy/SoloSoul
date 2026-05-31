@@ -11,12 +11,12 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |---|---|---|---|---|---|
-| P001 | P0 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:453-466` | `updateObject` 循环内串行 `await deleteAttachment` | `[ ]` 待修复 |
-| P002 | P0 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:651-699` | `permanentlyDeleteObject`/`permanentlyDeleteMultiple` 循环内串行 I/O | `[ ]` 待修复 |
-| P003 | P0 | 性能 | `lib/core/models/semantic_type_registry.dart:683-688` | `getType` 对 `_allTypes` 线性遍历 O(n)，应预构建 Map | `[ ]` 待修复 |
-| P004 | P0 | 性能 | `lib/core/models/semantic_type_registry.dart:795-803` | `recommend` 内 `results.contains(type)` 在循环内 O(m×n) | `[ ]` 待修复 |
-| P005 | P0 | 重复代码 | `lib/presentation/widgets/password_verification_dialog.dart` | 两个 State 类约 400+ 行重复（`PasswordVerificationDialogContentState` / `BiometricPasswordDialogContentState`） | `[ ]` 待修复 |
-| P006 | P0 | 重复代码 | `lib/presentation/widgets/ocr_scanner_sheet.dart:360-578` | `_pickImage` / `_pickDocument` 90%+ OCR/MRZ/LLM 逻辑重复 | `[ ]` 待修复 |
+| P001 | P0 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:453-466` | `updateObject` 循环内串行 `await deleteAttachment` | `[x]` 已修复 |
+| P002 | P0 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:651-699` | `permanentlyDeleteObject`/`permanentlyDeleteMultiple` 循环内串行 I/O | `[x]` 已修复 |
+| P003 | P0 | 性能 | `lib/core/models/semantic_type_registry.dart:683-688` | `getType` 对 `_allTypes` 线性遍历 O(n)，应预构建 Map | `[x]` 已修复 |
+| P004 | P0 | 性能 | `lib/core/models/semantic_type_registry.dart:795-803` | `recommend` 内 `results.contains(type)` 在循环内 O(m×n) | `[x]` 已修复 |
+| P005 | P0 | 重复代码 | `lib/presentation/widgets/password_verification_dialog.dart` | 两个 State 类约 400+ 行重复（`PasswordVerificationDialogContentState` / `BiometricPasswordDialogContentState`） | `[ ]` 待修复（大重构） |
+| P006 | P0 | 重复代码 | `lib/presentation/widgets/ocr_scanner_sheet.dart:360-578` | `_pickImage` / `_pickDocument` 90%+ OCR/MRZ/LLM 逻辑重复 | `[ ]` 待修复（大重构） |
 | P007 | P1 | 过长函数 | `lib/presentation/pages/plugin_dashboard_page.dart:2006-2291` | `_onRun` 约 285 行，事件流处理 | `[ ]` 待修复 |
 | P008 | P1 | 过长函数 | `lib/presentation/pages/object_editor_page.dart:1164-1331` | `_PropertyFieldRow.build` 约 167 行 | `[ ]` 待修复 |
 | P009 | P1 | 过长函数 | `lib/presentation/widgets/object_card.dart:688-858` | `build` 约 170 行 | `[ ]` 待修复 |
@@ -25,19 +25,19 @@
 | P012 | P1 | 深层嵌套 | `lib/presentation/pages/plugin_dashboard_page.dart:2006-2291` | `_onRun` 内 `await for` > `switch` > `case` > `if` > `try` > `for` 达 6-7 层 | `[ ]` 待修复 |
 | P013 | P1 | 深层嵌套 | `lib/presentation/providers/unified_object_notifier.dart:203-312` | `_migrateDefaultSectionSchemas` 嵌套达 5-6 层 | `[ ]` 待修复 |
 | P014 | P1 | 深层嵌套 | `lib/presentation/pages/object_editor_page.dart:548-666` | `_saveObject` 嵌套达 6-7 层 | `[ ]` 待修复 |
-| P015 | P1 | 重复代码 | `lib/presentation/pages/plugin_dashboard_page.dart:240-264 / 2550-2574` | 两个 `_getManifest` 方法完全重复 | `[ ]` 待修复 |
+| P015 | P1 | 重复代码 | `lib/presentation/pages/plugin_dashboard_page.dart:240-264 / 2550-2574` | 两个 `_getManifest` 方法完全重复 | `[x]` 已修复 |
 | P016 | P1 | 重复代码 | `lib/presentation/widgets/object_card.dart:252-604` | `_saveNewItem` / `_saveEditItem` 日志/通知逻辑重复 | `[ ]` 待修复 |
 | P017 | P1 | 重复代码 | `lib/presentation/providers/unified_object_notifier.dart:133-312` | `_createDefaultStructure` / `_migrateDefaultSectionSchemas` page/section 创建逻辑重复 | `[ ]` 待修复 |
-| P018 | P1 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:109` | `repairOrphanItems` 外层 for 内调用 `objects.any(...)`，O(n²) | `[ ]` 待修复 |
-| P019 | P1 | 性能 | `lib/core/services/unified_object_service.dart:720-735` | `getDescendantIds` 递归内每次重建 Map，O(n×depth) | `[ ]` 待修复 |
-| P020 | P1 | 性能 | `lib/core/services/rust_vault_service.dart:520-526` | `saveSettingEncrypted` 含诊断加密调用，每次保存多做一次加密 | `[ ]` 待修复 |
-| P021 | P2 | 重复代码 | `lib/presentation/pages/sync_page.dart:234-245 / 700-711` | `_hexToBytes` 在两个 State 中重复定义 | `[ ]` 待修复 |
-| P022 | P2 | 死代码 | `lib/presentation/pages/plugin_dashboard_page.dart:1773` | `_showAccessReview` 中 `locale` 变量获取后未使用 | `[ ]` 待修复 |
-| P023 | P2 | 死代码 | `lib/presentation/pages/plugin_dashboard_page.dart:1369-1390` | `_typeIcon` / `_typeLabel` 中 `case 'map':` 永远不会触发 | `[ ]` 待修复 |
-| P024 | P2 | 代理方法 | `lib/presentation/pages/trash_page.dart:374` | `_logSectionForTypeId` 直接代理顶层函数 | `[ ]` 待修复 |
-| P025 | P2 | 代理方法 | `lib/presentation/widgets/trash/unified_object_trash_card.dart:323` | `_typeColor` 直接代理 `typeColorForId` | `[ ]` 待修复 |
-| P026 | P2 | 缺失参数 | `lib/core/models/unified_object_model.dart:187` | `ObjectTypeDefinition.copyWith` 缺少 `titlePropertyKey` | `[ ]` 待修复 |
-| P027 | P2 | 硬编码 | `lib/presentation/pages/scan/scan_preview_page.dart:546` | `_ScanPreviewEmptyState` 标题/副标题硬编码英文 | `[ ]` 待修复 |
+| P018 | P1 | 性能 | `lib/presentation/providers/unified_object_notifier.dart:109` | `repairOrphanItems` 外层 for 内调用 `objects.any(...)`，O(n²) | `[x]` 已修复 |
+| P019 | P1 | 性能 | `lib/core/services/unified_object_service.dart:720-735` | `getDescendantIds` 递归内每次重建 Map，O(n×depth) | `[x]` 误报/设计如此 — Map 在递归函数外部构建 |
+| P020 | P1 | 性能 | `lib/core/services/rust_vault_service.dart:520-526` | `saveSettingEncrypted` 含诊断加密调用，每次保存多做一次加密 | `[x]` 已修复 |
+| P021 | P2 | 重复代码 | `lib/presentation/pages/sync_page.dart:234-245 / 700-711` | `_hexToBytes` 在两个 State 中重复定义 | `[x]` 已修复 |
+| P022 | P2 | 死代码 | `lib/presentation/pages/plugin_dashboard_page.dart:1773` | `_showAccessReview` 中 `locale` 变量获取后未使用 | `[x]` 已修复 |
+| P023 | P2 | 死代码 | `lib/presentation/pages/plugin_dashboard_page.dart:1369-1390` | `_typeIcon` / `_typeLabel` 中 `case 'map':` 永远不会触发 | `[x]` 已修复 |
+| P024 | P2 | 代理方法 | `lib/presentation/pages/trash_page.dart:374` | `_logSectionForTypeId` 直接代理顶层函数 | `[x]` 已修复 |
+| P025 | P2 | 代理方法 | `lib/presentation/widgets/trash/unified_object_trash_card.dart:323` | `_typeColor` 直接代理 `typeColorForId` | `[x]` 已修复 |
+| P026 | P2 | 缺失参数 | `lib/core/models/unified_object_model.dart:187` | `ObjectTypeDefinition.copyWith` 缺少 `titlePropertyKey` | `[x]` 已修复 |
+| P027 | P2 | 硬编码 | `lib/presentation/pages/scan/scan_preview_page.dart:546` | `_ScanPreviewEmptyState` 标题/副标题硬编码英文 | `[x]` 已修复 |
 | P028 | P2 | 性能 | `lib/presentation/widgets/object_card.dart:130-160` | `_template` getter 每次访问都创建新 Map | `[ ]` 待修复 |
 | P029 | P2 | 性能 | `lib/core/services/llm/llm_config_service.dart:261-362` | 5 个 getter 重复 "获取 active profile" 逻辑 | `[ ]` 待修复 |
 | P030 | P2 | 可简化 | `lib/core/services/unified_object_service.dart:884-998` | `getIconFromName` 114 行巨大 switch，可改为 Map 常量表 | `[ ]` 待修复 |
@@ -47,8 +47,8 @@
 
 ## 修复进度
 
-- 已完成：**0 / 31**
-- 当前处理：**无**
+- 已完成：**14 / 31**
+- 当前处理：**P005 — password_verification_dialog 共享 UI 组件化**
 
 ---
 
