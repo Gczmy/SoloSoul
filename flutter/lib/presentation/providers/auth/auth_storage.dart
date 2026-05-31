@@ -31,6 +31,35 @@ class SecureAccountStorage {
 
   FallbackSecureStorage get _secureStorage => _fallbackSecureStorage;
 
+  // ---------------------------------------------------------------------------
+  // Injectable FFI wrappers for testability
+  // ---------------------------------------------------------------------------
+
+  static Future<Uint8List> Function({required int length}) _saltGenerator =
+      frb.frbGenerateSalt;
+  static Future<Uint8List> Function({
+    required String password,
+    required Uint8List salt,
+    required int memoryKib,
+    required int iterations,
+    required int parallelism,
+  }) _keyDeriver = frb.frbDeriveKey;
+
+  /// Override FFI wrappers for testing. Call with no arguments to reset defaults.
+  static void setFfiWrappersForTest({
+    Future<Uint8List> Function({required int length})? saltGenerator,
+    Future<Uint8List> Function({
+      required String password,
+      required Uint8List salt,
+      required int memoryKib,
+      required int iterations,
+      required int parallelism,
+    })? keyDeriver,
+  }) {
+    _saltGenerator = saltGenerator ?? frb.frbGenerateSalt;
+    _keyDeriver = keyDeriver ?? frb.frbDeriveKey;
+  }
+
   /// Clears all attempt trackers. Used only in tests for isolation.
   void clearAttemptTrackersForTest() {
     _attemptTrackers.clear();
@@ -160,37 +189,39 @@ class SecureAccountStorage {
     final accounts = await listAccounts();
     final existingWithSameName = accounts.where((a) => a.name.toLowerCase() == name.toLowerCase()).toList();
     if (existingWithSameName.isNotEmpty) {
-      // If the existing account has a different id than the one Rust generated,
-      // it's likely stale Keychain data. Remove it and continue.
-      final staleAccounts = existingWithSameName.where((a) => a.id != accountId).toList();
-      if (staleAccounts.isNotEmpty) {
-        for (final stale in staleAccounts) {
-          DebugLogger.instance.logWarning(
-            'STORAGE',
-            'Removing stale account ${stale.id} ($name) from Keychain before creation',
-          );
-          await deleteAccount(stale.id);
-        }
-        // Re-check after cleanup
-        final refreshed = await listAccounts();
-        final stillConflicts = refreshed.where((a) => a.name.toLowerCase() == name.toLowerCase()).toList();
-        if (stillConflicts.isNotEmpty) {
-          // If the only remaining conflict is the accountId we're about to create,
-          // delete it so we can re-create with fresh data.
-          if (accountId != null && stillConflicts.length == 1 && stillConflicts.first.id == accountId) {
-            await deleteAccount(accountId);
-          } else {
-            return (
-              success: false,
-              error: 'This account name is already taken',
-              account: null,
-              sessionKey: null
+      // When accountId is provided (Rust-generated), allow removing stale
+      // Keychain data with a different id. Otherwise reject duplicates.
+      if (accountId != null) {
+        final staleAccounts = existingWithSameName.where((a) => a.id != accountId).toList();
+        if (staleAccounts.isNotEmpty) {
+          for (final stale in staleAccounts) {
+            DebugLogger.instance.logWarning(
+              'STORAGE',
+              'Removing stale account ${stale.id} ($name) from Keychain before creation',
             );
+            await deleteAccount(stale.id);
           }
+          // Re-check after cleanup
+          final refreshed = await listAccounts();
+          final stillConflicts = refreshed.where((a) => a.name.toLowerCase() == name.toLowerCase()).toList();
+          if (stillConflicts.isNotEmpty) {
+            // If the only remaining conflict is the accountId we're about to create,
+            // delete it so we can re-create with fresh data.
+            if (stillConflicts.length == 1 && stillConflicts.first.id == accountId) {
+              await deleteAccount(accountId);
+            } else {
+              return (
+                success: false,
+                error: 'This account name is already taken',
+                account: null,
+                sessionKey: null
+              );
+            }
+          }
+        } else if (existingWithSameName.any((a) => a.id == accountId)) {
+          // Same id exists — delete old record so we can re-create
+          await deleteAccount(accountId);
         }
-      } else if (accountId != null && existingWithSameName.any((a) => a.id == accountId)) {
-        // Same id exists — delete old record so we can re-create
-        await deleteAccount(accountId);
       } else {
         return (
           success: false,
@@ -207,7 +238,7 @@ class SecureAccountStorage {
     Uint8List? sessionKey;
 
     if (salt != null && verifyHashFromRust != null) {
-      sessionKey = await frb.frbDeriveKey(
+      sessionKey = await _keyDeriver(
         password: password,
         salt: base64Decode(salt),
         memoryKib: 16384,
@@ -215,9 +246,9 @@ class SecureAccountStorage {
         parallelism: 4,
       );
     } else {
-      final dartSalt = await frb.frbGenerateSalt(length: 32);
+      final dartSalt = await _saltGenerator(length: 32);
       // Step 1: Derive master_key from password (same as Rust)
-      final masterKey = await frb.frbDeriveKey(
+      final masterKey = await _keyDeriver(
         password: password,
         salt: dartSalt,
         memoryKib: 16384,
@@ -227,7 +258,7 @@ class SecureAccountStorage {
       // Step 2: Hex-encode master_key and use as password for verify derivation (same as Rust)
       final masterKeyHex = bytesToHex(masterKey);
       const verifyData = 'SOLOSOUL_VAULT_VERIFY_v1';
-      final verifyKey = await frb.frbDeriveKey(
+      final verifyKey = await _keyDeriver(
         password: masterKeyHex,
         salt: Uint8List.fromList(utf8.encode(verifyData)),
         memoryKib: 8192,

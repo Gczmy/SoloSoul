@@ -41,9 +41,21 @@ void main() {
     secureStorageData.clear();
     // Clear attempt trackers between tests
     SecureAccountStorage.instance.clearAttemptTrackersForTest();
+    // Mock FFI wrappers so tests don't need initialized flutter_rust_bridge
+    SecureAccountStorage.setFfiWrappersForTest(
+      saltGenerator: ({required int length}) async => Uint8List(length),
+      keyDeriver: ({
+        required String password,
+        required Uint8List salt,
+        required int memoryKib,
+        required int iterations,
+        required int parallelism,
+      }) async => Uint8List(32),
+    );
   });
 
   tearDownAll(() {
+    SecureAccountStorage.setFfiWrappersForTest(); // reset to defaults
     const secureStorageChannel = MethodChannel(
       'plugins.it_nomads.com/flutter_secure_storage',
     );
