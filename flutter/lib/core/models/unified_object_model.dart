@@ -643,12 +643,14 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   /// Optional display labels for properties (schema-level metadata).
   /// Key is the property key, value is the user-defined display label.
   /// If absent or empty, UI falls back to translateFieldLabel(key).
+  @JsonKey(name: '__propertyLabels')
   final Map<String, String>? propertyLabels;
 
   /// 【新增】语义类型映射（Schema 层元数据）。
   /// Key 是机器 key，value 是语义类型 ID（如 "pet.name"）。
   /// 存储在 JSON 中时为 `__semanticTypes`。
   /// 仅用于 section/collection 对象的 Schema 定义。
+  @JsonKey(name: '__semanticTypes')
   final Map<String, String>? semanticTypes;
 
   /// 字段属性顺序（仅用于 section/collection 的 Schema 定义）。
