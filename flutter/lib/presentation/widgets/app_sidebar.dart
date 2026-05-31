@@ -245,244 +245,277 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       width: sidebarWidth,
       child: Stack(
         children: [
-          // Sidebar content with liquid glass background
-          SizedBox(
-            width: sidebarWidth,
-            child: AdaptiveGlass(
-              shape: const LiquidRoundedRectangle(borderRadius: 0),
-              settings: _glassSettings(isDark),
-              quality: GlassQuality.standard,
-              child: Container(
-                color: _glassBackground(isDark),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    SidebarHeader(expanded: _expanded, onToggle: _toggle),
-                    const Divider(height: 1),
+          _buildSidebarContent(
+            context: context,
+            sidebarWidth: sidebarWidth,
+            location: location,
+            allPages: allPages,
+            theme: theme,
+            isDark: isDark,
+          ),
+          _buildResizeHandle(),
+        ],
+      ),
+    );
+  }
 
-                    // Nav items + custom pages
-                    Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          final sidebarItems = _buildSidebarItems(
-                            context,
-                            location,
-                            allPages,
-                            theme,
-                          );
-                          return ListView.builder(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: _expanded ? 12 : 0,
-                              vertical: 8,
-                            ),
-                            itemCount: sidebarItems.length,
-                            itemBuilder: (context, index) => sidebarItems[index],
-                          );
-                        },
-                      ),
-                    ),
+  /// 侧边栏主内容区（含 liquid glass 背景）。
+  Widget _buildSidebarContent({
+    required BuildContext context,
+    required double sidebarWidth,
+    required String location,
+    required List<UnifiedObject> allPages,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
+    return SizedBox(
+      width: sidebarWidth,
+      child: AdaptiveGlass(
+        shape: const LiquidRoundedRectangle(borderRadius: 0),
+        settings: _glassSettings(isDark),
+        quality: GlassQuality.standard,
+        child: Container(
+          color: _glassBackground(isDark),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              SidebarHeader(expanded: _expanded, onToggle: _toggle),
+              const Divider(height: 1),
 
-                    // Fixed "Pages +" section above bottom actions
-                    if (_expanded)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Divider(height: 1),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context).sidebarPages,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Tooltip(
-                                  message: AppLocalizations.of(context).sidebarAddPage,
-                                  child: InkWell(
-                                    onTap: () => setState(() => _isAddingPage = true),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(4),
-                                      child: Icon(
-                                        Icons.add,
-                                        size: 16,
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // Root-level drop zone
-                            DragTarget<String>(
-                              onWillAcceptWithDetails: (_) => true,
-                              onAcceptWithDetails: (details) {
-                                ref.read(unifiedObjectProvider.notifier).moveObject(details.data, null);
-                              },
-                              builder: (context, candidateData, rejectedData) {
-                                final isHovering = candidateData.isNotEmpty;
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  height: isHovering ? 36 : 4,
-                                  margin: const EdgeInsets.symmetric(vertical: 4),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: isHovering
-                                        ? theme.colorScheme.primary.withValues(alpha: 0.08)
-                                        : null,
-                                    border: isHovering
-                                        ? Border.all(
-                                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                                            width: 1.5,
-                                          )
-                                        : null,
-                                  ),
-                                  child: isHovering
-                                      ? Center(
-                                          child: Text(
-                                            AppLocalizations.of(context).sidebarDropToMakeRootPage,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: theme.colorScheme.primary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        )
-                                      : null,
-                                );
-                              },
-                            ),
-                            // Add page input
-                            if (_isAddingPage)
-                              TapRegion(
-                                onTapOutside: (_) {
-                                  if (_isAddingPage && !_isPickingIcon) {
-                                    if (_addPageController.text.trim().isNotEmpty) {
-                                      _confirmAddPage();
-                                    } else {
-                                      _addPageController.clear();
-                                      _newPageIconName = 'article';
-                                      setState(() => _isAddingPage = false);
-                                    }
-                                  }
-                                },
-                                child: AddPageInput(
-                                  controller: _addPageController,
-                                  iconName: _newPageIconName,
-                                  onIconTap: _pickNewPageIcon,
-                                  onConfirm: _confirmAddPage,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-
-                    // Bottom actions: Lock + Trash + Settings
-                    Padding(
+              // Nav items + custom pages
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    final sidebarItems = _buildSidebarItems(
+                      context,
+                      location,
+                      allPages,
+                      theme,
+                    );
+                    return ListView.builder(
                       padding: EdgeInsets.symmetric(
                         horizontal: _expanded ? 12 : 0,
                         vertical: 8,
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          NavTile(
-                            icon: Icons.extension_outlined,
-                            label: AppLocalizations.of(context).sidebarPlugin,
-                            expanded: _expanded,
-                            selected: location == AppRoutes.pluginDashboard,
-                            onTap: () => context.go(AppRoutes.pluginDashboard),
-                          ),
-                          NavTile(
-                            icon: Icons.lock_outline,
-                            label: AppLocalizations.of(context).sidebarLockVault,
-                            expanded: _expanded,
-                            onTap: () async {
-                              final confirmed = await showLockVaultDialog(context);
-                              if (confirmed == true && context.mounted) {
-                                await ref.read(authNotifierProvider.notifier).lockVault();
-                              }
-                            },
-                          ),
-                          NavTile(
-                            icon: Icons.delete_outline,
-                            label: AppLocalizations.of(context).sidebarTrash,
-                            expanded: _expanded,
-                            selected: location == AppRoutes.trash,
-                            onTap: () => context.go(AppRoutes.trash),
-                          ),
-                          NavTile(
-                            icon: Icons.sync,
-                            label: AppLocalizations.of(context).sidebarSync,
-                            expanded: _expanded,
-                            selected: location == AppRoutes.sync,
-                            onTap: () => context.go(AppRoutes.sync),
-                          ),
-                          NavTile(
-                            icon: Icons.settings_outlined,
-                            label: AppLocalizations.of(context).sidebarSettings,
-                            expanded: _expanded,
-                            selected: location == AppRoutes.settings ||
-                                location == AppRoutes.securitySettings ||
-                                location == AppRoutes.sensitivitySettings ||
-                                location == AppRoutes.operationLog ||
-                                location == AppRoutes.llmConfig,
-                            onTap: () => context.go(AppRoutes.settings),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      itemCount: sidebarItems.length,
+                      itemBuilder: (context, index) => sidebarItems[index],
+                    );
+                  },
                 ),
               ),
-            ),
-          ),
 
-          // Resize handle
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.resizeLeftRight,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onHorizontalDragUpdate: (details) {
-                  setState(() {
-                    final newWidth = _expandedWidth + details.delta.dx;
-                    if (_expanded) {
-                      // Collapse when dragged below minimum width
-                      if (newWidth < _minWidth) {
-                        _expanded = false;
-                      } else {
-                        _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
-                      }
-                    } else {
-                      // Re-expand only when dragged past minWidth + hysteresis
-                      // to prevent flickering from hand jitter near the threshold.
-                      if (newWidth > _minWidth + _collapseHysteresis) {
-                        _expanded = true;
-                        _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
-                      }
-                    }
-                  });
-                },
-                child: Container(
-                  width: 8,
-                  color: Colors.transparent,
+              // Fixed "Pages +" section above bottom actions
+              if (_expanded) _buildPagesSection(context, theme),
+
+              // Bottom actions: Lock + Trash + Settings
+              _buildBottomActions(context, location, theme),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// "Pages +" 区域：标题、拖放区、新增输入框。
+  Widget _buildPagesSection(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Divider(height: 1),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                AppLocalizations.of(context).sidebarPages,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
                 ),
               ),
+              const Spacer(),
+              Tooltip(
+                message: AppLocalizations.of(context).sidebarAddPage,
+                child: InkWell(
+                  onTap: () => setState(() => _isAddingPage = true),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.add,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Root-level drop zone
+          DragTarget<String>(
+            onWillAcceptWithDetails: (_) => true,
+            onAcceptWithDetails: (details) {
+              ref.read(unifiedObjectProvider.notifier).moveObject(details.data, null);
+            },
+            builder: (context, candidateData, rejectedData) {
+              final isHovering = candidateData.isNotEmpty;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                height: isHovering ? 36 : 4,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: isHovering
+                      ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                      : null,
+                  border: isHovering
+                      ? Border.all(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                          width: 1.5,
+                        )
+                      : null,
+                ),
+                child: isHovering
+                    ? Center(
+                        child: Text(
+                          AppLocalizations.of(context).sidebarDropToMakeRootPage,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                    : null,
+              );
+            },
+          ),
+          // Add page input
+          if (_isAddingPage)
+            TapRegion(
+              onTapOutside: (_) {
+                if (_isAddingPage && !_isPickingIcon) {
+                  if (_addPageController.text.trim().isNotEmpty) {
+                    _confirmAddPage();
+                  } else {
+                    _addPageController.clear();
+                    _newPageIconName = 'article';
+                    setState(() => _isAddingPage = false);
+                  }
+                }
+              },
+              child: AddPageInput(
+                controller: _addPageController,
+                iconName: _newPageIconName,
+                onIconTap: _pickNewPageIcon,
+                onConfirm: _confirmAddPage,
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  /// 底部操作区：Plugin + Lock + Trash + Sync + Settings。
+  Widget _buildBottomActions(
+    BuildContext context,
+    String location,
+    ThemeData theme,
+  ) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: _expanded ? 12 : 0,
+        vertical: 8,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          NavTile(
+            icon: Icons.extension_outlined,
+            label: AppLocalizations.of(context).sidebarPlugin,
+            expanded: _expanded,
+            selected: location == AppRoutes.pluginDashboard,
+            onTap: () => context.go(AppRoutes.pluginDashboard),
+          ),
+          NavTile(
+            icon: Icons.lock_outline,
+            label: AppLocalizations.of(context).sidebarLockVault,
+            expanded: _expanded,
+            onTap: () async {
+              final confirmed = await showLockVaultDialog(context);
+              if (confirmed == true && context.mounted) {
+                await ref.read(authNotifierProvider.notifier).lockVault();
+              }
+            },
+          ),
+          NavTile(
+            icon: Icons.delete_outline,
+            label: AppLocalizations.of(context).sidebarTrash,
+            expanded: _expanded,
+            selected: location == AppRoutes.trash,
+            onTap: () => context.go(AppRoutes.trash),
+          ),
+          NavTile(
+            icon: Icons.sync,
+            label: AppLocalizations.of(context).sidebarSync,
+            expanded: _expanded,
+            selected: location == AppRoutes.sync,
+            onTap: () => context.go(AppRoutes.sync),
+          ),
+          NavTile(
+            icon: Icons.settings_outlined,
+            label: AppLocalizations.of(context).sidebarSettings,
+            expanded: _expanded,
+            selected: location == AppRoutes.settings ||
+                location == AppRoutes.securitySettings ||
+                location == AppRoutes.sensitivitySettings ||
+                location == AppRoutes.operationLog ||
+                location == AppRoutes.llmConfig,
+            onTap: () => context.go(AppRoutes.settings),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 侧边栏右侧拖拽调整宽度手柄。
+  Widget _buildResizeHandle() {
+    return Positioned(
+      right: 0,
+      top: 0,
+      bottom: 0,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.resizeLeftRight,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragUpdate: (details) {
+            setState(() {
+              final newWidth = _expandedWidth + details.delta.dx;
+              if (_expanded) {
+                // Collapse when dragged below minimum width
+                if (newWidth < _minWidth) {
+                  _expanded = false;
+                } else {
+                  _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
+                }
+              } else {
+                // Re-expand only when dragged past minWidth + hysteresis
+                if (newWidth > _minWidth + _collapseHysteresis) {
+                  _expanded = true;
+                  _expandedWidth = newWidth.clamp(_minWidth, _maxWidth);
+                }
+              }
+            });
+          },
+          child: Container(
+            width: 8,
+            color: Colors.transparent,
+          ),
+        ),
       ),
     );
   }

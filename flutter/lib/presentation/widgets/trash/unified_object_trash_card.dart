@@ -14,6 +14,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
     show deletedChildrenProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show AppTheme, showOverlaySnackBar, SnackBarType;
+import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
@@ -87,176 +88,29 @@ class _UnifiedObjectTrashCardState
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Icon + name row
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _typeColor(object.typeId).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    UnifiedObjectService.getIconFromName(object.iconName),
-                    color: _typeColor(object.typeId),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      displayName.trim().isNotEmpty
-                          ? Text(
-                              displayName,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          : Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '${translateFieldLabel('Title', l10n)}: ',
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: l10n.commonEmpty,
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _localizedTypeId(object.typeId, l10n),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isExpiringSoon)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '$daysRemaining days',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.orange.shade800,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+          _buildHeader(
+            theme: theme,
+            l10n: l10n,
+            object: object,
+            displayName: displayName,
+            daysRemaining: daysRemaining,
+            isExpiringSoon: isExpiringSoon,
           ),
           const SizedBox(height: 8),
-          // Action bar with section-specific background
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final narrow = constraints.maxWidth < 420;
-                return Row(
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      size: 14,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        deletedAt != null
-                            ? l10n.trashDeletedAgo(
-                                _formatTimeAgo(deletedAt, l10n))
-                            : l10n.trashDeletedRecently,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                    _ActionButtonWidget(
-                      narrow: narrow,
-                      icon: Icons.info_outline,
-                      label: l10n.trashDetailLabel,
-                      onPressed: () =>
-                          _showDetailDialog(widget.object),
-                    ),
-                    const SizedBox(width: 4),
-                    _HistoryButtonWidget(
-                      narrow: narrow,
-                      count: history?.entries.length ?? 0,
-                      onShowHistory: () => FieldHistoryDialog.show(
-                        context: context,
-                        title: displayName,
-                        icon: UnifiedObjectService.getIconFromName(
-                          object.iconName,
-                        ),
-                        fieldDefs: fieldDefs,
-                        history: history,
-                        fieldPrefix: fieldPrefix,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    if (isExpandable && children.isNotEmpty) ...[
-                      _ActionButtonWidget(
-                        narrow: narrow,
-                        icon: _expanded
-                            ? Icons.expand_less
-                            : Icons.expand_more,
-                        label: isPage
-                            ? l10n.trashShowSections
-                            : l10n.trashShowItems,
-                        onPressed: () =>
-                            setState(() => _expanded = !_expanded),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    _ActionButtonWidget(
-                      narrow: narrow,
-                      icon: Icons.restore_from_trash,
-                      label: l10n.trashRestoreLabel,
-                      onPressed: widget.onRestore,
-                    ),
-                    const SizedBox(width: 4),
-                    _ActionButtonWidget(
-                      narrow: narrow,
-                      icon: Icons.delete_forever,
-                      label: l10n.trashPurgeLabel,
-                      onPressed: widget.onPurge,
-                      color: AppTheme.errorColor,
-                    ),
-                  ],
-                );
-              },
-            ),
+          _buildActionBar(
+            context: context,
+            theme: theme,
+            l10n: l10n,
+            object: object,
+            displayName: displayName,
+            deletedAt: deletedAt,
+            fieldPrefix: fieldPrefix,
+            fieldDefs: fieldDefs,
+            history: history,
+            isExpandable: isExpandable,
+            isPage: isPage,
+            children: children,
           ),
-          // Expandable children panel
           if (isExpandable && _expanded && children.isNotEmpty)
             _ChildrenPanel(
               children: children,
@@ -265,6 +119,194 @@ class _UnifiedObjectTrashCardState
               onShowDetail: _showDetailDialog,
             ),
         ],
+      ),
+    );
+  }
+
+  /// 卡片头部：图标 + 名称 + 类型 + 即将过期标记。
+  Widget _buildHeader({
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required UnifiedObject object,
+    required String displayName,
+    required int daysRemaining,
+    required bool isExpiringSoon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: _typeColor(object.typeId).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              UnifiedObjectService.getIconFromName(object.iconName),
+              color: _typeColor(object.typeId),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                displayName.trim().isNotEmpty
+                    ? Text(
+                        displayName,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    : Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${translateFieldLabel('Title', l10n)}: ',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            TextSpan(
+                              text: l10n.commonEmpty,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                const SizedBox(height: 2),
+                Text(
+                  _localizedTypeId(object.typeId, l10n),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isExpiringSoon)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$daysRemaining days',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: Colors.orange.shade800,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 操作按钮栏：删除时间 + 详情/历史/展开/恢复/彻底删除。
+  Widget _buildActionBar({
+    required BuildContext context,
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required UnifiedObject object,
+    required String displayName,
+    required DateTime? deletedAt,
+    required String fieldPrefix,
+    required List<FormFieldDef> fieldDefs,
+    required FieldHistory? history,
+    required bool isExpandable,
+    required bool isPage,
+    required List<UnifiedObject> children,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 420;
+          return Row(
+            children: [
+              Icon(
+                Icons.access_time,
+                size: 14,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  deletedAt != null
+                      ? l10n.trashDeletedAgo(
+                          _formatTimeAgo(deletedAt, l10n))
+                      : l10n.trashDeletedRecently,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+              _ActionButtonWidget(
+                narrow: narrow,
+                icon: Icons.info_outline,
+                label: l10n.trashDetailLabel,
+                onPressed: () => _showDetailDialog(widget.object),
+              ),
+              const SizedBox(width: 4),
+              _HistoryButtonWidget(
+                narrow: narrow,
+                count: history?.entries.length ?? 0,
+                onShowHistory: () => FieldHistoryDialog.show(
+                  context: context,
+                  title: displayName,
+                  icon: UnifiedObjectService.getIconFromName(object.iconName),
+                  fieldDefs: fieldDefs,
+                  history: history,
+                  fieldPrefix: fieldPrefix,
+                ),
+              ),
+              const SizedBox(width: 4),
+              if (isExpandable && children.isNotEmpty) ...[
+                _ActionButtonWidget(
+                  narrow: narrow,
+                  icon: _expanded ? Icons.expand_less : Icons.expand_more,
+                  label: isPage
+                      ? l10n.trashShowSections
+                      : l10n.trashShowItems,
+                  onPressed: () => setState(() => _expanded = !_expanded),
+                ),
+                const SizedBox(width: 4),
+              ],
+              _ActionButtonWidget(
+                narrow: narrow,
+                icon: Icons.restore_from_trash,
+                label: l10n.trashRestoreLabel,
+                onPressed: widget.onRestore,
+              ),
+              const SizedBox(width: 4),
+              _ActionButtonWidget(
+                narrow: narrow,
+                icon: Icons.delete_forever,
+                label: l10n.trashPurgeLabel,
+                onPressed: widget.onPurge,
+                color: AppTheme.errorColor,
+              ),
+            ],
+          );
+        },
       ),
     );
   }

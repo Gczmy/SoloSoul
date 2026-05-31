@@ -1034,217 +1034,23 @@ class _PluginResultDialogState extends State<_PluginResultDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final allText = widget.logs.join('\n');
-    final hasResults = widget.results.isNotEmpty;
 
     return AlertDialog(
       insetPadding: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width * 0.15,
         vertical: 24,
       ),
-      title: Row(
-        children: [
-          Icon(
-            widget.hasErrors ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-            color: widget.hasErrors ? Colors.orange.shade700 : Colors.green.shade600,
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text('${widget.pluginName} 结果')),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
-      ),
+      title: _buildTitle(),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // === 执行日志区（可展开折叠，默认折叠，放在结果上方） ===
-            Material(
-              color: Colors.transparent,
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  dividerColor: Colors.transparent,
-                ),
-                child: ExpansionTile(
-                  title: Text(
-                    '执行日志 (${widget.logs.length} 行)',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  tilePadding: const EdgeInsets.symmetric(horizontal: 4),
-                  childrenPadding: EdgeInsets.zero,
-                  initiallyExpanded: _logsExpanded,
-                  onExpansionChanged: (expanded) => setState(() => _logsExpanded = expanded),
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      constraints: const BoxConstraints(maxHeight: 300),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Scrollbar(
-                          thumbVisibility: true,
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(12),
-                            child: SelectableText(
-                              allText,
-                              style: TextStyle(
-                                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                                fontSize: 12,
-                                height: 1.5,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: allText));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('已复制全部日志到剪贴板'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.copy_all, size: 16),
-                        label: const Text('复制全部日志', style: TextStyle(fontSize: 12)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
+            _buildLogsSection(context, allText),
             const SizedBox(height: 12),
-
-            // === 结果区 ===
-            if (hasResults)
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: widget.results.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final result = widget.results[index];
-                    final builder = _resultCardRenderers[result.type];
-                    final cardContent = builder != null
-                        ? builder(context, result)
-                        : _UnknownResultCard(data: result.data);
-
-                    return _ResultCard(
-                      result: result,
-                      child: cardContent,
-                    );
-                  },
-                ),
-              )
-            else if (widget.logs.isNotEmpty)
-              Flexible(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(12),
-                        child: SelectableText(
-                          allText,
-                          style: TextStyle(
-                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                            fontSize: 13,
-                            height: 1.6,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.article_outlined,
-                      size: 40,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '无结果返回',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '具体细节请查看执行日志',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            if (widget.hasErrors)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange.shade700),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        '插件执行过程中出现部分错误（exit: ${widget.exitCode}）',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange.shade800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _buildResultsSection(context, allText),
+            if (widget.hasErrors) _buildErrorBanner(),
           ],
         ),
       ),
@@ -1254,6 +1060,216 @@ class _PluginResultDialogState extends State<_PluginResultDialog> {
           child: Text(l10n.commonClose),
         ),
       ],
+    );
+  }
+
+  /// 对话框标题：状态图标 + 插件名 + 关闭按钮。
+  Widget _buildTitle() {
+    return Row(
+      children: [
+        Icon(
+          widget.hasErrors ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+          color: widget.hasErrors ? Colors.orange.shade700 : Colors.green.shade600,
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Text('${widget.pluginName} 结果')),
+        IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+    );
+  }
+
+  /// 执行日志区（可展开折叠）。
+  Widget _buildLogsSection(BuildContext context, String allText) {
+    return Material(
+      color: Colors.transparent,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Text(
+            '执行日志 (${widget.logs.length} 行)',
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+          childrenPadding: EdgeInsets.zero,
+          initiallyExpanded: _logsExpanded,
+          onExpansionChanged: (expanded) => setState(() => _logsExpanded = expanded),
+          children: [
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxHeight: 300),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(12),
+                    child: SelectableText(
+                      allText,
+                      style: TextStyle(
+                        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                        fontSize: 12,
+                        height: 1.5,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: allText));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('已复制全部日志到剪贴板'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy_all, size: 16),
+                label: const Text('复制全部日志', style: TextStyle(fontSize: 12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 结果展示区：结构化结果列表 / 纯日志 / 空状态。
+  Widget _buildResultsSection(BuildContext context, String allText) {
+    final hasResults = widget.results.isNotEmpty;
+
+    if (hasResults) {
+      return Flexible(
+        child: ListView.separated(
+          shrinkWrap: true,
+          itemCount: widget.results.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final result = widget.results[index];
+            final builder = _resultCardRenderers[result.type];
+            final cardContent = builder != null
+                ? builder(context, result)
+                : _UnknownResultCard(data: result.data);
+
+            return _ResultCard(
+              result: result,
+              child: cardContent,
+            );
+          },
+        ),
+      );
+    }
+
+    if (widget.logs.isNotEmpty) {
+      return Flexible(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(12),
+                child: SelectableText(
+                  allText,
+                  style: TextStyle(
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                    fontSize: 13,
+                    height: 1.6,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.article_outlined,
+            size: 40,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '无结果返回',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '具体细节请查看执行日志',
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 错误提示横幅。
+  Widget _buildErrorBanner() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange.shade700),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              '插件执行过程中出现部分错误（exit: ${widget.exitCode}）',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1965,27 +1981,37 @@ class _PluginCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _onRun(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-
-    // 材料清单插件特殊处理：先进行场景选择，再传入参数执行
-    Map<String, dynamic>? initialParams;
+  /// 为特定插件准备初始场景参数。
+  /// 用户取消时返回 null，调用方应终止流程。
+  Future<Map<String, dynamic>?> _prepareInitialParams(BuildContext context) async {
     if (pluginId == 'com.solosoul.official.doc-checklist') {
       final scenarioResult = await _showDocChecklistScenarioDialog(context);
-      if (scenarioResult == null) return; // 用户取消，终止流程
-      initialParams = {
+      if (scenarioResult == null) return null;
+      return {
         'scenario_id': scenarioResult['id'],
         'fields': scenarioResult['fields'],
       };
     }
-    // 表单预填插件特殊处理：先进行场景选择，再传入参数执行
     if (pluginId == 'com.solosoul.official.form-prefiller') {
-      if (!context.mounted) return;
+      if (!context.mounted) return null;
       final scenarioResult = await _showFormPrefillerScenarioDialog(context);
-      if (scenarioResult == null) return; // 用户取消，终止流程
-      initialParams = {
+      if (scenarioResult == null) return null;
+      return {
         'scenario_id': scenarioResult['id'],
       };
+    }
+    return null;
+  }
+
+  Future<void> _onRun(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+
+    final initialParams = await _prepareInitialParams(context);
+    if (initialParams == null && (
+      pluginId == 'com.solosoul.official.doc-checklist' ||
+      pluginId == 'com.solosoul.official.form-prefiller'
+    )) {
+      return;
     }
 
     final stream = runPlugin(ref, pluginId, params: initialParams);
@@ -2240,81 +2266,20 @@ class _PluginCard extends ConsumerWidget {
       }
 
       // Stream 完全结束后，统一弹出结果对话框。
-      // 这样可以确保 Result 事件无论先于还是后于 Completed 到达，都会被收集到 pluginResults 中。
       if (hasCompleted && context.mounted) {
         final registryEntry = data.registry.plugins[pluginId];
         final locale = Localizations.localeOf(context).toString();
         final pluginName = resolvePluginI18n(
           registryEntry?.i18n, 'name', locale, _getManifest()?.name ?? pluginId,
         );
-        final exitCode = completedExitCode!;
-
-        if (pluginLogs.isNotEmpty || pluginResults.isNotEmpty) {
-          // 有日志或结构化结果：弹出结果展示对话框
-          await showDialog<void>(
-            context: context,
-            builder: (ctx) => _PluginResultDialog(
-              pluginName: pluginName,
-              logs: pluginLogs,
-              results: pluginResults,
-              exitCode: exitCode,
-              hasErrors: exitCode != 0 && errorMessages.isNotEmpty,
-            ),
-          );
-        } else if (exitCode == 0) {
-          // 无日志但执行成功：弹出执行完成确认对话框
-          await showDialog<void>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              insetPadding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(ctx).size.width * 0.25,
-                vertical: 24,
-              ),
-              title: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green.shade600),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(pluginName)),
-                ],
-              ),
-              content: Text(l10n.pluginRunSuccess),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.commonClose),
-                ),
-              ],
-            ),
-          );
-        } else {
-          // 执行失败：弹出错误对话框
-          final errorMsg = errorMessages.isNotEmpty
-              ? errorMessages.join('\n')
-              : '插件执行失败 (exit: $exitCode)';
-          await showDialog<void>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              insetPadding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(ctx).size.width * 0.2,
-                vertical: 24,
-              ),
-              title: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: AppTheme.errorColor),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(pluginName)),
-                ],
-              ),
-              content: SelectableText(errorMsg),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.commonClose),
-                ),
-              ],
-            ),
-          );
-        }
+        await _showExecutionResult(
+          context: context,
+          pluginName: pluginName,
+          pluginLogs: pluginLogs,
+          pluginResults: pluginResults,
+          errorMessages: errorMessages,
+          exitCode: completedExitCode!,
+        );
       }
     } on Exception catch (e) {
       if (context.mounted) {
@@ -2322,6 +2287,85 @@ class _PluginCard extends ConsumerWidget {
           SnackBar(content: Text('${l10n.commonError}: $e')),
         );
       }
+    }
+  }
+
+  /// Stream 结束后统一展示执行结果对话框。
+  Future<void> _showExecutionResult({
+    required BuildContext context,
+    required String pluginName,
+    required List<String> pluginLogs,
+    required List<_PluginResultData> pluginResults,
+    required List<String> errorMessages,
+    required int exitCode,
+  }) async {
+    final l10n = AppLocalizations.of(context);
+
+    if (pluginLogs.isNotEmpty || pluginResults.isNotEmpty) {
+      // 有日志或结构化结果：弹出结果展示对话框
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => _PluginResultDialog(
+          pluginName: pluginName,
+          logs: pluginLogs,
+          results: pluginResults,
+          exitCode: exitCode,
+          hasErrors: exitCode != 0 && errorMessages.isNotEmpty,
+        ),
+      );
+    } else if (exitCode == 0) {
+      // 无日志但执行成功：弹出执行完成确认对话框
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(ctx).size.width * 0.25,
+            vertical: 24,
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green.shade600),
+              const SizedBox(width: 8),
+              Expanded(child: Text(pluginName)),
+            ],
+          ),
+          content: Text(l10n.pluginRunSuccess),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.commonClose),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // 执行失败：弹出错误对话框
+      final errorMsg = errorMessages.isNotEmpty
+          ? errorMessages.join('\n')
+          : '插件执行失败 (exit: $exitCode)';
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(ctx).size.width * 0.2,
+            vertical: 24,
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.error_outline, color: AppTheme.errorColor),
+              const SizedBox(width: 8),
+              Expanded(child: Text(pluginName)),
+            ],
+          ),
+          content: SelectableText(errorMsg),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.commonClose),
+            ),
+          ],
+        ),
+      );
     }
   }
 

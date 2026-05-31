@@ -68,35 +68,42 @@ class _PluginSensitivityOverrideDialogState
               const SizedBox(height: 20),
 
               // 选项列表
-              _buildStrategyOption(
-                strategy: SensitivityOverrideStrategy.deny,
-                title: l10n.sensitivityOverrideDenyTitle,
-                description: l10n.sensitivityOverrideDenyDesc,
-                icon: Icons.block,
-                iconColor: Colors.red,
-                theme: theme,
-              ),
-
-              const SizedBox(height: 8),
-
-              _buildStrategyOption(
-                strategy: SensitivityOverrideStrategy.mask,
-                title: l10n.sensitivityOverrideMaskTitle,
-                description: l10n.sensitivityOverrideMaskDesc,
-                icon: Icons.visibility_off,
-                iconColor: Colors.orange,
-                theme: theme,
-              ),
-
-              const SizedBox(height: 8),
-
-              _buildStrategyOption(
-                strategy: SensitivityOverrideStrategy.allow,
-                title: l10n.sensitivityOverrideAllowTitle,
-                description: l10n.sensitivityOverrideAllowDesc,
-                icon: Icons.check_circle,
-                iconColor: Colors.green,
-                theme: theme,
+              RadioGroup<SensitivityOverrideStrategy>(
+                groupValue: _selectedStrategy,
+                onChanged: (v) {
+                  if (v != null) setState(() => _selectedStrategy = v);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildStrategyOption(
+                      strategy: SensitivityOverrideStrategy.deny,
+                      title: l10n.sensitivityOverrideDenyTitle,
+                      description: l10n.sensitivityOverrideDenyDesc,
+                      icon: Icons.block,
+                      iconColor: Colors.red,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildStrategyOption(
+                      strategy: SensitivityOverrideStrategy.mask,
+                      title: l10n.sensitivityOverrideMaskTitle,
+                      description: l10n.sensitivityOverrideMaskDesc,
+                      icon: Icons.visibility_off,
+                      iconColor: Colors.orange,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildStrategyOption(
+                      strategy: SensitivityOverrideStrategy.allow,
+                      title: l10n.sensitivityOverrideAllowTitle,
+                      description: l10n.sensitivityOverrideAllowDesc,
+                      icon: Icons.check_circle,
+                      iconColor: Colors.green,
+                      theme: theme,
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 16),
@@ -162,8 +169,6 @@ class _PluginSensitivityOverrideDialogState
           children: [
             Radio<SensitivityOverrideStrategy>(
               value: strategy,
-              groupValue: _selectedStrategy,
-              onChanged: (v) { if (v != null) setState(() => _selectedStrategy = v); },
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(width: 4),

@@ -51,24 +51,26 @@ class _PluginRadioListDialogState extends State<PluginRadioListDialog> {
                     ),
                   ),
                 Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: widget.items.length,
-                itemBuilder: (context, index) {
-                  final item = widget.items[index];
-                  return RadioListTile<String>(
-                    title: Text(item.label),
-                    value: item.id,
+                  child: RadioGroup<String>(
                     groupValue: _selectedId,
                     onChanged: (value) {
                       setState(() {
                         _selectedId = value;
                       });
                     },
-                  );
-                },
-              ),
-            ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: widget.items.length,
+                      itemBuilder: (context, index) {
+                        final item = widget.items[index];
+                        return RadioListTile<String>(
+                          title: Text(item.label),
+                          value: item.id,
+                        );
+                      },
+                    ),
+                  ),
+                ),
           ],
         );
       },
