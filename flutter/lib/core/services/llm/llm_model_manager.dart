@@ -219,9 +219,10 @@ class LlmModelManager {
   ///
   /// Returns `true` if healthy. On failure, transitions to [LlmModelState.error].
   Future<bool> healthCheck() async {
-    if (_service == null || _state != LlmModelState.loaded) return false;
+    final svc = _service;
+    if (svc == null || _state != LlmModelState.loaded) return false;
     try {
-      await _service!.testConnection();
+      await svc.testConnection();
       return true;
     } on Exception catch (e) {
       _errorMessage = e.toString();
@@ -373,34 +374,36 @@ class LlmModelManager {
   ///
   /// Throws [LlmException] if no service is loaded.
   Future<String> infer(String prompt, {int maxTokens = 512}) async {
-    if (_service == null || _state != LlmModelState.loaded) {
+    final svc = _service;
+    if (svc == null || _state != LlmModelState.loaded) {
       throw const LlmException(
         'Model not loaded',
         code: LlmErrorCode.modelNotFound,
       );
     }
-    final result = await _service!.infer(prompt, maxTokens: maxTokens);
+    final result = await svc.infer(prompt, maxTokens: maxTokens);
     recordInference(
       modelName: _currentModelName,
       provider: _currentProvider,
-      tokenUsage: _service!.lastTokenUsage,
+      tokenUsage: svc.lastTokenUsage,
     );
     return result;
   }
 
   /// Convenience method: multi-turn inference via the active service.
   Future<String> inferMessages(List<LlmMessage> messages, {int maxTokens = 512}) async {
-    if (_service == null || _state != LlmModelState.loaded) {
+    final svc = _service;
+    if (svc == null || _state != LlmModelState.loaded) {
       throw const LlmException(
         'Model not loaded',
         code: LlmErrorCode.modelNotFound,
       );
     }
-    final result = await _service!.inferMessages(messages, maxTokens: maxTokens);
+    final result = await svc.inferMessages(messages, maxTokens: maxTokens);
     recordInference(
       modelName: _currentModelName,
       provider: _currentProvider,
-      tokenUsage: _service!.lastTokenUsage,
+      tokenUsage: svc.lastTokenUsage,
     );
     return result;
   }
