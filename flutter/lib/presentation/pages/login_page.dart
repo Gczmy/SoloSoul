@@ -585,7 +585,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
     );
 
-    overlay.insert(_passwordHintOverlayEntry!);
+    final entry = _passwordHintOverlayEntry;
+    if (entry != null) overlay.insert(entry);
     // Use explicit Timer so it persists across navigation (not tied to widget lifecycle)
     _passwordHintTimer = Timer(AppTheme.kPasswordHintDelay, () {
       _passwordHintOverlayEntry?.remove();

@@ -25,14 +25,16 @@ class _PageEditorState extends ConsumerState<PageEditor> {
   late String _iconName;
   bool _isSaving = false;
 
-  UnifiedObject? get _existingPage =>
-      widget.pageId != null
-          ? ref.read(objectByIdProvider(widget.pageId!))
-          : null;
+  UnifiedObject? get _existingPage {
+    final pageId = widget.pageId;
+    if (pageId == null) return null;
+    return ref.read(objectByIdProvider(pageId));
+  }
 
   List<UnifiedObject> get _sections {
-    if (widget.pageId == null) return [];
-    return ref.read(childrenProvider(widget.pageId!));
+    final pageId = widget.pageId;
+    if (pageId == null) return [];
+    return ref.read(childrenProvider(pageId));
   }
 
   @override

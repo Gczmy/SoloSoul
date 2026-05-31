@@ -104,10 +104,12 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   String get _historyKey => widget.itemId ?? widget.title;
 
   FieldHistory? get _history {
-    if (widget.itemId == null || widget.historyFieldId == null) return null;
+    final itemId = widget.itemId;
+    final historyFieldId = widget.historyFieldId;
+    if (itemId == null || historyFieldId == null) return null;
     return ref
         .watch(fieldHistoriesProvider.notifier)
-        .getHistory(widget.itemId!, widget.historyFieldId!);
+        .getHistory(itemId, historyFieldId);
   }
 
   Future<void> _handleCopy(String formattedText) async {

@@ -253,7 +253,8 @@ class SearchNotifier extends Notifier<SearchState> {
       }
 
       // Search object typeId
-      if (obj.typeId != null && matchesQuery(obj.typeId!)) {
+      final typeId = obj.typeId;
+      if (typeId != null && matchesQuery(typeId)) {
         final level = checkLevel(SensitivityLevel.public);
         if (level != null) {
           results.add(SearchResultItem(

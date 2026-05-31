@@ -60,9 +60,10 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             else if (syncState.status == SyncStatus.success)
               _StatusBanner(
                 icon: Icons.check_circle,
-                message: syncState.lastResult != null
-                  ? _syncResultText(syncState.lastResult!)
-                  : l10n.syncComplete,
+                message: switch (syncState.lastResult) {
+                  null => l10n.syncComplete,
+                  final result => _syncResultText(result),
+                },
                 color: Colors.green,
               )
             else if (syncState.status == SyncStatus.error)
@@ -121,13 +122,13 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             const SizedBox(height: 24),
 
             // Last Sync Result
-            if (syncState.lastResult != null) ...[
+            if (syncState.lastResult case final result?) ...[
               _SectionHeader(
                 title: l10n.syncLastSync,
                 icon: Icons.history,
               ),
               const SizedBox(height: 12),
-              _SyncResultCard(result: syncState.lastResult!),
+              _SyncResultCard(result: result),
             ],
 
             const SizedBox(height: 32),

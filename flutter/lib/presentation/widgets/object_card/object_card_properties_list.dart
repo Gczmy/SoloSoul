@@ -31,7 +31,9 @@ class ObjectCardPropertiesList extends StatelessWidget {
     final visibleEntries = tmpl != null
         ? tmpl.keys
             .where((k) => item.properties.containsKey(k))
-            .map((k) => MapEntry(k, item.properties[k]!))
+            .map((k) => MapEntry(k, item.properties[k]))
+            .where((e) => e.value != null)
+            .cast<MapEntry<String, dynamic>>()
         : item.properties.entries;
 
     return Column(

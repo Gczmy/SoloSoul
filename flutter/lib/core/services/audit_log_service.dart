@@ -63,8 +63,9 @@ class AuditLogService {
   Future<void> _ensureLogDir() async {
     if (_logDir != null) return;
     final dir = await getApplicationDocumentsDirectory();
-    _logDir = '${dir.path}/solosoul/audit';
-    await Directory(_logDir!).create(recursive: true);
+    final logDir = '${dir.path}/solosoul/audit';
+    _logDir = logDir;
+    await Directory(logDir).create(recursive: true);
   }
 
   String _getLogFilePath() {
@@ -236,7 +237,9 @@ class AuditLogService {
     final entries = <AuditLogEntry>[];
 
     // 获取按日期排序的日志文件（最新的在前）
-    final dir = Directory(_logDir!);
+    final logDir = _logDir;
+    if (logDir == null) return entries;
+    final dir = Directory(logDir);
     if (!await dir.exists()) return entries;
 
     final files = await dir
@@ -271,7 +274,9 @@ class AuditLogService {
       const Duration(days: _retentionDays),
     );
 
-    final dir = Directory(_logDir!);
+    final logDir = _logDir;
+    if (logDir == null) return;
+    final dir = Directory(logDir);
     if (!await dir.exists()) return;
 
     await for (final entity in dir.list()) {

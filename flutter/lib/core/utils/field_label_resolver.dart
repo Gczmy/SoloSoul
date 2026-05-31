@@ -56,8 +56,9 @@ class FieldLabelResolver {
 
     // 2. ARB 通用翻译
     final lastSegment = _extractLastSegment(fieldPath);
-    if (_l10n != null) {
-      final translated = translateFieldLabel(lastSegment, _l10n!);
+    final l10n = _l10n;
+    if (l10n != null) {
+      final translated = translateFieldLabel(lastSegment, l10n);
       if (translated != formatFieldLabel(lastSegment)) return translated;
     }
 

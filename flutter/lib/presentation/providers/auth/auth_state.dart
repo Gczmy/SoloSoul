@@ -73,8 +73,9 @@ class SensitivePageAccessState {
   const SensitivePageAccessState({this.lastVerified});
 
   bool get isValid {
+    final lastVerified = this.lastVerified;
     if (lastVerified == null) return false;
-    return DateTime.now().difference(lastVerified!) < kSensitiveAccessTimeout;
+    return DateTime.now().difference(lastVerified) < kSensitiveAccessTimeout;
   }
 
   SensitivePageAccessState copyWith({DateTime? lastVerified}) {

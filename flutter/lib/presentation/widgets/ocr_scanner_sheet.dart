@@ -275,7 +275,7 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
             CheckboxListTile(
               dense: true,
               value: _saveAttachment,
-              onChanged: (v) => setState(() => _saveAttachment = v!),
+              onChanged: (v) { if (v != null) setState(() => _saveAttachment = v); },
               title: Text(
                 l10n.scanAttachFile,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -333,14 +333,17 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
                       rawText: textResult.extraction.rawText,
                     ),
                   );
-                  if (widget.onResult != null) {
-                    widget.onResult!(filtered);
+                  final onResult = widget.onResult;
+                  if (onResult != null) {
+                    onResult(filtered);
                   } else {
                     _resetState();
                   }
                 } else {
-                  if (widget.onResult != null) {
-                    widget.onResult!(_result!);
+                  final onResult = widget.onResult;
+                  final result = _result;
+                  if (onResult != null && result != null) {
+                    onResult(result);
                   } else {
                     _resetState();
                   }
@@ -596,8 +599,10 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
       );
 
       if (result.success) {
-        if (widget.onResult != null) {
-          widget.onResult!(_result!);
+        final onResult = widget.onResult;
+        final scanResult = _result;
+        if (onResult != null && scanResult != null) {
+          onResult(scanResult);
         } else {
           _resetState();
         }

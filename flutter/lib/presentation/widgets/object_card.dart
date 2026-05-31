@@ -460,16 +460,18 @@ class _ObjectCardState extends ConsumerState<ObjectCard> {
         // preserved in item.properties on save.
         for (final key in _template.keys) {
           final value = item.properties[key];
+          final templateValue = _template[key];
           final textValue = value != null
               ? propValueToString(value)
-              : propValueToString(_template[key]!);
+              : (templateValue != null ? propValueToString(templateValue) : '');
           _editControllers[key] = TextEditingController(text: textValue);
           _originalValues[key] = textValue;
         }
         // Also create controllers for deprecated keys (display-only).
         for (final key in item.properties.keys) {
           if (_template.containsKey(key)) continue;
-          final value = item.properties[key]!;
+          final value = item.properties[key];
+          if (value == null) continue;
           _editControllers[key] =
               TextEditingController(text: propValueToString(value));
         }

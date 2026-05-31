@@ -201,9 +201,9 @@ class PluginAccessReviewDialog extends StatelessWidget {
       AccessStatus.missing => Icons.help_outline,
     };
 
-    final semanticTypeLabel = status.semanticType != null
-        ? SemanticTypeRegistry.getType(status.semanticType!)?.getLabel(languageCode) ??
-            status.semanticType!
+    final semanticType = status.semanticType;
+    final semanticTypeLabel = semanticType != null
+        ? SemanticTypeRegistry.getType(semanticType)?.getLabel(languageCode) ?? semanticType
         : status.fieldLabel ?? status.fieldKey ?? '';
 
     return Container(
@@ -223,11 +223,11 @@ class PluginAccessReviewDialog extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    if (status.semanticType != null)
+                    if (semanticType case final st?)
                       Padding(
                         padding: const EdgeInsets.only(right: 4),
                         child: Icon(
-                          SemanticTypeRegistry.getType(status.semanticType!)?.icon ??
+                          SemanticTypeRegistry.getType(st)?.icon ??
                               Icons.label,
                           size: 14,
                           color: theme.colorScheme.primary,
@@ -240,8 +240,8 @@ class PluginAccessReviewDialog extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (status.fieldKey != null)
-                      _MachineKeyIndicator(fieldKey: status.fieldKey!),
+                    if (status.fieldKey case final fieldKey?)
+                      _MachineKeyIndicator(fieldKey: fieldKey),
                   ],
                 ),
               ],

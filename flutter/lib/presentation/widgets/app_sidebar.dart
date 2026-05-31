@@ -178,7 +178,10 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
           label: getLocalizedObjectName(AppLocalizations.of(context), page),
           expanded: _expanded,
           selected: location == _routeForPageId(page.id),
-          onTap: () => context.go(_routeForPageId(page.id)!),
+          onTap: () {
+            final route = _routeForPageId(page.id);
+            if (route != null) context.go(route);
+          },
         ),
       for (final page in customPages.where((p) => p.parentId == null))
         PageTreeTile(

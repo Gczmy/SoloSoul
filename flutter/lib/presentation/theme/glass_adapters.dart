@@ -408,8 +408,8 @@ class _BackButton extends StatelessWidget {
       onPressed: () {
         if (Navigator.of(context).canPop()) {
           context.pop();
-        } else if (fallbackRoute != null) {
-          context.go(fallbackRoute!);
+        } else if (fallbackRoute case final route?) {
+          context.go(route);
         }
       },
     );

@@ -163,7 +163,7 @@ class _PluginSensitivityOverrideDialogState
             Radio<SensitivityOverrideStrategy>(
               value: strategy,
               groupValue: _selectedStrategy,
-              onChanged: (v) => setState(() => _selectedStrategy = v!),
+              onChanged: (v) { if (v != null) setState(() => _selectedStrategy = v); },
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             const SizedBox(width: 4),

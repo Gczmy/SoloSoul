@@ -695,8 +695,8 @@ class UnifiedObjectService {
     if (parent == null) return [];
     final map = {for (final o in objects) o.id: o};
     return parent.childrenIds
-        .where((id) => map.containsKey(id))
-        .map((id) => map[id]!)
+        .map((id) => map[id])
+        .whereType<UnifiedObject>()
         .where((o) => !o.isDeleted)
         .toList();
   }

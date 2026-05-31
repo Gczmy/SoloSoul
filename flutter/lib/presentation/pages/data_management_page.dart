@@ -63,9 +63,10 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   }
 
   Future<void> _loadAllBackups() async {
-    if (_accountId == null) return;
-    final regular = await BackupService.instance.listBackups(_accountId!);
-    final special = await BackupService.instance.listSpecialBackups(_accountId!);
+    final accountId = _accountId;
+    if (accountId == null) return;
+    final regular = await BackupService.instance.listBackups(accountId);
+    final special = await BackupService.instance.listSpecialBackups(accountId);
     if (mounted) {
       setState(() {
         _backups = regular;
@@ -76,8 +77,9 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   }
 
   Future<void> _loadBackups() async {
-    if (_accountId == null) return;
-    final list = await BackupService.instance.listBackups(_accountId!);
+    final accountId = _accountId;
+    if (accountId == null) return;
+    final list = await BackupService.instance.listBackups(accountId);
     if (mounted) {
       setState(() {
         _backups = list;
@@ -86,8 +88,9 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   }
 
   Future<void> _loadSpecialBackups() async {
-    if (_accountId == null) return;
-    final list = await BackupService.instance.listSpecialBackups(_accountId!);
+    final accountId = _accountId;
+    if (accountId == null) return;
+    final list = await BackupService.instance.listSpecialBackups(accountId);
     if (mounted) {
       setState(() {
         _specialBackups = list;

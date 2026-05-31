@@ -191,7 +191,9 @@ class _ObjectEditorPageState extends ConsumerState<ObjectEditorPage> {
   }
 
   void _loadExistingObject() {
-    final object = ref.read(objectByIdProvider(widget.objectId!));
+    final objectId = widget.objectId;
+    if (objectId == null) return;
+    final object = ref.read(objectByIdProvider(objectId));
     if (object == null) return;
 
     _existingObject = object;

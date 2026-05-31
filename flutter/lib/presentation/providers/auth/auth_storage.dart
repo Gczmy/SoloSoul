@@ -452,8 +452,9 @@ class AttemptTracker {
   static const Duration lockoutDuration = Duration(minutes: 15);
 
   bool get isLockedOut {
-    if (_lockoutUntil == null) return false;
-    if (DateTime.now().isAfter(_lockoutUntil!)) {
+    final lockoutUntil = _lockoutUntil;
+    if (lockoutUntil == null) return false;
+    if (DateTime.now().isAfter(lockoutUntil)) {
       _lockoutUntil = null;
       return false;
     }

@@ -77,7 +77,8 @@ mixin PasswordDialogOverlayMixin<T extends StatefulWidget> on State<T> {
       ),
     );
 
-    overlay.insert(_hintOverlayEntry!);
+    final entry = _hintOverlayEntry;
+    if (entry != null) overlay.insert(entry);
     _hintOverlayTimer = Timer(const Duration(seconds: 4), disposeOverlay);
   }
 }

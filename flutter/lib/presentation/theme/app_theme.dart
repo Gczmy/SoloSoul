@@ -29,10 +29,11 @@ void showOverlaySnackBar(
   String? actionLabel,
   VoidCallback? onAction,
 }) {
+  final ctx = context;
   if (forOverlay == null) {
-    if (context == null || !context.mounted) return;
+    if (ctx == null || !ctx.mounted) return;
   }
-  final overlay = forOverlay ?? Overlay.of(context!);
+  final overlay = forOverlay ?? Overlay.of(ctx!);
   OverlayEntry? entry;
 
   entry = OverlayEntry(
@@ -136,7 +137,7 @@ void showOverlaySnackBar(
     },
   );
 
-  overlay.insert(entry!);
+  if (entry case final e?) overlay.insert(e);
   Future.delayed(duration, () {
     entry?.remove();
     entry = null;

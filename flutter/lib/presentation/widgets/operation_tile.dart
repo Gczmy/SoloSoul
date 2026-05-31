@@ -35,9 +35,9 @@ class OperationTile extends StatelessWidget {
               _DetailRow(label: l10n.operationLabelAction, value: _actionLabel(l10n)),
               const SizedBox(height: 12),
               _DetailRow(label: l10n.operationLabelSection, value: _sectionLabel(l10n)),
-              if (entry.fieldPath != null) ...[
+              if (entry.fieldPath case final fieldPath?) ...[
                 const SizedBox(height: 12),
-                _DetailRow(label: l10n.operationLabelFieldPath, value: entry.fieldPath!),
+                _DetailRow(label: l10n.operationLabelFieldPath, value: fieldPath),
               ],
               const SizedBox(height: 12),
               _DetailRow(label: l10n.operationLabelDescription, value: entry.localizedDescription(l10n)),

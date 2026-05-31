@@ -512,18 +512,19 @@ class AccountManager {
 
   /// Delete the current account
   Future<bool> deleteAccount(String password) async {
-    if (_selectedAccountId == null) return false;
+    final selectedAccountId = _selectedAccountId;
+    if (selectedAccountId == null) return false;
 
     // Verify password using Dart-side verification (consistent with
     // verifyPasswordForSensitiveData, bypasses Rust vault state issues)
-    final verifyResult = await _storage.verifyPassword(_selectedAccountId!, password);
+    final verifyResult = await _storage.verifyPassword(selectedAccountId, password);
     if (!verifyResult) return false;
 
-    final rustDeleted = await RustVaultService.instance.deleteAccount(_selectedAccountId!);
+    final rustDeleted = await RustVaultService.instance.deleteAccount(selectedAccountId);
 
     // Clean up Keychain if possible, but don't fail if Keychain is unavailable
     // Rust is the source of truth for account data
-    final storageDeleted = await _storage.deleteAccount(_selectedAccountId!);
+    final storageDeleted = await _storage.deleteAccount(selectedAccountId);
     if (!storageDeleted) {
       DebugLogger.instance.logError(
         'AUTH',

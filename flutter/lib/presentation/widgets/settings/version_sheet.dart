@@ -33,7 +33,8 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
   void _handleCurrentVersionTap() {
     final now = DateTime.now();
     // Reset if more than 2 seconds between taps
-    if (_lastTapTime != null && now.difference(_lastTapTime!).inSeconds > 2) {
+    final lastTapTime = _lastTapTime;
+    if (lastTapTime != null && now.difference(lastTapTime).inSeconds > 2) {
       _tapCount = 0;
     }
     _lastTapTime = now;

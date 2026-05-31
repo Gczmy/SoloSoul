@@ -222,8 +222,9 @@ class ContentParserService {
         if (type == 's') {
           // Shared string reference
           final idx = int.tryParse(valueNode.innerText);
-          if (idx != null && sharedStrings.containsKey(idx)) {
-            texts.add(sharedStrings[idx]!);
+          if (idx != null) {
+            final s = sharedStrings[idx];
+            if (s != null) texts.add(s);
           }
         } else {
           texts.add(valueNode.innerText);

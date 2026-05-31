@@ -112,46 +112,59 @@ class ScanSectionDetector {
 
   static List<ScanField> extractIdentityFields(String text) {
     final fields = <ScanField>[];
+    final idCardFp = kFingerprints['id_card'];
+    final phoneFp = kFingerprints['phone'];
+    final emailFp = kFingerprints['email'];
 
     // ID Card
-    final idMatch = kFingerprints['id_card']!.pattern.firstMatch(text);
+    final idMatch = idCardFp?.pattern.firstMatch(text);
     if (idMatch != null) {
-      fields.add(ScanField(
-        key: 'idCard',
-        value: idMatch.group(0)!,
-        sensitivity: SensitivityLevel.critical,
-        confidence: 0.99,
-      ));
+      final group0 = idMatch.group(0);
+      if (group0 != null) {
+        fields.add(ScanField(
+          key: 'idCard',
+          value: group0,
+          sensitivity: SensitivityLevel.critical,
+          confidence: 0.99,
+        ));
+      }
     }
 
     // Phone
-    final phoneMatches = kFingerprints['phone']!.pattern.allMatches(text);
-    if (phoneMatches.isNotEmpty) {
-      fields.add(ScanField(
-        key: 'phone',
-        value: phoneMatches.first.group(0)!,
-        sensitivity: SensitivityLevel.sensitive,
-        confidence: 0.98,
-      ));
+    final phoneMatches = phoneFp?.pattern.allMatches(text);
+    if (phoneMatches != null && phoneMatches.isNotEmpty) {
+      final group0 = phoneMatches.first.group(0);
+      if (group0 != null) {
+        fields.add(ScanField(
+          key: 'phone',
+          value: group0,
+          sensitivity: SensitivityLevel.sensitive,
+          confidence: 0.98,
+        ));
+      }
     }
 
     // Email
-    final emailMatches = kFingerprints['email']!.pattern.allMatches(text);
-    if (emailMatches.isNotEmpty) {
-      fields.add(ScanField(
-        key: 'email',
-        value: emailMatches.first.group(0)!,
-        sensitivity: SensitivityLevel.internal,
-        confidence: 0.97,
-      ));
+    final emailMatches = emailFp?.pattern.allMatches(text);
+    if (emailMatches != null && emailMatches.isNotEmpty) {
+      final emailGroup = emailMatches.first.group(0);
+      if (emailGroup != null) {
+        fields.add(ScanField(
+          key: 'email',
+          value: emailGroup,
+          sensitivity: SensitivityLevel.internal,
+          confidence: 0.97,
+        ));
+      }
     }
 
     // Try to extract name (heuristic: look for patterns like "Name: Zhang San")
     final nameMatch = RegExp(r'[Nn]ame[\s:：]+([一-龥]{2,4}|[A-Z][a-z]+\s[A-Z][a-z]+)').firstMatch(text);
-    if (nameMatch != null) {
+    final nameGroup = nameMatch?.group(1);
+    if (nameGroup != null) {
       fields.add(ScanField(
         key: 'fullName',
-        value: nameMatch.group(1)!,
+        value: nameGroup,
         sensitivity: SensitivityLevel.public,
         confidence: 0.85,
       ));
@@ -162,23 +175,28 @@ class ScanSectionDetector {
 
   static List<ScanField> extractPassportFields(String text) {
     final fields = <ScanField>[];
+    final passportFp = kFingerprints['passport'];
 
-    final passportMatch = kFingerprints['passport']!.pattern.firstMatch(text);
+    final passportMatch = passportFp?.pattern.firstMatch(text);
     if (passportMatch != null) {
-      fields.add(ScanField(
-        key: 'number',
-        value: passportMatch.group(0)!,
-        sensitivity: SensitivityLevel.critical,
-        confidence: 0.95,
-      ));
+      final group0 = passportMatch.group(0);
+      if (group0 != null) {
+        fields.add(ScanField(
+          key: 'number',
+          value: group0,
+          sensitivity: SensitivityLevel.critical,
+          confidence: 0.95,
+        ));
+      }
     }
 
     // Country (heuristic)
     final countryMatch = RegExp(r'[Cc]ountry[\s:：]+([A-Za-z一-龥 ]{2,30})').firstMatch(text);
-    if (countryMatch != null) {
+    final countryGroup = countryMatch?.group(1);
+    if (countryGroup != null) {
       fields.add(ScanField(
         key: 'country',
-        value: countryMatch.group(1)!.trim(),
+        value: countryGroup.trim(),
         sensitivity: SensitivityLevel.public,
         confidence: 0.80,
       ));
@@ -260,10 +278,11 @@ class ScanSectionDetector {
 
     // SWIFT/BIC
     final swiftMatch = RegExp(r'\b[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?\b').firstMatch(text);
-    if (swiftMatch != null) {
+    final swiftGroup = swiftMatch?.group(0);
+    if (swiftGroup != null) {
       fields.add(ScanField(
         key: 'swiftBic',
-        value: swiftMatch.group(0)!,
+        value: swiftGroup,
         sensitivity: SensitivityLevel.critical,
         confidence: 0.85,
       ));
@@ -274,25 +293,33 @@ class ScanSectionDetector {
 
   static List<ScanField> extractContactFields(String text) {
     final fields = <ScanField>[];
+    final phoneFp = kFingerprints['phone'];
+    final emailFp = kFingerprints['email'];
 
-    final phoneMatches = kFingerprints['phone']!.pattern.allMatches(text);
-    if (phoneMatches.isNotEmpty) {
-      fields.add(ScanField(
-        key: 'value',
-        value: phoneMatches.first.group(0)!,
-        sensitivity: SensitivityLevel.internal,
-        confidence: 0.95,
-      ));
+    final phoneMatches = phoneFp?.pattern.allMatches(text);
+    if (phoneMatches != null && phoneMatches.isNotEmpty) {
+      final phoneGroup = phoneMatches.first.group(0);
+      if (phoneGroup != null) {
+        fields.add(ScanField(
+          key: 'value',
+          value: phoneGroup,
+          sensitivity: SensitivityLevel.internal,
+          confidence: 0.95,
+        ));
+      }
     }
 
-    final emailMatches = kFingerprints['email']!.pattern.allMatches(text);
-    if (emailMatches.isNotEmpty) {
-      fields.add(ScanField(
-        key: 'value',
-        value: emailMatches.first.group(0)!,
-        sensitivity: SensitivityLevel.internal,
-        confidence: 0.95,
-      ));
+    final emailMatches = emailFp?.pattern.allMatches(text);
+    if (emailMatches != null && emailMatches.isNotEmpty) {
+      final emailGroup = emailMatches.first.group(0);
+      if (emailGroup != null) {
+        fields.add(ScanField(
+          key: 'value',
+          value: emailGroup,
+          sensitivity: SensitivityLevel.internal,
+          confidence: 0.95,
+        ));
+      }
     }
 
     return fields;

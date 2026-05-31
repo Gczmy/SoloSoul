@@ -162,8 +162,9 @@ class ProfileStorageService {
         }
 
         // Null out parentId if parent no longer exists
-        final validParentId = obj.parentId != null && objectMap.containsKey(obj.parentId!)
-            ? obj.parentId
+        final parentId = obj.parentId;
+        final validParentId = parentId != null && objectMap.containsKey(parentId)
+            ? parentId
             : null;
         if (validParentId != obj.parentId) {
           wasRepaired = true;

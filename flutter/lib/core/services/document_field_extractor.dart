@@ -298,11 +298,14 @@ class InvoiceExtractor implements FieldExtractor {
     // Date
     final dateMatch = _datePattern.firstMatch(rawText);
     if (dateMatch != null) {
-      final block = _findBlockContaining(blocks, dateMatch.group(0)!);
-      fields['date'] = ExtractedField(
-        value: dateMatch.group(0)!,
-        bbox: block?.bbox ?? const BoundingBox(x: 0, y: 0, width: 0, height: 0),
-      );
+      final dateGroup = dateMatch.group(0);
+      if (dateGroup != null) {
+        final block = _findBlockContaining(blocks, dateGroup);
+        fields['date'] = ExtractedField(
+          value: dateGroup,
+          bbox: block?.bbox ?? const BoundingBox(x: 0, y: 0, width: 0, height: 0),
+        );
+      }
     }
 
     // Total Amount — 优先匹配 "Total: $xxx" 模式，否则找最大金额
@@ -441,19 +444,22 @@ class ResumeExtractor implements FieldExtractor {
     // ── 3. Email / Phone / LinkedIn ──
     for (final block in blocks) {
       final emailMatch = _emailPattern.firstMatch(block.text);
-      if (emailMatch != null && !fields.containsKey('email')) {
-        fields['email'] = ExtractedField(value: emailMatch.group(0)!, bbox: block.bbox);
+      final emailGroup = emailMatch?.group(0);
+      if (emailGroup != null && !fields.containsKey('email')) {
+        fields['email'] = ExtractedField(value: emailGroup, bbox: block.bbox);
       }
       final phoneMatch = _phonePattern.firstMatch(block.text);
-      if (phoneMatch != null && !fields.containsKey('phone')) {
-        final phone = phoneMatch.group(0)!.trim();
+      final phoneGroup = phoneMatch?.group(0);
+      if (phoneGroup != null && !fields.containsKey('phone')) {
+        final phone = phoneGroup.trim();
         if (phone.length >= 7) {
           fields['phone'] = ExtractedField(value: phone, bbox: block.bbox);
         }
       }
       final linkedinMatch = _linkedinPattern.firstMatch(block.text);
-      if (linkedinMatch != null && !fields.containsKey('linkedin')) {
-        fields['linkedin'] = ExtractedField(value: linkedinMatch.group(0)!, bbox: block.bbox);
+      final linkedinGroup = linkedinMatch?.group(0);
+      if (linkedinGroup != null && !fields.containsKey('linkedin')) {
+        fields['linkedin'] = ExtractedField(value: linkedinGroup, bbox: block.bbox);
       }
     }
 
@@ -469,13 +475,14 @@ class ResumeExtractor implements FieldExtractor {
     for (final row in rows) {
       final rowText = row.map((b) => b.text).join(' ').trim();
       final match = _sectionPattern.firstMatch(rowText);
-      if (match != null) {
-        currentSection = match.group(1)!.toLowerCase().trim();
+      final group1 = match?.group(1);
+      if (group1 != null) {
+        currentSection = group1.toLowerCase().trim();
         sections[currentSection] = [];
         continue;
       }
       if (currentSection.isNotEmpty) {
-        sections[currentSection]!.addAll(row);
+        sections[currentSection]?.addAll(row);
       }
     }
 

@@ -38,9 +38,10 @@ class ObjectCategoryPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sections = pageId != null
+    final pid = pageId;
+    final sections = pid != null
         ? ref
-            .watch(childrenProvider(pageId!))
+            .watch(childrenProvider(pid))
             .where((o) => o.typeId != 'page' && !o.isDeleted)
             .toList()
         : <UnifiedObject>[];
@@ -70,8 +71,8 @@ class ObjectCategoryPage extends ConsumerWidget {
                 padding: const EdgeInsets.only(top: 16),
                 child: DynamicSectionCard(section: section),
               ),
-            if (pageId != null && sections.isEmpty)
-              _RestoreDefaultsWidget(pageId: pageId!),
+            if (pid != null && sections.isEmpty)
+              _RestoreDefaultsWidget(pageId: pid),
           ],
         ),
       ),

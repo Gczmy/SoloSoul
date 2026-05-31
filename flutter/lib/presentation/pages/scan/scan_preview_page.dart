@@ -223,8 +223,10 @@ class _CandidateCardState extends ConsumerState<_CandidateCard> {
                   Checkbox(
                     value: candidate.isSelected,
                     onChanged: (v) {
-                      ref.read(localSearchProvider.notifier)
-                          .setCandidateSelected(widget.candidateIndex, v!);
+                      if (v != null) {
+                        ref.read(localSearchProvider.notifier)
+                            .setCandidateSelected(widget.candidateIndex, v);
+                      }
                     },
                   ),
                   const SizedBox(width: 8),
@@ -282,8 +284,10 @@ class _CandidateCardState extends ConsumerState<_CandidateCard> {
                   value: candidate.attachOriginalFile,
                   onChanged: candidate.sourceFilePath != null
                       ? (v) {
-                          ref.read(localSearchProvider.notifier)
-                              .setAttachFile(widget.candidateIndex, v!);
+                          if (v != null) {
+                            ref.read(localSearchProvider.notifier)
+                                .setAttachFile(widget.candidateIndex, v);
+                          }
                         }
                       : null,
                   title: Text(

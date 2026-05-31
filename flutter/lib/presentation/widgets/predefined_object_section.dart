@@ -84,8 +84,8 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
     final objectMap = {for (final o in allObjects) o.id: o};
     final section = objectMap[widget.sectionId];
     final items = section?.childrenIds
-            .where((id) => objectMap.containsKey(id))
-            .map((id) => objectMap[id]!)
+            .map((id) => objectMap[id])
+            .whereType<UnifiedObject>()
             .where((o) => !o.isDeleted)
             .toList() ??
         [];
