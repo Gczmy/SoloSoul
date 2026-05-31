@@ -29,65 +29,58 @@ class LlmConfigNotifier extends AsyncNotifier<LlmConfigState> {
   // ---------------------------------------------------------------------------
 
   Future<void> setBackendType(LlmBackendType type) async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.setBackendType(id, type);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(backendType: type));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.setBackendType(id, type);
+      state = AsyncData(value.copyWith(backendType: type));
     }
   }
 
   Future<void> setCloudApiKey(String apiKey) async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.setCloudApiKey(id, apiKey);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudApiKey: apiKey));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.setCloudApiKey(id, apiKey);
+      state = AsyncData(value.copyWith(cloudApiKey: apiKey));
     }
   }
 
   Future<void> clearCloudApiKey() async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.clearCloudApiKey(id);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudApiKey: ''));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.clearCloudApiKey(id);
+      state = AsyncData(value.copyWith(cloudApiKey: ''));
     }
   }
 
   Future<void> setCloudEndpoint(String endpoint) async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.setCloudEndpoint(id, endpoint);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudEndpoint: endpoint));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.setCloudEndpoint(id, endpoint);
+      state = AsyncData(value.copyWith(cloudEndpoint: endpoint));
     }
   }
 
   Future<void> setCloudModel(String model) async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.setCloudModel(id, model);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudModel: model));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.setCloudModel(id, model);
+      state = AsyncData(value.copyWith(cloudModel: model));
     }
   }
 
   Future<void> setLocalModelPath(String path) async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.setLocalModelPath(id, path);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(localModelPath: path));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.setLocalModelPath(id, path);
+      state = AsyncData(value.copyWith(localModelPath: path));
     }
   }
 
   Future<void> setCloudConsent(bool consent) async {
-    if (!state.hasValue) return;
-    final id = _accountId;
-    if (id != null) await _service.setCloudConsent(id, consent);
-    if (state.hasValue) {
-      state = AsyncData(state.value!.copyWith(cloudConsent: consent));
+    if (state case AsyncData(:final value)) {
+      final id = _accountId;
+      if (id != null) await _service.setCloudConsent(id, consent);
+      state = AsyncData(value.copyWith(cloudConsent: consent));
     }
   }
 
