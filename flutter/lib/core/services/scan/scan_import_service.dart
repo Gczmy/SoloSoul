@@ -116,11 +116,11 @@ class ScanImportService {
         double confidence = 1.0;
 
         if (llmSuggestion != null) {
-          if (llmSuggestion.targetPropertyId != null &&
-              llmSuggestion.targetPropertyId!.isNotEmpty) {
+          final targetId = llmSuggestion.targetPropertyId;
+          if (targetId != null && targetId.isNotEmpty) {
             if (llmSuggestion.confidence >= 0.8) {
               // LLM 高置信度：优先采用，若与规则不同则标记为 both
-              finalPropertyId = llmSuggestion.targetPropertyId!;
+              finalPropertyId = targetId;
               if (finalPropertyId == rulePropertyId) {
                 mappingSource = 'both';
               } else {

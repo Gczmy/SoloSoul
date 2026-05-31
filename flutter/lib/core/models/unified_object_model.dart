@@ -680,23 +680,27 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
   }
 
   @override
-  Map<String, dynamic> toMap([AppLocalizations? l10n]) => {
-        'id': id,
-        'typeId': typeId,
-        'name': name,
-        'iconName': iconName,
-        'parentId': parentId,
-        'childrenIds': childrenIds,
-        'isDeleted': isDeleted,
-        'createdAt': createdAt,
-        'updatedAt': updatedAt,
-        for (final e in properties.entries) e.key: _propValueToDisplay(e.value, l10n),
-        if (propertyLabels != null && propertyLabels!.isNotEmpty)
-          '__propertyLabels': propertyLabels,
-        if (semanticTypes != null && semanticTypes!.isNotEmpty)
-          '__semanticTypes': semanticTypes,
-        if (propertyOrder.isNotEmpty) 'propertyOrder': propertyOrder,
-      };
+  Map<String, dynamic> toMap([AppLocalizations? l10n]) {
+    final labels = propertyLabels;
+    final semantics = semanticTypes;
+    return {
+      'id': id,
+      'typeId': typeId,
+      'name': name,
+      'iconName': iconName,
+      'parentId': parentId,
+      'childrenIds': childrenIds,
+      'isDeleted': isDeleted,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      for (final e in properties.entries) e.key: _propValueToDisplay(e.value, l10n),
+      if (labels != null && labels.isNotEmpty)
+        '__propertyLabels': labels,
+      if (semantics != null && semantics.isNotEmpty)
+        '__semanticTypes': semantics,
+      if (propertyOrder.isNotEmpty) 'propertyOrder': propertyOrder,
+    };
+  }
 
   factory UnifiedObject.fromJson(Map<String, dynamic> json) =>
       _$UnifiedObjectFromJson(json);

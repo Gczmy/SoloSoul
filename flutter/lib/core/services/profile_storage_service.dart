@@ -118,7 +118,8 @@ class ProfileStorageService {
           (typeId.startsWith('__preset_') ||
               {'page', 'collection', 'note', 'task', 'contact', 'item'}
                   .contains(typeId));
-      if (isBuiltin && obj.propertyLabels != null && obj.propertyLabels!.isNotEmpty) {
+      final propLabels = obj.propertyLabels;
+      if (isBuiltin && propLabels != null && propLabels.isNotEmpty) {
         objects[i] = obj.copyWith(propertyLabels: {});
       }
     }
