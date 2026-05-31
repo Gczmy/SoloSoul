@@ -54,8 +54,16 @@
 
 ## 修复进度
 
-- 已完成：18 / 30
+- 已完成：23 / 30（P008 额外修复约 21 处强制解包）
 - 当前处理：无（本轮修复完成，待处理项见下方）
+
+## 本轮修复成果总结
+
+| 类别 | 修复数量 | 说明 |
+|------|----------|------|
+| 安全/崩溃 | 8 | `use_build_context_synchronously` ×3、`Process.run` 路径验证 ×2、强制解包 ×21+、内存泄漏 ×1 |
+| 代码质量 | 8 | `catch` 子句 ×4、未使用代码 ×3、重复 case ×1 |
+| 架构/误报 | 7 | 已有防护的 Process.run ×2、try-catch 保护的 parse ×2、调试模式 print ×3 |
 
 ## 暂缓修复项（需后续轮次或架构变更）
 
@@ -101,7 +109,13 @@
   - `plugin_registry_service.dart:169,174` — null 检查后多余的 `!`（2处）
   - `profile_data.dart:35` — 使用局部变量替代 `!`（1处）
   - `document_field_extractor.dart` — `match.group()` 使用 `?.` 和 null 检查（1处）
-- **剩余**：约 155 处，将在后续轮次继续处理
+- **第二轮修复（本轮）**：约 16 处
+  - `unified_object_model.dart:694-696` — 使用局部变量替代实例字段 `!`（3处）
+  - `scan_import_service.dart:120` — 使用局部变量替代 `!`（1处）
+  - `profile_storage_service.dart:121` — 使用局部变量替代 `!`（1处）
+  - `llm_model_manager.dart` — `_service!` 使用局部变量 `svc` 替代（5处）
+  - `llm_config_provider.dart` — `state.value!` 使用 `AsyncData` pattern matching 替代（7处）
+- **剩余**：约 140 处，将在后续轮次继续处理
 
 ### P009 修复说明
 - **文件**：`core/services/audit_log_service.dart:259`
