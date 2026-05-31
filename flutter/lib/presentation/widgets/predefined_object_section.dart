@@ -98,7 +98,8 @@ class _PredefinedObjectSectionState extends ConsumerState<PredefinedObjectSectio
 
     // Use stored name if available, fallback to widget.title (l10n) for
     // first-time rendering before the section object is persisted.
-    final effectiveName = section?.name.isNotEmpty == true ? section!.name : widget.title;
+    final sectionName = section?.name;
+    final effectiveName = sectionName != null && sectionName.isNotEmpty ? sectionName : widget.title;
     final sectionObject = section ??
         UnifiedObject(
           id: widget.sectionId,

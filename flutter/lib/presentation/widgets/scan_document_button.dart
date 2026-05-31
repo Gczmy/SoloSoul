@@ -151,20 +151,22 @@ class ScanDocumentButton extends ConsumerWidget {
   ) async {
     final fields = extraction.fields;
     final name = fields['name']?.value ?? l10n.ocrBusinessCard;
+    final phoneField = fields['phone'];
+    final emailField = fields['email'];
     return notifier.createObject(
       name: name,
       typeId: 'contact',
       iconName: 'contact_mail',
       parentId: parentId,
       properties: {
-        if (fields['phone'] != null)
+        if (phoneField != null)
           'phone': TextProperty(
-            text: fields['phone']!.value,
+            text: phoneField.value,
             sensitivity: SensitivityLevel.internal,
           ),
-        if (fields['email'] != null)
+        if (emailField != null)
           'email': TextProperty(
-            text: fields['email']!.value,
+            text: emailField.value,
             sensitivity: SensitivityLevel.internal,
           ),
         'notes': TextProperty(
@@ -229,21 +231,24 @@ class ScanDocumentButton extends ConsumerWidget {
         sensitivity: SensitivityLevel.internal,
       ),
     };
-    if (fields['email'] != null) {
+    final emailField = fields['email'];
+    if (emailField != null) {
       summaryProps['email'] = TextProperty(
-        text: fields['email']!.value,
+        text: emailField.value,
         sensitivity: SensitivityLevel.internal,
       );
     }
-    if (fields['phone'] != null) {
+    final phoneField = fields['phone'];
+    if (phoneField != null) {
       summaryProps['phone'] = TextProperty(
-        text: fields['phone']!.value,
+        text: phoneField.value,
         sensitivity: SensitivityLevel.internal,
       );
     }
-    if (fields['linkedin'] != null) {
+    final linkedinField = fields['linkedin'];
+    if (linkedinField != null) {
       summaryProps['url'] = TextProperty(
-        text: fields['linkedin']!.value,
+        text: linkedinField.value,
         sensitivity: SensitivityLevel.internal,
       );
     }

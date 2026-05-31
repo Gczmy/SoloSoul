@@ -836,8 +836,9 @@ class _OcrScannerBodyState extends ConsumerState<OcrScannerBody> {
   String _extractJson(String text) {
     final codeBlockRe = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```');
     final match = codeBlockRe.firstMatch(text);
-    if (match != null) {
-      return match.group(1)!.trim();
+    final group1 = match?.group(1);
+    if (group1 != null) {
+      return group1.trim();
     }
     return text.trim();
   }

@@ -29,8 +29,9 @@ class ObjectCardEditField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final val = value;
     // DateProperty → 日期选择器
-    if (!isTitle && value is DateProperty) {
+    if (!isTitle && val is DateProperty) {
       final dateProp = value as DateProperty;
       return ValueListenableBuilder<TextEditingValue>(
         valueListenable: controller ?? _dummyValueNotifier,
@@ -62,7 +63,7 @@ class ObjectCardEditField extends StatelessWidget {
           ),
           Text(translateFieldLabel(propertyKey, AppLocalizations.of(context))),
           const SizedBox(width: 8),
-          SensitivityTag(level: value!.sensitivity),
+          if (val != null) SensitivityTag(level: val.sensitivity),
         ],
       );
     }
@@ -81,18 +82,18 @@ class ObjectCardEditField extends StatelessWidget {
                   ? (displayLabel ?? AppLocalizations.of(context).commonTitle)
                   : (displayLabel ?? translateFieldLabel(propertyKey, AppLocalizations.of(context))),
               border: const OutlineInputBorder(),
-              suffixIcon: value != null
+              suffixIcon: val != null
                   ? Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: Align(
                         alignment: Alignment.centerRight,
                         widthFactor: 1,
-                        child: SensitivityTag(level: value!.sensitivity),
+                        child: SensitivityTag(level: val.sensitivity),
                       ),
                     )
                   : null,
             ),
-            keyboardType: (!isTitle && value is NumberProperty)
+            keyboardType: (!isTitle && val is NumberProperty)
                 ? TextInputType.number
                 : null,
           ),
