@@ -135,6 +135,52 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     return changed ? data.copyWith(objects: objects) : data;
   }
 
+  // ---------------------------------------------------------------------------
+  // Default structure helpers
+  // ---------------------------------------------------------------------------
+
+  UnifiedObject _buildPage(String pageId, int now) {
+    return UnifiedObject(
+      id: pageId,
+      typeId: 'page',
+      name: pageNameFromId(pageId),
+      iconName: pageIconNameFromId(pageId),
+      parentId: null,
+      childrenIds: const [],
+      properties: const {},
+      isDeleted: false,
+      deletedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  UnifiedObject _buildSection(String sectionId, String pageId, int now) {
+    final itemTypeId = getItemTypeIdForSection(sectionId);
+    final config = SectionRendererRegistry.getConfigBySectionId(sectionId);
+    final schemaProps = itemTypeId != null
+        ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
+        : <String, PropertyValue>{};
+    final propertyLabels = itemTypeId != null
+        ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
+        : <String, String>{};
+
+    return UnifiedObject(
+      id: sectionId,
+      typeId: 'collection',
+      name: config?.defaultName ?? sectionId,
+      iconName: config?.iconName ?? 'folder',
+      parentId: pageId,
+      childrenIds: const [],
+      properties: schemaProps,
+      propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
+      isDeleted: false,
+      deletedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
   /// 首次启动时创建完整的默认 page + section 结构，并为每个 section 复制 builtin schema。
   UnifiedObjectData _createDefaultStructure(UnifiedObjectData data) {
     final objects = List<UnifiedObject>.from(data.objects);
@@ -144,52 +190,13 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       final pageId = entry.key;
       final sectionIds = entry.value;
 
-      // Ensure page exists
-      final pageExists = objects.any((o) => o.id == pageId);
-      if (!pageExists) {
-        objects.add(UnifiedObject(
-          id: pageId,
-          typeId: 'page',
-          name: pageNameFromId(pageId),
-          iconName: pageIconNameFromId(pageId),
-          parentId: null,
-          childrenIds: const [],
-          properties: const {},
-          isDeleted: false,
-          deletedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        ));
+      if (!objects.any((o) => o.id == pageId)) {
+        objects.add(_buildPage(pageId, now));
       }
 
       for (final sectionId in sectionIds) {
-        final itemTypeId = getItemTypeIdForSection(sectionId);
-        final config = SectionRendererRegistry.getConfigBySectionId(sectionId);
+        objects.add(_buildSection(sectionId, pageId, now));
 
-        // Build schema from builtin type definition
-        final schemaProps = itemTypeId != null
-            ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
-            : <String, PropertyValue>{};
-        final propertyLabels = itemTypeId != null
-            ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
-            : <String, String>{};
-
-        objects.add(UnifiedObject(
-          id: sectionId,
-          typeId: 'collection',
-          name: config?.defaultName ?? sectionId,
-          iconName: config?.iconName ?? 'folder',
-          parentId: pageId,
-          childrenIds: const [],
-          properties: schemaProps,
-          propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
-          isDeleted: false,
-          deletedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        ));
-
-        // Add section to page's childrenIds
         final pageIndex = objects.indexWhere((o) => o.id == pageId);
         if (pageIndex >= 0) {
           final page = objects[pageIndex];
@@ -214,7 +221,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
     for (var i = 0; i < objects.length; i++) {
       final obj = objects[i];
 
-      // Migrate default page icon names (only for built-in default pages)
+      // Migrate default page icon names
       if (obj.typeId == 'page' && _isDefaultPageId(obj.id)) {
         final expectedIcon = pageIconNameFromId(obj.id);
         if (obj.iconName != expectedIcon) {
@@ -224,17 +231,16 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
         continue;
       }
 
-      // Migrate default section schemas
-      if (obj.typeId != 'collection') continue;
-      if (obj.properties.isNotEmpty) continue;
+      // Migrate empty section schemas
+      if (obj.typeId != 'collection' || obj.properties.isNotEmpty) continue;
 
       final itemTypeId = getItemTypeIdForSection(obj.id);
       if (itemTypeId == null) continue;
 
       final schemaProps = ObjectTypeRegistry.buildPropertiesFromType(itemTypeId);
       if (schemaProps.isEmpty) continue;
-      final propertyLabels = ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId);
 
+      final propertyLabels = ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId);
       objects[i] = obj.copyWith(
         properties: schemaProps,
         propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
@@ -243,7 +249,7 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       changed = true;
     }
 
-    // Create missing default pages (never existed before)
+    // Create missing default pages
     for (final pageId in [
       DefaultPageIds.profile,
       DefaultPageIds.travel,
@@ -251,54 +257,18 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       DefaultPageIds.professional,
     ]) {
       if (objects.any((o) => o.id == pageId)) continue;
-
-      objects.add(UnifiedObject(
-        id: pageId,
-        typeId: 'page',
-        name: pageNameFromId(pageId),
-        iconName: pageIconNameFromId(pageId),
-        parentId: null,
-        childrenIds: const [],
-        properties: const {},
-        isDeleted: false,
-        deletedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      ));
+      objects.add(_buildPage(pageId, now));
       changed = true;
     }
 
-    // Create missing default sections (never existed before)
+    // Create missing default sections
     for (final entry in PageSectionLinkRegistry.allDefaultLinks.entries) {
       final pageId = entry.key;
       for (final sectionId in entry.value) {
         if (objects.any((o) => o.id == sectionId)) continue;
 
-        final itemTypeId = getItemTypeIdForSection(sectionId);
-        final config = SectionRendererRegistry.getConfigBySectionId(sectionId);
-        final schemaProps = itemTypeId != null
-            ? ObjectTypeRegistry.buildPropertiesFromType(itemTypeId)
-            : <String, PropertyValue>{};
-        final propertyLabels = itemTypeId != null
-            ? ObjectTypeRegistry.buildPropertyLabelsFromType(itemTypeId)
-            : <String, String>{};
+        objects.add(_buildSection(sectionId, pageId, now));
 
-        objects.add(UnifiedObject(
-          id: sectionId,
-          typeId: 'collection',
-          name: config?.defaultName ?? sectionId,
-          iconName: config?.iconName ?? 'folder',
-          parentId: pageId,
-          childrenIds: const [],
-          properties: schemaProps,
-          propertyLabels: propertyLabels.isNotEmpty ? propertyLabels : null,
-          isDeleted: false,
-          deletedAt: null,
-          createdAt: now,
-          updatedAt: now,
-        ));
-
-        // Add section to page's childrenIds
         final pageIndex = objects.indexWhere((o) => o.id == pageId);
         if (pageIndex >= 0) {
           final page = objects[pageIndex];
@@ -309,7 +279,6 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
             );
           }
         }
-
         changed = true;
       }
     }
