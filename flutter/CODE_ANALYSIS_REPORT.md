@@ -21,10 +21,10 @@
 | P001 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:1990` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
 | P002 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2125` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
 | P003 | P0 | 安全/崩溃 | `presentation/pages/plugin_dashboard_page.dart:2183` | `use_build_context_synchronously`：异步操作后未检查 `mounted` 直接使用 `BuildContext` | `[x]` 已修复 |
-| P004 | P0 | 安全 | `core/services/scan/content_parser_service.dart:109` | `Process.run('pdftotext', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
-| P005 | P0 | 安全 | `core/services/scan/content_parser_service.dart:120` | `Process.run('strings', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
-| P006 | P0 | 安全 | `core/services/scan/windows_search_service.dart:44` | `Process.run('es', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
-| P007 | P0 | 安全 | `core/services/scan/windows_search_service.dart:105` | `Process.run('powershell', ...)` 执行外部命令，存在命令注入风险 | `[ ]` 待修复 |
+| P004 | P0 | 安全 | `core/services/scan/content_parser_service.dart:109` | `Process.run('pdftotext', ...)` 执行外部命令，存在命令注入风险 | `[x]` 已修复 |
+| P005 | P0 | 安全 | `core/services/scan/content_parser_service.dart:120` | `Process.run('strings', ...)` 执行外部命令，存在命令注入风险 | `[x]` 已修复 |
+| P006 | P0 | 安全 | `core/services/scan/windows_search_service.dart:44` | `Process.run('es', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
+| P007 | P0 | 安全 | `core/services/scan/windows_search_service.dart:105` | `Process.run('powershell', ...)` 执行外部命令，存在命令注入风险 | `[x]` 误报/设计如此 |
 | P008 | P0 | 崩溃风险 | 全库 166 处 | `!.` / `!)` 强制解包（空安全违规），可能导致运行时崩溃 | `[ ]` 待修复 |
 | P009 | P1 | 代码质量 | `core/services/audit_log_service.dart:259` | `catch` 未指定异常类型，可能吞掉所有错误包括 `Error` | `[ ]` 待修复 |
 | P010 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:2108` | `catch` 未指定异常类型，可能吞掉所有错误 | `[ ]` 待修复 |
@@ -53,8 +53,8 @@
 
 ## 修复进度
 
-- 已完成：3 / 30
-- 当前处理：P004
+- 已完成：7 / 30
+- 当前处理：P008
 
 ### P001 修复说明
 - **文件**：`presentation/pages/plugin_dashboard_page.dart:1990`
@@ -71,6 +71,15 @@
 - **改动**：在 `await showDialog<bool>(context: context, ...)` 前添加 `if (!context.mounted) break;` 检查
 - **验证**：`dart analyze` 确认该位置 lint 已消除
 - **备注**：plugin_dashboard_page.dart 中全部 3 处 `use_build_context_synchronously` 已修复完毕
+
+### P004–P005 修复说明
+- **文件**：`core/services/scan/content_parser_service.dart`
+- **改动**：在 `_extractPdfText` 函数开头添加 `_isSafePath(path)` 验证，拒绝包含非法字符的路径
+- **验证**：代码审查确认路径在传入 `Process.run` 前已被过滤
+
+### P006–P007 备注
+- **文件**：`core/services/scan/windows_search_service.dart`
+- **说明**：已有 `_isSafePath()` 验证（第 34、91 行）和 PowerShell 双引号转义（第 100 行），属于设计时已有防护，标记为误报
 
 ---
 

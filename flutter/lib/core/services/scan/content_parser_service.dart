@@ -104,6 +104,12 @@ class ContentParserService {
   // ---------------------------------------------------------------------------
 
   static Future<String?> _extractPdfText(String path) async {
+    // Validate path to prevent command injection
+    if (!_isSafePath(path)) {
+      SoloLog.w('CONTENT_PARSER', 'Rejected unsafe path: $path');
+      return null;
+    }
+
     // Try pdftotext first (poppler-utils)
     try {
       final result = await Process.run('pdftotext', [path, '-'])
@@ -235,5 +241,11 @@ class ContentParserService {
       return text.substring(0, _maxTextLength);
     }
     return text;
+  }
+
+  static bool _isSafePath(String path) {
+    // Allow only alphanumeric, common path separators, whitespace, and
+    // standard path characters (colon for drive letter, etc.).
+    return RegExp(r'^[a-zA-Z0-9_:\\/\.\-\s]+$').hasMatch(path);
   }
 }
