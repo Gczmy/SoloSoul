@@ -186,17 +186,22 @@ class OperationEntry {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'timestamp': timestamp.toIso8601String(),
-        'action': action,
-        'section': section,
-        'description': description,
-        if (fieldPath != null) 'fieldPath': fieldPath,
-        'device': device,
-        'sensitivityLevel': sensitivityLevel.name,
-        if (properties != null && properties!.isNotEmpty) 'properties': properties,
-        if (propertyLevels != null && propertyLevels!.isNotEmpty) 'propertyLevels': propertyLevels,
-        if (descriptionKey != null) 'descriptionKey': descriptionKey,
-        if (descriptionArgs != null && descriptionArgs!.isNotEmpty) 'descriptionArgs': descriptionArgs,
-      };
+  Map<String, dynamic> toJson() {
+    final props = properties;
+    final propLevels = propertyLevels;
+    final descArgs = descriptionArgs;
+    return {
+      'timestamp': timestamp.toIso8601String(),
+      'action': action,
+      'section': section,
+      'description': description,
+      if (fieldPath != null) 'fieldPath': fieldPath,
+      'device': device,
+      'sensitivityLevel': sensitivityLevel.name,
+      if (props != null && props.isNotEmpty) 'properties': props,
+      if (propLevels != null && propLevels.isNotEmpty) 'propertyLevels': propLevels,
+      if (descriptionKey != null) 'descriptionKey': descriptionKey,
+      if (descArgs != null && descArgs.isNotEmpty) 'descriptionArgs': descArgs,
+    };
+  }
 }

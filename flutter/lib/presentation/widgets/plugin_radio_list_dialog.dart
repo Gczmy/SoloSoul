@@ -32,22 +32,25 @@ class _PluginRadioListDialogState extends State<PluginRadioListDialog> {
       title: Text(widget.title),
       content: SizedBox(
         width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.description != null && widget.description!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  widget.description!,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
+        child: Builder(
+          builder: (context) {
+            final desc = widget.description;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (desc != null && desc.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      desc,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            Flexible(
+                Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: widget.items.length,
@@ -67,9 +70,11 @@ class _PluginRadioListDialogState extends State<PluginRadioListDialog> {
               ),
             ),
           ],
-        ),
-      ),
-      actions: [
+        );
+      },
+    ),
+  ),
+  actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('取消'),

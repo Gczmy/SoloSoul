@@ -1904,25 +1904,30 @@ class _PluginCard extends ConsumerWidget {
                                 : null,
                           ),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              info.releasedAt.toLocal().toString().split(' ').first,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            if (info.changelog != null && info.changelog!.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  info.changelog!,
-                                  style: Theme.of(context).textTheme.bodySmall,
+                        subtitle: Builder(
+                          builder: (context) {
+                            final changelog = info.changelog;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  info.releasedAt.toLocal().toString().split(' ').first,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
-                              ),
-                          ],
+                                if (changelog != null && changelog.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      changelog,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                         trailing: isCurrent
                             ? Chip(

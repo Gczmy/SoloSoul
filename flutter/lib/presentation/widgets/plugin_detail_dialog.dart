@@ -109,6 +109,7 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
     final description = _resolvePluginDescription(context);
     final requiredFields = widget.installedManifest?.requiredFields ?? [];
     final optionalFields = widget.installedManifest?.optionalFields ?? [];
+    final registryEntry = widget.registryEntry;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -145,7 +146,7 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
               _buildFieldChipGroup(l10n.pluginDetailOptional, optionalFields, theme.colorScheme.outline),
             const SizedBox(height: 24),
           ],
-          if (widget.registryEntry != null) ...[
+          if (registryEntry != null) ...[
             Text(
               l10n.pluginDetailVersionCompat,
               style: theme.textTheme.titleSmall?.copyWith(
@@ -153,9 +154,9 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
               ),
             ),
             const SizedBox(height: 8),
-            _buildInfoRow(l10n.pluginDetailMinAppVersion, widget.registryEntry!.versions.values.first.minAppVersion),
-            _buildInfoRow(l10n.pluginDetailMaxAppVersion, widget.registryEntry!.versions.values.first.maxAppVersion),
-            _buildInfoRow(l10n.pluginDetailPluginApiVersion, widget.registryEntry!.versions.values.first.pluginApiVersion),
+            _buildInfoRow(l10n.pluginDetailMinAppVersion, registryEntry.versions.values.first.minAppVersion),
+            _buildInfoRow(l10n.pluginDetailMaxAppVersion, registryEntry.versions.values.first.maxAppVersion),
+            _buildInfoRow(l10n.pluginDetailPluginApiVersion, registryEntry.versions.values.first.pluginApiVersion),
           ],
         ],
       ),
@@ -288,6 +289,10 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
 
   Widget _buildInfoTab(ThemeData theme) {
     final l10n = AppLocalizations.of(context);
+    final homepage = widget.registryEntry?.homepage;
+    final installedInfo = widget.installedInfo;
+    final installedAt = installedInfo?.installedAt;
+    final lastUsedAt = installedInfo?.lastUsedAt;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -300,8 +305,8 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
               l10n.pluginDetailPluginId: widget.pluginId,
               l10n.pluginDetailPluginName: _resolvePluginName(context),
               l10n.pluginDetailPublisher: widget.registryEntry?.publisher ?? widget.installedManifest?.publisher ?? '-',
-              if (widget.registryEntry?.homepage != null)
-                l10n.pluginDetailHomepage: widget.registryEntry!.homepage!,
+              if (homepage != null)
+                l10n.pluginDetailHomepage: homepage,
             },
           ),
           const SizedBox(height: 24),
@@ -315,10 +320,10 @@ class _PluginDetailDialogState extends State<PluginDetailDialog>
                     widget.installedInfo?.version ??
                     '-',
                 l10n.pluginDetailLatestVersion: widget.registryEntry?.latestVersion ?? '-',
-                if (widget.installedInfo?.installedAt != null)
-                  l10n.pluginDetailInstallTime: _formatDateTime(widget.installedInfo!.installedAt!),
-                if (widget.installedInfo?.lastUsedAt != null)
-                  l10n.pluginDetailLastUsed: _formatDateTime(widget.installedInfo!.lastUsedAt!)
+                if (installedAt != null)
+                  l10n.pluginDetailInstallTime: _formatDateTime(installedAt),
+                if (lastUsedAt != null)
+                  l10n.pluginDetailLastUsed: _formatDateTime(lastUsedAt)
                 else if (widget.isInstalled)
                   l10n.pluginDetailLastUsed: l10n.pluginDetailNeverUsed,
               },
