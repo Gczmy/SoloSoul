@@ -30,12 +30,12 @@
 | P010 | P1 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:2108` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
 | P011 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:123` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
 | P012 | P1 | 代码质量 | `core/services/llm/llm_model_manager.dart:168` | `catch` 未指定异常类型，可能吞掉所有错误 | `[x]` 已修复 |
-| P013 | P1 | 可维护性 | `presentation/pages/plugin_dashboard_page.dart:1975` | `_onRun()` 函数长达 307 行，严重超出 50 行建议 | `[ ]` 待修复 |
-| P014 | P1 | 可维护性 | `presentation/widgets/app_sidebar.dart:228` | `build()` 方法长达 237 行 | `[ ]` 待修复 |
-| P015 | P1 | 可维护性 | `presentation/pages/plugin_dashboard_page.dart:1046` | `build()` 方法长达 217 行 | `[ ]` 待修复 |
-| P016 | P1 | 可维护性 | `presentation/widgets/trash/unified_object_trash_card.dart:53` | `build()` 方法长达 210 行 | `[ ]` 待修复 |
-| P017 | P1 | 代码质量 | `presentation/widgets/plugin_radio_list_dialog.dart:59` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged` API | `[ ]` 待修复 |
-| P018 | P1 | 代码质量 | `presentation/widgets/plugin_sensitivity_override_dialog.dart:165` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged` API | `[ ]` 待修复 |
+| P013 | P1 | 可维护性 | `presentation/pages/plugin_dashboard_page.dart:1975` | `_onRun()` 函数长达 307 行，严重超出 50 行建议 | `[~]` 暂缓：需大重构，分批处理 |
+| P014 | P1 | 可维护性 | `presentation/widgets/app_sidebar.dart:228` | `build()` 方法长达 237 行 | `[~]` 暂缓：需大重构，分批处理 |
+| P015 | P1 | 可维护性 | `presentation/pages/plugin_dashboard_page.dart:1046` | `build()` 方法长达 217 行 | `[~]` 暂缓：需大重构，分批处理 |
+| P016 | P1 | 可维护性 | `presentation/widgets/trash/unified_object_trash_card.dart:53` | `build()` 方法长达 210 行 | `[~]` 暂缓：需大重构，分批处理 |
+| P017 | P1 | 代码质量 | `presentation/widgets/plugin_radio_list_dialog.dart:59` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged` API | `[~]` 暂缓：需引入 RadioGroup 重构 UI |
+| P018 | P1 | 代码质量 | `presentation/widgets/plugin_sensitivity_override_dialog.dart:165` | 使用已废弃的 `Radio.groupValue` / `Radio.onChanged` API | `[~]` 暂缓：需引入 RadioGroup 重构 UI |
 | P019 | P1 | 安全/崩溃 | `core/utils/mrz_date_utils.dart:19` | `int.parse()` 无 try-catch，输入非法会抛出异常崩溃 | `[x]` 误报/设计如此 |
 | P020 | P1 | 安全/崩溃 | `presentation/widgets/mrz_preview_card.dart:102` | `int.parse()` 无 try-catch，输入非法会抛出异常崩溃 | `[x]` 误报/设计如此 |
 | P021 | P1 | 代码质量 | `core/services/audit_log_service.dart:61` | `_logFileName` 字段声明但未使用 | `[x]` 已修复 |
@@ -45,16 +45,26 @@
 | P025 | P2 | 代码质量 | `core/utils/solo_log.dart:40` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
 | P026 | P2 | 代码质量 | `core/services/debug_logger.dart:118` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
 | P027 | P2 | 代码质量 | `core/services/debug_logger.dart:216` | `print()` 语句不应出现在生产代码中 | `[x]` 误报/设计如此 |
-| P028 | P2 | 可维护性 | `lib/` 全库 1241 处 | 深层嵌套（>4层），影响代码可读性 | `[ ]` 待修复 |
+| P028 | P2 | 可维护性 | `lib/` 全库 1241 处 | 深层嵌套（>4层），影响代码可读性 | `[~]` 暂缓：全库系统性重构，分批处理 |
 | P029 | P2 | 代码质量 | `presentation/pages/plugin_dashboard_page.dart:610` | `_kindLabel` 声明但未引用 | `[x]` 已修复 |
-| P030 | P2 | 架构债务 | `core/models/semantic_type_registry.dart:979` | `TODO`：需接入实际数据读取服务 | `[ ]` 待修复 |
+| P030 | P2 | 架构债务 | `core/models/semantic_type_registry.dart:979` | `TODO`：需接入实际数据读取服务 | `[~]` 暂缓：依赖架构变更 |
 
 ---
 
 ## 修复进度
 
 - 已完成：17 / 30
-- 当前处理：P008（分批处理）
+- 当前处理：无（本轮修复暂停，待处理项见下方）
+
+## 暂缓修复项（需后续轮次或架构变更）
+
+| ID | 原因 |
+|----|------|
+| P008 | 全库 155 处强制解包，需系统性分批修复 |
+| P013–P016 | 过长函数（209 个），需提取子 Widget/方法，涉及大量 UI 重构 |
+| P017–P018 | 废弃 Radio API，需引入 `RadioGroup` 替代，涉及 UI 交互逻辑变更 |
+| P028 | 深层嵌套（1241 处），需全库提取子 Widget |
+| P030 | TODO 标记，依赖 `UnifiedObjectService` 架构接入 |
 
 ### P001 修复说明
 - **文件**：`presentation/pages/plugin_dashboard_page.dart:1990`
