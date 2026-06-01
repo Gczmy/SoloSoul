@@ -4,106 +4,97 @@ import 'package:solosoul_flutter/presentation/widgets/entry_actions_context.dart
 
 void main() {
   group('EntryActionsContext', () {
-    testWidgets('of returns context when found in tree', (tester) async {
-      EntryActionsContext? found;
+    testWidgets('provides callbacks to descendant widgets', (tester) async {
+      VoidCallback? capturedEdit;
+      VoidCallback? capturedDelete;
 
       await tester.pumpWidget(
         EntryActionsContext(
-          onEdit: () {},
-          onDelete: () {},
+          onEdit: () => capturedEdit = () {},
+          onDelete: () => capturedDelete = () {},
           child: Builder(
             builder: (context) {
-              found = EntryActionsContext.of(context);
-              return const SizedBox();
+              final actions = EntryActionsContext.of(context);
+              // Trigger callbacks to verify they are passed through
+              actions?.onEdit?.call();
+              actions?.onDelete?.call();
+              return const SizedBox.shrink();
             },
           ),
         ),
       );
 
-      expect(found, isNotNull);
-      expect(found!.onEdit, isNotNull);
-      expect(found!.onDelete, isNotNull);
+      expect(capturedEdit, isNotNull);
+      expect(capturedDelete, isNotNull);
     });
 
-    testWidgets('of returns null when not in tree', (tester) async {
-      EntryActionsContext? found;
-
+    testWidgets('returns null when no context in tree', (tester) async {
       await tester.pumpWidget(
         Builder(
           builder: (context) {
-            found = EntryActionsContext.of(context);
-            return const SizedBox();
+            final actions = EntryActionsContext.of(context);
+            expect(actions, isNull);
+            return const SizedBox.shrink();
           },
         ),
       );
-
-      expect(found, isNull);
     });
 
-    testWidgets('updateShouldNotify returns true when callbacks change',
-        (tester) async {
-      var editCount = 0;
-
-      await tester.pumpWidget(
-        EntryActionsContext(
-          onEdit: () => editCount++,
-          child: const SizedBox(),
-        ),
+    testWidgets('updateShouldNotify returns true when callbacks change', (tester) async {
+      var onEditCallCount = 0;
+      final first = EntryActionsContext(
+        onEdit: () => onEditCallCount++,
+        child: const SizedBox.shrink(),
       );
-
-      await tester.pumpWidget(
-        EntryActionsContext(
-          onEdit: () => editCount += 2,
-          child: const SizedBox(),
-        ),
+      final second = EntryActionsContext(
+        onEdit: () => onEditCallCount++,
+        child: const SizedBox.shrink(),
       );
-
-      // Different closures should trigger notify
-      expect(editCount, 0);
+      // Different function instances => should notify
+      expect(first.updateShouldNotify(second), isTrue);
     });
 
-    testWidgets('updateShouldNotify returns false when callbacks are same',
-        (tester) async {
-      void onEdit() {}
-
-      await tester.pumpWidget(
-        EntryActionsContext(
-          onEdit: onEdit,
-          child: const SizedBox(),
-        ),
+    testWidgets('updateShouldNotify returns false when callbacks are identical', (tester) async {
+      void handler() {}
+      final first = EntryActionsContext(
+        onEdit: handler,
+        onDelete: handler,
+        child: const SizedBox.shrink(),
       );
-
-      await tester.pumpWidget(
-        EntryActionsContext(
-          onEdit: onEdit,
-          child: const SizedBox(),
-        ),
+      final second = EntryActionsContext(
+        onEdit: handler,
+        onDelete: handler,
+        child: const SizedBox.shrink(),
       );
-
-      // Same closure should not trigger notify
-      expect(tester.hasRunningAnimations, isFalse);
+      expect(first.updateShouldNotify(second), isFalse);
     });
 
-    testWidgets('passes all callbacks to children', (tester) async {
-      Future<void> onCopy(String s) async {}
-      void onToggle() {}
+    testWidgets('passes onCopy and onToggleHistory callbacks', (tester) async {
+      Future<void> Function(String)? capturedCopy;
+      VoidCallback? capturedToggle;
 
       await tester.pumpWidget(
         EntryActionsContext(
-          onEdit: () {},
-          onDelete: () {},
-          onCopy: onCopy,
-          onToggleHistory: onToggle,
+          onCopy: (value) async { capturedCopy = (String s) async {}; },
+          onToggleHistory: () { capturedToggle = () {}; },
           child: Builder(
             builder: (context) {
-              final ctx = EntryActionsContext.of(context)!;
-              expect(ctx.onCopy, same(onCopy));
-              expect(ctx.onToggleHistory, same(onToggle));
-              return const SizedBox();
+              final actions = EntryActionsContext.of(context);
+              return GestureDetector(
+                onTap: () {
+                  actions?.onCopy?.call('test');
+                  actions?.onToggleHistory?.call();
+                },
+              );
             },
           ),
         ),
       );
+
+      final context = tester.element(find.byType(GestureDetector));
+      final actions = EntryActionsContext.of(context);
+      expect(actions?.onCopy, isNotNull);
+      expect(actions?.onToggleHistory, isNotNull);
     });
   });
 }

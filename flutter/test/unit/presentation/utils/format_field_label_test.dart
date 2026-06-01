@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations_en.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart';
 
 void main() {
@@ -48,6 +49,68 @@ void main() {
       expect(formatFieldLabel('address1'), 'Address1');
       // Regex only matches [a-z][A-Z], digit-uppercase is not split
       expect(formatFieldLabel('field2Name'), 'Field2name');
+    });
+  });
+
+  group('translateFieldLabel', () {
+    final l10n = AppLocalizationsEn();
+
+    test('translates known camelCase keys', () {
+      expect(translateFieldLabel('fullName', l10n), l10n.fieldFullName);
+      expect(translateFieldLabel('givenName', l10n), l10n.fieldGivenName);
+      expect(translateFieldLabel('dateOfBirth', l10n), l10n.fieldDateOfBirth);
+      expect(translateFieldLabel('passportNumber', l10n), l10n.fieldPassportNumber);
+      expect(translateFieldLabel('bankName', l10n), l10n.fieldBankName);
+    });
+
+    test('translates known snake_case keys', () {
+      expect(translateFieldLabel('full_name', l10n), l10n.fieldFullName);
+      expect(translateFieldLabel('date_of_birth', l10n), l10n.fieldDateOfBirth);
+      expect(translateFieldLabel('bank_name', l10n), l10n.fieldBankName);
+      expect(translateFieldLabel('account_number', l10n), l10n.fieldAccountNumber);
+    });
+
+    test('translates section name keys', () {
+      expect(translateFieldLabel('financial', l10n), l10n.sectionFinancial);
+      expect(translateFieldLabel('medical', l10n), l10n.sectionMedical);
+      expect(translateFieldLabel('security', l10n), l10n.sectionSecurity);
+      expect(translateFieldLabel('digitalAccounts', l10n), l10n.sectionDigitalAccounts);
+      expect(translateFieldLabel('insurance', l10n), l10n.sectionInsurance);
+    });
+
+    test('falls back to formatFieldLabel for unknown keys', () {
+      expect(translateFieldLabel('customField', l10n), 'Custom Field');
+      expect(translateFieldLabel('unknownKey', l10n), 'Unknown Key');
+    });
+
+    test('handles title key mapping', () {
+      expect(translateFieldLabel('title', l10n), l10n.fieldTitle);
+      expect(translateFieldLabel('Title', l10n), l10n.fieldTitle);
+    });
+
+    test('handles bank name snake_case variant', () {
+      expect(translateFieldLabel('bank_name', l10n), l10n.fieldBankName);
+      expect(translateFieldLabel('bankName', l10n), l10n.fieldBankName);
+    });
+
+    test('handles sort code variants', () {
+      expect(translateFieldLabel('sortCode', l10n), l10n.fieldSortCode);
+      expect(translateFieldLabel('sort_code', l10n), l10n.fieldSortCode);
+    });
+
+    test('handles routing number variants', () {
+      expect(translateFieldLabel('routingNumber', l10n), l10n.fieldRoutingNumber);
+      expect(translateFieldLabel('routing_number', l10n), l10n.fieldRoutingNumber);
+    });
+
+    test('handles account type variants', () {
+      expect(translateFieldLabel('accountType', l10n), l10n.fieldAccountType);
+      expect(translateFieldLabel('account_type', l10n), l10n.fieldAccountType);
+    });
+
+    test('handles branch name variants', () {
+      expect(translateFieldLabel('branchName', l10n), l10n.fieldBranchName);
+      expect(translateFieldLabel('branch_name', l10n), l10n.fieldBranchName);
     });
   });
 }

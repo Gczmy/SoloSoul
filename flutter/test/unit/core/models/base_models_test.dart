@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/models/base_models.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations_en.dart';
 
 class _TestEntry with FormattableEntry {
   @override
@@ -73,6 +74,48 @@ void main() {
         },
       );
       expect(entry.toFormattedString(), isEmpty);
+    });
+
+    test('toFormattedStringLocalized translates known keys', () {
+      final entry = _TestEntry(
+        entryType: 'test',
+        data: {
+          'fullName': 'John Doe',
+          'email': 'john@example.com',
+        },
+      );
+      final l10n = AppLocalizationsEn();
+      final result = entry.toFormattedStringLocalized(l10n);
+      expect(result, contains(l10n.fieldFullName));
+      expect(result, contains('John Doe'));
+      expect(result, contains(l10n.fieldEmail));
+    });
+
+    test('toFormattedStringLocalized falls back to formatFieldLabel for unknown keys', () {
+      final entry = _TestEntry(
+        entryType: 'test',
+        data: {'customField': 'value'},
+      );
+      final l10n = AppLocalizationsEn();
+      final result = entry.toFormattedStringLocalized(l10n);
+      expect(result, contains('Custom Field'));
+      expect(result, contains('value'));
+    });
+
+    test('toFormattedStringLocalized skips null and empty values', () {
+      final entry = _TestEntry(
+        entryType: 'test',
+        data: {
+          'name': 'John',
+          'empty': '',
+          'nulled': null,
+        },
+      );
+      final l10n = AppLocalizationsEn();
+      final result = entry.toFormattedStringLocalized(l10n);
+      expect(result, contains('Name: John'));
+      expect(result, isNot(contains('empty')));
+      expect(result, isNot(contains('nulled')));
     });
   });
 }

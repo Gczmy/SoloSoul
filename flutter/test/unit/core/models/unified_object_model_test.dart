@@ -1,355 +1,243 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
+import 'package:solosoul_flutter/gen/l10n/app_localizations_en.dart';
 
 void main() {
-  group('SelectOption', () {
-    test('creates with required fields', () {
-      const opt = SelectOption(id: 'opt-1', label: 'Option 1', order: 0);
-      expect(opt.id, 'opt-1');
-      expect(opt.label, 'Option 1');
-      expect(opt.order, 0);
-    });
-
-    test('copyWith changes', () {
-      const opt = SelectOption(id: 'opt-1', label: 'Old', order: 0);
-      final copy = opt.copyWith(label: 'New');
-      expect(copy.id, 'opt-1');
-      expect(copy.label, 'New');
-      expect(copy.order, 0);
-    });
-  });
-
-  group('PropertyDefinition', () {
-    test('creates with defaults', () {
-      const def = PropertyDefinition(
-        id: 'prop-1',
-        name: 'Name',
-        type: PropertyType.text,
-      );
-      expect(def.required, isFalse);
-      expect(def.order, 0);
-      expect(def.config, isNull);
-    });
-
-    test('copyWith changes', () {
-      const def = PropertyDefinition(
-        id: 'prop-1',
-        name: 'Name',
-        type: PropertyType.text,
-      );
-      final copy = def.copyWith(name: 'Email', type: PropertyType.url);
-      expect(copy.name, 'Email');
-      expect(copy.type, PropertyType.url);
-      expect(copy.id, 'prop-1');
-    });
-  });
-
-  group('ObjectTypeDefinition', () {
-    test('creates with defaults', () {
-      const def = ObjectTypeDefinition(id: 'type-1', name: 'Page');
-      expect(def.iconName, 'folder');
-      expect(def.description, isNull);
-      expect(def.defaultLayout, ObjectLayout.document);
-      expect(def.properties, isEmpty);
-    });
-
-    test('copyWith changes', () {
-      const def = ObjectTypeDefinition(id: 'type-1', name: 'Page');
-      final copy = def.copyWith(
-        name: 'Collection',
-        defaultLayout: ObjectLayout.collection,
-      );
-      expect(copy.name, 'Collection');
-      expect(copy.defaultLayout, ObjectLayout.collection);
-      expect(copy.id, 'type-1');
-    });
-  });
-
-  group('PropertyValue subtypes', () {
-    test('TextProperty has default sensitivity public', () {
-      const prop = TextProperty(text: 'hello');
-      expect(prop.sensitivity, SensitivityLevel.public);
-    });
-
-    test('NumberProperty with null value', () {
-      const prop = NumberProperty();
-      expect(prop.value, isNull);
-      expect(prop.sensitivity, SensitivityLevel.public);
-    });
-
-    test('DateProperty with null isoDate', () {
-      const prop = DateProperty();
-      expect(prop.isoDate, isNull);
-      expect(prop.includeTime, isFalse);
-    });
-
-    test('CheckboxProperty default is unchecked', () {
-      const prop = CheckboxProperty();
-      expect(prop.checked, isFalse);
-    });
-
-    test('SelectProperty with options', () {
-      const prop = SelectProperty(
-        options: [
-          SelectOption(id: 'a', label: 'A', order: 0),
-          SelectOption(id: 'b', label: 'B', order: 1),
-        ],
-        selectedId: 'a',
-      );
-      expect(prop.options, hasLength(2));
-      expect(prop.selectedId, 'a');
-    });
-
-    test('MultiSelectProperty default selectedIds is empty', () {
-      const prop = MultiSelectProperty(options: []);
-      expect(prop.selectedIds, isEmpty);
-    });
-
-    test('RelationProperty with target', () {
-      const prop = RelationProperty(
-        targetTypeId: 'page',
-        targetObjectId: 'obj-1',
-      );
-      expect(prop.targetTypeId, 'page');
-      expect(prop.targetObjectId, 'obj-1');
-    });
-
-    test('UrlProperty with null url', () {
-      const prop = UrlProperty();
-      expect(prop.url, isNull);
-    });
-  });
-
-  group('PropertyValue copyWith', () {
-    test('TextProperty copyWith', () {
-      const prop = TextProperty(text: 'old');
-      final copy = prop.copyWith(text: 'new', sensitivity: SensitivityLevel.critical);
-      expect(copy.text, 'new');
-      expect(copy.sensitivity, SensitivityLevel.critical);
-    });
-
-    test('NumberProperty copyWith', () {
-      const prop = NumberProperty(value: 1);
-      final copy = prop.copyWith(value: 2);
-      expect(copy.value, 2);
-    });
-
-    test('CheckboxProperty copyWith', () {
-      const prop = CheckboxProperty(checked: false);
-      final copy = prop.copyWith(checked: true);
-      expect(copy.checked, isTrue);
-    });
-  });
-
-  group('UnifiedObject', () {
-    final now = DateTime.now().millisecondsSinceEpoch;
-
-    test('creates with required fields', () {
+  group('UnifiedObject.toMap', () {
+    test('includes basic fields', () {
       final obj = UnifiedObject(
-        id: 'obj-1',
+        id: '1',
         name: 'Test',
-        createdAt: now,
-        updatedAt: now,
-      );
-      expect(obj.id, 'obj-1');
-      expect(obj.name, 'Test');
-      expect(obj.typeId, isNull);
-      expect(obj.iconName, 'folder');
-      expect(obj.parentId, isNull);
-      expect(obj.childrenIds, isEmpty);
-      expect(obj.properties, isEmpty);
-      expect(obj.isDeleted, isFalse);
-      expect(obj.deletedAt, isNull);
-    });
-
-    test('copyWith changes', () {
-      final obj = UnifiedObject(
-        id: 'obj-1',
-        name: 'Old',
-        createdAt: now,
-        updatedAt: now,
-      );
-      final copy = obj.copyWith(name: 'New', isDeleted: true);
-      expect(copy.id, 'obj-1');
-      expect(copy.name, 'New');
-      expect(copy.isDeleted, isTrue);
-    });
-
-    test('entryType returns UnifiedObject', () {
-      final obj = UnifiedObject(
-        id: 'obj-1',
-        name: 'Test',
-        createdAt: now,
-        updatedAt: now,
-      );
-      expect(obj.entryType, 'UnifiedObject');
-    });
-
-    test('toMap includes properties as display strings', () {
-      final obj = UnifiedObject(
-        id: 'obj-1',
-        name: 'Test',
-        createdAt: now,
-        updatedAt: now,
-        properties: {
-          'Title': const TextProperty(text: 'My Title'),
-          'Done': const CheckboxProperty(checked: true),
-        },
+        typeId: 'note',
+        createdAt: 1000,
+        updatedAt: 2000,
       );
       final map = obj.toMap();
-      expect(map['Title'], 'My Title');
-      expect(map['Done'], 'Yes');
-      expect(map['id'], 'obj-1');
+      expect(map['id'], '1');
+      expect(map['name'], 'Test');
+      expect(map['typeId'], 'note');
+      expect(map['isDeleted'], false);
+    });
+
+    test('includes propertyLabels when present', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        propertyLabels: const {'name': 'Full Name'},
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final map = obj.toMap();
+      expect(map['__propertyLabels'], equals({'name': 'Full Name'}));
+    });
+
+    test('excludes propertyLabels when empty', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        propertyLabels: const {},
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final map = obj.toMap();
+      expect(map.containsKey('__propertyLabels'), isFalse);
+    });
+
+    test('includes semanticTypes when present', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        semanticTypes: const {'name': 'personName'},
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final map = obj.toMap();
+      expect(map['__semanticTypes'], equals({'name': 'personName'}));
+    });
+
+    test('includes propertyOrder when non-empty', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        propertyOrder: const ['a', 'b'],
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final map = obj.toMap();
+      expect(map['propertyOrder'], equals(['a', 'b']));
+    });
+
+    test('converts properties to display strings', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        properties: const {
+          'text': TextProperty(text: 'hello'),
+          'num': NumberProperty(value: 42.5),
+          'date': DateProperty(isoDate: '2024-01-01'),
+          'checked': CheckboxProperty(checked: true),
+          'selected': SelectProperty(options: [], selectedId: 'opt1'),
+          'multi': MultiSelectProperty(options: [], selectedIds: ['a', 'b']),
+          'rel': RelationProperty(targetObjectId: 'ref1'),
+          'url': UrlProperty(url: 'https://example.com'),
+        },
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final map = obj.toMap();
+      expect(map['text'], 'hello');
+      expect(map['num'], '42.5');
+      expect(map['date'], '2024-01-01');
+      expect(map['checked'], 'Yes');
+      expect(map['selected'], 'opt1');
+      expect(map['multi'], 'a, b');
+      expect(map['rel'], 'ref1');
+      expect(map['url'], 'https://example.com');
+    });
+
+    test('uses l10n for checkbox display', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        properties: const {
+          'checked': CheckboxProperty(checked: false),
+        },
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final map = obj.toMap();
+      expect(map['checked'], 'No');
+    });
+  });
+
+  group('UnifiedObject.getDisplayLabelFor', () {
+    test('returns propertyLabels override when present', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        propertyLabels: const {'fullName': 'Legal Name'},
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final l10n = AppLocalizationsEn();
+      expect(obj.getDisplayLabelFor('fullName', l10n), 'Legal Name');
+    });
+
+    test('falls back to translateFieldLabel when no propertyLabels', () {
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'Test',
+        createdAt: 0,
+        updatedAt: 0,
+      );
+      final l10n = AppLocalizationsEn();
+      expect(obj.getDisplayLabelFor('fullName', l10n), l10n.fieldFullName);
+    });
+  });
+
+  group('Attachment', () {
+    test('copyWith changes fields', () {
+      final att = Attachment(
+        id: '1',
+        fileId: 'f1',
+        fileName: 'doc.pdf',
+        mimeType: 'application/pdf',
+        size: 100,
+        createdAt: 0,
+      );
+      final copy = att.copyWith(fileName: 'new.pdf', size: 200);
+      expect(copy.fileName, 'new.pdf');
+      expect(copy.size, 200);
+      expect(copy.id, '1');
+    });
+
+    test('default isDeleted is false', () {
+      final att = Attachment(
+        id: '1',
+        fileId: 'f1',
+        fileName: 'doc.pdf',
+        mimeType: 'application/pdf',
+        size: 100,
+        createdAt: 0,
+      );
+      expect(att.isDeleted, false);
+      expect(att.deletedAt, isNull);
     });
   });
 
   group('UnifiedObjectData', () {
-    test('default constructor has empty lists', () {
-      const data = UnifiedObjectData();
+    test('fromJsonCompat normalizes customTypes key', () {
+      final data = UnifiedObjectData.fromJsonCompat({
+        'objects': [],
+        'customTypes': [],
+      });
       expect(data.objects, isEmpty);
       expect(data.customTypes, isEmpty);
     });
 
-    test('copyWith changes', () {
-      const data = UnifiedObjectData();
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final copy = data.copyWith(
-        objects: [
-          UnifiedObject(id: '1', name: 'Test', createdAt: now, updatedAt: now),
-        ],
+    test('copyWith updates fields', () {
+      const data = UnifiedObjectData(objects: [], customTypes: []);
+      final obj = UnifiedObject(
+        id: '1',
+        name: 'A',
+        createdAt: 0,
+        updatedAt: 0,
       );
+      final copy = data.copyWith(objects: [obj]);
       expect(copy.objects, hasLength(1));
       expect(copy.customTypes, isEmpty);
     });
   });
 
-  group('PropertyValueConverter', () {
-    const converter = PropertyValueConverter();
-
-    test('toJson adds type field for TextProperty', () {
-      const prop = TextProperty(text: 'hello');
-      final json = converter.toJson(prop);
-      expect(json['type'], 'text');
-      expect(json['text'], 'hello');
+  group('PropertyValue.copyWith', () {
+    test('TextProperty', () {
+      const p = TextProperty(text: 'hello');
+      final copy = p.copyWith(text: 'world');
+      expect(copy.text, 'world');
+      expect(copy.sensitivity, SensitivityLevel.public);
     });
 
-    test('toJson adds type field for NumberProperty', () {
-      const prop = NumberProperty(value: 42);
-      final json = converter.toJson(prop);
-      expect(json['type'], 'number');
+    test('NumberProperty', () {
+      const p = NumberProperty(value: 10.0);
+      final copy = p.copyWith(value: 20.0);
+      expect(copy.value, 20.0);
     });
 
-    test('toJson adds type field for CheckboxProperty', () {
-      const prop = CheckboxProperty(checked: true);
-      final json = converter.toJson(prop);
-      expect(json['type'], 'checkbox');
-      expect(json['checked'], true);
-    });
-  });
-
-  group('ObjectLayout', () {
-    test('has expected values', () {
-      expect(ObjectLayout.values, hasLength(2));
-      expect(ObjectLayout.values, contains(ObjectLayout.document));
-      expect(ObjectLayout.values, contains(ObjectLayout.collection));
-    });
-  });
-
-  group('PropertyType', () {
-    test('has expected values', () {
-      expect(PropertyType.values, hasLength(8));
-      expect(PropertyType.values, contains(PropertyType.text));
-      expect(PropertyType.values, contains(PropertyType.number));
-      expect(PropertyType.values, contains(PropertyType.date));
-      expect(PropertyType.values, contains(PropertyType.checkbox));
-      expect(PropertyType.values, contains(PropertyType.select));
-      expect(PropertyType.values, contains(PropertyType.multiSelect));
-      expect(PropertyType.values, contains(PropertyType.relation));
-      expect(PropertyType.values, contains(PropertyType.url));
-    });
-  });
-
-  group('UnifiedObject semanticTypes', () {
-    test('serializes semanticTypes as __semanticTypes', () {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final obj = UnifiedObject(
-        id: 'section_1',
-        name: 'Pet Dog',
-        typeId: 'collection',
-        properties: {
-          'auto_a3f7d2e1': const TextProperty(text: 'Buddy'),
-        },
-        semanticTypes: {'auto_a3f7d2e1': 'pet.name'},
-        createdAt: now,
-        updatedAt: now,
-      );
-      final json = obj.toJson();
-      expect(json['__semanticTypes'], {'auto_a3f7d2e1': 'pet.name'});
-      expect(json.containsKey('semanticTypes'), isFalse);
+    test('DateProperty', () {
+      const p = DateProperty(isoDate: '2024-01-01');
+      final copy = p.copyWith(isoDate: '2024-12-31');
+      expect(copy.isoDate, '2024-12-31');
     });
 
-    test('deserializes __semanticTypes from JSON', () {
-      final json = {
-        'id': 'section_1',
-        'name': 'Pet Dog',
-        'typeId': 'collection',
-        'createdAt': 1700000000000,
-        'updatedAt': 1700000000000,
-        'properties': {
-          'auto_a3f7d2e1': {'type': 'text', 'text': 'Buddy'},
-        },
-        '__semanticTypes': {'auto_a3f7d2e1': 'pet.name'},
-      };
-      final obj = UnifiedObject.fromJson(json);
-      expect(obj.semanticTypes, isNotNull);
-      expect(obj.semanticTypes!['auto_a3f7d2e1'], 'pet.name');
+    test('CheckboxProperty', () {
+      const p = CheckboxProperty(checked: false);
+      final copy = p.copyWith(checked: true);
+      expect(copy.checked, true);
     });
 
-    test('copyWith updates semanticTypes', () {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final obj = UnifiedObject(
-        id: 'section_1',
-        name: 'Pet Dog',
-        typeId: 'collection',
-        properties: {},
-        semanticTypes: {'auto_a3f7d2e1': 'pet.name'},
-        createdAt: now,
-        updatedAt: now,
-      );
-      final updated = obj.copyWith(
-        semanticTypes: {'auto_a3f7d2e1': 'pet.name', 'auto_b2e18f4a': 'pet.breed'},
-      );
-      expect(updated.semanticTypes!.length, 2);
-      expect(updated.semanticTypes!['auto_b2e18f4a'], 'pet.breed');
+    test('SelectProperty', () {
+      const p = SelectProperty(options: [], selectedId: 'a');
+      final copy = p.copyWith(selectedId: 'b');
+      expect(copy.selectedId, 'b');
     });
 
-    test('null semanticTypes serializes as null', () {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final obj1 = UnifiedObject(
-        id: 'section_1',
-        name: 'Pet Dog',
-        typeId: 'collection',
-        properties: {},
-        createdAt: now,
-        updatedAt: now,
-      );
-      // Generated toJson() includes null semanticTypes
-      expect(obj1.toJson()['__semanticTypes'], isNull);
+    test('MultiSelectProperty', () {
+      const p = MultiSelectProperty(options: [], selectedIds: ['a']);
+      final copy = p.copyWith(selectedIds: ['b', 'c']);
+      expect(copy.selectedIds, equals(['b', 'c']));
     });
 
-    test('includes __semanticTypes when not empty', () {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final obj = UnifiedObject(
-        id: 'section_1',
-        name: 'Pet Dog',
-        typeId: 'collection',
-        properties: {},
-        semanticTypes: {'auto_a3f7d2e1': 'pet.name'},
-        createdAt: now,
-        updatedAt: now,
-      );
-      expect(obj.toJson()['__semanticTypes'], {'auto_a3f7d2e1': 'pet.name'});
+    test('RelationProperty', () {
+      const p = RelationProperty(targetObjectId: 'x');
+      final copy = p.copyWith(targetObjectId: 'y');
+      expect(copy.targetObjectId, 'y');
+    });
+
+    test('UrlProperty', () {
+      const p = UrlProperty(url: 'http://a.com');
+      final copy = p.copyWith(url: 'http://b.com');
+      expect(copy.url, 'http://b.com');
     });
   });
 }

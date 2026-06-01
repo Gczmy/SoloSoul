@@ -11,8 +11,8 @@ void main() {
       ),
     );
 
-    // Allow any async timers to settle before checking
-    await tester.pumpAndSettle();
+    // Allow animations to run briefly (splash has infinite animations)
+    await tester.pump(const Duration(seconds: 2));
 
     // Verify that the splash page shows the app name
     expect(find.text('SoloSoul'), findsOneWidget);

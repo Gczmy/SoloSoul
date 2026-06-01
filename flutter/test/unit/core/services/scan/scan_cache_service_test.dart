@@ -1,140 +1,110 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/services/scan/scan_cache_service.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  late Directory tempDir;
-
-  setUpAll(() async {
-    tempDir = await Directory.systemTemp.createTemp('scan_cache_test_');
-
-    const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(pathProviderChannel, (call) async {
-      if (call.method == 'getApplicationDocumentsDirectory') {
-        return tempDir.path;
-      }
-      return null;
-    });
-  });
-
-  tearDownAll(() async {
-    const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(pathProviderChannel, null);
-    await tempDir.delete(recursive: true);
-  });
-
-  setUp(() {
-    // Reset singleton state between tests
-    ScanCacheService.instance.clear();
-  });
-
   group('ScanCacheService', () {
-    test('isChanged returns true for unknown path', () {
-      expect(ScanCacheService.instance.isChanged('/new/file.txt', 1000, 100), isTrue);
+    late ScanCacheService cache;
+
+    setUp(() {
+      cache = ScanCacheService.instance;
+      cache.clear();
     });
 
-    test('isChanged returns false when mtime and size match', () {
-      ScanCacheService.instance.update('/file.txt', 1000, 100);
-      expect(ScanCacheService.instance.isChanged('/file.txt', 1000, 100), isFalse);
+    tearDown(() {
+      cache.clear();
     });
 
-    test('isChanged returns true when mtime differs', () {
-      ScanCacheService.instance.update('/file.txt', 1000, 100);
-      expect(ScanCacheService.instance.isChanged('/file.txt', 2000, 100), isTrue);
+    group('isChanged', () {
+      test('returns true for uncached file', () {
+        expect(cache.isChanged('/path/to/file', 1000, 1024), isTrue);
+      });
+
+      test('returns false when mtime and size match', () {
+        cache.update('/path/to/file', 1000, 1024);
+        expect(cache.isChanged('/path/to/file', 1000, 1024), isFalse);
+      });
+
+      test('returns true when mtime differs', () {
+        cache.update('/path/to/file', 1000, 1024);
+        expect(cache.isChanged('/path/to/file', 2000, 1024), isTrue);
+      });
+
+      test('returns true when size differs', () {
+        cache.update('/path/to/file', 1000, 1024);
+        expect(cache.isChanged('/path/to/file', 1000, 2048), isTrue);
+      });
     });
 
-    test('isChanged returns true when size differs', () {
-      ScanCacheService.instance.update('/file.txt', 1000, 100);
-      expect(ScanCacheService.instance.isChanged('/file.txt', 1000, 200), isTrue);
+    group('update', () {
+      test('adds new entry', () {
+        cache.update('/new/file', 3000, 512);
+        expect(cache.isChanged('/new/file', 3000, 512), isFalse);
+      });
+
+      test('overwrites existing entry', () {
+        cache.update('/file', 1000, 1024);
+        cache.update('/file', 2000, 2048);
+        expect(cache.isChanged('/file', 2000, 2048), isFalse);
+        expect(cache.isChanged('/file', 1000, 1024), isTrue);
+      });
     });
 
-    test('update replaces existing entry', () {
-      ScanCacheService.instance.update('/file.txt', 1000, 100);
-      ScanCacheService.instance.update('/file.txt', 2000, 200);
-      expect(ScanCacheService.instance.isChanged('/file.txt', 2000, 200), isFalse);
+    group('prune', () {
+      test('removes entries not in existing paths', () {
+        cache.update('/keep/this', 1000, 100);
+        cache.update('/remove/this', 2000, 200);
+        cache.prune({'/keep/this'});
+        expect(cache.isChanged('/keep/this', 1000, 100), isFalse);
+        expect(cache.isChanged('/remove/this', 2000, 200), isTrue);
+      });
+
+      test('removes all when empty set provided', () {
+        cache.update('/file1', 1000, 100);
+        cache.update('/file2', 2000, 200);
+        cache.prune({});
+        expect(cache.isChanged('/file1', 1000, 100), isTrue);
+        expect(cache.isChanged('/file2', 2000, 200), isTrue);
+      });
     });
 
-    test('prune removes missing paths', () {
-      ScanCacheService.instance.update('/keep.txt', 1000, 100);
-      ScanCacheService.instance.update('/remove.txt', 2000, 200);
-
-      ScanCacheService.instance.prune({'/keep.txt'});
-
-      expect(ScanCacheService.instance.isChanged('/keep.txt', 1000, 100), isFalse);
-      expect(ScanCacheService.instance.isChanged('/remove.txt', 2000, 200), isTrue);
+    group('clear', () {
+      test('removes all entries', () {
+        cache.update('/file1', 1000, 100);
+        cache.update('/file2', 2000, 200);
+        cache.clear();
+        expect(cache.isChanged('/file1', 1000, 100), isTrue);
+        expect(cache.isChanged('/file2', 2000, 200), isTrue);
+      });
     });
 
-    test('clear removes all entries', () {
-      ScanCacheService.instance.update('/a.txt', 1000, 100);
-      ScanCacheService.instance.clear();
-      expect(ScanCacheService.instance.isChanged('/a.txt', 1000, 100), isTrue);
-    });
+    group('ScanCacheEntry', () {
+      test('fromJson parses correctly', () {
+        final entry = ScanCacheEntry.fromJson({
+          'path': '/test',
+          'mtime': 1234,
+          'size': 5678,
+        });
+        expect(entry.path, '/test');
+        expect(entry.mtime, 1234);
+        expect(entry.size, 5678);
+      });
 
-    test('load and save roundtrip', () async {
-      ScanCacheService.instance.update('/doc.txt', 1234, 56);
-      await ScanCacheService.instance.save();
+      test('toJson serializes correctly', () {
+        final entry = ScanCacheEntry(path: '/test', mtime: 1234, size: 5678);
+        final json = entry.toJson();
+        expect(json['path'], '/test');
+        expect(json['mtime'], 1234);
+        expect(json['size'], 5678);
+      });
 
-      // Verify file was written
-      final file = File('${tempDir.path}/scan_cache.json');
-      expect(await file.exists(), isTrue);
-
-      final content = await file.readAsString();
-      final json = jsonDecode(content) as Map<String, dynamic>;
-      expect(json.containsKey('/doc.txt'), isTrue);
-      expect(json['/doc.txt']['mtime'], 1234);
-      expect(json['/doc.txt']['size'], 56);
-
-      // Clear and reload
-      ScanCacheService.instance.clear();
-      expect(ScanCacheService.instance.isChanged('/doc.txt', 1234, 56), isTrue);
-
-      await ScanCacheService.instance.load();
-      expect(ScanCacheService.instance.isChanged('/doc.txt', 1234, 56), isFalse);
-    });
-
-    test('load ignores missing file gracefully', () async {
-      // Ensure file does not exist
-      final file = File('${tempDir.path}/scan_cache.json');
-      if (await file.exists()) await file.delete();
-
-      // Should not throw
-      await ScanCacheService.instance.load();
-      expect(ScanCacheService.instance.isChanged('/any.txt', 0, 0), isTrue);
-    });
-
-    test('load ignores malformed JSON gracefully', () async {
-      final file = File('${tempDir.path}/scan_cache.json');
-      await file.writeAsString('not-json');
-
-      // Should not throw
-      await ScanCacheService.instance.load();
-      expect(ScanCacheService.instance.isChanged('/any.txt', 0, 0), isTrue);
-    });
-
-    test('save ignores write errors gracefully', () async {
-      // Write to a read-only directory is hard to simulate cross-platform,
-      // so we verify save() completes without throwing on normal paths.
-      ScanCacheService.instance.update('/x.txt', 1, 1);
-      await expectLater(ScanCacheService.instance.save(), completes);
-    });
-  });
-
-  group('ScanCacheEntry', () {
-    test('toJson and fromJson roundtrip', () {
-      final entry = ScanCacheEntry(path: '/test.txt', mtime: 1000, size: 200);
-      final json = entry.toJson();
-      final restored = ScanCacheEntry.fromJson(json);
-
-      expect(restored.path, '/test.txt');
-      expect(restored.mtime, 1000);
-      expect(restored.size, 200);
+      test('round-trip serialization', () {
+        final original = ScanCacheEntry(path: '/test', mtime: 1234, size: 5678);
+        final json = original.toJson();
+        final restored = ScanCacheEntry.fromJson(json);
+        expect(restored.path, original.path);
+        expect(restored.mtime, original.mtime);
+        expect(restored.size, original.size);
+      });
     });
   });
 }

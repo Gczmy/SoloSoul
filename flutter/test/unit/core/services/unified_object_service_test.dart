@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 
@@ -212,6 +213,212 @@ void main() {
       expect(UnifiedObjectService.getIconFromName('nonexistent'),
           Icons.folder_outlined);
       expect(UnifiedObjectService.getIconFromName(''), Icons.folder_outlined);
+    });
+  });
+
+  group('ObjectTypeRegistry.buildPropertiesFromType', () {
+    test('returns empty for unknown type', () {
+      final props = ObjectTypeRegistry.buildPropertiesFromType('unknown');
+      expect(props, isEmpty);
+    });
+
+    test('returns properties for task type', () {
+      final props = ObjectTypeRegistry.buildPropertiesFromType('task');
+      expect(props, hasLength(2));
+      expect(props.containsKey('done'), isTrue);
+      expect(props.containsKey('dueDate'), isTrue);
+      expect(props['done'], isA<CheckboxProperty>());
+      expect(props['dueDate'], isA<DateProperty>());
+    });
+
+    test('returns properties for contact type', () {
+      final props = ObjectTypeRegistry.buildPropertiesFromType('contact');
+      expect(props, hasLength(2));
+      expect(props['phone'], isA<TextProperty>());
+      expect(props['email'], isA<UrlProperty>());
+    });
+
+    test('returns empty for type with no properties', () {
+      final props = ObjectTypeRegistry.buildPropertiesFromType('page');
+      expect(props, isEmpty);
+    });
+
+    test('uses custom types when provided', () {
+      const customType = ObjectTypeDefinition(
+        id: 'custom',
+        name: 'Custom',
+        iconName: 'star',
+        defaultLayout: ObjectLayout.document,
+        properties: [
+          PropertyDefinition(id: 'title', name: 'Title', type: PropertyType.text),
+        ],
+      );
+      final props = ObjectTypeRegistry.buildPropertiesFromType(
+        'custom',
+        customTypes: [customType],
+      );
+      expect(props, hasLength(1));
+      expect(props['title'], isA<TextProperty>());
+    });
+  });
+
+  group('ObjectTypeRegistry.buildPropertyLabelsFromType', () {
+    test('returns empty for unknown type', () {
+      final labels = ObjectTypeRegistry.buildPropertyLabelsFromType('unknown');
+      expect(labels, isEmpty);
+    });
+
+    test('returns empty for built-in type', () {
+      // Built-in types do not store static labels
+      final labels = ObjectTypeRegistry.buildPropertyLabelsFromType('note');
+      expect(labels, isEmpty);
+    });
+
+    test('returns labels for custom type', () {
+      const customType = ObjectTypeDefinition(
+        id: 'custom',
+        name: 'Custom',
+        iconName: 'star',
+        defaultLayout: ObjectLayout.document,
+        properties: [
+          PropertyDefinition(id: 'title', name: 'Title Text', type: PropertyType.text),
+          PropertyDefinition(id: 'code', name: 'code', type: PropertyType.text),
+        ],
+      );
+      final labels = ObjectTypeRegistry.buildPropertyLabelsFromType(
+        'custom',
+        customTypes: [customType],
+      );
+      expect(labels, hasLength(1));
+      expect(labels['title'], 'Title Text');
+      // 'code' is skipped because name == id
+      expect(labels.containsKey('code'), isFalse);
+    });
+  });
+
+  group('Section metadata helpers', () {
+    test('getSectionMeta returns meta for known section', () {
+      final meta = getSectionMeta(DefaultSectionIds.identity);
+      expect(meta, isNotNull);
+      expect(meta!.name, 'Identity');
+    });
+
+    test('getSectionMeta returns null for unknown section', () {
+      expect(getSectionMeta('unknown'), isNull);
+    });
+
+    test('allSectionMeta is non-empty', () {
+      expect(allSectionMeta, isNotEmpty);
+    });
+
+    test('getDefaultSectionIdsForPage returns sections for profile page', () {
+      final ids = getDefaultSectionIdsForPage(DefaultPageIds.profile);
+      expect(ids, isNotEmpty);
+      expect(ids, contains(DefaultSectionIds.identity));
+      expect(ids, contains(DefaultSectionIds.contact));
+    });
+
+    test('getDefaultSectionIdsForPage returns empty for unknown page', () {
+      expect(getDefaultSectionIdsForPage('unknown'), isEmpty);
+    });
+
+    test('getDefaultSectionIdForItemType reverses lookup', () {
+      expect(
+        getDefaultSectionIdForItemType('__preset_identity'),
+        DefaultSectionIds.identity,
+      );
+      expect(
+        getDefaultSectionIdForItemType('__preset_passport'),
+        DefaultSectionIds.passport,
+      );
+      expect(getDefaultSectionIdForItemType('unknown'), isNull);
+    });
+
+    test('getItemTypeIdForSection maps section to type', () {
+      expect(
+        getItemTypeIdForSection(DefaultSectionIds.identity),
+        '__preset_identity',
+      );
+      expect(getItemTypeIdForSection('unknown'), isNull);
+    });
+  });
+
+  group('fieldPrefixForTypeId', () {
+    test('maps preset types', () {
+      expect(fieldPrefixForTypeId('__preset_identity'), 'identity');
+      expect(fieldPrefixForTypeId('__preset_contact'), 'contact');
+      expect(fieldPrefixForTypeId('__preset_passport'), 'passport');
+      expect(fieldPrefixForTypeId('__preset_bank_account'), 'bankAccount');
+      expect(fieldPrefixForTypeId('__preset_education'), 'education');
+    });
+
+    test('returns input for unknown type', () {
+      expect(fieldPrefixForTypeId('customType'), 'customType');
+    });
+  });
+
+  group('lookupFieldSensitivity', () {
+    test('returns registry level for known field', () {
+      final level = lookupFieldSensitivity('identity.fullName');
+      expect(level, isNotNull);
+    });
+
+    test('returns public for unknown field', () {
+      expect(lookupFieldSensitivity('unknown.field'), SensitivityLevel.public);
+    });
+  });
+
+  group('emptyPropertyValueForType', () {
+    test('creates TextProperty for text type', () {
+      final value = emptyPropertyValueForType(
+        PropertyType.text,
+        SensitivityLevel.internal,
+      );
+      expect(value, isA<TextProperty>());
+      expect((value as TextProperty).text, '');
+      expect(value.sensitivity, SensitivityLevel.internal);
+    });
+
+    test('creates NumberProperty for number type', () {
+      final value = emptyPropertyValueForType(
+        PropertyType.number,
+        SensitivityLevel.sensitive,
+      );
+      expect(value, isA<NumberProperty>());
+      expect((value as NumberProperty).sensitivity, SensitivityLevel.sensitive);
+    });
+
+    test('creates DateProperty for date type', () {
+      final value = emptyPropertyValueForType(PropertyType.date, SensitivityLevel.public);
+      expect(value, isA<DateProperty>());
+    });
+
+    test('creates CheckboxProperty for checkbox type', () {
+      final value = emptyPropertyValueForType(PropertyType.checkbox, SensitivityLevel.public);
+      expect(value, isA<CheckboxProperty>());
+      expect((value as CheckboxProperty).checked, false);
+    });
+
+    test('creates SelectProperty for select type', () {
+      final value = emptyPropertyValueForType(PropertyType.select, SensitivityLevel.public);
+      expect(value, isA<SelectProperty>());
+      expect((value as SelectProperty).options, isEmpty);
+    });
+
+    test('creates MultiSelectProperty for multiSelect type', () {
+      final value = emptyPropertyValueForType(PropertyType.multiSelect, SensitivityLevel.public);
+      expect(value, isA<MultiSelectProperty>());
+      expect((value as MultiSelectProperty).selectedIds, isEmpty);
+    });
+
+    test('creates RelationProperty for relation type', () {
+      final value = emptyPropertyValueForType(PropertyType.relation, SensitivityLevel.public);
+      expect(value, isA<RelationProperty>());
+    });
+
+    test('creates UrlProperty for url type', () {
+      final value = emptyPropertyValueForType(PropertyType.url, SensitivityLevel.public);
+      expect(value, isA<UrlProperty>());
     });
   });
 }

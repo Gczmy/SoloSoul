@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -415,6 +417,217 @@ void main() {
       expect(cache.workspaceChildren['p1']?.length, 2);
       expect(cache.itemChildren['p1']?.length, 1);
       expect(cache.rootObjects.length, 1);
+      addTearDown(container.dispose);
+    });
+  });
+
+  group('UnifiedObjectNotifier CRUD operations', () {
+    test('createObject adds new object to state', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+
+      // Fire-and-forget; state updates synchronously before _saveDebounced
+      unawaited(notifier.createObject(name: 'New Object'));
+
+      expect(notifier.state.objects, hasLength(1));
+      expect(notifier.state.objects.first.name, 'New Object');
+    });
+
+    test('createObject with parentId adds child reference', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final parent = UnifiedObject(
+        id: 'p1', name: 'Parent', typeId: 'page',
+        iconName: 'article', createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [parent], customTypes: const []);
+
+      unawaited(notifier.createObject(name: 'Child', parentId: 'p1'));
+
+      expect(notifier.state.objects, hasLength(2));
+      final updatedParent = notifier.state.objects.firstWhere((o) => o.id == 'p1');
+      expect(updatedParent.childrenIds, hasLength(1));
+    });
+
+    test('deleteObject marks object as deleted', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final obj = UnifiedObject(
+        id: 'o1', name: 'ToDelete', typeId: 'note',
+        iconName: 'note', createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+
+      unawaited(notifier.deleteObject('o1'));
+
+      final deleted = notifier.state.objects.firstWhere((o) => o.id == 'o1');
+      expect(deleted.isDeleted, true);
+      expect(deleted.deletedAt, isNotNull);
+    });
+
+    test('deleteObject removes child reference from parent', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final parent = UnifiedObject(
+        id: 'p1', name: 'Parent', typeId: 'page',
+        iconName: 'article', childrenIds: const ['c1'],
+        createdAt: 0, updatedAt: 0,
+      );
+      final child = UnifiedObject(
+        id: 'c1', name: 'Child', typeId: 'note',
+        iconName: 'note', parentId: 'p1',
+        createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [parent, child], customTypes: const []);
+
+      unawaited(notifier.deleteObject('c1'));
+
+      final updatedParent = notifier.state.objects.firstWhere((o) => o.id == 'p1');
+      expect(updatedParent.childrenIds, isEmpty);
+    });
+
+    test('restoreObject marks object as not deleted', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final obj = UnifiedObject(
+        id: 'o1', name: 'Restored', typeId: 'note',
+        iconName: 'note', isDeleted: true, deletedAt: DateTime.now(),
+        createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+
+      unawaited(notifier.restoreObject('o1'));
+
+      final restored = notifier.state.objects.firstWhere((o) => o.id == 'o1');
+      expect(restored.isDeleted, false);
+      expect(restored.deletedAt, isNull);
+    });
+
+    test('moveObject updates parentId and childrenIds', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final p1 = UnifiedObject(
+        id: 'p1', name: 'P1', typeId: 'page',
+        iconName: 'article', createdAt: 0, updatedAt: 0,
+      );
+      final p2 = UnifiedObject(
+        id: 'p2', name: 'P2', typeId: 'page',
+        iconName: 'article', createdAt: 0, updatedAt: 0,
+      );
+      final child = UnifiedObject(
+        id: 'c1', name: 'Child', typeId: 'note',
+        iconName: 'note', parentId: 'p1',
+        createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [p1, p2, child], customTypes: const []);
+
+      unawaited(notifier.moveObject('c1', 'p2'));
+
+      final moved = notifier.state.objects.firstWhere((o) => o.id == 'c1');
+      expect(moved.parentId, 'p2');
+      final oldParent = notifier.state.objects.firstWhere((o) => o.id == 'p1');
+      expect(oldParent.childrenIds, isEmpty);
+      final newParent = notifier.state.objects.firstWhere((o) => o.id == 'p2');
+      expect(newParent.childrenIds, contains('c1'));
+    });
+
+    test('reorderChildren reorders within parent', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final parent = UnifiedObject(
+        id: 'p1', name: 'Parent', typeId: 'page',
+        iconName: 'article', childrenIds: const ['a', 'b', 'c'],
+        createdAt: 0, updatedAt: 0,
+      );
+      final a = UnifiedObject(
+        id: 'a', name: 'A', typeId: 'note', parentId: 'p1',
+        iconName: 'note', createdAt: 0, updatedAt: 0,
+      );
+      final b = UnifiedObject(
+        id: 'b', name: 'B', typeId: 'note', parentId: 'p1',
+        iconName: 'note', createdAt: 0, updatedAt: 0,
+      );
+      final c = UnifiedObject(
+        id: 'c', name: 'C', typeId: 'note', parentId: 'p1',
+        iconName: 'note', createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [parent, a, b, c], customTypes: const []);
+
+      unawaited(notifier.reorderChildren('p1', 0, 2));
+
+      final updated = notifier.state.objects.firstWhere((o) => o.id == 'p1');
+      expect(updated.childrenIds, equals(['b', 'c', 'a']));
+    });
+
+    test('updateObject modifies existing object', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final obj = UnifiedObject(
+        id: 'o1', name: 'Old', typeId: 'note',
+        iconName: 'note', createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+
+      unawaited(notifier.updateObject('o1', name: 'New'));
+
+      final updated = notifier.state.objects.firstWhere((o) => o.id == 'o1');
+      expect(updated.name, 'New');
+    });
+
+    test('saveCustomType adds new custom type', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+
+      const typeDef = ObjectTypeDefinition(
+        id: 'custom1',
+        name: 'Custom Type',
+        iconName: 'star',
+        defaultLayout: ObjectLayout.document,
+      );
+      unawaited(notifier.saveCustomType(typeDef));
+
+      expect(notifier.state.customTypes, hasLength(1));
+      expect(notifier.state.customTypes.first.id, 'custom1');
+    });
+
+    test('deleteCustomType removes custom type', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      const typeDef = ObjectTypeDefinition(
+        id: 'custom1',
+        name: 'Custom Type',
+        iconName: 'star',
+        defaultLayout: ObjectLayout.document,
+      );
+      notifier.state = UnifiedObjectData(objects: [], customTypes: [typeDef]);
+
+      unawaited(notifier.deleteCustomType('custom1'));
+
+      expect(notifier.state.customTypes, isEmpty);
+    });
+
+    test('currentObjects accessor returns state objects', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(unifiedObjectProvider.notifier);
+      final obj = UnifiedObject(
+        id: 'o1', name: 'A', typeId: 'note',
+        iconName: 'note', createdAt: 0, updatedAt: 0,
+      );
+      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+
+      expect(notifier.currentObjects, hasLength(1));
+      expect(notifier.currentObjects.first.id, 'o1');
     });
   });
 }

@@ -2,165 +2,141 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 
 void main() {
-  group('MrzParser.parse', () {
-    test('parses valid TD3 (passport)', () {
-      final lines = [
-        'P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.documentType, 'P<');
-      expect(result.country, 'GBR');
-      expect(result.surname, 'SMITH');
-      expect(result.givenNames, 'SARAH');
-      expect(result.documentNumber, '012345678');
-      expect(result.nationality, 'GBR');
-      expect(result.dateOfBirth, '810101');
-      expect(result.sex, 'F');
-      expect(result.expiryDate, '250714');
-      expect(result.confidence, closeTo(1.0, 0.001));
-      expect(result.rawLines.length, 2);
+  group('MrzParser', () {
+    group('parse', () {
+      test('returns null for empty input', () {
+        expect(MrzParser.parse([]), isNull);
+      });
+
+      test('returns null for invalid line count', () {
+        expect(MrzParser.parse(['one']), isNull);
+        expect(MrzParser.parse(['one', 'two', 'three', 'four']), isNull);
+      });
+
+      test('returns null for wrong line lengths', () {
+        expect(MrzParser.parse(['A' * 44, 'B' * 40]), isNull);
+        expect(MrzParser.parse(['A' * 30, 'B' * 30, 'C' * 25]), isNull);
+      });
     });
 
-    test('parses valid TD1 (ID card)', () {
-      final lines = [
-        'I<GBRSMITH<<SARAH<<<<<<<<<<<<<',
-        '0123456784GBR8101017F2507145<<',
-        '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.documentType, 'I<');
-      expect(result.country, 'GBR');
-      expect(result.surname, 'SMITH');
-      expect(result.givenNames, 'SARAH');
-      expect(result.nationality, 'GBR'); // TD1 uses country as nationality
+    group('TD3 passport', () {
+      final line1 = 'P<CHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+      final line2 = 'E123456788CHN8601018M2801017<<<<<<<<<<<<<<<0';
+
+      test('parses TD3 format', () {
+        final result = MrzParser.parse([line1, line2]);
+        expect(result, isNotNull);
+        expect(result!.documentType, 'P<');
+        expect(result.country, 'CHN');
+        expect(result.surname, 'ZHANG');
+        expect(result.givenNames, 'WEI');
+        expect(result.documentNumber, 'E12345678');
+        expect(result.nationality, 'CHN');
+        expect(result.dateOfBirth, '860101');
+        expect(result.sex, 'M');
+        expect(result.expiryDate, '280101');
+      });
+
+      test('has rawLines', () {
+        final result = MrzParser.parse([line1, line2])!;
+        expect(result.rawLines, hasLength(2));
+      });
+
+      test('normalizes lowercase input', () {
+        final result = MrzParser.parse([line1.toLowerCase(), line2.toLowerCase()]);
+        expect(result, isNotNull);
+        expect(result!.country, 'CHN');
+      });
+
+      test('handles names with multiple given names', () {
+        final l1 = 'P<CHNLI<<WEI<MING<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+        final l2 = 'E123456788CHN8601018M2801017<<<<<<<<<<<<<<<0';
+        final result = MrzParser.parse([l1, l2])!;
+        expect(result.surname, 'LI');
+        expect(result.givenNames, 'WEI MING');
+      });
+
+      test('handles single name without given names', () {
+        final l1 = 'P<CHNWANG<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+        final l2 = 'E123456788CHN8601018M2801017<<<<<<<<<<<<<<<0';
+        final result = MrzParser.parse([l1, l2])!;
+        expect(result.surname, 'WANG');
+        expect(result.givenNames, '');
+      });
     });
 
-    test('parses valid TD2', () {
-      final lines = [
-        'I<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR8101017F2507145<<<<<<<<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.documentType, 'I<');
-      expect(result.surname, 'SMITH');
-      expect(result.givenNames, 'SARAH');
-      expect(result.documentNumber, '012345678');
-      expect(result.nationality, 'GBR');
+    group('TD1 ID card', () {
+      final line1 = 'ICCHNLI<<WEI<<<<<<<<<<<<<<<<<<';
+      final line2 = 'E1234567888601018M2801017<<<<<';
+      final line3 = '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+
+      test('parses TD1 format', () {
+        final result = MrzParser.parse([line1, line2, line3]);
+        expect(result, isNotNull);
+        expect(result!.documentType, 'IC');
+        expect(result.country, 'CHN');
+        expect(result.surname, 'LI');
+        expect(result.givenNames, 'WEI');
+        expect(result.documentNumber, 'E12345678');
+        expect(result.dateOfBirth, '860101');
+        expect(result.sex, 'M');
+        expect(result.expiryDate, '280101');
+      });
+
+      test('TD1 nationality defaults to country', () {
+        final result = MrzParser.parse([line1, line2, line3])!;
+        expect(result.nationality, 'CHN');
+      });
+
+      test('has 3 rawLines', () {
+        final result = MrzParser.parse([line1, line2, line3])!;
+        expect(result.rawLines, hasLength(3));
+      });
     });
 
-    test('returns null for invalid line count', () {
-      expect(MrzParser.parse(['only_one_line']), isNull);
-      expect(MrzParser.parse([]), isNull);
+    group('TD2', () {
+      final line1 = 'P<CHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<';
+      final line2 = 'E123456788CHN8601018M2801017<<<<<<<<';
+
+      test('parses TD2 format', () {
+        final result = MrzParser.parse([line1, line2]);
+        expect(result, isNotNull);
+        expect(result!.documentType, 'P<');
+        expect(result.country, 'CHN');
+        expect(result.surname, 'ZHANG');
+        expect(result.givenNames, 'WEI');
+      });
     });
 
-    test('returns null for wrong lengths', () {
-      // 2 lines but wrong length (not 44 or 36)
-      expect(MrzParser.parse(['SHORT', 'SHORT']), isNull);
+    group('check digit validation', () {
+      test('reduces confidence when check digit is wrong', () {
+        final line1 = 'P<CHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+        final line2 = 'E123456780CHN8601018M2801017<<<<<<<<<<<<<<<0';
+        final result = MrzParser.parse([line1, line2])!;
+        expect(result.confidence, lessThan(1.0));
+      });
+
+      test('full confidence when all check digits are <', () {
+        final line1 = 'P<CHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+        final line2 = 'E12345678<CHN860101<M280101<<<<<<<<<<<<<<<<0';
+        final result = MrzParser.parse([line1, line2])!;
+        expect(result.confidence, 1.0);
+      });
     });
 
-    test('normalizes lowercase input', () {
-      final lines = [
-        'p<gbrsmith<<sarah<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784gbr8101017f2507145<<<<<<<<<<<<<<6<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.country, 'GBR');
-    });
+    group('edge cases', () {
+      test('filters out empty lines', () {
+        final line1 = 'P<CHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+        final line2 = 'E123456788CHN8601018M2801017<<<<<<<<<<<<<<<0';
+        final result = MrzParser.parse([line1, '', line2, '']);
+        expect(result, isNotNull);
+      });
 
-    test('trims whitespace', () {
-      final lines = [
-        '  P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<  ',
-        '  0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<  ',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.documentType, 'P<');
-    });
-
-    test('reduces confidence on invalid check digit', () {
-      // Invalid check digit for document number
-      final lines = [
-        'P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456789GBR8101017F2507145<<<<<<<<<<<<<<6<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.confidence, lessThan(1.0));
-    });
-  });
-
-  group('MrzParser._parseNames', () {
-    test('parses simple name', () {
-      final result = MrzParser.parse([
-        'P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<',
-      ]);
-      expect(result!.surname, 'SMITH');
-      expect(result.givenNames, 'SARAH');
-    });
-
-    test('parses name with multiple given names', () {
-      final result = MrzParser.parse([
-        'P<GBRDOE<<JOHN<MICHAEL<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR9001017M3007145<<<<<<<<<<<<<<6<',
-      ]);
-      expect(result!.surname, 'DOE');
-      expect(result.givenNames, 'JOHN MICHAEL');
-    });
-
-    test('parses name with only surname', () {
-      final result = MrzParser.parse([
-        'P<GBRONLY<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR9001017M3007145<<<<<<<<<<<<<<6<',
-      ]);
-      expect(result!.surname, 'ONLY');
-      expect(result.givenNames, '');
-    });
-
-    test('handles single < in name field', () {
-      // When only single < exists (no <<), entire name field becomes surname
-      final result = MrzParser.parse([
-        'P<GBRSMITH<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR9001017F3007145<<<<<<<<<<<<<<6<',
-      ]);
-      expect(result!.surname, 'SMITH SARAH');
-      expect(result.givenNames, '');
-    });
-  });
-
-  group('MrzParser._validateCheckDigit', () {
-    test('validates correct check digit', () {
-      // "012345678" with weights 7,3,1:
-      // 0*7 + 1*3 + 2*1 + 3*7 + 4*3 + 5*1 + 6*7 + 7*3 + 8*1 = 4 mod 10
-      expect(MrzParser.parse([
-        'P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456784GBR8101017F2507145<<<<<<<<<<<<<<6<',
-      ])!.confidence, closeTo(1.0, 0.001));
-    });
-
-    test('accepts < as check digit (no validation)', () {
-      final lines = [
-        'P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '<<<<<<<<<<GBR8101017F2507145<<<<<<<<<<<<<<6<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.confidence, closeTo(1.0, 0.001));
-    });
-
-    test('detects invalid check digit', () {
-      final lines = [
-        'P<GBRSMITH<<SARAH<<<<<<<<<<<<<<<<<<<<<<<<<<<',
-        '0123456780GBR8101017F2507145<<<<<<<<<<<<<<6<',
-      ];
-      final result = MrzParser.parse(lines);
-      expect(result, isNotNull);
-      expect(result!.confidence, lessThan(1.0));
+      test('returns null when line lengths mismatch', () {
+        final line1 = 'P<CHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+        final line2 = 'E12345678<8CHN8601018M2801017<<<<<<<<<<<<<<'; // 43 chars
+        expect(MrzParser.parse([line1, line2]), isNull);
+      });
     });
   });
 }

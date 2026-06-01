@@ -271,6 +271,51 @@ void main() {
     });
   });
 
+  group('PluginSource', () {
+    test('official source has correct defaults', () {
+      const source = PluginSource.official;
+      expect(source.name, 'SoloSoul Official');
+      expect(source.repoOwner, 'Gczmy');
+      expect(source.repoName, 'SoloSoul_plugin_market');
+      expect(source.branch, 'main');
+      expect(source.useCdn, isTrue);
+    });
+
+    test('registryUrl uses CDN when useCdn is true', () {
+      const source = PluginSource(
+        name: 'Test',
+        repoOwner: 'owner',
+        repoName: 'repo',
+        branch: 'main',
+        useCdn: true,
+      );
+      expect(source.registryUrl, contains('cdn.jsdelivr.net'));
+      expect(source.fallbackRegistryUrl, contains('raw.githubusercontent.com'));
+    });
+
+    test('registryUrl uses raw when useCdn is false', () {
+      const source = PluginSource(
+        name: 'Test',
+        repoOwner: 'owner',
+        repoName: 'repo',
+        branch: 'dev',
+        useCdn: false,
+      );
+      expect(source.registryUrl, contains('raw.githubusercontent.com'));
+      expect(source.fallbackRegistryUrl, contains('cdn.jsdelivr.net'));
+    });
+
+    test('toString includes name and repo', () {
+      const source = PluginSource(
+        name: 'Test',
+        repoOwner: 'owner',
+        repoName: 'repo',
+      );
+      expect(source.toString(), contains('Test'));
+      expect(source.toString(), contains('owner/repo'));
+    });
+  });
+
   group('PluginUpdateInfo', () {
     test('creates with required fields', () {
       final info = PluginUpdateInfo(
