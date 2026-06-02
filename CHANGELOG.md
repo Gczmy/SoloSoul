@@ -2,6 +2,77 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [1.7.0] - 2026-06-02
+
+### Added
+
+- **Attachment Storage & Statistics**
+  - Data management page now correctly counts and displays attachment size alongside vault data size.
+  - `AttachmentStorageService` gained `getTotalAttachmentSize`, `getAttachmentCount`, `getAttachmentFileIds`, and `cleanupPartialFiles` APIs.
+
+- **Attachment Sync Support**
+  - Rust `SyncEngine` extended with a dedicated attachment sync phase: manifest exchange → serial chunked transfer → temp file `.solo.part` + checksum rename.
+  - `StateVectorRequest/Response` added `supports_attachments` backward-compatible flag.
+  - Dart `SyncService` and `SyncPage` adapted to report attachment transfer progress.
+
+- **Backup with Attachments**
+  - `BackupService` rewritten to use a sidecar directory `{backupFile}.backup.attachments/` for each backup.
+  - `createBackup` copies account attachments to the sidecar; `restoreBackup` restores them; `deleteBackup` cleans up the sidecar.
+
+- **Attachment Reference Pool**
+  - New `AttachmentPoolService` manages a global attachment pool (`attachments_pool/`) where each `fileId` is stored only once.
+  - Backups share pool files via `manifest.json` references instead of duplicating attachments.
+  - Deleting a backup triggers lazy reference counting: scans all remaining manifests and removes unreferenced pool files.
+  - Old-format sidecar directories (containing raw `.solo` files) are automatically migrated to the pool + manifest format on restore.
+  - Backup list UI now shows "X backups · Attachment Pool Y" with an explanatory subtitle about shared storage.
+
+- **Attachment Management & PPTX Preview**
+  - Full attachment lifecycle: upload, download, preview (PDF via `pdfx`, images with zoom/pan), soft-delete, restore, and permanent deletion.
+  - PPTX thumbnail extraction for quick preview.
+
+- **Windows Rust FFI Support**
+  - Added Windows platform compilation and linking support for the Rust FFI native library.
+
+- **AI Context & Chat Enhancements**
+  - AI context now injects installed plugin information for richer responses.
+  - Multi-conversation windows, trash/recycle bin for deleted conversations, and message timestamps in LLM chat.
+
+- **User Guides System**
+  - New plugin feature guide documents.
+  - Home page quick-actions section now includes help & guides entry.
+  - Settings page guide items include descriptive subtitles.
+  - Notion-style rendering for guide documents via `flutter_markdown_plus`.
+
+- **Test Infrastructure**
+  - Added 34 new test files; test coverage increased from 15.9% to 23.5% (+7.6%).
+  - New `attachment_pool_service_test.dart` (9 tests) and `backup_service_manifest_test.dart` (9 tests).
+
+### Fixed
+
+- **Code Security & Quality (P001-P011)**
+  - Eliminated ~166 force unwraps (`!`) across 34 files.
+  - Fixed 3 `use_build_context_synchronously` warnings.
+  - Added path injection hardening for `Process.run` calls.
+  - Replaced bare `catch (e)` with typed `on Exception catch (e)`.
+  - Fixed memory leaks in `llm_chat_session_provider` (`StreamSubscription`/`Timer` cleanup).
+
+- **P014** — Fixed `dart:convert` import in `plugin_card.dart`.
+- **P007 Supplement** — Replaced `ValueChanged` with native `Function` types.
+
+### Refactored
+
+- **P007-B** — Extracted UI dependencies from `attachment_upload_service.dart` into the Presentation layer.
+- **P007-A** — Decoupled `IconData` dependency from `unified_object_service.dart`.
+- **P013** — `solosould` daemon migrated to structured logging (`log/slog`).
+- **P015** — Replaced all `map[string]interface{}` in `server.go` with concrete structs.
+- **P012** — Batch fixed code quality issues across test files.
+
+### Docs
+
+- Generated final code analysis report (`CODE_ANALYSIS_REPORT_FINAL.md`) — all 15 issues resolved.
+- Added deferred items explanation (`CODE_ANALYSIS_DEFERRED_ITEMS.md`).
+- Updated code analysis report with final status.
+
 ## [1.6.8] - 2026-05-31
 
 ### Added
