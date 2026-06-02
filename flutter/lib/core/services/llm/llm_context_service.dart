@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/language_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_manager.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_prompt_templates.dart';
+import 'package:solosoul_flutter/core/services/plugin_service.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/services/security_service.dart';
 import 'package:solosoul_flutter/core/services/user_preferences_service.dart';
@@ -154,6 +155,9 @@ class LlmContextService {
     // Preferences
     final preferences = await _collectPreferences(accountId);
 
+    // Installed plugins
+    final installedPlugins = await _collectInstalledPlugins();
+
     // Render via template
     return LlmPromptTemplates.chatSystemPrompt(
       appVersion: appVersion,
@@ -161,6 +165,7 @@ class LlmContextService {
       language: language,
       userPublicInfo: userPublicInfo,
       preferences: preferences,
+      installedPlugins: installedPlugins,
       usageStats: {}, // Stats appended separately
     );
   }
@@ -288,6 +293,18 @@ class LlmContextService {
     }
 
     return prefs;
+  }
+
+  Future<List<String>> _collectInstalledPlugins() async {
+    try {
+      final pluginService = PluginService();
+      await pluginService.initialize();
+      final plugins = await pluginService.loadInstalledPlugins();
+      return plugins.map((p) => p.name).toList();
+    } on Exception catch (e) {
+      SoloLog.w('LlmContextService', 'Failed to load installed plugins', e);
+      return [];
+    }
   }
 
   // ---------------------------------------------------------------------------

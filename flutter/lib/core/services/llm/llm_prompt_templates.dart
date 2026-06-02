@@ -208,6 +208,7 @@ $constraintsJson
     required String language,
     required Map<String, List<Map<String, String>>> userPublicInfo,
     required Map<String, dynamic> preferences,
+    required List<String> installedPlugins,
     required Map<String, dynamic> usageStats,
   }) {
     final buffer = StringBuffer();
@@ -254,6 +255,17 @@ $constraintsJson
       buffer.writeln();
     }
 
+    // Installed Plugins
+    if (installedPlugins.isNotEmpty) {
+      buffer.writeln('## 已安装插件');
+      buffer.writeln('- ${installedPlugins.join('、')}');
+      buffer.writeln();
+    } else {
+      buffer.writeln('## 已安装插件');
+      buffer.writeln('- 暂无');
+      buffer.writeln();
+    }
+
     // Usage Stats
     buffer.writeln('## AI 使用统计');
     final currentModel = usageStats['currentModel'] as String? ?? '未知';
@@ -275,6 +287,8 @@ $constraintsJson
     buffer.writeln('3. 如果用户询问的信息不在上述公开档案中（如身份证号、银行账号等敏感信息），请明确告知用户你无法访问此类敏感数据，并建议用户自行查看对应页面。');
     buffer.writeln('4. 以上信息可能被截断，如需更多详情请明确询问。');
     buffer.writeln('5. **请使用用户提问的语言来回答。如果用户用中文提问，用中文回答；如果用户用英文提问，用英文回答。**');
+    buffer.writeln('6. **插件（Plugin）与对象（Object）是两个不同的概念**：插件是 Wasm 扩展模块（如 OCR 扫描器），通过插件市场安装；对象是保险库中的个人数据记录（如护照、银行账户）。请勿将二者混淆。');
+    buffer.writeln('7. 当用户询问已安装插件相关问题时，你可以参考"已安装插件"区域的信息。如果用户未安装任何插件，可以引导其前往插件市场浏览。');
 
     return buffer.toString();
   }

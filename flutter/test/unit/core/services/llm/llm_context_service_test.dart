@@ -21,6 +21,7 @@ void main() {
           '应用语言': '中文',
           '自动锁定': '5 分钟',
         },
+        installedPlugins: ['OCR Scanner', 'Data Formatter'],
         usageStats: {
           'currentModel': 'gpt-4o-mini',
           'currentProvider': 'openai',
@@ -36,6 +37,8 @@ void main() {
       expect(prompt, contains('macOS'));
       expect(prompt, contains('张三'));
       expect(prompt, contains('男'));
+      expect(prompt, contains('OCR Scanner'));
+      expect(prompt, contains('Data Formatter'));
       expect(prompt, contains('gpt-4o-mini'));
       expect(prompt, contains('1500'));
       expect(prompt, contains('25000'));
@@ -49,6 +52,7 @@ void main() {
         language: 'en',
         userPublicInfo: {},
         preferences: {},
+        installedPlugins: [],
         usageStats: {
           'currentModel': 'qwen2.5:1.5b',
           'currentProvider': 'ollama',
@@ -61,6 +65,7 @@ void main() {
 
       expect(prompt, contains('SoloSoul'));
       expect(prompt, isNot(contains('用户公开档案')));
+      expect(prompt, contains('暂无'));
       expect(prompt, contains('qwen2.5:1.5b'));
     });
 
@@ -71,6 +76,7 @@ void main() {
         language: 'zh',
         userPublicInfo: {},
         preferences: {},
+        installedPlugins: [],
         usageStats: {},
       );
 
