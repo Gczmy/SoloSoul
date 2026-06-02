@@ -33,6 +33,7 @@ class BackupSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Column(
@@ -143,7 +144,7 @@ class BackupSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Center(
               child: Text(
-                '${backups.length} 个备份 · 附件池 $backupPoolSize',
+                l10n.dataMgmtBackupPoolSummary(backups.length, backupPoolSize),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -154,7 +155,7 @@ class BackupSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Center(
               child: Text(
-                '附件在所有备份间共享存储，实际总占用 ≈ 附件池 + 各备份文件',
+                l10n.dataMgmtBackupPoolHint,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                   fontSize: 11,

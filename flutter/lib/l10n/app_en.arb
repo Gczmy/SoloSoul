@@ -1682,6 +1682,8 @@
   "dataMgmtBackupEncryptionDesc": "Backups are encrypted with your vault key. Auto-backup runs on every unlock.",
   "dataMgmtRegularBackups": "Regular Backups",
   "dataMgmtNoBackups": "No backups yet",
+  "dataMgmtBackupPoolSummary": "{count} backup(s) · Attachment Pool {poolSize}",
+  "dataMgmtBackupPoolHint": "Attachments are shared across all backups. Actual total ≈ Attachment Pool + backup files",
   "loginDataYourControl": "Your data, your control",
   "loginEnterMasterPassword": "Enter Master Password",
   "loginUnlockYourVault": "Unlock your vault",

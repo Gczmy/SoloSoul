@@ -5828,6 +5828,18 @@ abstract class AppLocalizations {
   /// **'No backups yet'**
   String get dataMgmtNoBackups;
 
+  /// No description provided for @dataMgmtBackupPoolSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} backup(s) · Attachment Pool {poolSize}'**
+  String dataMgmtBackupPoolSummary(Object count, Object poolSize);
+
+  /// No description provided for @dataMgmtBackupPoolHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments are shared across all backups. Actual total ≈ Attachment Pool + backup files'**
+  String get dataMgmtBackupPoolHint;
+
   /// No description provided for @loginDataYourControl.
   ///
   /// In en, this message translates to:

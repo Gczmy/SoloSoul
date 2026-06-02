@@ -3156,6 +3156,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataMgmtNoBackups => 'No backups yet';
 
   @override
+  String dataMgmtBackupPoolSummary(Object count, Object poolSize) {
+    return '$count backup(s) · Attachment Pool $poolSize';
+  }
+
+  @override
+  String get dataMgmtBackupPoolHint =>
+      'Attachments are shared across all backups. Actual total ≈ Attachment Pool + backup files';
+
+  @override
   String get loginDataYourControl => 'Your data, your control';
 
   @override

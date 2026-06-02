@@ -1291,6 +1291,8 @@
   "dataMgmtBackupEncryptionDesc": "备份使用您的保险库密钥加密。每次解锁时自动运行备份。",
   "dataMgmtRegularBackups": "常规备份",
   "dataMgmtNoBackups": "暂无备份",
+  "dataMgmtBackupPoolSummary": "{count} 个备份 · 附件池 {poolSize}",
+  "dataMgmtBackupPoolHint": "附件在所有备份间共享存储，实际总占用 ≈ 附件池 + 各备份文件",
   "operationCreatedAccount": "创建了账户",
   "operationDeletedAccount": "删除了账户",
   "operationChangedPassword": "修改了密码",

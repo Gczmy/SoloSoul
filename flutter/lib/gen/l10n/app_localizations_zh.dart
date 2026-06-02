@@ -3081,6 +3081,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataMgmtNoBackups => '暂无备份';
 
   @override
+  String dataMgmtBackupPoolSummary(Object count, Object poolSize) {
+    return '$count 个备份 · 附件池 $poolSize';
+  }
+
+  @override
+  String get dataMgmtBackupPoolHint => '附件在所有备份间共享存储，实际总占用 ≈ 附件池 + 各备份文件';
+
+  @override
   String get loginDataYourControl => '您的数据，由您掌控';
 
   @override
