@@ -1,13 +1,18 @@
 // ===========================================================================
-// BackupService — 加密备份与恢复
+// BackupService — 加密备份与恢复（含附件）
 // ===========================================================================
 // 将用户数据以 Vault 相同的 AES-256-GCM 加密后导出到独立目录，防止 App 更新
 // 或异常导致数据丢失。保留最近 N 份备份，支持手动与自动备份。
 //
-// 备份路径：{appSupportDir}/solosoul_backups/{accountId}/{timestamp}.backup
-// 文件名：backup_YYYY-MM-DD_HH-mm-ss[_vX.Y.Z].backup
-//
-// 特别备份路径：{appSupportDir}/solosoul_backups/{accountId}/special/{name}.backup
+// 备份结构：
+//   {appSupportDir}/solosoul_backups/{accountId}/
+//     ├── backup_YYYY-MM-DD_HH-mm-ss[_vX.Y.Z].backup          ← 结构化数据
+//     ├── backup_YYYY-MM-DD_HH-mm-ss[_vX.Y.Z].backup.attachments/  ← 附件副本
+//     │     ├── {fileId}.solo
+//     │     └── ...
+//     └── special/
+//           ├── {name}.backup
+//           └── {name}.backup.attachments/
 //
 // 注意：备份使用与 Vault 相同的加密密钥，恢复时需要 Vault 已解锁。
 // ===========================================================================
@@ -20,6 +25,7 @@ import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'profile_storage_service.dart';
 import 'rust_vault_service.dart';
@@ -51,6 +57,7 @@ class BackupService {
   static const _specialDirName = 'special';
   static const _filePrefix = 'backup_';
   static const _fileExt = '.backup';
+  static const _attachmentsSuffix = '.attachments';
 
   /// 最多保留的常规备份数量（自动清理旧备份）
   static const int maxBackupCount = 5;
@@ -104,6 +111,11 @@ class BackupService {
     return dir;
   }
 
+  /// 附件备份目录路径：{backupFile}.backup.attachments/
+  String _attachmentsDirPath(String backupFilePath) {
+    return '$backupFilePath$_attachmentsSuffix';
+  }
+
   static String backupFileName(DateTime dt, {String? appVersion}) {
     final ts =
         '${dt.year}-${_two(dt.month)}-${_two(dt.day)}_${_two(dt.hour)}-${_two(dt.minute)}-${_two(dt.second)}';
@@ -123,17 +135,9 @@ class BackupService {
   static String _two(int n) => n.toString().padLeft(2, '0');
 
   // -------------------------------------------------------------------------
-  // Isolate helpers — 必须与 UI 回调隔离，避免 Dart closure context 共享
-  // 导致 "object is unsendable" 错误。
-  //
-  // Dart 在同一作用域内定义的多个闭包会共享 context 对象。若 Isolate.run
-  // 的闭包与捕获 Widget state 的 onProgress 回调定义在同一方法中，
-  // 即使闭包本身未直接引用 onProgress，整个 context 也会被序列化到 isolate，
-  // 从而触发 Illegal argument in isolate message。
-  //
-  // 安全做法：将 Isolate.run 调用封装到独立的 static 方法中，使其 closure
-  // context 与 UI 回调完全隔离。
+  // Isolate helpers
   // -------------------------------------------------------------------------
+
   static Uint8List encodeProfileToBytes(Map<String, dynamic> json) {
     final jsonString = jsonEncode(json);
     return Uint8List.fromList(utf8.encode(jsonString));
@@ -153,13 +157,101 @@ class BackupService {
   }
 
   // -------------------------------------------------------------------------
+  // 附件备份 / 恢复 辅助
+  // -------------------------------------------------------------------------
+
+  /// 将账户附件目录复制到备份附件目录
+  Future<void> _backupAttachments(
+    String accountId,
+    String backupAttachmentsDir,
+  ) async {
+    final srcFileIds = await AttachmentStorageService().getAttachmentFileIds(accountId);
+    if (srcFileIds.isEmpty) return;
+
+    final Directory srcDir;
+    try {
+      srcDir = await AttachmentStorageService().getAttachmentsDir(accountId);
+    } on Exception catch (_) {
+      return;
+    }
+
+    final dstDir = Directory(backupAttachmentsDir);
+    if (!await dstDir.exists()) {
+      await dstDir.create(recursive: true);
+    }
+
+    for (final fileId in srcFileIds) {
+      final srcFile = File('${srcDir.path}/$fileId.solo');
+      if (await srcFile.exists()) {
+        await srcFile.copy('${dstDir.path}/$fileId.solo');
+      }
+    }
+    DebugLogger.instance.logInfo(
+      'BACKUP',
+      'Copied ${srcFileIds.length} attachments to $backupAttachmentsDir',
+    );
+  }
+
+  /// 从备份附件目录恢复到账户附件目录
+  Future<void> _restoreAttachments(
+    String accountId,
+    String backupAttachmentsDir,
+  ) async {
+    final srcDir = Directory(backupAttachmentsDir);
+    if (!await srcDir.exists()) return;
+
+    final Directory dstDir;
+    try {
+      dstDir = await AttachmentStorageService().getAttachmentsDir(accountId);
+    } on Exception catch (_) {
+      return;
+    }
+    if (!await dstDir.exists()) {
+      await dstDir.create(recursive: true);
+    }
+
+    int restoredCount = 0;
+    await for (final entity in srcDir.list()) {
+      if (entity is! File) continue;
+      final name = entity.uri.pathSegments.last;
+      if (!name.endsWith('.solo')) continue;
+      await entity.copy('${dstDir.path}/$name');
+      restoredCount++;
+    }
+    if (restoredCount > 0) {
+      DebugLogger.instance.logInfo(
+        'BACKUP',
+        'Restored $restoredCount attachments from $backupAttachmentsDir',
+      );
+    }
+  }
+
+  /// 删除备份附件目录
+  Future<void> _deleteAttachmentsDir(String backupAttachmentsDir) async {
+    final dir = Directory(backupAttachmentsDir);
+    if (await dir.exists()) {
+      await dir.delete(recursive: true);
+    }
+  }
+
+  /// 计算备份附件目录大小
+  Future<int> _attachmentsDirSize(String backupAttachmentsDir) async {
+    final dir = Directory(backupAttachmentsDir);
+    if (!await dir.exists()) return 0;
+    int total = 0;
+    await for (final entity in dir.list()) {
+      if (entity is File) {
+        total += await entity.length();
+      }
+    }
+    return total;
+  }
+
+  // -------------------------------------------------------------------------
   // 核心：常规备份 / 恢复 / 列表 / 删除
   // -------------------------------------------------------------------------
 
-  /// 立即为当前账户创建一份加密备份。
-  /// [appVersion] 可选，会附加到文件名中便于追溯。
-  /// [onProgress] 可选进度回调，范围 0.0 ~ 1.0。
-  /// 返回备份文件名，失败返回 null。
+  /// 立即为当前账户创建一份加密备份（含附件）。
   Future<String?> createBackup(
     String accountId, {
     String? appVersion,
@@ -195,15 +287,19 @@ class BackupService {
       }
       DebugLogger.instance.logInfo('BACKUP', 'Step 3/5: encryptBytes done');
 
-      report(0.9);
-      DebugLogger.instance.logInfo('BACKUP', 'Step 4/5: write file start');
+      report(0.7);
+      DebugLogger.instance.logInfo('BACKUP', 'Step 4/5: write file + attachments start');
       final dir = await _accountBackupDir(accountId);
       final now = DateTime.now();
       final fileName = BackupService.backupFileName(now, appVersion: appVersion);
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(encrypted, flush: true);
       unawaited(_setRestrictivePermissions(file.path));
-      DebugLogger.instance.logInfo('BACKUP', 'Step 4/5: write file done -> $fileName');
+
+      // 备份附件
+      final attachmentsDir = _attachmentsDirPath(file.path);
+      await _backupAttachments(accountId, attachmentsDir);
+      DebugLogger.instance.logInfo('BACKUP', 'Step 4/5: write file + attachments done -> $fileName');
 
       report(1.0);
       DebugLogger.instance.logInfo('BACKUP', 'Step 5/5: cleanup start');
@@ -221,6 +317,7 @@ class BackupService {
   }
 
   /// 列出某账户的所有常规备份，按时间从新到旧排序。
+  /// 大小包含附件目录。
   Future<List<BackupEntry>> listBackups(String accountId) async {
     try {
       final dir = await _accountBackupDir(accountId);
@@ -233,10 +330,11 @@ class BackupService {
         if (!name.startsWith(_filePrefix) || !name.endsWith(_fileExt)) continue;
 
         final stat = await entity.stat();
+        final attachmentsSize = await _attachmentsDirSize(_attachmentsDirPath(entity.path));
         entries.add(BackupEntry(
           fileName: name,
           createdAt: stat.modified,
-          sizeBytes: stat.size,
+          sizeBytes: stat.size + attachmentsSize,
         ));
       }
 
@@ -247,13 +345,10 @@ class BackupService {
     }
   }
 
-  /// 从指定备份文件恢复数据到 Vault。
-  /// 恢复前会自动先创建一份当前状态的备份（如果当前有数据）。
-  /// 返回是否成功。
+  /// 从指定备份文件恢复数据到 Vault（含附件）。
   Future<bool> restoreBackup(String accountId, String fileName) async {
     try {
-      // 1. 先读取目标备份文件（必须在创建保护性备份之前，
-      //    否则 createBackup 的 cleanup 可能删掉这份旧备份）
+      // 1. 先读取目标备份文件
       final dir = await _accountBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
       if (!await file.exists()) return false;
@@ -270,34 +365,41 @@ class BackupService {
 
       // 3. 保存恢复的数据到 Vault
       final saved = await ProfileStorageService.instance.saveProfile(accountId, profile);
-      return saved;
+      if (!saved) return false;
+
+      // 4. 恢复附件
+      final attachmentsDir = _attachmentsDirPath(file.path);
+      await _restoreAttachments(accountId, attachmentsDir);
+
+      return true;
     } on Exception catch (_) {
       return false;
     }
   }
 
-  /// 删除某条常规备份。
+  /// 删除某条常规备份（含附件目录）。
   Future<bool> deleteBackup(String accountId, String fileName) async {
     try {
       final dir = await _accountBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
       if (await file.exists()) {
         await file.delete();
-        return true;
       }
-      return false;
+      // 同时删除附件目录
+      await _deleteAttachmentsDir(_attachmentsDirPath(file.path));
+      return true;
     } on FileSystemException catch (_) {
       return false;
     }
   }
 
-  /// 获取最近一次备份的信息（用于 UI 展示）。
+  /// 获取最近一次备份的信息。
   Future<BackupEntry?> getLatestBackup(String accountId) async {
     final list = await listBackups(accountId);
     return list.isNotEmpty ? list.first : null;
   }
 
-  /// 获取备份文件的总大小。
+  /// 获取备份文件的总大小（含附件）。
   Future<int> getTotalBackupSize(String accountId) async {
     final list = await listBackups(accountId);
     return list.fold<int>(0, (sum, e) => sum + e.sizeBytes);
@@ -307,10 +409,7 @@ class BackupService {
   // 特别备份
   // -------------------------------------------------------------------------
 
-  /// 创建一份特别备份（不参与常规 5 份循环）。
-  /// [name] 为用户自定义名称，不需要加扩展名。
-  /// 返回最终文件名（含 .backup 后缀），失败返回 null。
-  /// 当特别备份已满时返回 null，调用方应先检查 listSpecialBackups 数量。
+  /// 创建一份特别备份（含附件）。
   Future<String?> createSpecialBackup(
     String accountId,
     String name, {
@@ -345,12 +444,16 @@ class BackupService {
         return null;
       }
 
-      report(0.9);
+      report(0.7);
       final dir = await _specialBackupDir(accountId);
       final fileName = '$sanitized$_fileExt';
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(encrypted, flush: true);
       unawaited(_setRestrictivePermissions(file.path));
+
+      // 备份附件
+      final attachmentsDir = _attachmentsDirPath(file.path);
+      await _backupAttachments(accountId, attachmentsDir);
 
       report(1.0);
       return fileName;
@@ -364,7 +467,7 @@ class BackupService {
     }
   }
 
-  /// 列出某账户的所有特别备份。
+  /// 列出某账户的所有特别备份（大小含附件）。
   Future<List<BackupEntry>> listSpecialBackups(String accountId) async {
     try {
       final dir = await _specialBackupDir(accountId);
@@ -377,10 +480,11 @@ class BackupService {
         if (!name.endsWith(_fileExt)) continue;
 
         final stat = await entity.stat();
+        final attachmentsSize = await _attachmentsDirSize(_attachmentsDirPath(entity.path));
         entries.add(BackupEntry(
           fileName: name,
           createdAt: stat.modified,
-          sizeBytes: stat.size,
+          sizeBytes: stat.size + attachmentsSize,
         ));
       }
 
@@ -391,8 +495,7 @@ class BackupService {
     }
   }
 
-  /// 重命名特别备份。
-  /// 返回新文件名（含 .backup 后缀），失败返回 null。
+  /// 重命名特别备份（含附件目录）。
   Future<String?> renameSpecialBackup(
     String accountId,
     String oldFileName,
@@ -413,28 +516,34 @@ class BackupService {
       if (await newFile.exists()) return null;
 
       await oldFile.rename(newFile.path);
+      // 同时重命名附件目录
+      final oldAttachDir = Directory(_attachmentsDirPath(oldFile.path));
+      if (await oldAttachDir.exists()) {
+        await oldAttachDir.rename(_attachmentsDirPath(newFile.path));
+      }
       return newFileName;
     } on FileSystemException catch (_) {
       return null;
     }
   }
 
-  /// 删除某条特别备份。
+  /// 删除某条特别备份（含附件目录）。
   Future<bool> deleteSpecialBackup(String accountId, String fileName) async {
     try {
       final dir = await _specialBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
       if (await file.exists()) {
         await file.delete();
-        return true;
       }
-      return false;
+      // 同时删除附件目录
+      await _deleteAttachmentsDir(_attachmentsDirPath(file.path));
+      return true;
     } on FileSystemException catch (_) {
       return false;
     }
   }
 
-  /// 从特别备份恢复数据到 Vault。
+  /// 从特别备份恢复数据到 Vault（含附件）。
   Future<bool> restoreSpecialBackup(String accountId, String fileName) async {
     try {
       final dir = await _specialBackupDir(accountId);
@@ -453,15 +562,19 @@ class BackupService {
       await createBackup(accountId);
 
       final saved = await ProfileStorageService.instance.saveProfile(accountId, profile);
-      return saved;
+      if (!saved) return false;
+
+      // 恢复附件
+      final attachmentsDir = _attachmentsDirPath(file.path);
+      await _restoreAttachments(accountId, attachmentsDir);
+
+      return true;
     } on Exception catch (_) {
       return false;
     }
   }
 
-  /// 将普通备份提升为特别备份（复制文件，不移动）。
-  /// [name] 为用户自定义名称，不需要加扩展名。
-  /// 返回最终文件名，失败返回 null。
+  /// 将普通备份提升为特别备份（复制文件 + 附件目录）。
   Future<String?> promoteBackupToSpecial(
     String accountId,
     String regularFileName,
@@ -488,6 +601,12 @@ class BackupService {
       if (await specialFile.exists()) return null;
 
       await regularFile.copy(specialFile.path);
+      // 同时复制附件目录
+      final regularAttachDir = Directory(_attachmentsDirPath(regularFile.path));
+      if (await regularAttachDir.exists()) {
+        final specialAttachDir = Directory(_attachmentsDirPath(specialFile.path));
+        await _copyDirectory(regularAttachDir, specialAttachDir);
+      }
       return newFileName;
     } on FileSystemException catch (e, st) {
       DebugLogger.instance.logError(
@@ -497,7 +616,7 @@ class BackupService {
   }
 
   // -------------------------------------------------------------------------
-  // 内部：自动清理旧常规备份
+  // 内部辅助
   // -------------------------------------------------------------------------
 
   Future<void> _cleanupOldBackups(String accountId) async {
@@ -510,8 +629,25 @@ class BackupService {
       try {
         final file = File('${dir.path}/${entry.fileName}');
         if (await file.exists()) await file.delete();
+        // 同时删除附件目录
+        await _deleteAttachmentsDir(_attachmentsDirPath(file.path));
       } on FileSystemException catch (_) {
         // 忽略清理错误
+      }
+    }
+  }
+
+  /// 递归复制目录
+  Future<void> _copyDirectory(Directory source, Directory destination) async {
+    if (!await destination.exists()) {
+      await destination.create(recursive: true);
+    }
+    await for (final entity in source.list()) {
+      final name = entity.uri.pathSegments.last;
+      if (entity is File) {
+        await entity.copy('${destination.path}/$name');
+      } else if (entity is Directory) {
+        await _copyDirectory(entity, Directory('${destination.path}/$name'));
       }
     }
   }

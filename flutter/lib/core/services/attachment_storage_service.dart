@@ -48,7 +48,7 @@ class AttachmentStorageService {
   /// 预览上限：> 此大小的 v3 文件拒绝内存加载预览
   static const int maxPreviewSize = 10 * 1024 * 1024;
 
-  Future<Directory> _getAttachmentsDir(String accountId) async {
+  Future<Directory> getAttachmentsDir(String accountId) async {
     final appDir = await getApplicationDocumentsDirectory();
     final dir = Directory('${appDir.path}/$_attachmentsDirName/$accountId');
     if (!await dir.exists()) {
@@ -76,7 +76,7 @@ class AttachmentStorageService {
     CancelToken? cancelToken,
   }) async {
     final fileId = const Uuid().v4();
-    final dir = await _getAttachmentsDir(accountId);
+    final dir = await getAttachmentsDir(accountId);
     final file = File('${dir.path}/$fileId.solo');
 
     // 阶段 1：准备完成
@@ -146,7 +146,7 @@ class AttachmentStorageService {
     bool isSrcTemporary = false,
   }) async {
     final fileId = const Uuid().v4();
-    final dir = await _getAttachmentsDir(accountId);
+    final dir = await getAttachmentsDir(accountId);
     final dstPath = '${dir.path}/$fileId.solo';
 
     try {
@@ -207,7 +207,7 @@ class AttachmentStorageService {
     void Function(double)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final dir = await _getAttachmentsDir(accountId);
+    final dir = await getAttachmentsDir(accountId);
     final file = File('${dir.path}/$fileId.solo');
     if (!await file.exists()) {
       SoloLog.w('AttachmentStorage', 'Attachment file not found: $fileId');
@@ -271,7 +271,7 @@ class AttachmentStorageService {
     required String progressPath,
     required String cancelPath,
   }) async {
-    final dir = await _getAttachmentsDir(accountId);
+    final dir = await getAttachmentsDir(accountId);
     final srcPath = '${dir.path}/$fileId.solo';
     final srcFile = File(srcPath);
 
@@ -297,7 +297,7 @@ class AttachmentStorageService {
     required String accountId,
     required String fileId,
   }) async {
-    final dir = await _getAttachmentsDir(accountId);
+    final dir = await getAttachmentsDir(accountId);
     final file = File('${dir.path}/$fileId.solo');
     if (await file.exists()) {
       await file.delete();
@@ -323,7 +323,7 @@ class AttachmentStorageService {
     required String accountId,
     required Set<String> referencedFileIds,
   }) async {
-    final dir = await _getAttachmentsDir(accountId);
+    final dir = await getAttachmentsDir(accountId);
     if (!await dir.exists()) return 0;
 
     int deletedCount = 0;
@@ -350,7 +350,7 @@ class AttachmentStorageService {
   /// 只统计 `.solo` 加密文件。
   Future<int> getTotalAttachmentSize(String accountId) async {
     try {
-      final dir = await _getAttachmentsDir(accountId);
+      final dir = await getAttachmentsDir(accountId);
       if (!await dir.exists()) return 0;
 
       int totalSize = 0;
@@ -370,7 +370,7 @@ class AttachmentStorageService {
   /// 获取本地存在的所有附件 fileId 集合。
   Future<Set<String>> getAttachmentFileIds(String accountId) async {
     try {
-      final dir = await _getAttachmentsDir(accountId);
+      final dir = await getAttachmentsDir(accountId);
       if (!await dir.exists()) return const {};
 
       final fileIds = <String>{};
@@ -390,7 +390,7 @@ class AttachmentStorageService {
   /// 获取附件数量。
   Future<int> getAttachmentCount(String accountId) async {
     try {
-      final dir = await _getAttachmentsDir(accountId);
+      final dir = await getAttachmentsDir(accountId);
       if (!await dir.exists()) return 0;
 
       int count = 0;
@@ -409,7 +409,7 @@ class AttachmentStorageService {
   /// 建议在应用启动时调用。
   Future<int> cleanupPartialFiles(String accountId) async {
     try {
-      final dir = await _getAttachmentsDir(accountId);
+      final dir = await getAttachmentsDir(accountId);
       if (!await dir.exists()) return 0;
 
       int deletedCount = 0;
