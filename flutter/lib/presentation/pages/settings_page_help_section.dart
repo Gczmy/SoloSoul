@@ -24,7 +24,7 @@ class _HelpSettingsSection extends ConsumerWidget {
           SettingsTile(
             icon: Icons.article_outlined,
             title: _guideTitle(guides[i], language),
-            subtitle: '',
+            subtitle: _guideSubtitle(guides[i], language),
             onTap: () => _showGuide(context, guides[i], language),
           ),
         ],
@@ -34,6 +34,10 @@ class _HelpSettingsSection extends ConsumerWidget {
 
   String _guideTitle(GuideIndexEntry guide, String language) {
     return language == 'zh' ? guide.title : guide.titleEn;
+  }
+
+  String _guideSubtitle(GuideIndexEntry guide, String language) {
+    return language == 'zh' ? guide.description : guide.descriptionEn;
   }
 
   void _showGuide(BuildContext context, GuideIndexEntry guide, String language) {

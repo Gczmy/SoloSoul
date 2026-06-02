@@ -214,6 +214,8 @@ class GuideIndexEntry {
   final String id;
   final String title;
   final String titleEn;
+  final String description;
+  final String descriptionEn;
   final List<String> keywords;
   final Map<String, String> files;
 
@@ -221,6 +223,8 @@ class GuideIndexEntry {
     required this.id,
     required this.title,
     required this.titleEn,
+    required this.description,
+    required this.descriptionEn,
     required this.keywords,
     required this.files,
   });
@@ -230,6 +234,8 @@ class GuideIndexEntry {
       id: json['id'] as String,
       title: json['title'] as String,
       titleEn: json['titleEn'] as String,
+      description: json['description'] as String? ?? '',
+      descriptionEn: json['descriptionEn'] as String? ?? '',
       keywords: (json['keywords'] as List<dynamic>).cast<String>(),
       files: (json['files'] as Map<String, dynamic>).cast<String, String>(),
     );

@@ -5,6 +5,8 @@
       "id": "ai_chat",
       "title": "AI 对话功能",
       "titleEn": "AI Chat",
+      "description": "了解如何与 AI 助手对话、管理会话以及使用临时对话功能",
+      "descriptionEn": "Learn how to chat with the AI assistant, manage sessions, and use temporary chats",
       "keywords": [
         "ai", "对话", "聊天", "llm", "模型", "新对话",
         "回收站", "删除", "软删除", "永久删除", "恢复",
@@ -19,6 +21,8 @@
       "id": "trash",
       "title": "回收站",
       "titleEn": "Trash",
+      "description": "掌握删除、恢复和清空回收站的操作方法",
+      "descriptionEn": "Learn how to delete, restore, and empty the trash",
       "keywords": [
         "回收站", "删除", "恢复", "清空", "软删除",
         "永久删除", "误删", "撤销", "复原", "垃圾桶",
@@ -33,6 +37,8 @@
       "id": "objects",
       "title": "档案与对象管理",
       "titleEn": "Objects & Profiles",
+      "description": "创建和管理个人档案与对象，使用模板快速录入信息",
+      "descriptionEn": "Create and manage profiles and objects, use templates for quick data entry",
       "keywords": [
         "对象", "档案", "profile", "unified", "创建", "编辑",
         "模板", "字段", "属性", "类型", "旅行", "财务",
@@ -47,6 +53,8 @@
       "id": "security",
       "title": "安全与隐私",
       "titleEn": "Security & Privacy",
+      "description": "配置密码、生物识别和自动锁定等安全设置",
+      "descriptionEn": "Configure password, biometric, and auto-lock security settings",
       "keywords": [
         "安全", "密码", "锁定", "生物识别", "指纹", "面容",
         "touch id", "face id", "自动锁定", "剪贴板", "加密",
@@ -61,6 +69,8 @@
       "id": "sync",
       "title": "同步与备份",
       "titleEn": "Sync & Backup",
+      "description": "创建本地备份、导出导入数据以及跨设备迁移",
+      "descriptionEn": "Create local backups, export/import data, and cross-device transfer",
       "keywords": [
         "同步", "备份", "导出", "导入", "数据迁移", "恢复",
         "云端", "本地", "文件", "迁移", "transfer"
