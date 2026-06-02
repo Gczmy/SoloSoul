@@ -21,6 +21,7 @@ import 'package:solosoul_flutter/core/models/semantic_type_registry.dart';
 import 'package:solosoul_flutter/presentation/pages/section_template_page.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 import 'package:solosoul_flutter/presentation/widgets/semantic_type_picker.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 
 /// Generic editor for creating or editing any UnifiedObject.
@@ -745,7 +746,7 @@ class _ObjectEditorHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  UnifiedObjectService.getIconFromName(iconController.text),
+                  IconResolver.resolve(iconController.text),
                   color: theme.colorScheme.primary,
                   size: 28,
                 ),
@@ -812,7 +813,7 @@ class _TypeDropdown extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(
-                    UnifiedObjectService.getIconFromName(type.iconName),
+                    IconResolver.resolve(type.iconName),
                     size: 20,
                   ),
                   const SizedBox(width: 12),
@@ -913,7 +914,7 @@ class ObjectParentDropdown extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(
-                    UnifiedObjectService.getIconFromName(o.iconName),
+                    IconResolver.resolve(o.iconName),
                     size: 18,
                   ),
                   const SizedBox(width: 8),

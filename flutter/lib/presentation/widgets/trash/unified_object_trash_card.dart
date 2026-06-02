@@ -18,6 +18,7 @@ import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/form_field_def.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitivity_tag.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 /// Returns the color for a given typeId (page=blue, collection=green, item=orange).
 Color typeColorForId(String? typeId) {
@@ -144,7 +145,7 @@ class _UnifiedObjectTrashCardState
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              UnifiedObjectService.getIconFromName(object.iconName),
+              IconResolver.resolve(object.iconName),
               color: typeColorForId(object.typeId),
               size: 20,
             ),
@@ -272,7 +273,7 @@ class _UnifiedObjectTrashCardState
                 onShowHistory: () => FieldHistoryDialog.show(
                   context: context,
                   title: displayName,
-                  icon: UnifiedObjectService.getIconFromName(object.iconName),
+                  icon: IconResolver.resolve(object.iconName),
                   fieldDefs: fieldDefs,
                   history: history,
                   fieldPrefix: fieldPrefix,
@@ -546,7 +547,7 @@ class _ChildItemRowState extends ConsumerState<_ChildItemRow> {
               ),
               const SizedBox(width: 10),
               Icon(
-                UnifiedObjectService.getIconFromName(widget.child.iconName),
+                IconResolver.resolve(widget.child.iconName),
                 size: 16,
                 color: typeColorForId(widget.child.typeId),
               ),
@@ -662,7 +663,7 @@ class _GrandchildItemRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Icon(
-            UnifiedObjectService.getIconFromName(child.iconName),
+            IconResolver.resolve(child.iconName),
             size: 14,
             color: typeColorForId(child.typeId),
           ),

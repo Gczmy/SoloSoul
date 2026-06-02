@@ -3,6 +3,7 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 class ObjectCardHeader extends StatelessWidget {
   final UnifiedObject object;
@@ -30,7 +31,7 @@ class ObjectCardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final icon = UnifiedObjectService.getIconFromName(object.iconName);
+    final icon = IconResolver.resolve(object.iconName);
     final displayName = getLocalizedObjectName(l10n, object);
 
     return Row(

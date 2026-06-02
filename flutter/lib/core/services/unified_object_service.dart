@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/models/sensitivity_models.dart';
@@ -878,124 +877,13 @@ class UnifiedObjectService {
   }
 
   // ---------------------------------------------------------------------------
-  // Icon Mapping
+  // Icon Mapping (moved to presentation/utils/icon_resolver.dart)
   // ---------------------------------------------------------------------------
 
-  static const Map<String, IconData> _iconByName = {
-    // 工作与学习
-    'article': Icons.article_outlined,
-    'folder': Icons.folder_outlined,
-    'note': Icons.note_outlined,
-    'description': Icons.description,
-    'book': Icons.book,
-    'work': Icons.work,
-    'school': Icons.school,
-    'assignment': Icons.assignment,
-    'checklist': Icons.checklist,
-    'menu_book': Icons.menu_book,
-    'library_books': Icons.library_books,
-    'edit_document': Icons.edit_document,
-    // 人物与身份
-    'person': Icons.person_outlined,
-    'badge': Icons.badge,
-    'people': Icons.people,
-    'family_restroom': Icons.family_restroom,
-    'child_care': Icons.child_care,
-    'face': Icons.face,
-    'fingerprint': Icons.fingerprint,
-    'verified_user': Icons.verified_user,
-    'account_circle': Icons.account_circle,
-    'person_outline': Icons.person_outline,
-    'groups': Icons.groups,
-    'diversity_3': Icons.diversity_3,
-    // 旅行与出行
-    'flight': Icons.flight,
-    'hotel': Icons.hotel,
-    'car_rental': Icons.car_rental,
-    'luggage': Icons.luggage,
-    'map': Icons.map,
-    'place': Icons.place,
-    'location_on': Icons.location_on,
-    'train': Icons.train,
-    'directions_car': Icons.directions_car,
-    'commute': Icons.commute,
-    'beach_access': Icons.beach_access,
-    'public': Icons.public,
-    // 财务与商业
-    'account_balance': Icons.account_balance,
-    'credit_card': Icons.credit_card,
-    'savings': Icons.savings,
-    'payments': Icons.payments,
-    'receipt_long': Icons.receipt_long,
-    'attach_money': Icons.attach_money,
-    'account_balance_wallet': Icons.account_balance_wallet,
-    'monetization_on': Icons.monetization_on,
-    'trending_up': Icons.trending_up,
-    'show_chart': Icons.show_chart,
-    'shopping_cart': Icons.shopping_cart,
-    'store': Icons.store,
-    // 生活与健康
-    'home': Icons.home,
-    'favorite': Icons.favorite,
-    'star': Icons.star,
-    'restaurant': Icons.restaurant,
-    'sports': Icons.sports,
-    'fitness_center': Icons.fitness_center,
-    'medical_services': Icons.medical_services,
-    'local_hospital': Icons.local_hospital,
-    'spa': Icons.spa,
-    'self_improvement': Icons.self_improvement,
-    'healing': Icons.healing,
-    'health_and_safety': Icons.health_and_safety,
-    // 科技与设备
-    'laptop': Icons.laptop,
-    'computer': Icons.computer,
-    'code': Icons.code,
-    'developer_mode': Icons.developer_mode,
-    'phone_android': Icons.phone_android,
-    'memory': Icons.memory,
-    'wifi': Icons.wifi,
-    'bluetooth': Icons.bluetooth,
-    'gamepad': Icons.gamepad,
-    'mouse': Icons.mouse,
-    'keyboard': Icons.keyboard,
-    'cable': Icons.cable,
-    // 创意与艺术
-    'palette': Icons.palette,
-    'brush': Icons.brush,
-    'photo_camera': Icons.photo_camera,
-    'movie': Icons.movie,
-    'music_note': Icons.music_note,
-    'theaters': Icons.theaters,
-    'museum': Icons.museum,
-    'emoji_emotions': Icons.emoji_emotions,
-    'lightbulb': Icons.lightbulb,
-    'design_services': Icons.design_services,
-    'architecture': Icons.architecture,
-    'auto_stories': Icons.auto_stories,
-    // 通用
-    'language': Icons.language,
-    'security': Icons.security,
-    'link': Icons.link,
-    'phone': Icons.phone,
-    'email': Icons.email,
-    'check_circle': Icons.check_circle_outlined,
-    'vpn_key': Icons.vpn_key,
-    'lock': Icons.lock,
-    'warning': Icons.warning,
-    'error': Icons.error,
-    'help': Icons.help,
-    'info': Icons.info,
-    // 旧版兼容
-    'history': Icons.history,
-    'shopping_bag': Icons.shopping_bag,
-    'camera': Icons.camera_alt,
-    'pets': Icons.pets,
-    'add': Icons.add,
-  };
-
-  static IconData getIconFromName(String iconName) {
-    return _iconByName[iconName] ?? Icons.folder_outlined;
+  /// Returns the fallback icon name when the given name is not recognized.
+  /// UI layers should resolve this to [IconData] via [IconResolver.resolve].
+  static String getIconFromName(String iconName) {
+    return iconName.isNotEmpty ? iconName : 'folder';
   }
 }
 

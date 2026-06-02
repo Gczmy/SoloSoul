@@ -26,6 +26,7 @@ import 'package:solosoul_flutter/presentation/widgets/home/quick_action.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/quick_action_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/security_item.dart';
 import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart' show showLegalDocumentSheet;
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 // =============================================================================
 // HomePage — Dashboard with quick actions + inline page editor (Liquid Glass)
@@ -142,7 +143,7 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
       final route = _routeForPageId(page.id) ?? '${AppRoutes.objects}/${page.id}';
       final l10n = AppLocalizations.of(context);
       return QuickAction(
-        icon: UnifiedObjectService.getIconFromName(page.iconName),
+        icon: IconResolver.resolve(page.iconName),
         label: getLocalizedObjectName(l10n, page),
         route: route,
         color: _colorForPage(page.id),

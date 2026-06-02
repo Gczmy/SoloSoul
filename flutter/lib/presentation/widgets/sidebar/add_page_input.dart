@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 class AddPageInput extends StatelessWidget {
   final TextEditingController controller;
@@ -39,7 +40,7 @@ class AddPageInput extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(4),
                 child: Icon(
-                  UnifiedObjectService.getIconFromName(iconName),
+                  IconResolver.resolve(iconName),
                   size: 20,
                   color: theme.colorScheme.primary,
                 ),

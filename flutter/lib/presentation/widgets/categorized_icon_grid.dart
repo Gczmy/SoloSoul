@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 /// A scrollable categorized grid of icons for selection.
 ///
@@ -81,7 +82,7 @@ class CategorizedIconGrid extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        UnifiedObjectService.getIconFromName(name),
+                        IconResolver.resolve(name),
                         color: isSelected
                             ? theme.colorScheme.primary
                             : theme.colorScheme.onSurfaceVariant,

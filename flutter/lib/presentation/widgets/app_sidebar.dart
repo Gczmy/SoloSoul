@@ -16,6 +16,7 @@ import 'package:solosoul_flutter/presentation/widgets/sidebar/add_page_input.dar
 import 'package:solosoul_flutter/presentation/widgets/sidebar/nav_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/sidebar/page_tree_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/sidebar/sidebar_header.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 // =============================================================================
 // AppSidebar — Persistent sidebar for all protected pages (Liquid Glass)
@@ -174,7 +175,7 @@ class _AppSidebarState extends ConsumerState<AppSidebar> {
       // All pages (default + custom), default pages first
       for (final page in defaultPages)
         NavTile(
-          icon: UnifiedObjectService.getIconFromName(page.iconName),
+          icon: IconResolver.resolve(page.iconName),
           label: getLocalizedObjectName(AppLocalizations.of(context), page),
           expanded: _expanded,
           selected: location == _routeForPageId(page.id),

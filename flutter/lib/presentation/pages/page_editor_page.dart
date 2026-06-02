@@ -8,6 +8,7 @@ import 'package:solosoul_flutter/presentation/providers/unified_object_provider.
 import 'package:solosoul_flutter/presentation/widgets/icon_picker_sheet.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart' show AppTheme;
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 /// Editor specifically for Page-type UnifiedObjects.
 class PageEditorPage extends ConsumerStatefulWidget {
@@ -155,7 +156,7 @@ class _PageEditorPageState extends ConsumerState<PageEditorPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  UnifiedObjectService.getIconFromName(_iconController.text),
+                  IconResolver.resolve(_iconController.text),
                   color: theme.colorScheme.primary,
                   size: 28,
                 ),

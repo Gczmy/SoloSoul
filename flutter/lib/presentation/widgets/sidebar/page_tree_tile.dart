@@ -6,6 +6,7 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 class PageTreeTile extends ConsumerStatefulWidget {
   final UnifiedObject page;
@@ -284,7 +285,7 @@ class _TreeTileDraggable extends ConsumerWidget {
           child: Row(
             children: [
               Icon(
-                UnifiedObjectService.getIconFromName(iconName),
+                IconResolver.resolve(iconName),
                 size: 20,
                 color: theme.colorScheme.onSurface,
               ),
@@ -387,7 +388,7 @@ class _TreeTileLeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = Icon(
-      UnifiedObjectService.getIconFromName(iconName),
+      IconResolver.resolve(iconName),
       size: iconSize,
       color: fgColor,
     );

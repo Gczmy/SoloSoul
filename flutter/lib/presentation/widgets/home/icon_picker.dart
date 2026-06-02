@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/categorized_icon_grid.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 /// Inline icon picker widget.
 ///
@@ -54,7 +55,7 @@ class IconPicker extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
-          UnifiedObjectService.getIconFromName(iconName),
+          IconResolver.resolve(iconName),
           color: theme.colorScheme.primary,
         ),
       ),

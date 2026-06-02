@@ -7,6 +7,7 @@ import 'package:solosoul_flutter/core/services/unified_object_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/icon_picker.dart';
+import 'package:solosoul_flutter/presentation/utils/icon_resolver.dart';
 
 /// Inline full-page editor for creating or editing a custom "page" [UnifiedObject]
 /// and managing its child "section" objects.
@@ -250,7 +251,7 @@ class _PageEditorState extends ConsumerState<PageEditor> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: Icon(
-                        UnifiedObjectService.getIconFromName(section.iconName),
+                        IconResolver.resolve(section.iconName),
                         color: theme.colorScheme.primary,
                       ),
                       title: Text(section.name),
