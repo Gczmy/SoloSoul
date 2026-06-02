@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:characters/characters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_config_service.dart';
+import 'package:solosoul_flutter/core/services/llm/llm_context_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_manager.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
@@ -250,16 +251,43 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
   // Streaming
   // ---------------------------------------------------------------------------
 
-  /// 流式聊天推理（本地 Ollama 专属）。
+  /// 流式聊天推理。
   ///
+  /// 当 [includeSystemPrompt] 为 true（默认）时，自动注入包含用户公开档案、
+  /// 软件信息和 AI 使用统计的 system prompt。
+  ///
+  /// [history] 为历史对话记录（user/assistant 交替）。
   /// 返回的 [Stream] 在 Widget dispose 时需由调用方取消订阅，
   /// 或调用 [cancelStream] 主动中断。
   Stream<String> streamChat(
     String prompt, {
     List<LlmMessage>? history,
+    bool includeSystemPrompt = true,
     int maxTokens = 512,
   }) {
     final service = _manager.service;
+
+    // Build messages list with optional system prompt
+    final messages = <LlmMessage>[];
+    if (includeSystemPrompt) {
+      final accountId = _lastAccountId;
+      if (accountId != null) {
+        // Fire-and-forget system prompt injection
+        // Since streamChat is synchronous, we use a helper stream that
+        // waits for context then starts the actual inference.
+        return _streamChatWithContext(
+          prompt: prompt,
+          history: history,
+          accountId: accountId,
+          maxTokens: maxTokens,
+        );
+      }
+    }
+
+    // No system prompt: fall through to original behavior
+    messages.addAll(history ?? []);
+    messages.add(LlmMessage(role: 'user', content: prompt));
+
     if (service is! LlmLocalService) {
       // 云端服务 fallback：先完整推理再逐字 emit，模拟流式效果
       _fallbackController?.close();
@@ -267,7 +295,7 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       final controller = StreamController<String>();
       _fallbackController = controller;
       _activeStreamSub?.cancel();
-      _manager.infer(prompt, maxTokens: maxTokens).then((result) {
+      _manager.inferMessages(messages, maxTokens: maxTokens).then((result) {
         if (controller.isClosed) return;
         // 模拟打字机：每 8ms 发送一个 grapheme cluster（避免切开 surrogate pair）
         final chars = result.characters.toList();
@@ -296,12 +324,59 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
     }
 
     // 本地 Ollama 原生流式
-    final stream = service.streamChat(
-      prompt,
-      history: history,
-      maxTokens: maxTokens,
-    );
-    return stream;
+    return service.streamChatMessages(messages, maxTokens: maxTokens);
+  }
+
+  /// Helper that asynchronously builds context then starts streaming.
+  Stream<String> _streamChatWithContext({
+    required String prompt,
+    required List<LlmMessage>? history,
+    required String accountId,
+    required int maxTokens,
+  }) async* {
+    try {
+      final context = await LlmContextService.instance.buildContext(
+        accountId: accountId,
+        modelManager: _manager,
+      );
+      SoloLog.d('LlmModelNotifier',
+          'System prompt injected, cached=${context.wasCached}, estTokens=${context.estimatedTokens}');
+
+      final messages = <LlmMessage>[
+        LlmMessage(role: 'system', content: context.systemPrompt),
+        ...?history,
+        LlmMessage(role: 'user', content: prompt),
+      ];
+
+      final service = _manager.service;
+      if (service is! LlmLocalService) {
+        // Cloud fallback with typing-machine effect
+        final result = await _manager.inferMessages(messages, maxTokens: maxTokens);
+        final chars = result.characters.toList();
+        for (var i = 0; i < chars.length; i++) {
+          yield chars[i];
+          await Future.delayed(const Duration(milliseconds: 8));
+        }
+      } else {
+        // Local Ollama native streaming
+        await for (final chunk in service.streamChatMessages(messages, maxTokens: maxTokens)) {
+          yield chunk;
+        }
+      }
+    } on Exception catch (e) {
+      SoloLog.w('LlmModelNotifier', 'Failed to build context, falling back to plain chat', e);
+      // Fallback: chat without system prompt
+      final messages = <LlmMessage>[...?history, LlmMessage(role: 'user', content: prompt)];
+      final service = _manager.service;
+      if (service is! LlmLocalService) {
+        final result = await _manager.inferMessages(messages, maxTokens: maxTokens);
+        yield result;
+      } else {
+        await for (final chunk in service.streamChatMessages(messages, maxTokens: maxTokens)) {
+          yield chunk;
+        }
+      }
+    }
   }
 
   /// 取消正在进行的流式推理。

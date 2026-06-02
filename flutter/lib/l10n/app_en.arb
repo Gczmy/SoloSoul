@@ -479,6 +479,81 @@
   "llmChatConnectCloudModel": "Connect cloud model",
   "llmChatStartLocalModel": "Start local model",
   "llmChatGoToConfig": "Go to LLM Config",
+  "llmChatNewSession": "New Chat",
+  "llmChatRenameSession": "Rename",
+  "llmChatDeleteSession": "Delete",
+  "llmChatDeleteSessionConfirm": "Delete chat \"{title}\"? This cannot be undone.",
+  "llmChatHardDeleteSessionConfirm": "Permanently delete chat \"{title}\"? This cannot be recovered.",
+  "@llmChatHardDeleteSessionConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@llmChatDeleteSessionConfirm": {
+    "description": "Confirm deletion of a chat session",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "llmChatSessionsTitle": "Chats",
+  "llmChatDefaultSessionTitle": "New Chat",
+  "llmChatSessionCreated": "Chat created",
+  "llmChatSessionDeleted": "Chat deleted",
+  "llmChatSessionRenamed": "Renamed",
+  "llmChatSwitchBlocked": "Please wait for the current response to finish before switching",
+  "llmChatMessageCount": "{count} messages · {time}",
+  "@llmChatMessageCount": {
+    "description": "Session list message count and time display",
+    "placeholders": {
+      "count": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{count} min ago",
+  "@timeMinutesAgo": {
+    "description": "Minutes ago",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count} hr ago",
+  "@timeHoursAgo": {
+    "description": "Hours ago",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count} days ago",
+  "@timeDaysAgo": {
+    "description": "Days ago",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDateShort": "{month}/{day}",
+  "@timeDateShort": {
+    "description": "Short date format",
+    "placeholders": {
+      "month": {"type": "int"},
+      "day": {"type": "int"}
+    }
+  },
+  "timeCollapse": "Collapse",
+  "llmChatTrash": "Trash",
+  "llmChatRestore": "Restore",
+  "llmChatDeleteForever": "Delete Forever",
+  "llmChatUndoDelete": "Undo",
+  "llmChatSessionMovedToTrash": "Chat moved to trash",
+  "llmChatEmptyTrashConfirm": "Empty trash? All chats in trash will be permanently deleted and cannot be recovered.",
+  "llmChatEmptyTrash": "Empty Trash",
+  "llmChatViewDetails": "View Details",
+  "llmChatClose": "Close",
+  "timeYesterday": "Yesterday",
   "llmErrorConfigNotLoaded": "Configuration not loaded",
   "llmErrorCloudConfigIncomplete": "Cloud configuration incomplete: please check API Key and privacy consent",
   "llmErrorNoActiveCloudProfile": "No active cloud configuration",

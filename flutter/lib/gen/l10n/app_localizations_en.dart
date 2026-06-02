@@ -940,6 +940,106 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmChatGoToConfig => 'Go to LLM Config';
 
   @override
+  String get llmChatNewSession => 'New Chat';
+
+  @override
+  String get llmChatRenameSession => 'Rename';
+
+  @override
+  String get llmChatDeleteSession => 'Delete';
+
+  @override
+  String llmChatDeleteSessionConfirm(String title) {
+    return 'Delete chat \"$title\"? This cannot be undone.';
+  }
+
+  @override
+  String llmChatHardDeleteSessionConfirm(String title) {
+    return 'Permanently delete chat \"$title\"? This cannot be recovered.';
+  }
+
+  @override
+  String get llmChatSessionsTitle => 'Chats';
+
+  @override
+  String get llmChatDefaultSessionTitle => 'New Chat';
+
+  @override
+  String get llmChatSessionCreated => 'Chat created';
+
+  @override
+  String get llmChatSessionDeleted => 'Chat deleted';
+
+  @override
+  String get llmChatSessionRenamed => 'Renamed';
+
+  @override
+  String get llmChatSwitchBlocked =>
+      'Please wait for the current response to finish before switching';
+
+  @override
+  String llmChatMessageCount(int count, String time) {
+    return '$count messages · $time';
+  }
+
+  @override
+  String get timeJustNow => 'Just now';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return '$count hr ago';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String timeDateShort(int month, int day) {
+    return '$month/$day';
+  }
+
+  @override
+  String get timeCollapse => 'Collapse';
+
+  @override
+  String get llmChatTrash => 'Trash';
+
+  @override
+  String get llmChatRestore => 'Restore';
+
+  @override
+  String get llmChatDeleteForever => 'Delete Forever';
+
+  @override
+  String get llmChatUndoDelete => 'Undo';
+
+  @override
+  String get llmChatSessionMovedToTrash => 'Chat moved to trash';
+
+  @override
+  String get llmChatEmptyTrashConfirm =>
+      'Empty trash? All chats in trash will be permanently deleted and cannot be recovered.';
+
+  @override
+  String get llmChatEmptyTrash => 'Empty Trash';
+
+  @override
+  String get llmChatViewDetails => 'View Details';
+
+  @override
+  String get llmChatClose => 'Close';
+
+  @override
+  String get timeYesterday => 'Yesterday';
+
+  @override
   String get llmErrorConfigNotLoaded => 'Configuration not loaded';
 
   @override

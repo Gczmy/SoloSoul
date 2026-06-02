@@ -918,6 +918,104 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmChatGoToConfig => '前往 LLM 配置';
 
   @override
+  String get llmChatNewSession => '新对话';
+
+  @override
+  String get llmChatRenameSession => '重命名';
+
+  @override
+  String get llmChatDeleteSession => '删除';
+
+  @override
+  String llmChatDeleteSessionConfirm(String title) {
+    return '确定要删除对话“$title”吗？此操作不可撤销。';
+  }
+
+  @override
+  String llmChatHardDeleteSessionConfirm(String title) {
+    return '确定要永久删除对话\"$title\"吗？此操作不可恢复。';
+  }
+
+  @override
+  String get llmChatSessionsTitle => '对话列表';
+
+  @override
+  String get llmChatDefaultSessionTitle => '新对话';
+
+  @override
+  String get llmChatSessionCreated => '对话已创建';
+
+  @override
+  String get llmChatSessionDeleted => '对话已删除';
+
+  @override
+  String get llmChatSessionRenamed => '重命名成功';
+
+  @override
+  String get llmChatSwitchBlocked => '请等待当前回复完成后再切换对话';
+
+  @override
+  String llmChatMessageCount(int count, String time) {
+    return '$count 条消息 · $time';
+  }
+
+  @override
+  String get timeJustNow => '刚刚';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return '$count 分钟前';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return '$count 小时前';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return '$count 天前';
+  }
+
+  @override
+  String timeDateShort(int month, int day) {
+    return '$month/$day';
+  }
+
+  @override
+  String get timeCollapse => '收起';
+
+  @override
+  String get llmChatTrash => '回收站';
+
+  @override
+  String get llmChatRestore => '恢复';
+
+  @override
+  String get llmChatDeleteForever => '永久删除';
+
+  @override
+  String get llmChatUndoDelete => '撤销';
+
+  @override
+  String get llmChatSessionMovedToTrash => '对话已移至回收站';
+
+  @override
+  String get llmChatEmptyTrashConfirm => '确定要清空回收站吗？所有回收站中的对话将被永久删除，无法恢复。';
+
+  @override
+  String get llmChatEmptyTrash => '清空回收站';
+
+  @override
+  String get llmChatViewDetails => '查看详情';
+
+  @override
+  String get llmChatClose => '关闭';
+
+  @override
+  String get timeYesterday => '昨天';
+
+  @override
   String get llmErrorConfigNotLoaded => '配置未加载';
 
   @override

@@ -193,4 +193,89 @@ $constraintsJson
   ]
 }''';
   }
+
+  // ---------------------------------------------------------------------------
+  // P2: AI Chat System Prompt (Context-Aware Assistant)
+  // ---------------------------------------------------------------------------
+
+  /// System prompt for the AI chat assistant.
+  ///
+  /// Injects software info, user public profile, preferences, and usage stats
+  /// so the AI can provide contextually aware responses.
+  static String chatSystemPrompt({
+    required String appVersion,
+    required String platform,
+    required String language,
+    required Map<String, List<Map<String, String>>> userPublicInfo,
+    required Map<String, dynamic> preferences,
+    required Map<String, dynamic> usageStats,
+  }) {
+    final buffer = StringBuffer();
+
+    // AI Identity
+    buffer.writeln('你是 SoloSoul（独灵）的智能助手。你正在帮助用户操作一款本地优先、隐私优先的个人数字孪生与通用身份管理应用。');
+    buffer.writeln();
+
+    // Software Info
+    buffer.writeln('## 软件信息');
+    buffer.writeln('- 应用名称：SoloSoul（独灵）');
+    buffer.writeln('- 当前版本：$appVersion');
+    buffer.writeln('- 运行平台：$platform');
+    buffer.writeln('- 界面语言：$language');
+    buffer.writeln();
+
+    // User Public Profile
+    if (userPublicInfo.isNotEmpty) {
+      buffer.writeln('## 用户公开档案（仅包含用户标记为"公开"的非敏感信息）');
+      for (final entry in userPublicInfo.entries) {
+        final typeName = entry.key;
+        final objects = entry.value;
+        if (objects.isEmpty) continue;
+        buffer.writeln('- **$typeName**：');
+        for (final obj in objects) {
+          final props = obj.entries
+              .where((e) => e.value.isNotEmpty)
+              .map((e) => '${e.key}: ${e.value}')
+              .join(', ');
+          if (props.isNotEmpty) {
+            buffer.writeln('  - $props');
+          }
+        }
+      }
+      buffer.writeln();
+    }
+
+    // Preferences
+    if (preferences.isNotEmpty) {
+      buffer.writeln('## 用户偏好设置');
+      for (final entry in preferences.entries) {
+        buffer.writeln('- ${entry.key}：${entry.value}');
+      }
+      buffer.writeln();
+    }
+
+    // Usage Stats
+    buffer.writeln('## AI 使用统计');
+    final currentModel = usageStats['currentModel'] as String? ?? '未知';
+    final currentProvider = usageStats['currentProvider'] as String? ?? '未知';
+    final sessionCalls = usageStats['sessionCalls'] as int? ?? 0;
+    final sessionTokens = usageStats['sessionTokens'] as int? ?? 0;
+    final accountCalls = usageStats['accountCalls'] as int? ?? 0;
+    final accountTokens = usageStats['accountTokens'] as int? ?? 0;
+
+    buffer.writeln('- 当前模型：$currentModel（$currentProvider）');
+    buffer.writeln('- 本次会话：$sessionCalls 次调用，$sessionTokens tokens');
+    buffer.writeln('- 账户累计：$accountCalls 次调用，$accountTokens tokens');
+    buffer.writeln();
+
+    // Behavior Guidelines
+    buffer.writeln('## 行为指引');
+    buffer.writeln('1. 你可以根据用户的公开档案和偏好，提供个性化的回答和建议。');
+    buffer.writeln('2. 当用户询问软件功能、使用方法或遇到问题时，你可以基于上述软件信息给出准确的指导。');
+    buffer.writeln('3. 如果用户询问的信息不在上述公开档案中（如身份证号、银行账号等敏感信息），请明确告知用户你无法访问此类敏感数据，并建议用户自行查看对应页面。');
+    buffer.writeln('4. 以上信息可能被截断，如需更多详情请明确询问。');
+    buffer.writeln('5. **请使用用户提问的语言来回答。如果用户用中文提问，用中文回答；如果用户用英文提问，用英文回答。**');
+
+    return buffer.toString();
+  }
 }

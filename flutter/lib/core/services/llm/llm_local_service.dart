@@ -137,13 +137,25 @@ class LlmLocalService implements LlmService {
   /// Stream chat response from Ollama.
   ///
   /// Yields text fragments as they are generated.
+  /// Deprecated: Use [streamChatMessages] for full message history support.
   Stream<String> streamChat(
     String prompt, {
     List<LlmMessage>? history,
     int maxTokens = 512,
-  }) async* {
-    final messages = <LlmMessage>[...?history, LlmMessage(role: 'user', content: prompt)];
+  }) {
+    return streamChatMessages(
+      [...?history, LlmMessage(role: 'user', content: prompt)],
+      maxTokens: maxTokens,
+    );
+  }
 
+  /// Stream chat response from Ollama with full message history.
+  ///
+  /// [messages] may include system/user/assistant roles.
+  Stream<String> streamChatMessages(
+    List<LlmMessage> messages, {
+    int maxTokens = 512,
+  }) async* {
     final body = jsonEncode({
       'model': modelName,
       'messages': messages.map((m) => m.toJson()).toList(),

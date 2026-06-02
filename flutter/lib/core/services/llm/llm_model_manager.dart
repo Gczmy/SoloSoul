@@ -408,6 +408,41 @@ class LlmModelManager {
     return result;
   }
 
+  /// Stream chat with full message history (including system prompt).
+  ///
+  /// - Local Ollama: native SSE streaming.
+  /// - Cloud: non-streaming inference + typing-machine fallback.
+  Stream<String> streamChatMessages(
+    List<LlmMessage> messages, {
+    int maxTokens = 512,
+  }) async* {
+    final svc = _service;
+    if (svc == null || _state != LlmModelState.loaded) {
+      throw const LlmException(
+        'Model not loaded',
+        code: LlmErrorCode.modelNotFound,
+      );
+    }
+
+    if (svc is LlmLocalService) {
+      // Native streaming for local Ollama
+      await for (final chunk in svc.streamChatMessages(messages, maxTokens: maxTokens)) {
+        yield chunk;
+      }
+      // Token usage for local is reported after stream ends by Ollama,
+      // but we don't have it here. Leave it to the caller to track if needed.
+    } else {
+      // Cloud fallback: full inference then emit character-by-character
+      // Extract the last user message as the "prompt" for inferMessages
+      // But actually we should pass all messages to inferMessages
+      final result = await inferMessages(messages, maxTokens: maxTokens);
+      // Emit the full result at once since we can't easily do typing effect here
+      // without knowing grapheme boundaries. The caller (LlmModelProvider)
+      // handles the typing-machine fallback.
+      yield result;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Internal
   // ---------------------------------------------------------------------------

@@ -1808,6 +1808,174 @@ abstract class AppLocalizations {
   /// **'Go to LLM Config'**
   String get llmChatGoToConfig;
 
+  /// No description provided for @llmChatNewSession.
+  ///
+  /// In en, this message translates to:
+  /// **'New Chat'**
+  String get llmChatNewSession;
+
+  /// No description provided for @llmChatRenameSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get llmChatRenameSession;
+
+  /// No description provided for @llmChatDeleteSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get llmChatDeleteSession;
+
+  /// Confirm deletion of a chat session
+  ///
+  /// In en, this message translates to:
+  /// **'Delete chat \"{title}\"? This cannot be undone.'**
+  String llmChatDeleteSessionConfirm(String title);
+
+  /// No description provided for @llmChatHardDeleteSessionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete chat \"{title}\"? This cannot be recovered.'**
+  String llmChatHardDeleteSessionConfirm(String title);
+
+  /// No description provided for @llmChatSessionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chats'**
+  String get llmChatSessionsTitle;
+
+  /// No description provided for @llmChatDefaultSessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Chat'**
+  String get llmChatDefaultSessionTitle;
+
+  /// No description provided for @llmChatSessionCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat created'**
+  String get llmChatSessionCreated;
+
+  /// No description provided for @llmChatSessionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat deleted'**
+  String get llmChatSessionDeleted;
+
+  /// No description provided for @llmChatSessionRenamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed'**
+  String get llmChatSessionRenamed;
+
+  /// No description provided for @llmChatSwitchBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait for the current response to finish before switching'**
+  String get llmChatSwitchBlocked;
+
+  /// Session list message count and time display
+  ///
+  /// In en, this message translates to:
+  /// **'{count} messages · {time}'**
+  String llmChatMessageCount(int count, String time);
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get timeJustNow;
+
+  /// Minutes ago
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min ago'**
+  String timeMinutesAgo(int count);
+
+  /// Hours ago
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hr ago'**
+  String timeHoursAgo(int count);
+
+  /// Days ago
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String timeDaysAgo(int count);
+
+  /// Short date format
+  ///
+  /// In en, this message translates to:
+  /// **'{month}/{day}'**
+  String timeDateShort(int month, int day);
+
+  /// No description provided for @timeCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get timeCollapse;
+
+  /// No description provided for @llmChatTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get llmChatTrash;
+
+  /// No description provided for @llmChatRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get llmChatRestore;
+
+  /// No description provided for @llmChatDeleteForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Forever'**
+  String get llmChatDeleteForever;
+
+  /// No description provided for @llmChatUndoDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get llmChatUndoDelete;
+
+  /// No description provided for @llmChatSessionMovedToTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat moved to trash'**
+  String get llmChatSessionMovedToTrash;
+
+  /// No description provided for @llmChatEmptyTrashConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty trash? All chats in trash will be permanently deleted and cannot be recovered.'**
+  String get llmChatEmptyTrashConfirm;
+
+  /// No description provided for @llmChatEmptyTrash.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Trash'**
+  String get llmChatEmptyTrash;
+
+  /// No description provided for @llmChatViewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get llmChatViewDetails;
+
+  /// No description provided for @llmChatClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get llmChatClose;
+
+  /// No description provided for @timeYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get timeYesterday;
+
   /// No description provided for @llmErrorConfigNotLoaded.
   ///
   /// In en, this message translates to:

@@ -290,16 +290,26 @@ class LlmCloudService implements LlmService {
   /// Stream chat response from cloud API (SSE).
   ///
   /// Supports both OpenAI-compatible and Anthropic streaming formats.
+  /// Deprecated: Use [streamChatMessages] for full message history support.
   Stream<String> streamChat(
     String prompt, {
     List<LlmMessage>? history,
     int maxTokens = 512,
-  }) async* {
-    final messages = <LlmMessage>[
-      ...?history,
-      LlmMessage(role: 'user', content: prompt),
-    ];
+  }) {
+    return streamChatMessages(
+      [...?history, LlmMessage(role: 'user', content: prompt)],
+      maxTokens: maxTokens,
+    );
+  }
 
+  /// Stream chat response from cloud API with full message history (SSE).
+  ///
+  /// [messages] may include system/user/assistant roles.
+  /// Supports both OpenAI-compatible and Anthropic streaming formats.
+  Stream<String> streamChatMessages(
+    List<LlmMessage> messages, {
+    int maxTokens = 512,
+  }) async* {
     final body = jsonEncode(_buildRequestBody(
       messages: messages,
       maxTokens: maxTokens,

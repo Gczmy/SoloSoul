@@ -147,10 +147,23 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     final session = ref.read(llmChatSessionProvider.notifier);
     final notifier = ref.read(llmModelProvider.notifier);
 
+    // Build history from previous messages (up to 10 turns / 20 messages)
+    final allMessages = ref.read(llmChatSessionProvider);
+    final history = <LlmMessage>[];
+    for (final msg in allMessages) {
+      if (msg.isStreaming) continue;
+      history.add(LlmMessage(
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text,
+      ));
+    }
+    // Limit to last 10 turns (20 messages)
+    final trimmedHistory = history.length > 20 ? history.sublist(history.length - 20) : history;
+
     // 获取流式响应
     late final Stream<String> stream;
     try {
-      stream = notifier.streamChat(text);
+      stream = notifier.streamChat(text, history: trimmedHistory);
     } on Exception catch (e) {
       await session.sendMessage(text, Stream.error(e), l10n: l10n);
       return;
@@ -251,6 +264,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
         message: msg.text,
         isUser: true,
         isStreaming: false,
+        createdAt: msg.createdAt,
       );
     }
 
@@ -286,6 +300,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
       message: msg.text,
       isUser: false,
       isStreaming: msg.isStreaming,
+      createdAt: msg.createdAt,
     );
   }
 

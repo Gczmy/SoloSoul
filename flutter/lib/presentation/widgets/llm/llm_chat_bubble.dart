@@ -21,11 +21,15 @@ class LlmChatBubble extends StatelessWidget {
   /// 是否正在流式接收中。为 `true` 时在末尾显示脉冲点。
   final bool isStreaming;
 
+  /// 消息创建时间戳（毫秒级 Unix epoch）。为 0 时不显示时间。
+  final int createdAt;
+
   const LlmChatBubble({
     super.key,
     required this.message,
     required this.isUser,
     this.isStreaming = false,
+    this.createdAt = 0,
   });
 
   @override
@@ -55,6 +59,10 @@ class LlmChatBubble extends StatelessWidget {
               ),
               child: _renderMessage(message, theme, isUser),
             ),
+            if (createdAt > 0) ...[
+              const SizedBox(height: 2),
+              _TimeLabel(timestamp: createdAt),
+            ],
             if (!isUser && !isStreaming && message.isNotEmpty) ...[
               const SizedBox(height: 4),
               _CopyButton(text: message),
@@ -268,5 +276,51 @@ class _TypingDotsState extends State<_TypingDots>
         );
       }),
     );
+  }
+}
+
+// =============================================================================
+// Time Label
+// =============================================================================
+
+class _TimeLabel extends StatelessWidget {
+  final int timestamp;
+
+  const _TimeLabel({required this.timestamp});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final l10n = AppLocalizations.of(context);
+    final timeStr = _formatTime(dt, l10n);
+
+    return Text(
+      timeStr,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+        fontSize: 11,
+      ),
+    );
+  }
+
+  String _formatTime(DateTime dt, AppLocalizations? l10n) {
+    final hour = dt.hour.toString().padLeft(2, '0');
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final timePart = '$hour:$minute';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final msgDay = DateTime(dt.year, dt.month, dt.day);
+    final diffDays = today.difference(msgDay).inDays;
+
+    if (diffDays == 0) return timePart;
+    if (diffDays == 1) {
+      return '${l10n?.timeYesterday ?? '昨天'} $timePart';
+    }
+    if (dt.year == now.year) {
+      return '${dt.month}/${dt.day} $timePart';
+    }
+    return '${dt.year}/${dt.month}/${dt.day} $timePart';
   }
 }

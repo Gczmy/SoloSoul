@@ -285,6 +285,81 @@
   "llmChatConnectCloudModel": "连接云端模型",
   "llmChatStartLocalModel": "启动本地模型",
   "llmChatGoToConfig": "前往 LLM 配置",
+  "llmChatNewSession": "新对话",
+  "llmChatRenameSession": "重命名",
+  "llmChatDeleteSession": "删除",
+  "llmChatDeleteSessionConfirm": "确定要删除对话“{title}”吗？此操作不可撤销。",
+  "llmChatHardDeleteSessionConfirm": "确定要永久删除对话\"{title}\"吗？此操作不可恢复。",
+  "@llmChatHardDeleteSessionConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@llmChatDeleteSessionConfirm": {
+    "description": "删除对话确认提示",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "llmChatSessionsTitle": "对话列表",
+  "llmChatDefaultSessionTitle": "新对话",
+  "llmChatSessionCreated": "对话已创建",
+  "llmChatSessionDeleted": "对话已删除",
+  "llmChatSessionRenamed": "重命名成功",
+  "llmChatSwitchBlocked": "请等待当前回复完成后再切换对话",
+  "llmChatMessageCount": "{count} 条消息 · {time}",
+  "@llmChatMessageCount": {
+    "description": "会话列表中显示消息数量和时间",
+    "placeholders": {
+      "count": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "timeJustNow": "刚刚",
+  "timeMinutesAgo": "{count} 分钟前",
+  "@timeMinutesAgo": {
+    "description": "几分钟前",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeHoursAgo": "{count} 小时前",
+  "@timeHoursAgo": {
+    "description": "几小时前",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDaysAgo": "{count} 天前",
+  "@timeDaysAgo": {
+    "description": "几天前",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "timeDateShort": "{month}/{day}",
+  "@timeDateShort": {
+    "description": "短日期格式",
+    "placeholders": {
+      "month": {"type": "int"},
+      "day": {"type": "int"}
+    }
+  },
+  "timeCollapse": "收起",
+  "llmChatTrash": "回收站",
+  "llmChatRestore": "恢复",
+  "llmChatDeleteForever": "永久删除",
+  "llmChatUndoDelete": "撤销",
+  "llmChatSessionMovedToTrash": "对话已移至回收站",
+  "llmChatEmptyTrashConfirm": "确定要清空回收站吗？所有回收站中的对话将被永久删除，无法恢复。",
+  "llmChatEmptyTrash": "清空回收站",
+  "llmChatViewDetails": "查看详情",
+  "llmChatClose": "关闭",
+  "timeYesterday": "昨天",
   "llmErrorConfigNotLoaded": "配置未加载",
   "llmErrorCloudConfigIncomplete": "云端配置不完整：请检查 API Key 和隐私同意",
   "llmErrorNoActiveCloudProfile": "没有激活的云端配置",
