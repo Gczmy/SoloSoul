@@ -322,8 +322,12 @@
   "@llmChatMessageCount": {
     "description": "会话列表中显示消息数量和时间",
     "placeholders": {
-      "count": {"type": "int"},
-      "time": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
     }
   },
   "timeJustNow": "刚刚",
@@ -331,29 +335,39 @@
   "@timeMinutesAgo": {
     "description": "几分钟前",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count} 小时前",
   "@timeHoursAgo": {
     "description": "几小时前",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count} 天前",
   "@timeDaysAgo": {
     "description": "几天前",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDateShort": "{month}/{day}",
   "@timeDateShort": {
     "description": "短日期格式",
     "placeholders": {
-      "month": {"type": "int"},
-      "day": {"type": "int"}
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
     }
   },
   "timeCollapse": "收起",
@@ -1768,7 +1782,26 @@
   "folderNotWritable": "所选文件夹不可写，将使用默认路径。",
   "downloadLocationUpdated": "下载位置已更新",
   "downloadLocationReset": "下载位置已恢复默认",
+  "uploading": "正在上传...",
+  "downloading": "正在下载...",
+  "cancelUpload": "取消上传",
+  "cancelDownload": "取消下载",
+  "uploadCancelled": "上传已取消",
+  "downloadCancelled": "下载已取消",
+  "attachmentTooLarge": "文件过大，暂不支持超过 50MB 的文件",
+  "attachmentTooLargeForPreview": "文件过大，无法预览。请下载后查看。",
+  "encryptionInProgress": "加密中，请稍候...",
   "resetToDefault": "恢复默认",
   "scanNoImportableItems": "未找到可导入的项目",
-  "scanNoImportableItemsHint": "尝试使用不同的扫描深度或扫描更多文件夹。"
+  "scanNoImportableItemsHint": "尝试使用不同的扫描深度或扫描更多文件夹。",
+  "openWithSystemApp": "用系统应用打开",
+  "browseAllSlides": "浏览所有幻灯片",
+  "browseAllPages": "浏览所有页面",
+  "pptxPreviewTitle": "幻灯片预览",
+  "pptxNoThumbnail": "此文件未包含缩略图，请点击下方按钮用系统应用打开完整幻灯片",
+  "docxPreviewTitle": "文档预览",
+  "xlsxPreviewTitle": "表格预览",
+  "browseAllSheets": "浏览所有工作表",
+  "docxNoThumbnail": "此文件未包含缩略图，请点击下方按钮用系统应用打开完整文档",
+  "xlsxNoThumbnail": "此文件未包含缩略图，请点击下方按钮用系统应用打开完整表格"
 }

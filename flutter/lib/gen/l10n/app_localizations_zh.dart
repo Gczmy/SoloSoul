@@ -4126,6 +4126,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get downloadLocationReset => '下载位置已恢复默认';
 
   @override
+  String get uploading => '正在上传...';
+
+  @override
+  String get downloading => '正在下载...';
+
+  @override
+  String get cancelUpload => '取消上传';
+
+  @override
+  String get cancelDownload => '取消下载';
+
+  @override
+  String get uploadCancelled => '上传已取消';
+
+  @override
+  String get downloadCancelled => '下载已取消';
+
+  @override
+  String get attachmentTooLarge => '文件过大，暂不支持超过 50MB 的文件';
+
+  @override
+  String get attachmentTooLargeForPreview => '文件过大，无法预览。请下载后查看。';
+
+  @override
+  String get encryptionInProgress => '加密中，请稍候...';
+
+  @override
   String get resetToDefault => '恢复默认';
 
   @override
@@ -4133,4 +4160,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get scanNoImportableItemsHint => '尝试使用不同的扫描深度或扫描更多文件夹。';
+
+  @override
+  String get openWithSystemApp => '用系统应用打开';
+
+  @override
+  String get browseAllSlides => '浏览所有幻灯片';
+
+  @override
+  String get browseAllPages => '浏览所有页面';
+
+  @override
+  String get pptxPreviewTitle => '幻灯片预览';
+
+  @override
+  String get pptxNoThumbnail => '此文件未包含缩略图，请点击下方按钮用系统应用打开完整幻灯片';
+
+  @override
+  String get docxPreviewTitle => '文档预览';
+
+  @override
+  String get xlsxPreviewTitle => '表格预览';
+
+  @override
+  String get browseAllSheets => '浏览所有工作表';
+
+  @override
+  String get docxNoThumbnail => '此文件未包含缩略图，请点击下方按钮用系统应用打开完整文档';
+
+  @override
+  String get xlsxNoThumbnail => '此文件未包含缩略图，请点击下方按钮用系统应用打开完整表格';
 }

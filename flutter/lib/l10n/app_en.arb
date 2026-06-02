@@ -516,8 +516,12 @@
   "@llmChatMessageCount": {
     "description": "Session list message count and time display",
     "placeholders": {
-      "count": {"type": "int"},
-      "time": {"type": "String"}
+      "count": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
     }
   },
   "timeJustNow": "Just now",
@@ -525,29 +529,39 @@
   "@timeMinutesAgo": {
     "description": "Minutes ago",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeHoursAgo": "{count} hr ago",
   "@timeHoursAgo": {
     "description": "Hours ago",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDaysAgo": "{count} days ago",
   "@timeDaysAgo": {
     "description": "Days ago",
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "timeDateShort": "{month}/{day}",
   "@timeDateShort": {
     "description": "Short date format",
     "placeholders": {
-      "month": {"type": "int"},
-      "day": {"type": "int"}
+      "month": {
+        "type": "int"
+      },
+      "day": {
+        "type": "int"
+      }
     }
   },
   "timeCollapse": "Collapse",
@@ -2248,7 +2262,26 @@
   "folderNotWritable": "Selected folder is not writable. Using default.",
   "downloadLocationUpdated": "Download location updated",
   "downloadLocationReset": "Download location reset to default",
+  "uploading": "Uploading...",
+  "downloading": "Downloading...",
+  "cancelUpload": "Cancel upload",
+  "cancelDownload": "Cancel download",
+  "uploadCancelled": "Upload cancelled",
+  "downloadCancelled": "Download cancelled",
+  "attachmentTooLarge": "File too large. Files over 50MB are not supported.",
+  "attachmentTooLargeForPreview": "File too large to preview. Please download to view.",
+  "encryptionInProgress": "Encrypting, please wait...",
   "resetToDefault": "Reset to default",
   "scanNoImportableItems": "No importable items found",
-  "scanNoImportableItemsHint": "Try scanning with a different depth or more folders."
+  "scanNoImportableItemsHint": "Try scanning with a different depth or more folders.",
+  "openWithSystemApp": "Open with system app",
+  "browseAllSlides": "Browse All Slides",
+  "browseAllPages": "Browse All Pages",
+  "pptxPreviewTitle": "Presentation Preview",
+  "pptxNoThumbnail": "This file does not contain a thumbnail. Please tap the button below to open the full presentation with your system app.",
+  "docxPreviewTitle": "Document Preview",
+  "xlsxPreviewTitle": "Spreadsheet Preview",
+  "browseAllSheets": "Browse All Sheets",
+  "docxNoThumbnail": "This file does not contain a thumbnail. Please tap the button below to open the full document with your system app.",
+  "xlsxNoThumbnail": "This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app."
 }

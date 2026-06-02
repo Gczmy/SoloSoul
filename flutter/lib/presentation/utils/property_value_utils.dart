@@ -18,17 +18,22 @@ String propValueToString(PropertyValue value, {String yesLabel = 'Yes', String n
 /// camelCase / snake_case → Title Case (e.g. "givenName" → "Given Name", "visa_type" → "Visa Type")
 String formatLabel(String key) => formatFieldLabel(key);
 
-/// Wrap [text] with a newline every [n] characters, appending ': '.
-String wrapEveryNChars(String text, int n) {
-  if (text.length <= n) return '$text: ';
-  final buffer = StringBuffer();
-  for (var i = 0; i < text.length; i += n) {
-    if (i > 0) buffer.write('\n');
-    buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
-  }
-  buffer.write(': ');
-  return buffer.toString();
-}
+// REMOVED: wrapEveryNChars was previously used only in ObjectCardPropertiesList
+// to force line breaks every N characters in field labels. It caused labels to
+// wrap prematurely regardless of available width. The caller now uses natural
+// text wrapping via SelectableText, letting Flutter handle layout correctly.
+//
+// Original implementation (for reference):
+//   String wrapEveryNChars(String text, int n) {
+//     if (text.length <= n) return '$text: ';
+//     final buffer = StringBuffer();
+//     for (var i = 0; i < text.length; i += n) {
+//       if (i > 0) buffer.write('\n');
+//       buffer.write(text.substring(i, i + n > text.length ? text.length : i + n));
+//     }
+//     buffer.write(': ');
+//     return buffer.toString();
+//   }
 
 /// Get the display title for an item.
 /// Uses [nameExtractor] if provided, otherwise falls back to [titlePropertyKey]

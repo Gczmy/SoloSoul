@@ -8,10 +8,12 @@
 
 pub mod aes;
 pub mod argon2;
+pub mod stream;
 pub mod utils;
 
 pub use aes::*;
 pub use argon2::*;
+pub use stream::*;
 pub use utils::*;
 
 use zeroize::Zeroizing;
@@ -34,15 +36,24 @@ pub fn encrypt_profile_data(
 
 /// Decrypt profile data, auto-detecting format.
 ///
-/// Supports two formats:
-/// 1. **SOLO blob** (new, Rust-native): Magic(4B "SOLO") + Version(1B) + Nonce(12B) + Ciphertext + Tag(16B)
-/// 2. **Legacy Dart format**: Nonce(12B) + Ciphertext + Tag(16B)  (no magic/version header)
+/// Supports three formats:
+/// 1. **SOLO blob v3** (chunked): Magic(4B "SOLO") + Version(0x03) + Header + Chunks
+/// 2. **SOLO blob v2** (single): Magic(4B "SOLO") + Version(0x02) + Nonce(12B) + Ciphertext + Tag(16B)
+/// 3. **Legacy Dart format**: Nonce(12B) + Ciphertext + Tag(16B)  (no magic/version header)
 ///
 /// Returns the raw plaintext bytes.
 pub fn decrypt_profile_data(key: &[u8; 32], data: &[u8]) -> Result<Zeroizing<Vec<u8>>, String> {
     // Try SOLO blob format first (check magic bytes)
-    if data.len() >= 33 && &data[0..4] == b"SOLO" {
-        return aes::decrypt_blob(key, data);
+    if data.len() >= 5 && &data[0..4] == b"SOLO" {
+        // v3 chunked format
+        if data[4] == aes::BLOB_VERSION_V3 {
+            return aes::decrypt_chunked_blob(key, data);
+        }
+        // v2 single-chunk format
+        if data[4] == aes::BLOB_VERSION && data.len() >= 33 {
+            return aes::decrypt_blob(key, data);
+        }
+        return Err(format!("Unsupported SOLO blob version: {}", data[4]));
     }
 
     // Fall back to legacy Dart format: nonce(12) + ciphertext + tag(16)

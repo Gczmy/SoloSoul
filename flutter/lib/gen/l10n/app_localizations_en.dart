@@ -4257,6 +4257,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get downloadLocationReset => 'Download location reset to default';
 
   @override
+  String get uploading => 'Uploading...';
+
+  @override
+  String get downloading => 'Downloading...';
+
+  @override
+  String get cancelUpload => 'Cancel upload';
+
+  @override
+  String get cancelDownload => 'Cancel download';
+
+  @override
+  String get uploadCancelled => 'Upload cancelled';
+
+  @override
+  String get downloadCancelled => 'Download cancelled';
+
+  @override
+  String get attachmentTooLarge =>
+      'File too large. Files over 50MB are not supported.';
+
+  @override
+  String get attachmentTooLargeForPreview =>
+      'File too large to preview. Please download to view.';
+
+  @override
+  String get encryptionInProgress => 'Encrypting, please wait...';
+
+  @override
   String get resetToDefault => 'Reset to default';
 
   @override
@@ -4265,4 +4294,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scanNoImportableItemsHint =>
       'Try scanning with a different depth or more folders.';
+
+  @override
+  String get openWithSystemApp => 'Open with system app';
+
+  @override
+  String get browseAllSlides => 'Browse All Slides';
+
+  @override
+  String get browseAllPages => 'Browse All Pages';
+
+  @override
+  String get pptxPreviewTitle => 'Presentation Preview';
+
+  @override
+  String get pptxNoThumbnail =>
+      'This file does not contain a thumbnail. Please tap the button below to open the full presentation with your system app.';
+
+  @override
+  String get docxPreviewTitle => 'Document Preview';
+
+  @override
+  String get xlsxPreviewTitle => 'Spreadsheet Preview';
+
+  @override
+  String get browseAllSheets => 'Browse All Sheets';
+
+  @override
+  String get docxNoThumbnail =>
+      'This file does not contain a thumbnail. Please tap the button below to open the full document with your system app.';
+
+  @override
+  String get xlsxNoThumbnail =>
+      'This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app.';
 }

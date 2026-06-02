@@ -10,7 +10,6 @@ import 'package:solosoul_flutter/presentation/providers/profile_provider.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/widgets/universal_entry_card.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
-import 'package:solosoul_flutter/core/services/attachment_upload_service.dart';
 import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/widgets/entry_action_builder.dart';
 import 'package:solosoul_flutter/presentation/widgets/field_history_view.dart';
@@ -25,8 +24,6 @@ import 'package:solosoul_flutter/presentation/providers/account_style_provider.d
     show accountStyleProvider, SensitivityDisplayMode;
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart'
     show effectiveSensitivityProvider, SensitivityLevel;
-import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
-    show unifiedObjectProvider;
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
     show showOverlaySnackBar, SnackBarType;
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
@@ -492,32 +489,7 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
   }
 
   Future<void> _handleAttachmentAction(BuildContext context, UnifiedObject obj) async {
-    if (obj.attachments.isNotEmpty) {
-      _showAttachments(context, obj);
-    } else {
-      await _addAttachment(context, obj);
-    }
-  }
-
-  Future<void> _addAttachment(BuildContext context, UnifiedObject obj) async {
-    final bool isSensitive = obj.properties.values.any(
-          (p) => p.sensitivity == SensitivityLevel.sensitive ||
-                 p.sensitivity == SensitivityLevel.critical,
-        ) ||
-        widget.isSensitive;
-
-    final attachment = await AttachmentUploadService.pickAndUpload(
-      context: context,
-      ref: ref,
-      requiresSensitiveCheck: isSensitive,
-    );
-    if (attachment == null) return;
-
-    final updatedAttachments = [...obj.attachments, attachment];
-    await ref.read(unifiedObjectProvider.notifier).updateObject(
-      obj.id,
-      attachments: updatedAttachments,
-    );
+    _showAttachments(context, obj);
   }
 
   void _showAttachments(BuildContext context, UnifiedObject obj) {
@@ -529,7 +501,6 @@ class _EntryCardWidgetState<T> extends ConsumerState<EntryCardWidget<T>> {
       builder: (context) => AttachmentListSheet(
         object: obj,
         accountId: accountId,
-        onAddAttachment: () => _addAttachment(context, obj),
       ),
     );
   }

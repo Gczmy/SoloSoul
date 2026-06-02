@@ -7764,6 +7764,60 @@ abstract class AppLocalizations {
   /// **'Download location reset to default'**
   String get downloadLocationReset;
 
+  /// No description provided for @uploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get uploading;
+
+  /// No description provided for @downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading...'**
+  String get downloading;
+
+  /// No description provided for @cancelUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel upload'**
+  String get cancelUpload;
+
+  /// No description provided for @cancelDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel download'**
+  String get cancelDownload;
+
+  /// No description provided for @uploadCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload cancelled'**
+  String get uploadCancelled;
+
+  /// No description provided for @downloadCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download cancelled'**
+  String get downloadCancelled;
+
+  /// No description provided for @attachmentTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'File too large. Files over 50MB are not supported.'**
+  String get attachmentTooLarge;
+
+  /// No description provided for @attachmentTooLargeForPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'File too large to preview. Please download to view.'**
+  String get attachmentTooLargeForPreview;
+
+  /// No description provided for @encryptionInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypting, please wait...'**
+  String get encryptionInProgress;
+
   /// No description provided for @resetToDefault.
   ///
   /// In en, this message translates to:
@@ -7781,6 +7835,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try scanning with a different depth or more folders.'**
   String get scanNoImportableItemsHint;
+
+  /// No description provided for @openWithSystemApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open with system app'**
+  String get openWithSystemApp;
+
+  /// No description provided for @browseAllSlides.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse All Slides'**
+  String get browseAllSlides;
+
+  /// No description provided for @browseAllPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse All Pages'**
+  String get browseAllPages;
+
+  /// No description provided for @pptxPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Presentation Preview'**
+  String get pptxPreviewTitle;
+
+  /// No description provided for @pptxNoThumbnail.
+  ///
+  /// In en, this message translates to:
+  /// **'This file does not contain a thumbnail. Please tap the button below to open the full presentation with your system app.'**
+  String get pptxNoThumbnail;
+
+  /// No description provided for @docxPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Document Preview'**
+  String get docxPreviewTitle;
+
+  /// No description provided for @xlsxPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Spreadsheet Preview'**
+  String get xlsxPreviewTitle;
+
+  /// No description provided for @browseAllSheets.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse All Sheets'**
+  String get browseAllSheets;
+
+  /// No description provided for @docxNoThumbnail.
+  ///
+  /// In en, this message translates to:
+  /// **'This file does not contain a thumbnail. Please tap the button below to open the full document with your system app.'**
+  String get docxNoThumbnail;
+
+  /// No description provided for @xlsxNoThumbnail.
+  ///
+  /// In en, this message translates to:
+  /// **'This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app.'**
+  String get xlsxNoThumbnail;
 }
 
 class _AppLocalizationsDelegate

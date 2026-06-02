@@ -42,6 +42,40 @@ Future<Uint8List> frbEncryptBytes({required List<int> data}) =>
 Future<Uint8List> frbDecryptBytes({required List<int> data}) =>
     RustLib.instance.api.crateApiFrbDecryptBytes(data: data);
 
+/// Encrypt a file using chunked AES-256-GCM (SOLO blob v3) and write to dst_path.
+/// Streams the file in 1MB chunks to keep memory usage low.
+/// Vault must be unlocked.
+///
+/// Progress is written to [progress_path] as a float string ("0.0" ~ "1.0").
+/// If [cancel_path] file is created during operation, encryption stops and
+/// partial output is cleaned up.
+Future<void> frbEncryptFile({
+  required String srcPath,
+  required String dstPath,
+  required String progressPath,
+  required String cancelPath,
+}) => RustLib.instance.api.crateApiFrbEncryptFile(
+  srcPath: srcPath,
+  dstPath: dstPath,
+  progressPath: progressPath,
+  cancelPath: cancelPath,
+);
+
+/// Decrypt a v3 SOLO blob file and write plaintext to dst_path.
+/// Streams the file in chunks to keep memory usage low.
+/// Vault must be unlocked.
+Future<void> frbDecryptFile({
+  required String srcPath,
+  required String dstPath,
+  required String progressPath,
+  required String cancelPath,
+}) => RustLib.instance.api.crateApiFrbDecryptFile(
+  srcPath: srcPath,
+  dstPath: dstPath,
+  progressPath: progressPath,
+  cancelPath: cancelPath,
+);
+
 /// Save a profile (create or update) with raw encrypted bytes.
 /// Returns the profile summary on success.
 /// Vault must be unlocked.

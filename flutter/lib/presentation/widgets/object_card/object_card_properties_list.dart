@@ -52,15 +52,15 @@ class ObjectCardPropertiesList extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(
-                child: SelectableText(
-                  wrapEveryNChars(item.getDisplayLabelFor(entry.key, l10n), 12),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              // Label: natural width, does not compete with value for space
+              SelectableText(
+                '${item.getDisplayLabelFor(entry.key, l10n)}: ',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 4),
+              // Value: natural width, expands only when needed
               if (isEmptyValue)
                 Flexible(
                   child: Text(

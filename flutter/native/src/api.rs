@@ -269,6 +269,81 @@ pub fn frb_decrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
     Ok(plaintext.to_vec())
 }
 
+/// Encrypt a file using chunked AES-256-GCM (SOLO blob v3) and write to dst_path.
+/// Streams the file in 1MB chunks to keep memory usage low.
+/// Vault must be unlocked.
+///
+/// Progress is written to [progress_path] as a float string ("0.0" ~ "1.0").
+/// If [cancel_path] file is created during operation, encryption stops and
+/// partial output is cleaned up.
+#[frb]
+pub fn frb_encrypt_file(
+    src_path: String,
+    dst_path: String,
+    progress_path: String,
+    cancel_path: String,
+) -> Result<(), String> {
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
+
+    let key: [u8; 32] = session_key
+        .as_slice()
+        .try_into()
+        .map_err(|_| "Invalid session key length")?;
+
+    crate::crypto::encrypt_file_stream(
+        &key,
+        &src_path,
+        &dst_path,
+        1024 * 1024, // 1MB chunks
+        &progress_path,
+        &cancel_path,
+    )
+    .map_err(|e| format!("File encryption failed: {}", e))?;
+
+    Ok(())
+}
+
+/// Decrypt a v3 SOLO blob file and write plaintext to dst_path.
+/// Streams the file in chunks to keep memory usage low.
+/// Vault must be unlocked.
+#[frb]
+pub fn frb_decrypt_file(
+    src_path: String,
+    dst_path: String,
+    progress_path: String,
+    cancel_path: String,
+) -> Result<(), String> {
+    let manager_guard =
+        crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard
+        .as_ref()
+        .ok_or("Account manager not initialized")?;
+
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
+
+    let key: [u8; 32] = session_key
+        .as_slice()
+        .try_into()
+        .map_err(|_| "Invalid session key length")?;
+
+    crate::crypto::decrypt_file_stream(
+        &key,
+        &src_path,
+        &dst_path,
+        &progress_path,
+        &cancel_path,
+    )
+    .map_err(|e| format!("File decryption failed: {}", e))?;
+
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // Profile CRUD (high priority — data path)
 // ---------------------------------------------------------------------------

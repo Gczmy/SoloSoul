@@ -7,6 +7,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:go_router/go_router.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/services/app_version_tracker.dart';
 import 'package:solosoul_flutter/core/services/biometric_credential_service.dart';
 import 'package:solosoul_flutter/core/services/native_channel_service.dart';
@@ -18,6 +19,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
+import 'package:solosoul_flutter/core/services/quicklook_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/frb/frb_generated.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
@@ -129,6 +131,9 @@ class _AppBootstrapState extends State<AppBootstrap> {
       // 5. OCR 引擎预初始化（后台异步，失败不阻塞启动）
       unawaited(_prewarmOcrEngine());
 
+      // 6. 清理残留的临时文件（进度文件、取消标志、content URI 复制文件）
+      unawaited(_cleanupStaleTempFiles());
+
       if (mounted) {
         setState(() => _initialized = true);
       }
@@ -158,6 +163,46 @@ class _AppBootstrapState extends State<AppBootstrap> {
     } on Exception catch (e) {
       // OCR 预热失败不阻塞应用启动，用户首次使用时会重试
       SoloLog.w('BOOTSTRAP', 'OCR prewarm failed (will retry on first use): $e');
+    }
+  }
+
+  /// 清理超过 1 小时的残留临时文件（进度文件、取消标志、content URI 复制文件）。
+  Future<void> _cleanupStaleTempFiles() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final now = DateTime.now();
+      const oneHour = Duration(hours: 1);
+      int deletedCount = 0;
+
+      await for (final entity in tempDir.list()) {
+        if (entity is! File) continue;
+        final name = entity.path.split(Platform.pathSeparator).last;
+        if (!name.startsWith('progress_') &&
+            !name.startsWith('cancel_') &&
+            !name.startsWith('dl_progress_') &&
+            !name.startsWith('dl_cancel_') &&
+            !name.startsWith('solosoul_temp_') &&
+            !name.contains('solosoul_pptx_')) {
+          continue;
+        }
+
+        try {
+          final stat = await entity.stat();
+          final age = now.difference(stat.modified);
+          if (age > oneHour) {
+            await entity.delete();
+            deletedCount++;
+          }
+        } on Exception catch (_) {
+          // Ignore individual file errors
+        }
+      }
+
+      if (deletedCount > 0) {
+        SoloLog.d('BOOTSTRAP', 'Cleaned up $deletedCount stale temp files');
+      }
+    } on Exception catch (e) {
+      SoloLog.w('BOOTSTRAP', 'Temp file cleanup failed: $e');
     }
   }
 
@@ -299,6 +344,9 @@ class _SoloSoulAppState extends ConsumerState<SoloSoulApp>
     // Load security settings and initialize biometric credential service at startup
     unawaited(SecurityService.instance.loadSettings());
     unawaited(BiometricCredentialService.instance.initialize());
+
+    // Initialize QuickLook service for PPTX/PPT native preview (macOS)
+    QuickLookService().initialize();
 
     // 检测 App 版本变化，若升级则标记待备份
     _checkAppVersion();

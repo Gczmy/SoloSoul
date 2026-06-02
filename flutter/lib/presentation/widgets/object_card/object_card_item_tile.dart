@@ -3,15 +3,12 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
-import 'package:solosoul_flutter/core/services/attachment_upload_service.dart';
 import 'package:solosoul_flutter/core/services/field_history_service.dart'
     show fieldHistoriesProvider;
 import 'package:solosoul_flutter/presentation/utils/property_value_utils.dart';
 import 'package:solosoul_flutter/presentation/utils/format_field_label.dart' show translateFieldLabel;
 import 'package:solosoul_flutter/presentation/widgets/attachment_list_sheet.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
-    show unifiedObjectProvider;
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_history_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/object_card/object_card_properties_list.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -103,23 +100,11 @@ class ObjectCardItemTile extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Title row with action buttons
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildTitle(context),
-                    const SizedBox(height: 4),
-                    ObjectCardPropertiesList(
-                      item: item,
-                      titlePropertyKey: titlePropertyKey,
-                      template: template,
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(child: _buildTitle(context)),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -171,6 +156,13 @@ class ObjectCardItemTile extends ConsumerWidget {
                 ],
               ),
             ],
+          ),
+          const SizedBox(height: 4),
+          // Properties list: full row width, no longer constrained by left column
+          ObjectCardPropertiesList(
+            item: item,
+            titlePropertyKey: titlePropertyKey,
+            template: template,
           ),
           if (isHistoryExpanded) ...[
             const SizedBox(height: 8),
@@ -230,12 +222,6 @@ class _AttachmentButton extends ConsumerWidget {
 
   const _AttachmentButton({required this.item});
 
-  bool get _hasSensitiveProperties => item.properties.values.any(
-        (p) =>
-            p.sensitivity == SensitivityLevel.sensitive ||
-            p.sensitivity == SensitivityLevel.critical,
-      );
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final count = item.attachments.where((a) => !a.isDeleted).length;
@@ -279,26 +265,7 @@ class _AttachmentButton extends ConsumerWidget {
   }
 
   Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
-    if (item.attachments.isNotEmpty) {
-      _showAttachments(context, ref);
-    } else {
-      await _addAttachment(context, ref);
-    }
-  }
-
-  Future<void> _addAttachment(BuildContext context, WidgetRef ref) async {
-    final attachment = await AttachmentUploadService.pickAndUpload(
-      context: context,
-      ref: ref,
-      requiresSensitiveCheck: _hasSensitiveProperties,
-    );
-    if (attachment == null) return;
-
-    final updatedAttachments = [...item.attachments, attachment];
-    await ref.read(unifiedObjectProvider.notifier).updateObject(
-      item.id,
-      attachments: updatedAttachments,
-    );
+    _showAttachments(context, ref);
   }
 
   void _showAttachments(BuildContext context, WidgetRef ref) {
@@ -310,7 +277,6 @@ class _AttachmentButton extends ConsumerWidget {
       builder: (context) => AttachmentListSheet(
         object: item,
         accountId: accountId,
-        onAddAttachment: () => _addAttachment(context, ref),
       ),
     );
   }

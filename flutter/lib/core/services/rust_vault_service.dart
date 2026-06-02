@@ -70,6 +70,55 @@ class RustVaultService {
     }
   }
 
+  /// Encrypt a file via Rust FRB using chunked AES-256-GCM (SOLO blob v3).
+  /// Streams the file in 1MB chunks to keep memory usage low.
+  /// Vault must be unlocked.
+  ///
+  /// [progressPath] is updated with a float string ("0.0" ~ "1.0") after each chunk.
+  /// If [cancelPath] file is created, encryption stops and partial output is cleaned up.
+  Future<bool> encryptFile(
+    String srcPath,
+    String dstPath, {
+    required String progressPath,
+    required String cancelPath,
+  }) async {
+    try {
+      await frb.frbEncryptFile(
+        srcPath: srcPath,
+        dstPath: dstPath,
+        progressPath: progressPath,
+        cancelPath: cancelPath,
+      );
+      return true;
+    } on Exception catch (e) {
+      SoloLog.e('RustVaultService', 'encryptFile failed: $e');
+      return false;
+    }
+  }
+
+  /// Decrypt a v3 SOLO blob file via Rust FRB.
+  /// Streams the file in chunks to keep memory usage low.
+  /// Vault must be unlocked.
+  Future<bool> decryptFile(
+    String srcPath,
+    String dstPath, {
+    required String progressPath,
+    required String cancelPath,
+  }) async {
+    try {
+      await frb.frbDecryptFile(
+        srcPath: srcPath,
+        dstPath: dstPath,
+        progressPath: progressPath,
+        cancelPath: cancelPath,
+      );
+      return true;
+    } on Exception catch (e) {
+      SoloLog.e('RustVaultService', 'decryptFile failed: $e');
+      return false;
+    }
+  }
+
   // ===========================================================================
   // FFI Bridge calls via NativeVaultService (JSON Relay Pattern)
   // ===========================================================================

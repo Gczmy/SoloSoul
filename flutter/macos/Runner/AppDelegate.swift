@@ -100,6 +100,9 @@ class AppDelegate: FlutterAppDelegate {
         result(FlutterMethodNotImplemented)
       }
     }
+
+    // Setup QuickLook channel for PPTX/PPT preview
+    QuickLookHandler.shared.register(with: flutterEngine)
   }
 
   @objc private func handleLockVault() {

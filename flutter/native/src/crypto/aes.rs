@@ -25,9 +25,9 @@ pub const TAG_SIZE: usize = 16;
 /// - Ciphertext + Auth Tag (variable)
 ///
 /// Magic bytes for encrypted blob
-const BLOB_MAGIC: [u8; 4] = [0x53, 0x4F, 0x4C, 0x4F]; // "SOLO"
-/// Current blob version
-const BLOB_VERSION: u8 = 0x02;
+pub const BLOB_MAGIC: [u8; 4] = [0x53, 0x4F, 0x4C, 0x4F]; // "SOLO"
+/// Current blob version (v2 single-chunk)
+pub const BLOB_VERSION: u8 = 0x02;
 
 /// Encrypt data using AES-256-GCM with a blob format
 ///
@@ -88,6 +88,162 @@ pub fn decrypt_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec<u8>>, S
         .map_err(|e| format!("Decryption failed: {}", e))?;
 
     Ok(Zeroizing::new(plaintext))
+}
+
+/// SOLO blob v3 version marker
+pub const BLOB_VERSION_V3: u8 = 0x03;
+
+/// Default chunk size for v3 format: 1 MiB
+pub const DEFAULT_CHUNK_SIZE: usize = 1024 * 1024;
+
+/// Encrypt data using chunked AES-256-GCM (SOLO blob v3 format).
+///
+/// Each chunk is independently encrypted with a unique nonce.
+/// This is useful when the full plaintext is already in memory
+/// but we want the v3 format (e.g., for consistency or future streaming).
+pub fn encrypt_chunked_blob(
+    key: &[u8; 32],
+    plaintext: &[u8],
+    chunk_size: usize,
+) -> Result<Vec<u8>, String> {
+    let chunk_size = if chunk_size == 0 {
+        DEFAULT_CHUNK_SIZE
+    } else {
+        chunk_size
+    };
+
+    let original_size = plaintext.len() as u64;
+    let chunk_count = ((original_size + chunk_size as u64 - 1) / chunk_size as u64) as u32;
+
+    // Header: Magic(4) + Version(1) + OriginalSize(8) + ChunkSize(4) + ChunkCount(4) = 21 bytes
+    let header_size = 4 + 1 + 8 + 4 + 4;
+    let total_ciphertext_size: usize = (0..chunk_count as usize)
+        .map(|i| {
+            let start = i * chunk_size;
+            let end = ((start + chunk_size) as usize).min(plaintext.len());
+            let plain_len = end - start;
+            NONCE_SIZE + plain_len + TAG_SIZE
+        })
+        .sum();
+
+    let mut blob = Vec::with_capacity(header_size + total_ciphertext_size);
+
+    // Write header
+    blob.extend_from_slice(&BLOB_MAGIC);
+    blob.push(BLOB_VERSION_V3);
+    blob.extend_from_slice(&original_size.to_be_bytes());
+    blob.extend_from_slice(&(chunk_size as u32).to_be_bytes());
+    blob.extend_from_slice(&chunk_count.to_be_bytes());
+
+    // Encrypt each chunk
+    let cipher = Aes256Gcm::new_from_slice(key)
+        .map_err(|e| format!("Invalid key: {}", e))?;
+
+    for i in 0..chunk_count as usize {
+        let start = i * chunk_size;
+        let end = (start + chunk_size).min(plaintext.len());
+        let chunk = &plaintext[start..end];
+
+        let mut nonce_bytes = [0u8; NONCE_SIZE];
+        OsRng.fill_bytes(&mut nonce_bytes);
+
+        let ciphertext = cipher
+            .encrypt(Nonce::from_slice(&nonce_bytes), chunk)
+            .map_err(|e| format!("Chunk {} encryption failed: {}", i, e))?;
+
+        blob.extend_from_slice(&nonce_bytes);
+        blob.extend_from_slice(&ciphertext);
+    }
+
+    Ok(blob)
+}
+
+/// Decrypt data from a v3 chunked blob format.
+pub fn decrypt_chunked_blob(
+    key: &[u8; 32],
+    blob: &[u8],
+) -> Result<Zeroizing<Vec<u8>>, String> {
+    // Minimum header size
+    if blob.len() < 21 {
+        return Err("Blob too short for v3 header".to_string());
+    }
+
+    // Verify magic
+    if &blob[0..4] != &BLOB_MAGIC {
+        return Err("Invalid blob magic".to_string());
+    }
+
+    // Verify version
+    if blob[4] != BLOB_VERSION_V3 {
+        return Err(format!("Expected v3 blob, got version: {}", blob[4]));
+    }
+
+    // Parse header
+    let original_size = u64::from_be_bytes([
+        blob[5], blob[6], blob[7], blob[8],
+        blob[9], blob[10], blob[11], blob[12],
+    ]);
+    let chunk_size = u32::from_be_bytes([blob[13], blob[14], blob[15], blob[16]]) as usize;
+    let chunk_count = u32::from_be_bytes([blob[17], blob[18], blob[19], blob[20]]);
+
+    let cipher = Aes256Gcm::new_from_slice(key)
+        .map_err(|e| format!("Invalid key: {}", e))?;
+
+    let mut plaintext = Vec::with_capacity(original_size as usize);
+    let mut offset = 21; // After header
+
+    for i in 0..chunk_count as usize {
+        // Read nonce
+        if offset + NONCE_SIZE > blob.len() {
+            return Err(format!("Chunk {}: nonce truncated", i));
+        }
+        let nonce = &blob[offset..offset + NONCE_SIZE];
+        offset += NONCE_SIZE;
+
+        // Determine expected plaintext size for this chunk
+        let is_last_chunk = i == chunk_count as usize - 1;
+        let expected_plain_size = if is_last_chunk {
+            (original_size as usize - plaintext.len())
+        } else {
+            chunk_size
+        };
+        let expected_cipher_size = expected_plain_size + TAG_SIZE;
+
+        if offset + expected_cipher_size > blob.len() {
+            return Err(format!(
+                "Chunk {}: ciphertext truncated (expected {}, got {})",
+                i,
+                expected_cipher_size,
+                blob.len() - offset
+            ));
+        }
+
+        let ciphertext = &blob[offset..offset + expected_cipher_size];
+        offset += expected_cipher_size;
+
+        let decrypted = cipher
+            .decrypt(Nonce::from_slice(nonce), ciphertext)
+            .map_err(|e| format!("Chunk {} decryption failed: {}", i, e))?;
+
+        plaintext.extend_from_slice(&decrypted);
+    }
+
+    if plaintext.len() != original_size as usize {
+        return Err(format!(
+            "Size mismatch: expected {}, got {}",
+            original_size,
+            plaintext.len()
+        ));
+    }
+
+    Ok(Zeroizing::new(plaintext))
+}
+
+/// Check if a byte slice is in v3 (chunked) format.
+pub fn is_chunked_blob(blob: &[u8]) -> bool {
+    blob.len() >= 5
+        && &blob[0..4] == &BLOB_MAGIC
+        && blob[4] == BLOB_VERSION_V3
 }
 
 /// Low-level FFI encryption function
