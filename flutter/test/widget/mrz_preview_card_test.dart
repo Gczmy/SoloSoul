@@ -26,7 +26,7 @@ void main() {
         sex: 'M',
         expiryDate: '300101',
         confidence: 0.97,
-        rawLines: const ['P<CHNZHANG<<SAN<<<<<<<<<<<<<<<<<<<<<<<<<<<<<', 'E12345678<8CHN9001014M3001017<<<<<<<<<<<<<<04'],
+        rawLines: ['P<CHNZHANG<<SAN<<<<<<<<<<<<<<<<<<<<<<<<<<<<<', 'E12345678<8CHN9001014M3001017<<<<<<<<<<<<<<04'],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));
@@ -55,7 +55,7 @@ void main() {
         sex: 'X',
         expiryDate: '250630',
         confidence: 0.82,
-        rawLines: const [],
+        rawLines: [],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));
@@ -77,7 +77,7 @@ void main() {
         sex: 'F',
         expiryDate: 'ABCDE',
         confidence: 0.5,
-        rawLines: const [],
+        rawLines: [],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));
@@ -98,7 +98,7 @@ void main() {
         sex: 'M',
         expiryDate: '300101',
         confidence: 1.0,
-        rawLines: const ['LINE1', 'LINE2'],
+        rawLines: ['LINE1', 'LINE2'],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));
@@ -122,7 +122,7 @@ void main() {
         sex: 'M',
         expiryDate: '300101',
         confidence: 0.90,
-        rawLines: const [],
+        rawLines: [],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));
@@ -141,7 +141,7 @@ void main() {
         sex: 'M',
         expiryDate: '300101',
         confidence: 0.80,
-        rawLines: const [],
+        rawLines: [],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));
@@ -160,7 +160,7 @@ void main() {
         sex: '',
         expiryDate: '',
         confidence: 1.0,
-        rawLines: const [],
+        rawLines: [],
       );
 
       await tester.pumpWidget(wrap(const MrzPreviewCard(mrzData: mrzData)));

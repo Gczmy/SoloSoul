@@ -18,7 +18,7 @@ void main() {
       await tester.pumpWidget(wrap(BackupSection(
         isCreating: false,
         backupProgress: 0,
-        backups: [],
+        backups: const [],
         isRestoring: false,
         totalSize: 0,
         onCreateBackup: () {},
@@ -35,7 +35,7 @@ void main() {
       await tester.pumpWidget(wrap(BackupSection(
         isCreating: true,
         backupProgress: 0.5,
-        backups: [],
+        backups: const [],
         isRestoring: false,
         totalSize: 0,
         onCreateBackup: () {},
@@ -51,7 +51,7 @@ void main() {
       await tester.pumpWidget(wrap(BackupSection(
         isCreating: false,
         backupProgress: 0,
-        backups: [],
+        backups: const [],
         isRestoring: false,
         totalSize: 0,
         onCreateBackup: () {},
@@ -91,7 +91,7 @@ void main() {
       await tester.pumpWidget(wrap(BackupSection(
         isCreating: true,
         backupProgress: 0,
-        backups: [],
+        backups: const [],
         isRestoring: false,
         totalSize: 0,
         onCreateBackup: () {},

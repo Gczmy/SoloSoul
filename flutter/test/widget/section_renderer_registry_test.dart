@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
@@ -29,8 +28,8 @@ void main() {
         id: '1',
         name: 'Test',
         properties: {
-          'Title': TextProperty(text: 'Hello'),
-          'Age': TextProperty(text: '30'),
+          'Title': const TextProperty(text: 'Hello'),
+          'Age': const TextProperty(text: '30'),
         },
       );
       final map = itemToMap(item);

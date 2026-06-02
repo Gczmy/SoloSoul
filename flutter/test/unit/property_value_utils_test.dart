@@ -9,71 +9,71 @@ void main() {
     });
 
     test('converts NumberProperty', () {
-      expect(propValueToString(NumberProperty(value: 42)), '42.0');
+      expect(propValueToString(const NumberProperty(value: 42)), '42.0');
     });
 
     test('converts NumberProperty with null', () {
-      expect(propValueToString(NumberProperty()), '');
+      expect(propValueToString(const NumberProperty()), '');
     });
 
     test('converts DateProperty', () {
-      expect(propValueToString(DateProperty(isoDate: '2024-01-01')), '2024-01-01');
+      expect(propValueToString(const DateProperty(isoDate: '2024-01-01')), '2024-01-01');
     });
 
     test('converts DateProperty with null', () {
-      expect(propValueToString(DateProperty()), '');
+      expect(propValueToString(const DateProperty()), '');
     });
 
     test('converts CheckboxProperty true', () {
       expect(
-        propValueToString(CheckboxProperty(checked: true)),
+        propValueToString(const CheckboxProperty(checked: true)),
         'Yes',
       );
     });
 
     test('converts CheckboxProperty false', () {
       expect(
-        propValueToString(CheckboxProperty(checked: false)),
+        propValueToString(const CheckboxProperty(checked: false)),
         'No',
       );
     });
 
     test('converts CheckboxProperty with custom labels', () {
       expect(
-        propValueToString(CheckboxProperty(checked: true), yesLabel: '是', noLabel: '否'),
+        propValueToString(const CheckboxProperty(checked: true), yesLabel: '是', noLabel: '否'),
         '是',
       );
     });
 
     test('converts SelectProperty', () {
       expect(
-        propValueToString(SelectProperty(options: const [], selectedId: 'opt1')),
+        propValueToString(const SelectProperty(options: [], selectedId: 'opt1')),
         'opt1',
       );
     });
 
     test('converts MultiSelectProperty', () {
       expect(
-        propValueToString(MultiSelectProperty(
-          options: const [],
-          selectedIds: const ['a', 'b'],
+        propValueToString(const MultiSelectProperty(
+          options: [],
+          selectedIds: ['a', 'b'],
         )),
         'a, b',
       );
     });
 
     test('converts RelationProperty', () {
-      expect(propValueToString(RelationProperty(targetObjectId: 'obj1')), 'obj1');
+      expect(propValueToString(const RelationProperty(targetObjectId: 'obj1')), 'obj1');
     });
 
     test('converts UrlProperty', () {
-      expect(propValueToString(UrlProperty(url: 'https://example.com')), 'https://example.com');
+      expect(propValueToString(const UrlProperty(url: 'https://example.com')), 'https://example.com');
     });
   });
 
   group('objectItemDisplayTitle', () {
     test('uses nameExtractor when provided', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Fallback',
         createdAt: 0,
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('falls back to titlePropertyKey', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Fallback',
         createdAt: 0,
@@ -102,7 +102,7 @@ void main() {
     });
 
     test('falls back to item.name when no title', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Fallback',
         createdAt: 0,
@@ -112,7 +112,7 @@ void main() {
     });
 
     test('falls back to legacy Item Name property', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Fallback',
         createdAt: 0,
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('nameExtractor returning Untitled falls back', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Real Name',
         createdAt: 0,

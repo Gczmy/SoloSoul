@@ -438,11 +438,11 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final parent = UnifiedObject(
+      const parent = UnifiedObject(
         id: 'p1', name: 'Parent', typeId: 'page',
         iconName: 'article', createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [parent], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [parent], customTypes: []);
 
       unawaited(notifier.createObject(name: 'Child', parentId: 'p1'));
 
@@ -455,11 +455,11 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: 'o1', name: 'ToDelete', typeId: 'note',
         iconName: 'note', createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [obj], customTypes: []);
 
       unawaited(notifier.deleteObject('o1'));
 
@@ -472,17 +472,17 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final parent = UnifiedObject(
+      const parent = UnifiedObject(
         id: 'p1', name: 'Parent', typeId: 'page',
-        iconName: 'article', childrenIds: const ['c1'],
+        iconName: 'article', childrenIds: ['c1'],
         createdAt: 0, updatedAt: 0,
       );
-      final child = UnifiedObject(
+      const child = UnifiedObject(
         id: 'c1', name: 'Child', typeId: 'note',
         iconName: 'note', parentId: 'p1',
         createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [parent, child], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [parent, child], customTypes: []);
 
       unawaited(notifier.deleteObject('c1'));
 
@@ -512,20 +512,20 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final p1 = UnifiedObject(
+      const p1 = UnifiedObject(
         id: 'p1', name: 'P1', typeId: 'page',
         iconName: 'article', createdAt: 0, updatedAt: 0,
       );
-      final p2 = UnifiedObject(
+      const p2 = UnifiedObject(
         id: 'p2', name: 'P2', typeId: 'page',
         iconName: 'article', createdAt: 0, updatedAt: 0,
       );
-      final child = UnifiedObject(
+      const child = UnifiedObject(
         id: 'c1', name: 'Child', typeId: 'note',
         iconName: 'note', parentId: 'p1',
         createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [p1, p2, child], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [p1, p2, child], customTypes: []);
 
       unawaited(notifier.moveObject('c1', 'p2'));
 
@@ -541,24 +541,24 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final parent = UnifiedObject(
+      const parent = UnifiedObject(
         id: 'p1', name: 'Parent', typeId: 'page',
-        iconName: 'article', childrenIds: const ['a', 'b', 'c'],
+        iconName: 'article', childrenIds: ['a', 'b', 'c'],
         createdAt: 0, updatedAt: 0,
       );
-      final a = UnifiedObject(
+      const a = UnifiedObject(
         id: 'a', name: 'A', typeId: 'note', parentId: 'p1',
         iconName: 'note', createdAt: 0, updatedAt: 0,
       );
-      final b = UnifiedObject(
+      const b = UnifiedObject(
         id: 'b', name: 'B', typeId: 'note', parentId: 'p1',
         iconName: 'note', createdAt: 0, updatedAt: 0,
       );
-      final c = UnifiedObject(
+      const c = UnifiedObject(
         id: 'c', name: 'C', typeId: 'note', parentId: 'p1',
         iconName: 'note', createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [parent, a, b, c], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [parent, a, b, c], customTypes: []);
 
       unawaited(notifier.reorderChildren('p1', 0, 2));
 
@@ -570,11 +570,11 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: 'o1', name: 'Old', typeId: 'note',
         iconName: 'note', createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [obj], customTypes: []);
 
       unawaited(notifier.updateObject('o1', name: 'New'));
 
@@ -609,7 +609,7 @@ void main() {
         iconName: 'star',
         defaultLayout: ObjectLayout.document,
       );
-      notifier.state = UnifiedObjectData(objects: [], customTypes: [typeDef]);
+      notifier.state = const UnifiedObjectData(objects: [], customTypes: [typeDef]);
 
       unawaited(notifier.deleteCustomType('custom1'));
 
@@ -620,11 +620,11 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final notifier = container.read(unifiedObjectProvider.notifier);
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: 'o1', name: 'A', typeId: 'note',
         iconName: 'note', createdAt: 0, updatedAt: 0,
       );
-      notifier.state = UnifiedObjectData(objects: [obj], customTypes: const []);
+      notifier.state = const UnifiedObjectData(objects: [obj], customTypes: []);
 
       expect(notifier.currentObjects, hasLength(1));
       expect(notifier.currentObjects.first.id, 'o1');

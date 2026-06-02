@@ -9,11 +9,11 @@ void main() {
   group('HeaderActionButtons', () {
     testWidgets('renders nothing when sensitive access not granted', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
+        const ProviderScope(
           child: MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(body: HeaderActionButtons()),
+            home: Scaffold(body: HeaderActionButtons()),
           ),
         ),
       );
@@ -28,10 +28,10 @@ void main() {
           overrides: [
             sensitivePageAccessProvider.overrideWith(() => _MockSensitiveAccessNotifier(true)),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(body: HeaderActionButtons()),
+            home: Scaffold(body: HeaderActionButtons()),
           ),
         ),
       );
@@ -46,10 +46,10 @@ void main() {
           overrides: [
             sensitivePageAccessProvider.overrideWith(() => _MockSensitiveAccessNotifier(true)),
           ],
-          child: MaterialApp(
+          child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const Scaffold(body: HeaderActionButtons()),
+            home: Scaffold(body: HeaderActionButtons()),
           ),
         ),
       );

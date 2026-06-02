@@ -112,7 +112,7 @@ void main() {
 
       test('updates attachments', () {
         final obj = _makeObject(id: '1', name: 'A');
-        final att = Attachment(
+        const att = Attachment(
           id: 'att1',
           fileId: 'f1',
           fileName: 'doc.pdf',

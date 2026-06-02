@@ -16,7 +16,7 @@ void main() {
   group('RestoreSection', () {
     testWidgets('renders create special backup button', (tester) async {
       await tester.pumpWidget(wrap(RestoreSection(
-        specialBackups: [],
+        specialBackups: const [],
         isCreatingSpecial: false,
         specialBackupProgress: 0,
         isRestoring: false,
@@ -32,7 +32,7 @@ void main() {
 
     testWidgets('shows empty state when no special backups', (tester) async {
       await tester.pumpWidget(wrap(RestoreSection(
-        specialBackups: [],
+        specialBackups: const [],
         isCreatingSpecial: false,
         specialBackupProgress: 0,
         isRestoring: false,
@@ -47,7 +47,7 @@ void main() {
 
     testWidgets('shows progress indicator when creating', (tester) async {
       await tester.pumpWidget(wrap(RestoreSection(
-        specialBackups: [],
+        specialBackups: const [],
         isCreatingSpecial: true,
         specialBackupProgress: 0.5,
         isRestoring: false,
@@ -85,7 +85,7 @@ void main() {
 
     testWidgets('create button is disabled when creating', (tester) async {
       await tester.pumpWidget(wrap(RestoreSection(
-        specialBackups: [],
+        specialBackups: const [],
         isCreatingSpecial: true,
         specialBackupProgress: 0,
         isRestoring: false,

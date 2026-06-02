@@ -3,17 +3,17 @@ import 'package:solosoul_flutter/core/utils/mrz_parser.dart';
 
 void main() {
   // Valid TD3 MRZ (2 lines × 44 chars)
-  final td3Line1 = 'P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
-  final td3Line2 = 'AB1234567<CHN900101<M250101<9<<<<<<<<<<<<<<0';
+  const td3Line1 = 'P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+  const td3Line2 = 'AB1234567<CHN900101<M250101<9<<<<<<<<<<<<<<0';
 
   // Valid TD1 MRZ (3 lines × 30 chars)
-  final td1Line1 = 'I<CHNLI<<WEI<<<<<<<<<<<<<<<<<<';
-  final td1Line2 = 'AB123456<39001013M2501019<<<<<';
-  final td1Line3 = '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+  const td1Line1 = 'I<CHNLI<<WEI<<<<<<<<<<<<<<<<<<';
+  const td1Line2 = 'AB123456<39001013M2501019<<<<<';
+  const td1Line3 = '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
 
   // Valid TD2 MRZ (2 lines × 36 chars)
-  final td2Line1 = 'P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<';
-  final td2Line2 = 'AB1234567<CHN900101<M250101<<<<<<<<<';
+  const td2Line1 = 'P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<';
+  const td2Line2 = 'AB1234567<CHN900101<M250101<<<<<<<<<';
 
   group('MrzParser.parse', () {
     test('parses valid TD3 passport MRZ', () {
@@ -82,12 +82,12 @@ void main() {
 
     test('returns null for wrong line lengths', () {
       expect(MrzParser.parse(['SHORT', 'SHORT']), isNull);
-      expect(MrzParser.parse([td3Line1 + 'X', td3Line2 + 'X']), isNull);
+      expect(MrzParser.parse(['${td3Line1}X', '${td3Line2}X']), isNull);
     });
 
     test('handles single-word names', () {
-      final line1 = 'P<CHNLI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
-      final line2 = 'AB1234567<CHN900101<M250101<9<<<<<<<<<<<<<<0';
+      const line1 = 'P<CHNLI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<';
+      const line2 = 'AB1234567<CHN900101<M250101<9<<<<<<<<<<<<<<0';
       final result = MrzParser.parse([line1, line2]);
       expect(result, isNotNull);
       expect(result!.surname, 'LI');
@@ -95,8 +95,8 @@ void main() {
     });
 
     test('handles multi-part given names', () {
-      final line1 = 'P<CHNLI<<WEI<<MING<<<<<<<<<<<<<<<<<<<<<<<<<<';
-      final line2 = 'AB1234567<CHN900101<M250101<9<<<<<<<<<<<<<<0';
+      const line1 = 'P<CHNLI<<WEI<<MING<<<<<<<<<<<<<<<<<<<<<<<<<<';
+      const line2 = 'AB1234567<CHN900101<M250101<9<<<<<<<<<<<<<<0';
       final result = MrzParser.parse([line1, line2]);
       expect(result, isNotNull);
       expect(result!.surname, 'LI');
@@ -104,7 +104,7 @@ void main() {
     });
 
     test('reduces confidence on invalid check digit', () {
-      final line2Bad = 'AB1234567XCHN900101XM250101X9<<<<<<<<<<<<<<0';
+      const line2Bad = 'AB1234567XCHN900101XM250101X9<<<<<<<<<<<<<<0';
       final result = MrzParser.parse([td3Line1, line2Bad]);
       expect(result, isNotNull);
       expect(result!.confidence, lessThan(1.0));

@@ -15,7 +15,7 @@ void main() {
     });
 
     test('getType prefers custom types over built-ins', () {
-      final customType = ObjectTypeDefinition(
+      const customType = ObjectTypeDefinition(
         id: 'note',
         name: 'Custom Note',
         properties: [],
@@ -31,7 +31,7 @@ void main() {
     });
 
     test('getAllTypes includes custom types', () {
-      final customType = ObjectTypeDefinition(
+      const customType = ObjectTypeDefinition(
         id: 'custom',
         name: 'Custom',
         properties: [],
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('buildPropertyLabelsFromType returns labels for custom type', () {
-      final customType = ObjectTypeDefinition(
+      const customType = ObjectTypeDefinition(
         id: 'custom',
         name: 'Custom',
         properties: [

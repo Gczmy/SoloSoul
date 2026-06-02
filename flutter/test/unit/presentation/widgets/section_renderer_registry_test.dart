@@ -7,10 +7,10 @@ import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.
 void main() {
   group('itemToMap', () {
     test('converts properties to string map', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Test',
-        properties: const {
+        properties: {
           'name': TextProperty(text: 'Alice'),
           'age': NumberProperty(value: 30),
         },
@@ -22,7 +22,7 @@ void main() {
     });
 
     test('returns empty map for no properties', () {
-      final item = UnifiedObject(
+      const item = UnifiedObject(
         id: '1',
         name: 'Test',
         createdAt: 0,
@@ -90,7 +90,7 @@ void main() {
 
   group('getLocalizedObjectName', () {
     test('returns object name when l10n is null', () {
-      final object = UnifiedObject(
+      const object = UnifiedObject(
         id: 'custom',
         name: 'Custom Page',
         typeId: 'page',
@@ -102,7 +102,7 @@ void main() {
 
     test('returns localized name for profile page', () {
       final l10n = AppLocalizationsEn();
-      final object = UnifiedObject(
+      const object = UnifiedObject(
         id: DefaultPageIds.profile,
         name: 'Profile',
         typeId: 'page',
@@ -114,7 +114,7 @@ void main() {
 
     test('returns localized name for travel page', () {
       final l10n = AppLocalizationsEn();
-      final object = UnifiedObject(
+      const object = UnifiedObject(
         id: DefaultPageIds.travel,
         name: 'Travel',
         typeId: 'page',
@@ -126,7 +126,7 @@ void main() {
 
     test('returns object name for custom page', () {
       final l10n = AppLocalizationsEn();
-      final object = UnifiedObject(
+      const object = UnifiedObject(
         id: 'custom_page',
         name: 'My Page',
         typeId: 'page',
@@ -138,7 +138,7 @@ void main() {
 
     test('returns localized name for preset section', () {
       final l10n = AppLocalizationsEn();
-      final object = UnifiedObject(
+      const object = UnifiedObject(
         id: DefaultSectionIds.passport,
         name: 'Passport',
         typeId: 'collection',
@@ -152,7 +152,7 @@ void main() {
 
     test('returns object name for custom section', () {
       final l10n = AppLocalizationsEn();
-      final object = UnifiedObject(
+      const object = UnifiedObject(
         id: 'custom_section',
         name: 'Custom Section',
         typeId: 'collection',

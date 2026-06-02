@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/field_history_models.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
@@ -54,9 +53,9 @@ void main() {
       await tester.pumpWidget(wrap(FieldHistoryDialog(
         title: 'Test History',
         icon: Icons.history,
-        fieldDefs: [
-          const FormFieldDef(fieldId: 'name', label: 'Name'),
-          const FormFieldDef(fieldId: 'email', label: 'Email'),
+        fieldDefs: const [
+          FormFieldDef(fieldId: 'name', label: 'Name'),
+          FormFieldDef(fieldId: 'email', label: 'Email'),
         ],
         history: history,
         fieldPrefix: 'test',
@@ -82,7 +81,7 @@ void main() {
       await tester.pumpWidget(wrap(FieldHistoryDialog(
         title: 'Test History',
         icon: Icons.history,
-        fieldDefs: [const FormFieldDef(fieldId: 'name', label: 'Name')],
+        fieldDefs: const [FormFieldDef(fieldId: 'name', label: 'Name')],
         history: history,
       )));
 

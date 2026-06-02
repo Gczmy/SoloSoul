@@ -6,7 +6,7 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations_en.dart';
 void main() {
   group('UnifiedObject.toMap', () {
     test('includes basic fields', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
         typeId: 'note',
@@ -21,10 +21,10 @@ void main() {
     });
 
     test('includes propertyLabels when present', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        propertyLabels: const {'name': 'Full Name'},
+        propertyLabels: {'name': 'Full Name'},
         createdAt: 0,
         updatedAt: 0,
       );
@@ -33,10 +33,10 @@ void main() {
     });
 
     test('excludes propertyLabels when empty', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        propertyLabels: const {},
+        propertyLabels: {},
         createdAt: 0,
         updatedAt: 0,
       );
@@ -45,10 +45,10 @@ void main() {
     });
 
     test('includes semanticTypes when present', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        semanticTypes: const {'name': 'personName'},
+        semanticTypes: {'name': 'personName'},
         createdAt: 0,
         updatedAt: 0,
       );
@@ -57,10 +57,10 @@ void main() {
     });
 
     test('includes propertyOrder when non-empty', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        propertyOrder: const ['a', 'b'],
+        propertyOrder: ['a', 'b'],
         createdAt: 0,
         updatedAt: 0,
       );
@@ -69,10 +69,10 @@ void main() {
     });
 
     test('converts properties to display strings', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        properties: const {
+        properties: {
           'text': TextProperty(text: 'hello'),
           'num': NumberProperty(value: 42.5),
           'date': DateProperty(isoDate: '2024-01-01'),
@@ -97,10 +97,10 @@ void main() {
     });
 
     test('uses l10n for checkbox display', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        properties: const {
+        properties: {
           'checked': CheckboxProperty(checked: false),
         },
         createdAt: 0,
@@ -113,10 +113,10 @@ void main() {
 
   group('UnifiedObject.getDisplayLabelFor', () {
     test('returns propertyLabels override when present', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
-        propertyLabels: const {'fullName': 'Legal Name'},
+        propertyLabels: {'fullName': 'Legal Name'},
         createdAt: 0,
         updatedAt: 0,
       );
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('falls back to translateFieldLabel when no propertyLabels', () {
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'Test',
         createdAt: 0,
@@ -138,7 +138,7 @@ void main() {
 
   group('Attachment', () {
     test('copyWith changes fields', () {
-      final att = Attachment(
+      const att = Attachment(
         id: '1',
         fileId: 'f1',
         fileName: 'doc.pdf',
@@ -153,7 +153,7 @@ void main() {
     });
 
     test('default isDeleted is false', () {
-      final att = Attachment(
+      const att = Attachment(
         id: '1',
         fileId: 'f1',
         fileName: 'doc.pdf',
@@ -178,7 +178,7 @@ void main() {
 
     test('copyWith updates fields', () {
       const data = UnifiedObjectData(objects: [], customTypes: []);
-      final obj = UnifiedObject(
+      const obj = UnifiedObject(
         id: '1',
         name: 'A',
         createdAt: 0,

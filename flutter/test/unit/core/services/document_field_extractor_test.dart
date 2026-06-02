@@ -5,12 +5,12 @@ import 'package:solosoul_flutter/core/services/document_field_extractor.dart';
 void main() {
   group('ExtractionResult', () {
     test('hasFields returns true when fields not empty', () {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'test',
         fields: {
           'name': ExtractedField(
             value: 'Test',
-            bbox: const BoundingBox(x: 0, y: 0, width: 1, height: 1),
+            bbox: BoundingBox(x: 0, y: 0, width: 1, height: 1),
           ),
         },
         rawText: 'test',
@@ -19,9 +19,9 @@ void main() {
     });
 
     test('hasFields returns false when fields empty', () {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'generic',
-        fields: const {},
+        fields: {},
         rawText: 'test',
       );
       expect(result.hasFields, isFalse);
@@ -39,7 +39,7 @@ void main() {
         _block('Company', 0, 0.3),
         _block('Address', 0, 0.4),
       ];
-      final text = 'John Doe john@example.com +1 234 567 8900 Company Address';
+      const text = 'John Doe john@example.com +1 234 567 8900 Company Address';
       expect(extractor.canHandle(text, blocks), isTrue);
     });
 
@@ -63,7 +63,7 @@ void main() {
 
     test('canHandle returns false for too many blocks', () {
       final blocks = List.generate(30, (i) => _block('text', 0, i * 0.01));
-      final text = 'john@example.com +1234567890 ' + 'word ' * 30;
+      final text = 'john@example.com +1234567890 ${'word ' * 30}';
       expect(extractor.canHandle(text, blocks), isFalse);
     });
 
@@ -97,7 +97,7 @@ void main() {
         _block('+86 138 0013 8000', 0.1, 0.2, height: 0.02),
         _block('Engineer', 0.1, 0.08, height: 0.03),
       ];
-      final text = 'Alice Smith Engineer alice@test.com +86 138 0013 8000';
+      const text = 'Alice Smith Engineer alice@test.com +86 138 0013 8000';
       final result = FieldExtractorPipeline.extract(text, blocks);
       expect(result.documentType, 'business_card');
       expect(result.hasFields, isTrue);

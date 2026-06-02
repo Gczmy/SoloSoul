@@ -101,7 +101,7 @@ void main() {
     });
 
     test('generateTitle truncates at word boundary for Latin text', () {
-      final text = 'Hello world this is a very long message that exceeds forty chars';
+      const text = 'Hello world this is a very long message that exceeds forty chars';
       final result = service.generateTitle(text);
       expect(result.length, lessThanOrEqualTo(43)); // 40 + '...'
       // Should truncate at a space, not mid-word

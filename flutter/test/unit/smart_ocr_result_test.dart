@@ -22,7 +22,7 @@ void main() {
   group('SmartOcrMrzResult', () {
     test('constructs with mrz data and raw ocr', () {
       const ocr = OcrResult(rawText: 'P<CHN...', blocks: [], confidence: 0.95);
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'P',
         country: 'CHN',
         surname: 'Li',
@@ -33,9 +33,9 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 1.0,
-        rawLines: const ['line1', 'line2'],
+        rawLines: ['line1', 'line2'],
       );
-      final result = SmartOcrMrzResult(mrzData: mrz, rawOcrResult: ocr);
+      const result = SmartOcrMrzResult(mrzData: mrz, rawOcrResult: ocr);
 
       expect(result.mrzData, mrz);
       expect(result.rawOcrResult, ocr);

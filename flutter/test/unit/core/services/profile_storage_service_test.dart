@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:solosoul_flutter/core/models/profile_data.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 
@@ -185,7 +184,7 @@ void main() {
       });
 
       test('handles null unifiedObjects gracefully', () {
-        final profile = ProfileData(schemaVersion: 6);
+        const profile = ProfileData(schemaVersion: 6);
 
         final (repaired, wasRepaired) = ProfileStorageService.validateAndRepairProfile(profile);
 
@@ -194,9 +193,9 @@ void main() {
       });
 
       test('handles empty objects list gracefully', () {
-        final profile = ProfileData(
+        const profile = ProfileData(
           schemaVersion: 6,
-          unifiedObjects: const UnifiedObjectData(objects: []),
+          unifiedObjects: UnifiedObjectData(objects: []),
         );
 
         final (repaired, wasRepaired) = ProfileStorageService.validateAndRepairProfile(profile);

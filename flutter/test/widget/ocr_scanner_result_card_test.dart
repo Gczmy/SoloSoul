@@ -25,7 +25,7 @@ void main() {
 
   group('ocrScannerDetectedSectionId', () {
     test('detects passport from P type', () {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'P',
         documentNumber: 'AB123456',
         country: 'CHN',
@@ -36,13 +36,13 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<AB1234567CHN9001013M2501019<<<<<<06'],
+        rawLines: ['P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<AB1234567CHN9001013M2501019<<<<<<06'],
       );
       expect(ocrScannerDetectedSectionId(mrz), 'passport');
     });
 
     test('detects visa from V type', () {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'V',
         documentNumber: 'V123',
         country: 'USA',
@@ -53,13 +53,13 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['V<USALI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<V123456CHN9001013M2501019<<<<<<06'],
+        rawLines: ['V<USALI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<V123456CHN9001013M2501019<<<<<<06'],
       );
       expect(ocrScannerDetectedSectionId(mrz), 'visa');
     });
 
     test('detects id_card from I type', () {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'I',
         documentNumber: 'ID456',
         country: 'CHN',
@@ -70,13 +70,13 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['I<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<ID45678CHN9001013M2501019<<<<<<06'],
+        rawLines: ['I<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<ID45678CHN9001013M2501019<<<<<<06'],
       );
       expect(ocrScannerDetectedSectionId(mrz), 'id_card');
     });
 
     test('detects id_card from C type', () {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'C',
         documentNumber: 'C789',
         country: 'CHN',
@@ -87,13 +87,13 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['C<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<C789012CHN9001013M2501019<<<<<<06'],
+        rawLines: ['C<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<C789012CHN9001013M2501019<<<<<<06'],
       );
       expect(ocrScannerDetectedSectionId(mrz), 'id_card');
     });
 
     test('detects id_card from A type', () {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'A',
         documentNumber: 'A999',
         country: 'CHN',
@@ -104,7 +104,7 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['A<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<A999999CHN9001013M2501019<<<<<<06'],
+        rawLines: ['A<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<A999999CHN9001013M2501019<<<<<<06'],
       );
       expect(ocrScannerDetectedSectionId(mrz), 'id_card');
     });
@@ -112,7 +112,7 @@ void main() {
 
   group('showOcrScannerSectionPicker', () {
     testWidgets('shows dialog with section options', (tester) async {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'P',
         documentNumber: 'AB123456',
         country: 'CHN',
@@ -123,7 +123,7 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<AB1234567CHN9001013M2501019<<<<<<06'],
+        rawLines: ['P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<AB1234567CHN9001013M2501019<<<<<<06'],
       );
 
       String? selected;
@@ -163,7 +163,7 @@ void main() {
     });
 
     testWidgets('pre-selects current target section', (tester) async {
-      final mrz = MrzData(
+      const mrz = MrzData(
         documentType: 'P',
         documentNumber: 'AB123456',
         country: 'CHN',
@@ -174,7 +174,7 @@ void main() {
         sex: 'M',
         expiryDate: '250101',
         confidence: 0.95,
-        rawLines: const ['P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<AB1234567CHN9001013M2501019<<<<<<06'],
+        rawLines: ['P<CHNLI<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<AB1234567CHN9001013M2501019<<<<<<06'],
       );
 
       String? selected;

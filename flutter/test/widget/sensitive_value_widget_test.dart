@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/account_style_provider.dart';
-import 'package:solosoul_flutter/presentation/providers/auth/auth_state.dart';
 import 'package:solosoul_flutter/presentation/providers/sensitivity_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/sensitive_value_widget.dart';
 
@@ -68,11 +66,11 @@ void main() {
 
     testWidgets('renders custom child when provided', (tester) async {
       await tester.pumpWidget(wrapWithProviders(
-        SensitiveValueWidget(
+        const SensitiveValueWidget(
           fieldId: 'name',
           value: 'Alice',
           sensitivityLevel: SensitivityLevel.public,
-          child: const Chip(label: Text('Custom')),
+          child: Chip(label: Text('Custom')),
         ),
       ));
 

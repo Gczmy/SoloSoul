@@ -48,7 +48,7 @@ void main() {
     });
 
     test('copyWith preserves fields when null', () {
-      final history = FieldHistory(
+      const history = FieldHistory(
         fieldId: 'email',
         itemId: 'item1',
         entries: [],
@@ -64,7 +64,7 @@ void main() {
     test('getHistory returns existing history', () {
       final histories = FormHistories(histories: {
         'item1': {
-          'email': FieldHistory(
+          'email': const FieldHistory(
             fieldId: 'email',
             itemId: 'item1',
             entries: [],
@@ -91,8 +91,8 @@ void main() {
     test('getItemHistories returns all field histories', () {
       final histories = FormHistories(histories: {
         'item1': {
-          'email': FieldHistory(fieldId: 'email', itemId: 'item1', entries: []),
-          'phone': FieldHistory(fieldId: 'phone', itemId: 'item1', entries: []),
+          'email': const FieldHistory(fieldId: 'email', itemId: 'item1', entries: []),
+          'phone': const FieldHistory(fieldId: 'phone', itemId: 'item1', entries: []),
         },
       });
       final items = histories.getItemHistories('item1');

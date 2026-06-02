@@ -18,7 +18,7 @@ void main() {
     });
 
     test('getLabel formats id segment as fallback', () {
-      final type = const SemanticFieldType(
+      const type = SemanticFieldType(
         id: 'test.unknownField',
         labels: {},
         descriptions: {},
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('getDescription returns empty when no match', () {
-      final type = const SemanticFieldType(
+      const type = SemanticFieldType(
         id: 'test.empty',
         labels: {'en': 'Test'},
         descriptions: {},

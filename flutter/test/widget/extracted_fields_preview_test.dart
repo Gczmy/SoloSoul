@@ -16,16 +16,16 @@ Widget wrap(Widget child) {
 void main() {
   group('ExtractedFieldsPreview', () {
     testWidgets('renders document type badge and fields', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'business_card',
         fields: {
           'name': ExtractedField(
             value: 'Alice',
-            bbox: const BoundingBox(x: 0, y: 0, width: 1, height: 1),
+            bbox: BoundingBox(x: 0, y: 0, width: 1, height: 1),
           ),
           'phone': ExtractedField(
             value: '123-456',
-            bbox: const BoundingBox(x: 0, y: 0, width: 1, height: 1),
+            bbox: BoundingBox(x: 0, y: 0, width: 1, height: 1),
           ),
         },
         rawText: 'Alice 123-456',
@@ -43,9 +43,9 @@ void main() {
     });
 
     testWidgets('shows empty state when no fields', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'generic',
-        fields: const {},
+        fields: {},
         rawText: 'raw',
       );
 
@@ -59,12 +59,12 @@ void main() {
     });
 
     testWidgets('toggles field selection on tap', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'invoice',
         fields: {
           'total': ExtractedField(
             value: '100.00',
-            bbox: const BoundingBox(x: 0, y: 0, width: 1, height: 1),
+            bbox: BoundingBox(x: 0, y: 0, width: 1, height: 1),
           ),
         },
         rawText: 'Total: 100.00',
@@ -83,9 +83,9 @@ void main() {
     });
 
     testWidgets('renders invoice type badge', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'invoice',
-        fields: const {},
+        fields: {},
         rawText: '',
       );
 
@@ -99,9 +99,9 @@ void main() {
     });
 
     testWidgets('renders resume type badge', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'resume',
-        fields: const {},
+        fields: {},
         rawText: '',
       );
 
@@ -115,9 +115,9 @@ void main() {
     });
 
     testWidgets('renders generic type badge fallback', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'unknown',
-        fields: const {},
+        fields: {},
         rawText: '',
       );
 
@@ -131,12 +131,12 @@ void main() {
     });
 
     testWidgets('checkbox reflects selected state', (tester) async {
-      final result = ExtractionResult(
+      const result = ExtractionResult(
         documentType: 'business_card',
         fields: {
           'email': ExtractedField(
             value: 'a@b.com',
-            bbox: const BoundingBox(x: 0, y: 0, width: 1, height: 1),
+            bbox: BoundingBox(x: 0, y: 0, width: 1, height: 1),
           ),
         },
         rawText: '',
