@@ -1,6 +1,11 @@
 package api
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/solosoul/solosoul/core/ocr"
+)
 
 // API Types for gRPC services
 
@@ -334,4 +339,137 @@ type SetDefaultAccountRequest struct {
 type SetDefaultAccountResponse struct {
 	Success bool
 	Error   string
+}
+
+// ============================================================================
+// HTTP API Response Types (replaces map[string]interface{} in server.go)
+// ============================================================================
+
+// GenericSuccessResponse is a simple success/error response.
+type GenericSuccessResponse struct {
+	Success bool   `json:"success"`
+	Error   string `json:"error,omitempty"`
+}
+
+// AuthStatusResponse is the response for GET /api/auth/status.
+type AuthStatusResponse struct {
+	Initialized    bool      `json:"initialized"`
+	Locked         bool      `json:"locked"`
+	Profiles       []string  `json:"profiles"`
+	Accounts       []Account `json:"accounts"`
+	CurrentAccount *Account  `json:"current_account,omitempty"`
+}
+
+// AuthUnlockResponse is the response for POST /api/auth/unlock.
+type AuthUnlockResponse struct {
+	Success      bool   `json:"success"`
+	SessionToken string `json:"session_token,omitempty"`
+	AccountID    string `json:"account_id,omitempty"`
+	ProfileID    string `json:"profile_id,omitempty"`
+	Error        string `json:"error,omitempty"`
+}
+
+// AccountCheckResponse is the response for GET /api/accounts/check.
+type AccountCheckResponse struct {
+	Available bool `json:"available"`
+}
+
+// ProfileIDsResponse is the response for GET /api/profile.
+type ProfileIDsResponse struct {
+	ProfileIDs []string `json:"profile_ids"`
+}
+
+// ProfileGetResponse is the response for GET /api/profile/{id}.
+type ProfileGetResponse struct {
+	Success bool            `json:"success"`
+	Profile json.RawMessage `json:"profile,omitempty"`
+	Error   string          `json:"error,omitempty"`
+}
+
+// ProfileValidateResponse is the response for POST /api/profile/validate.
+type ProfileValidateResponse struct {
+	Valid  bool              `json:"valid"`
+	Errors []FieldErrorEntry `json:"errors"`
+}
+
+// FieldErrorEntry represents a single field validation error.
+type FieldErrorEntry struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+// PluginListItem represents a plugin in the list response.
+type PluginListItem struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Version    string `json:"version"`
+	IsApproved bool   `json:"is_approved"`
+}
+
+// PluginListResponse is the response for GET /api/plugins.
+type PluginListResponse struct {
+	Plugins []PluginListItem `json:"plugins"`
+}
+
+// PluginManifestResponse is the response for GET /api/plugins/{id}/manifest.
+type PluginManifestResponse struct {
+	Manifest *PluginManifest `json:"manifest"`
+}
+
+// PluginConsentRequestResponse is the response for POST /api/plugins/{id}/consent/request.
+type PluginConsentRequestResponse struct {
+	RequestID      string   `json:"request_id"`
+	Status         string   `json:"status"`
+	RequiredFields []string `json:"required_fields"`
+	Error          string   `json:"error,omitempty"`
+}
+
+// PluginConsentGrantResponse is the response for POST /api/plugins/consent/grant.
+type PluginConsentGrantResponse struct {
+	Success   bool   `json:"success"`
+	SessionID string `json:"session_id,omitempty"`
+	ExpiresAt int64  `json:"expires_at,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
+// PluginSessionItem represents a consent session in the list response.
+type PluginSessionItem struct {
+	SessionID string   `json:"session_id"`
+	PluginID  string   `json:"plugin_id"`
+	Fields    []string `json:"fields"`
+	CreatedAt int64    `json:"created_at"`
+	ExpiresAt int64    `json:"expires_at"`
+	Revoked   bool     `json:"revoked"`
+}
+
+// PluginSessionListResponse is the response for GET /api/plugins/{id}/sessions.
+type PluginSessionListResponse struct {
+	Sessions []PluginSessionItem `json:"sessions"`
+}
+
+// OCRStatusResponse is the response for GET /api/ocr/status.
+type OCRStatusResponse struct {
+	OCRAvailable bool   `json:"ocr_available"`
+	Engine       string `json:"engine"`
+}
+
+// OCRJobSubmitResponse is the response for POST /api/ocr/jobs.
+type OCRJobSubmitResponse struct {
+	JobID  string        `json:"job_id"`
+	Status ocr.JobStatus `json:"status"`
+}
+
+// OCRJobResultResponse is the response for GET /api/ocr/jobs/{id}.
+type OCRJobResultResponse struct {
+	JobID        string          `json:"job_id"`
+	Status       ocr.JobStatus   `json:"status"`
+	Message      string          `json:"message"`
+	DocumentType ocr.DocumentType `json:"document_type,omitempty"`
+	Fields       []ocr.ExtractedField `json:"fields,omitempty"`
+	RawText      string          `json:"raw_text,omitempty"`
+}
+
+// HealthResponse is the response for GET /health.
+type HealthResponse struct {
+	Status string `json:"status"`
 }

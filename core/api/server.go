@@ -250,12 +250,12 @@ func (s *HTTPServer) handleAuthStatus(w http.ResponseWriter, r *http.Request) {
 
 	profiles, _ := s.vault.ListProfiles()
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"initialized":     s.vault.IsInitialized(),
-		"locked":          s.vault.IsLocked(),
-		"profiles":        profiles,
-		"accounts":        accounts,
-		"current_account":  defaultAccount,
+	writeJSON(w, http.StatusOK, AuthStatusResponse{
+		Initialized:    s.vault.IsInitialized(),
+		Locked:         s.vault.IsLocked(),
+		Profiles:       profiles,
+		Accounts:       accounts,
+		CurrentAccount: defaultAccount,
 	})
 }
 
@@ -280,27 +280,18 @@ func (s *HTTPServer) handleAuthUnlock(w http.ResponseWriter, r *http.Request) {
 	// Get account path and switch vault
 	accountPath, err := s.accountManager.GetAccountPath(req.AccountID)
 	if err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		writeJSON(w, http.StatusOK, AuthUnlockResponse{Success: false, Error: err.Error()})
 		return
 	}
 
 	// Switch to account vault
 	if err := s.vault.SetVaultPath(accountPath); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to switch to account: %v", err),
-		})
+		writeJSON(w, http.StatusOK, AuthUnlockResponse{Success: false, Error: fmt.Sprintf("failed to switch to account: %v", err)})
 		return
 	}
 
 	if err := s.vault.Unlock(req.MasterPassword); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		writeJSON(w, http.StatusOK, AuthUnlockResponse{Success: false, Error: err.Error()})
 		return
 	}
 
@@ -325,11 +316,11 @@ func (s *HTTPServer) handleAuthUnlock(w http.ResponseWriter, r *http.Request) {
 		profileID = profiles[0]
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success":       true,
-		"session_token": token,
-		"account_id":   req.AccountID,
-		"profile_id":    profileID,
+	writeJSON(w, http.StatusOK, AuthUnlockResponse{
+		Success:      true,
+		SessionToken: token,
+		AccountID:    req.AccountID,
+		ProfileID:    profileID,
 	})
 }
 
@@ -350,7 +341,7 @@ func (s *HTTPServer) handleAuthLock(w http.ResponseWriter, r *http.Request) {
 
 	s.vault.Lock()
 
-	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+	writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: true})
 }
 
 func (s *HTTPServer) handleAuthSetup(w http.ResponseWriter, r *http.Request) {
@@ -366,10 +357,7 @@ func (s *HTTPServer) handleAuthSetup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(req.MasterPassword) < 8 {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   "password must be at least 8 characters",
-		})
+		writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: false, Error: "password must be at least 8 characters"})
 		return
 	}
 
@@ -380,45 +368,30 @@ func (s *HTTPServer) handleAuthSetup(w http.ResponseWriter, r *http.Request) {
 
 	// Check for duplicate account name
 	if _, err := s.accountManager.GetAccountByName(req.AccountName); err == nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   "account name already exists",
-		})
+		writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: false, Error: "account name already exists"})
 		return
 	}
 
 	// Create account first
 	account, err := s.accountManager.CreateAccount(req.AccountName, req.MasterPassword)
 	if err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to create account: %v", err),
-		})
+		writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: false, Error: fmt.Sprintf("failed to create account: %v", err)})
 		return
 	}
 
 	// Get account path and initialize vault
 	accountPath, _ := s.accountManager.GetAccountPath(account.ID)
 	if err := s.vault.SetVaultPath(accountPath); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to switch to account: %v", err),
-		})
+		writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: false, Error: fmt.Sprintf("failed to switch to account: %v", err)})
 		return
 	}
 
 	if err := s.vault.Initialize(req.MasterPassword); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to initialize vault: %v", err),
-		})
+		writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: false, Error: fmt.Sprintf("failed to initialize vault: %v", err)})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success":    true,
-		"account_id": account.ID,
-	})
+	writeJSON(w, http.StatusOK, SetupAccountResponse{Success: true, AccountID: account.ID})
 }
 
 func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request) {
@@ -456,7 +429,7 @@ func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request
 	}
 
 	if len(req.NewPassword) < 8 {
-		writeJSON(w, http.StatusOK, map[string]interface{}{"success": false, "error": "password must be at least 8 characters"})
+		writeJSON(w, http.StatusOK, ChangePasswordResponse{Success: false, Error: "password must be at least 8 characters"})
 		return
 	}
 
@@ -473,19 +446,16 @@ func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request
 		}
 	}
 	if !hasUpper || !hasLower || !hasDigit {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   "password must contain at least one uppercase letter, one lowercase letter, and one digit",
-		})
+		writeJSON(w, http.StatusOK, ChangePasswordResponse{Success: false, Error: "password must contain at least one uppercase letter, one lowercase letter, and one digit"})
 		return
 	}
 
 	if err := s.vault.ChangePassword(req.OldPassword, req.NewPassword); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{"success": false, "error": err.Error()})
+		writeJSON(w, http.StatusOK, ChangePasswordResponse{Success: false, Error: err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"success": true})
+	writeJSON(w, http.StatusOK, ChangePasswordResponse{Success: true})
 }
 
 // Account handlers
@@ -535,9 +505,7 @@ func (s *HTTPServer) handleAccountCheck(w http.ResponseWriter, r *http.Request) 
 	_, err := s.accountManager.GetAccountByName(name)
 	available := err != nil // If GetAccountByName returns error, name is available (not found)
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"available": available,
-	})
+	writeJSON(w, http.StatusOK, AccountCheckResponse{Available: available})
 }
 
 func (s *HTTPServer) handleAccountCreate(w http.ResponseWriter, r *http.Request) {
@@ -553,10 +521,7 @@ func (s *HTTPServer) handleAccountCreate(w http.ResponseWriter, r *http.Request)
 	}
 
 	if len(req.MasterPassword) < 8 {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   "password must be at least 8 characters",
-		})
+		writeJSON(w, http.StatusOK, SetupAccountResponse{Success: false, Error: "password must be at least 8 characters"})
 		return
 	}
 
@@ -567,44 +532,29 @@ func (s *HTTPServer) handleAccountCreate(w http.ResponseWriter, r *http.Request)
 
 	// Check for duplicate account name
 	if _, err := s.accountManager.GetAccountByName(req.AccountName); err == nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   "account name already exists",
-		})
+		writeJSON(w, http.StatusOK, SetupAccountResponse{Success: false, Error: "account name already exists"})
 		return
 	}
 
 	account, err := s.accountManager.CreateAccount(req.AccountName, req.MasterPassword)
 	if err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to create account: %v", err),
-		})
+		writeJSON(w, http.StatusOK, SetupAccountResponse{Success: false, Error: fmt.Sprintf("failed to create account: %v", err)})
 		return
 	}
 
 	// Get account path and initialize vault
 	accountPath, _ := s.accountManager.GetAccountPath(account.ID)
 	if err := s.vault.SetVaultPath(accountPath); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to switch to account: %v", err),
-		})
+		writeJSON(w, http.StatusOK, SetupAccountResponse{Success: false, Error: fmt.Sprintf("failed to switch to account: %v", err)})
 		return
 	}
 
 	if err := s.vault.Initialize(req.MasterPassword); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("failed to initialize vault: %v", err),
-		})
+		writeJSON(w, http.StatusOK, SetupAccountResponse{Success: false, Error: fmt.Sprintf("failed to initialize vault: %v", err)})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success":    true,
-		"account_id": account.ID,
-	})
+	writeJSON(w, http.StatusOK, SetupAccountResponse{Success: true, AccountID: account.ID})
 }
 
 func (s *HTTPServer) handleAccountDelete(w http.ResponseWriter, r *http.Request) {
@@ -620,14 +570,11 @@ func (s *HTTPServer) handleAccountDelete(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := s.accountManager.DeleteAccount(accountID); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		writeJSON(w, http.StatusOK, DeleteAccountResponse{Success: false, Error: err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+	writeJSON(w, http.StatusOK, DeleteAccountResponse{Success: true})
 }
 
 func (s *HTTPServer) handleAccountSetDefault(w http.ResponseWriter, r *http.Request) {
@@ -643,21 +590,18 @@ func (s *HTTPServer) handleAccountSetDefault(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := s.accountManager.SetDefault(accountID); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		writeJSON(w, http.StatusOK, SetDefaultAccountResponse{Success: false, Error: err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+	writeJSON(w, http.StatusOK, SetDefaultAccountResponse{Success: true})
 }
 
 // Profile handlers
 
 func (s *HTTPServer) handleProfileList(w http.ResponseWriter, r *http.Request) {
 	if s.vault.IsLocked() {
-		writeJSON(w, http.StatusOK, map[string]interface{}{"profile_ids": []string{}})
+		writeJSON(w, http.StatusOK, ProfileIDsResponse{ProfileIDs: []string{}})
 		return
 	}
 
@@ -667,7 +611,7 @@ func (s *HTTPServer) handleProfileList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"profile_ids": profiles})
+	writeJSON(w, http.StatusOK, ProfileIDsResponse{ProfileIDs: profiles})
 }
 
 func (s *HTTPServer) handleProfileGet(w http.ResponseWriter, r *http.Request) {
@@ -688,10 +632,7 @@ func (s *HTTPServer) handleProfileGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"profile": json.RawMessage(data),
-	})
+	writeJSON(w, http.StatusOK, ProfileGetResponse{Success: true, Profile: json.RawMessage(data)})
 }
 
 func (s *HTTPServer) handleProfileUpdate(w http.ResponseWriter, r *http.Request) {
@@ -722,10 +663,7 @@ func (s *HTTPServer) handleProfileUpdate(w http.ResponseWriter, r *http.Request)
 		for i, e := range errs {
 			errMsgs[i] = e.Error()
 		}
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   fmt.Sprintf("validation failed: %v", errMsgs),
-		})
+		writeJSON(w, http.StatusOK, UpdateProfileResponse{Success: false, Error: fmt.Sprintf("validation failed: %v", errMsgs)})
 		return
 	}
 
@@ -741,7 +679,7 @@ func (s *HTTPServer) handleProfileUpdate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+	writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: true})
 }
 
 func (s *HTTPServer) handleProfileValidate(w http.ResponseWriter, r *http.Request) {
@@ -755,11 +693,11 @@ func (s *HTTPServer) handleProfileValidate(w http.ResponseWriter, r *http.Reques
 
 	var profile schema.SuperProfile
 	if err := json.Unmarshal(req.Profile, &profile); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"valid": false,
-			"errors": []map[string]string{{
-				"field":   "profile",
-				"message": fmt.Sprintf("invalid JSON: %v", err),
+		writeJSON(w, http.StatusOK, ProfileValidateResponse{
+			Valid: false,
+			Errors: []FieldErrorEntry{{
+				Field:   "profile",
+				Message: fmt.Sprintf("invalid JSON: %v", err),
 			}},
 		})
 		return
@@ -768,17 +706,17 @@ func (s *HTTPServer) handleProfileValidate(w http.ResponseWriter, r *http.Reques
 	v := schema.NewValidator()
 	errs := v.Validate(&profile)
 
-	var fieldErrs []map[string]string
+	var fieldErrs []FieldErrorEntry
 	for _, e := range errs {
-		fieldErrs = append(fieldErrs, map[string]string{
-			"field":   e.Field,
-			"message": e.Message,
+		fieldErrs = append(fieldErrs, FieldErrorEntry{
+			Field:   e.Field,
+			Message: e.Message,
 		})
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"valid":  len(errs) == 0,
-		"errors": fieldErrs,
+	writeJSON(w, http.StatusOK, ProfileValidateResponse{
+		Valid:  len(errs) == 0,
+		Errors: fieldErrs,
 	})
 }
 
@@ -794,7 +732,7 @@ func (s *HTTPServer) handleProfileDelete(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+	writeJSON(w, http.StatusOK, GenericSuccessResponse{Success: true})
 }
 
 // Plugin handlers
@@ -806,17 +744,17 @@ func (s *HTTPServer) handlePluginList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var protoPlugins []map[string]interface{}
+	var protoPlugins []PluginListItem
 	for _, p := range plugins {
-		protoPlugins = append(protoPlugins, map[string]interface{}{
-			"id":          p.ID,
-			"name":        p.Name,
-			"version":     p.Version,
-			"is_approved": p.IsApproved,
+		protoPlugins = append(protoPlugins, PluginListItem{
+			ID:         p.ID,
+			Name:       p.Name,
+			Version:    p.Version,
+			IsApproved: p.IsApproved,
 		})
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"plugins": protoPlugins})
+	writeJSON(w, http.StatusOK, PluginListResponse{Plugins: protoPlugins})
 }
 
 func (s *HTTPServer) handlePluginManifest(w http.ResponseWriter, r *http.Request) {
@@ -827,7 +765,7 @@ func (s *HTTPServer) handlePluginManifest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"manifest": manifest})
+	writeJSON(w, http.StatusOK, PluginManifestResponse{Manifest: manifest})
 }
 
 func (s *HTTPServer) handlePluginConsentRequest(w http.ResponseWriter, r *http.Request) {
@@ -843,18 +781,14 @@ func (s *HTTPServer) handlePluginConsentRequest(w http.ResponseWriter, r *http.R
 
 	requestID, err := s.plugin.RequestConsent(pluginID, req.RequestedFields)
 	if err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"request_id": "",
-			"status":     "error",
-			"error":      err.Error(),
-		})
+		writeJSON(w, http.StatusOK, PluginConsentRequestResponse{RequestID: "", Status: "error", Error: err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"request_id":     requestID,
-		"status":         "pending",
-		"required_fields": req.RequestedFields,
+	writeJSON(w, http.StatusOK, PluginConsentRequestResponse{
+		RequestID:      requestID,
+		Status:         "pending",
+		RequiredFields: req.RequestedFields,
 	})
 }
 
@@ -871,31 +805,25 @@ func (s *HTTPServer) handlePluginConsentGrant(w http.ResponseWriter, r *http.Req
 
 	sessionID, expiresAt, err := s.plugin.GrantConsent(req.RequestID, req.AuthorizedFields, req.ValidityHours)
 	if err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		writeJSON(w, http.StatusOK, PluginConsentGrantResponse{Success: false, Error: err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"success":    true,
-		"session_id": sessionID,
-		"expires_at": expiresAt.Unix(),
+	writeJSON(w, http.StatusOK, PluginConsentGrantResponse{
+		Success:   true,
+		SessionID: sessionID,
+		ExpiresAt: expiresAt.Unix(),
 	})
 }
 
 func (s *HTTPServer) handlePluginSessionRevoke(w http.ResponseWriter, r *http.Request) {
 	sessionID := filepath.Base(r.URL.Path)
 	if err := s.plugin.RevokeConsent(sessionID); err != nil {
-		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"success": false,
-			"error":   err.Error(),
-		})
+		writeJSON(w, http.StatusOK, RevokeConsentResponse{Success: false, Error: err.Error()})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]bool{"success": true})
+	writeJSON(w, http.StatusOK, RevokeConsentResponse{Success: true})
 }
 
 func (s *HTTPServer) handlePluginSessionsList(w http.ResponseWriter, r *http.Request) {
@@ -906,19 +834,19 @@ func (s *HTTPServer) handlePluginSessionsList(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var protoSessions []map[string]interface{}
+	var protoSessions []PluginSessionItem
 	for _, sess := range sessions {
-		protoSessions = append(protoSessions, map[string]interface{}{
-			"session_id": sess.ID,
-			"plugin_id":  sess.PluginID,
-			"fields":     sess.Fields,
-			"created_at": sess.CreatedAt.Unix(),
-			"expires_at": sess.ExpiresAt.Unix(),
-			"revoked":    sess.Revoked,
+		protoSessions = append(protoSessions, PluginSessionItem{
+			SessionID: sess.ID,
+			PluginID:  sess.PluginID,
+			Fields:    sess.Fields,
+			CreatedAt: sess.CreatedAt.Unix(),
+			ExpiresAt: sess.ExpiresAt.Unix(),
+			Revoked:   sess.Revoked,
 		})
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{"sessions": protoSessions})
+	writeJSON(w, http.StatusOK, PluginSessionListResponse{Sessions: protoSessions})
 }
 
 // RPC Server (for future use with Unix socket)
@@ -977,10 +905,7 @@ func (s *RPCServer) RegisterRPC() *rpc.Server {
 
 func (s *HTTPServer) handleOCRStatus(w http.ResponseWriter, r *http.Request) {
 	available := s.ocrEngine.IsAvailable()
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"ocr_available": available,
-		"engine":        "paddleocr",
-	})
+	writeJSON(w, http.StatusOK, OCRStatusResponse{OCRAvailable: available, Engine: "paddleocr"})
 }
 
 func (s *HTTPServer) handleOCRJobSubmit(w http.ResponseWriter, r *http.Request) {
@@ -1021,10 +946,7 @@ func (s *HTTPServer) handleOCRJobSubmit(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"job_id": job.ID,
-		"status": job.Status,
-	})
+	writeJSON(w, http.StatusOK, OCRJobSubmitResponse{JobID: job.ID, Status: job.Status})
 }
 
 func (s *HTTPServer) handleOCRJobResult(w http.ResponseWriter, r *http.Request) {
@@ -1036,16 +958,16 @@ func (s *HTTPServer) handleOCRJobResult(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response := map[string]interface{}{
-		"job_id":  job.ID,
-		"status":  job.Status,
-		"message": job.Error,
+	response := OCRJobResultResponse{
+		JobID:   job.ID,
+		Status:  job.Status,
+		Message: job.Error,
 	}
 
 	if job.Status == ocr.JobStatusCompleted && job.Result != nil {
-		response["document_type"] = job.Result.DocumentType
-		response["fields"] = job.Result.Fields
-		response["raw_text"] = job.Result.RawText
+		response.DocumentType = job.Result.DocumentType
+		response.Fields = job.Result.Fields
+		response.RawText = job.Result.RawText
 	}
 
 	writeJSON(w, http.StatusOK, response)
