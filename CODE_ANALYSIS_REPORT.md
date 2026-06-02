@@ -1,24 +1,24 @@
 # 代码分析修复报告
 
-> 最后更新：2026-06-02 18:26:53
-> 当前分支：`master`（6e9979c）
-> 修复轮次：1（初始分析）
+> 最后更新：2026-06-02 19:30:00
+> 当前分支：`master`（eba2fef）
+> 修复轮次：1（进行中）
 
 ## 问题清单（按优先级 P0 > P1 > P2）
 
 | ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
 |------|--------|------------|----------------------------------|------------------------------------------------|-----------|
-| P001 | P0     | 编译错误   | `flutter/native/src/frb_generated.rs` | FRB 生成代码引用 `crate::plugin`，但 `plugin` 模块只在 `sandbox` feature 下启用，默认构建失败 | `[ ]` 待修复 |
-| P002 | P0     | 漏洞       | `core/api/server.go:74-113`      | `authMiddleware` 已定义但**没有任何路由使用**，所有 API 端点公开可访问 | `[ ]` 待修复 |
-| P003 | P0     | 编译错误   | `flutter/test/unit/presentation/utils/property_value_utils_test.dart` 等 | 测试引用已删除的 `wrapEveryNChars` 函数，Dart 测试编译失败 | `[ ]` 待修复 |
-| P004 | P0     | 漏洞       | `core/ocr/paddle.go:138`         | `exec.CommandContext` 传入未经验证的 `pythonPath` 和外部文件路径，存在命令注入风险 | `[ ]` 待修复 |
-| P005 | P1     | 安全       | `core/api/server.go:117`         | CORS 配置 `Access-Control-Allow-Origin: *` 过于宽松 | `[ ]` 待修复 |
-| P006 | P1     | 安全       | `core/api/server.go:127-132`     | HTTP 服务器未设置 `MaxHeaderBytes` 和请求体限制，存在 DoS 风险 | `[ ]` 待修复 |
-| P007 | P1     | 架构       | `lib/core/services/*`            | 多个服务层文件导入 `flutter/material.dart`，违反分层原则 | `[ ]` 待修复 |
-| P008 | P1     | 架构       | `lib/core/services/operation_notification.dart:205` | 服务层中定义了 StatefulWidget `_NotificationWidget`，服务层与 UI 层严重耦合 | `[ ]` 待修复 |
-| P009 | P1     | 功能缺陷   | `core/api/server.go:138-167`     | `StartUnix` 函数是未完成的存根，返回 nil 但未启动服务器 | `[ ]` 待修复 |
-| P010 | P1     | 安全       | `core/ocr/paddle.go:263`         | 临时目录权限 `0755` 过于宽松，敏感图像数据应使用 `0700` | `[ ]` 待修复 |
-| P011 | P1     | 安全       | `core/api/server.go:398-441`     | `handleChangePassword` 端点未进行密码强度验证和请求频率限制 | `[ ]` 待修复 |
+| P001 | P0     | 编译错误   | `flutter/native/src/frb_generated.rs` | FRB 生成代码引用 `crate::plugin`，但 `plugin` 模块只在 `sandbox` feature 下启用，默认构建失败 | `[x]` 已修复 |
+| P002 | P0     | 漏洞       | `core/api/server.go:74-113`      | `authMiddleware` 已定义但**没有任何路由使用**，所有 API 端点公开可访问 | `[x]` 已修复 |
+| P003 | P0     | 编译错误   | `flutter/test/unit/presentation/utils/property_value_utils_test.dart` 等 | 测试引用已删除的 `wrapEveryNChars` 函数，Dart 测试编译失败 | `[x]` 已修复 |
+| P004 | P0     | 漏洞       | `core/ocr/paddle.go:138`         | `exec.CommandContext` 传入未经验证的 `pythonPath` 和外部文件路径，存在命令注入风险 | `[x]` 已修复 |
+| P005 | P1     | 安全       | `core/api/server.go:117`         | CORS 配置 `Access-Control-Allow-Origin: *` 过于宽松 | `[x]` 已修复 |
+| P006 | P1     | 安全       | `core/api/server.go:127-132`     | HTTP 服务器未设置 `MaxHeaderBytes` 和请求体限制，存在 DoS 风险 | `[x]` 已修复 |
+| P007 | P1     | 架构       | `lib/core/services/*`            | 多个服务层文件导入 `flutter/material.dart`，违反分层原则 | `[~]` 部分修复 |
+| P008 | P1     | 架构       | `lib/core/services/operation_notification.dart:205` | 服务层中定义了 StatefulWidget `_NotificationWidget`，服务层与 UI 层严重耦合 | `[x]` 已修复 |
+| P009 | P1     | 功能缺陷   | `core/api/server.go:138-167`     | `StartUnix` 函数是未完成的存根，返回 nil 但未启动服务器 | `[x]` 已修复 |
+| P010 | P1     | 安全       | `core/ocr/paddle.go:263`         | 临时目录权限 `0755` 过于宽松，敏感图像数据应使用 `0700` | `[x]` 已修复 |
+| P011 | P1     | 安全       | `core/api/server.go:398-441`     | `handleChangePassword` 端点未进行密码强度验证和请求频率限制 | `[x]` 已修复 |
 | P012 | P2     | 代码质量   | `flutter/test/*`                 | 大量测试文件存在未使用变量、未使用导入、`const` 优化建议 | `[ ]` 待修复 |
 | P013 | P2     | 代码质量   | `cmd/solosoul/main.go` 等        | 使用 `fmt.Println` 输出，应替换为结构化日志 | `[ ]` 待修复 |
 | P014 | P2     | 代码质量   | `lib/presentation/pages/plugin_dashboard_page.dart` | 2581 行代码，文件过大，需要拆分 | `[ ]` 待修复 |
@@ -26,8 +26,48 @@
 
 ## 修复进度
 
-- 已完成：0 / 15
-- 当前处理：无
+- 已完成：10 / 15
+- 当前处理：P012-P015（P2 代码质量优化）
+
+## 修复说明
+
+### P001 修复说明
+在 `flutter/native/Cargo.toml` 的 `[features]` 中添加 `default = ["sandbox"]`，使 CI 和开发环境默认构建时启用 sandbox feature。iOS/macOS 的 Xcode 构建脚本已显式使用 `--features sandbox`，不受此变更影响。需要禁用 sandbox 的平台可使用 `--no-default-features`。
+
+### P002 修复说明
+- 将 `authMiddleware` 应用到 `Start()` 和 `StartUnix()` 中的所有路由。
+- 修复 `authMiddleware` 中潜在的切片越界 panic：原代码 `token[len("Bearer "):]` 在 Authorization header 长度小于 7 时会 panic。新增前缀长度检查。
+- `handleChangePassword` 内部的 token 解析同样修复了越界问题。
+
+### P003 修复说明
+删除了 `test/unit/presentation/utils/property_value_utils_test.dart` 和 `test/unit/property_value_utils_test.dart` 中对已删除函数 `wrapEveryNChars` 的测试组。
+
+### P004 修复说明
+- `NewPaddleOCR` 中新增 `pythonPath` 验证：拒绝包含 shell 元字符（`;&|<>$`\n\r`）的路径，并使用 `exec.LookPath` 解析为绝对路径。
+- `ProcessWithPython` 中使用 `filepath.Clean` 清理 `imagePath`。
+
+### P005 修复说明
+CORS 的 `Access-Control-Allow-Origin` 从 `*` 改为从环境变量 `SOLOSOUL_ALLOWED_ORIGIN` 读取，默认值为 `http://localhost:3000`（开发环境）。
+
+### P006 修复说明
+- `http.Server` 新增 `MaxHeaderBytes: 1 << 20`（1MB）。
+- `handleChangePassword` 请求体限制为 16KB（`http.MaxBytesReader`）。
+
+### P007/P008 修复说明
+- 删除了 `attachment_download_service.dart` 和 `attachment_storage_service.dart` 中未使用的 `material.dart` 导入。
+- 将 `_NotificationWidget` 从 `operation_notification.dart` 提取到 `lib/presentation/widgets/operation_notification_widget.dart`，解除服务层与 UI widget 的耦合。
+- **暂缓项**：`unified_object_service.dart` 仍返回 `IconData`（涉及 18+ 处调用者，需设计图标名称字符串映射方案）；`attachment_upload_service.dart` 仍依赖 `BuildContext`/`WidgetRef`（需将 UI 交互提升到 Presentation 层）。
+
+### P009 修复说明
+完成 `StartUnix` 实现：创建 Unix socket listener、移除已存在的 socket 文件、设置 socket 权限为 `0700`、启动 `http.Server.Serve()`。
+
+### P010 修复说明
+`SaveImage` 中 `os.MkdirAll(tmpDir, 0755)` 改为 `0700`。
+
+### P011 修复说明
+- 修复 `handleChangePassword` 中 `token[len("Bearer "):]` 的越界问题。
+- 新增密码复杂度验证：要求至少包含 1 个大写字母、1 个小写字母和 1 位数字。
+- 请求体限制为 16KB。
 
 ## 详细问题描述与修复指引
 

@@ -121,7 +121,7 @@ class AttachmentDownloadService {
     required String accountId,
     required Attachment attachment,
     required Directory downloadDir,
-    ValueChanged<double>? onProgress,
+    void Function(double)? onProgress,
     CancelToken? cancelToken,
     String? progressPath,
     String? cancelPath,
@@ -173,7 +173,7 @@ class AttachmentDownloadService {
     required String accountId,
     required Attachment attachment,
     required String targetPath,
-    ValueChanged<double>? onProgress,
+    void Function(double)? onProgress,
     CancelToken? cancelToken,
   }) async {
     try {
@@ -225,7 +225,7 @@ class AttachmentDownloadService {
     required String accountId,
     required Attachment attachment,
     required String targetPath,
-    ValueChanged<double>? onProgress,
+    void Function(double)? onProgress,
     CancelToken? cancelToken,
     String? progressPath,
     String? cancelPath,

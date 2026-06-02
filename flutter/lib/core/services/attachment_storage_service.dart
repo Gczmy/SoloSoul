@@ -72,7 +72,7 @@ class AttachmentStorageService {
     required String accountId,
     required String fileName,
     required Uint8List bytes,
-    ValueChanged<double>? onProgress,
+    void Function(double)? onProgress,
     CancelToken? cancelToken,
   }) async {
     final fileId = const Uuid().v4();
@@ -204,7 +204,7 @@ class AttachmentStorageService {
   Future<Uint8List?> loadAttachment({
     required String accountId,
     required String fileId,
-    ValueChanged<double>? onProgress,
+    void Function(double)? onProgress,
     CancelToken? cancelToken,
   }) async {
     final dir = await _getAttachmentsDir(accountId);
