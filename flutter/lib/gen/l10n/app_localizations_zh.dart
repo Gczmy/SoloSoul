@@ -924,6 +924,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get llmChatGoToConfig => '前往 LLM 配置';
 
   @override
+  String get llmChatTryExamples => '你可以问：';
+
+  @override
+  String get llmChatExampleQuestion1 => 'SoloSoul 是什么软件？';
+
+  @override
+  String get llmChatExampleQuestion2 => '如何新建档案？';
+
+  @override
+  String get llmChatExampleQuestion3 => '什么是插件功能？';
+
+  @override
+  String get llmChatExampleQuestion4 => '如何保护我的数据安全？';
+
+  @override
   String get llmChatNewSession => '新对话';
 
   @override

@@ -1820,6 +1820,36 @@ abstract class AppLocalizations {
   /// **'Go to LLM Config'**
   String get llmChatGoToConfig;
 
+  /// No description provided for @llmChatTryExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Try asking:'**
+  String get llmChatTryExamples;
+
+  /// No description provided for @llmChatExampleQuestion1.
+  ///
+  /// In en, this message translates to:
+  /// **'What is SoloSoul?'**
+  String get llmChatExampleQuestion1;
+
+  /// No description provided for @llmChatExampleQuestion2.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I create a new profile?'**
+  String get llmChatExampleQuestion2;
+
+  /// No description provided for @llmChatExampleQuestion3.
+  ///
+  /// In en, this message translates to:
+  /// **'What are plugins?'**
+  String get llmChatExampleQuestion3;
+
+  /// No description provided for @llmChatExampleQuestion4.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I keep my data secure?'**
+  String get llmChatExampleQuestion4;
+
   /// No description provided for @llmChatNewSession.
   ///
   /// In en, this message translates to:

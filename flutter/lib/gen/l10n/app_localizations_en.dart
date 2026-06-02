@@ -946,6 +946,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get llmChatGoToConfig => 'Go to LLM Config';
 
   @override
+  String get llmChatTryExamples => 'Try asking:';
+
+  @override
+  String get llmChatExampleQuestion1 => 'What is SoloSoul?';
+
+  @override
+  String get llmChatExampleQuestion2 => 'How do I create a new profile?';
+
+  @override
+  String get llmChatExampleQuestion3 => 'What are plugins?';
+
+  @override
+  String get llmChatExampleQuestion4 => 'How do I keep my data secure?';
+
+  @override
   String get llmChatNewSession => 'New Chat';
 
   @override

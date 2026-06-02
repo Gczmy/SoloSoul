@@ -179,6 +179,16 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     ref.read(llmChatSessionProvider.notifier).clear();
   }
 
+  void _appendToInput(String text) {
+    final current = _inputController.text;
+    if (current.isEmpty) {
+      _inputController.text = text;
+    } else {
+      final separator = current.endsWith(' ') ? '' : ' ';
+      _inputController.text = '$current$separator$text';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -237,6 +247,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
                   configAsync: configAsync,
                   loadError: _loadError,
                   isLoading: _isLoadingConfig,
+                  isReady: isReady,
                   onLoadModel: _loadModel,
                 )
               : ListView.builder(
@@ -253,7 +264,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
                 ),
         ),
 
-        _buildInputArea(theme, isReady, isSending, backendStatus),
+        _buildInputArea(theme, isReady, isSending, backendStatus, messages.isEmpty),
       ],
     );
   }
@@ -309,6 +320,7 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
     bool isReady,
     bool isSending,
     ({IconData icon, String label})? backendStatus,
+    bool showExamples,
   ) {
     return SafeArea(
       child: Container(
@@ -354,6 +366,47 @@ class _LlmChatPanelState extends ConsumerState<LlmChatPanel> {
               ],
             ),
             const SizedBox(height: 8),
+            // 示例问题（临时对话且模型就绪时显示）
+            if (showExamples && isReady) ...[
+              Text(
+                AppLocalizations.of(context).llmChatTryExamples,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _ExampleChip(
+                    label: AppLocalizations.of(context).llmChatExampleQuestion1,
+                    onTap: () => _appendToInput(
+                      AppLocalizations.of(context).llmChatExampleQuestion1,
+                    ),
+                  ),
+                  _ExampleChip(
+                    label: AppLocalizations.of(context).llmChatExampleQuestion2,
+                    onTap: () => _appendToInput(
+                      AppLocalizations.of(context).llmChatExampleQuestion2,
+                    ),
+                  ),
+                  _ExampleChip(
+                    label: AppLocalizations.of(context).llmChatExampleQuestion3,
+                    onTap: () => _appendToInput(
+                      AppLocalizations.of(context).llmChatExampleQuestion3,
+                    ),
+                  ),
+                  _ExampleChip(
+                    label: AppLocalizations.of(context).llmChatExampleQuestion4,
+                    onTap: () => _appendToInput(
+                      AppLocalizations.of(context).llmChatExampleQuestion4,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
             // 输入框 + 发送按钮
             Row(
               children: [
@@ -436,6 +489,7 @@ class _EmptyState extends StatelessWidget {
   final AsyncValue<LlmConfigState> configAsync;
   final LlmException? loadError;
   final bool isLoading;
+  final bool isReady;
   final VoidCallback onLoadModel;
 
   const _EmptyState({
@@ -443,6 +497,7 @@ class _EmptyState extends StatelessWidget {
     required this.configAsync,
     this.loadError,
     this.isLoading = false,
+    this.isReady = false,
     required this.onLoadModel,
   });
 
@@ -489,7 +544,7 @@ class _EmptyState extends StatelessWidget {
                     : theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            if (!isLoading) ...[
+            if (!isLoading && !isReady) ...[
               const SizedBox(height: 24),
               // 手动启动模型按钮
               FilledButton.icon(
@@ -508,6 +563,27 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ExampleChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _ExampleChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ActionChip(
+      label: Text(label),
+      labelStyle: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSecondaryContainer,
+      ),
+      backgroundColor: theme.colorScheme.secondaryContainer,
+      side: BorderSide.none,
+      onPressed: onTap,
     );
   }
 }
