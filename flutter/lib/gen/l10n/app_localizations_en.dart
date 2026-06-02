@@ -384,6 +384,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeEditQuickActionsDone => 'Done';
 
   @override
+  String get homeHelpAndGuides => 'Help & Guides';
+
+  @override
   String get homeSecurityStatus => 'Security Status';
 
   @override

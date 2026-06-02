@@ -7,6 +7,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/core/services/unified_object_service.dart';
+import 'package:solosoul_flutter/core/services/user_guide_service.dart' show GuideIndexEntry, UserGuideService;
 import 'package:solosoul_flutter/core/services/user_preferences_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
@@ -24,6 +25,7 @@ import 'package:solosoul_flutter/presentation/widgets/home/page_editor.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/quick_action.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/quick_action_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/home/security_item.dart';
+import 'package:solosoul_flutter/presentation/widgets/legal_document_sheet.dart' show showLegalDocumentSheet;
 
 // =============================================================================
 // HomePage — Dashboard with quick actions + inline page editor (Liquid Glass)
@@ -101,6 +103,9 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
       duration: const Duration(milliseconds: 400),
     );
     _loadQuickActions();
+    UserGuideService.instance.loadIndex().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _loadQuickActions() async {
@@ -440,6 +445,42 @@ class _MainDashboardState extends ConsumerState<_MainDashboard>
 
           const SizedBox(height: 32),
 
+          // Help & Guides
+          if (UserGuideService.instance.guideList.isNotEmpty) ...[
+            Text(l10n.homeHelpAndGuides, style: theme.textTheme.titleLarge),
+            const SizedBox(height: 16),
+            GlassCard(
+              useOwnLayer: true,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              settings: isDark
+                  ? const LiquidGlassSettings(
+                      thickness: 28,
+                      blur: 10,
+                      glassColor: Color(0x20FFFFFF),
+                      refractiveIndex: 1.2,
+                      lightIntensity: 1.1,
+                    )
+                  : const LiquidGlassSettings(
+                      thickness: 18,
+                      blur: 8,
+                      glassColor: Color(0x15D2DCF0),
+                      refractiveIndex: 1.15,
+                      lightIntensity: 1.0,
+                    ),
+              child: Column(
+                children: [
+                  for (int i = 0; i < UserGuideService.instance.guideList.length; i++) ...[
+                    _GuideTile(
+                      guide: UserGuideService.instance.guideList[i],
+                      isLast: i == UserGuideService.instance.guideList.length - 1,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+
           // Security Status — Liquid Glass
           Text(AppLocalizations.of(context).homeSecurityStatus, style: theme.textTheme.titleLarge),
           const SizedBox(height: 16),
@@ -615,5 +656,45 @@ class _AddButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AddButton(onTap: onTap);
+  }
+}
+
+class _GuideTile extends StatelessWidget {
+  final GuideIndexEntry guide;
+  final bool isLast;
+
+  const _GuideTile({required this.guide, required this.isLast});
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final title = locale.languageCode == 'zh' ? guide.title : guide.titleEn;
+    final assetPath = _resolveAssetPath(guide, locale.languageCode);
+
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.article_outlined),
+          title: Text(title),
+          trailing: const Icon(Icons.chevron_right, size: 20),
+          onTap: () => showLegalDocumentSheet(
+            context: context,
+            title: title,
+            assetPath: assetPath,
+          ),
+        ),
+        if (!isLast) const Divider(height: 1, indent: 16, endIndent: 16),
+      ],
+    );
+  }
+
+  String _resolveAssetPath(GuideIndexEntry guide, String language) {
+    if (guide.files.containsKey(language)) {
+      return guide.files[language]!;
+    }
+    if (guide.files.containsKey('en')) {
+      return guide.files['en']!;
+    }
+    return guide.files.values.first;
   }
 }

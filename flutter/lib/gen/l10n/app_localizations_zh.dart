@@ -378,6 +378,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get homeEditQuickActionsDone => '完成';
 
   @override
+  String get homeHelpAndGuides => '帮助与指南';
+
+  @override
   String get homeSecurityStatus => '安全状态';
 
   @override

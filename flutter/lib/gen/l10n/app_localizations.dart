@@ -788,6 +788,12 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get homeEditQuickActionsDone;
 
+  /// No description provided for @homeHelpAndGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Guides'**
+  String get homeHelpAndGuides;
+
   /// No description provided for @homeSecurityStatus.
   ///
   /// In en, this message translates to:
