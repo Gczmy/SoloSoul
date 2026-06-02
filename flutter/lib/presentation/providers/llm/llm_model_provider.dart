@@ -8,6 +8,8 @@ import 'package:solosoul_flutter/core/services/llm/llm_model_manager.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_model_state.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_service.dart';
 import 'package:solosoul_flutter/core/services/llm/llm_usage_stats.dart';
+import 'package:solosoul_flutter/core/services/language_service.dart';
+import 'package:solosoul_flutter/core/services/user_guide_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_notifier.dart';
 import 'package:solosoul_flutter/presentation/providers/auth/auth_types.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
@@ -342,8 +344,14 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
       SoloLog.d('LlmModelNotifier',
           'System prompt injected, cached=${context.wasCached}, estTokens=${context.estimatedTokens}');
 
+      // --- 按需检索功能指南（不作为强制提示词） ---
+      final language = await LanguageService.instance.getLanguage();
+      final guides = await UserGuideService.instance.findRelevantGuides(prompt, language);
+      final docPrompt = _buildDocPrompt(guides);
+
       final messages = <LlmMessage>[
         LlmMessage(role: 'system', content: context.systemPrompt),
+        if (docPrompt != null) LlmMessage(role: 'system', content: docPrompt),
         ...?history,
         LlmMessage(role: 'user', content: prompt),
       ];
@@ -377,6 +385,25 @@ class LlmModelNotifier extends AsyncNotifier<LlmModelState> {
         }
       }
     }
+  }
+
+  /// 将匹配到的指南内容组装为注入用的 system message。
+  /// 返回 null 表示无匹配或内容为空。
+  String? _buildDocPrompt(List<GuideContent> guides) {
+    if (guides.isEmpty) return null;
+    final guide = guides.first;
+    final buffer = StringBuffer();
+    buffer.writeln('---');
+    buffer.writeln('以下是与用户问题相关的功能使用文档，请参考这些信息回答用户问题。');
+    buffer.writeln();
+    buffer.writeln('【文档：${guide.title}】');
+    buffer.writeln(guide.content);
+    buffer.writeln('【文档结束】');
+    buffer.writeln('---');
+    final prompt = buffer.toString();
+    SoloLog.d('LlmModelNotifier',
+        'Injected guide doc: id=${guide.id}, chars=${prompt.length}');
+    return prompt;
   }
 
   /// 取消正在进行的流式推理。

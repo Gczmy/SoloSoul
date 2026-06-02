@@ -422,6 +422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsOk => 'OK';
 
   @override
+  String get settingsHelpAndGuides => 'Help & Guides';
+
+  @override
   String get settingsEnableDebugMode => 'Enable Debug Mode';
 
   @override

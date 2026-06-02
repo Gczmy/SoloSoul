@@ -414,6 +414,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsOk => '确定';
 
   @override
+  String get settingsHelpAndGuides => '帮助与指南';
+
+  @override
   String get settingsEnableDebugMode => '启用调试模式';
 
   @override

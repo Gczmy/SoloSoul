@@ -96,10 +96,84 @@ class _LegalDocumentSheet extends StatelessWidget {
               data: content,
               padding: const EdgeInsets.all(20),
               styleSheet: MarkdownStyleSheet(
-                p: theme.textTheme.bodyMedium?.copyWith(
-                  height: 1.6,
+                // 一级标题：大号 + 底部细线
+                h1: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
                   color: theme.colorScheme.onSurface,
                 ),
+                h1Padding: const EdgeInsets.only(bottom: 8),
+
+                // 二级标题：蓝色（Notion 风格）
+                h2: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF487CA5),
+                ),
+                h2Padding: const EdgeInsets.only(top: 16, bottom: 8),
+
+                // 引用块 / Callout：浅蓝背景 + 圆角 + 左侧蓝色竖线
+                blockquote: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+                blockquotePadding: const EdgeInsets.all(12),
+                blockquoteDecoration: const BoxDecoration(
+                  color: Color(0xFFE9F3F7),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  border: Border(
+                    left: BorderSide(
+                      color: Color(0xFF487CA5),
+                      width: 4,
+                    ),
+                  ),
+                ),
+
+                // 表格：表头加粗 + 细边框
+                tableHead: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
+                tableBody: theme.textTheme.bodyMedium,
+                tableBorder: TableBorder.all(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 0.5,
+                ),
+                tableHeadAlign: TextAlign.center,
+                tableCellsPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                tableColumnWidth: const FlexColumnWidth(),
+
+                // 列表：统一缩进
+                listIndent: 28,
+                listBulletPadding: const EdgeInsets.only(right: 12),
+
+                // 分隔线：1px 细线 + 垂直间距
+                horizontalRuleDecoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: theme.colorScheme.outlineVariant,
+                      width: 1,
+                    ),
+                  ),
+                ),
+
+                // 代码块：背景 + 圆角
+                code: theme.textTheme.bodyMedium?.copyWith(
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  fontFamily: 'monospace',
+                  color: theme.colorScheme.secondary,
+                ),
+                codeblockPadding: const EdgeInsets.all(12),
+                codeblockDecoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+
+                // 段落：舒适行高
+                p: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.7,
+                  color: theme.colorScheme.onSurface,
+                ),
+                pPadding: const EdgeInsets.only(bottom: 8),
               ),
             ),
           ),

@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "guides": [
+    {
+      "id": "ai_chat",
+      "title": "AI 对话功能",
+      "titleEn": "AI Chat",
+      "keywords": [
+        "ai", "对话", "聊天", "llm", "模型", "新对话",
+        "回收站", "删除", "软删除", "永久删除", "恢复",
+        "时间戳", "消息", "会话", "提问", "发送"
+      ],
+      "files": {
+        "zh": "assets/docs/guides/ai_chat_zh.md",
+        "en": "assets/docs/guides/ai_chat.md"
+      }
+    },
+    {
+      "id": "trash",
+      "title": "回收站",
+      "titleEn": "Trash",
+      "keywords": [
+        "回收站", "删除", "恢复", "清空", "软删除",
+        "永久删除", "误删", "撤销", "复原", "垃圾桶",
+        "还原", "找回"
+      ],
+      "files": {
+        "zh": "assets/docs/guides/trash_zh.md",
+        "en": "assets/docs/guides/trash.md"
+      }
+    },
+    {
+      "id": "objects",
+      "title": "档案与对象管理",
+      "titleEn": "Objects & Profiles",
+      "keywords": [
+        "对象", "档案", "profile", "unified", "创建", "编辑",
+        "模板", "字段", "属性", "类型", "旅行", "财务",
+        "职业", "个人", "信息", "添加", "修改"
+      ],
+      "files": {
+        "zh": "assets/docs/guides/objects_zh.md",
+        "en": "assets/docs/guides/objects.md"
+      }
+    },
+    {
+      "id": "security",
+      "title": "安全与隐私",
+      "titleEn": "Security & Privacy",
+      "keywords": [
+        "安全", "密码", "锁定", "生物识别", "指纹", "面容",
+        "touch id", "face id", "自动锁定", "剪贴板", "加密",
+        "保险库", "vault", "解锁", "修改密码"
+      ],
+      "files": {
+        "zh": "assets/docs/guides/security_zh.md",
+        "en": "assets/docs/guides/security.md"
+      }
+    },
+    {
+      "id": "sync",
+      "title": "同步与备份",
+      "titleEn": "Sync & Backup",
+      "keywords": [
+        "同步", "备份", "导出", "导入", "数据迁移", "恢复",
+        "云端", "本地", "文件", "迁移", "transfer"
+      ],
+      "files": {
+        "zh": "assets/docs/guides/sync_zh.md",
+        "en": "assets/docs/guides/sync.md"
+      }
+    }
+  ]
+}

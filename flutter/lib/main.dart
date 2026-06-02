@@ -21,6 +21,7 @@ import 'package:solosoul_flutter/core/services/clipboard_monitor_service.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart';
 import 'package:solosoul_flutter/frb/frb_generated.dart';
 import 'package:solosoul_flutter/core/services/ocr_service.dart';
+import 'package:solosoul_flutter/core/services/user_guide_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/utils/field_label_resolver.dart';
@@ -115,7 +116,10 @@ class _AppBootstrapState extends State<AppBootstrap> {
         NativeChannelService.initialize();
       }
 
-      // 4. OCR 引擎预初始化（后台异步，失败不阻塞启动）
+      // 4. 加载功能指南索引（轻量，后台异步，失败不阻塞）
+      unawaited(_loadUserGuideIndex());
+
+      // 5. OCR 引擎预初始化（后台异步，失败不阻塞启动）
       unawaited(_prewarmOcrEngine());
 
       if (mounted) {
@@ -126,6 +130,16 @@ class _AppBootstrapState extends State<AppBootstrap> {
       if (mounted) {
         setState(() => _errorMessage = e.toString());
       }
+    }
+  }
+
+  /// 后台加载功能指南索引，供 AI 按需检索和用户阅读。
+  Future<void> _loadUserGuideIndex() async {
+    try {
+      await UserGuideService.instance.loadIndex();
+      SoloLog.d('BOOTSTRAP', 'User guide index loaded');
+    } on Exception catch (e) {
+      SoloLog.w('BOOTSTRAP', 'User guide index load failed: $e');
     }
   }
 

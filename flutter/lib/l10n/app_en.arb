@@ -217,6 +217,7 @@
   "settingsPasswordChangedSuccess": "Master password changed successfully",
   "settingsPasswordHintChangedSuccess": "Password hint changed successfully",
   "settingsOk": "OK",
+  "settingsHelpAndGuides": "Help & Guides",
   "settingsEnableDebugMode": "Enable Debug Mode",
   "settingsEnableDebugModeDesc": "Enter your master password to enable Debug Log.",
   "settingsUseBiometric": "Use {biometricType}",

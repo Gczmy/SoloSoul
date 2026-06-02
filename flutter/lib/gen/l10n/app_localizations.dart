@@ -860,6 +860,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get settingsOk;
 
+  /// No description provided for @settingsHelpAndGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'Help & Guides'**
+  String get settingsHelpAndGuides;
+
   /// No description provided for @settingsEnableDebugMode.
   ///
   /// In en, this message translates to:

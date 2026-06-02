@@ -127,6 +127,7 @@
   "settingsPasswordChangedSuccess": "主密码修改成功",
   "settingsPasswordHintChangedSuccess": "密码提示修改成功",
   "settingsOk": "确定",
+  "settingsHelpAndGuides": "帮助与指南",
   "settingsEnableDebugMode": "启用调试模式",
   "settingsEnableDebugModeDesc": "输入主密码以启用调试日志。",
   "settingsUseBiometric": "使用 {biometricType}",
