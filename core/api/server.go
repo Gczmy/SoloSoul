@@ -4,8 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/rpc"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -75,46 +77,50 @@ func NewHTTPServer(basePath string) (*HTTPServer, error) {
 func (s *HTTPServer) Start(addr string) error {
 	mux := http.NewServeMux()
 
-	// Auth routes
-	mux.HandleFunc("GET /api/auth/status", s.handleAuthStatus)
-	mux.HandleFunc("POST /api/auth/unlock", s.handleAuthUnlock)
-	mux.HandleFunc("POST /api/auth/lock", s.handleAuthLock)
-	mux.HandleFunc("POST /api/auth/setup", s.handleAuthSetup)
-	mux.HandleFunc("POST /api/auth/password", s.handleChangePassword)
+	// Auth routes (authMiddleware allows status/unlock/setup through its whitelist)
+	mux.HandleFunc("GET /api/auth/status", s.authMiddleware(s.handleAuthStatus))
+	mux.HandleFunc("POST /api/auth/unlock", s.authMiddleware(s.handleAuthUnlock))
+	mux.HandleFunc("POST /api/auth/lock", s.authMiddleware(s.handleAuthLock))
+	mux.HandleFunc("POST /api/auth/setup", s.authMiddleware(s.handleAuthSetup))
+	mux.HandleFunc("POST /api/auth/password", s.authMiddleware(s.handleChangePassword))
 
-	// Account routes
-	mux.HandleFunc("GET /api/accounts", s.handleAccountList)
-	mux.HandleFunc("GET /api/accounts/check", s.handleAccountCheck)
-	mux.HandleFunc("POST /api/accounts", s.handleAccountCreate)
-	mux.HandleFunc("DELETE /api/accounts/{id}", s.handleAccountDelete)
-	mux.HandleFunc("PUT /api/accounts/{id}/default", s.handleAccountSetDefault)
+	// Account routes (protected)
+	mux.HandleFunc("GET /api/accounts", s.authMiddleware(s.handleAccountList))
+	mux.HandleFunc("GET /api/accounts/check", s.authMiddleware(s.handleAccountCheck))
+	mux.HandleFunc("POST /api/accounts", s.authMiddleware(s.handleAccountCreate))
+	mux.HandleFunc("DELETE /api/accounts/{id}", s.authMiddleware(s.handleAccountDelete))
+	mux.HandleFunc("PUT /api/accounts/{id}/default", s.authMiddleware(s.handleAccountSetDefault))
 
-	// Profile routes
-	mux.HandleFunc("GET /api/profile", s.handleProfileList)
-	mux.HandleFunc("GET /api/profile/{id}", s.handleProfileGet)
-	mux.HandleFunc("PUT /api/profile", s.handleProfileUpdate)
-	mux.HandleFunc("POST /api/profile/validate", s.handleProfileValidate)
-	mux.HandleFunc("DELETE /api/profile/{id}", s.handleProfileDelete)
+	// Profile routes (protected)
+	mux.HandleFunc("GET /api/profile", s.authMiddleware(s.handleProfileList))
+	mux.HandleFunc("GET /api/profile/{id}", s.authMiddleware(s.handleProfileGet))
+	mux.HandleFunc("PUT /api/profile", s.authMiddleware(s.handleProfileUpdate))
+	mux.HandleFunc("POST /api/profile/validate", s.authMiddleware(s.handleProfileValidate))
+	mux.HandleFunc("DELETE /api/profile/{id}", s.authMiddleware(s.handleProfileDelete))
 
-	// Plugin routes
-	mux.HandleFunc("GET /api/plugins", s.handlePluginList)
-	mux.HandleFunc("GET /api/plugins/{id}/manifest", s.handlePluginManifest)
-	mux.HandleFunc("POST /api/plugins/{id}/consent/request", s.handlePluginConsentRequest)
-	mux.HandleFunc("POST /api/plugins/consent/grant", s.handlePluginConsentGrant)
-	mux.HandleFunc("DELETE /api/plugins/sessions/{id}", s.handlePluginSessionRevoke)
-	mux.HandleFunc("GET /api/plugins/{id}/sessions", s.handlePluginSessionsList)
+	// Plugin routes (protected)
+	mux.HandleFunc("GET /api/plugins", s.authMiddleware(s.handlePluginList))
+	mux.HandleFunc("GET /api/plugins/{id}/manifest", s.authMiddleware(s.handlePluginManifest))
+	mux.HandleFunc("POST /api/plugins/{id}/consent/request", s.authMiddleware(s.handlePluginConsentRequest))
+	mux.HandleFunc("POST /api/plugins/consent/grant", s.authMiddleware(s.handlePluginConsentGrant))
+	mux.HandleFunc("DELETE /api/plugins/sessions/{id}", s.authMiddleware(s.handlePluginSessionRevoke))
+	mux.HandleFunc("GET /api/plugins/{id}/sessions", s.authMiddleware(s.handlePluginSessionsList))
 
-	// OCR routes
-	mux.HandleFunc("POST /api/ocr/jobs", s.handleOCRJobSubmit)
-	mux.HandleFunc("GET /api/ocr/jobs/{id}", s.handleOCRJobResult)
-	mux.HandleFunc("GET /api/ocr/status", s.handleOCRStatus)
+	// OCR routes (protected)
+	mux.HandleFunc("POST /api/ocr/jobs", s.authMiddleware(s.handleOCRJobSubmit))
+	mux.HandleFunc("GET /api/ocr/jobs/{id}", s.authMiddleware(s.handleOCRJobResult))
+	mux.HandleFunc("GET /api/ocr/status", s.authMiddleware(s.handleOCRStatus))
 
-	// Health check
-	mux.HandleFunc("GET /health", s.handleHealth)
+	// Health check (public)
+	mux.HandleFunc("GET /health", s.authMiddleware(s.handleHealth))
 
 	// CORS wrapper for all routes
+	allowedOrigin := os.Getenv("SOLOSOUL_ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000" // default development origin
+	}
 	corsMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if r.Method == http.MethodOptions {
@@ -125,10 +131,11 @@ func (s *HTTPServer) Start(addr string) error {
 	})
 
 	s.server = &http.Server{
-		Addr:         addr,
-		Handler:      corsMux,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		Addr:           addr,
+		Handler:        corsMux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20, // 1MB max header size
 	}
 
 	return s.server.ListenAndServe()
@@ -138,32 +145,51 @@ func (s *HTTPServer) Start(addr string) error {
 func (s *HTTPServer) StartUnix(socketPath string) error {
 	mux := http.NewServeMux()
 
-	// Auth routes
-	mux.HandleFunc("GET /api/auth/status", s.handleAuthStatus)
-	mux.HandleFunc("POST /api/auth/unlock", s.handleAuthUnlock)
-	mux.HandleFunc("POST /api/auth/lock", s.handleAuthLock)
-	mux.HandleFunc("POST /api/auth/setup", s.handleAuthSetup)
-	mux.HandleFunc("POST /api/auth/password", s.handleChangePassword)
+	// Auth routes (authMiddleware allows status/unlock/setup through its whitelist)
+	mux.HandleFunc("GET /api/auth/status", s.authMiddleware(s.handleAuthStatus))
+	mux.HandleFunc("POST /api/auth/unlock", s.authMiddleware(s.handleAuthUnlock))
+	mux.HandleFunc("POST /api/auth/lock", s.authMiddleware(s.handleAuthLock))
+	mux.HandleFunc("POST /api/auth/setup", s.authMiddleware(s.handleAuthSetup))
+	mux.HandleFunc("POST /api/auth/password", s.authMiddleware(s.handleChangePassword))
 
-	// Account routes
-	mux.HandleFunc("GET /api/accounts", s.handleAccountList)
-	mux.HandleFunc("GET /api/accounts/check", s.handleAccountCheck)
-	mux.HandleFunc("POST /api/accounts", s.handleAccountCreate)
-	mux.HandleFunc("DELETE /api/accounts/{id}", s.handleAccountDelete)
-	mux.HandleFunc("PUT /api/accounts/{id}/default", s.handleAccountSetDefault)
+	// Account routes (protected)
+	mux.HandleFunc("GET /api/accounts", s.authMiddleware(s.handleAccountList))
+	mux.HandleFunc("GET /api/accounts/check", s.authMiddleware(s.handleAccountCheck))
+	mux.HandleFunc("POST /api/accounts", s.authMiddleware(s.handleAccountCreate))
+	mux.HandleFunc("DELETE /api/accounts/{id}", s.authMiddleware(s.handleAccountDelete))
+	mux.HandleFunc("PUT /api/accounts/{id}/default", s.authMiddleware(s.handleAccountSetDefault))
 
-	// Profile routes
-	mux.HandleFunc("GET /api/profile", s.handleProfileList)
-	mux.HandleFunc("GET /api/profile/{id}", s.handleProfileGet)
-	mux.HandleFunc("PUT /api/profile", s.handleProfileUpdate)
-	mux.HandleFunc("POST /api/profile/validate", s.handleProfileValidate)
-	mux.HandleFunc("DELETE /api/profile/{id}", s.handleProfileDelete)
+	// Profile routes (protected)
+	mux.HandleFunc("GET /api/profile", s.authMiddleware(s.handleProfileList))
+	mux.HandleFunc("GET /api/profile/{id}", s.authMiddleware(s.handleProfileGet))
+	mux.HandleFunc("PUT /api/profile", s.authMiddleware(s.handleProfileUpdate))
+	mux.HandleFunc("POST /api/profile/validate", s.authMiddleware(s.handleProfileValidate))
+	mux.HandleFunc("DELETE /api/profile/{id}", s.authMiddleware(s.handleProfileDelete))
 
 	s.server = &http.Server{
-		Handler: mux,
+		Handler:        mux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20, // 1MB max header size
 	}
 
-	return nil // Let caller set up listener
+	// Remove existing socket file if present
+	if err := os.RemoveAll(socketPath); err != nil {
+		return fmt.Errorf("failed to remove existing socket: %w", err)
+	}
+
+	listener, err := net.Listen("unix", socketPath)
+	if err != nil {
+		return fmt.Errorf("failed to create unix socket listener: %w", err)
+	}
+
+	// Restrict socket permissions to owner only
+	if err := os.Chmod(socketPath, 0700); err != nil {
+		listener.Close()
+		return fmt.Errorf("failed to chmod socket: %w", err)
+	}
+
+	return s.server.Serve(listener)
 }
 
 // Stop stops the server
@@ -179,7 +205,7 @@ func (s *HTTPServer) Stop() error {
 func (s *HTTPServer) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
-		if token != "" {
+		if token != "" && len(token) > len("Bearer ") && token[:len("Bearer ")] == "Bearer " {
 			token = token[len("Bearer "):]
 			s.mu.RLock()
 			_, ok := s.sessionTokens[token]
@@ -191,7 +217,7 @@ func (s *HTTPServer) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			}
 		}
 
-		// For now, allow unauthenticated access for setup/status
+		// Allow unauthenticated access for auth setup/status and health check
 		if r.URL.Path == "/api/auth/status" ||
 			r.URL.Path == "/api/auth/unlock" ||
 			r.URL.Path == "/api/auth/setup" ||
@@ -401,13 +427,14 @@ func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Require auth
+	// Auth is already enforced by authMiddleware; the token check below
+	// is kept as a defensive fallback but safely handles malformed headers.
 	token := r.Header.Get("Authorization")
-	if token == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+	if token != "" && len(token) > len("Bearer ") && token[:len("Bearer ")] == "Bearer " {
+		token = token[len("Bearer "):]
+	} else {
+		token = ""
 	}
-	token = token[len("Bearer "):]
 	s.mu.RLock()
 	_, ok := s.sessionTokens[token]
 	s.mu.RUnlock()
@@ -415,6 +442,9 @@ func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	// Limit request body size to prevent DoS
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<14) // 16KB
 
 	var req struct {
 		OldPassword string `json:"old_password"`
@@ -427,6 +457,26 @@ func (s *HTTPServer) handleChangePassword(w http.ResponseWriter, r *http.Request
 
 	if len(req.NewPassword) < 8 {
 		writeJSON(w, http.StatusOK, map[string]interface{}{"success": false, "error": "password must be at least 8 characters"})
+		return
+	}
+
+	// Basic password complexity check
+	var hasUpper, hasLower, hasDigit bool
+	for _, ch := range req.NewPassword {
+		switch {
+		case ch >= 'A' && ch <= 'Z':
+			hasUpper = true
+		case ch >= 'a' && ch <= 'z':
+			hasLower = true
+		case ch >= '0' && ch <= '9':
+			hasDigit = true
+		}
+	}
+	if !hasUpper || !hasLower || !hasDigit {
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"success": false,
+			"error":   "password must contain at least one uppercase letter, one lowercase letter, and one digit",
+		})
 		return
 	}
 

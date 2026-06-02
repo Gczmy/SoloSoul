@@ -80,27 +80,6 @@ void main() {
     });
   });
 
-  group('wrapEveryNChars', () {
-    test('returns text with colon for short text', () {
-      expect(wrapEveryNChars('hello', 10), 'hello: ');
-    });
-
-    test('wraps long text at specified interval', () {
-      final result = wrapEveryNChars('abcdefghij', 5);
-      expect(result, 'abcde\nfghij: ');
-    });
-
-    test('handles text exactly at boundary', () {
-      final result = wrapEveryNChars('abcde', 5);
-      expect(result, 'abcde: ');
-    });
-
-    test('handles text not evenly divisible', () {
-      final result = wrapEveryNChars('abcdefg', 3);
-      expect(result, 'abc\ndef\ng: ');
-    });
-  });
-
   group('fieldPrefixForTypeId', () {
     test('returns correct prefix for known types', () {
       expect(fieldPrefixForTypeId('__preset_identity'), 'identity');

@@ -82,7 +82,10 @@ wasmtime = { version = "21.0", optional = true }
 wasmtime-wasi = { version = "21.0", optional = true }
 
 [features]
+default = ["sandbox"]
 # Sandbox is opt-in due to wasmtime dependency issues on iOS
+# Note: default enabled because FRB generated code references plugin module.
+#       Platforms that cannot build wasmtime should use --no-default-features.
 sandbox = ["dep:wasmtime", "dep:wasmtime-wasi"]
 
 [lib]

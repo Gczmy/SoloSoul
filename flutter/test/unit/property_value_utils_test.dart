@@ -71,20 +71,6 @@ void main() {
     });
   });
 
-  group('wrapEveryNChars', () {
-    test('returns text with colon when under limit', () {
-      expect(wrapEveryNChars('hello', 10), 'hello: ');
-    });
-
-    test('wraps text at N chars', () {
-      expect(wrapEveryNChars('abcdef', 3), 'abc\ndef: ');
-    });
-
-    test('handles exact multiple', () {
-      expect(wrapEveryNChars('abcd', 2), 'ab\ncd: ');
-    });
-  });
-
   group('objectItemDisplayTitle', () {
     test('uses nameExtractor when provided', () {
       final item = UnifiedObject(

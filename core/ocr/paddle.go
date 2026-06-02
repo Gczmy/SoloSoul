@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -26,8 +27,20 @@ func NewPaddleOCR(pythonPath string) (*PaddleOCR, error) {
 		pythonPath = "python3"
 	}
 
+	// Validate pythonPath: must be a simple command name or absolute path
+	// Reject any path containing shell metacharacters to prevent command injection
+	if strings.ContainsAny(pythonPath, ";&|<>$`\\\n\r") {
+		return nil, fmt.Errorf("invalid python path: contains shell metacharacters")
+	}
+
+	// Resolve to absolute path for validation
+	resolvedPath, err := exec.LookPath(filepath.Base(pythonPath))
+	if err != nil {
+		resolvedPath = pythonPath // fallback to provided path
+	}
+
 	paddle := &PaddleOCR{
-		pythonPath: pythonPath,
+		pythonPath: resolvedPath,
 		processor:  NewImageProcessor(),
 		mrzParser:  NewMRZParser(),
 	}
@@ -36,7 +49,7 @@ func NewPaddleOCR(pythonPath string) (*PaddleOCR, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, pythonPath, "-c", "import paddleocr; print('ok')")
+	cmd := exec.CommandContext(ctx, resolvedPath, "-c", "import paddleocr; print('ok')")
 	if err := cmd.Run(); err != nil {
 		// PaddleOCR not available - return a stub that can still do MRZ parsing
 		return paddle, nil
@@ -130,12 +143,18 @@ func (p *PaddleOCR) Close() error {
 // ProcessWithPython calls the actual PaddleOCR Python script
 // This would be called in production when PaddleOCR is properly installed
 func (p *PaddleOCR) ProcessWithPython(imagePath string, docType DocumentType) (*ExtractionResult, error) {
+	// Sanitize imagePath to prevent command injection via path traversal
+	cleanPath := filepath.Clean(imagePath)
+	if cleanPath == "" || cleanPath == "." {
+		return nil, fmt.Errorf("invalid image path")
+	}
+
 	script := p.getPythonScript()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, p.pythonPath, "-c", script, imagePath, string(docType))
+	cmd := exec.CommandContext(ctx, p.pythonPath, "-c", script, cleanPath, string(docType))
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("paddleocr failed: %w", err)
@@ -260,7 +279,8 @@ func (p *PaddleOCR) IsAvailable() bool {
 // SaveImage saves image data to a temporary file
 func SaveImage(data []byte, ext string) (string, error) {
 	tmpDir := filepath.Join("/tmp", "solosoul-ocr")
-	if err := os.MkdirAll(tmpDir, 0755); err != nil {
+	// Use 0700 to ensure only the owner can access sensitive image data
+	if err := os.MkdirAll(tmpDir, 0700); err != nil {
 		return "", err
 	}
 
