@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -10,7 +11,10 @@ import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/attachment_download_service.dart';
 import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/attachment_upload_service.dart';
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/providers/unified_object_provider.dart'
@@ -184,6 +188,19 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
         content: l10n.attachmentAdded,
         type: SnackBarType.success,
       );
+      // Log attachment upload
+      final sizeStr = attachment.size != null ? '${(attachment.size! / (1024 * 1024)).toStringAsFixed(1)} MB' : '';
+      final displayName = sizeStr.isNotEmpty ? '${attachment.fileName} ($sizeStr)' : attachment.fileName;
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logAttachment(
+          action: LogAction.create,
+          description: l10n.logAttachmentUploaded(displayName),
+          fileName: attachment.fileName,
+          fileSize: sizeStr,
+          descriptionKey: 'uploadedAttachment',
+          descriptionArgs: {'name': displayName},
+        ),
+      ));
     } else {
       if (!mounted) return;
       setState(() => _uploadTasks.remove(tempId));
@@ -294,6 +311,16 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
           type: SnackBarType.success,
         );
       }
+      // Log attachment download
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logAttachment(
+          action: LogAction.create,
+          description: l10n.logAttachmentDownloaded(attachment.fileName),
+          fileName: attachment.fileName,
+          descriptionKey: 'downloadedAttachment',
+          descriptionArgs: {'name': attachment.fileName},
+        ),
+      ));
     } else if (task.cancelToken.isCancelled) {
       if (mounted) {
         showOverlaySnackBar(
@@ -378,6 +405,16 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
         content: l10n.attachmentDeleted,
         type: SnackBarType.success,
       );
+      // Log attachment soft-delete
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logAttachment(
+          action: LogAction.delete,
+          description: l10n.logAttachmentDeleted(attachment.fileName),
+          fileName: attachment.fileName,
+          descriptionKey: 'deletedAttachment',
+          descriptionArgs: {'name': attachment.fileName},
+        ),
+      ));
     }
   }
 
@@ -394,6 +431,16 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
         content: AppLocalizations.of(context).attachmentRestored,
         type: SnackBarType.success,
       );
+      // Log attachment restore
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logAttachment(
+          action: LogAction.restore,
+          description: AppLocalizations.of(context).logAttachmentRestored(attachment.fileName),
+          fileName: attachment.fileName,
+          descriptionKey: 'restoredAttachment',
+          descriptionArgs: {'name': attachment.fileName},
+        ),
+      ));
     }
   }
 
@@ -431,12 +478,25 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
           accountId: widget.accountId,
         );
 
-    if (mounted && !success) {
-      showOverlaySnackBar(
-        context,
-        content: l10n.attachmentDeleteFailed,
-        type: SnackBarType.error,
-      );
+    if (mounted) {
+      if (!success) {
+        showOverlaySnackBar(
+          context,
+          content: l10n.attachmentDeleteFailed,
+          type: SnackBarType.error,
+        );
+      } else {
+        // Log attachment permanent-delete
+        unawaited(OperationLogService.instance.addEntry(
+          OperationLogger.logAttachment(
+            action: LogAction.delete,
+            description: l10n.logAttachmentPermanentlyDeleted(attachment.fileName),
+            fileName: attachment.fileName,
+            descriptionKey: 'permanentlyDeletedAttachment',
+            descriptionArgs: {'name': attachment.fileName},
+          ),
+        ));
+      }
     }
   }
 

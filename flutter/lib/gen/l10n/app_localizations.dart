@@ -6104,6 +6104,24 @@ abstract class AppLocalizations {
   /// **'Section'**
   String get logSectionDefault;
 
+  /// No description provided for @logSectionAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment'**
+  String get logSectionAttachment;
+
+  /// No description provided for @logSectionBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get logSectionBackup;
+
+  /// No description provided for @logSectionPlugin.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin'**
+  String get logSectionPlugin;
+
   /// No description provided for @operationFilterLabel.
   ///
   /// In en, this message translates to:
@@ -7925,6 +7943,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app.'**
   String get xlsxNoThumbnail;
+
+  /// No description provided for @logAttachmentUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploaded attachment \"{name}\"'**
+  String logAttachmentUploaded(String name);
+
+  /// No description provided for @logAttachmentDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded attachment \"{name}\"'**
+  String logAttachmentDownloaded(String name);
+
+  /// No description provided for @logAttachmentDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted attachment \"{name}\"'**
+  String logAttachmentDeleted(String name);
+
+  /// No description provided for @logAttachmentRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored attachment \"{name}\"'**
+  String logAttachmentRestored(String name);
+
+  /// No description provided for @logAttachmentPermanentlyDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently deleted attachment \"{name}\"'**
+  String logAttachmentPermanentlyDeleted(String name);
+
+  /// No description provided for @logBackupCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created backup \"{name}\"'**
+  String logBackupCreated(String name);
+
+  /// No description provided for @logBackupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Restored backup \"{name}\"'**
+  String logBackupRestored(String name);
+
+  /// No description provided for @logBackupDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted backup \"{name}\"'**
+  String logBackupDeleted(String name);
+
+  /// No description provided for @logPluginInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed plugin \"{name}\"'**
+  String logPluginInstalled(String name);
+
+  /// No description provided for @logPluginUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated plugin \"{name}\"'**
+  String logPluginUpdated(String name);
+
+  /// No description provided for @logPluginUninstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstalled plugin \"{name}\"'**
+  String logPluginUninstalled(String name);
+
+  /// No description provided for @logPluginRan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ran plugin \"{name}\"'**
+  String logPluginRan(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -1782,6 +1782,9 @@
   "logSectionSensitivity": "Sensitivity",
   "logSectionCustom": "Custom",
   "logSectionDefault": "Section",
+  "logSectionAttachment": "Attachment",
+  "logSectionBackup": "Backup",
+  "logSectionPlugin": "Plugin",
   "operationFilterLabel": "Filter",
   "trashFilterLabel": "Filter:",
   "trashTimeFilterLabel": "Time:",
@@ -2288,5 +2291,101 @@
   "xlsxPreviewTitle": "Spreadsheet Preview",
   "browseAllSheets": "Browse All Sheets",
   "docxNoThumbnail": "This file does not contain a thumbnail. Please tap the button below to open the full document with your system app.",
-  "xlsxNoThumbnail": "This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app."
+  "xlsxNoThumbnail": "This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app.",
+  "logAttachmentUploaded": "Uploaded attachment \"{name}\"",
+  "@logAttachmentUploaded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentDownloaded": "Downloaded attachment \"{name}\"",
+  "@logAttachmentDownloaded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentDeleted": "Deleted attachment \"{name}\"",
+  "@logAttachmentDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentRestored": "Restored attachment \"{name}\"",
+  "@logAttachmentRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentPermanentlyDeleted": "Permanently deleted attachment \"{name}\"",
+  "@logAttachmentPermanentlyDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBackupCreated": "Created backup \"{name}\"",
+  "@logBackupCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBackupRestored": "Restored backup \"{name}\"",
+  "@logBackupRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBackupDeleted": "Deleted backup \"{name}\"",
+  "@logBackupDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginInstalled": "Installed plugin \"{name}\"",
+  "@logPluginInstalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginUpdated": "Updated plugin \"{name}\"",
+  "@logPluginUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginUninstalled": "Uninstalled plugin \"{name}\"",
+  "@logPluginUninstalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginRan": "Ran plugin \"{name}\"",
+  "@logPluginRan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

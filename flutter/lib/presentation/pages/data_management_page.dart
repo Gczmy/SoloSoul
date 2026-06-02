@@ -7,7 +7,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
@@ -147,6 +150,16 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
             customMessage: l10n.dataMgmtBackupCreated,
           ),
         );
+        // Log backup creation
+        unawaited(OperationLogService.instance.addEntry(
+          OperationLogger.logBackup(
+            action: LogAction.create,
+            description: l10n.logBackupCreated(fileName),
+            backupName: fileName,
+            descriptionKey: 'createdBackup',
+            descriptionArgs: {'name': fileName},
+          ),
+        ));
       } else {
         OperationNotification.show(
           context,
@@ -226,6 +239,16 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
         ),
         duration: AppTheme.kPasswordHintDelay,
       );
+      // Log backup restore
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logBackup(
+          action: LogAction.restore,
+          description: l10n.logBackupRestored(entry.fileName),
+          backupName: entry.fileName,
+          descriptionKey: 'restoredBackup',
+          descriptionArgs: {'name': entry.fileName},
+        ),
+      ));
     } else {
       OperationNotification.show(
         context,
@@ -278,6 +301,16 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
           customMessage: AppLocalizations.of(context).dataMgmtBackupDeleted,
         ),
       );
+      // Log backup deletion
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logBackup(
+          action: LogAction.delete,
+          description: AppLocalizations.of(context).logBackupDeleted(entry.fileName),
+          backupName: entry.fileName,
+          descriptionKey: 'deletedBackup',
+          descriptionArgs: {'name': entry.fileName},
+        ),
+      ));
     }
   }
 

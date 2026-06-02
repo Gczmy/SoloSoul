@@ -1370,6 +1370,9 @@
   "logSectionSensitivity": "敏感设置",
   "logSectionCustom": "自定义",
   "logSectionDefault": "分区",
+  "logSectionAttachment": "附件",
+  "logSectionBackup": "备份",
+  "logSectionPlugin": "插件",
   "operationFilterLabel": "筛选",
   "trashFilterLabel": "筛选：",
   "trashTimeFilterLabel": "时间：",
@@ -1808,5 +1811,101 @@
   "xlsxPreviewTitle": "表格预览",
   "browseAllSheets": "浏览所有工作表",
   "docxNoThumbnail": "此文件未包含缩略图，请点击下方按钮用系统应用打开完整文档",
-  "xlsxNoThumbnail": "此文件未包含缩略图，请点击下方按钮用系统应用打开完整表格"
+  "xlsxNoThumbnail": "此文件未包含缩略图，请点击下方按钮用系统应用打开完整表格",
+  "logAttachmentUploaded": "上传附件 \"{name}\"",
+  "@logAttachmentUploaded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentDownloaded": "下载附件 \"{name}\"",
+  "@logAttachmentDownloaded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentDeleted": "删除附件 \"{name}\"",
+  "@logAttachmentDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentRestored": "恢复附件 \"{name}\"",
+  "@logAttachmentRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logAttachmentPermanentlyDeleted": "永久删除附件 \"{name}\"",
+  "@logAttachmentPermanentlyDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBackupCreated": "创建备份 \"{name}\"",
+  "@logBackupCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBackupRestored": "恢复备份 \"{name}\"",
+  "@logBackupRestored": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logBackupDeleted": "删除备份 \"{name}\"",
+  "@logBackupDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginInstalled": "安装插件 \"{name}\"",
+  "@logPluginInstalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginUpdated": "更新插件 \"{name}\"",
+  "@logPluginUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginUninstalled": "卸载插件 \"{name}\"",
+  "@logPluginUninstalled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "logPluginRan": "运行插件 \"{name}\"",
+  "@logPluginRan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

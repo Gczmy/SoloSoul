@@ -20,7 +20,10 @@ enum LogSection {
   travel('travel'),
   financial('financial'),
   professional('professional'),
-  sensitivitySettings('sensitivity settings');
+  sensitivitySettings('sensitivity settings'),
+  attachment('attachment'),
+  backup('backup'),
+  plugin('plugin');
 
   final String value;
   const LogSection(this.value);
@@ -142,6 +145,18 @@ class OperationEntry {
       'restoredUnifiedItem' => l10n.operationLogRestoredItem(args['name'] ?? ''),
       'purgedUnifiedItem' => l10n.trashPermanentDeletedItem(args['name'] ?? ''),
       'restoredTrashItem' => l10n.trashRestoredItem(args['name'] ?? ''),
+      'uploadedAttachment' => l10n.logAttachmentUploaded(args['name'] ?? ''),
+      'downloadedAttachment' => l10n.logAttachmentDownloaded(args['name'] ?? ''),
+      'deletedAttachment' => l10n.logAttachmentDeleted(args['name'] ?? ''),
+      'restoredAttachment' => l10n.logAttachmentRestored(args['name'] ?? ''),
+      'permanentlyDeletedAttachment' => l10n.logAttachmentPermanentlyDeleted(args['name'] ?? ''),
+      'createdBackup' => l10n.logBackupCreated(args['name'] ?? ''),
+      'restoredBackup' => l10n.logBackupRestored(args['name'] ?? ''),
+      'deletedBackup' => l10n.logBackupDeleted(args['name'] ?? ''),
+      'installedPlugin' => l10n.logPluginInstalled(args['name'] ?? ''),
+      'updatedPlugin' => l10n.logPluginUpdated(args['name'] ?? ''),
+      'uninstalledPlugin' => l10n.logPluginUninstalled(args['name'] ?? ''),
+      'ranPlugin' => l10n.logPluginRan(args['name'] ?? ''),
       'sensitivitySet' => _sensitivityDesc(args, l10n),
       'sensitivityChanged' => _sensitivityDesc(args, l10n),
       'sensitivityReverted' => _sensitivityDesc(args, l10n),

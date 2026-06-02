@@ -325,6 +325,77 @@ class OperationLogger {
     );
   }
 
+  /// Log an attachment operation (upload, download, delete, purge).
+  static OperationEntry logAttachment({
+    required LogAction action,
+    required String description,
+    String? fileName,
+    String? fileSize,
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
+    String? descriptionKey,
+    Map<String, String>? descriptionArgs,
+  }) {
+    return OperationEntry(
+      timestamp: DateTime.now(),
+      action: action.value,
+      section: LogSection.attachment.value,
+      description: description,
+      sensitivityLevel: sensitivityLevel,
+      properties: {
+        if (fileName != null) 'fileName': fileName,
+        if (fileSize != null) 'fileSize': fileSize,
+      },
+      descriptionKey: descriptionKey,
+      descriptionArgs: descriptionArgs,
+    );
+  }
+
+  /// Log a backup operation (create, delete, restore).
+  static OperationEntry logBackup({
+    required LogAction action,
+    required String description,
+    String? backupName,
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
+    String? descriptionKey,
+    Map<String, String>? descriptionArgs,
+  }) {
+    return OperationEntry(
+      timestamp: DateTime.now(),
+      action: action.value,
+      section: LogSection.backup.value,
+      description: description,
+      sensitivityLevel: sensitivityLevel,
+      properties: {
+        if (backupName != null) 'backupName': backupName,
+      },
+      descriptionKey: descriptionKey,
+      descriptionArgs: descriptionArgs,
+    );
+  }
+
+  /// Log a plugin operation (install, uninstall, run).
+  static OperationEntry logPlugin({
+    required LogAction action,
+    required String description,
+    String? pluginName,
+    SensitivityLevel sensitivityLevel = SensitivityLevel.public,
+    String? descriptionKey,
+    Map<String, String>? descriptionArgs,
+  }) {
+    return OperationEntry(
+      timestamp: DateTime.now(),
+      action: action.value,
+      section: LogSection.plugin.value,
+      description: description,
+      sensitivityLevel: sensitivityLevel,
+      properties: {
+        if (pluginName != null) 'pluginName': pluginName,
+      },
+      descriptionKey: descriptionKey,
+      descriptionArgs: descriptionArgs,
+    );
+  }
+
   /// Auto-detect action by comparing old and new values
   /// Returns create if old was null, delete if new is null, otherwise update
   static LogAction detectAction<T>(T? oldValue, T? newValue) {

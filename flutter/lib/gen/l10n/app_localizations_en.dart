@@ -3308,6 +3308,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logSectionDefault => 'Section';
 
   @override
+  String get logSectionAttachment => 'Attachment';
+
+  @override
+  String get logSectionBackup => 'Backup';
+
+  @override
+  String get logSectionPlugin => 'Plugin';
+
+  @override
   String get operationFilterLabel => 'Filter';
 
   @override
@@ -4345,4 +4354,64 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get xlsxNoThumbnail =>
       'This file does not contain a thumbnail. Please tap the button below to open the full spreadsheet with your system app.';
+
+  @override
+  String logAttachmentUploaded(String name) {
+    return 'Uploaded attachment \"$name\"';
+  }
+
+  @override
+  String logAttachmentDownloaded(String name) {
+    return 'Downloaded attachment \"$name\"';
+  }
+
+  @override
+  String logAttachmentDeleted(String name) {
+    return 'Deleted attachment \"$name\"';
+  }
+
+  @override
+  String logAttachmentRestored(String name) {
+    return 'Restored attachment \"$name\"';
+  }
+
+  @override
+  String logAttachmentPermanentlyDeleted(String name) {
+    return 'Permanently deleted attachment \"$name\"';
+  }
+
+  @override
+  String logBackupCreated(String name) {
+    return 'Created backup \"$name\"';
+  }
+
+  @override
+  String logBackupRestored(String name) {
+    return 'Restored backup \"$name\"';
+  }
+
+  @override
+  String logBackupDeleted(String name) {
+    return 'Deleted backup \"$name\"';
+  }
+
+  @override
+  String logPluginInstalled(String name) {
+    return 'Installed plugin \"$name\"';
+  }
+
+  @override
+  String logPluginUpdated(String name) {
+    return 'Updated plugin \"$name\"';
+  }
+
+  @override
+  String logPluginUninstalled(String name) {
+    return 'Uninstalled plugin \"$name\"';
+  }
+
+  @override
+  String logPluginRan(String name) {
+    return 'Ran plugin \"$name\"';
+  }
 }

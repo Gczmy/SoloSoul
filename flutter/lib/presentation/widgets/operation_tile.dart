@@ -176,6 +176,15 @@ class OperationTile extends StatelessWidget {
         return l10n.logSectionProfessional;
       case 'sensitivity settings':
         return l10n.logSectionSensitivity;
+      case 'attachment':
+      case 'attachments':
+        return l10n.logSectionAttachment;
+      case 'backup':
+      case 'backups':
+        return l10n.logSectionBackup;
+      case 'plugin':
+      case 'plugins':
+        return l10n.logSectionPlugin;
       default:
         return l10n.logSectionDefault;
     }

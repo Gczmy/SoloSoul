@@ -3229,6 +3229,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get logSectionDefault => '分区';
 
   @override
+  String get logSectionAttachment => '附件';
+
+  @override
+  String get logSectionBackup => '备份';
+
+  @override
+  String get logSectionPlugin => '插件';
+
+  @override
   String get operationFilterLabel => '筛选';
 
   @override
@@ -4207,4 +4216,64 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get xlsxNoThumbnail => '此文件未包含缩略图，请点击下方按钮用系统应用打开完整表格';
+
+  @override
+  String logAttachmentUploaded(String name) {
+    return '上传附件 \"$name\"';
+  }
+
+  @override
+  String logAttachmentDownloaded(String name) {
+    return '下载附件 \"$name\"';
+  }
+
+  @override
+  String logAttachmentDeleted(String name) {
+    return '删除附件 \"$name\"';
+  }
+
+  @override
+  String logAttachmentRestored(String name) {
+    return '恢复附件 \"$name\"';
+  }
+
+  @override
+  String logAttachmentPermanentlyDeleted(String name) {
+    return '永久删除附件 \"$name\"';
+  }
+
+  @override
+  String logBackupCreated(String name) {
+    return '创建备份 \"$name\"';
+  }
+
+  @override
+  String logBackupRestored(String name) {
+    return '恢复备份 \"$name\"';
+  }
+
+  @override
+  String logBackupDeleted(String name) {
+    return '删除备份 \"$name\"';
+  }
+
+  @override
+  String logPluginInstalled(String name) {
+    return '安装插件 \"$name\"';
+  }
+
+  @override
+  String logPluginUpdated(String name) {
+    return '更新插件 \"$name\"';
+  }
+
+  @override
+  String logPluginUninstalled(String name) {
+    return '卸载插件 \"$name\"';
+  }
+
+  @override
+  String logPluginRan(String name) {
+    return '运行插件 \"$name\"';
+  }
 }

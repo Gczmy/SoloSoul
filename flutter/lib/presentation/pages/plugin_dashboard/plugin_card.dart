@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io' show Platform;
 
@@ -7,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version/version.dart';
 
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/frb/plugin/manager.dart' as frb_plugin;
 import 'package:solosoul_flutter/frb/plugin/manifest.dart' as frb_manifest;
@@ -363,6 +367,17 @@ class PluginCard extends ConsumerWidget {
             ),
           ),
         );
+        // Log plugin install
+        final pluginName = manifest?.name ?? pluginId;
+        unawaited(OperationLogService.instance.addEntry(
+          OperationLogger.logPlugin(
+            action: isUpdate ? LogAction.update : LogAction.create,
+            description: isUpdate ? l10n.logPluginUpdated(pluginName) : l10n.logPluginInstalled(pluginName),
+            pluginName: pluginName,
+            descriptionKey: isUpdate ? 'updatedPlugin' : 'installedPlugin',
+            descriptionArgs: {'name': pluginName},
+          ),
+        ));
       }
     } on Exception catch (e) {
       if (context.mounted) {
@@ -661,6 +676,21 @@ class PluginCard extends ConsumerWidget {
 
       if (session.hasCompleted && context.mounted) {
         await _showRunResult(context, session);
+        // Log plugin run
+        final registryEntry = data.registry.plugins[pluginId];
+        final languageCode = Localizations.localeOf(context).languageCode;
+        final pluginName = resolvePluginI18n(
+          registryEntry?.i18n, 'name', languageCode, getPluginManifest(data, pluginId)?.name ?? pluginId,
+        );
+        unawaited(OperationLogService.instance.addEntry(
+          OperationLogger.logPlugin(
+            action: LogAction.create,
+            description: l10n.logPluginRan(pluginName),
+            pluginName: pluginName,
+            descriptionKey: 'ranPlugin',
+            descriptionArgs: {'name': pluginName},
+          ),
+        ));
       }
     } on Exception catch (e) {
       if (context.mounted) {
@@ -1039,6 +1069,21 @@ class PluginCard extends ConsumerWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.pluginUninstallSuccess)),
           );
+          // Log plugin uninstall
+          final registryEntry = data.registry.plugins[pluginId];
+          final languageCode = Localizations.localeOf(context).languageCode;
+          final pluginName = resolvePluginI18n(
+            registryEntry?.i18n, 'name', languageCode, getPluginManifest(data, pluginId)?.name ?? pluginId,
+          );
+          unawaited(OperationLogService.instance.addEntry(
+            OperationLogger.logPlugin(
+              action: LogAction.delete,
+              description: l10n.logPluginUninstalled(pluginName),
+              pluginName: pluginName,
+              descriptionKey: 'uninstalledPlugin',
+              descriptionArgs: {'name': pluginName},
+            ),
+          ));
         }
       } on Exception catch (e) {
         if (context.mounted) {

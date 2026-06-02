@@ -1,8 +1,13 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 import 'package:solosoul_flutter/core/services/attachment_upload_service.dart';
+import 'package:solosoul_flutter/core/services/operation_logger.dart';
+import 'package:solosoul_flutter/presentation/models/operation_log_models.dart';
+import 'package:solosoul_flutter/presentation/providers/operation_log_provider.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart'
@@ -85,6 +90,19 @@ class AttachmentUploadHelper {
         content: l10n.attachmentAdded,
         type: SnackBarType.success,
       );
+      // Log attachment upload
+      final sizeStr = attachment.size != null ? '${(attachment.size! / (1024 * 1024)).toStringAsFixed(1)} MB' : '';
+      final displayName = sizeStr.isNotEmpty ? '${attachment.fileName} ($sizeStr)' : attachment.fileName;
+      unawaited(OperationLogService.instance.addEntry(
+        OperationLogger.logAttachment(
+          action: LogAction.create,
+          description: l10n.logAttachmentUploaded(displayName),
+          fileName: attachment.fileName,
+          fileSize: sizeStr,
+          descriptionKey: 'uploadedAttachment',
+          descriptionArgs: {'name': displayName},
+        ),
+      ));
     } else if (attachment == null && context.mounted) {
       showOverlaySnackBar(
         context,
