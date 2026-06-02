@@ -394,29 +394,6 @@ class BackupService {
     }
   }
 
-  /// 计算某备份的大小 = 备份文件大小 + manifest 引用的池文件大小总和。
-  Future<int> _backupTotalSize(String backupFilePath) async {
-    final file = File(backupFilePath);
-    int total = 0;
-    if (await file.exists()) {
-      total += (await file.stat()).size;
-    }
-
-    final sidecarDir = _attachmentsDirPath(backupFilePath);
-    final fileIds = readManifest(sidecarDir);
-    for (final fileId in fileIds) {
-      // 从备份文件路径中提取 accountId
-      final accountId = extractAccountIdFromBackupPath(backupFilePath);
-      if (accountId != null) {
-        total += await AttachmentPoolService.instance.getPoolFileSize(
-          accountId,
-          fileId,
-        );
-      }
-    }
-    return total;
-  }
-
   @visibleForTesting
   static String? extractAccountIdFromBackupPath(String backupFilePath) {
     // 路径格式: .../solosoul_backups/{accountId}/backup_...backup
@@ -498,7 +475,7 @@ class BackupService {
   }
 
   /// 列出某账户的所有常规备份，按时间从新到旧排序。
-  /// 大小包含附件目录。
+  /// sizeBytes 只包含 .backup 文件本身大小（附件池共享，不重复计算）。
   Future<List<BackupEntry>> listBackups(String accountId) async {
     try {
       final dir = await _accountBackupDir(accountId);
@@ -511,11 +488,10 @@ class BackupService {
         if (!name.startsWith(_filePrefix) || !name.endsWith(_fileExt)) continue;
 
         final stat = await entity.stat();
-        final totalSize = await _backupTotalSize(entity.path);
         entries.add(BackupEntry(
           fileName: name,
           createdAt: stat.modified,
-          sizeBytes: totalSize,
+          sizeBytes: stat.size,
         ));
       }
 
@@ -580,10 +556,17 @@ class BackupService {
     return list.isNotEmpty ? list.first : null;
   }
 
-  /// 获取备份文件的总大小（含附件）。
+  /// 获取备份文件的总大小（.backup 文件 + 共享附件池，去重后）。
   Future<int> getTotalBackupSize(String accountId) async {
     final list = await listBackups(accountId);
-    return list.fold<int>(0, (sum, e) => sum + e.sizeBytes);
+    final backupFilesSize = list.fold<int>(0, (sum, e) => sum + e.sizeBytes);
+    final poolSize = await getAttachmentPoolSize(accountId);
+    return backupFilesSize + poolSize;
+  }
+
+  /// 获取附件池总大小（字节）。
+  Future<int> getAttachmentPoolSize(String accountId) async {
+    return AttachmentPoolService.instance.getPoolSize(accountId);
   }
 
   // -------------------------------------------------------------------------
@@ -648,7 +631,8 @@ class BackupService {
     }
   }
 
-  /// 列出某账户的所有特别备份（大小含附件）。
+  /// 列出某账户的所有特别备份。
+  /// sizeBytes 只包含 .backup 文件本身大小。
   Future<List<BackupEntry>> listSpecialBackups(String accountId) async {
     try {
       final dir = await _specialBackupDir(accountId);
@@ -661,11 +645,10 @@ class BackupService {
         if (!name.endsWith(_fileExt)) continue;
 
         final stat = await entity.stat();
-        final totalSize = await _backupTotalSize(entity.path);
         entries.add(BackupEntry(
           fileName: name,
           createdAt: stat.modified,
-          sizeBytes: totalSize,
+          sizeBytes: stat.size,
         ));
       }
 

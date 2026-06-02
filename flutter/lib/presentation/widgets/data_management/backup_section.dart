@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
-import 'package:solosoul_flutter/presentation/utils/format_utils.dart';
+
 import 'package:solosoul_flutter/presentation/widgets/data_management/backup_list_tile.dart';
 import 'package:solosoul_flutter/presentation/widgets/data_management/backup_progress_indicator.dart';
 
@@ -11,6 +11,7 @@ class BackupSection extends StatelessWidget {
   final List<BackupEntry> backups;
   final bool isRestoring;
   final int totalSize;
+  final String backupPoolSize;
   final VoidCallback onCreateBackup;
   final ValueChanged<BackupEntry> onRestoreBackup;
   final ValueChanged<BackupEntry> onDeleteBackup;
@@ -23,6 +24,7 @@ class BackupSection extends StatelessWidget {
     required this.backups,
     required this.isRestoring,
     required this.totalSize,
+    required this.backupPoolSize,
     required this.onCreateBackup,
     required this.onRestoreBackup,
     required this.onDeleteBackup,
@@ -31,7 +33,6 @@ class BackupSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Column(
@@ -142,7 +143,7 @@ class BackupSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Center(
               child: Text(
-                l10n.dataManagementBackupsSummary(backups.length, formatBytes(totalSize)),
+                '${backups.length} 个备份 · 附件池 $backupPoolSize',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

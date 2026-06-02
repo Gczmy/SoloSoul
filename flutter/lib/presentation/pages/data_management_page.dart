@@ -43,6 +43,7 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   int _attachmentCount = 0;
   String _totalSize = '0 B';
   String? _appVersion;
+  int _backupPoolSizeBytes = 0;
 
   @override
   void initState() {
@@ -80,10 +81,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     if (accountId == null) return;
     final regular = await BackupService.instance.listBackups(accountId);
     final special = await BackupService.instance.listSpecialBackups(accountId);
+    final poolSize = await BackupService.instance.getAttachmentPoolSize(accountId);
     if (mounted) {
       setState(() {
         _backups = regular;
         _specialBackups = special;
+        _backupPoolSizeBytes = poolSize;
         _isLoading = false;
       });
     }
@@ -625,7 +628,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final totalSize = _backups.fold<int>(0, (s, e) => s + e.sizeBytes);
+    final backupFilesSize = _backups.fold<int>(0, (s, e) => s + e.sizeBytes);
+    final totalBackupSize = backupFilesSize + _backupPoolSizeBytes;
 
     return Scaffold(
       appBar: SoloGlassAppBar(
@@ -661,7 +665,8 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                     backupProgress: _backupProgress,
                     backups: _backups,
                     isRestoring: _isRestoring,
-                    totalSize: totalSize,
+                    totalSize: totalBackupSize,
+                    backupPoolSize: formatBytes(_backupPoolSizeBytes),
                     onCreateBackup: _createBackup,
                     onRestoreBackup: _restoreBackup,
                     onDeleteBackup: _deleteBackup,
