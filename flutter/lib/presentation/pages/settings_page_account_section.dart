@@ -3,9 +3,9 @@ part of 'settings_page.dart';
 /// Account settings section showing current account, all accounts, and data management.
 /// Extracted from SettingsPage to reduce file length.
 class _AccountSettingsSection extends ConsumerWidget {
-  final String vaultDataSize;
+  final String totalDataSize;
 
-  const _AccountSettingsSection({required this.vaultDataSize});
+  const _AccountSettingsSection({required this.totalDataSize});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,7 +94,7 @@ class _AccountSettingsSection extends ConsumerWidget {
                 SettingsTile(
                   icon: Icons.storage_outlined,
                   title: l10n.settingsDataManagement,
-                  subtitle: vaultDataSize.isEmpty ? l10n.commonLoading : vaultDataSize,
+                  subtitle: totalDataSize.isEmpty ? l10n.commonLoading : totalDataSize,
                   onTap: () => context.push(AppRoutes.dataManagement),
                 ),
               ],

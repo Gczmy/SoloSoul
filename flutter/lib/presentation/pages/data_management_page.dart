@@ -5,6 +5,7 @@ import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/operation_notification.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
@@ -38,6 +39,9 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
   String? _accountId;
   // Initialized with localized fallback in _init()
   String _vaultDataSize = '';
+  String _attachmentSize = '0 B';
+  int _attachmentCount = 0;
+  String _totalSize = '0 B';
   String? _appVersion;
 
   @override
@@ -51,8 +55,17 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
     _accountId = authNotifier.selectedAccountId;
 
     final stats = await RustVaultService.instance.getVaultStats();
-    if (stats != null) {
-      _vaultDataSize = formatBytes(stats.totalSizeBytes.toInt());
+    final vaultSize = stats?.totalSizeBytes.toInt() ?? 0;
+    _vaultDataSize = formatBytes(vaultSize);
+
+    // 统计附件大小
+    final accountId = _accountId;
+    if (accountId != null) {
+      final attachmentSize = await AttachmentStorageService().getTotalAttachmentSize(accountId);
+      final attachmentCount = await AttachmentStorageService().getAttachmentCount(accountId);
+      _attachmentSize = formatBytes(attachmentSize);
+      _attachmentCount = attachmentCount;
+      _totalSize = formatBytes(vaultSize + attachmentSize);
     }
 
     final packageInfo = await PackageInfo.fromPlatform();
@@ -636,7 +649,12 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 children: [
-                  VaultInfoCard(vaultDataSize: _vaultDataSize),
+                  VaultInfoCard(
+                    vaultDataSize: _vaultDataSize,
+                    attachmentSize: _attachmentSize,
+                    attachmentCount: _attachmentCount,
+                    totalSize: _totalSize,
+                  ),
                   const SizedBox(height: 16),
                   BackupSection(
                     isCreating: _isCreating,

@@ -342,6 +342,92 @@ class AttachmentStorageService {
     return deletedCount;
   }
 
+  // ---------------------------------------------------------------------------
+  // Storage Statistics
+  // ---------------------------------------------------------------------------
+
+  /// 获取附件目录总大小（字节）。
+  /// 只统计 `.solo` 加密文件。
+  Future<int> getTotalAttachmentSize(String accountId) async {
+    try {
+      final dir = await _getAttachmentsDir(accountId);
+      if (!await dir.exists()) return 0;
+
+      int totalSize = 0;
+      await for (final entity in dir.list()) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.last;
+        if (!name.endsWith('.solo')) continue;
+        totalSize += await entity.length();
+      }
+      return totalSize;
+    } on Exception catch (e) {
+      SoloLog.w('AttachmentStorage', 'Failed to get total attachment size: $e');
+      return 0;
+    }
+  }
+
+  /// 获取本地存在的所有附件 fileId 集合。
+  Future<Set<String>> getAttachmentFileIds(String accountId) async {
+    try {
+      final dir = await _getAttachmentsDir(accountId);
+      if (!await dir.exists()) return const {};
+
+      final fileIds = <String>{};
+      await for (final entity in dir.list()) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.last;
+        if (!name.endsWith('.solo')) continue;
+        fileIds.add(name.substring(0, name.length - 5));
+      }
+      return fileIds;
+    } on Exception catch (e) {
+      SoloLog.w('AttachmentStorage', 'Failed to get attachment file IDs: $e');
+      return const {};
+    }
+  }
+
+  /// 获取附件数量。
+  Future<int> getAttachmentCount(String accountId) async {
+    try {
+      final dir = await _getAttachmentsDir(accountId);
+      if (!await dir.exists()) return 0;
+
+      int count = 0;
+      await for (final entity in dir.list()) {
+        if (entity is! File) continue;
+        if (entity.uri.pathSegments.last.endsWith('.solo')) count++;
+      }
+      return count;
+    } on Exception catch (e) {
+      SoloLog.w('AttachmentStorage', 'Failed to get attachment count: $e');
+      return 0;
+    }
+  }
+
+  /// 清理残留的 `.solo.part` 临时文件（传输中断时遗留）。
+  /// 建议在应用启动时调用。
+  Future<int> cleanupPartialFiles(String accountId) async {
+    try {
+      final dir = await _getAttachmentsDir(accountId);
+      if (!await dir.exists()) return 0;
+
+      int deletedCount = 0;
+      await for (final entity in dir.list()) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.last;
+        if (!name.endsWith('.solo.part')) continue;
+        await entity.delete();
+        deletedCount++;
+        SoloLog.d('AttachmentStorage', 'Cleaned partial file: $name');
+      }
+      return deletedCount;
+    } on Exception catch (e) {
+      SoloLog.w('AttachmentStorage', 'Failed to cleanup partial files: $e');
+      return 0;
+    }
+  }
+
   String _guessMimeType(String fileName) {
     final ext = fileName.contains('.')
         ? fileName.split('.').last.toLowerCase()

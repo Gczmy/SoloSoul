@@ -5792,6 +5792,24 @@ abstract class AppLocalizations {
   /// **'Vault size: '**
   String get dataMgmtVaultSize;
 
+  /// No description provided for @dataMgmtAttachmentSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments: '**
+  String get dataMgmtAttachmentSize;
+
+  /// No description provided for @dataMgmtTotalSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: '**
+  String get dataMgmtTotalSize;
+
+  /// No description provided for @dataMgmtAttachmentCountUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'files'**
+  String get dataMgmtAttachmentCountUnit;
+
   /// No description provided for @dataMgmtBackupEncryptionDesc.
   ///
   /// In en, this message translates to:

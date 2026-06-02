@@ -3137,6 +3137,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataMgmtVaultSize => 'Vault size: ';
 
   @override
+  String get dataMgmtAttachmentSize => 'Attachments: ';
+
+  @override
+  String get dataMgmtTotalSize => 'Total: ';
+
+  @override
+  String get dataMgmtAttachmentCountUnit => 'files';
+
+  @override
   String get dataMgmtBackupEncryptionDesc =>
       'Backups are encrypted with your vault key. Auto-backup runs on every unlock.';
 

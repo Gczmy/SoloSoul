@@ -21,6 +21,7 @@ import 'package:solosoul_flutter/presentation/widgets/header_action_buttons.dart
 import 'package:solosoul_flutter/presentation/widgets/lock_vault_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:solosoul_flutter/core/services/attachment_download_service.dart';
+import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
 import 'package:solosoul_flutter/core/services/user_guide_service.dart';
@@ -147,24 +148,42 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  String _vaultDataSize = '';
+  String _totalDataSize = '';
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(_loadVaultDataSize);
+    Future.microtask(_loadDataSizes);
   }
 
-  Future<void> _loadVaultDataSize() async {
-    final size = await _getVaultDataSize();
-    if (mounted) setState(() => _vaultDataSize = size);
+  Future<void> _loadDataSizes() async {
+    final sizes = await _getDataSizes();
+    if (mounted) {
+      setState(() => _totalDataSize = sizes.totalSize);
+    }
   }
 
-  Future<String> _getVaultDataSize() async {
+  Future<({String vaultSize, String totalSize})> _getDataSizes() async {
     final l10n = AppLocalizations.of(context);
     final stats = await RustVaultService.instance.getVaultStats();
-    if (stats == null) return l10n.settingsUnknown;
-    final bytes = stats.totalSizeBytes.toInt();
+    if (stats == null) return (vaultSize: l10n.settingsUnknown, totalSize: l10n.settingsUnknown);
+
+    final vaultBytes = stats.totalSizeBytes.toInt();
+    final vaultSize = _formatSize(vaultBytes);
+
+    // 统计附件大小
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    final accountId = authNotifier.selectedAccountId;
+    int attachmentBytes = 0;
+    if (accountId != null) {
+      attachmentBytes = await AttachmentStorageService().getTotalAttachmentSize(accountId);
+    }
+    final totalSize = _formatSize(vaultBytes + attachmentBytes);
+
+    return (vaultSize: vaultSize, totalSize: totalSize);
+  }
+
+  String _formatSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     if (bytes < 1024 * 1024 * 1024) {
@@ -220,7 +239,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _AccountSettingsSection(vaultDataSize: _vaultDataSize),
+            _AccountSettingsSection(totalDataSize: _totalDataSize),
             const SizedBox(height: 16),
             const _AccessSettingsSection(),
             const SizedBox(height: 16),

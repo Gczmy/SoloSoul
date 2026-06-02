@@ -3063,6 +3063,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataMgmtVaultSize => '保险库大小：';
 
   @override
+  String get dataMgmtAttachmentSize => '附件存储：';
+
+  @override
+  String get dataMgmtTotalSize => '总计：';
+
+  @override
+  String get dataMgmtAttachmentCountUnit => '个文件';
+
+  @override
   String get dataMgmtBackupEncryptionDesc => '备份使用您的保险库密钥加密。每次解锁时自动运行备份。';
 
   @override
