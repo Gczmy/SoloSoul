@@ -23,10 +23,13 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:solosoul_flutter/core/services/attachment_pool_service.dart';
 import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'profile_storage_service.dart';
 import 'rust_vault_service.dart';
 
@@ -157,21 +160,126 @@ class BackupService {
   }
 
   // -------------------------------------------------------------------------
-  // 附件备份 / 恢复 辅助
+  // Manifest（附件引用清单）
   // -------------------------------------------------------------------------
 
-  /// 将账户附件目录复制到备份附件目录
+  static const _manifestFileName = 'manifest.json';
+
+  @visibleForTesting
+  static void writeManifest(String sidecarDir, List<String> fileIds) {
+    final manifest = <String, dynamic>{
+      'version': 1,
+      'fileIds': fileIds,
+    };
+    final file = File('$sidecarDir/$_manifestFileName');
+    file.writeAsStringSync(jsonEncode(manifest));
+  }
+
+  @visibleForTesting
+  static List<String> readManifest(String sidecarDir) {
+    final file = File('$sidecarDir/$_manifestFileName');
+    if (!file.existsSync()) return const [];
+    try {
+      final content = file.readAsStringSync();
+      final json = jsonDecode(content) as Map<String, dynamic>;
+      final ids = json['fileIds'];
+      if (ids is List) {
+        return ids.whereType<String>().toList();
+      }
+    } on Exception catch (e) {
+      SoloLog.w('BACKUP', 'Failed to read manifest at $sidecarDir: $e');
+    }
+    return const [];
+  }
+
+  /// 扫描所有备份（常规 + 特别）的 manifest，汇总仍被引用的 fileId 集合。
+  Future<Set<String>> _collectAllReferencedFileIds(String accountId) async {
+    final referenced = <String>{};
+
+    // 常规备份
+    final regularDir = await _accountBackupDir(accountId);
+    if (await regularDir.exists()) {
+      await for (final entity in regularDir.list()) {
+        if (entity is! File) continue;
+        final name = entity.path.split(Platform.pathSeparator).last;
+        if (!name.startsWith(_filePrefix) || !name.endsWith(_fileExt)) continue;
+        final sidecar = _attachmentsDirPath(entity.path);
+        referenced.addAll(readManifest(sidecar));
+      }
+    }
+
+    // 特别备份
+    final specialDir = await _specialBackupDir(accountId);
+    if (await specialDir.exists()) {
+      await for (final entity in specialDir.list()) {
+        if (entity is! File) continue;
+        final name = entity.path.split(Platform.pathSeparator).last;
+        if (!name.endsWith(_fileExt)) continue;
+        final sidecar = _attachmentsDirPath(entity.path);
+        referenced.addAll(readManifest(sidecar));
+      }
+    }
+
+    return referenced;
+  }
+
+  /// 旧格式迁移：sidecar 目录包含 .solo 文件但没有 manifest.json。
+  /// 将 .solo 文件移至附件池，并生成 manifest.json。
+  Future<void> _migrateOldSidecarFormat(
+    String accountId,
+    String sidecarDir,
+  ) async {
+    final dir = Directory(sidecarDir);
+    if (!await dir.exists()) return;
+
+    // 检查是否已有 manifest
+    final manifestFile = File('$sidecarDir/$_manifestFileName');
+    if (await manifestFile.exists()) return;
+
+    final fileIds = <String>[];
+    await for (final entity in dir.list()) {
+      if (entity is! File) continue;
+      final name = entity.uri.pathSegments.last;
+      if (!name.endsWith('.solo')) continue;
+      final fileId = name.substring(0, name.length - 5);
+      // 移至附件池
+      await AttachmentPoolService.instance.ensureInPool(
+        accountId,
+        fileId,
+        entity.path,
+      );
+      fileIds.add(fileId);
+    }
+
+    // 写入 manifest
+    writeManifest(sidecarDir, fileIds);
+    DebugLogger.instance.logInfo(
+      'BACKUP',
+      'Migrated old sidecar format at $sidecarDir (${fileIds.length} files)',
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // 附件备份 / 恢复 / 删除（引用池模式）
+  // -------------------------------------------------------------------------
+
+  /// 将账户附件放入引用池，并在 sidecar 目录写入 manifest。
   Future<void> _backupAttachments(
     String accountId,
     String backupAttachmentsDir,
   ) async {
     final srcFileIds = await AttachmentStorageService().getAttachmentFileIds(accountId);
-    if (srcFileIds.isEmpty) return;
+    if (srcFileIds.isEmpty) {
+      // 写入空 manifest
+      writeManifest(backupAttachmentsDir, const []);
+      return;
+    }
 
     final Directory srcDir;
     try {
       srcDir = await AttachmentStorageService().getAttachmentsDir(accountId);
     } on Exception catch (_) {
+      writeManifest(backupAttachmentsDir, const []);
       return;
     }
 
@@ -180,25 +288,33 @@ class BackupService {
       await dstDir.create(recursive: true);
     }
 
+    final pooledFileIds = <String>[];
     for (final fileId in srcFileIds) {
       final srcFile = File('${srcDir.path}/$fileId.solo');
       if (await srcFile.exists()) {
-        await srcFile.copy('${dstDir.path}/$fileId.solo');
+        final ok = await AttachmentPoolService.instance.ensureInPool(
+          accountId,
+          fileId,
+          srcFile.path,
+        );
+        if (ok) pooledFileIds.add(fileId);
       }
     }
+
+    writeManifest(backupAttachmentsDir, pooledFileIds);
     DebugLogger.instance.logInfo(
       'BACKUP',
-      'Copied ${srcFileIds.length} attachments to $backupAttachmentsDir',
+      'Pooled ${pooledFileIds.length} attachments for backup',
     );
   }
 
-  /// 从备份附件目录恢复到账户附件目录
+  /// 从 manifest 读取引用，从附件池恢复到账户附件目录。
   Future<void> _restoreAttachments(
     String accountId,
     String backupAttachmentsDir,
   ) async {
-    final srcDir = Directory(backupAttachmentsDir);
-    if (!await srcDir.exists()) return;
+    final fileIds = readManifest(backupAttachmentsDir);
+    if (fileIds.isEmpty) return;
 
     final Directory dstDir;
     try {
@@ -211,40 +327,105 @@ class BackupService {
     }
 
     int restoredCount = 0;
-    await for (final entity in srcDir.list()) {
-      if (entity is! File) continue;
-      final name = entity.uri.pathSegments.last;
-      if (!name.endsWith('.solo')) continue;
-      await entity.copy('${dstDir.path}/$name');
-      restoredCount++;
+    int missingCount = 0;
+    for (final fileId in fileIds) {
+      final ok = await AttachmentPoolService.instance.getFromPool(
+        accountId,
+        fileId,
+        '${dstDir.path}/$fileId.solo',
+      );
+      if (ok) {
+        restoredCount++;
+      } else {
+        missingCount++;
+        SoloLog.w('BACKUP', 'Pool file missing during restore: $fileId');
+      }
     }
+
     if (restoredCount > 0) {
       DebugLogger.instance.logInfo(
         'BACKUP',
-        'Restored $restoredCount attachments from $backupAttachmentsDir',
+        'Restored $restoredCount attachments from pool'
+        '${missingCount > 0 ? ' ($missingCount missing)' : ''}',
+      );
+    }
+    if (missingCount > 0) {
+      SoloLog.w(
+        'BACKUP',
+        '$missingCount attachment(s) missing from pool — '
+        'may have been manually deleted.',
       );
     }
   }
 
-  /// 删除备份附件目录
-  Future<void> _deleteAttachmentsDir(String backupAttachmentsDir) async {
-    final dir = Directory(backupAttachmentsDir);
+  /// 删除备份的 sidecar 目录，并清理未被其他备份引用的池文件。
+  Future<void> _deleteBackupWithCleanup(
+    String accountId,
+    String backupFilePath,
+  ) async {
+    final sidecarDir = _attachmentsDirPath(backupFilePath);
+
+    // 1. 读取被删备份的 manifest
+    final deletedFileIds = readManifest(sidecarDir);
+
+    // 2. 删除备份文件
+    final file = File(backupFilePath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+
+    // 3. 删除 sidecar 目录
+    final dir = Directory(sidecarDir);
     if (await dir.exists()) {
       await dir.delete(recursive: true);
     }
+
+    // 4. 若该备份没有引用任何附件，无需清理池
+    if (deletedFileIds.isEmpty) return;
+
+    // 5. 扫描所有剩余备份的 manifest，计算仍被引用的 fileId
+    final stillReferenced = await _collectAllReferencedFileIds(accountId);
+
+    // 6. 清理不再被引用的池文件
+    for (final fileId in deletedFileIds) {
+      if (!stillReferenced.contains(fileId)) {
+        await AttachmentPoolService.instance.removeFromPool(accountId, fileId);
+      }
+    }
   }
 
-  /// 计算备份附件目录大小
-  Future<int> _attachmentsDirSize(String backupAttachmentsDir) async {
-    final dir = Directory(backupAttachmentsDir);
-    if (!await dir.exists()) return 0;
+  /// 计算某备份的大小 = 备份文件大小 + manifest 引用的池文件大小总和。
+  Future<int> _backupTotalSize(String backupFilePath) async {
+    final file = File(backupFilePath);
     int total = 0;
-    await for (final entity in dir.list()) {
-      if (entity is File) {
-        total += await entity.length();
+    if (await file.exists()) {
+      total += (await file.stat()).size;
+    }
+
+    final sidecarDir = _attachmentsDirPath(backupFilePath);
+    final fileIds = readManifest(sidecarDir);
+    for (final fileId in fileIds) {
+      // 从备份文件路径中提取 accountId
+      final accountId = extractAccountIdFromBackupPath(backupFilePath);
+      if (accountId != null) {
+        total += await AttachmentPoolService.instance.getPoolFileSize(
+          accountId,
+          fileId,
+        );
       }
     }
     return total;
+  }
+
+  @visibleForTesting
+  static String? extractAccountIdFromBackupPath(String backupFilePath) {
+    // 路径格式: .../solosoul_backups/{accountId}/backup_...backup
+    final parts = backupFilePath.split(Platform.pathSeparator);
+    final idx = parts.indexOf(_backupDirName);
+    if (idx >= 0 && idx + 1 < parts.length) {
+      return parts[idx + 1];
+    }
+    return null;
   }
 
   // -------------------------------------------------------------------------
@@ -330,11 +511,11 @@ class BackupService {
         if (!name.startsWith(_filePrefix) || !name.endsWith(_fileExt)) continue;
 
         final stat = await entity.stat();
-        final attachmentsSize = await _attachmentsDirSize(_attachmentsDirPath(entity.path));
+        final totalSize = await _backupTotalSize(entity.path);
         entries.add(BackupEntry(
           fileName: name,
           createdAt: stat.modified,
-          sizeBytes: stat.size + attachmentsSize,
+          sizeBytes: totalSize,
         ));
       }
 
@@ -352,6 +533,9 @@ class BackupService {
       final dir = await _accountBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
       if (!await file.exists()) return false;
+
+      // 1.5 旧格式迁移（若 sidecar 含 .solo 文件但无 manifest）
+      await _migrateOldSidecarFormat(accountId, _attachmentsDirPath(file.path));
 
       final encrypted = await file.readAsBytes();
       final decrypted = await RustVaultService.instance.decryptBytes(encrypted);
@@ -377,16 +561,13 @@ class BackupService {
     }
   }
 
-  /// 删除某条常规备份（含附件目录）。
+  /// 删除某条常规备份（含附件目录及池清理）。
   Future<bool> deleteBackup(String accountId, String fileName) async {
     try {
       final dir = await _accountBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
-      if (await file.exists()) {
-        await file.delete();
-      }
-      // 同时删除附件目录
-      await _deleteAttachmentsDir(_attachmentsDirPath(file.path));
+      if (!await file.exists()) return false;
+      await _deleteBackupWithCleanup(accountId, file.path);
       return true;
     } on FileSystemException catch (_) {
       return false;
@@ -480,11 +661,11 @@ class BackupService {
         if (!name.endsWith(_fileExt)) continue;
 
         final stat = await entity.stat();
-        final attachmentsSize = await _attachmentsDirSize(_attachmentsDirPath(entity.path));
+        final totalSize = await _backupTotalSize(entity.path);
         entries.add(BackupEntry(
           fileName: name,
           createdAt: stat.modified,
-          sizeBytes: stat.size + attachmentsSize,
+          sizeBytes: totalSize,
         ));
       }
 
@@ -527,16 +708,13 @@ class BackupService {
     }
   }
 
-  /// 删除某条特别备份（含附件目录）。
+  /// 删除某条特别备份（含附件目录及池清理）。
   Future<bool> deleteSpecialBackup(String accountId, String fileName) async {
     try {
       final dir = await _specialBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
-      if (await file.exists()) {
-        await file.delete();
-      }
-      // 同时删除附件目录
-      await _deleteAttachmentsDir(_attachmentsDirPath(file.path));
+      if (!await file.exists()) return false;
+      await _deleteBackupWithCleanup(accountId, file.path);
       return true;
     } on FileSystemException catch (_) {
       return false;
@@ -549,6 +727,9 @@ class BackupService {
       final dir = await _specialBackupDir(accountId);
       final file = File('${dir.path}/$fileName');
       if (!await file.exists()) return false;
+
+      // 旧格式迁移
+      await _migrateOldSidecarFormat(accountId, _attachmentsDirPath(file.path));
 
       final encrypted = await file.readAsBytes();
       final decrypted = await RustVaultService.instance.decryptBytes(encrypted);
@@ -601,11 +782,16 @@ class BackupService {
       if (await specialFile.exists()) return null;
 
       await regularFile.copy(specialFile.path);
-      // 同时复制附件目录
-      final regularAttachDir = Directory(_attachmentsDirPath(regularFile.path));
-      if (await regularAttachDir.exists()) {
-        final specialAttachDir = Directory(_attachmentsDirPath(specialFile.path));
-        await _copyDirectory(regularAttachDir, specialAttachDir);
+      // 同时复制 manifest（引用相同的池文件，无需复制附件内容）
+      final regularSidecar = _attachmentsDirPath(regularFile.path);
+      final specialSidecar = _attachmentsDirPath(specialFile.path);
+      final regularManifest = File('$regularSidecar/$_manifestFileName');
+      if (await regularManifest.exists()) {
+        final specialAttachDir = Directory(specialSidecar);
+        if (!await specialAttachDir.exists()) {
+          await specialAttachDir.create(recursive: true);
+        }
+        await regularManifest.copy('$specialSidecar/$_manifestFileName');
       }
       return newFileName;
     } on FileSystemException catch (e, st) {
@@ -624,31 +810,17 @@ class BackupService {
     if (list.length <= maxBackupCount) return;
 
     final toDelete = list.sublist(maxBackupCount);
-    final dir = await _accountBackupDir(accountId);
     for (final entry in toDelete) {
       try {
+        final dir = await _accountBackupDir(accountId);
         final file = File('${dir.path}/${entry.fileName}');
-        if (await file.exists()) await file.delete();
-        // 同时删除附件目录
-        await _deleteAttachmentsDir(_attachmentsDirPath(file.path));
+        if (await file.exists()) {
+          await _deleteBackupWithCleanup(accountId, file.path);
+        }
       } on FileSystemException catch (_) {
         // 忽略清理错误
       }
     }
   }
 
-  /// 递归复制目录
-  Future<void> _copyDirectory(Directory source, Directory destination) async {
-    if (!await destination.exists()) {
-      await destination.create(recursive: true);
-    }
-    await for (final entity in source.list()) {
-      final name = entity.uri.pathSegments.last;
-      if (entity is File) {
-        await entity.copy('${destination.path}/$name');
-      } else if (entity is Directory) {
-        await _copyDirectory(entity, Directory('${destination.path}/$name'));
-      }
-    }
-  }
 }
