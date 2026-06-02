@@ -138,9 +138,9 @@ class BackupSection extends StatelessWidget {
               );
             }).toList(),
           ),
-        if (backups.isNotEmpty)
+        if (backups.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 4),
             child: Center(
               child: Text(
                 '${backups.length} 个备份 · 附件池 $backupPoolSize',
@@ -150,6 +150,19 @@ class BackupSection extends StatelessWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Center(
+              child: Text(
+                '附件在所有备份间共享存储，实际总占用 ≈ 附件池 + 各备份文件',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
