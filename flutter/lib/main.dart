@@ -108,6 +108,13 @@ class _AppBootstrapState extends State<AppBootstrap> {
         if (File(absPath).existsSync()) {
           externalLibrary = ExternalLibrary.open(absPath);
         }
+      } else if (Platform.isWindows) {
+        final exeDir = File(Platform.resolvedExecutable).parent.path;
+        final dllPath = '$exeDir/solosoul_core.dll';
+        final absPath = File(dllPath).absolute.path;
+        if (File(absPath).existsSync()) {
+          externalLibrary = ExternalLibrary.open(absPath);
+        }
       }
       await RustLib.init(externalLibrary: externalLibrary);
 

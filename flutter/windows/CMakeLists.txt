@@ -49,6 +49,30 @@ endfunction()
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
+# Rust library build
+set(RUST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../native")
+set(RUST_TARGET "x86_64-pc-windows-msvc")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  set(RUST_BUILD_FLAG "--release")
+  set(RUST_OUTPUT_DIR "${RUST_DIR}/target/${RUST_TARGET}/release")
+else()
+  set(RUST_OUTPUT_DIR "${RUST_DIR}/target/${RUST_TARGET}/debug")
+endif()
+
+set(RUST_DLL "${RUST_OUTPUT_DIR}/solosoul_core.dll")
+set(RUST_IMPLIB "${RUST_OUTPUT_DIR}/solosoul_core.lib")
+
+add_custom_command(
+  OUTPUT ${RUST_DLL} ${RUST_IMPLIB}
+  COMMAND cargo build --target ${RUST_TARGET} --features sandbox ${RUST_BUILD_FLAG}
+  WORKING_DIRECTORY ${RUST_DIR}
+  COMMENT "Building Rust core library for Windows..."
+  BYPRODUCTS ${RUST_IMPLIB}
+)
+
+add_custom_target(rust_build DEPENDS ${RUST_DLL} ${RUST_IMPLIB})
+
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
