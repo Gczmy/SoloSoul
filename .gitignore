@@ -40,9 +40,9 @@ vendor/
 *.dylib
 *.a
 *.test
-solosoul
-solosould
-solosould_server
+/solosoul
+/solosould
+/solosould_server
 
 # Test binaries
 *.test
