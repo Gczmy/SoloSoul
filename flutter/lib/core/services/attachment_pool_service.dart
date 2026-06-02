@@ -64,7 +64,6 @@ class AttachmentPoolService {
     final poolPath = await _poolFilePath(accountId, fileId);
     final poolFile = File(poolPath);
     if (await poolFile.exists()) {
-      SoloLog.d('AttachmentPool', 'Pool file already exists: $fileId');
       return true;
     }
 
