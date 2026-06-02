@@ -24,7 +24,7 @@ import 'package:solosoul_flutter/core/services/attachment_download_service.dart'
 import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/fallback_secure_storage.dart';
 import 'package:solosoul_flutter/core/services/rust_vault_service.dart';
-import 'package:solosoul_flutter/core/services/user_guide_service.dart';
+
 import 'package:solosoul_flutter/core/services/debug_logger.dart'
     show DebugLogger;
 import 'package:solosoul_flutter/presentation/widgets/settings/debug_log_sheet.dart';
@@ -49,7 +49,7 @@ part 'settings_page_llm_section.dart';
 part 'settings_page_app_info_section.dart';
 part 'settings_page_ad_section.dart';
 part 'settings_page_plugin_section.dart';
-part 'settings_page_help_section.dart';
+
 
 final packageInfoProvider = FutureProvider<PackageInfo>((ref) async {
   return PackageInfo.fromPlatform();
@@ -252,8 +252,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const _LLMSettingsSection(),
             const SizedBox(height: 16),
             const _PluginSettingsSection(),
-            const SizedBox(height: 16),
-            const _HelpSettingsSection(),
             const SizedBox(height: 16),
             const _AppInfoSection(),
             const SizedBox(height: 32),
