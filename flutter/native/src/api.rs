@@ -697,6 +697,11 @@ pub struct SyncResult {
     pub direction: SyncDirection,
     pub bytes_sent: usize,
     pub bytes_received: usize,
+    pub attachments_sent: usize,
+    pub attachments_received: usize,
+    pub attachment_bytes_sent: usize,
+    pub attachment_bytes_received: usize,
+    pub attachment_incomplete: bool,
     pub error: Option<String>,
 }
 
@@ -781,8 +786,9 @@ pub fn frb_sync_initiator(
     remote_addr: String,
     pairing_key: Vec<u8>,
     device_salt: Vec<u8>,
+    attachments_dir: String,
 ) -> Result<SyncResult, String> {
-    use crate::sync::engine::SyncEngine;
+    use crate::sync::engine::{extract_attachment_manifest, SyncEngine};
     use crate::sync::transport::TcpTransport;
 
     // 1. Load and decrypt current profile
@@ -810,7 +816,11 @@ pub fn frb_sync_initiator(
     };
     let crdt_doc = crate::sync::crdt::SoloDoc::from_profile(&profile_data, &meta);
 
-    // 3. Establish Noise channel
+    // 3. Build attachment manifest
+    let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
+    let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
+
+    // 4. Establish Noise channel
     let local_keypair =
         crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, &device_salt);
     let responder_keypair =
@@ -819,14 +829,15 @@ pub fn frb_sync_initiator(
         crate::sync::protocol::SecureChannel::handshake_ik(&local_keypair, &responder_keypair)
             .map_err(|e| format!("Noise handshake failed: {}", e))?;
 
-    // 4. Connect and sync
+    // 5. Connect and sync
     let transport =
         TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
 
-    let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport));
+    let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
+        .with_attachments(attachments_dir, attachment_manifest);
     let result = engine.sync_initiator()?;
 
-    // 5. If we pulled changes, encrypt and save updated profile
+    // 6. If we pulled changes, encrypt and save updated profile
     if matches!(
         result.direction,
         crate::sync::engine::SyncDirection::Pulled
@@ -852,6 +863,11 @@ pub fn frb_sync_initiator(
         },
         bytes_sent: result.bytes_sent,
         bytes_received: result.bytes_received,
+        attachments_sent: result.attachments_sent,
+        attachments_received: result.attachments_received,
+        attachment_bytes_sent: result.attachment_bytes_sent,
+        attachment_bytes_received: result.attachment_bytes_received,
+        attachment_incomplete: result.attachment_incomplete,
         error: result.error,
     })
 }
@@ -868,8 +884,9 @@ pub fn frb_sync_responder(
     remote_addr: String,
     pairing_key: Vec<u8>,
     device_salt: Vec<u8>,
+    attachments_dir: String,
 ) -> Result<SyncResult, String> {
-    use crate::sync::engine::SyncEngine;
+    use crate::sync::engine::{extract_attachment_manifest, SyncEngine};
     use crate::sync::transport::TcpTransport;
 
     // 1. Load and decrypt current profile
@@ -897,7 +914,11 @@ pub fn frb_sync_responder(
     };
     let crdt_doc = crate::sync::crdt::SoloDoc::from_profile(&profile_data, &meta);
 
-    // 3. Establish Noise channel
+    // 3. Build attachment manifest
+    let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
+    let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
+
+    // 4. Establish Noise channel
     let local_keypair =
         crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, &device_salt);
     let initiator_keypair =
@@ -906,14 +927,15 @@ pub fn frb_sync_responder(
         crate::sync::protocol::SecureChannel::handshake_ik(&initiator_keypair, &local_keypair)
             .map_err(|e| format!("Noise handshake failed: {}", e))?;
 
-    // 4. Connect and sync
+    // 5. Connect and sync
     let transport =
         TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
 
-    let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport));
+    let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
+        .with_attachments(attachments_dir, attachment_manifest);
     let result = engine.sync_responder()?;
 
-    // 5. If we pulled changes, encrypt and save updated profile
+    // 6. If we pulled changes, encrypt and save updated profile
     if matches!(
         result.direction,
         crate::sync::engine::SyncDirection::Pulled
@@ -939,6 +961,11 @@ pub fn frb_sync_responder(
         },
         bytes_sent: result.bytes_sent,
         bytes_received: result.bytes_received,
+        attachments_sent: result.attachments_sent,
+        attachments_received: result.attachments_received,
+        attachment_bytes_sent: result.attachment_bytes_sent,
+        attachment_bytes_received: result.attachment_bytes_received,
+        attachment_incomplete: result.attachment_incomplete,
         error: result.error,
     })
 }

@@ -218,11 +218,13 @@ Future<SyncResult> frbSyncInitiator({
   required String remoteAddr,
   required List<int> pairingKey,
   required List<int> deviceSalt,
+  required String attachmentsDir,
 }) => RustLib.instance.api.crateApiFrbSyncInitiator(
   accountId: accountId,
   remoteAddr: remoteAddr,
   pairingKey: pairingKey,
   deviceSalt: deviceSalt,
+  attachmentsDir: attachmentsDir,
 );
 
 /// Sync profile with a remote device as the responder (receives state vector first).
@@ -236,11 +238,13 @@ Future<SyncResult> frbSyncResponder({
   required String remoteAddr,
   required List<int> pairingKey,
   required List<int> deviceSalt,
+  required String attachmentsDir,
 }) => RustLib.instance.api.crateApiFrbSyncResponder(
   accountId: accountId,
   remoteAddr: remoteAddr,
   pairingKey: pairingKey,
   deviceSalt: deviceSalt,
+  attachmentsDir: attachmentsDir,
 );
 
 /// Phase 1 兼容：仅加载 rec 模型
@@ -532,6 +536,11 @@ sealed class SyncResult with _$SyncResult {
     required SyncDirection direction,
     required BigInt bytesSent,
     required BigInt bytesReceived,
+    required BigInt attachmentsSent,
+    required BigInt attachmentsReceived,
+    required BigInt attachmentBytesSent,
+    required BigInt attachmentBytesReceived,
+    required bool attachmentIncomplete,
     String? error,
   }) = _SyncResult;
 }

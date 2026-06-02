@@ -564,6 +564,20 @@ class _SyncResultCard extends StatelessWidget {
               value: '${result.bytesSent} sent / ${result.bytesReceived} received',
               icon: Icons.swap_vert,
             ),
+            const SizedBox(height: 8),
+            _ResultRow(
+              label: 'Attachments',
+              value: '${result.attachmentsSent} sent / ${result.attachmentsReceived} received',
+              icon: Icons.attach_file,
+            ),
+            if (result.attachmentIncomplete) ...[
+              const SizedBox(height: 8),
+              const _ResultRow(
+                label: 'Warning',
+                value: 'Some attachments were not fully transferred',
+                icon: Icons.warning_amber,
+              ),
+            ],
             if (error != null && error.isNotEmpty) ...[
               const SizedBox(height: 8),
               _ResultRow(

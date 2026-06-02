@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 
@@ -5,6 +8,7 @@ import 'package:solosoul_flutter/frb/api.dart' as frb;
 ///
 /// Uses mDNS for device discovery and CRDT-based sync for profile data.
 /// All communication is encrypted via Noise_IK protocol.
+/// Attachment files are synced over the same encrypted channel.
 class SyncService {
   SyncService._();
 
@@ -12,6 +16,7 @@ class SyncService {
   static SyncService get instance => _instance ??= SyncService._();
 
   static const _syncPort = 9900;
+  static const _attachmentsDirName = 'solosoul_storage/attachments';
 
   /// Discover SoloSoul devices on the local network.
   ///
@@ -50,9 +55,20 @@ class SyncService {
     }
   }
 
+  /// Get the attachments directory path for an account.
+  Future<String> _getAttachmentsDir(String accountId) async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final dir = Directory('${appDir.path}/$_attachmentsDirName/$accountId');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir.path;
+  }
+
   /// Initiate sync with a remote device.
   ///
   /// This device sends its state vector first, then applies the remote diff.
+  /// Attachment files are synced after CRDT sync completes.
   Future<frb.SyncResult> syncAsInitiator({
     required String accountId,
     required String remoteAddr,
@@ -62,13 +78,19 @@ class SyncService {
     SoloLog.d('SyncService', 'Initiating sync with $remoteAddr');
     final timer = SoloLog.startTimer('SyncService', 'syncAsInitiator');
     try {
+      final attachmentsDir = await _getAttachmentsDir(accountId);
       final result = await frb.frbSyncInitiator(
         accountId: accountId,
         remoteAddr: remoteAddr,
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
+        attachmentsDir: attachmentsDir,
       );
-      SoloLog.d('SyncService', 'Sync complete: direction=${result.direction}');
+      SoloLog.d(
+        'SyncService',
+        'Sync complete: direction=${result.direction}, '
+        'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received',
+      );
       SoloLog.endTimer(timer);
       return result;
     } on Exception catch (e, st) {
@@ -81,6 +103,7 @@ class SyncService {
   /// Respond to an incoming sync request.
   ///
   /// This device receives the remote state vector first, then sends its diff.
+  /// Attachment files are synced after CRDT sync completes.
   Future<frb.SyncResult> syncAsResponder({
     required String accountId,
     required String remoteAddr,
@@ -90,13 +113,19 @@ class SyncService {
     SoloLog.d('SyncService', 'Responding to sync from $remoteAddr');
     final timer = SoloLog.startTimer('SyncService', 'syncAsResponder');
     try {
+      final attachmentsDir = await _getAttachmentsDir(accountId);
       final result = await frb.frbSyncResponder(
         accountId: accountId,
         remoteAddr: remoteAddr,
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
+        attachmentsDir: attachmentsDir,
       );
-      SoloLog.d('SyncService', 'Sync complete: direction=${result.direction}');
+      SoloLog.d(
+        'SyncService',
+        'Sync complete: direction=${result.direction}, '
+        'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received',
+      );
       SoloLog.endTimer(timer);
       return result;
     } on Exception catch (e, st) {

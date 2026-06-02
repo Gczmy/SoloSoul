@@ -1284,6 +1284,7 @@ fn wire__crate__api__frb_sync_initiator_impl(
             let api_remote_addr = <String>::sse_decode(&mut deserializer);
             let api_pairing_key = <Vec<u8>>::sse_decode(&mut deserializer);
             let api_device_salt = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_attachments_dir = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
@@ -1292,6 +1293,7 @@ fn wire__crate__api__frb_sync_initiator_impl(
                         api_remote_addr,
                         api_pairing_key,
                         api_device_salt,
+                        api_attachments_dir,
                     )?;
                     Ok(output_ok)
                 })())
@@ -1325,6 +1327,7 @@ fn wire__crate__api__frb_sync_responder_impl(
             let api_remote_addr = <String>::sse_decode(&mut deserializer);
             let api_pairing_key = <Vec<u8>>::sse_decode(&mut deserializer);
             let api_device_salt = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_attachments_dir = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
@@ -1333,6 +1336,7 @@ fn wire__crate__api__frb_sync_responder_impl(
                         api_remote_addr,
                         api_pairing_key,
                         api_device_salt,
+                        api_attachments_dir,
                     )?;
                     Ok(output_ok)
                 })())
@@ -2190,12 +2194,22 @@ impl SseDecode for crate::api::SyncResult {
         let mut var_direction = <crate::api::SyncDirection>::sse_decode(deserializer);
         let mut var_bytesSent = <usize>::sse_decode(deserializer);
         let mut var_bytesReceived = <usize>::sse_decode(deserializer);
+        let mut var_attachmentsSent = <usize>::sse_decode(deserializer);
+        let mut var_attachmentsReceived = <usize>::sse_decode(deserializer);
+        let mut var_attachmentBytesSent = <usize>::sse_decode(deserializer);
+        let mut var_attachmentBytesReceived = <usize>::sse_decode(deserializer);
+        let mut var_attachmentIncomplete = <bool>::sse_decode(deserializer);
         let mut var_error = <Option<String>>::sse_decode(deserializer);
         return crate::api::SyncResult {
             success: var_success,
             direction: var_direction,
             bytes_sent: var_bytesSent,
             bytes_received: var_bytesReceived,
+            attachments_sent: var_attachmentsSent,
+            attachments_received: var_attachmentsReceived,
+            attachment_bytes_sent: var_attachmentBytesSent,
+            attachment_bytes_received: var_attachmentBytesReceived,
+            attachment_incomplete: var_attachmentIncomplete,
             error: var_error,
         };
     }
@@ -3430,6 +3444,11 @@ impl SseEncode for crate::api::SyncResult {
         <crate::api::SyncDirection>::sse_encode(self.direction, serializer);
         <usize>::sse_encode(self.bytes_sent, serializer);
         <usize>::sse_encode(self.bytes_received, serializer);
+        <usize>::sse_encode(self.attachments_sent, serializer);
+        <usize>::sse_encode(self.attachments_received, serializer);
+        <usize>::sse_encode(self.attachment_bytes_sent, serializer);
+        <usize>::sse_encode(self.attachment_bytes_received, serializer);
+        <bool>::sse_encode(self.attachment_incomplete, serializer);
         <Option<String>>::sse_encode(self.error, serializer);
     }
 }

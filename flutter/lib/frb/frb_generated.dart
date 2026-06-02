@@ -212,6 +212,7 @@ abstract class RustLibApi extends BaseApi {
     required String remoteAddr,
     required List<int> pairingKey,
     required List<int> deviceSalt,
+    required String attachmentsDir,
   });
 
   Future<SyncResult> crateApiFrbSyncResponder({
@@ -219,6 +220,7 @@ abstract class RustLibApi extends BaseApi {
     required String remoteAddr,
     required List<int> pairingKey,
     required List<int> deviceSalt,
+    required String attachmentsDir,
   });
 
   Future<FormHistories> crateApiFrbTestFormHistories();
@@ -1356,6 +1358,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required String remoteAddr,
     required List<int> pairingKey,
     required List<int> deviceSalt,
+    required String attachmentsDir,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -1365,6 +1368,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_String(remoteAddr, serializer);
           sse_encode_list_prim_u_8_loose(pairingKey, serializer);
           sse_encode_list_prim_u_8_loose(deviceSalt, serializer);
+          sse_encode_String(attachmentsDir, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -1377,7 +1381,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_String,
         ),
         constMeta: kCrateApiFrbSyncInitiatorConstMeta,
-        argValues: [accountId, remoteAddr, pairingKey, deviceSalt],
+        argValues: [accountId, remoteAddr, pairingKey, deviceSalt, attachmentsDir],
         apiImpl: this,
       ),
     );
@@ -1385,7 +1389,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiFrbSyncInitiatorConstMeta => const TaskConstMeta(
     debugName: "frb_sync_initiator",
-    argNames: ["accountId", "remoteAddr", "pairingKey", "deviceSalt"],
+    argNames: ["accountId", "remoteAddr", "pairingKey", "deviceSalt", "attachmentsDir"],
   );
 
   @override
@@ -1394,6 +1398,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required String remoteAddr,
     required List<int> pairingKey,
     required List<int> deviceSalt,
+    required String attachmentsDir,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -1403,6 +1408,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_String(remoteAddr, serializer);
           sse_encode_list_prim_u_8_loose(pairingKey, serializer);
           sse_encode_list_prim_u_8_loose(deviceSalt, serializer);
+          sse_encode_String(attachmentsDir, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -2087,14 +2093,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   SyncResult dco_decode_sync_result(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
     return SyncResult(
       success: dco_decode_bool(arr[0]),
       direction: dco_decode_sync_direction(arr[1]),
       bytesSent: dco_decode_usize(arr[2]),
       bytesReceived: dco_decode_usize(arr[3]),
-      error: dco_decode_opt_String(arr[4]),
+      attachmentsSent: dco_decode_usize(arr[4]),
+      attachmentsReceived: dco_decode_usize(arr[5]),
+      attachmentBytesSent: dco_decode_usize(arr[6]),
+      attachmentBytesReceived: dco_decode_usize(arr[7]),
+      attachmentIncomplete: dco_decode_bool(arr[8]),
+      error: dco_decode_opt_String(arr[9]),
     );
   }
 
@@ -2888,12 +2899,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_direction = sse_decode_sync_direction(deserializer);
     var var_bytesSent = sse_decode_usize(deserializer);
     var var_bytesReceived = sse_decode_usize(deserializer);
+    var var_attachmentsSent = sse_decode_usize(deserializer);
+    var var_attachmentsReceived = sse_decode_usize(deserializer);
+    var var_attachmentBytesSent = sse_decode_usize(deserializer);
+    var var_attachmentBytesReceived = sse_decode_usize(deserializer);
+    var var_attachmentIncomplete = sse_decode_bool(deserializer);
     var var_error = sse_decode_opt_String(deserializer);
     return SyncResult(
       success: var_success,
       direction: var_direction,
       bytesSent: var_bytesSent,
       bytesReceived: var_bytesReceived,
+      attachmentsSent: var_attachmentsSent,
+      attachmentsReceived: var_attachmentsReceived,
+      attachmentBytesSent: var_attachmentBytesSent,
+      attachmentBytesReceived: var_attachmentBytesReceived,
+      attachmentIncomplete: var_attachmentIncomplete,
       error: var_error,
     );
   }
@@ -3589,6 +3610,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_sync_direction(self.direction, serializer);
     sse_encode_usize(self.bytesSent, serializer);
     sse_encode_usize(self.bytesReceived, serializer);
+    sse_encode_usize(self.attachmentsSent, serializer);
+    sse_encode_usize(self.attachmentsReceived, serializer);
+    sse_encode_usize(self.attachmentBytesSent, serializer);
+    sse_encode_usize(self.attachmentBytesReceived, serializer);
+    sse_encode_bool(self.attachmentIncomplete, serializer);
     sse_encode_opt_String(self.error, serializer);
   }
 

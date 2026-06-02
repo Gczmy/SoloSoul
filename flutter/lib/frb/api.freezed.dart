@@ -3897,7 +3897,7 @@ as SensitivityLevel,
 /// @nodoc
 mixin _$SyncResult {
 
- bool get success; SyncDirection get direction; BigInt get bytesSent; BigInt get bytesReceived; String? get error;
+ bool get success; SyncDirection get direction; BigInt get bytesSent; BigInt get bytesReceived; BigInt get attachmentsSent; BigInt get attachmentsReceived; BigInt get attachmentBytesSent; BigInt get attachmentBytesReceived; bool get attachmentIncomplete; String? get error;
 /// Create a copy of SyncResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3908,16 +3908,16 @@ $SyncResultCopyWith<SyncResult> get copyWith => _$SyncResultCopyWithImpl<SyncRes
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncResult&&(identical(other.success, success) || other.success == success)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.bytesSent, bytesSent) || other.bytesSent == bytesSent)&&(identical(other.bytesReceived, bytesReceived) || other.bytesReceived == bytesReceived)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncResult&&(identical(other.success, success) || other.success == success)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.bytesSent, bytesSent) || other.bytesSent == bytesSent)&&(identical(other.bytesReceived, bytesReceived) || other.bytesReceived == bytesReceived)&&(identical(other.attachmentsSent, attachmentsSent) || other.attachmentsSent == attachmentsSent)&&(identical(other.attachmentsReceived, attachmentsReceived) || other.attachmentsReceived == attachmentsReceived)&&(identical(other.attachmentBytesSent, attachmentBytesSent) || other.attachmentBytesSent == attachmentBytesSent)&&(identical(other.attachmentBytesReceived, attachmentBytesReceived) || other.attachmentBytesReceived == attachmentBytesReceived)&&(identical(other.attachmentIncomplete, attachmentIncomplete) || other.attachmentIncomplete == attachmentIncomplete)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,success,direction,bytesSent,bytesReceived,error);
+int get hashCode => Object.hash(runtimeType,success,direction,bytesSent,bytesReceived,attachmentsSent,attachmentsReceived,attachmentBytesSent,attachmentBytesReceived,attachmentIncomplete,error);
 
 @override
 String toString() {
-  return 'SyncResult(success: $success, direction: $direction, bytesSent: $bytesSent, bytesReceived: $bytesReceived, error: $error)';
+  return 'SyncResult(success: $success, direction: $direction, bytesSent: $bytesSent, bytesReceived: $bytesReceived, attachmentsSent: $attachmentsSent, attachmentsReceived: $attachmentsReceived, attachmentBytesSent: $attachmentBytesSent, attachmentBytesReceived: $attachmentBytesReceived, attachmentIncomplete: $attachmentIncomplete, error: $error)';
 }
 
 
@@ -3928,7 +3928,7 @@ abstract mixin class $SyncResultCopyWith<$Res>  {
   factory $SyncResultCopyWith(SyncResult value, $Res Function(SyncResult) _then) = _$SyncResultCopyWithImpl;
 @useResult
 $Res call({
- bool success, SyncDirection direction, BigInt bytesSent, BigInt bytesReceived, String? error
+ bool success, SyncDirection direction, BigInt bytesSent, BigInt bytesReceived, BigInt attachmentsSent, BigInt attachmentsReceived, BigInt attachmentBytesSent, BigInt attachmentBytesReceived, bool attachmentIncomplete, String? error
 });
 
 
@@ -3945,13 +3945,18 @@ class _$SyncResultCopyWithImpl<$Res>
 
 /// Create a copy of SyncResult
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? success = null,Object? direction = null,Object? bytesSent = null,Object? bytesReceived = null,Object? error = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? success = null,Object? direction = null,Object? bytesSent = null,Object? bytesReceived = null,Object? attachmentsSent = null,Object? attachmentsReceived = null,Object? attachmentBytesSent = null,Object? attachmentBytesReceived = null,Object? attachmentIncomplete = null,Object? error = freezed,}) {
   return _then(_self.copyWith(
 success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as SyncDirection,bytesSent: null == bytesSent ? _self.bytesSent : bytesSent // ignore: cast_nullable_to_non_nullable
 as BigInt,bytesReceived: null == bytesReceived ? _self.bytesReceived : bytesReceived // ignore: cast_nullable_to_non_nullable
-as BigInt,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentsSent: null == attachmentsSent ? _self.attachmentsSent : attachmentsSent // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentsReceived: null == attachmentsReceived ? _self.attachmentsReceived : attachmentsReceived // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentBytesSent: null == attachmentBytesSent ? _self.attachmentBytesSent : attachmentBytesSent // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentBytesReceived: null == attachmentBytesReceived ? _self.attachmentBytesReceived : attachmentBytesReceived // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentIncomplete: null == attachmentIncomplete ? _self.attachmentIncomplete : attachmentIncomplete // ignore: cast_nullable_to_non_nullable
+as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -4034,10 +4039,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  BigInt attachmentsSent,  BigInt attachmentsReceived,  BigInt attachmentBytesSent,  BigInt attachmentBytesReceived,  bool attachmentIncomplete,  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SyncResult() when $default != null:
-return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.error);case _:
+return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.attachmentsSent,_that.attachmentsReceived,_that.attachmentBytesSent,_that.attachmentBytesReceived,_that.attachmentIncomplete,_that.error);case _:
   return orElse();
 
 }
@@ -4055,10 +4060,10 @@ return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceive
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  BigInt attachmentsSent,  BigInt attachmentsReceived,  BigInt attachmentBytesSent,  BigInt attachmentBytesReceived,  bool attachmentIncomplete,  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _SyncResult():
-return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.error);}
+return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.attachmentsSent,_that.attachmentsReceived,_that.attachmentBytesSent,_that.attachmentBytesReceived,_that.attachmentIncomplete,_that.error);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -4072,10 +4077,10 @@ return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceive
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool success,  SyncDirection direction,  BigInt bytesSent,  BigInt bytesReceived,  BigInt attachmentsSent,  BigInt attachmentsReceived,  BigInt attachmentBytesSent,  BigInt attachmentBytesReceived,  bool attachmentIncomplete,  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _SyncResult() when $default != null:
-return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.error);case _:
+return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceived,_that.attachmentsSent,_that.attachmentsReceived,_that.attachmentBytesSent,_that.attachmentBytesReceived,_that.attachmentIncomplete,_that.error);case _:
   return null;
 
 }
@@ -4087,13 +4092,18 @@ return $default(_that.success,_that.direction,_that.bytesSent,_that.bytesReceive
 
 
 class _SyncResult implements SyncResult {
-  const _SyncResult({required this.success, required this.direction, required this.bytesSent, required this.bytesReceived, this.error});
+  const _SyncResult({required this.success, required this.direction, required this.bytesSent, required this.bytesReceived, required this.attachmentsSent, required this.attachmentsReceived, required this.attachmentBytesSent, required this.attachmentBytesReceived, required this.attachmentIncomplete, this.error});
   
 
 @override final  bool success;
 @override final  SyncDirection direction;
 @override final  BigInt bytesSent;
 @override final  BigInt bytesReceived;
+@override final  BigInt attachmentsSent;
+@override final  BigInt attachmentsReceived;
+@override final  BigInt attachmentBytesSent;
+@override final  BigInt attachmentBytesReceived;
+@override final  bool attachmentIncomplete;
 @override final  String? error;
 
 /// Create a copy of SyncResult
@@ -4106,16 +4116,16 @@ _$SyncResultCopyWith<_SyncResult> get copyWith => __$SyncResultCopyWithImpl<_Syn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncResult&&(identical(other.success, success) || other.success == success)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.bytesSent, bytesSent) || other.bytesSent == bytesSent)&&(identical(other.bytesReceived, bytesReceived) || other.bytesReceived == bytesReceived)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncResult&&(identical(other.success, success) || other.success == success)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.bytesSent, bytesSent) || other.bytesSent == bytesSent)&&(identical(other.bytesReceived, bytesReceived) || other.bytesReceived == bytesReceived)&&(identical(other.attachmentsSent, attachmentsSent) || other.attachmentsSent == attachmentsSent)&&(identical(other.attachmentsReceived, attachmentsReceived) || other.attachmentsReceived == attachmentsReceived)&&(identical(other.attachmentBytesSent, attachmentBytesSent) || other.attachmentBytesSent == attachmentBytesSent)&&(identical(other.attachmentBytesReceived, attachmentBytesReceived) || other.attachmentBytesReceived == attachmentBytesReceived)&&(identical(other.attachmentIncomplete, attachmentIncomplete) || other.attachmentIncomplete == attachmentIncomplete)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,success,direction,bytesSent,bytesReceived,error);
+int get hashCode => Object.hash(runtimeType,success,direction,bytesSent,bytesReceived,attachmentsSent,attachmentsReceived,attachmentBytesSent,attachmentBytesReceived,attachmentIncomplete,error);
 
 @override
 String toString() {
-  return 'SyncResult(success: $success, direction: $direction, bytesSent: $bytesSent, bytesReceived: $bytesReceived, error: $error)';
+  return 'SyncResult(success: $success, direction: $direction, bytesSent: $bytesSent, bytesReceived: $bytesReceived, attachmentsSent: $attachmentsSent, attachmentsReceived: $attachmentsReceived, attachmentBytesSent: $attachmentBytesSent, attachmentBytesReceived: $attachmentBytesReceived, attachmentIncomplete: $attachmentIncomplete, error: $error)';
 }
 
 
@@ -4126,7 +4136,7 @@ abstract mixin class _$SyncResultCopyWith<$Res> implements $SyncResultCopyWith<$
   factory _$SyncResultCopyWith(_SyncResult value, $Res Function(_SyncResult) _then) = __$SyncResultCopyWithImpl;
 @override @useResult
 $Res call({
- bool success, SyncDirection direction, BigInt bytesSent, BigInt bytesReceived, String? error
+ bool success, SyncDirection direction, BigInt bytesSent, BigInt bytesReceived, BigInt attachmentsSent, BigInt attachmentsReceived, BigInt attachmentBytesSent, BigInt attachmentBytesReceived, bool attachmentIncomplete, String? error
 });
 
 
@@ -4143,13 +4153,18 @@ class __$SyncResultCopyWithImpl<$Res>
 
 /// Create a copy of SyncResult
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? success = null,Object? direction = null,Object? bytesSent = null,Object? bytesReceived = null,Object? error = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? success = null,Object? direction = null,Object? bytesSent = null,Object? bytesReceived = null,Object? attachmentsSent = null,Object? attachmentsReceived = null,Object? attachmentBytesSent = null,Object? attachmentBytesReceived = null,Object? attachmentIncomplete = null,Object? error = freezed,}) {
   return _then(_SyncResult(
 success: null == success ? _self.success : success // ignore: cast_nullable_to_non_nullable
 as bool,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as SyncDirection,bytesSent: null == bytesSent ? _self.bytesSent : bytesSent // ignore: cast_nullable_to_non_nullable
 as BigInt,bytesReceived: null == bytesReceived ? _self.bytesReceived : bytesReceived // ignore: cast_nullable_to_non_nullable
-as BigInt,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentsSent: null == attachmentsSent ? _self.attachmentsSent : attachmentsSent // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentsReceived: null == attachmentsReceived ? _self.attachmentsReceived : attachmentsReceived // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentBytesSent: null == attachmentBytesSent ? _self.attachmentBytesSent : attachmentBytesSent // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentBytesReceived: null == attachmentBytesReceived ? _self.attachmentBytesReceived : attachmentBytesReceived // ignore: cast_nullable_to_non_nullable
+as BigInt,attachmentIncomplete: null == attachmentIncomplete ? _self.attachmentIncomplete : attachmentIncomplete // ignore: cast_nullable_to_non_nullable
+as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
