@@ -1,3 +1,19 @@
+## [1.7.0] - 2026-06-02
+
+### Added
+
+- **Attachment Sync** — Devices now sync attachments alongside structured data. No more orphaned references when switching devices.
+- **Backup Deduplication** — Backups share a single attachment pool via manifest references. 5 backups with 100 MB attachments now use ~100 MB instead of 500 MB.
+- **Data Management Dashboard** — Vault info card now displays attachment size, count, and total footprint for full transparency.
+- **AI Chat Enhancements** — Multi-conversation support, trash/recovery for deleted chats, message timestamps, and automatic plugin context injection for richer AI responses.
+- **User Guides** — In-app guide system with Notion-style rendering. Settings page and home screen now include quick-access help entries and plugin feature guides.
+- **Windows Support** — Rust FFI native library now compiles for Windows (preparation for future Windows client).
+
+### Fixed
+
+- Backups now correctly include attachments (previously only profile data was saved).
+- Backup size display no longer double-counts shared attachment pool files.
+
 ## [1.6.8] - 2026-05-31
 
 ### Added
