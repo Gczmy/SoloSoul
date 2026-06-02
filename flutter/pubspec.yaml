@@ -76,8 +76,8 @@ dependencies:
   archive: ^4.0.0
   xml: ^6.5.0
 
-  # Markdown rendering
-  flutter_markdown: ^0.7.4
+  # Markdown rendering (official successor to discontinued flutter_markdown)
+  flutter_markdown_plus: ^1.0.7
 
   # Version info (SSOT: read version from platform build)
   package_info_plus: ^8.0.0

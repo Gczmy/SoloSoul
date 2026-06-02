@@ -17,7 +17,7 @@ import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/models/plugin_models.dart' show PluginRegistryEntry, resolvePluginI18n;
 import 'package:solosoul_flutter/core/models/semantic_type_registry.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_access_review_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_consent_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/plugin_detail_dialog.dart';
