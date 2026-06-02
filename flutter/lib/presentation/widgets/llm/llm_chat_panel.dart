@@ -579,10 +579,11 @@ class _ExampleChip extends StatelessWidget {
     return ActionChip(
       label: Text(label),
       labelStyle: theme.textTheme.bodySmall?.copyWith(
-        color: theme.colorScheme.onSecondaryContainer,
+        color: theme.colorScheme.primary,
+        fontWeight: FontWeight.w500,
       ),
-      backgroundColor: theme.colorScheme.secondaryContainer,
-      side: BorderSide.none,
+      backgroundColor: Colors.transparent,
+      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.4)),
       onPressed: onTap,
     );
   }
