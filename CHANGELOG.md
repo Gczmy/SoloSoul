@@ -1,8 +1,16 @@
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-03
+
 ### Fixed
 
 - **Windows PDF Preview** — PDF attachments can now be previewed on Windows. Migrated from `pdfx` to `pdfrx` to resolve CMake 4.x compatibility issues.
+- **i18n & Font Fallback** — Biometric settings and Ollama error messages are now fully localized. Chinese characters on Windows render with correct glyphs via `Microsoft YaHei` fallback instead of Japanese fonts.
+- **UI Polish** — Windows version icon corrected from phone to desktop. Recent device list now properly identifies Windows/Linux devices.
+
+### Added
+
+- **Account Short ID** — Login page and password input page now display a short account ID (e.g. `acc_550e84`) next to the account name, making it easy to distinguish accounts with identical names copied from different machines.
 
 ### Changed
 
