@@ -213,6 +213,17 @@ Win32Window::MessageHandler(HWND hwnd,
       }
       return 0;
 
+    case WM_GETMINMAXINFO: {
+      auto minMaxInfo = reinterpret_cast<MINMAXINFO*>(lparam);
+      UINT dpi = FlutterDesktopGetDpiForMonitor(
+          MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST));
+      double scale_factor = dpi / 96.0;
+      // 最小窗口尺寸：900x600（逻辑像素），根据 DPI 缩放为物理像素
+      minMaxInfo->ptMinTrackSize.x = static_cast<LONG>(900 * scale_factor);
+      minMaxInfo->ptMinTrackSize.y = static_cast<LONG>(600 * scale_factor);
+      return 0;
+    }
+
     case WM_DWMCOLORIZATIONCOLORCHANGED:
       UpdateTheme(hwnd);
       return 0;
