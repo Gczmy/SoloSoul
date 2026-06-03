@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Fixed
+
+- **Windows PDF Preview** — PDF attachments can now be previewed on Windows. Migrated from `pdfx` to `pdfrx` to resolve CMake 4.x compatibility issues.
+
+### Changed
+
+- **Unified PDF Engine** — macOS and Windows now share the same PDF rendering engine (`pdfrx`), ensuring consistent preview experience across platforms.
+
 ## [1.7.1] - 2026-06-03
 
 ### Added
