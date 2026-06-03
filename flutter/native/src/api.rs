@@ -754,22 +754,20 @@ fn get_session_key() -> Result<[u8; 32], String> {
         .map(|k| *k)
 }
 
-/// Helper: decrypt profile data bytes into ProfileData
-fn decrypt_profile_data_bytes(encrypted: &[u8]) -> Result<crate::vault::ProfileData, String> {
-    let key = get_session_key()?;
-    let decrypted = crate::crypto::decrypt_profile_data(&key, encrypted)
+/// Helper: decrypt profile data bytes into ProfileData (key provided to avoid reentrant lock)
+fn decrypt_profile_data_bytes(key: &[u8; 32], encrypted: &[u8]) -> Result<crate::vault::ProfileData, String> {
+    let decrypted = crate::crypto::decrypt_profile_data(key, encrypted)
         .map_err(|e| format!("Decrypt failed: {}", e))?;
     let json = String::from_utf8(decrypted.to_vec())
         .map_err(|e| format!("Invalid UTF-8: {}", e))?;
     serde_json::from_str(&json).map_err(|e| format!("JSON parse failed: {}", e))
 }
 
-/// Helper: encrypt ProfileData into bytes
-fn encrypt_profile_data_bytes(profile_data: &crate::vault::ProfileData) -> Result<Vec<u8>, String> {
-    let key = get_session_key()?;
+/// Helper: encrypt ProfileData into bytes (key provided to avoid reentrant lock)
+fn encrypt_profile_data_bytes(key: &[u8; 32], profile_data: &crate::vault::ProfileData) -> Result<Vec<u8>, String> {
     let json = serde_json::to_string(profile_data)
         .map_err(|e| format!("JSON serialize failed: {}", e))?;
-    let encrypted = crate::crypto::encrypt_profile_data(&key, json.as_bytes())
+    let encrypted = crate::crypto::encrypt_profile_data(key, json.as_bytes())
         .map_err(|e| format!("Encrypt failed: {}", e))?;
     Ok(encrypted.to_vec())
 }
@@ -809,8 +807,13 @@ pub fn frb_sync_initiator(
         .ok_or_else(|| format!("Profile not found: {}", account_id))?;
     crate::log_to_file("[SYNC-I] profile loaded");
 
+    // Extract session key while manager_guard is still held, to avoid reentrant lock
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
+    let key_arr: [u8; 32] = session_key.as_slice().try_into()
+        .map_err(|_| "Invalid session key length")?;
+
     crate::log_to_file("[SYNC-I] decrypting profile...");
-    let profile_data = decrypt_profile_data_bytes(&profile.data)?;
+    let profile_data = decrypt_profile_data_bytes(&key_arr, &profile.data)?;
     crate::log_to_file("[SYNC-I] profile decrypted");
 
     // 2. Create CRDT doc from profile
@@ -867,7 +870,7 @@ pub fn frb_sync_initiator(
     ) {
         crate::log_to_file("[SYNC-I] saving pulled changes...");
         let updated_data = engine.crdt.to_profile()?;
-        let encrypted = encrypt_profile_data_bytes(&updated_data)?;
+        let encrypted = encrypt_profile_data_bytes(&key_arr, &updated_data)?;
         let mut new_profile = profile.clone();
         new_profile.data = encrypted;
         new_profile.updated_at = chrono::Utc::now();
@@ -932,8 +935,13 @@ pub fn frb_sync_responder(
         .ok_or_else(|| format!("Profile not found: {}", account_id))?;
     crate::log_to_file("[SYNC-R] profile loaded");
 
+    // Extract session key while manager_guard is still held, to avoid reentrant lock
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
+    let key_arr: [u8; 32] = session_key.as_slice().try_into()
+        .map_err(|_| "Invalid session key length")?;
+
     crate::log_to_file("[SYNC-R] decrypting profile...");
-    let profile_data = decrypt_profile_data_bytes(&profile.data)?;
+    let profile_data = decrypt_profile_data_bytes(&key_arr, &profile.data)?;
     crate::log_to_file("[SYNC-R] profile decrypted");
 
     // 2. Create CRDT doc from profile
@@ -992,7 +1000,7 @@ pub fn frb_sync_responder(
     ) {
         crate::log_to_file("[SYNC-R] saving pulled changes...");
         let updated_data = engine.crdt.to_profile()?;
-        let encrypted = encrypt_profile_data_bytes(&updated_data)?;
+        let encrypted = encrypt_profile_data_bytes(&key_arr, &updated_data)?;
         let mut new_profile = profile.clone();
         new_profile.data = encrypted;
         new_profile.updated_at = chrono::Utc::now();
