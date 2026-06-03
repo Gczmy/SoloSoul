@@ -57,20 +57,20 @@ cd /Users/zzc/PycharmProjects/SoloSoul_code/flutter
 
 ### 4b. Windows 构建（在 Windows 上执行）
 
-在 Windows PC（或 Parallels/VMware 虚拟机）上：
+在 Windows PC（或 Parallels/VMware 虚拟机）的 **PowerShell** 中：
 
 ```powershell
 # 1. 先拉取最新代码（确保 pubspec.yaml 版本号已更新）
 cd D:\PycharmProject\SoloSoul_code\flutter
 git pull origin master
 
-# 2. 执行构建脚本（使用 Git Bash）
-bash ./build_windows_zip.sh 1.1.0
+# 2. 执行 PowerShell 构建脚本
+.\build_windows_zip.ps1 1.1.0
 ```
 
 产物：`build/windows/SoloSoul-v1.1.0-windows-x64.zip`
 
-> 注：Windows 脚本在 Git Bash 中运行。如果未安装 Git Bash，可使用 WSL 或手动执行脚本中的命令。
+> 注：Windows 本地使用 PowerShell 脚本（`.ps1`），避免 Git Bash 的 CRLF 换行符问题。CI/CD 中仍使用 Bash 脚本（`.sh`），因为 GitHub Actions 的 Windows runner 环境干净无此问题。
 
 ---
 
