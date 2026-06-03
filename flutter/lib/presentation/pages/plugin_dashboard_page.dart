@@ -12,6 +12,7 @@ import 'package:solosoul_flutter/presentation/providers/plugin_provider.dart';
 import 'package:solosoul_flutter/presentation/theme/app_theme.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/core/models/plugin_models.dart' show PluginRegistryEntry, resolvePluginI18n;
+import 'package:solosoul_flutter/core/router/app_router.dart' show AppRoutes;
 import 'package:solosoul_flutter/presentation/pages/plugin_dashboard/plugin_card.dart';
 import 'package:solosoul_flutter/presentation/pages/plugin_dashboard/plugin_result_cards.dart';
 
