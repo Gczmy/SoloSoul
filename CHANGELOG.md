@@ -1,3 +1,24 @@
+## [1.7.1] - 2026-06-03
+
+### Added
+
+- **Windows Support** — SoloSoul now compiles and runs on Windows 10/11. First Windows release packaged as ZIP with portable executable.
+- **Dual-Platform Release Pipeline** — Unified build scripts for macOS DMG and Windows ZIP; both auto-read version from `pubspec.yaml` to prevent version mismatch.
+- **Windows Window Management** — Enforced minimum window size of 900×600 for consistent desktop experience.
+
+### Fixed
+
+- **Windows Compilation** — Resolved CMake plugin compatibility (`pdfx`, `local_auth_windows` auto-removal), Rust `ort` dependency conflicts via conditional compilation, and VS 2026 C4819 encoding warnings.
+- **Plugin Navigation** — Fixed back button routing from plugin dashboard to home page.
+- **Backup Reliability** — Ensures attachment sidecar directory exists before writing manifest, preventing restore failures.
+- **PDF Rendering** — Graceful fallback on Windows when PDF preview is unavailable (returns null instead of crashing).
+
+### Changed
+
+- **Build Scripts** — All build scripts (`build_dmg.sh`, `build_windows_zip.sh`, `build_windows_zip.ps1`) now auto-detect version from `pubspec.yaml`; manual override still supported.
+- **Operation Log** — Extended audit coverage to attachment, backup, and plugin lifecycle operations.
+- **Localization** — Backup list summary text and settings labels fully internationalized.
+
 ## [1.7.0] - 2026-06-02
 
 ### Added
