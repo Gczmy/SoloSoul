@@ -643,6 +643,15 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
   /// 打开 PDF 文件：流式解密到临时文件，然后用 PdfDocument.openFile 按需渲染。
   /// 支持任意大小，不受 10MB 预览限制。
   Future<void> _openPdfFromFile(Attachment attachment) async {
+    if (Platform.isWindows) {
+      showOverlaySnackBar(
+        context,
+        content: 'PDF preview is not yet supported on Windows',
+        type: SnackBarType.warning,
+      );
+      return;
+    }
+
     setState(() => _loadingMap[attachment.id] = true);
 
     try {

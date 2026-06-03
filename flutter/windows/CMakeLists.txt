@@ -53,12 +53,10 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 set(RUST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../native")
 set(RUST_TARGET "x86_64-pc-windows-msvc")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  set(RUST_BUILD_FLAG "--release")
-  set(RUST_OUTPUT_DIR "${RUST_DIR}/target/${RUST_TARGET}/release")
-else()
-  set(RUST_OUTPUT_DIR "${RUST_DIR}/target/${RUST_TARGET}/debug")
-endif()
+# Windows: 始终使用 Release 构建 Rust，避免 ort 预编译库的 CRT 冲突
+# ort 2.0.0-rc.12 预编译二进制使用 /MD (Release CRT)，与 Flutter Debug 的 /MDd 冲突
+set(RUST_BUILD_FLAG "--release")
+set(RUST_OUTPUT_DIR "${RUST_DIR}/target/${RUST_TARGET}/release")
 
 set(RUST_DLL "${RUST_OUTPUT_DIR}/solosoul_core.dll")
 set(RUST_IMPLIB "${RUST_OUTPUT_DIR}/solosoul_core.lib")
@@ -79,6 +77,13 @@ add_subdirectory("runner")
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+
+# Windows 平台: 移除有兼容性问题的插件
+# pdfx: CMake 4.x 不兼容其旧版 DownloadProject.cmake
+# local_auth_windows: VS 2026 已移除 <experimental/coroutine>
+list(REMOVE_ITEM FLUTTER_PLUGIN_LIST pdfx)
+list(REMOVE_ITEM FLUTTER_PLUGIN_LIST local_auth_windows)
+
 include(flutter/generated_plugins.cmake)
 
 
