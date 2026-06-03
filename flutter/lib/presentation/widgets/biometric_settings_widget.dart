@@ -22,7 +22,6 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
   bool _biometricEnabled = false;
   bool _faceIdEnabled = false;
   bool _isLoading = true;
-  String _biometricType = 'Biometric';
   String? _error;
 
   @override
@@ -32,27 +31,13 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
   }
 
   Future<void> _checkBiometricStatus() async {
-    final biometricService = BiometricService.instance;
     final securityService = SecurityService.instance;
     await securityService.loadSettings();
-    final availableBiometrics = await biometricService.getAvailableBiometrics();
 
     setState(() {
       _isLoading = false;
       _biometricEnabled = securityService.settings.biometricsEnabled;
       _faceIdEnabled = securityService.settings.faceIdEnabled;
-
-      if (availableBiometrics.isNotEmpty) {
-        if (availableBiometrics.any((b) => b == BiometricType.face)) {
-          _biometricType = 'Face ID';
-        } else if (availableBiometrics.any((b) => b == BiometricType.fingerprint)) {
-          _biometricType = 'Touch ID';
-        } else if (availableBiometrics.any((b) => b == BiometricType.iris)) {
-          _biometricType = 'Iris';
-        } else {
-          _biometricType = 'Biometric';
-        }
-      }
     });
   }
 
@@ -135,6 +120,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
   }
 
   Future<void> _toggleBiometric(bool enable) async {
+    final l10n = AppLocalizations.of(context);
     if (enable) {
       // Verify biometric is available first
       final biometricService = BiometricService.instance;
@@ -142,18 +128,18 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       if (!mounted) return;
 
       if (!canUse) {
-        setState(() => _error = 'Biometric authentication is not available on this device');
+        setState(() => _error = l10n.biometricTypeNotAvailable(l10n.loginBiometricTouchId));
         return;
       }
 
       // Show biometric prompt to verify device ownership
       final success = await biometricService.authenticate(
-        reason: 'Enable $_biometricType unlock',
+        reason: l10n.loginUnlockReason(l10n.loginBiometricTouchId),
       );
       if (!mounted) return;
 
       if (!success) {
-        setState(() => _error = 'Biometric authentication failed or was cancelled');
+        setState(() => _error = l10n.biometricTypeAuthFailed(l10n.loginBiometricTouchId));
         return;
       }
 
@@ -164,12 +150,12 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
 
       // Ask for master password to store for biometric unlock
       final password = await _showPasswordDialog(
-        'Enter your master password to enable biometric unlock',
+        l10n.biometricTypeEnablePasswordPrompt(l10n.loginBiometricTouchId),
         passwordHint: passwordHint,
       );
       if (!mounted) return;
       if (password == null || password.isEmpty) {
-        setState(() => _error = 'Password is required to enable biometric unlock');
+        setState(() => _error = l10n.biometricTypeEnablePasswordRequired(l10n.loginBiometricTouchId));
         return;
       }
 
@@ -177,7 +163,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       final verified = await authNotifier.verifyPasswordForSensitiveData(password);
       if (!mounted) return;
       if (!verified) {
-        setState(() => _error = 'Invalid password');
+        setState(() => _error = l10n.invalidPassword);
         return;
       }
 
@@ -194,7 +180,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           if (!mounted) return;
           setState(() {
             _biometricEnabled = false;
-            _error = 'Failed to save biometric credential. Please try again.';
+            _error = l10n.biometricTypeSaveCredentialFailed(l10n.loginBiometricTouchId);
           });
           unawaited(securityService.setBiometricsEnabled(false));
           return;
@@ -209,7 +195,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: '$_biometricType unlock enabled',
+          content: l10n.biometricTypeUnlockEnabled(l10n.loginBiometricTouchId),
           type: SnackBarType.success,
         );
       }
@@ -219,7 +205,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: '$_biometricType unlock disabled',
+          content: l10n.biometricTypeUnlockDisabled(l10n.loginBiometricTouchId),
           type: SnackBarType.info,
         );
       }
@@ -233,6 +219,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
   }
 
   Future<void> _toggleFaceId(bool enable) async {
+    final l10n = AppLocalizations.of(context);
     if (enable) {
       // Verify biometric is available
       final biometricService = BiometricService.instance;
@@ -240,7 +227,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       if (!mounted) return;
 
       if (!canUse) {
-        setState(() => _error = 'Face ID is not available on this device');
+        setState(() => _error = l10n.biometricTypeNotAvailable(l10n.loginBiometricFaceId));
         return;
       }
 
@@ -249,18 +236,18 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       final hasFaceId = availableBiometrics.any((b) => b == BiometricType.face);
 
       if (!hasFaceId) {
-        setState(() => _error = 'Face ID is not available on this device');
+        setState(() => _error = l10n.biometricTypeNotAvailable(l10n.loginBiometricFaceId));
         return;
       }
 
       // Show biometric prompt to verify device ownership
       final success = await biometricService.authenticate(
-        reason: 'Enable Face ID unlock',
+        reason: l10n.loginUnlockReason(l10n.loginBiometricFaceId),
       );
       if (!mounted) return;
 
       if (!success) {
-        setState(() => _error = 'Face ID authentication failed or was cancelled');
+        setState(() => _error = l10n.biometricTypeAuthFailed(l10n.loginBiometricFaceId));
         return;
       }
 
@@ -271,12 +258,12 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
 
       // Ask for master password to store for biometric unlock
       final password = await _showPasswordDialog(
-        'Enter your master password to enable Face ID unlock',
+        l10n.biometricTypeEnablePasswordPrompt(l10n.loginBiometricFaceId),
         passwordHint: passwordHint,
       );
       if (!mounted) return;
       if (password == null || password.isEmpty) {
-        setState(() => _error = 'Password is required to enable Face ID unlock');
+        setState(() => _error = l10n.biometricTypeEnablePasswordRequired(l10n.loginBiometricFaceId));
         return;
       }
 
@@ -284,7 +271,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       final verified = await authNotifier.verifyPasswordForSensitiveData(password);
       if (!mounted) return;
       if (!verified) {
-        setState(() => _error = 'Invalid password');
+        setState(() => _error = l10n.invalidPassword);
         return;
       }
 
@@ -301,7 +288,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           if (!mounted) return;
           setState(() {
             _faceIdEnabled = false;
-            _error = 'Failed to save Face ID credential. Please try again.';
+            _error = l10n.biometricTypeSaveCredentialFailed(l10n.loginBiometricFaceId);
           });
           unawaited(securityService.setFaceIdEnabled(false));
           return;
@@ -316,7 +303,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: 'Face ID unlock enabled',
+          content: l10n.biometricTypeUnlockEnabled(l10n.loginBiometricFaceId),
           type: SnackBarType.success,
         );
       }
@@ -326,7 +313,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
       if (mounted) {
         showOverlaySnackBar(
           context,
-          content: 'Face ID unlock disabled',
+          content: l10n.biometricTypeUnlockDisabled(l10n.loginBiometricFaceId),
           type: SnackBarType.info,
         );
       }
@@ -339,22 +326,23 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
     }
   }
 
-  Future<void> _testBiometric() async {
+  Future<void> _testBiometric(String biometricName) async {
+    final l10n = AppLocalizations.of(context);
     final biometricService = BiometricService.instance;
     final success = await biometricService.authenticate(
-      reason: 'Test biometric unlock',
+      reason: l10n.biometricTypeTestReason(biometricName),
     );
 
     if (success && mounted) {
       showOverlaySnackBar(
         context,
-        content: 'Biometric authentication successful',
+        content: l10n.biometricTypeTestSuccess(biometricName),
         type: SnackBarType.success,
       );
     } else if (mounted) {
       showOverlaySnackBar(
         context,
-        content: 'Biometric authentication failed',
+        content: l10n.biometricTypeTestFailed(biometricName),
         type: SnackBarType.error,
       );
     }
@@ -402,7 +390,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         _BiometricToggleTile(
           icon: Icons.fingerprint_outlined,
           title: l10n.loginBiometricTouchId,
-          subtitle: l10n.settingsUseBiometric('Touch ID'),
+          subtitle: l10n.settingsUseBiometric(l10n.loginBiometricTouchId),
           value: _biometricEnabled,
           onChanged: _toggleBiometric,
         ),
@@ -411,7 +399,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           Padding(
             padding: const EdgeInsets.only(left: 52),
             child: TextButton.icon(
-              onPressed: _testBiometric,
+              onPressed: () => _testBiometric(l10n.loginBiometricTouchId),
               icon: const Icon(Icons.verified_outlined, size: 16),
               label: Text(l10n.biometricTestTouchId),
             ),
@@ -421,7 +409,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
         _BiometricToggleTile(
           icon: Icons.face_outlined,
           title: l10n.loginBiometricFaceId,
-          subtitle: l10n.settingsUseBiometric('Face ID'),
+          subtitle: l10n.settingsUseBiometric(l10n.loginBiometricFaceId),
           value: _faceIdEnabled,
           onChanged: _toggleFaceId,
         ),
@@ -430,7 +418,7 @@ class _BiometricSettingsWidgetState extends ConsumerState<BiometricSettingsWidge
           Padding(
             padding: const EdgeInsets.only(left: 52),
             child: TextButton.icon(
-              onPressed: _testBiometric,
+              onPressed: () => _testBiometric(l10n.loginBiometricFaceId),
               icon: const Icon(Icons.verified_outlined, size: 16),
               label: Text(l10n.biometricTestFaceId),
             ),

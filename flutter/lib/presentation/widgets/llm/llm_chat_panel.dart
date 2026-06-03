@@ -20,6 +20,7 @@ String _localizeError(LlmException e, AppLocalizations l10n) {
     LlmErrorCode.noActiveProfile => l10n.llmErrorNoActiveCloudProfile,
     LlmErrorCode.apiKeyMissing => l10n.llmErrorApiKeyEmpty,
     LlmErrorCode.unauthorized => l10n.llmErrorApiKeyEmpty,
+    LlmErrorCode.modelNotFound => l10n.llmConfigOllamaNotRunning,
     _ => e.message,
   };
 }

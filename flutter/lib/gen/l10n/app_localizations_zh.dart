@@ -4276,4 +4276,62 @@ class AppLocalizationsZh extends AppLocalizations {
   String logPluginRan(String name) {
     return '运行插件 \"$name\"';
   }
+
+  @override
+  String llmLocalModelNotInstalled(String model) {
+    return '本地模型 $model 未安装。请先运行 ollama pull $model。';
+  }
+
+  @override
+  String biometricTypeNotAvailable(String biometricType) {
+    return '此设备不支持$biometricType';
+  }
+
+  @override
+  String biometricTypeAuthFailed(String biometricType) {
+    return '$biometricType 验证失败或已取消';
+  }
+
+  @override
+  String biometricTypeUnlockEnabled(String biometricType) {
+    return '$biometricType 解锁已启用';
+  }
+
+  @override
+  String biometricTypeUnlockDisabled(String biometricType) {
+    return '$biometricType 解锁已禁用';
+  }
+
+  @override
+  String biometricTypeEnablePasswordPrompt(String biometricType) {
+    return '请输入主密码以启用 $biometricType 解锁';
+  }
+
+  @override
+  String biometricTypeEnablePasswordRequired(String biometricType) {
+    return '启用 $biometricType 解锁需要密码';
+  }
+
+  @override
+  String biometricTypeSaveCredentialFailed(String biometricType) {
+    return '保存 $biometricType 凭证失败，请重试';
+  }
+
+  @override
+  String biometricTypeTestReason(String biometricType) {
+    return '测试 $biometricType 解锁';
+  }
+
+  @override
+  String biometricTypeTestSuccess(String biometricType) {
+    return '$biometricType 验证成功';
+  }
+
+  @override
+  String biometricTypeTestFailed(String biometricType) {
+    return '$biometricType 验证失败';
+  }
+
+  @override
+  String get invalidPassword => '密码错误';
 }

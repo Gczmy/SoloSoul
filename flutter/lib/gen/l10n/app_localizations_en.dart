@@ -4414,4 +4414,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String logPluginRan(String name) {
     return 'Ran plugin \"$name\"';
   }
+
+  @override
+  String llmLocalModelNotInstalled(String model) {
+    return 'Local model $model is not installed. Please run ollama pull $model first.';
+  }
+
+  @override
+  String biometricTypeNotAvailable(String biometricType) {
+    return '$biometricType is not available on this device';
+  }
+
+  @override
+  String biometricTypeAuthFailed(String biometricType) {
+    return '$biometricType authentication failed or was cancelled';
+  }
+
+  @override
+  String biometricTypeUnlockEnabled(String biometricType) {
+    return '$biometricType unlock enabled';
+  }
+
+  @override
+  String biometricTypeUnlockDisabled(String biometricType) {
+    return '$biometricType unlock disabled';
+  }
+
+  @override
+  String biometricTypeEnablePasswordPrompt(String biometricType) {
+    return 'Enter your master password to enable $biometricType unlock';
+  }
+
+  @override
+  String biometricTypeEnablePasswordRequired(String biometricType) {
+    return 'Password is required to enable $biometricType unlock';
+  }
+
+  @override
+  String biometricTypeSaveCredentialFailed(String biometricType) {
+    return 'Failed to save $biometricType credential. Please try again.';
+  }
+
+  @override
+  String biometricTypeTestReason(String biometricType) {
+    return 'Test $biometricType unlock';
+  }
+
+  @override
+  String biometricTypeTestSuccess(String biometricType) {
+    return '$biometricType authentication successful';
+  }
+
+  @override
+  String biometricTypeTestFailed(String biometricType) {
+    return '$biometricType authentication failed';
+  }
+
+  @override
+  String get invalidPassword => 'Invalid password';
 }

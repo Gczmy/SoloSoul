@@ -8015,6 +8015,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ran plugin \"{name}\"'**
   String logPluginRan(String name);
+
+  /// No description provided for @llmLocalModelNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Local model {model} is not installed. Please run ollama pull {model} first.'**
+  String llmLocalModelNotInstalled(String model);
+
+  /// No description provided for @biometricTypeNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometricType} is not available on this device'**
+  String biometricTypeNotAvailable(String biometricType);
+
+  /// No description provided for @biometricTypeAuthFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometricType} authentication failed or was cancelled'**
+  String biometricTypeAuthFailed(String biometricType);
+
+  /// No description provided for @biometricTypeUnlockEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometricType} unlock enabled'**
+  String biometricTypeUnlockEnabled(String biometricType);
+
+  /// No description provided for @biometricTypeUnlockDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometricType} unlock disabled'**
+  String biometricTypeUnlockDisabled(String biometricType);
+
+  /// No description provided for @biometricTypeEnablePasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to enable {biometricType} unlock'**
+  String biometricTypeEnablePasswordPrompt(String biometricType);
+
+  /// No description provided for @biometricTypeEnablePasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required to enable {biometricType} unlock'**
+  String biometricTypeEnablePasswordRequired(String biometricType);
+
+  /// No description provided for @biometricTypeSaveCredentialFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save {biometricType} credential. Please try again.'**
+  String biometricTypeSaveCredentialFailed(String biometricType);
+
+  /// No description provided for @biometricTypeTestReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Test {biometricType} unlock'**
+  String biometricTypeTestReason(String biometricType);
+
+  /// No description provided for @biometricTypeTestSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometricType} authentication successful'**
+  String biometricTypeTestSuccess(String biometricType);
+
+  /// No description provided for @biometricTypeTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometricType} authentication failed'**
+  String biometricTypeTestFailed(String biometricType);
+
+  /// No description provided for @invalidPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid password'**
+  String get invalidPassword;
 }
 
 class _AppLocalizationsDelegate

@@ -159,6 +159,21 @@ void showOverlaySnackBar(
 class AppTheme {
   AppTheme._();
 
+  // ── CJK Font Fallback ─────────────────────────────────────────────────────
+  /// Cross-platform CJK font fallback list.
+  /// Ensures Chinese characters render correctly on Windows/macOS/Linux.
+  /// Windows: Microsoft YaHei (Simplified) / Microsoft JhengHei (Traditional)
+  /// macOS: PingFang SC / Heiti SC
+  /// Android/Linux: Noto Sans SC
+  static const List<String> _cjkFontFallback = [
+    'Microsoft YaHei',
+    'Microsoft JhengHei',
+    'PingFang SC',
+    'Heiti SC',
+    'Noto Sans SC',
+    'sans-serif',
+  ];
+
   // ── Notion-inspired Color Palette ─────────────────────────────────────────
 
   /// Primary brand — Notion Blue (desaturated, restrained)
@@ -275,6 +290,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamilyFallback: _cjkFontFallback,
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
@@ -378,6 +394,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamilyFallback: _cjkFontFallback,
       colorScheme: const ColorScheme.dark(
         primary: primaryColor,
         secondary: secondaryColor,
@@ -478,76 +495,91 @@ class AppTheme {
         fontSize: 57,
         fontWeight: FontWeight.w400,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       displayMedium: TextStyle(
         fontSize: 45,
         fontWeight: FontWeight.w400,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       displaySmall: TextStyle(
         fontSize: 36,
         fontWeight: FontWeight.w400,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       headlineLarge: TextStyle(
         fontSize: 32,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       headlineMedium: TextStyle(
         fontSize: 28,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       headlineSmall: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       titleLarge: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       titleMedium: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       titleSmall: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       bodySmall: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       labelLarge: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       labelMedium: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
       labelSmall: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         color: color,
+        fontFamilyFallback: _cjkFontFallback,
       ),
     );
   }

@@ -2387,5 +2387,94 @@
         "type": "String"
       }
     }
+  },
+  "llmLocalModelNotInstalled": "Local model {model} is not installed. Please run ollama pull {model} first.",
+  "biometricTypeNotAvailable": "{biometricType} is not available on this device",
+  "biometricTypeAuthFailed": "{biometricType} authentication failed or was cancelled",
+  "biometricTypeUnlockEnabled": "{biometricType} unlock enabled",
+  "biometricTypeUnlockDisabled": "{biometricType} unlock disabled",
+  "biometricTypeEnablePasswordPrompt": "Enter your master password to enable {biometricType} unlock",
+  "biometricTypeEnablePasswordRequired": "Password is required to enable {biometricType} unlock",
+  "biometricTypeSaveCredentialFailed": "Failed to save {biometricType} credential. Please try again.",
+  "biometricTypeTestReason": "Test {biometricType} unlock",
+  "biometricTypeTestSuccess": "{biometricType} authentication successful",
+  "biometricTypeTestFailed": "{biometricType} authentication failed",
+  "invalidPassword": "Invalid password",
+  "@llmLocalModelNotInstalled": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeNotAvailable": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeAuthFailed": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeUnlockEnabled": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeUnlockDisabled": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeEnablePasswordPrompt": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeEnablePasswordRequired": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeSaveCredentialFailed": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeTestReason": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeTestSuccess": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeTestFailed": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
   }
 }

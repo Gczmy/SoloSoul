@@ -1907,5 +1907,94 @@
         "type": "String"
       }
     }
+  },
+  "llmLocalModelNotInstalled": "本地模型 {model} 未安装。请先运行 ollama pull {model}。",
+  "biometricTypeNotAvailable": "此设备不支持{biometricType}",
+  "biometricTypeAuthFailed": "{biometricType} 验证失败或已取消",
+  "biometricTypeUnlockEnabled": "{biometricType} 解锁已启用",
+  "biometricTypeUnlockDisabled": "{biometricType} 解锁已禁用",
+  "biometricTypeEnablePasswordPrompt": "请输入主密码以启用 {biometricType} 解锁",
+  "biometricTypeEnablePasswordRequired": "启用 {biometricType} 解锁需要密码",
+  "biometricTypeSaveCredentialFailed": "保存 {biometricType} 凭证失败，请重试",
+  "biometricTypeTestReason": "测试 {biometricType} 解锁",
+  "biometricTypeTestSuccess": "{biometricType} 验证成功",
+  "biometricTypeTestFailed": "{biometricType} 验证失败",
+  "invalidPassword": "密码错误",
+  "@llmLocalModelNotInstalled": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeNotAvailable": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeAuthFailed": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeUnlockEnabled": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeUnlockDisabled": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeEnablePasswordPrompt": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeEnablePasswordRequired": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeSaveCredentialFailed": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeTestReason": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeTestSuccess": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
+  },
+  "@biometricTypeTestFailed": {
+    "placeholders": {
+      "biometricType": {
+        "type": "String"
+      }
+    }
   }
 }
