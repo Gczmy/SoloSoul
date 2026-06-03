@@ -36,7 +36,7 @@ hex = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 
 # Use rustls for reqwest to avoid OpenSSL on Android
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], rustls-tls = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 
 # WebSocket
 tokio-tungstenite = "0.21"
