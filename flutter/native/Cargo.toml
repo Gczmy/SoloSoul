@@ -67,12 +67,15 @@ flutter_rust_bridge = "=2.12.0"
 # Lazy static
 lazy_static = "1.4"
 
-# OCR: ONNX Runtime + image processing
-ort = { version = "2.0.0-rc.12", features = ["download-binaries"] }
+# OCR: image processing (used on all platforms)
 image = "0.25"
 imageproc = "0.25"
 ndarray = "0.17"
 once_cell = "1.20"
+
+[target.'cfg(not(target_os = "windows"))'.dependencies]
+# ONNX Runtime only used on non-Windows platforms (link issues on Windows)
+ort = { version = "2.0.0-rc.12", features = ["download-binaries"] }
 
 # C-compatible FFI
 libc = "0.2"
