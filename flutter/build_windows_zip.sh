@@ -5,7 +5,9 @@
 # ============================================================
 set -e
 
-VERSION=${1:-"1.0.0"}
+# Auto-read version from pubspec.yaml if not provided
+PUBSPEC_VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //;s/+.*//')
+VERSION=${1:-"$PUBSPEC_VERSION"}
 APP_NAME="SoloSoul"
 ZIP_NAME="${APP_NAME}-v${VERSION}-windows-x64"
 
@@ -18,21 +20,11 @@ NC='\033[0m'
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  SoloSoul Windows ZIP Builder${NC}"
 echo -e "${GREEN}========================================${NC}"
+echo -e "${YELLOW}Building version: ${VERSION}${NC}"
 
 RELEASE_DIR="build/windows/x64/runner/Release"
 ZIP_OUTPUT="build/windows/${ZIP_NAME}.zip"
 STAGING_DIR="build/windows/zip_staging"
-
-# Inject VERSION into pubspec.yaml
-echo -e "${YELLOW}Injecting version ${VERSION} into pubspec.yaml...${NC}"
-# Use sed compatible with both macOS and Git Bash on Windows
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s/^version: .*/version: ${VERSION}+1/" pubspec.yaml
-    trap 'echo -e "${YELLOW}Restoring pubspec.yaml version...${NC}"; sed -i "" "s/^version: .*/version: 1.0.0+1/" pubspec.yaml' EXIT
-else
-    sed -i "s/^version: .*/version: ${VERSION}+1/" pubspec.yaml
-    trap 'echo -e "${YELLOW}Restoring pubspec.yaml version...${NC}"; sed -i "s/^version: .*/version: 1.0.0+1/" pubspec.yaml' EXIT
-fi
 
 # Clean previous build artifacts
 echo -e "${YELLOW}Cleaning previous build artifacts...${NC}"

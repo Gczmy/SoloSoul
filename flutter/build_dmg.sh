@@ -5,31 +5,29 @@
 # ============================================================
 set -e
 
-VERSION=${1:-"1.0.0"}
+# Auto-read version from pubspec.yaml if not provided
+PUBSPEC_VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //;s/+.*//')
+VERSION=${1:-"$PUBSPEC_VERSION"}
 APP_NAME="SoloSoul"
 DMG_NAME="${APP_NAME}"
-BUNDLE_ID="com.solosoul.solosoulFlutter" 
+BUNDLE_ID="com.solosoul.solosoulFlutter"
 
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' 
+NC='\033[0m'
 
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  SoloSoul DMG Builder (Fixing Libraries)${NC}"
 echo -e "${GREEN}========================================${NC}"
+echo -e "${YELLOW}Building version: ${VERSION}${NC}"
 
 # Step 1: Build
 RELEASE_DIR="build/macos/Build/Products/Release"
 APP_PATH="$RELEASE_DIR/$APP_NAME.app"
 DMG_STAGING_DIR="build/macos/dmg_staging"
 DMG_OUTPUT="build/macos/${DMG_NAME}.dmg"
-# Inject VERSION into pubspec.yaml so the built app shows the correct version
-ORIG_VERSION=$(grep "^version:" pubspec.yaml)
-echo -e "${YELLOW}Injecting version ${VERSION} into pubspec.yaml...${NC}"
-sed -i '' "s/^version: .*/version: ${VERSION}+1/" pubspec.yaml
-trap 'echo -e "${YELLOW}Restoring pubspec.yaml version...${NC}"; sed -i "" "s/^version: .*/$ORIG_VERSION/" pubspec.yaml' EXIT
 
 # 清理之前的编译产物，避免 hdiutil convert 因文件已存在而失败
 echo -e "${YELLOW}Cleaning previous build artifacts...${NC}"

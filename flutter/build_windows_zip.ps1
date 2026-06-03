@@ -6,8 +6,16 @@
 # ============================================================
 
 param(
-    [string]$Version = "1.0.0"
+    [string]$Version = ""
 )
+
+# Auto-read version from pubspec.yaml if not provided
+$PubspecPath = "pubspec.yaml"
+$PubspecContent = [System.IO.File]::ReadAllText($PubspecPath, [System.Text.UTF8Encoding]::new($false))
+if ($Version -eq "") {
+    $VersionLine = ($PubspecContent -split "`n") | Select-String "^version:" | Select-Object -First 1
+    $Version = ($VersionLine -replace "version: ", "" -replace "\+.*", "").Trim()
+}
 
 $AppName = "SoloSoul"
 $ZipName = "${AppName}-v${Version}-windows-x64"
@@ -18,19 +26,8 @@ $StagingDir = "build\windows\zip_staging"
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  SoloSoul Windows ZIP Builder" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
+Write-Host "Building version: ${Version}" -ForegroundColor Yellow
 
-# --- Inject version into pubspec.yaml ---
-Write-Host "Injecting version ${Version} into pubspec.yaml..." -ForegroundColor Yellow
-$PubspecPath = "pubspec.yaml"
-$OriginalContent = [System.IO.File]::ReadAllText($PubspecPath, [System.Text.UTF8Encoding]::new($false))
-$OriginalVersionLine = ($OriginalContent -split "`n") | Select-String "^version:" | Select-Object -First 1
-
-# Use .NET File API to ensure UTF-8 without BOM (same as original file)
-$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-$ModifiedContent = $OriginalContent -replace "^version: .*", "version: ${Version}+1"
-[System.IO.File]::WriteAllText($PubspecPath, $ModifiedContent, $Utf8NoBom)
-
-# Ensure cleanup on exit
 try {
     # --- Clean previous artifacts ---
     Write-Host "Cleaning previous build artifacts..." -ForegroundColor Yellow
@@ -64,10 +61,6 @@ try {
     Write-Host "Output: $ZipOutput" -ForegroundColor Green
 }
 finally {
-    # --- Restore pubspec.yaml ---
-    Write-Host "Restoring pubspec.yaml version..." -ForegroundColor Yellow
-    [System.IO.File]::WriteAllText($PubspecPath, $OriginalContent, $Utf8NoBom)
-
     # --- Clean staging ---
     if (Test-Path $StagingDir) {
         Remove-Item $StagingDir -Recurse -Force

@@ -50,10 +50,12 @@ git push origin master
 
 ```bash
 cd /Users/zzc/PycharmProjects/SoloSoul_code/flutter
-./build_dmg.sh 1.1.0
+./build_dmg.sh
 ```
 
-产物：`build/macos/SoloSoul-v1.1.0.dmg`
+脚本自动从 `pubspec.yaml` 读取版本号（如 `1.1.0`），产物：`build/macos/SoloSoul-v1.1.0.dmg`
+
+> 如需覆盖版本号，可传入参数：`./build_dmg.sh 1.2.0`
 
 ### 4b. Windows 构建（在 Windows 上执行）
 
@@ -64,12 +66,14 @@ cd /Users/zzc/PycharmProjects/SoloSoul_code/flutter
 cd D:\PycharmProject\SoloSoul_code\flutter
 git pull origin master
 
-# 2. 执行 PowerShell 构建脚本
-.\build_windows_zip.ps1 1.1.0
+# 2. 执行 PowerShell 构建脚本（自动读取 pubspec.yaml 版本号）
+.\build_windows_zip.ps1
 ```
 
 产物：`build/windows/SoloSoul-v1.1.0-windows-x64.zip`
 
+> 如需覆盖版本号，可传入参数：`.\build_windows_zip.ps1 -Version "1.2.0"`
+>
 > 注：Windows 本地使用 PowerShell 脚本（`.ps1`），避免 Git Bash 的 CRLF 换行符问题。CI/CD 中仍使用 Bash 脚本（`.sh`），因为 GitHub Actions 的 Windows runner 环境干净无此问题。
 
 ---
