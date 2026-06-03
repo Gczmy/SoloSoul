@@ -785,11 +785,13 @@ pub fn frb_sync_initiator(
     account_id: String,
     remote_addr: String,
     pairing_key: Vec<u8>,
-    device_salt: Vec<u8>,
+    _device_salt: Vec<u8>,
     attachments_dir: String,
 ) -> Result<SyncResult, String> {
     use crate::sync::engine::{extract_attachment_manifest, SyncEngine};
     use crate::sync::transport::TcpTransport;
+
+    crate::log_to_file(&format!("[SYNC-I] start account={} addr={}", account_id, remote_addr));
 
     // 1. Load and decrypt current profile
     let manager_guard =
@@ -805,6 +807,7 @@ pub fn frb_sync_initiator(
         .load_profile(&account_id)
         .map_err(|e| format!("Load profile failed: {}", e))?
         .ok_or_else(|| format!("Profile not found: {}", account_id))?;
+    crate::log_to_file("[SYNC-I] profile loaded");
 
     let profile_data = decrypt_profile_data_bytes(&profile.data)?;
 
@@ -819,27 +822,35 @@ pub fn frb_sync_initiator(
     // 3. Build attachment manifest
     let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
+    crate::log_to_file(&format!("[SYNC-I] attachments={}", attachment_manifest.len()));
 
     // 4. Connect to remote peer
+    crate::log_to_file(&format!("[SYNC-I] connecting to {}", remote_addr));
     let mut transport =
         TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
+    crate::log_to_file("[SYNC-I] TCP connected");
 
     // 5. Establish Noise channel over the network
-    // Both sides derive the same keypair from the shared pairing key,
-    // so each knows the other's static public key for IK mode.
     let shared_keypair =
         crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"solosoul-sync-v1");
+    crate::log_to_file("[SYNC-I] starting Noise handshake...");
     let channel = crate::sync::protocol::SecureChannel::network_handshake_initiator(
         &shared_keypair.private,
         &shared_keypair.public,
         &mut transport,
     )
     .map_err(|e| format!("Noise handshake failed: {}", e))?;
+    crate::log_to_file("[SYNC-I] Noise handshake done");
 
     // 6. Sync
+    crate::log_to_file("[SYNC-I] starting CRDT sync...");
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
         .with_attachments(attachments_dir, attachment_manifest);
     let result = engine.sync_initiator()?;
+    crate::log_to_file(&format!(
+        "[SYNC-I] sync done dir={:?} sent={} recv={}",
+        result.direction, result.bytes_sent, result.bytes_received
+    ));
 
     // 7. If we pulled changes, encrypt and save updated profile
     if matches!(
@@ -847,6 +858,7 @@ pub fn frb_sync_initiator(
         crate::sync::engine::SyncDirection::Pulled
             | crate::sync::engine::SyncDirection::Merged
     ) {
+        crate::log_to_file("[SYNC-I] saving pulled changes...");
         let updated_data = engine.crdt.to_profile()?;
         let encrypted = encrypt_profile_data_bytes(&updated_data)?;
         let mut new_profile = profile.clone();
@@ -855,8 +867,10 @@ pub fn frb_sync_initiator(
         vault
             .save_profile(&new_profile)
             .map_err(|e| format!("Save profile failed: {}", e))?;
+        crate::log_to_file("[SYNC-I] saved");
     }
 
+    crate::log_to_file("[SYNC-I] complete");
     Ok(SyncResult {
         success: result.success,
         direction: match result.direction {
@@ -887,11 +901,13 @@ pub fn frb_sync_responder(
     account_id: String,
     remote_addr: String,
     pairing_key: Vec<u8>,
-    device_salt: Vec<u8>,
+    _device_salt: Vec<u8>,
     attachments_dir: String,
 ) -> Result<SyncResult, String> {
     use crate::sync::engine::{extract_attachment_manifest, SyncEngine};
     use crate::sync::transport::TcpTransport;
+
+    crate::log_to_file(&format!("[SYNC-R] start account={} addr={}", account_id, remote_addr));
 
     // 1. Load and decrypt current profile
     let manager_guard =
@@ -907,6 +923,7 @@ pub fn frb_sync_responder(
         .load_profile(&account_id)
         .map_err(|e| format!("Load profile failed: {}", e))?
         .ok_or_else(|| format!("Profile not found: {}", account_id))?;
+    crate::log_to_file("[SYNC-R] profile loaded");
 
     let profile_data = decrypt_profile_data_bytes(&profile.data)?;
 
@@ -921,28 +938,37 @@ pub fn frb_sync_responder(
     // 3. Build attachment manifest
     let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
+    crate::log_to_file(&format!("[SYNC-R] attachments={}", attachment_manifest.len()));
 
     // 4. Listen for incoming connection
+    crate::log_to_file(&format!("[SYNC-R] listening on {}", remote_addr));
     let listener = TcpTransport::listen(&remote_addr)
         .map_err(|e| format!("TCP listen failed: {}", e))?;
+    crate::log_to_file("[SYNC-R] waiting for accept...");
     let mut transport = TcpTransport::accept(&listener, std::time::Duration::from_secs(60))
         .map_err(|e| format!("TCP accept failed: {}", e))?;
+    crate::log_to_file("[SYNC-R] TCP accepted");
 
     // 5. Establish Noise channel over the network
-    // Both sides derive the same keypair from the shared pairing key,
-    // so each knows the other's static public key for IK mode.
     let shared_keypair =
         crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"solosoul-sync-v1");
+    crate::log_to_file("[SYNC-R] starting Noise handshake...");
     let channel = crate::sync::protocol::SecureChannel::network_handshake_responder(
         &shared_keypair.private,
         &mut transport,
     )
     .map_err(|e| format!("Noise handshake failed: {}", e))?;
+    crate::log_to_file("[SYNC-R] Noise handshake done");
 
     // 6. Sync
+    crate::log_to_file("[SYNC-R] starting CRDT sync...");
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
         .with_attachments(attachments_dir, attachment_manifest);
     let result = engine.sync_responder()?;
+    crate::log_to_file(&format!(
+        "[SYNC-R] sync done dir={:?} sent={} recv={}",
+        result.direction, result.bytes_sent, result.bytes_received
+    ));
 
     // 7. If we pulled changes, encrypt and save updated profile
     if matches!(
@@ -950,6 +976,7 @@ pub fn frb_sync_responder(
         crate::sync::engine::SyncDirection::Pulled
             | crate::sync::engine::SyncDirection::Merged
     ) {
+        crate::log_to_file("[SYNC-R] saving pulled changes...");
         let updated_data = engine.crdt.to_profile()?;
         let encrypted = encrypt_profile_data_bytes(&updated_data)?;
         let mut new_profile = profile.clone();
@@ -958,8 +985,10 @@ pub fn frb_sync_responder(
         vault
             .save_profile(&new_profile)
             .map_err(|e| format!("Save profile failed: {}", e))?;
+        crate::log_to_file("[SYNC-R] saved");
     }
 
+    crate::log_to_file("[SYNC-R] complete");
     Ok(SyncResult {
         success: result.success,
         direction: match result.direction {

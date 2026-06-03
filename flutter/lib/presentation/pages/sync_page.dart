@@ -959,6 +959,19 @@ class _SyncLogDialog extends ConsumerWidget {
         TextButton(
           onPressed: logs.isEmpty
               ? null
+              : () {
+                  final text = logs.join('\n');
+                  Clipboard.setData(ClipboardData(text: text));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('日志已复制到剪贴板')),
+                  );
+                },
+          child: const Text('复制日志'),
+        ),
+        TextButton(
+          onPressed: logs.isEmpty
+              ? null
               : () => ref.read(syncProvider.notifier).clearSyncLogs(),
           child: const Text('清空日志'),
         ),
