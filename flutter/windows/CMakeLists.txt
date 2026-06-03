@@ -7,9 +7,9 @@ project(solosoul_flutter LANGUAGES CXX)
 set(BINARY_NAME "solosoul_flutter")
 
 # =============================================================================
-# Windows 平台: 自动修复 generated_plugins.cmake
-# flutter_tools 可能在构建时重新生成此文件，覆盖我们的手动修改。
-# 因此在 CMake 配置阶段自动移除有兼容性问题的插件。
+# Windows 平台: 自动修复 flutter 生成的插件注册文件
+# flutter_tools 会在构建时重新生成这些文件，覆盖手动修改。
+# 因此在 CMake 配置阶段自动移除有兼容性问题的插件引用。
 # =============================================================================
 set(_GEN_PLUGINS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/flutter/generated_plugins.cmake")
 if(EXISTS ${_GEN_PLUGINS_FILE})
@@ -17,6 +17,16 @@ if(EXISTS ${_GEN_PLUGINS_FILE})
   string(REPLACE "  local_auth_windows\n" "" _GEN_PLUGINS_CONTENT "${_GEN_PLUGINS_CONTENT}")
   string(REPLACE "  pdfx\n" "" _GEN_PLUGINS_CONTENT "${_GEN_PLUGINS_CONTENT}")
   file(WRITE ${_GEN_PLUGINS_FILE} "${_GEN_PLUGINS_CONTENT}")
+endif()
+
+set(_GEN_REG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/flutter/generated_plugin_registrant.cc")
+if(EXISTS ${_GEN_REG_FILE})
+  file(READ ${_GEN_REG_FILE} _GEN_REG_CONTENT)
+  string(REPLACE "#include <local_auth_windows/local_auth_plugin.h>\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
+  string(REPLACE "#include <pdfx/pdfx_plugin.h>\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
+  string(REPLACE "  LocalAuthPluginRegisterWithRegistrar(\n      registry->GetRegistrarForPlugin(\"LocalAuthPlugin\"));\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
+  string(REPLACE "  PdfxPluginRegisterWithRegistrar(\n      registry->GetRegistrarForPlugin(\"PdfxPlugin\"));\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
+  file(WRITE ${_GEN_REG_FILE} "${_GEN_REG_CONTENT}")
 endif()
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
