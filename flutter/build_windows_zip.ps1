@@ -49,6 +49,13 @@ try {
         throw "Build output not found at $ExePath"
     }
 
+    # --- Remove debug artifacts that may leak into Release builds ---
+    $KernelBlob = Join-Path $ReleaseDir "data\flutter_assets\kernel_blob.bin"
+    if (Test-Path $KernelBlob) {
+        Write-Host "Removing debug artifact kernel_blob.bin (~95MB)..." -ForegroundColor Yellow
+        Remove-Item $KernelBlob -Force
+    }
+
     # --- Stage files for ZIP ---
     Write-Host "Staging files for ZIP..." -ForegroundColor Yellow
     $DestDir = Join-Path $StagingDir $AppName

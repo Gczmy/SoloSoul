@@ -42,6 +42,12 @@ if [ ! -f "${RELEASE_DIR}/solosoul_flutter.exe" ]; then
     exit 1
 fi
 
+# Remove debug artifacts that may leak into Release builds
+if [ -f "${RELEASE_DIR}/data/flutter_assets/kernel_blob.bin" ]; then
+    echo -e "${YELLOW}Removing debug artifact kernel_blob.bin (~95MB)...${NC}"
+    rm -f "${RELEASE_DIR}/data/flutter_assets/kernel_blob.bin"
+fi
+
 # Stage files for ZIP
 echo -e "${YELLOW}Staging files for ZIP...${NC}"
 mkdir -p "${STAGING_DIR}/${APP_NAME}"
