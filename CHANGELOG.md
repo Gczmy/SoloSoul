@@ -2,6 +2,20 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- **Windows PDF Preview** — Migrated from `pdfx` to `pdfrx` (^2.4.3), fixing PDF preview on Windows. `pdfx` was incompatible with CMake 4.x due to deprecated `DownloadProject.cmake` syntax.
+- **Cross-Platform PDF Engine Unification** — Both macOS and Windows now use the same PDF rendering engine (PDFium via `pdfrx`), ensuring consistent behavior.
+
+### Changed
+
+- **PDF Rendering Service** — Rewrote `PdfRenderService` using `pdfrx` API. Pages are rendered to BGRA then converted to PNG for OCR consumption.
+- **Attachment PDF Preview** — Replaced custom `PdfController` + `PdfView` + navigation bar with `pdfrx`'s built-in `PdfViewer.file()` widget, which includes zoom, scroll, and page navigation out of the box.
+- **Build Scripts** — Added `dart run pdfrx:remove_wasm_modules` to all build scripts (DMG, Windows ZIP) to strip unused Web WASM assets and reduce bundle size.
+- **Windows CMake** — Removed `pdfx` auto-removal hacks from `windows/CMakeLists.txt`; `local_auth_windows` removal is retained.
+
 ## [1.7.1] - 2026-06-03
 
 ### Added
