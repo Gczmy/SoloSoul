@@ -148,6 +148,7 @@ impl SyncEngine {
             || self.attachments_dir.is_some();
 
         // 1. Send our state vector
+        crate::log_to_file("[ENGINE-I] step1: send StateVectorRequest");
         let local_sv = self.crdt.state_vector();
         let request = SyncMessage::StateVectorRequest {
             account_id: String::new(),
@@ -158,13 +159,16 @@ impl SyncEngine {
         let payload = self.maybe_encrypt(&payload)?;
         self.transport.send(&payload)?;
         bytes_sent += payload.len();
+        crate::log_to_file("[ENGINE-I] step1: sent");
 
         // 2. Receive remote response (SV + optional diff)
+        crate::log_to_file("[ENGINE-I] step2: recv StateVectorResponse...");
         let remote_raw = self.transport.recv()?;
         bytes_received += remote_raw.len();
         let remote_decrypted = self.maybe_decrypt(&remote_raw)?;
         let response: SyncMessage = serde_json::from_slice(&remote_decrypted)
             .map_err(|e| format!("Deserialize SV response: {}", e))?;
+        crate::log_to_file("[ENGINE-I] step2: received");
 
         let (remote_sv, remote_diff, remote_supports) = match response {
             SyncMessage::StateVectorResponse {
@@ -179,10 +183,12 @@ impl SyncEngine {
         let local_sv = self.crdt.state_vector();
         let our_diff = self.crdt.encode_diff(&remote_sv)?;
         let has_local_changes = local_sv != remote_sv;
+        crate::log_to_file(&format!("[ENGINE-I] step3: has_local_changes={}", has_local_changes));
 
         let direction = Self::classify_direction(&local_sv, &remote_sv, &remote_diff);
 
         // 4. Send our diff (only if we have changes)
+        crate::log_to_file("[ENGINE-I] step4: send Update/Ack");
         if has_local_changes {
             let update_msg = SyncMessage::Update {
                 encrypted_update: our_diff,
@@ -199,8 +205,10 @@ impl SyncEngine {
             self.transport.send(&ack_payload)?;
             bytes_sent += ack_payload.len();
         }
+        crate::log_to_file("[ENGINE-I] step4: sent");
 
         // 5. Apply remote diff
+        crate::log_to_file("[ENGINE-I] step5: apply remote diff");
         if let Some(diff) = remote_diff {
             if !diff.is_empty() {
                 self.crdt.apply_update(&diff)?;
@@ -208,12 +216,14 @@ impl SyncEngine {
         }
 
         // 6. Attachment sync
+        crate::log_to_file("[ENGINE-I] step6: attachment sync");
         let attach_stats = if local_supports && remote_supports {
             self.sync_attachments(true)
                 .map_err(|e| format!("Attachment sync failed: {}", e))?
         } else {
             AttachmentSyncStats::default()
         };
+        crate::log_to_file("[ENGINE-I] step6: done");
 
         Ok(SyncResult {
             success: true,
@@ -244,11 +254,13 @@ impl SyncEngine {
             || self.attachments_dir.is_some();
 
         // 1. Receive remote state vector request
+        crate::log_to_file("[ENGINE-R] step1: recv StateVectorRequest...");
         let remote_raw = self.transport.recv()?;
         bytes_received += remote_raw.len();
         let remote_decrypted = self.maybe_decrypt(&remote_raw)?;
         let request: SyncMessage = serde_json::from_slice(&remote_decrypted)
             .map_err(|e| format!("Deserialize SV request: {}", e))?;
+        crate::log_to_file("[ENGINE-R] step1: received");
 
         let (remote_sv, remote_supports) = match request {
             SyncMessage::StateVectorRequest {
@@ -260,6 +272,7 @@ impl SyncEngine {
         };
 
         // 2. Compute diff and send our SV + diff
+        crate::log_to_file("[ENGINE-R] step2: compute diff & send StateVectorResponse");
         let local_sv = self.crdt.state_vector();
         let local_sv_copy = local_sv.clone();
         let diff = if local_sv != remote_sv {
@@ -282,13 +295,16 @@ impl SyncEngine {
         let resp_payload = self.maybe_encrypt(&resp_payload)?;
         self.transport.send(&resp_payload)?;
         bytes_sent += resp_payload.len();
+        crate::log_to_file("[ENGINE-R] step2: sent");
 
         // 3. Receive remote diff
+        crate::log_to_file("[ENGINE-R] step3: recv Update/Ack...");
         let update_raw = self.transport.recv()?;
         bytes_received += update_raw.len();
         let update_decrypted = self.maybe_decrypt(&update_raw)?;
         let update_msg: SyncMessage = serde_json::from_slice(&update_decrypted)
             .map_err(|e| format!("Deserialize update: {}", e))?;
+        crate::log_to_file("[ENGINE-R] step3: received");
 
         let remote_diff = match &update_msg {
             SyncMessage::Update { encrypted_update } if !encrypted_update.is_empty() => {
@@ -300,6 +316,7 @@ impl SyncEngine {
         let direction = Self::classify_direction(&local_sv_copy, &remote_sv, &remote_diff);
 
         // 4. Apply remote diff
+        crate::log_to_file("[ENGINE-R] step4: apply remote diff");
         if let Some(diff) = remote_diff {
             if !diff.is_empty() {
                 self.crdt.apply_update(&diff)?;
@@ -307,12 +324,14 @@ impl SyncEngine {
         }
 
         // 5. Attachment sync
+        crate::log_to_file("[ENGINE-R] step5: attachment sync");
         let attach_stats = if local_supports && remote_supports {
             self.sync_attachments(false)
                 .map_err(|e| format!("Attachment sync failed: {}", e))?
         } else {
             AttachmentSyncStats::default()
         };
+        crate::log_to_file("[ENGINE-R] step5: done");
 
         Ok(SyncResult {
             success: true,
