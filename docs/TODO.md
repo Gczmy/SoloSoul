@@ -403,12 +403,37 @@ Step 1 (Rust)  → Step 2 (Flutter封装)  → Step 3 (Provider)  → Step 4 (UI
 - [ ] BiometricPrompt 集成
 - [ ] Play Store 发布
 
-### Windows 🔴 待开发
-- [ ] Windows 项目初始化
-- [ ] Rust 库编译 (.dll)
+### Windows 🟡 基础编译已通过（2026-06-03）
+- [x] Windows 项目初始化 ✅
+- [x] Rust 库编译 (.dll) ✅（Release 模式，避免 ort CRT 冲突）
+- [x] 最小窗口尺寸限制（900x600）✅
 - [ ] Windows Credential Manager
 - [ ] Windows Hello 集成
 - [ ] Microsoft Store 发布
+
+#### Windows 已知问题 / 功能降级（外部依赖兼容性）
+> 以下问题均与第三方插件/库的 Windows 兼容性有关，短期内无法通过升级解决。
+> 已在代码中做了平台隔离，不影响 macOS/iOS/Android。
+
+1. **PDF 预览不可用** 🔴
+   - **根因**: `pdfx` 2.9.2 的 `DownloadProject.cmake` 使用旧版 CMake 语法（`cmake_minimum_required(VERSION 2.8.2...<3.12)`），与 CMake 4.x 不兼容。
+   - **影响**: 附件列表中点击 PDF 文件显示 "PDF preview is not yet supported on Windows"。
+   - **修复方案**: 等待 `pdfx` 更新或替换为其他跨平台 PDF 渲染库（如 `pdf_render` + 自定义 Windows 实现）。
+
+2. **生物识别（Windows Hello）不可用** 🔴
+   - **根因**: `local_auth_windows` 1.0.11 使用 `<experimental/coroutine>` 和 `/await`，VS 2026 (MSVC v145) 已完全移除实验协程支持。
+   - **影响**: 自动回退到密码验证，不影响功能可用性。
+   - **修复方案**: 等待 `local_auth` 官方更新 Windows 实现，或 fork 修复为 C++20 标准协程。
+
+3. **OCR（证件扫描/通用文字识别）不可用** 🔴
+   - **根因**: `ort` 2.0.0-rc.12 的预编译 ONNX Runtime 二进制与 Windows UCRT 存在链接符号冲突（LNK4286/1120）。
+   - **影响**: OCR 扫描返回 "OCR is not supported on Windows in this build"。
+   - **当前处理**: 通过条件编译（`#[cfg(not(target_os = "windows"))]`）在 Windows 上禁用 `ort`，使用 stub 实现返回友好错误。
+   - **修复方案**: 升级 `ort` 到 2.0+ 稳定版（待验证 Windows 兼容性），或集成 Windows 原生 OCR API（Windows.Media.Ocr）。
+
+4. **C++ 代码中避免中文字符** 🟡
+   - **根因**: VS 2026 默认代码页 936 (GBK)，`/WX` 将 C4819（编码警告）视为错误。
+   - **规范**: Windows 平台的 C++ 源文件（`.cpp` / `.h`）中注释统一使用英文。
 
 
 ---
