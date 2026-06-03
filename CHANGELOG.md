@@ -4,10 +4,22 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-03
+
 ### Fixed
 
 - **Windows PDF Preview** — Migrated from `pdfx` to `pdfrx` (^2.4.3), fixing PDF preview on Windows. `pdfx` was incompatible with CMake 4.x due to deprecated `DownloadProject.cmake` syntax.
 - **Cross-Platform PDF Engine Unification** — Both macOS and Windows now use the same PDF rendering engine (PDFium via `pdfrx`), ensuring consistent behavior.
+- **i18n Hardcoded English** — Replaced 20+ hardcoded English strings in biometric settings with localized ARB keys (`biometricTypeNotAvailable`, `biometricTypeAuthFailed`, etc.).
+- **Ollama Exception Localization** — `modelNotFound` errors now display localized messages instead of raw English.
+- **Windows CJK Font Fallback** — Added `_cjkFontFallback` (`Microsoft YaHei`, `PingFang SC`, etc.) to `AppTheme`, ensuring Chinese characters render with correct glyphs on Windows instead of falling back to Japanese fonts.
+- **Settings Version Icon** — Windows platform icon in version sheet was incorrectly showing `phone_android`; now correctly shows `desktop_windows`.
+- **Recent Device Platform Detection** — `getDeviceName()` now appends `(Windows)` / `(Linux)` to hostnames that don't contain platform keywords, so `getDevicePlatformLabel()` can correctly identify them in the recent devices list.
+
+### Added
+
+- **Login Page Account Short ID** — Account list items now display a short ID prefix (e.g. `acc_550e84`) next to the account name, allowing users to distinguish accounts with identical names copied from different machines.
+- **Password Input Page Account Short ID** — The account header in the password input section also shows the short ID for quick verification before entering the master password.
 
 ### Changed
 
