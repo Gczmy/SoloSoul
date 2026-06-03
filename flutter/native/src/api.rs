@@ -809,18 +809,25 @@ pub fn frb_sync_initiator(
         .ok_or_else(|| format!("Profile not found: {}", account_id))?;
     crate::log_to_file("[SYNC-I] profile loaded");
 
+    crate::log_to_file("[SYNC-I] decrypting profile...");
     let profile_data = decrypt_profile_data_bytes(&profile.data)?;
+    crate::log_to_file("[SYNC-I] profile decrypted");
 
     // 2. Create CRDT doc from profile
+    crate::log_to_file("[SYNC-I] creating CRDT doc...");
     let meta = crate::sync::crdt::DocMeta {
         profile_id: account_id.clone(),
         version: 1,
         last_modified: chrono::Utc::now().to_rfc3339(),
     };
     let crdt_doc = crate::sync::crdt::SoloDoc::from_profile(&profile_data, &meta);
+    crate::log_to_file("[SYNC-I] CRDT doc created");
 
     // 3. Build attachment manifest
+    crate::log_to_file("[SYNC-I] serializing profile json...");
     let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
+    crate::log_to_file(&format!("[SYNC-I] profile json len={}", profile_json.len()));
+    crate::log_to_file("[SYNC-I] extracting attachment manifest...");
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
     crate::log_to_file(&format!("[SYNC-I] attachments={}", attachment_manifest.len()));
 
@@ -925,18 +932,25 @@ pub fn frb_sync_responder(
         .ok_or_else(|| format!("Profile not found: {}", account_id))?;
     crate::log_to_file("[SYNC-R] profile loaded");
 
+    crate::log_to_file("[SYNC-R] decrypting profile...");
     let profile_data = decrypt_profile_data_bytes(&profile.data)?;
+    crate::log_to_file("[SYNC-R] profile decrypted");
 
     // 2. Create CRDT doc from profile
+    crate::log_to_file("[SYNC-R] creating CRDT doc...");
     let meta = crate::sync::crdt::DocMeta {
         profile_id: account_id.clone(),
         version: 1,
         last_modified: chrono::Utc::now().to_rfc3339(),
     };
     let crdt_doc = crate::sync::crdt::SoloDoc::from_profile(&profile_data, &meta);
+    crate::log_to_file("[SYNC-R] CRDT doc created");
 
     // 3. Build attachment manifest
+    crate::log_to_file("[SYNC-R] serializing profile json...");
     let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
+    crate::log_to_file(&format!("[SYNC-R] profile json len={}", profile_json.len()));
+    crate::log_to_file("[SYNC-R] extracting attachment manifest...");
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
     crate::log_to_file(&format!("[SYNC-R] attachments={}", attachment_manifest.len()));
 
