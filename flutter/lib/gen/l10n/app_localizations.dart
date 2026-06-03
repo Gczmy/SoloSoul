@@ -8087,6 +8087,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid password'**
   String get invalidPassword;
+
+  /// No description provided for @syncReceiveSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Sync'**
+  String get syncReceiveSync;
+
+  /// No description provided for @syncReceiveSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the same pairing key and start listening. The other device will connect to you.'**
+  String get syncReceiveSyncHint;
+
+  /// No description provided for @syncListeningAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting on {ip}:{port}...'**
+  String syncListeningAddress(String ip, String port);
+
+  /// No description provided for @syncStartListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Listening'**
+  String get syncStartListening;
+
+  /// No description provided for @syncStopListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Listening'**
+  String get syncStopListening;
+
+  /// No description provided for @syncFirewallHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ensure both devices are on the same network and allow SoloSoul through the firewall if prompted.'**
+  String get syncFirewallHint;
 }
 
 class _AppLocalizationsDelegate

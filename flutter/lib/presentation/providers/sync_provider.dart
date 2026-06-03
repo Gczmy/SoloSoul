@@ -20,6 +20,7 @@ class SyncState {
   final String? errorMessage;
   final frb.SyncResult? lastResult;
   final bool isAdvertising;
+  final bool isListening;
 
   const SyncState({
     this.status = SyncStatus.idle,
@@ -27,6 +28,7 @@ class SyncState {
     this.errorMessage,
     this.lastResult,
     this.isAdvertising = false,
+    this.isListening = false,
   });
 
   SyncState copyWith({
@@ -35,6 +37,7 @@ class SyncState {
     String? errorMessage,
     frb.SyncResult? lastResult,
     bool? isAdvertising,
+    bool? isListening,
   }) {
     return SyncState(
       status: status ?? this.status,
@@ -42,12 +45,15 @@ class SyncState {
       errorMessage: errorMessage,
       lastResult: lastResult ?? this.lastResult,
       isAdvertising: isAdvertising ?? this.isAdvertising,
+      isListening: isListening ?? this.isListening,
     );
   }
 }
 
 /// Notifier for sync operations
 class SyncNotifier extends Notifier<SyncState> {
+  bool _shouldListen = false;
+
   @override
   SyncState build() {
     return const SyncState();
@@ -88,6 +94,54 @@ class SyncNotifier extends Notifier<SyncState> {
   /// Stop advertising
   void stopAdvertising() {
     state = state.copyWith(isAdvertising: false);
+  }
+
+  /// Start listening for incoming sync connections.
+  Future<void> startListening({
+    required String accountId,
+    required List<int> pairingKey,
+    required List<int> deviceSalt,
+  }) async {
+    _shouldListen = true;
+    state = state.copyWith(
+      isListening: true,
+      status: SyncStatus.idle,
+      errorMessage: null,
+    );
+    try {
+      final result = await SyncService.instance.syncAsResponder(
+        accountId: accountId,
+        pairingKey: pairingKey,
+        deviceSalt: deviceSalt,
+      );
+      if (!_shouldListen) return;
+      state = state.copyWith(
+        isListening: false,
+        status: SyncStatus.success,
+        lastResult: result,
+      );
+    } on Exception catch (e) {
+      if (!_shouldListen) return;
+      state = state.copyWith(
+        isListening: false,
+        status: SyncStatus.error,
+        errorMessage: 'Sync failed: $e',
+      );
+    } on Object catch (e) {
+      SoloLog.e('SyncNotifier', 'Unexpected sync error', e);
+      if (!_shouldListen) return;
+      state = state.copyWith(
+        isListening: false,
+        status: SyncStatus.error,
+        errorMessage: 'Unexpected sync error: $e',
+      );
+    }
+  }
+
+  /// Stop listening for incoming connections.
+  void stopListening() {
+    _shouldListen = false;
+    state = state.copyWith(isListening: false);
   }
 
   /// Sync with a discovered device as initiator

@@ -4,7 +4,7 @@
 //! for device-to-device synchronization over a local network.
 
 use std::io::{Read, Write};
-use std::net::TcpStream;
+use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
 
 use super::engine::Transport;
@@ -24,9 +24,10 @@ impl TcpTransport {
         Self { stream }
     }
 
-    /// Connect to a remote peer.
+    /// Connect to a remote peer with a 5-second timeout.
     pub fn connect(addr: &str) -> Result<Self, String> {
-        let stream = TcpStream::connect(addr)
+        let socket_addr = addr.parse().map_err(|e| format!("Invalid address {}: {}", addr, e))?;
+        let stream = TcpStream::connect_timeout(&socket_addr, Duration::from_secs(5))
             .map_err(|e| format!("TCP connect to {} failed: {}", addr, e))?;
         stream
             .set_read_timeout(Some(Duration::from_secs(30)))
@@ -35,6 +36,54 @@ impl TcpTransport {
             .set_write_timeout(Some(Duration::from_secs(30)))
             .map_err(|e| format!("set_write_timeout: {}", e))?;
         Ok(Self { stream })
+    }
+
+    /// Bind a TCP listener on the given address.
+    pub fn listen(addr: &str) -> Result<TcpListener, String> {
+        TcpListener::bind(addr)
+            .map_err(|e| format!("TCP bind {} failed: {}", addr, e))
+    }
+
+    /// Accept an incoming connection with a timeout.
+    pub fn accept(listener: &TcpListener, timeout: Duration) -> Result<Self, String> {
+        listener
+            .set_nonblocking(true)
+            .map_err(|e| format!("set_nonblocking: {}", e))?;
+        let start = std::time::Instant::now();
+        loop {
+            match listener.accept() {
+                Ok((stream, _)) => {
+                    listener
+                        .set_nonblocking(false)
+                        .map_err(|e| format!("restore blocking: {}", e))?;
+                    stream
+                        .set_read_timeout(Some(Duration::from_secs(30)))
+                        .map_err(|e| format!("set_read_timeout: {}", e))?;
+                    stream
+                        .set_write_timeout(Some(Duration::from_secs(30)))
+                        .map_err(|e| format!("set_write_timeout: {}", e))?;
+                    return Ok(Self::new(stream));
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    if start.elapsed() >= timeout {
+                        listener
+                            .set_nonblocking(false)
+                            .map_err(|e| format!("restore blocking: {}", e))?;
+                        return Err(format!(
+                            "TCP accept timed out after {}s",
+                            timeout.as_secs()
+                        ));
+                    }
+                    std::thread::sleep(Duration::from_millis(100));
+                }
+                Err(e) => {
+                    listener
+                        .set_nonblocking(false)
+                        .map_err(|e| format!("restore blocking: {}", e))?;
+                    return Err(format!("TCP accept failed: {}", e));
+                }
+            }
+        }
     }
 
     /// Get the local address of the socket.

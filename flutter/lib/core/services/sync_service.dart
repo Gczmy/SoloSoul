@@ -85,7 +85,7 @@ class SyncService {
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
         attachmentsDir: attachmentsDir,
-      );
+      ).timeout(const Duration(seconds: 20));
       SoloLog.d(
         'SyncService',
         'Sync complete: direction=${result.direction}, '
@@ -102,25 +102,25 @@ class SyncService {
 
   /// Respond to an incoming sync request.
   ///
+  /// Listens on 0.0.0.0:9900 for an incoming connection, then performs sync.
   /// This device receives the remote state vector first, then sends its diff.
-  /// Attachment files are synced after CRDT sync completes.
   Future<frb.SyncResult> syncAsResponder({
     required String accountId,
-    required String remoteAddr,
     required List<int> pairingKey,
     required List<int> deviceSalt,
   }) async {
-    SoloLog.d('SyncService', 'Responding to sync from $remoteAddr');
+    const listenAddr = '0.0.0.0:9900';
+    SoloLog.d('SyncService', 'Listening for sync on $listenAddr');
     final timer = SoloLog.startTimer('SyncService', 'syncAsResponder');
     try {
       final attachmentsDir = await _getAttachmentsDir(accountId);
       final result = await frb.frbSyncResponder(
         accountId: accountId,
-        remoteAddr: remoteAddr,
+        remoteAddr: listenAddr,
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
         attachmentsDir: attachmentsDir,
-      );
+      ).timeout(const Duration(seconds: 90));
       SoloLog.d(
         'SyncService',
         'Sync complete: direction=${result.direction}, '
@@ -133,6 +133,23 @@ class SyncService {
       SoloLog.endTimer(timer);
       rethrow;
     }
+  }
+
+  /// Get the local IP address for display.
+  static Future<String?> getLocalIp() async {
+    try {
+      final interfaces = await NetworkInterface.list();
+      for (final interface in interfaces) {
+        for (final addr in interface.addresses) {
+          if (addr.type == InternetAddressType.IPv4 &&
+              !addr.isLoopback &&
+              !addr.address.startsWith('127.')) {
+            return addr.address;
+          }
+        }
+      }
+    } on Object catch (_) {}
+    return null;
   }
 
   /// Generate a random pairing key for Noise handshake.

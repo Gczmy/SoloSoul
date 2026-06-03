@@ -821,12 +821,12 @@ pub fn frb_sync_initiator(
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
 
     // 4. Establish Noise channel
-    let local_keypair =
-        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, &device_salt);
-    let responder_keypair =
-        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"remote");
+    // Both sides derive the same keypair from the shared pairing key,
+    // so each knows the other's static public key for IK mode.
+    let shared_keypair =
+        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"solosoul-sync-v1");
     let (channel, _) =
-        crate::sync::protocol::SecureChannel::handshake_ik(&local_keypair, &responder_keypair)
+        crate::sync::protocol::SecureChannel::handshake_ik(&shared_keypair, &shared_keypair)
             .map_err(|e| format!("Noise handshake failed: {}", e))?;
 
     // 5. Connect and sync
@@ -875,9 +875,9 @@ pub fn frb_sync_initiator(
 /// Sync profile with a remote device as the responder (receives state vector first).
 ///
 /// [account_id] identifies the account to sync.
-/// [remote_addr] is the remote device address (e.g. "192.168.1.5:9900").
+/// [remote_addr] is the address to listen on (e.g. "0.0.0.0:9900").
 /// [pairing_key] is the shared pairing key for Noise handshake.
-/// [device_salt] is this device's unique identifier for key derivation.
+/// [device_salt] is this device's unique identifier for key derivation (unused).
 #[frb]
 pub fn frb_sync_responder(
     account_id: String,
@@ -919,17 +919,19 @@ pub fn frb_sync_responder(
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
 
     // 4. Establish Noise channel
-    let local_keypair =
-        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, &device_salt);
-    let initiator_keypair =
-        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"remote");
+    // Both sides derive the same keypair from the shared pairing key,
+    // so each knows the other's static public key for IK mode.
+    let shared_keypair =
+        crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"solosoul-sync-v1");
     let (_, channel) =
-        crate::sync::protocol::SecureChannel::handshake_ik(&initiator_keypair, &local_keypair)
+        crate::sync::protocol::SecureChannel::handshake_ik(&shared_keypair, &shared_keypair)
             .map_err(|e| format!("Noise handshake failed: {}", e))?;
 
-    // 5. Connect and sync
-    let transport =
-        TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
+    // 5. Listen for incoming connection and sync
+    let listener = TcpTransport::listen(&remote_addr)
+        .map_err(|e| format!("TCP listen failed: {}", e))?;
+    let transport = TcpTransport::accept(&listener, std::time::Duration::from_secs(60))
+        .map_err(|e| format!("TCP accept failed: {}", e))?;
 
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
         .with_attachments(attachments_dir, attachment_manifest);

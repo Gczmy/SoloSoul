@@ -22,12 +22,15 @@ class SyncPage extends ConsumerStatefulWidget {
 class _SyncPageState extends ConsumerState<SyncPage> {
   final _pairingKeyController = TextEditingController();
   final _addressController = TextEditingController();
+  final _responderKeyController = TextEditingController();
   bool _isPairingKeyVisible = false;
+  bool _isResponderKeyVisible = false;
 
   @override
   void dispose() {
     _pairingKeyController.dispose();
     _addressController.dispose();
+    _responderKeyController.dispose();
     super.dispose();
   }
 
@@ -105,6 +108,24 @@ class _SyncPageState extends ConsumerState<SyncPage> {
                   setState(() => _isPairingKeyVisible = !_isPairingKeyVisible),
               onConnect: _handleManualConnect,
               isSyncing: syncState.status == SyncStatus.syncing,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Receive Sync Section
+            _SectionHeader(
+              title: l10n.syncReceiveSync,
+              icon: Icons.download,
+            ),
+            const SizedBox(height: 12),
+            _ReceiveSyncCard(
+              pairingKeyController: _responderKeyController,
+              isPairingKeyVisible: _isResponderKeyVisible,
+              onToggleVisibility: () =>
+                  setState(() => _isResponderKeyVisible = !_isResponderKeyVisible),
+              onStartListening: _handleStartListening,
+              onStopListening: _handleStopListening,
+              isListening: syncState.isListening,
             ),
 
             const SizedBox(height: 24),
@@ -220,6 +241,43 @@ class _SyncPageState extends ConsumerState<SyncPage> {
           pairingKey: pairingKey,
           deviceSalt: deviceSalt,
         );
+  }
+
+  Future<void> _handleStartListening() async {
+    final keyHex = _responderKeyController.text.trim();
+    if (keyHex.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).syncEnterPairingKey)),
+      );
+      return;
+    }
+    final pairingKey = hexToBytes(keyHex);
+    if (pairingKey == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).syncInvalidPairingKey)),
+      );
+      return;
+    }
+    final accountId = ref.read(authNotifierProvider.notifier).selectedAccountId;
+    if (accountId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).syncNoActiveAccount)),
+        );
+      }
+      return;
+    }
+    final deviceSalt = await SyncService.instance.generateDeviceSalt();
+    if (!mounted) return;
+    await ref.read(syncProvider.notifier).startListening(
+          accountId: accountId,
+          pairingKey: pairingKey,
+          deviceSalt: deviceSalt,
+        );
+  }
+
+  void _handleStopListening() {
+    ref.read(syncProvider.notifier).stopListening();
   }
 
   Future<void> _handleGenerateKey() async {
@@ -492,6 +550,104 @@ class _ManualConnectionCard extends StatelessWidget {
                       )
                     : const Icon(Icons.sync, size: 18),
                 label: Text(isSyncing ? AppLocalizations.of(context).syncSyncing : AppLocalizations.of(context).syncConnectSync),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiveSyncCard extends StatelessWidget {
+  final TextEditingController pairingKeyController;
+  final bool isPairingKeyVisible;
+  final VoidCallback onToggleVisibility;
+  final VoidCallback onStartListening;
+  final VoidCallback onStopListening;
+  final bool isListening;
+
+  const _ReceiveSyncCard({
+    required this.pairingKeyController,
+    required this.isPairingKeyVisible,
+    required this.onToggleVisibility,
+    required this.onStartListening,
+    required this.onStopListening,
+    required this.isListening,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.syncReceiveSyncHint,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: pairingKeyController,
+              decoration: InputDecoration(
+                labelText: l10n.syncPairingKey,
+                hintText: l10n.syncPairingKeyHint,
+                prefixIcon: const Icon(Icons.vpn_key),
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    isPairingKeyVisible ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: onToggleVisibility,
+                ),
+              ),
+              obscureText: !isPairingKeyVisible,
+              maxLines: 1,
+            ),
+            const SizedBox(height: 12),
+            FutureBuilder<String?>(
+              future: SyncService.getLocalIp(),
+              builder: (context, snapshot) {
+                final ip = snapshot.data;
+                if (ip == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    l10n.syncListeningAddress(ip, '9900'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
+            ),
+            Text(
+              l10n.syncFirewallHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: isListening ? onStopListening : onStartListening,
+                icon: isListening
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.download, size: 18),
+                label: Text(isListening ? l10n.syncStopListening : l10n.syncStartListening),
               ),
             ),
           ],

@@ -4472,4 +4472,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidPassword => 'Invalid password';
+
+  @override
+  String get syncReceiveSync => 'Receive Sync';
+
+  @override
+  String get syncReceiveSyncHint =>
+      'Enter the same pairing key and start listening. The other device will connect to you.';
+
+  @override
+  String syncListeningAddress(String ip, String port) {
+    return 'Waiting on $ip:$port...';
+  }
+
+  @override
+  String get syncStartListening => 'Start Listening';
+
+  @override
+  String get syncStopListening => 'Stop Listening';
+
+  @override
+  String get syncFirewallHint =>
+      'Ensure both devices are on the same network and allow SoloSoul through the firewall if prompted.';
 }

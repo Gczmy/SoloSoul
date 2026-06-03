@@ -1996,5 +1996,21 @@
         "type": "String"
       }
     }
+  },
+  "syncReceiveSync": "接收同步",
+  "syncReceiveSyncHint": "输入与发起方相同的配对密钥，然后点击开始监听。对方将主动连接到你。",
+  "syncListeningAddress": "正在 {ip}:{port} 等待连接...",
+  "syncStartListening": "开始监听",
+  "syncStopListening": "停止监听",
+  "syncFirewallHint": "请确保两台设备在同一网络，并允许系统防火墙弹窗（如有）。",
+  "@syncListeningAddress": {
+    "placeholders": {
+      "ip": {
+        "type": "String"
+      },
+      "port": {
+        "type": "String"
+      }
+    }
   }
 }

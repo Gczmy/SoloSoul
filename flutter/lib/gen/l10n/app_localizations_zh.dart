@@ -4334,4 +4334,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get invalidPassword => '密码错误';
+
+  @override
+  String get syncReceiveSync => '接收同步';
+
+  @override
+  String get syncReceiveSyncHint => '输入与发起方相同的配对密钥，然后点击开始监听。对方将主动连接到你。';
+
+  @override
+  String syncListeningAddress(String ip, String port) {
+    return '正在 $ip:$port 等待连接...';
+  }
+
+  @override
+  String get syncStartListening => '开始监听';
+
+  @override
+  String get syncStopListening => '停止监听';
+
+  @override
+  String get syncFirewallHint => '请确保两台设备在同一网络，并允许系统防火墙弹窗（如有）。';
 }

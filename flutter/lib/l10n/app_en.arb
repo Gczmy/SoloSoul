@@ -2476,5 +2476,21 @@
         "type": "String"
       }
     }
+  },
+  "syncReceiveSync": "Receive Sync",
+  "syncReceiveSyncHint": "Enter the same pairing key and start listening. The other device will connect to you.",
+  "syncListeningAddress": "Waiting on {ip}:{port}...",
+  "syncStartListening": "Start Listening",
+  "syncStopListening": "Stop Listening",
+  "syncFirewallHint": "Ensure both devices are on the same network and allow SoloSoul through the firewall if prompted.",
+  "@syncListeningAddress": {
+    "placeholders": {
+      "ip": {
+        "type": "String"
+      },
+      "port": {
+        "type": "String"
+      }
+    }
   }
 }
