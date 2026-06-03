@@ -218,7 +218,7 @@ Win32Window::MessageHandler(HWND hwnd,
       UINT dpi = FlutterDesktopGetDpiForMonitor(
           MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST));
       double scale_factor = dpi / 96.0;
-      // 最小窗口尺寸：900x600（逻辑像素），根据 DPI 缩放为物理像素
+      // Minimum window size: 900x600 logical pixels, scaled to physical pixels by DPI
       minMaxInfo->ptMinTrackSize.x = static_cast<LONG>(900 * scale_factor);
       minMaxInfo->ptMinTrackSize.y = static_cast<LONG>(600 * scale_factor);
       return 0;
