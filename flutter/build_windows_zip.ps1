@@ -22,8 +22,13 @@ Write-Host "========================================" -ForegroundColor Green
 # --- Inject version into pubspec.yaml ---
 Write-Host "Injecting version ${Version} into pubspec.yaml..." -ForegroundColor Yellow
 $PubspecPath = "pubspec.yaml"
-$OriginalVersionLine = (Get-Content $PubspecPath | Select-String "^version:").Line
-(Get-Content $PubspecPath -Raw) -replace "^version: .*", "version: ${Version}+1" | Set-Content $PubspecPath -NoNewline
+$OriginalContent = [System.IO.File]::ReadAllText($PubspecPath, [System.Text.UTF8Encoding]::new($false))
+$OriginalVersionLine = ($OriginalContent -split "`n") | Select-String "^version:" | Select-Object -First 1
+
+# Use .NET File API to ensure UTF-8 without BOM (same as original file)
+$Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+$ModifiedContent = $OriginalContent -replace "^version: .*", "version: ${Version}+1"
+[System.IO.File]::WriteAllText($PubspecPath, $ModifiedContent, $Utf8NoBom)
 
 # Ensure cleanup on exit
 try {
@@ -61,7 +66,7 @@ try {
 finally {
     # --- Restore pubspec.yaml ---
     Write-Host "Restoring pubspec.yaml version..." -ForegroundColor Yellow
-    (Get-Content $PubspecPath -Raw) -replace "^version: .*", $OriginalVersionLine | Set-Content $PubspecPath -NoNewline
+    [System.IO.File]::WriteAllText($PubspecPath, $OriginalContent, $Utf8NoBom)
 
     # --- Clean staging ---
     if (Test-Path $StagingDir) {
