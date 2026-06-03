@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:math' show sqrt;
 import 'dart:typed_data';
 
@@ -32,6 +33,11 @@ class PdfRenderService {
     int dpi = 300,
     PdfPageImageFormat format = PdfPageImageFormat.png,
   }) async {
+    if (Platform.isWindows) {
+      SoloLog.w('PdfRender', 'PDF rendering is not supported on Windows');
+      return null;
+    }
+
     PdfDocument? document;
     PdfPage? page;
 
