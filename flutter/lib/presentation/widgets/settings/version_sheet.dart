@@ -55,6 +55,15 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
     return 'Web';
   }
 
+  IconData get _platformIcon {
+    if (Platform.isMacOS) return Icons.laptop_mac;
+    if (Platform.isWindows) return Icons.desktop_windows;
+    if (Platform.isLinux) return Icons.computer;
+    if (Platform.isAndroid) return Icons.phone_android;
+    if (Platform.isIOS) return Icons.phone_iphone;
+    return Icons.web;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -189,7 +198,7 @@ class VersionSheetState extends ConsumerState<VersionSheet> {
                   ),
                   const Divider(height: 1),
                   VersionInfoTile(
-                    icon: Platform.isMacOS ? Icons.laptop_mac : Icons.phone_android,
+                    icon: _platformIcon,
                     title: AppLocalizations.of(context).versionPlatform,
                     value: _platformName,
                   ),
