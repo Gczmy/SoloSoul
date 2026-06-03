@@ -135,6 +135,14 @@ class _AccountListItem extends StatefulWidget {
 class _AccountListItemState extends State<_AccountListItem> {
   bool _isHovered = false;
 
+  /// Short account ID prefix for distinguishing accounts with the same name.
+  /// e.g. "acc_550e8400" from "acc_550e8400-e29b-41d4-a716-446655440000"
+  String get _shortAccountId {
+    final id = widget.account.id;
+    if (id.length <= 12) return id;
+    return id.substring(0, 12);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -206,11 +214,26 @@ class _AccountListItemState extends State<_AccountListItem> {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              widget.account.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
+                            Flexible(
+                              child: Text(
+                                widget.account.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              message: widget.account.id,
+                              child: Text(
+                                _shortAccountId,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                  fontFamily: 'monospace',
+                                ),
                               ),
                             ),
                             if (widget.isRecent) ...[
