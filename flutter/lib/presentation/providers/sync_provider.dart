@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/sync_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
@@ -21,6 +23,7 @@ class SyncState {
   final frb.SyncResult? lastResult;
   final bool isAdvertising;
   final bool isListening;
+  final List<String> syncLogs;
 
   const SyncState({
     this.status = SyncStatus.idle,
@@ -29,6 +32,7 @@ class SyncState {
     this.lastResult,
     this.isAdvertising = false,
     this.isListening = false,
+    this.syncLogs = const [],
   });
 
   SyncState copyWith({
@@ -38,6 +42,7 @@ class SyncState {
     frb.SyncResult? lastResult,
     bool? isAdvertising,
     bool? isListening,
+    List<String>? syncLogs,
   }) {
     return SyncState(
       status: status ?? this.status,
@@ -46,6 +51,7 @@ class SyncState {
       lastResult: lastResult ?? this.lastResult,
       isAdvertising: isAdvertising ?? this.isAdvertising,
       isListening: isListening ?? this.isListening,
+      syncLogs: syncLogs ?? this.syncLogs,
     );
   }
 }
@@ -53,10 +59,28 @@ class SyncState {
 /// Notifier for sync operations
 class SyncNotifier extends Notifier<SyncState> {
   bool _shouldListen = false;
+  Completer<void>? _cancelCompleter;
 
   @override
   SyncState build() {
     return const SyncState();
+  }
+
+  /// Add a log entry. Keeps at most 200 entries (FIFO).
+  void addSyncLog(String level, String message) {
+    final timestamp = DateTime.now().toIso8601String().substring(11, 19);
+    final entry = '[$timestamp] [$level] $message';
+    final logs = List<String>.from(state.syncLogs);
+    logs.add(entry);
+    if (logs.length > 200) {
+      logs.removeAt(0);
+    }
+    state = state.copyWith(syncLogs: logs);
+  }
+
+  /// Clear all sync logs.
+  void clearSyncLogs() {
+    state = state.copyWith(syncLogs: const []);
   }
 
   /// Discover devices on the local network
@@ -144,6 +168,14 @@ class SyncNotifier extends Notifier<SyncState> {
     state = state.copyWith(isListening: false);
   }
 
+  /// Cancel an ongoing sync operation (initiator side).
+  /// Does not actually interrupt the Rust thread, but immediately
+  /// unlocks the UI so the user can retry with different parameters.
+  void cancelSync() {
+    _cancelCompleter?.complete();
+    state = state.copyWith(status: SyncStatus.idle);
+  }
+
   /// Sync with a discovered device as initiator
   Future<void> syncWithDevice({
     required String accountId,
@@ -152,19 +184,29 @@ class SyncNotifier extends Notifier<SyncState> {
     required List<int> deviceSalt,
   }) async {
     state = state.copyWith(status: SyncStatus.syncing, errorMessage: null);
+    _cancelCompleter = Completer<void>();
     try {
       final addr = '${device.addresses.first}:${device.port}';
-      final result = await SyncService.instance.syncAsInitiator(
+      final frbFuture = SyncService.instance.syncAsInitiator(
         accountId: accountId,
         remoteAddr: addr,
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
+        onLog: addSyncLog,
       );
+      final result = await Future.any([
+        frbFuture,
+        _cancelCompleter!.future.then((_) => throw 'Cancelled by user'),
+      ]);
       state = state.copyWith(
         status: SyncStatus.success,
         lastResult: result,
       );
     } on Exception catch (e) {
+      if (e.toString().contains('Cancelled')) {
+        state = state.copyWith(status: SyncStatus.idle);
+        return;
+      }
       state = state.copyWith(
         status: SyncStatus.error,
         errorMessage: 'Sync failed: $e',
@@ -186,18 +228,28 @@ class SyncNotifier extends Notifier<SyncState> {
     required List<int> deviceSalt,
   }) async {
     state = state.copyWith(status: SyncStatus.syncing, errorMessage: null);
+    _cancelCompleter = Completer<void>();
     try {
-      final result = await SyncService.instance.syncAsInitiator(
+      final frbFuture = SyncService.instance.syncAsInitiator(
         accountId: accountId,
         remoteAddr: remoteAddr,
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
+        onLog: addSyncLog,
       );
+      final result = await Future.any([
+        frbFuture,
+        _cancelCompleter!.future.then((_) => throw 'Cancelled by user'),
+      ]);
       state = state.copyWith(
         status: SyncStatus.success,
         lastResult: result,
       );
     } on Exception catch (e) {
+      if (e.toString().contains('Cancelled')) {
+        state = state.copyWith(status: SyncStatus.idle);
+        return;
+      }
       state = state.copyWith(
         status: SyncStatus.error,
         errorMessage: 'Sync failed: $e',

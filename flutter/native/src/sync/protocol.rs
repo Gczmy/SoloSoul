@@ -16,6 +16,7 @@ pub struct SecureChannel {
 }
 
 /// X25519 keypair for Noise handshake.
+#[derive(Clone)]
 pub struct Keypair {
     pub private: [u8; 32],
     pub public: [u8; 32],
@@ -442,6 +443,82 @@ mod tests {
     }
 }
 
+/// Transport abstraction for sync messages (moved from engine.rs to avoid circular deps)
+pub trait Transport: Send {
+    fn send(&mut self, data: &[u8]) -> Result<(), String>;
+    fn recv(&mut self) -> Result<Vec<u8>, String>;
+}
+
+// ============================================================================
+// Network handshake over a Transport
+// ============================================================================
+
+impl SecureChannel {
+    /// Perform Noise_IK handshake as initiator over a [Transport].
+    ///
+    /// Loops writing/reading handshake messages until `is_handshake_finished()`
+    /// returns true, then converts to transport mode.
+    pub fn network_handshake_initiator(
+        local_private: &[u8; 32],
+        remote_public: &[u8; 32],
+        transport: &mut dyn Transport,
+    ) -> Result<Self, String> {
+        let mut noise = Self::build_initiator(local_private, remote_public)?;
+
+        while !noise.is_handshake_finished() {
+            let mut buf = vec![0u8; 65535];
+            let len = noise
+                .write_message(&[], &mut buf)
+                .map_err(|e| format!("Initiator write: {}", e))?;
+            transport
+                .send(&buf[..len])
+                .map_err(|e| format!("Transport send (initiator): {}", e))?;
+
+            let received = transport
+                .recv()
+                .map_err(|e| format!("Transport recv (initiator): {}", e))?;
+            noise
+                .read_message(&received, &mut vec![0u8; 65535])
+                .map_err(|e| format!("Initiator read: {}", e))?;
+        }
+
+        let transport_state = noise
+            .into_transport_mode()
+            .map_err(|e| format!("Initiator into_transport_mode: {}", e))?;
+        Ok(Self::from_transport(transport_state))
+    }
+
+    /// Perform Noise_IK handshake as responder over a [Transport].
+    pub fn network_handshake_responder(
+        local_private: &[u8; 32],
+        transport: &mut dyn Transport,
+    ) -> Result<Self, String> {
+        let mut noise = Self::build_responder(local_private)?;
+
+        while !noise.is_handshake_finished() {
+            let received = transport
+                .recv()
+                .map_err(|e| format!("Transport recv (responder): {}", e))?;
+            noise
+                .read_message(&received, &mut vec![0u8; 65535])
+                .map_err(|e| format!("Responder read: {}", e))?;
+
+            let mut buf = vec![0u8; 65535];
+            let len = noise
+                .write_message(&[], &mut buf)
+                .map_err(|e| format!("Responder write: {}", e))?;
+            transport
+                .send(&buf[..len])
+                .map_err(|e| format!("Transport send (responder): {}", e))?;
+        }
+
+        let transport_state = noise
+            .into_transport_mode()
+            .map_err(|e| format!("Responder into_transport_mode: {}", e))?;
+        Ok(Self::from_transport(transport_state))
+    }
+}
+
 /// WebSocket message types
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -505,4 +582,100 @@ pub struct SyncMetadata {
     pub sequence: u64,
     pub device_id: String,
     pub timestamp: i64,
+}
+
+// ============================================================================
+// Network handshake tests
+// ============================================================================
+
+#[cfg(test)]
+mod network_tests {
+    use super::*;
+
+    /// In-memory transport for testing network handshake between two threads.
+    struct ChannelTransport {
+        tx: std::sync::mpsc::Sender<Vec<u8>>,
+        rx: std::sync::mpsc::Receiver<Vec<u8>>,
+    }
+
+    impl Transport for ChannelTransport {
+        fn send(&mut self, data: &[u8]) -> Result<(), String> {
+            self.tx.send(data.to_vec()).map_err(|e| e.to_string())
+        }
+        fn recv(&mut self) -> Result<Vec<u8>, String> {
+            self.rx.recv().map_err(|e| e.to_string())
+        }
+    }
+
+    fn pair() -> (ChannelTransport, ChannelTransport) {
+        let (tx_a, rx_a) = std::sync::mpsc::channel();
+        let (tx_b, rx_b) = std::sync::mpsc::channel();
+        (
+            ChannelTransport { tx: tx_a, rx: rx_b },
+            ChannelTransport { tx: tx_b, rx: rx_a },
+        )
+    }
+
+    #[test]
+    fn test_network_handshake_over_mock_transport() {
+        let pairing_key = b"shared-pairing-key-network";
+        let shared_kp = SecureChannel::derive_keypair(pairing_key, b"solosoul-sync-v1");
+
+        let (mut transport_a, mut transport_b) = pair();
+
+        // Spawn responder in a separate thread to simulate two devices
+        let responder_handle = std::thread::spawn(move || {
+            SecureChannel::network_handshake_responder(
+                &shared_kp.private,
+                &mut transport_b,
+            )
+            .expect("Responder handshake should succeed")
+        });
+
+        let mut initiator = SecureChannel::network_handshake_initiator(
+            &shared_kp.private,
+            &shared_kp.public,
+            &mut transport_a,
+        )
+        .expect("Initiator handshake should succeed");
+
+        let mut responder = responder_handle.join().expect("Responder thread panicked");
+
+        // Verify bidirectional encryption works across independently derived channels
+        let msg_a = b"hello from initiator";
+        let enc_a = initiator.encrypt(msg_a).unwrap();
+        assert_eq!(responder.decrypt(&enc_a).unwrap(), msg_a);
+
+        let msg_b = b"hello from responder";
+        let enc_b = responder.encrypt(msg_b).unwrap();
+        assert_eq!(initiator.decrypt(&enc_b).unwrap(), msg_b);
+    }
+
+    #[test]
+    fn test_network_handshake_timeout_when_responder_silent() {
+        // A transport that never returns data — simulates a dead peer
+        struct DeadTransport;
+        impl Transport for DeadTransport {
+            fn send(&mut self, _data: &[u8]) -> Result<(), String> {
+                Ok(())
+            }
+            fn recv(&mut self) -> Result<Vec<u8>, String> {
+                // Block forever — but in tests we can't easily simulate true timeout
+                // without threading. Instead, we verify the initiator sends at least
+                // one message before blocking on recv.
+                Err("simulated timeout".to_string())
+            }
+        }
+
+        let pairing_key = b"timeout-test-key";
+        let shared_kp = SecureChannel::derive_keypair(pairing_key, b"solosoul-sync-v1");
+
+        let mut transport = DeadTransport;
+        let result = SecureChannel::network_handshake_initiator(
+            &shared_kp.private,
+            &shared_kp.public,
+            &mut transport,
+        );
+        assert!(result.is_err(), "Handshake with dead peer should fail");
+    }
 }

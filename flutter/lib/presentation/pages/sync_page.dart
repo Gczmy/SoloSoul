@@ -44,8 +44,13 @@ class _SyncPageState extends ConsumerState<SyncPage> {
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,
         title: Text(AppLocalizations.of(context).syncTitle),
-        actions: const [
-          HeaderActionButtons(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.article_outlined),
+            tooltip: '同步日志',
+            onPressed: () => _showSyncLogs(context),
+          ),
+          const HeaderActionButtons(),
         ],
       ),
       body: SingleChildScrollView(
@@ -107,6 +112,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
               onToggleVisibility: () =>
                   setState(() => _isPairingKeyVisible = !_isPairingKeyVisible),
               onConnect: _handleManualConnect,
+              onCancel: () => ref.read(syncProvider.notifier).cancelSync(),
               isSyncing: syncState.status == SyncStatus.syncing,
             ),
 
@@ -291,7 +297,12 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     }
   }
 
-
+  void _showSyncLogs(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => const _SyncLogDialog(),
+    );
+  }
 }
 
 // =============================================================================
@@ -488,6 +499,7 @@ class _ManualConnectionCard extends StatelessWidget {
   final bool isPairingKeyVisible;
   final VoidCallback onToggleVisibility;
   final VoidCallback onConnect;
+  final VoidCallback? onCancel;
   final bool isSyncing;
 
   const _ManualConnectionCard({
@@ -496,11 +508,13 @@ class _ManualConnectionCard extends StatelessWidget {
     required this.isPairingKeyVisible,
     required this.onToggleVisibility,
     required this.onConnect,
+    this.onCancel,
     required this.isSyncing,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -540,17 +554,21 @@ class _ManualConnectionCard extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: isSyncing ? null : onConnect,
-                icon: isSyncing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.sync, size: 18),
-                label: Text(isSyncing ? AppLocalizations.of(context).syncSyncing : AppLocalizations.of(context).syncConnectSync),
-              ),
+              child: isSyncing
+                  ? FilledButton.icon(
+                      onPressed: onCancel,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: theme.colorScheme.error,
+                        foregroundColor: theme.colorScheme.onError,
+                      ),
+                      icon: const Icon(Icons.cancel, size: 18),
+                      label: Text(AppLocalizations.of(context).commonCancel),
+                    )
+                  : FilledButton.icon(
+                      onPressed: onConnect,
+                      icon: const Icon(Icons.sync, size: 18),
+                      label: Text(AppLocalizations.of(context).syncConnectSync),
+                    ),
             ),
           ],
         ),
@@ -880,6 +898,75 @@ class _SyncDialogState extends State<_SyncDialog> {
       ],
     );
   }
+}
 
+class _SyncLogDialog extends ConsumerWidget {
+  const _SyncLogDialog();
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final syncState = ref.watch(syncProvider);
+    final logs = syncState.syncLogs;
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.article_outlined, size: 20),
+          const SizedBox(width: 8),
+          const Expanded(child: Text('同步日志')),
+          if (logs.isNotEmpty)
+            Text(
+              '${logs.length} 条',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: logs.isEmpty
+            ? Center(
+                child: Text(
+                  '暂无同步日志',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+            : ListView.builder(
+                itemCount: logs.length,
+                itemBuilder: (context, index) {
+                  final log = logs[index];
+                  final isError = log.contains('[ERROR]');
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      log,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isError ? theme.colorScheme.error : null,
+                        fontFamily: 'monospace',
+                        fontFamilyFallback: const ['Menlo', 'Courier'],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: logs.isEmpty
+              ? null
+              : () => ref.read(syncProvider.notifier).clearSyncLogs(),
+          child: const Text('清空日志'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('关闭'),
+        ),
+      ],
+    );
+  }
 }

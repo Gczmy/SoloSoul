@@ -7,7 +7,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
 
-use super::engine::Transport;
+use super::protocol::Transport;
 
 /// Length-prefix framing: 4-byte big-endian length header.
 const LEN_HEADER_SIZE: usize = 4;

@@ -14,7 +14,7 @@ use std::collections::{HashMap, HashSet};
 use std::io::{Read, Write};
 
 use super::crdt::SoloDoc;
-use super::protocol::SecureChannel;
+use super::protocol::{SecureChannel, Transport};
 
 /// Direction of sync result
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -82,12 +82,6 @@ pub enum SyncMessage {
     },
     /// Signal end of attachment requests
     AttachmentDone,
-}
-
-/// Transport abstraction for sync messages
-pub trait Transport: Send {
-    fn send(&mut self, data: &[u8]) -> Result<(), String>;
-    fn recv(&mut self) -> Result<Vec<u8>, String>;
 }
 
 /// Single attachment file info for manifest exchange
@@ -942,5 +936,67 @@ mod tests {
         // Without actual files on disk, manifest should be empty
         let manifest = extract_attachment_manifest(json, "/tmp/nonexistent");
         assert!(manifest.is_empty());
+    }
+
+    /// End-to-end sync over real TCP with network Noise handshake.
+    /// This validates that two independently-built HandshakeStates can
+    /// communicate over a real socket and successfully exchange CRDT data.
+    #[test]
+    fn test_sync_over_tcp_with_network_handshake() {
+        use crate::sync::protocol::SecureChannel;
+        use crate::sync::transport::TcpTransport;
+        use std::net::TcpListener;
+
+        let pairing_key = b"tcp-sync-test-key";
+        let shared_kp = SecureChannel::derive_keypair(pairing_key, b"solosoul-sync-v1");
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap().to_string();
+
+        let meta = make_meta();
+        let doc_a = SoloDoc::from_profile(&make_profile_a(), &meta);
+        let doc_b = SoloDoc::from_profile(&make_profile_b(), &meta);
+
+        // Responder thread: accept TCP, do network handshake, then sync_responder
+        let responder_kp = shared_kp.clone();
+        let handle_b = std::thread::spawn(move || {
+            let stream = listener.accept().unwrap().0;
+            let mut transport = TcpTransport::new(stream);
+
+            let channel = SecureChannel::network_handshake_responder(
+                &responder_kp.private,
+                &mut transport,
+            )
+            .expect("Responder handshake should succeed");
+
+            let mut engine = SyncEngine::new(doc_b, Some(channel), Box::new(transport));
+            engine.sync_responder().expect("Responder sync should succeed")
+        });
+
+        // Initiator: connect, do network handshake, then sync_initiator
+        let mut transport = TcpTransport::connect(&addr).unwrap();
+        let channel = SecureChannel::network_handshake_initiator(
+            &shared_kp.private,
+            &shared_kp.public,
+            &mut transport,
+        )
+        .expect("Initiator handshake should succeed");
+
+        let mut engine_a = SyncEngine::new(doc_a, Some(channel), Box::new(transport));
+        let result_a = engine_a.sync_initiator().expect("Initiator sync should succeed");
+        let profile_a = engine_a.crdt.to_profile().unwrap();
+
+        let result_b = handle_b.join().unwrap();
+
+        // Both should report success
+        assert!(result_a.success, "Initiator sync should succeed");
+        assert!(result_b.success, "Responder sync should succeed");
+
+        // After sync, initiator should have travel (from responder)
+        assert!(profile_a.travel.is_some(), "A should have travel after sync");
+        assert!(
+            profile_a.identity.is_some(),
+            "A should still have its own identity"
+        );
     }
 }

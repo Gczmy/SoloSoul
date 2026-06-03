@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
@@ -74,11 +75,20 @@ class SyncService {
     required String remoteAddr,
     required List<int> pairingKey,
     required List<int> deviceSalt,
+    void Function(String level, String message)? onLog,
   }) async {
-    SoloLog.d('SyncService', 'Initiating sync with $remoteAddr');
+    void log(String level, String message) {
+      SoloLog.d('SyncService', message);
+      onLog?.call(level, message);
+    }
+
+    log('INFO', 'Initiating sync with $remoteAddr');
     final timer = SoloLog.startTimer('SyncService', 'syncAsInitiator');
     try {
       final attachmentsDir = await _getAttachmentsDir(accountId);
+      log('INFO', 'Attachments dir: $attachmentsDir');
+      log('INFO', 'Connecting to $remoteAddr ...');
+
       final result = await frb.frbSyncInitiator(
         accountId: accountId,
         remoteAddr: remoteAddr,
@@ -86,14 +96,14 @@ class SyncService {
         deviceSalt: deviceSalt,
         attachmentsDir: attachmentsDir,
       ).timeout(const Duration(seconds: 30));
-      SoloLog.d(
-        'SyncService',
-        'Sync complete: direction=${result.direction}, '
-        'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received',
-      );
+
+      log('INFO', 'Sync complete: direction=${result.direction}, '
+          'bytes=${result.bytesSent} sent / ${result.bytesReceived} received, '
+          'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received');
       SoloLog.endTimer(timer);
       return result;
     } on Exception catch (e, st) {
+      log('ERROR', 'Sync initiator failed: $e');
       SoloLog.e('SyncService', 'Sync initiator failed', e, st);
       SoloLog.endTimer(timer);
       rethrow;
@@ -108,12 +118,21 @@ class SyncService {
     required String accountId,
     required List<int> pairingKey,
     required List<int> deviceSalt,
+    void Function(String level, String message)? onLog,
   }) async {
     const listenAddr = '0.0.0.0:9900';
-    SoloLog.d('SyncService', 'Listening for sync on $listenAddr');
+
+    void log(String level, String message) {
+      SoloLog.d('SyncService', message);
+      onLog?.call(level, message);
+    }
+
+    log('INFO', 'Listening for sync on $listenAddr');
     final timer = SoloLog.startTimer('SyncService', 'syncAsResponder');
     try {
       final attachmentsDir = await _getAttachmentsDir(accountId);
+      log('INFO', 'Attachments dir: $attachmentsDir');
+
       final result = await frb.frbSyncResponder(
         accountId: accountId,
         remoteAddr: listenAddr,
@@ -121,14 +140,14 @@ class SyncService {
         deviceSalt: deviceSalt,
         attachmentsDir: attachmentsDir,
       ).timeout(const Duration(seconds: 90));
-      SoloLog.d(
-        'SyncService',
-        'Sync complete: direction=${result.direction}, '
-        'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received',
-      );
+
+      log('INFO', 'Sync complete: direction=${result.direction}, '
+          'bytes=${result.bytesSent} sent / ${result.bytesReceived} received, '
+          'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received');
       SoloLog.endTimer(timer);
       return result;
     } on Exception catch (e, st) {
+      log('ERROR', 'Sync responder failed: $e');
       SoloLog.e('SyncService', 'Sync responder failed', e, st);
       SoloLog.endTimer(timer);
       rethrow;

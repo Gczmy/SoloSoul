@@ -820,24 +820,28 @@ pub fn frb_sync_initiator(
     let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
 
-    // 4. Establish Noise channel
+    // 4. Connect to remote peer
+    let mut transport =
+        TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
+
+    // 5. Establish Noise channel over the network
     // Both sides derive the same keypair from the shared pairing key,
     // so each knows the other's static public key for IK mode.
     let shared_keypair =
         crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"solosoul-sync-v1");
-    let (channel, _) =
-        crate::sync::protocol::SecureChannel::handshake_ik(&shared_keypair, &shared_keypair)
-            .map_err(|e| format!("Noise handshake failed: {}", e))?;
+    let channel = crate::sync::protocol::SecureChannel::network_handshake_initiator(
+        &shared_keypair.private,
+        &shared_keypair.public,
+        &mut transport,
+    )
+    .map_err(|e| format!("Noise handshake failed: {}", e))?;
 
-    // 5. Connect and sync
-    let transport =
-        TcpTransport::connect(&remote_addr).map_err(|e| format!("TCP connect failed: {}", e))?;
-
+    // 6. Sync
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
         .with_attachments(attachments_dir, attachment_manifest);
     let result = engine.sync_initiator()?;
 
-    // 6. If we pulled changes, encrypt and save updated profile
+    // 7. If we pulled changes, encrypt and save updated profile
     if matches!(
         result.direction,
         crate::sync::engine::SyncDirection::Pulled
@@ -918,26 +922,29 @@ pub fn frb_sync_responder(
     let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
     let attachment_manifest = extract_attachment_manifest(&profile_json, &attachments_dir);
 
-    // 4. Establish Noise channel
+    // 4. Listen for incoming connection
+    let listener = TcpTransport::listen(&remote_addr)
+        .map_err(|e| format!("TCP listen failed: {}", e))?;
+    let mut transport = TcpTransport::accept(&listener, std::time::Duration::from_secs(60))
+        .map_err(|e| format!("TCP accept failed: {}", e))?;
+
+    // 5. Establish Noise channel over the network
     // Both sides derive the same keypair from the shared pairing key,
     // so each knows the other's static public key for IK mode.
     let shared_keypair =
         crate::sync::protocol::SecureChannel::derive_keypair(&pairing_key, b"solosoul-sync-v1");
-    let (_, channel) =
-        crate::sync::protocol::SecureChannel::handshake_ik(&shared_keypair, &shared_keypair)
-            .map_err(|e| format!("Noise handshake failed: {}", e))?;
+    let channel = crate::sync::protocol::SecureChannel::network_handshake_responder(
+        &shared_keypair.private,
+        &mut transport,
+    )
+    .map_err(|e| format!("Noise handshake failed: {}", e))?;
 
-    // 5. Listen for incoming connection and sync
-    let listener = TcpTransport::listen(&remote_addr)
-        .map_err(|e| format!("TCP listen failed: {}", e))?;
-    let transport = TcpTransport::accept(&listener, std::time::Duration::from_secs(60))
-        .map_err(|e| format!("TCP accept failed: {}", e))?;
-
+    // 6. Sync
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
         .with_attachments(attachments_dir, attachment_manifest);
     let result = engine.sync_responder()?;
 
-    // 6. If we pulled changes, encrypt and save updated profile
+    // 7. If we pulled changes, encrypt and save updated profile
     if matches!(
         result.direction,
         crate::sync::engine::SyncDirection::Pulled
