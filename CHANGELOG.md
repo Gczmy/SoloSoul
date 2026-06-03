@@ -2,6 +2,45 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [1.7.1] - 2026-06-03
+
+### Added
+
+- **Windows Release Packaging**
+  - `build_windows_zip.ps1` / `build_windows_zip.sh` — PowerShell and Bash scripts for Windows ZIP packaging, auto-reading version from `pubspec.yaml`.
+  - CI/CD three-stage pipeline — `build-macos` + `build-windows` → unified `release` job uploading both `.dmg` and `.zip` to GitHub Releases.
+
+- **Windows Compilation Hardening**
+  - CMake auto-fix removes incompatible `pdfx` and `local_auth_windows` plugins from generated registrants.
+  - `Cargo.toml` conditional dependency: `ort` excluded on Windows; OCR module uses stub implementation on Windows.
+  - Enforced 900×600 minimum window size on Windows via Win32 `WM_GETMINMAXINFO`.
+  - C++ source comments switched to English to prevent VS 2026 C4819 encoding errors under `/WX`.
+
+### Fixed
+
+- **Plugin Routing** — `backRoute` corrected from `'/'` to `AppRoutes.home`; missing `AppRoutes` import added.
+- **Backup Manifest** — Ensures sidecar directory exists before writing `manifest.json`.
+- **PDF Render on Windows** — `PdfRenderService` now returns `null` safely on Windows instead of crashing.
+- **Rust Dependency** — Removed duplicate `rustls-tls` key in `reqwest` features.
+
+### Changed
+
+- **Build Scripts** — `build_dmg.sh`, `build_windows_zip.sh`, and `build_windows_zip.ps1` now auto-read version from `pubspec.yaml`; manual version argument is optional.
+- **Operation Log** — Extended coverage to attachment, backup, and plugin lifecycle operations.
+- **Localization** — Backup list summary text fully internationalized.
+- **Settings UI** — Removed help & guides section (redundant with home quick-actions).
+
+### Docs
+
+- Updated Windows known issues in `docs/TODO.md`.
+- Rewrote trash/recycle bin guides (Chinese & English), clarifying distinction between general trash and AI conversation trash.
+- Fixed sensitivity level naming in object guides.
+
+### Internal
+
+- `.gitattributes` added to enforce LF for shell scripts.
+- Removed redundant AttachmentPool "already exists" debug log.
+
 ## [1.7.0] - 2026-06-02
 
 ### Added
@@ -752,7 +791,9 @@ All notable changes to SoloSoul are documented in this file.
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.6.6...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.1
+[1.7.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.0
 [1.6.6]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.6.6
 [1.6.5]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.6.5
 [1.6.4]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.6.4
