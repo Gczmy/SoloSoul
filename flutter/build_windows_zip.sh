@@ -32,6 +32,8 @@ rm -f "${ZIP_OUTPUT}"
 rm -rf "${STAGING_DIR}"
 
 echo -e "${YELLOW}Building Flutter app for Windows...${NC}"
+flutter pub get
+dart run pdfrx:remove_wasm_modules
 flutter build windows --release --obfuscate --split-debug-info=./debug_info/windows
 
 # Verify build output

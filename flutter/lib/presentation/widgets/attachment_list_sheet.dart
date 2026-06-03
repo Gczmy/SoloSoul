@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
 import 'package:solosoul_flutter/core/models/attachment_task_model.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
@@ -643,15 +643,6 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
   /// 打开 PDF 文件：流式解密到临时文件，然后用 PdfDocument.openFile 按需渲染。
   /// 支持任意大小，不受 10MB 预览限制。
   Future<void> _openPdfFromFile(Attachment attachment) async {
-    if (Platform.isWindows) {
-      showOverlaySnackBar(
-        context,
-        content: 'PDF preview is not yet supported on Windows',
-        type: SnackBarType.warning,
-      );
-      return;
-    }
-
     setState(() => _loadingMap[attachment.id] = true);
 
     try {
@@ -759,11 +750,6 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
     String fileName,
     Attachment attachment,
   ) async {
-    final controller = PdfController(
-      document: PdfDocument.openFile(filePath),
-    );
-    PdfDocument? loadedDoc;
-
     await showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -786,140 +772,12 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
               ],
             ),
             Flexible(
-              child: PdfView(
-                controller: controller,
-                scrollDirection: Axis.vertical,
-                onDocumentLoaded: (doc) => loadedDoc = doc,
-                builders: PdfViewBuilders<DefaultBuilderOptions>(
-                  options: const DefaultBuilderOptions(),
-                  errorBuilder: (context, error) {
-                    SoloLog.e('AttachmentPreview', 'PDF decode error', error);
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32),
-                        child: Icon(Icons.picture_as_pdf, size: 64),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-            // Page navigation bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context).dividerColor,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.navigate_before),
-                    tooltip: 'Previous page',
-                    onPressed: () => controller.previousPage(
-                      curve: Curves.ease,
-                      duration: const Duration(milliseconds: 100),
-                    ),
-                  ),
-                  PdfPageNumber(
-                    controller: controller,
-                    builder: (_, loadingState, page, pagesCount) {
-                      final total = pagesCount ?? 0;
-                      return TextButton(
-                        onPressed: total <= 1
-                            ? null
-                            : () => _showPdfPagePicker(
-                                  context,
-                                  controller: controller,
-                                  currentPage: page,
-                                  totalPages: total,
-                                ),
-                        child: Text(
-                          '$page / $total',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.navigate_next),
-                    tooltip: 'Next page',
-                    onPressed: () => controller.nextPage(
-                      curve: Curves.ease,
-                      duration: const Duration(milliseconds: 100),
-                    ),
-                  ),
-                ],
-              ),
+              child: PdfViewer.file(filePath),
             ),
           ],
         ),
       ),
     );
-
-    controller.dispose();
-    await loadedDoc?.close();
-  }
-
-  /// 弹出页码输入对话框，快速跳转到指定页面。
-  Future<void> _showPdfPagePicker(
-    BuildContext context, {
-    required PdfController controller,
-    required int currentPage,
-    required int totalPages,
-  }) async {
-    final textController = TextEditingController(text: '$currentPage');
-    final confirmed = await showDialog<int>(
-      context: context,
-      builder: (context) {
-        final l10n = AppLocalizations.of(context);
-        return AlertDialog(
-          title: const Text('跳转到页面'),
-          content: TextField(
-            controller: textController,
-            keyboardType: TextInputType.number,
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: '页码 (1 - $totalPages)',
-              hintText: '输入页码',
-            ),
-            onSubmitted: (value) {
-              final page = int.tryParse(value.trim());
-              if (page != null && page >= 1 && page <= totalPages) {
-                Navigator.of(context).pop(page);
-              }
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () {
-                final page = int.tryParse(textController.text.trim());
-                if (page != null && page >= 1 && page <= totalPages) {
-                  Navigator.of(context).pop(page);
-                }
-              },
-              child: const Text('跳转'),
-            ),
-          ],
-        );
-      },
-    );
-    // 延迟 dispose，等待对话框关闭动画完成后再释放 controller
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      textController.dispose();
-    });
-
-    if (confirmed != null) {
-      controller.jumpToPage(confirmed);
-    }
   }
 
   /// 清理 PDF 临时文件，延迟 300ms 确保平台引擎释放文件句柄。

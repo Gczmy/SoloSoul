@@ -15,7 +15,6 @@ set(_GEN_PLUGINS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/flutter/generated_plugins.cma
 if(EXISTS ${_GEN_PLUGINS_FILE})
   file(READ ${_GEN_PLUGINS_FILE} _GEN_PLUGINS_CONTENT)
   string(REPLACE "  local_auth_windows\n" "" _GEN_PLUGINS_CONTENT "${_GEN_PLUGINS_CONTENT}")
-  string(REPLACE "  pdfx\n" "" _GEN_PLUGINS_CONTENT "${_GEN_PLUGINS_CONTENT}")
   file(WRITE ${_GEN_PLUGINS_FILE} "${_GEN_PLUGINS_CONTENT}")
 endif()
 
@@ -23,9 +22,7 @@ set(_GEN_REG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/flutter/generated_plugin_registra
 if(EXISTS ${_GEN_REG_FILE})
   file(READ ${_GEN_REG_FILE} _GEN_REG_CONTENT)
   string(REPLACE "#include <local_auth_windows/local_auth_plugin.h>\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
-  string(REPLACE "#include <pdfx/pdfx_plugin.h>\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
   string(REPLACE "  LocalAuthPluginRegisterWithRegistrar(\n      registry->GetRegistrarForPlugin(\"LocalAuthPlugin\"));\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
-  string(REPLACE "  PdfxPluginRegisterWithRegistrar(\n      registry->GetRegistrarForPlugin(\"PdfxPlugin\"));\n" "" _GEN_REG_CONTENT "${_GEN_REG_CONTENT}")
   file(WRITE ${_GEN_REG_FILE} "${_GEN_REG_CONTENT}")
 endif()
 

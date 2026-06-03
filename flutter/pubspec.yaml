@@ -88,7 +88,8 @@ dependencies:
   # HTTP client for LLM cloud APIs + Plugin registry
   http: ^1.2.0
   file_picker: ^11.0.2
-  pdfx: ^2.9.2
+  pdfrx: ^2.4.3
+  image: ^4.5.0
 
   # SHA-256 hashing for plugin wasm verification
   crypto: ^3.0.0

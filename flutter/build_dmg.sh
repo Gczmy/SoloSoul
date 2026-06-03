@@ -36,6 +36,8 @@ rm -f build/macos/rw.*."${DMG_NAME}.dmg"
 rm -rf "${DMG_STAGING_DIR}"
 
 echo -e "${YELLOW}Building Flutter app...${NC}"
+flutter pub get
+dart run pdfrx:remove_wasm_modules
 flutter build macos --release
 
 # --- 关键修复：修正动态库路径 (RPATH) ---

@@ -36,6 +36,8 @@ try {
 
     # --- Build Flutter app ---
     Write-Host "Building Flutter app for Windows..." -ForegroundColor Yellow
+    flutter pub get
+    dart run pdfrx:remove_wasm_modules
     flutter build windows --release --obfuscate --split-debug-info=.\debug_info\windows
     if ($LASTEXITCODE -ne 0) {
         throw "Flutter build failed with exit code $LASTEXITCODE"
