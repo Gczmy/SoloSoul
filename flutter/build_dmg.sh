@@ -70,13 +70,25 @@ ENTITLEMENTS="macos/Runner/Release.entitlements"
 
 xattr -cr "$APP_PATH"
 
-# 签名内部库 (必须先签库，再签主程序)
-echo -e "${YELLOW}Signing Frameworks...${NC}"
-find "$APP_PATH/Contents/Frameworks" -name "*.dylib" | xargs codesign --force --sign "$IDENTITY" --timestamp=none
+# 签名所有嵌入的库和 framework（必须先签内部，再签主包）
+# 1. 签名所有 .dylib
+echo -e "${YELLOW}Signing dylibs...${NC}"
+find "$APP_PATH/Contents/Frameworks" -name "*.dylib" -exec codesign --force --sign "$IDENTITY" --timestamp=none {} \;
 
-# 签名主程序 (使用项目中的 Release.entitlements，已与 Debug 统一禁用沙盒)
-echo -e "${YELLOW}Signing Main Executable...${NC}"
-codesign --force --sign "$IDENTITY" \
+# 2. 签名所有 .framework 内部的二进制（从深到浅，避免签名后又被覆盖）
+echo -e "${YELLOW}Signing frameworks...${NC}"
+find "$APP_PATH/Contents/Frameworks" -name "*.framework" -print0 | while IFS= read -r -d '' fw; do
+    binary="$fw/$(basename "$fw" .framework)"
+    if [ -f "$binary" ]; then
+        codesign --force --sign "$IDENTITY" --timestamp=none "$binary"
+    fi
+    # 同时签名 framework 根目录（某些 framework 需要）
+    codesign --force --sign "$IDENTITY" --timestamp=none "$fw"
+done
+
+# 3. 签名主程序包（--deep 递归签名所有剩余内容）
+echo -e "${YELLOW}Signing Main Bundle...${NC}"
+codesign --force --deep --sign "$IDENTITY" \
          --identifier "$BUNDLE_ID" \
          --entitlements "$ENTITLEMENTS" \
          --timestamp=none "$APP_PATH"
