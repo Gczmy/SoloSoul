@@ -174,21 +174,9 @@ class CurrentAccountSheet extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '${getDevicePlatformLabel(device.deviceName)} ',
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: device.deviceName,
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
+                            child: Text(
+                              getDisplayDeviceName(device.deviceName),
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ),
                           Text(
