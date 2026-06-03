@@ -160,7 +160,8 @@ impl SyncEngine {
             state_vector: local_sv,
             supports_attachments: local_supports,
         };
-        let payload = self.maybe_encrypt(&serde_json::to_vec(&request).unwrap());
+        let payload = serde_json::to_vec(&request).map_err(|e| format!("Serialize failed: {}", e))?;
+        let payload = self.maybe_encrypt(&payload)?;
         self.transport.send(&payload)?;
         bytes_sent += payload.len();
 
@@ -192,13 +193,15 @@ impl SyncEngine {
             let update_msg = SyncMessage::Update {
                 encrypted_update: our_diff,
             };
-            let update_payload = self.maybe_encrypt(&serde_json::to_vec(&update_msg).unwrap());
+            let update_payload = serde_json::to_vec(&update_msg).map_err(|e| format!("Serialize failed: {}", e))?;
+            let update_payload = self.maybe_encrypt(&update_payload)?;
             self.transport.send(&update_payload)?;
             bytes_sent += update_payload.len();
         } else {
             // Send a no-op ack so responder knows we're done
             let ack = SyncMessage::Ack { success: true };
-            let ack_payload = self.maybe_encrypt(&serde_json::to_vec(&ack).unwrap());
+            let ack_payload = serde_json::to_vec(&ack).map_err(|e| format!("Serialize failed: {}", e))?;
+            let ack_payload = self.maybe_encrypt(&ack_payload)?;
             self.transport.send(&ack_payload)?;
             bytes_sent += ack_payload.len();
         }
@@ -281,7 +284,8 @@ impl SyncEngine {
             diff,
             supports_attachments: local_supports,
         };
-        let resp_payload = self.maybe_encrypt(&serde_json::to_vec(&response).unwrap());
+        let resp_payload = serde_json::to_vec(&response).map_err(|e| format!("Serialize failed: {}", e))?;
+        let resp_payload = self.maybe_encrypt(&resp_payload)?;
         self.transport.send(&resp_payload)?;
         bytes_sent += resp_payload.len();
 
@@ -355,7 +359,8 @@ impl SyncEngine {
             file_ids: local_ids.iter().cloned().collect(),
             file_sizes: local_sizes.clone(),
         };
-        let payload = self.maybe_encrypt(&serde_json::to_vec(&manifest_msg).unwrap());
+        let payload = serde_json::to_vec(&manifest_msg).map_err(|e| format!("Serialize failed: {}", e))?;
+        let payload = self.maybe_encrypt(&payload)?;
         self.transport.send(&payload)?;
 
         let remote_raw = self.transport.recv()?;
@@ -433,7 +438,8 @@ impl SyncEngine {
 
     fn send_done(&mut self) -> Result<(), String> {
         let done = SyncMessage::AttachmentDone;
-        let payload = self.maybe_encrypt(&serde_json::to_vec(&done).unwrap());
+        let payload = serde_json::to_vec(&done).map_err(|e| format!("Serialize failed: {}", e))?;
+        let payload = self.maybe_encrypt(&payload)?;
         self.transport.send(&payload)
     }
 
@@ -448,7 +454,8 @@ impl SyncEngine {
         let req = SyncMessage::AttachmentRequest {
             file_id: item.file_id.clone(),
         };
-        let payload = self.maybe_encrypt(&serde_json::to_vec(&req).unwrap());
+        let payload = serde_json::to_vec(&req).map_err(|e| format!("Serialize failed: {}", e))?;
+        let payload = self.maybe_encrypt(&payload)?;
         self.transport.send(&payload)?;
 
         // Receive chunks
@@ -581,7 +588,8 @@ impl SyncEngine {
                 is_last,
             };
 
-            let payload = self.maybe_encrypt(&serde_json::to_vec(&chunk).unwrap());
+            let payload = serde_json::to_vec(&chunk).map_err(|e| format!("Serialize failed: {}", e))?;
+            let payload = self.maybe_encrypt(&payload)?;
             self.transport.send(&payload)?;
             stats.bytes_sent += n;
 
@@ -613,10 +621,19 @@ impl SyncEngine {
         }
     }
 
-    fn maybe_encrypt(&mut self, data: &[u8]) -> Vec<u8> {
+    /// Maximum payload size before encryption (60 KB, leaving headroom under Noise ~65535 limit).
+    const MAX_PAYLOAD_SIZE: usize = 60_000;
+
+    fn maybe_encrypt(&mut self, data: &[u8]) -> Result<Vec<u8>, String> {
+        if data.len() > Self::MAX_PAYLOAD_SIZE {
+            return Err(format!(
+                "Sync message too large ({} bytes), exceeding safe transfer limit. Try reducing attachments or emptying trash before sync.",
+                data.len()
+            ));
+        }
         match self.channel.as_mut() {
             Some(ch) => ch.encrypt(data),
-            None => data.to_vec(),
+            None => Ok(data.to_vec()),
         }
     }
 

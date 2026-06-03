@@ -201,14 +201,14 @@ impl SecureChannel {
     }
 
     /// Encrypt a plaintext message.
-    pub fn encrypt(&mut self, plaintext: &[u8]) -> Vec<u8> {
+    pub fn encrypt(&mut self, plaintext: &[u8]) -> Result<Vec<u8>, String> {
         let mut buf = vec![0u8; plaintext.len() + 16]; // +16 for AEAD tag
         let len = self
             .transport
             .write_message(plaintext, &mut buf)
-            .expect("encrypt failed");
+            .map_err(|e| format!("encrypt failed: {}", e))?;
         buf.truncate(len);
-        buf
+        Ok(buf)
     }
 
     /// Decrypt a ciphertext message.
@@ -233,7 +233,7 @@ mod tests {
         let (mut alice, mut bob) = SecureChannel::handshake(pairing_key).unwrap();
 
         let msg = b"hello from alice";
-        let encrypted = alice.encrypt(msg);
+        let encrypted = alice.encrypt(msg).unwrap();
         assert_ne!(encrypted, msg, "ciphertext should differ from plaintext");
 
         let decrypted = bob.decrypt(&encrypted).unwrap();
@@ -247,12 +247,12 @@ mod tests {
 
         // alice → bob
         let msg_a = b"alice says hi";
-        let enc_a = alice.encrypt(msg_a);
+        let enc_a = alice.encrypt(msg_a).unwrap();
         assert_eq!(bob.decrypt(&enc_a).unwrap(), msg_a);
 
         // bob → alice
         let msg_b = b"bob says hi back";
-        let enc_b = bob.encrypt(msg_b);
+        let enc_b = bob.encrypt(msg_b).unwrap();
         assert_eq!(alice.decrypt(&enc_b).unwrap(), msg_b);
     }
 
@@ -261,7 +261,7 @@ mod tests {
         let pairing_key = b"tamper-test-key";
         let (mut alice, mut bob) = SecureChannel::handshake(pairing_key).unwrap();
 
-        let mut encrypted = alice.encrypt(b"secret message");
+        let mut encrypted = alice.encrypt(b"secret message").unwrap();
         // Flip a bit in the ciphertext
         if !encrypted.is_empty() {
             encrypted[0] ^= 0xFF;
@@ -280,7 +280,7 @@ mod tests {
         let (mut alice, _) = SecureChannel::handshake(key_a).unwrap();
         let (_, mut bob) = SecureChannel::handshake(key_b).unwrap();
 
-        let encrypted = alice.encrypt(b"secret");
+        let encrypted = alice.encrypt(b"secret").unwrap();
         // Bob with different key cannot decrypt
         assert!(
             bob.decrypt(&encrypted).is_err(),
@@ -295,7 +295,7 @@ mod tests {
 
         for i in 0..10 {
             let msg = format!("message {}", i);
-            let encrypted = alice.encrypt(msg.as_bytes());
+            let encrypted = alice.encrypt(msg.as_bytes()).unwrap();
             let decrypted = bob.decrypt(&encrypted).unwrap();
             assert_eq!(decrypted, msg.as_bytes());
         }
@@ -306,7 +306,7 @@ mod tests {
         let pairing_key = b"empty-msg-key";
         let (mut alice, mut bob) = SecureChannel::handshake(pairing_key).unwrap();
 
-        let encrypted = alice.encrypt(b"");
+        let encrypted = alice.encrypt(b"").unwrap();
         let decrypted = bob.decrypt(&encrypted).unwrap();
         assert_eq!(decrypted, b"");
     }
@@ -320,7 +320,7 @@ mod tests {
         let (mut alice, mut bob) = SecureChannel::handshake_ik(&initiator, &responder).unwrap();
 
         let msg = b"hello via IK";
-        let encrypted = alice.encrypt(msg);
+        let encrypted = alice.encrypt(msg).unwrap();
         assert_ne!(encrypted, msg, "ciphertext should differ from plaintext");
 
         let decrypted = bob.decrypt(&encrypted).unwrap();
@@ -337,12 +337,12 @@ mod tests {
 
         // alice → bob
         let msg_a = b"alice says hi via IK";
-        let enc_a = alice.encrypt(msg_a);
+        let enc_a = alice.encrypt(msg_a).unwrap();
         assert_eq!(bob.decrypt(&enc_a).unwrap(), msg_a);
 
         // bob → alice
         let msg_b = b"bob says hi back via IK";
-        let enc_b = bob.encrypt(msg_b);
+        let enc_b = bob.encrypt(msg_b).unwrap();
         assert_eq!(alice.decrypt(&enc_b).unwrap(), msg_b);
     }
 
@@ -354,7 +354,7 @@ mod tests {
 
         let (mut alice, mut bob) = SecureChannel::handshake_ik(&key_a, &key_b).unwrap();
 
-        let mut encrypted = alice.encrypt(b"secret message");
+        let mut encrypted = alice.encrypt(b"secret message").unwrap();
         if !encrypted.is_empty() {
             encrypted[0] ^= 0xFF;
         }

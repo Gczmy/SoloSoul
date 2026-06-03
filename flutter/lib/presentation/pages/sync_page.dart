@@ -174,6 +174,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     }
 
     final deviceSalt = await SyncService.instance.generateDeviceSalt();
+    if (!mounted) return;
     await ref.read(syncProvider.notifier).syncWithDevice(
           accountId: accountId,
           device: device,
@@ -212,6 +213,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     }
 
     final deviceSalt = await SyncService.instance.generateDeviceSalt();
+    if (!mounted) return;
     await ref.read(syncProvider.notifier).syncWithAddress(
           accountId: accountId,
           remoteAddr: address,

@@ -105,5 +105,5 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(frb_expand)'] }
 opt-level = 'z'      # Optimize for size
 lto = true            # Link-time optimization
 codegen-units = 1     # Single codegen unit for better optimization
-panic = 'abort'       # Abort on panic (smaller binary)
+panic = 'unwind'      # Unwind on panic so FRB can catch and convert to Dart exceptions
 strip = true          # Strip symbols (Rust 1.59+)

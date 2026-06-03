@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/sync_service.dart';
+import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart';
 
@@ -68,6 +69,12 @@ class SyncNotifier extends Notifier<SyncState> {
         status: SyncStatus.error,
         errorMessage: 'Discovery failed: $e',
       );
+    } on Object catch (e) {
+      SoloLog.e('SyncNotifier', 'Unexpected discovery error', e);
+      state = state.copyWith(
+        status: SyncStatus.error,
+        errorMessage: 'Unexpected discovery error: $e',
+      );
     }
   }
 
@@ -108,6 +115,12 @@ class SyncNotifier extends Notifier<SyncState> {
         status: SyncStatus.error,
         errorMessage: 'Sync failed: $e',
       );
+    } on Object catch (e) {
+      SoloLog.e('SyncNotifier', 'Unexpected sync error', e);
+      state = state.copyWith(
+        status: SyncStatus.error,
+        errorMessage: 'Unexpected sync error: $e',
+      );
     }
   }
 
@@ -134,6 +147,12 @@ class SyncNotifier extends Notifier<SyncState> {
       state = state.copyWith(
         status: SyncStatus.error,
         errorMessage: 'Sync failed: $e',
+      );
+    } on Object catch (e) {
+      SoloLog.e('SyncNotifier', 'Unexpected sync error', e);
+      state = state.copyWith(
+        status: SyncStatus.error,
+        errorMessage: 'Unexpected sync error: $e',
       );
     }
   }
