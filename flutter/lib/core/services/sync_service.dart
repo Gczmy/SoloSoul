@@ -85,7 +85,7 @@ class SyncService {
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
         attachmentsDir: attachmentsDir,
-      ).timeout(const Duration(seconds: 20));
+      ).timeout(const Duration(seconds: 30));
       SoloLog.d(
         'SyncService',
         'Sync complete: direction=${result.direction}, '
@@ -135,21 +135,40 @@ class SyncService {
     }
   }
 
-  /// Get the local IP address for display.
-  static Future<String?> getLocalIp() async {
+  /// Get local IP addresses, filtering out VPN/virtual interfaces.
+  static Future<List<String>> getLocalIps() async {
+    final results = <String>[];
     try {
       final interfaces = await NetworkInterface.list();
       for (final interface in interfaces) {
+        final name = interface.name.toLowerCase();
+        // Skip loopback, VPN, tunnel, and virtual interfaces
+        if (name.contains('lo') ||
+            name.contains('utun') ||
+            name.contains('tun') ||
+            name.contains('ppp') ||
+            name.contains('vmnet') ||
+            name.contains('veth') ||
+            name.contains('docker') ||
+            name.contains('bridge')) {
+          continue;
+        }
         for (final addr in interface.addresses) {
           if (addr.type == InternetAddressType.IPv4 &&
               !addr.isLoopback &&
               !addr.address.startsWith('127.')) {
-            return addr.address;
+            results.add(addr.address);
           }
         }
       }
     } on Object catch (_) {}
-    return null;
+    return results;
+  }
+
+  /// Get the best local IP address for display.
+  static Future<String?> getLocalIp() async {
+    final ips = await getLocalIps();
+    return ips.isNotEmpty ? ips.first : null;
   }
 
   /// Generate a random pairing key for Noise handshake.

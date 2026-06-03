@@ -27,7 +27,7 @@ impl TcpTransport {
     /// Connect to a remote peer with a 5-second timeout.
     pub fn connect(addr: &str) -> Result<Self, String> {
         let socket_addr = addr.parse().map_err(|e| format!("Invalid address {}: {}", addr, e))?;
-        let stream = TcpStream::connect_timeout(&socket_addr, Duration::from_secs(5))
+        let stream = TcpStream::connect_timeout(&socket_addr, Duration::from_secs(10))
             .map_err(|e| format!("TCP connect to {} failed: {}", addr, e))?;
         stream
             .set_read_timeout(Some(Duration::from_secs(30)))

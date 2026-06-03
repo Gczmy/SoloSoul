@@ -30,5 +30,11 @@
 	<string>NSApplication</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>SoloSoul uses Face ID to securely unlock your vault and protect your sensitive data.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>SoloSoul needs access to your local network to discover and sync with other devices on the same Wi-Fi.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_solosoul._tcp</string>
+	</array>
 </dict>
 </plist>

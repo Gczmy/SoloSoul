@@ -419,6 +419,27 @@ mod tests {
             "different salts should produce different public keys"
         );
     }
+
+    #[test]
+    fn test_ik_same_keypair_roundtrip() {
+        // Both sides use the SAME keypair (shared salt) — this is how
+        // production sync works when both devices enter the same pairing key.
+        let pairing_key = b"shared-pairing-key";
+        let shared_kp = SecureChannel::derive_keypair(pairing_key, b"solosoul-sync-v1");
+
+        let (mut alice, mut bob) =
+            SecureChannel::handshake_ik(&shared_kp, &shared_kp).unwrap();
+
+        // alice → bob
+        let msg_a = b"alice says hi";
+        let enc_a = alice.encrypt(msg_a).unwrap();
+        assert_eq!(bob.decrypt(&enc_a).unwrap(), msg_a);
+
+        // bob → alice
+        let msg_b = b"bob says hi back";
+        let enc_b = bob.encrypt(msg_b).unwrap();
+        assert_eq!(alice.decrypt(&enc_b).unwrap(), msg_b);
+    }
 }
 
 /// WebSocket message types

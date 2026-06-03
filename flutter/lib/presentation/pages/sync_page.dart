@@ -612,19 +612,25 @@ class _ReceiveSyncCard extends StatelessWidget {
               maxLines: 1,
             ),
             const SizedBox(height: 12),
-            FutureBuilder<String?>(
-              future: SyncService.getLocalIp(),
+            FutureBuilder<List<String>>(
+              future: SyncService.getLocalIps(),
               builder: (context, snapshot) {
-                final ip = snapshot.data;
-                if (ip == null) return const SizedBox.shrink();
+                final ips = snapshot.data ?? [];
+                if (ips.isEmpty) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    l10n.syncListeningAddress(ip, '9900'),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final ip in ips)
+                        Text(
+                          l10n.syncListeningAddress(ip, '9900'),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
                   ),
                 );
               },
