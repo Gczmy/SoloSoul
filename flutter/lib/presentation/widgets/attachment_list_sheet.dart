@@ -750,34 +750,158 @@ class _AttachmentListSheetState extends ConsumerState<AttachmentListSheet> {
     String fileName,
     Attachment attachment,
   ) async {
+    final controller = PdfViewerController();
+    int currentPage = 1;
+    int totalPages = 1;
+
     await showDialog(
       context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppBar(
-              title: Text(fileName),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.download),
-                  tooltip: AppLocalizations.of(context).downloadAttachment,
-                  onPressed: () => _handleDownload(attachment),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppBar(
+                title: Text(fileName),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.download),
+                    tooltip: AppLocalizations.of(context).downloadAttachment,
+                    onPressed: () => _handleDownload(attachment),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              Flexible(
+                child: PdfViewer.file(
+                  filePath,
+                  controller: controller,
+                  params: PdfViewerParams(
+                    onPageChanged: (pageNumber) {
+                      if (pageNumber != null && pageNumber != currentPage) {
+                        setDialogState(() => currentPage = pageNumber);
+                      }
+                    },
+                    onDocumentChanged: (document) {
+                      if (document != null) {
+                        setDialogState(() => totalPages = document.pages.length);
+                      }
+                    },
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            Flexible(
-              child: PdfViewer.file(filePath),
-            ),
-          ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.navigate_before),
+                      tooltip: 'Previous page',
+                      onPressed: currentPage > 1
+                          ? () => controller.goToPage(
+                                pageNumber: currentPage - 1,
+                              )
+                          : null,
+                    ),
+                    TextButton(
+                      onPressed: totalPages <= 1
+                          ? null
+                          : () => _showPdfPagePicker(
+                                context,
+                                controller: controller,
+                                currentPage: currentPage,
+                                totalPages: totalPages,
+                              ),
+                      child: Text(
+                        '$currentPage / $totalPages',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.navigate_next),
+                      tooltip: 'Next page',
+                      onPressed: currentPage < totalPages
+                          ? () => controller.goToPage(
+                                pageNumber: currentPage + 1,
+                              )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  /// 弹出页码输入对话框，快速跳转到指定页面。
+  Future<void> _showPdfPagePicker(
+    BuildContext context, {
+    required PdfViewerController controller,
+    required int currentPage,
+    required int totalPages,
+  }) async {
+    final textController = TextEditingController(text: '$currentPage');
+    final confirmed = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: const Text('跳转到页面'),
+          content: TextField(
+            controller: textController,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: '页码 (1 - $totalPages)',
+              hintText: '输入页码',
+            ),
+            onSubmitted: (value) {
+              final page = int.tryParse(value.trim());
+              if (page != null && page >= 1 && page <= totalPages) {
+                Navigator.of(context).pop(page);
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () {
+                final page = int.tryParse(textController.text.trim());
+                if (page != null && page >= 1 && page <= totalPages) {
+                  Navigator.of(context).pop(page);
+                }
+              },
+              child: const Text('跳转'),
+            ),
+          ],
+        );
+      },
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      textController.dispose();
+    });
+
+    if (confirmed != null) {
+      await controller.goToPage(pageNumber: confirmed);
+    }
   }
 
   /// 清理 PDF 临时文件，延迟 300ms 确保平台引擎释放文件句柄。
