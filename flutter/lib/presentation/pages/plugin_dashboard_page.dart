@@ -52,7 +52,7 @@ class _PluginDashboardPageState extends ConsumerState<PluginDashboardPage>
 
     return Scaffold(
       appBar: SoloGlassAppBar(
-        backRoute: '/',
+        backRoute: AppRoutes.home,
         title: Text(l10n.pluginDashboardTitle),
         actions: [
           IconButton(
