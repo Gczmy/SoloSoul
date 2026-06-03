@@ -167,6 +167,10 @@ class BackupService {
 
   @visibleForTesting
   static void writeManifest(String sidecarDir, List<String> fileIds) {
+    final dir = Directory(sidecarDir);
+    if (!dir.existsSync()) {
+      dir.createSync(recursive: true);
+    }
     final manifest = <String, dynamic>{
       'version': 1,
       'fileIds': fileIds,
