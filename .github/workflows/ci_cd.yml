@@ -117,17 +117,14 @@ jobs:
   # ============================================================
 
   # ============================================================
-  # Job 5: macOS Release Build & Cross-Repo Release
+  # Job 5: macOS Release Build
   # Only runs on master/main push, not PRs
   # ============================================================
-  release:
-    name: Build & Release
+  build-macos:
+    name: Build macOS DMG
     runs-on: macos-latest
     needs: [rust-test, dart-unit-test, widget-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    permissions:
-      contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout
@@ -170,7 +167,6 @@ jobs:
           cp flutter/native/target/release/libsolosoul_core.dylib flutter/macos/Runner/Frameworks/
 
       - name: Build macOS Release (Obfuscated)
-        id: build
         env:
           FLUTTER_BUILD_ARGS: "--obfuscate --split-debug-info=./debug_info/macos"
           CODE_SIGN_IDENTITY: "-"
@@ -189,29 +185,132 @@ jobs:
           chmod +x ./build_dmg.sh
           ./build_dmg.sh
 
-      - name: Find built artifacts
-        id: artifacts
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: flutter/build/macos/*.dmg
+          if-no-files-found: error
+
+      - name: Upload debug info (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-info-macos
+          path: flutter/debug_info/macos/
+          if-no-files-found: warn
+
+  # ============================================================
+  # Job 6: Windows Release Build
+  # Only runs on master/main push, not PRs
+  # ============================================================
+  build-windows:
+    name: Build Windows ZIP
+    runs-on: windows-latest
+    needs: [rust-test, dart-unit-test, widget-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          target: wasm32-wasip1
+
+      - name: Build Rust library
         run: |
-          # Find the built .app and .dmg files
-          APP_PATH=$(find flutter/build/macos -name "*.app" -type d 2>/dev/null | head -1)
-          DMG_PATH=$(find flutter/build/macos -name "*.dmg" -type f 2>/dev/null | head -1)
-          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
-          echo "dmg_path=$DMG_PATH" >> $GITHUB_OUTPUT
-          echo "app_path: $APP_PATH"
-          echo "dmg_path: $DMG_PATH"
+          cd flutter/native
+          cargo build --release
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter/.dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Install dependencies
+        run: |
+          cd flutter
+          flutter pub get
+
+      - name: Build Windows ZIP
+        shell: bash
+        run: |
+          cd flutter
+          chmod +x ./build_windows_zip.sh
+          ./build_windows_zip.sh
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip
+          path: flutter/build/windows/*.zip
+          if-no-files-found: error
+
+      - name: Upload debug info (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-info-windows
+          path: flutter/debug_info/windows/
+          if-no-files-found: warn
+
+  # ============================================================
+  # Job 7: Create GitHub Release & Push to Public Repo
+  # Downloads artifacts from both platforms and releases together
+  # ============================================================
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [build-macos, build-windows]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download macOS DMG
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-dmg
+          path: artifacts/macos/
+
+      - name: Download Windows ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-zip
+          path: artifacts/windows/
 
       - name: Create Release Draft
-        if: steps.artifacts.outputs.dmg_path != ''
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           prerelease: true
           files: |
-            ${{ steps.artifacts.outputs.dmg_path }}
+            artifacts/macos/*.dmg
+            artifacts/windows/*.zip
           body: |
             ## SoloSoul v${{ github.run_number }}
 
-            **Automated Release** - CI Passed all 238 tests.
+            **Automated Release** - CI Passed all tests.
+
+            ### Downloads
+            - 🍎 macOS: `SoloSoul-*.dmg`
+            - 🪟 Windows: `SoloSoul-*-windows-x64.zip`
 
             ### Security Features
             - 🔒 Rust Symbol Stripping (obfuscated function names)
@@ -219,21 +318,19 @@ jobs:
             - 🔒 Self-Signed (no Apple notarization required)
 
             ### Test Results
-            - ✅ Rust Unit Tests (113 tests)
-            - ✅ Dart Unit Tests (97 tests)
-            - ✅ Widget Tests (~28 tests)
-            - ✅ Integration Tests
+            - ✅ Rust Unit Tests
+            - ✅ Dart Unit Tests
+            - ✅ Widget Tests
 
             ### What's New
             See [CHANGELOG](../blob/master/CHANGELOG.md) for details.
 
             Built from: `${{ github.sha }}`
-            Debug symbols: Local only (not published)
+            Debug symbols: Available as workflow artifacts (not published)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push to Public Repo
-        if: steps.artifacts.outputs.dmg_path != ''
         env:
           RELEASE_PAT: ${{ secrets.SOLOSOUL_RELEASE_PAT }}
         run: |
@@ -246,9 +343,8 @@ jobs:
           git clone https://x-access-token:$RELEASE_PAT@github.com/Gczmy/SoloSoul.git ../SoloSoul-push
 
           # Copy release artifacts
-          if [ -f "${{ steps.artifacts.outputs.dmg_path }}" ]; then
-            cp "${{ steps.artifacts.outputs.dmg_path }}" ../SoloSoul-push/
-          fi
+          cp artifacts/macos/*.dmg ../SoloSoul-push/ 2>/dev/null || true
+          cp artifacts/windows/*.zip ../SoloSoul-push/ 2>/dev/null || true
 
           # Copy updated changelog if exists
           if [ -f "CHANGELOG.md" ]; then
@@ -260,5 +356,5 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Release v${{ github.run_number }} from CI build ${{ github.run_id }}"
+          git commit -m "Release v${{ github.run_number }} from CI build ${{ github.run_id }}" || true
           git push
