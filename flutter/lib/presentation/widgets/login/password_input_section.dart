@@ -151,12 +151,31 @@ class _AccountHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                selectedAccount.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryColor,
-                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedAccount.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  Tooltip(
+                    message: selectedAccount.id,
+                    child: Text(
+                      selectedAccount.id.length > 12
+                          ? selectedAccount.id.substring(0, 12)
+                          : selectedAccount.id,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.primaryColor,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
