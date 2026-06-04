@@ -32,25 +32,14 @@ class SoloLog {
     });
   }
 
-  static void _consolePrint(String level, String tag, String message) {
-    // Gate on user-activated debug mode, not kDebugMode,
-    // to prevent sensitive logs reaching console in debug/profile builds.
-    if (DebugLogger.instance.isActive) {
-      // ignore: avoid_print
-      print('[SoloLog] [$level] [$tag] $message');
-    }
-  }
-
   /// Debug/Info level log
   static void d(String tag, String message) {
-    _consolePrint('INFO', tag, message);
     DebugLogger.instance.logInfo(tag, message);
   }
 
   /// Warning level log
   static void w(String tag, String message, [Object? error]) {
     final msg = error != null ? '$message | Error: $error' : message;
-    _consolePrint('WARN', tag, msg);
     DebugLogger.instance.logWarning(tag, msg);
   }
 
@@ -68,13 +57,11 @@ class SoloLog {
     if (stackTrace != null) {
       fullMessage += '\nStack: $stackTrace';
     }
-    _consolePrint('ERROR', tag, fullMessage);
     DebugLogger.instance.logError(tag, fullMessage);
   }
 
   /// Debug level log (alias for d)
   static void debug(String tag, String message) {
-    _consolePrint('DEBUG', tag, message);
     DebugLogger.instance.logDebug(tag, message);
   }
 
@@ -86,7 +73,6 @@ class SoloLog {
   static String startTimer(String tag, String operationName) {
     final key = '$tag:$operationName';
     _stopwatches[key] = Stopwatch()..start();
-    _consolePrint('TIMER', tag, '[$operationName] started');
     DebugLogger.instance.logDebug(tag, '[$operationName] started');
     return key;
   }
@@ -105,10 +91,6 @@ class SoloLog {
     final parts = handle.split(':');
     final tag = parts[0];
     final operationName = parts.sublist(1).join(':');
-
-    final level = elapsed > 1000 ? 'WARN' : 'TIMER';
-    final suffix = elapsed > 1000 ? ' (SLOW)' : '';
-    _consolePrint(level, tag, '[$operationName] took ${elapsed}ms$suffix');
 
     if (elapsed > 1000) {
       DebugLogger.instance.logWarning(tag, '[$operationName] took ${elapsed}ms (SLOW)');

@@ -2070,5 +2070,30 @@
   "importConfirm": "确认导入",
   "importInProgress": "正在导入...",
   "exportImportSubtitle": "导出账户数据到加密包，或从加密包导入数据",
-  "importEnterPassword": "请输入导出密码"
+  "importEnterPassword": "请输入导出密码",
+  "exportRequiresPassword": "导出需要使用密码进行加密，请手动输入密码而非使用生物识别",
+  "importItemsLabel": "项目",
+  "importAttachmentsLabel": "附件",
+  "importNoDetails": "无详细内容",
+  "importUnnamedItem": "未命名项目",
+  "commonCollapse": "收起",
+  "commonExpand": "展开",
+  "importFailed": "导入失败",
+  "importPageNotExistsAutoCreate": "[该页面未创建，选择该页面导入将自动创建]",
+  "importSectionWillMerge": "将合并到已有分区「{sectionName}」",
+  "@importSectionWillMerge": {
+    "placeholders": {
+      "sectionName": {
+        "type": "String"
+      }
+    }
+  },
+  "importSectionWillCreate": "将创建新分区「{sectionName}」",
+  "@importSectionWillCreate": {
+    "placeholders": {
+      "sectionName": {
+        "type": "String"
+      }
+    }
+  }
 }

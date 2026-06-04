@@ -71,9 +71,17 @@ lazy_static::lazy_static! {
 
 pub(crate) fn get_account_manager(
 ) -> Result<std::sync::MutexGuard<'static, Option<account::AccountManager>>, String> {
-    ACCOUNT_MANAGER
-        .lock()
-        .map_err(|e| format!("Lock poisoned: {}", e))
+    match ACCOUNT_MANAGER.lock() {
+        Ok(guard) => Ok(guard),
+        Err(poisoned) => {
+            // Lock was poisoned by a previous panic. Recover the guard so the
+            // app can continue. The underlying data is still valid.
+            eprintln!(
+                "[SoloSoul] ACCOUNT_MANAGER lock was poisoned, recovering..."
+            );
+            Ok(poisoned.into_inner())
+        }
+    }
 }
 
 fn init_account_manager(base_path: PathBuf) -> Result<(), String> {

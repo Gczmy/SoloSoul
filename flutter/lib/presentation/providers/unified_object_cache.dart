@@ -133,6 +133,27 @@ final unifiedObjectCacheProvider = Provider<UnifiedObjectCache>((ref) {
       .where((o) => o.parentId == null && !o.isDeleted)
       .toList();
 
+  // Diagnostic logging — always print, do not gate on DebugLogger.isActive
+  final totalWsChildren = workspaceChildren.values.fold<int>(0, (sum, list) => sum + list.length);
+  final totalItemChildren = itemChildren.values.fold<int>(0, (sum, list) => sum + list.length);
+
+  // Show per-page children counts for debugging
+  final pageChildrenCounts = <String, int>{};
+  for (final entry in workspaceChildren.entries) {
+    final keyName = objectById[entry.key]?.name ?? entry.key;
+    pageChildrenCounts[keyName] = entry.value.length;
+  }
+  // Only show pages with children, sorted by count desc
+  final sortedPages = pageChildrenCounts.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  final topPages = sortedPages.take(10).map((e) => '${e.key}=${e.value}').join(', ');
+
+  // ignore: avoid_print
+  print('[DIAG-CACHE] Rebuilt: objects=${objects.length}, root=${rootObjects.length}, '
+      'wsChildren=$totalWsChildren, itemChildren=$totalItemChildren');
+  // ignore: avoid_print
+  print('[DIAG-CACHE] topPages: $topPages');
+
   return UnifiedObjectCache(
     objectById: objectById,
     workspaceChildren: workspaceChildren,

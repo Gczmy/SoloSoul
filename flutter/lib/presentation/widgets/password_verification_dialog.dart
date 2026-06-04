@@ -160,6 +160,7 @@ Future<String?> showPasswordVerificationDialog({
   String? message,
   String? passwordHint,
   required Future<bool> Function(String password) onVerify,
+  bool allowBiometric = true,
 }) async {
   // Capture context before async operations to avoid lint warning
   final dialogContext = context;
@@ -174,7 +175,7 @@ Future<String?> showPasswordVerificationDialog({
       securityService.settings.faceIdEnabled;
 
   // If biometric is available and enabled, offer it as an option
-  if (isBiometricAvailable && isBiometricEnabled) {
+  if (allowBiometric && isBiometricAvailable && isBiometricEnabled) {
     final dialogBuilder = BiometricPasswordDialogContent(
       message: effectiveMessage,
       passwordHint: passwordHint,

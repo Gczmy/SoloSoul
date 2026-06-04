@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
+import 'package:solosoul_flutter/core/models/profile_data.dart';
 import 'package:solosoul_flutter/core/models/unified_object_model.dart';
 
 // =============================================================================
@@ -91,6 +92,21 @@ class ImportPreview {
 }
 
 // =============================================================================
+// Decrypted Import Data
+// =============================================================================
+
+/// Holds the decrypted profile and the export key needed for attachment decryption.
+class DecryptedImportData {
+  final ProfileData profile;
+  final Uint8List exportKey;
+
+  const DecryptedImportData({
+    required this.profile,
+    required this.exportKey,
+  });
+}
+
+// =============================================================================
 // Import Collection
 // =============================================================================
 
@@ -109,6 +125,14 @@ class ImportCollection {
   bool selected;
   String? targetPageId;
 
+  /// 导出时该 collection 所属的原始页面 ID
+  /// 默认分区：通过 PageSectionLinkRegistry 推导
+  /// 自定义分区：通过导出数据的 parentId 获取
+  final String? originalParentPageId;
+
+  /// 原始页面名称（用于显示，导出时的名称）
+  final String? originalParentPageName;
+
   ImportCollection({
     required this.originalId,
     required this.name,
@@ -122,5 +146,26 @@ class ImportCollection {
     this.crossPartitionRelationCount = 0,
     this.selected = true,
     this.targetPageId,
+    this.originalParentPageId,
+    this.originalParentPageName,
+  });
+}
+
+// =============================================================================
+// Import Target Page Option
+// =============================================================================
+
+/// 导入预览对话框中的目标页面选项
+class ImportTargetPageOption {
+  final String pageId;
+  final String name;
+  final String displayName;
+  final bool exists;
+
+  const ImportTargetPageOption({
+    required this.pageId,
+    required this.name,
+    required this.displayName,
+    required this.exists,
   });
 }

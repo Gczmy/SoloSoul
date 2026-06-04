@@ -47,6 +47,11 @@ class ObjectCategoryPage extends ConsumerWidget {
             .toList()
         : <UnifiedObject>[];
 
+    // Diagnostic logging — always print
+    // ignore: avoid_print
+    print('[DIAG-CATEGORY] pageId=$pid, sections=${sections.length}, '
+        'sectionNames=${sections.map((s) => '${s.name}(${s.typeId})').toList()}');
+
     return Scaffold(
       appBar: SoloGlassAppBar(
         title: Text(title),

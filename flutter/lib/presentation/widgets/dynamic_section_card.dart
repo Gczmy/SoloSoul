@@ -26,21 +26,33 @@ class DynamicSectionCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = ref.watch(childrenProvider(section.id));
-    // Preset sections are stored with typeId 'collection', so look up by
-    // section ID first, then fall back to typeId for non-preset types.
-    final config = SectionRendererRegistry.getConfigBySectionId(section.id) ??
-        SectionRendererRegistry.getConfig(section.typeId ?? '');
+    try {
+      final items = ref.watch(childrenProvider(section.id));
+      // Preset sections are stored with typeId 'collection', so look up by
+      // section ID first, then fall back to typeId for non-preset types.
+      final config = SectionRendererRegistry.getConfigBySectionId(section.id) ??
+          SectionRendererRegistry.getConfig(section.typeId ?? '');
 
-    if (config != null) {
-      return _buildPresetSection(context, items, config);
+      if (config != null) {
+        return _buildPresetSection(context, items, config);
+      }
+
+      // Generic section (custom collection, note, task, etc.)
+      return ObjectCard(
+        object: section,
+        items: items,
+      );
+    } on Object catch (e) {
+      // ignore: avoid_print
+      print('[DIAG-DYNAMIC-ERROR] section=${section.name} id=${section.id} type=${section.typeId} error=$e');
+      return Card(
+        color: Colors.red.shade100,
+        child: ListTile(
+          title: Text('Error: ${section.name}'),
+          subtitle: Text('$e'),
+        ),
+      );
     }
-
-    // Generic section (custom collection, note, task, etc.)
-    return ObjectCard(
-      object: section,
-      items: items,
-    );
   }
 
   Widget _buildPresetSection(

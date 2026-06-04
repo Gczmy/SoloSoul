@@ -4598,4 +4598,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importEnterPassword => 'Enter export password';
+
+  @override
+  String get exportRequiresPassword =>
+      'Export requires a password for encryption. Please enter your password manually instead of using biometric authentication.';
+
+  @override
+  String get importItemsLabel => 'Items';
+
+  @override
+  String get importAttachmentsLabel => 'Attachments';
+
+  @override
+  String get importNoDetails => 'No details available';
+
+  @override
+  String get importUnnamedItem => 'Unnamed item';
+
+  @override
+  String get commonCollapse => 'Collapse';
+
+  @override
+  String get commonExpand => 'Expand';
+
+  @override
+  String get importFailed => 'Import failed';
+
+  @override
+  String get importPageNotExistsAutoCreate =>
+      '[Page not created; will auto-create on import]';
+
+  @override
+  String importSectionWillMerge(String sectionName) {
+    return 'Will merge into existing section \"$sectionName\"';
+  }
+
+  @override
+  String importSectionWillCreate(String sectionName) {
+    return 'Will create new section \"$sectionName\"';
+  }
 }

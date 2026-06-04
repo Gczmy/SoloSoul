@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:solosoul_flutter/core/constants/sensitivity_enums.dart';
@@ -12,6 +13,7 @@ import 'package:solosoul_flutter/core/services/attachment_storage_service.dart';
 import 'package:solosoul_flutter/core/services/backup_service.dart';
 import 'package:solosoul_flutter/core/services/debug_logger.dart';
 import 'package:solosoul_flutter/core/services/export_import_models.dart';
+import 'package:solosoul_flutter/core/services/page_section_link_registry.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
@@ -227,8 +229,8 @@ class ExportImportService {
   // Import — Decrypt & Verify
   // ---------------------------------------------------------------------------
 
-  /// Decrypt and verify password, returning the exported [ProfileData].
-  Future<ProfileData?> decryptAndVerify(
+  /// Decrypt and verify password, returning the exported [DecryptedImportData].
+  Future<DecryptedImportData?> decryptAndVerify(
     ImportPreview preview,
     String password,
   ) async {
@@ -303,10 +305,13 @@ class ExportImportService {
       );
       final profileJson = jsonDecode(utf8.decode(profilePlain))
           as Map<String, dynamic>;
-      return ProfileData.fromJson(profileJson);
+      final profile = ProfileData.fromJson(profileJson);
+      return DecryptedImportData(profile: profile, exportKey: exportKey);
     } on WrongPasswordException {
       rethrow;
-    } on Exception catch (e, st) {
+      // ignore: avoid_catches_without_on_clauses
+    } catch (e, st) {
+      // NOTE: FRB throws plain String on Rust Err(String), not Exception.
       SoloLog.e('IMPORT', 'decryptAndVerify failed: $e\n$st');
       return null;
     }
@@ -370,6 +375,9 @@ class ExportImportService {
         }
       }
 
+      // Derive original parent page info
+      final originalPageInfo = _deriveOriginalParentPage(col, objects);
+
       return ImportCollection(
         originalId: col.id,
         name: col.name,
@@ -382,7 +390,9 @@ class ExportImportService {
         relationPropertyCount: relationCount,
         crossPartitionRelationCount: crossPartitionCount,
         selected: true,
-        targetPageId: null,
+        targetPageId: originalPageInfo.pageId,
+        originalParentPageId: originalPageInfo.pageId,
+        originalParentPageName: originalPageInfo.pageName,
       );
     }).toList();
   }
@@ -458,14 +468,53 @@ class ExportImportService {
 
       // Merge objects
       for (final selection in selections.where((s) => s.selected)) {
-        final targetPageId =
-            selection.targetPageId ?? _findDefaultPage(currentObjects);
+        // Determine target page
+        final originalPageId = selection.targetPageId ??
+            selection.originalParentPageId ??
+            _findDefaultPage(currentObjects);
+        if (originalPageId == null) continue;
 
+        // Ensure target page exists (create if missing, deduplicate via idMapping)
+        final actualPageId = _ensurePageExists(
+          originalPageId: originalPageId,
+          originalPageName: selection.originalParentPageName,
+          currentObjects: currentObjects,
+          idMapping: idMapping,
+        );
+
+        // Find or create matching section in target page
+        final targetSectionId = _findOrCreateMatchingSection(
+          currentObjects: currentObjects,
+          pageId: actualPageId,
+          importCollection: selection,
+          idMapping: idMapping,
+        );
+
+        // Process items
         for (final obj in selection.items) {
+          // Skip collection root object — it's represented by targetSectionId
+          if (obj.id == selection.originalId) continue;
+
+          // Ensure object has a new ID
+          if (!idMapping.containsKey(obj.id)) {
+            idMapping[obj.id] = const Uuid().v4();
+          }
           final newId = idMapping[obj.id]!;
-          final newParentId = obj.parentId == null
-              ? targetPageId
-              : idMapping[obj.parentId];
+
+          // Skip if already added (handles nested collections appearing in
+          // multiple parent collections)
+          final alreadyAdded = currentObjects.any((o) => o.id == newId);
+          if (alreadyAdded) continue;
+
+          // Determine new parent:
+          // - Direct child of this collection → targetSectionId
+          // - Child of another imported object → mapped ID
+          String newParentId;
+          if (obj.parentId == null || obj.parentId == selection.originalId) {
+            newParentId = targetSectionId;
+          } else {
+            newParentId = idMapping[obj.parentId] ?? targetSectionId;
+          }
 
           final newChildrenIds = obj.childrenIds
               .map((id) => idMapping[id])
@@ -507,6 +556,9 @@ class ExportImportService {
             updatedAt: DateTime.now().millisecondsSinceEpoch,
           );
           currentObjects.add(newObj);
+
+          // Update parent's childrenIds
+          _updateParentChildrenIds(currentObjects, newParentId, newId);
         }
 
         // Re-encrypt attachments
@@ -525,13 +577,13 @@ class ExportImportService {
           final decryptedPath =
               '${tempDir.path}/dec_${attachment.fileId}';
 
-          // Decrypt with exportKey
-          await frb.frbDecryptFile(
-            srcPath: srcEncPath,
-            dstPath: decryptedPath,
-            progressPath: '${tempDir.path}/dec_progress.txt',
-            cancelPath: '${tempDir.path}/dec_cancel.txt',
+          // Decrypt with exportKey (attachments were encrypted with frbEncryptWithKey)
+          final encBytes = await srcFile.readAsBytes();
+          final decBytes = await frb.frbDecryptWithKey(
+            ciphertext: encBytes,
+            key: exportKey,
           );
+          await File(decryptedPath).writeAsBytes(decBytes);
 
           // Re-encrypt with current Vault session key
           final attachTempDir = await getTemporaryDirectory();
@@ -654,11 +706,161 @@ class ExportImportService {
     return highest;
   }
 
+  /// Derive the original parent page ID and name for a collection.
+  /// For preset sections, uses [PageSectionLinkRegistry].
+  /// For custom sections, walks up the parent chain to find the page.
+  ({String? pageId, String? pageName}) _deriveOriginalParentPage(
+    UnifiedObject col,
+    List<UnifiedObject> allObjects,
+  ) {
+    // 1. Try preset section → default page mapping
+    final defaultPageId = PageSectionLinkRegistry.getDefaultPageIdForSection(col.id);
+    if (defaultPageId != null) {
+      final page = allObjects.firstWhereOrNull(
+        (o) => o.id == defaultPageId && o.typeId == 'page',
+      );
+      return (pageId: defaultPageId, pageName: page?.name);
+    }
+
+    // 2. Walk up parent chain for custom sections
+    String? currentId = col.parentId;
+    final visited = <String>{};
+    while (currentId != null && !visited.contains(currentId)) {
+      visited.add(currentId);
+      final parent = allObjects.firstWhereOrNull((o) => o.id == currentId);
+      if (parent == null) break;
+      if (parent.typeId == 'page') {
+        return (pageId: parent.id, pageName: parent.name);
+      }
+      currentId = parent.parentId;
+    }
+
+    return (pageId: null, pageName: null);
+  }
+
   /// Find the default target page for imported collections.
   String? _findDefaultPage(List<UnifiedObject> currentObjects) {
     final pages = currentObjects.where((o) => o.typeId == 'page').toList();
     if (pages.isEmpty) return null;
     return pages.first.id;
+  }
+
+  /// Ensure the target page exists. If missing, create it.
+  /// Uses [idMapping] to deduplicate when multiple collections
+  /// reference the same original page.
+  String _ensurePageExists({
+    required String originalPageId,
+    required String? originalPageName,
+    required List<UnifiedObject> currentObjects,
+    required Map<String, String> idMapping,
+  }) {
+    // If already mapped (another collection created this page), return the new ID
+    if (idMapping.containsKey(originalPageId)) {
+      return idMapping[originalPageId]!;
+    }
+
+    // Check if page already exists in current objects
+    final existingPage = currentObjects.firstWhereOrNull(
+      (o) => o.id == originalPageId && o.typeId == 'page',
+    );
+    if (existingPage != null) {
+      idMapping[originalPageId] = originalPageId;
+      return originalPageId;
+    }
+
+    // Create new page
+    final newPageId = const Uuid().v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final newPage = UnifiedObject(
+      id: newPageId,
+      typeId: 'page',
+      name: originalPageName ?? 'Imported Page',
+      iconName: 'article',
+      parentId: null,
+      childrenIds: [],
+      createdAt: now,
+      updatedAt: now,
+    );
+    currentObjects.add(newPage);
+    idMapping[originalPageId] = newPageId;
+    return newPageId;
+  }
+
+  /// Find an existing section in [pageId] matching [importCollection] by name,
+  /// or create a new section. Updates [idMapping] for the collection's originalId.
+  String _findOrCreateMatchingSection({
+    required List<UnifiedObject> currentObjects,
+    required String pageId,
+    required ImportCollection importCollection,
+    required Map<String, String> idMapping,
+  }) {
+    // Get existing sections under the target page
+    final page = currentObjects.firstWhereOrNull((o) => o.id == pageId);
+    final existingSectionIds = page?.childrenIds ?? [];
+    final existingSections = existingSectionIds
+        .map((id) => currentObjects.firstWhereOrNull((o) => o.id == id))
+        .whereType<UnifiedObject>()
+        .where((o) => o.typeId != 'page')
+        .toList();
+
+    // Match by name (case-insensitive, trimmed)
+    final importName = importCollection.name.trim().toLowerCase();
+    final match = existingSections.firstWhereOrNull(
+      (s) => s.name.trim().toLowerCase() == importName,
+    );
+
+    if (match != null) {
+      idMapping[importCollection.originalId] = match.id;
+      return match.id;
+    }
+
+    // Create new section
+    final newSectionId = const Uuid().v4();
+    idMapping[importCollection.originalId] = newSectionId;
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    final newSection = UnifiedObject(
+      id: newSectionId,
+      typeId: 'collection',
+      name: importCollection.name,
+      iconName: importCollection.iconName,
+      parentId: pageId,
+      childrenIds: [],
+      properties: {},
+      createdAt: now,
+      updatedAt: now,
+    );
+    currentObjects.add(newSection);
+
+    // Update page's childrenIds
+    final pageIndex = currentObjects.indexWhere((o) => o.id == pageId);
+    if (pageIndex >= 0) {
+      final page = currentObjects[pageIndex];
+      if (!page.childrenIds.contains(newSectionId)) {
+        currentObjects[pageIndex] = page.copyWith(
+          childrenIds: [...page.childrenIds, newSectionId],
+        );
+      }
+    }
+
+    return newSectionId;
+  }
+
+  /// Add [newChildId] to [parentId]'s childrenIds if not already present.
+  void _updateParentChildrenIds(
+    List<UnifiedObject> objects,
+    String parentId,
+    String newChildId,
+  ) {
+    final parentIndex = objects.indexWhere((o) => o.id == parentId);
+    if (parentIndex < 0) return;
+
+    final parent = objects[parentIndex];
+    if (!parent.childrenIds.contains(newChildId)) {
+      objects[parentIndex] = parent.copyWith(
+        childrenIds: [...parent.childrenIds, newChildId],
+      );
+    }
   }
 
   /// Check if a typeId is a built-in type.

@@ -8309,6 +8309,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter export password'**
   String get importEnterPassword;
+
+  /// No description provided for @exportRequiresPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Export requires a password for encryption. Please enter your password manually instead of using biometric authentication.'**
+  String get exportRequiresPassword;
+
+  /// No description provided for @importItemsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get importItemsLabel;
+
+  /// No description provided for @importAttachmentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get importAttachmentsLabel;
+
+  /// No description provided for @importNoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No details available'**
+  String get importNoDetails;
+
+  /// No description provided for @importUnnamedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed item'**
+  String get importUnnamedItem;
+
+  /// No description provided for @commonCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse'**
+  String get commonCollapse;
+
+  /// No description provided for @commonExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand'**
+  String get commonExpand;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed'**
+  String get importFailed;
+
+  /// No description provided for @importPageNotExistsAutoCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'[Page not created; will auto-create on import]'**
+  String get importPageNotExistsAutoCreate;
+
+  /// No description provided for @importSectionWillMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Will merge into existing section \"{sectionName}\"'**
+  String importSectionWillMerge(String sectionName);
+
+  /// No description provided for @importSectionWillCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Will create new section \"{sectionName}\"'**
+  String importSectionWillCreate(String sectionName);
 }
 
 class _AppLocalizationsDelegate

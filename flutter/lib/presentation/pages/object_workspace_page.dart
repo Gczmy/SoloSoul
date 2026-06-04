@@ -76,6 +76,12 @@ class _ObjectWorkspacePageState extends ConsumerState<ObjectWorkspacePage> {
     final title = currentObject?.name ?? l10n.workspaceObjects;
     final isPage = currentObject?.typeId == 'page';
 
+    // Diagnostic logging — always print, do not gate on DebugLogger.isActive
+    // ignore: avoid_print
+    print('[DIAG-WORKSPACE] build: objectId=${widget.objectId}, '
+        'currentObject=${currentObject?.name}, isPage=$isPage, children=${children.length}, '
+        'wsKeys=${cache.workspaceChildren.keys.take(5).toList()}, root=${cache.rootObjects.length}');
+
     return Scaffold(
       appBar: SoloGlassAppBar(
         backRoute: AppRoutes.home,

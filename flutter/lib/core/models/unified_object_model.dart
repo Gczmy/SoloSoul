@@ -519,7 +519,7 @@ class PropertyValueConverter
 }
 
 /// Convert PropertyValue to a human-readable display string for copying.
-String _propValueToDisplay(PropertyValue value, [AppLocalizations? l10n]) {
+String propertyValueToDisplay(PropertyValue value, [AppLocalizations? l10n]) {
   return switch (value) {
     TextProperty(:final text) => text,
     NumberProperty(:final value) => value?.toString() ?? '',
@@ -709,7 +709,7 @@ class UnifiedObject with FormattableEntry implements IdentifiableItem {
       'isDeleted': isDeleted,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
-      for (final e in properties.entries) e.key: _propValueToDisplay(e.value, l10n),
+      for (final e in properties.entries) e.key: propertyValueToDisplay(e.value, l10n),
       if (labels != null && labels.isNotEmpty)
         '__propertyLabels': labels,
       if (semantics != null && semantics.isNotEmpty)

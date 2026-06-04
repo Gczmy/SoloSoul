@@ -2,7 +2,7 @@ part of 'unified_object_provider.dart';
 
 /// Notifier for managing all unified objects.
 class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
-  late final UnifiedObjectService _service;
+  late UnifiedObjectService _service;
   Timer? _saveTimer;
   static const _saveDebounceDuration = Duration(milliseconds: 300);
 
@@ -81,7 +81,14 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
       repaired = _migrateDefaultSectionSchemas(repaired);
     }
 
-    state = repaired;
+    // 总是创建新的实例，确保 Riverpod 检测到状态变化并通知监听器。
+    // 即使 repaired 与 build() 返回的引用相同，新的包装实例也能触发 rebuild。
+    SoloLog.d('UNIFIED_OBJECTS',
+        'loadFromProfile: setting state with ${repaired.objects.length} objects, ${repaired.customTypes.length} custom types');
+    state = UnifiedObjectData(
+      objects: List<UnifiedObject>.from(repaired.objects),
+      customTypes: List<ObjectTypeDefinition>.from(repaired.customTypes),
+    );
   }
 
   /// Reset state to empty (called on lock or account switch)

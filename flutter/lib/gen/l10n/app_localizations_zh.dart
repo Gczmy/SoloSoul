@@ -4453,4 +4453,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importEnterPassword => '请输入导出密码';
+
+  @override
+  String get exportRequiresPassword => '导出需要使用密码进行加密，请手动输入密码而非使用生物识别';
+
+  @override
+  String get importItemsLabel => '项目';
+
+  @override
+  String get importAttachmentsLabel => '附件';
+
+  @override
+  String get importNoDetails => '无详细内容';
+
+  @override
+  String get importUnnamedItem => '未命名项目';
+
+  @override
+  String get commonCollapse => '收起';
+
+  @override
+  String get commonExpand => '展开';
+
+  @override
+  String get importFailed => '导入失败';
+
+  @override
+  String get importPageNotExistsAutoCreate => '[该页面未创建，选择该页面导入将自动创建]';
+
+  @override
+  String importSectionWillMerge(String sectionName) {
+    return '将合并到已有分区「$sectionName」';
+  }
+
+  @override
+  String importSectionWillCreate(String sectionName) {
+    return '将创建新分区「$sectionName」';
+  }
 }

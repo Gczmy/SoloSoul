@@ -134,6 +134,7 @@ class SoloGlassTextField extends StatelessWidget {
   final LiquidGlassSettings? settings;
   final bool useOwnLayer;
   final GlassQuality? quality;
+  final GlassInteractionBehavior interactionBehavior;
 
   const SoloGlassTextField({
     super.key,
@@ -161,6 +162,7 @@ class SoloGlassTextField extends StatelessWidget {
     this.settings,
     this.useOwnLayer = false,
     this.quality,
+    this.interactionBehavior = GlassInteractionBehavior.full,
   });
 
   @override
@@ -216,6 +218,7 @@ class SoloGlassTextField extends StatelessWidget {
       settings: settings,
       useOwnLayer: useOwnLayer,
       quality: quality,
+      interactionBehavior: interactionBehavior,
     );
   }
 }

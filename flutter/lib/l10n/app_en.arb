@@ -2550,5 +2550,30 @@
   "importConfirm": "Confirm Import",
   "importInProgress": "Importing...",
   "exportImportSubtitle": "Export account data to encrypted package, or import from package",
-  "importEnterPassword": "Enter export password"
+  "importEnterPassword": "Enter export password",
+  "exportRequiresPassword": "Export requires a password for encryption. Please enter your password manually instead of using biometric authentication.",
+  "importItemsLabel": "Items",
+  "importAttachmentsLabel": "Attachments",
+  "importNoDetails": "No details available",
+  "importUnnamedItem": "Unnamed item",
+  "commonCollapse": "Collapse",
+  "commonExpand": "Expand",
+  "importFailed": "Import failed",
+  "importPageNotExistsAutoCreate": "[Page not created; will auto-create on import]",
+  "importSectionWillMerge": "Will merge into existing section \"{sectionName}\"",
+  "@importSectionWillMerge": {
+    "placeholders": {
+      "sectionName": {
+        "type": "String"
+      }
+    }
+  },
+  "importSectionWillCreate": "Will create new section \"{sectionName}\"",
+  "@importSectionWillCreate": {
+    "placeholders": {
+      "sectionName": {
+        "type": "String"
+      }
+    }
+  }
 }

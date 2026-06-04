@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:solosoul_flutter/core/services/export_import_models.dart';
 import 'package:solosoul_flutter/core/services/export_import_service.dart';
@@ -8,8 +9,10 @@ import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/gen/l10n/app_localizations.dart';
 import 'package:solosoul_flutter/presentation/theme/glass_adapters.dart';
 import 'package:solosoul_flutter/presentation/providers/auth_provider.dart';
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/widgets/password_verification_dialog.dart';
 import 'package:solosoul_flutter/presentation/widgets/export_import/import_preview_dialog.dart';
+import 'package:solosoul_flutter/presentation/widgets/section_renderer_registry.dart';
 
 // =============================================================================
 // Export / Import Page
@@ -88,13 +91,14 @@ class _ExportSectionState extends ConsumerState<_ExportSection> {
 
     if (accountId == null || account == null) return;
 
-    // Verify password
+    // Verify password (biometric not allowed — export needs real password for key derivation)
     final password = await showPasswordVerificationDialog(
       context: context,
       ref: ref,
       message: l10n.exportPasswordPrompt,
       passwordHint: account.passwordHint,
       onVerify: authNotifier.verifyPasswordForSensitiveData,
+      allowBiometric: false,
     );
     if (password == null || !mounted) return;
 
@@ -239,7 +243,7 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
     setState(() => _isParsing = true);
 
     try {
-      final profile = await ExportImportService.instance.decryptAndVerify(
+      final decrypted = await ExportImportService.instance.decryptAndVerify(
         _preview!,
         password,
       );
@@ -247,8 +251,8 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
       if (!mounted) return;
       setState(() => _isParsing = false);
 
-      if (profile != null) {
-        await _showPreviewDialog(profile);
+      if (decrypted != null) {
+        await _showPreviewDialog(decrypted);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.importDecryptFailed)),
@@ -263,15 +267,41 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
     }
   }
 
-  Future<void> _showPreviewDialog(ProfileData profile) async {
+  Future<void> _showPreviewDialog(DecryptedImportData decrypted) async {
     final l10n = AppLocalizations.of(context);
-    final collections = ExportImportService.instance.buildImportCollections(profile);
+    final collections = ExportImportService.instance.buildImportCollections(decrypted.profile);
+
+    // Build current account page options
+    final currentOptions = _getCurrentPageOptions(l10n);
+    final currentPageIds = currentOptions.map((o) => o.pageId).toSet();
+
+    // Add missing original pages from export
+    final missingPages = <ImportTargetPageOption>{};
+    for (final col in collections) {
+      final pageId = col.originalParentPageId;
+      final pageName = col.originalParentPageName;
+      if (pageId != null && !currentPageIds.contains(pageId)) {
+        missingPages.add(ImportTargetPageOption(
+          pageId: pageId,
+          name: pageName ?? 'Unknown',
+          displayName: _getDisplayNameForPageId(l10n, pageId, pageName),
+          exists: false,
+        ));
+      }
+    }
+
+    final allPageOptions = [...currentOptions, ...missingPages];
+
+    // Get current objects for section matching in preview
+    final currentProfile = ref.read(profileNotifierProvider).value;
+    final currentObjects = currentProfile?.unifiedObjects?.objects ?? [];
 
     final result = await showDialog<List<ImportCollection>>(
       context: context,
       builder: (context) => ImportPreviewDialog(
         collections: collections,
-        currentPages: _getCurrentPages(),
+        pageOptions: allPageOptions,
+        currentObjects: currentObjects,
       ),
     );
 
@@ -282,25 +312,68 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
     final accountId = authNotifier.selectedAccountId;
     if (accountId == null) return;
 
-    final currentProfile = await ProfileStorageService.instance.loadProfile(accountId);
-    if (currentProfile == null || !mounted) return;
+    final currentProfileForImport = await ProfileStorageService.instance.loadProfile(accountId);
+    if (currentProfileForImport == null || !mounted) return;
 
     setState(() => _isImporting = true);
 
-    // TODO: pass exportKey and tempAttachmentsDir from preview
-    // For now, this is a placeholder that will be wired in later.
+    final success = await ExportImportService.instance.executeImport(
+      currentAccountId: accountId,
+      currentProfile: currentProfileForImport,
+      selections: result,
+      exportKey: decrypted.exportKey,
+      tempAttachmentsDir: _preview!.attachmentsDir,
+    );
 
     setState(() => _isImporting = false);
 
     if (!mounted) return;
+
+    if (success) {
+      // Refresh profile provider — UnifiedObjectNotifier.ref.listen will
+      // auto-trigger loadFromProfile() when profileNotifierProvider changes.
+      // No explicit loadFromProfile() needed; avoids double-trigger.
+      await ref.read(profileNotifierProvider.notifier).loadProfile();
+    }
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.importSuccess)),
+      SnackBar(
+        content: Text(success ? l10n.importSuccess : l10n.importFailed),
+      ),
     );
   }
 
-  List<String> _getCurrentPages() {
-    // TODO: fetch actual current pages from current profile
-    return [];
+  List<ImportTargetPageOption> _getCurrentPageOptions(AppLocalizations l10n) {
+    final profile = ref.read(profileNotifierProvider).value;
+    final currentPages = profile?.unifiedObjects?.objects
+            .where((o) => o.typeId == 'page')
+            .toList() ??
+        [];
+
+    return currentPages.map((page) {
+      return ImportTargetPageOption(
+        pageId: page.id,
+        name: page.name,
+        displayName: getLocalizedObjectName(l10n, page),
+        exists: true,
+      );
+    }).toList();
+  }
+
+  String _getDisplayNameForPageId(
+    AppLocalizations l10n,
+    String pageId,
+    String? pageName,
+  ) {
+    // Default pages have known localized names
+    return switch (pageId) {
+      '__page_profile' => l10n.profileTitle,
+      '__page_travel' => l10n.travelTitle,
+      '__page_financial' => l10n.financialTitle,
+      '__page_professional' => l10n.professionalTitle,
+      _ => pageName ?? 'Unknown',
+    };
   }
 
   @override
@@ -332,7 +405,7 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
                 controller: _passwordController,
                 placeholder: l10n.importEnterPassword,
                 obscureText: _obscurePassword,
-                enableInteractiveSelection: false,
+                interactionBehavior: GlassInteractionBehavior.none,
                 suffixIcon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                 onSuffixTap: () => setState(() => _obscurePassword = !_obscurePassword),
                 onSubmitted: _onVerifyPassword,
