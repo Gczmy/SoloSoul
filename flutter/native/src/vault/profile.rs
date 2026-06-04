@@ -129,6 +129,8 @@ pub struct ProfileData {
     pub financial: Option<FinancialData>,
     pub professional: Option<ProfessionalData>,
     pub preferences: Option<PreferencesData>,
+    #[serde(default, rename = "unified_objects")]
+    pub unified_objects: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -2492,5 +2492,62 @@
         "type": "String"
       }
     }
-  }
+  },
+  "exportImportTitle": "Export / Import",
+  "exportButton": "Export",
+  "importButton": "Import",
+  "exportPasswordPrompt": "Enter your master password to export data",
+  "exportFilePickerTitle": "Choose save location for export file",
+  "exportSuccess": "Export successful",
+  "exportFailed": "Export failed",
+  "exportDescription": "Export your account data to an encrypted package (.solosoul) for backup or migration.",
+  "accountName": "Account Name",
+  "accountId": "Account ID",
+  "exportInProgress": "Exporting...",
+  "importDescription": "Import data from a .solosoul encrypted package into the current account.",
+  "importFilePickerTitle": "Select file to import",
+  "importParseFailed": "Failed to parse import file",
+  "importDecryptFailed": "Decryption failed, please check your password",
+  "importWrongPassword": "Wrong password",
+  "importSuccess": "Import successful",
+  "importSelectFile": "Select File",
+  "importObjectCount": "Object Count",
+  "importAttachmentCount": "Attachment Count",
+  "importPasswordHint": "Password Hint",
+  "importPreviewButton": "Preview",
+  "importPreviewTitle": "Import Preview",
+  "importPreviewSelectedCount": "Selected {selectedCount} collections, {totalItems} items total",
+  "@importPreviewSelectedCount": {
+    "placeholders": {
+      "selectedCount": {
+        "type": "int"
+      },
+      "totalItems": {
+        "type": "int"
+      }
+    }
+  },
+  "importObjectsCount": "{count} objects",
+  "@importObjectsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRelationCount": "{count} relation properties (cross-partition: {crossCount})",
+  "@importRelationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "crossCount": {
+        "type": "int"
+      }
+    }
+  },
+  "importTargetPageLabel": "Target Page",
+  "importConfirm": "Confirm Import",
+  "importInProgress": "Importing...",
+  "exportImportSubtitle": "Export account data to encrypted package, or import from package"
 }

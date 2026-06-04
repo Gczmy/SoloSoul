@@ -20,6 +20,8 @@ import 'package:solosoul_flutter/presentation/utils/format_utils.dart';
 import 'package:solosoul_flutter/presentation/widgets/data_management/vault_info_card.dart';
 import 'package:solosoul_flutter/presentation/widgets/data_management/backup_section.dart';
 import 'package:solosoul_flutter/presentation/widgets/data_management/restore_section.dart';
+import 'package:solosoul_flutter/core/router/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 /// Data Management page — full-screen backup & restore UI.
 class DataManagementPage extends ConsumerStatefulWidget {
@@ -716,6 +718,15 @@ class _DataManagementPageState extends ConsumerState<DataManagementPage> {
                     onRestoreSpecialBackup: _restoreSpecialBackup,
                     onDeleteSpecialBackup: _deleteSpecialBackup,
                     onRenameSpecialBackup: _renameSpecialBackup,
+                  ),
+                  const Divider(height: 1),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    leading: const Icon(Icons.import_export),
+                    title: Text(l10n.exportImportTitle),
+                    subtitle: Text(l10n.exportImportSubtitle),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(AppRoutes.exportImport),
                   ),
                 ],
               ),

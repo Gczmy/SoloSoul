@@ -22,6 +22,7 @@ const KEY_TRAVEL: &str = "travel";
 const KEY_FINANCIAL: &str = "financial";
 const KEY_PROFESSIONAL: &str = "professional";
 const KEY_PREFERENCES: &str = "preferences";
+const KEY_UNIFIED_OBJECTS: &str = "unifiedObjects";
 const KEY_META: &str = "_meta";
 
 /// Metadata stored alongside profile data
@@ -68,6 +69,10 @@ impl SoloDoc {
                 let json = serde_json::to_string(preferences).unwrap_or_default();
                 root.insert(&mut txn, KEY_PREFERENCES, json);
             }
+            if let Some(ref unified_objects) = profile.unified_objects {
+                let json = serde_json::to_string(unified_objects).unwrap_or_default();
+                root.insert(&mut txn, KEY_UNIFIED_OBJECTS, json);
+            }
 
             // Store metadata
             let meta_json = serde_json::to_string(meta).unwrap_or_default();
@@ -99,6 +104,7 @@ impl SoloDoc {
         let financial = self.read_section(&txn, KEY_FINANCIAL)?;
         let professional = self.read_section(&txn, KEY_PROFESSIONAL)?;
         let preferences = self.read_section(&txn, KEY_PREFERENCES)?;
+        let unified_objects = self.read_section::<serde_json::Value>(&txn, KEY_UNIFIED_OBJECTS)?;
 
         Ok(ProfileData {
             identity,
@@ -106,6 +112,7 @@ impl SoloDoc {
             financial,
             professional,
             preferences,
+            unified_objects,
         })
     }
 

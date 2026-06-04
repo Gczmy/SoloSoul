@@ -2012,5 +2012,62 @@
         "type": "String"
       }
     }
-  }
+  },
+  "exportImportTitle": "导出 / 导入",
+  "exportButton": "导出",
+  "importButton": "导入",
+  "exportPasswordPrompt": "请输入主密码以导出数据",
+  "exportFilePickerTitle": "选择导出文件保存位置",
+  "exportSuccess": "导出成功",
+  "exportFailed": "导出失败",
+  "exportDescription": "导出您的账户数据到加密包文件（.solosoul），可用于备份或迁移到其他设备。",
+  "accountName": "账户名",
+  "accountId": "账户 ID",
+  "exportInProgress": "正在导出...",
+  "importDescription": "从 .solosoul 加密包导入数据到当前账户。",
+  "importFilePickerTitle": "选择要导入的文件",
+  "importParseFailed": "解析导入文件失败",
+  "importDecryptFailed": "解密失败，请检查密码",
+  "importWrongPassword": "密码错误",
+  "importSuccess": "导入成功",
+  "importSelectFile": "选择文件",
+  "importObjectCount": "对象数量",
+  "importAttachmentCount": "附件数量",
+  "importPasswordHint": "密码提示",
+  "importPreviewButton": "预览",
+  "importPreviewTitle": "导入预览",
+  "importPreviewSelectedCount": "已选择 {selectedCount} 个集合，共 {totalItems} 个项目",
+  "@importPreviewSelectedCount": {
+    "placeholders": {
+      "selectedCount": {
+        "type": "int"
+      },
+      "totalItems": {
+        "type": "int"
+      }
+    }
+  },
+  "importObjectsCount": "{count} 个对象",
+  "@importObjectsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRelationCount": "{count} 个关系属性（跨分区：{crossCount}）",
+  "@importRelationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "crossCount": {
+        "type": "int"
+      }
+    }
+  },
+  "importTargetPageLabel": "目标页面",
+  "importConfirm": "确认导入",
+  "importInProgress": "正在导入...",
+  "exportImportSubtitle": "导出账户数据到加密包，或从加密包导入数据"
 }

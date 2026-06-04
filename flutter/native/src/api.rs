@@ -266,6 +266,32 @@ pub fn frb_decrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String> {
     let plaintext = crate::crypto::decrypt_profile_data(&key, &data)
         .map_err(|e| format!("Decryption failed: {}", e))?;
 
+    if let Ok(json_str) = String::from_utf8(plaintext.to_vec()) {
+        let has_unified = json_str.contains("unified_objects");
+        let has_identity = json_str.contains("\"identity\"");
+        let has_travel = json_str.contains("\"travel\"");
+        let has_financial = json_str.contains("\"financial\"");
+        let has_professional = json_str.contains("\"professional\"");
+        let preview = if json_str.len() > 300 { &json_str[..300] } else { &json_str };
+        // Parse to count objects and list typeIds
+        let mut obj_count = 0;
+        let mut type_ids = Vec::new();
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&json_str) {
+            if let Some(arr) = val.get("unified_objects").and_then(|u| u.get("objects")).and_then(|o| o.as_array()) {
+                obj_count = arr.len();
+                for obj in arr.iter().take(20) {
+                    if let Some(tid) = obj.get("typeId").and_then(|t| t.as_str()) {
+                        type_ids.push(tid.to_string());
+                    }
+                }
+            }
+        }
+        crate::log_to_file(&format!(
+            "[DECRYPT-BYTES] has_unified={}, has_identity={}, has_travel={}, has_financial={}, has_professional={}, len={}, obj_count={}, type_ids={:?}, preview={}",
+            has_unified, has_identity, has_travel, has_financial, has_professional, json_str.len(), obj_count, type_ids, preview
+        ));
+    }
+
     Ok(plaintext.to_vec())
 }
 
@@ -417,9 +443,25 @@ pub fn frb_load_profile(id: String) -> Result<Option<LoadedProfile>, String> {
     let has_vault = manager.get_vault_store().is_some();
     crate::log_to_file(&format!("[API] frb_load_profile: is_unlocked={}, has_vault={}", is_unlocked, has_vault));
 
+    // Get session key BEFORE dropping manager_guard to avoid multiple lock acquisitions
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
+    let key: [u8; 32] = session_key.as_slice().try_into().map_err(|_| "Invalid session key length")?;
+
     let vault_guard = manager.get_vault_store();
     let vault_lock = vault_guard.ok_or("Vault not unlocked")?;
     let vault = vault_lock.as_ref().ok_or("Vault not unlocked")?;
+
+    // TEMP: inspect special backup if it exists
+    // Use pre-derived key to avoid reentrant deadlock on ACCOUNT_MANAGER Mutex.
+    if let Ok(home) = std::env::var("HOME") {
+        let special_path = std::path::PathBuf::from(home)
+            .join("Library/Application Support/com.solosoul.solosoulFlutter/solosoul_backups")
+            .join(&id)
+            .join("special/1.backup");
+        if special_path.exists() {
+            let _ = inspect_backup_file(&special_path, "SPECIAL", &key);
+        }
+    }
 
     match vault.load_profile(&id) {
         Ok(Some(profile)) => Ok(Some(LoadedProfile {
@@ -760,6 +802,9 @@ fn decrypt_profile_data_bytes(key: &[u8; 32], encrypted: &[u8]) -> Result<crate:
         .map_err(|e| format!("Decrypt failed: {}", e))?;
     let json = String::from_utf8(decrypted.to_vec())
         .map_err(|e| format!("Invalid UTF-8: {}", e))?;
+    let has_unified = json.contains("unified_objects");
+    let preview = if json.len() > 500 { &json[..500] } else { &json };
+    crate::log_to_file(&format!("[DECRYPT] has_unified_objects={}, len={}, preview={}", has_unified, json.len(), preview));
     serde_json::from_str(&json).map_err(|e| format!("JSON parse failed: {}", e))
 }
 
@@ -854,12 +899,18 @@ pub fn frb_sync_initiator(
 
     // 6. Sync
     crate::log_to_file("[SYNC-I] starting CRDT sync...");
+    let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
+    let updated_at = profile.updated_at.to_rfc3339();
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
-        .with_attachments(attachments_dir, attachment_manifest);
+        .with_attachments(attachments_dir, attachment_manifest)
+        .with_metadata(updated_at, profile_json);
     let result = engine.sync_initiator()?;
     crate::log_to_file(&format!(
-        "[SYNC-I] sync done dir={:?} sent={} recv={}",
-        result.direction, result.bytes_sent, result.bytes_received
+        "[SYNC-I] sync done dir={:?} sent={} recv={} att_sent={} att_recv={} att_bytes_sent={} att_bytes_recv={} att_incomplete={}",
+        result.direction, result.bytes_sent, result.bytes_received,
+        result.attachments_sent, result.attachments_received,
+        result.attachment_bytes_sent, result.attachment_bytes_received,
+        result.attachment_incomplete
     ));
 
     // 7. If we pulled changes, encrypt and save updated profile
@@ -984,12 +1035,18 @@ pub fn frb_sync_responder(
 
     // 6. Sync
     crate::log_to_file("[SYNC-R] starting CRDT sync...");
+    let profile_json = serde_json::to_string(&profile_data).unwrap_or_default();
+    let updated_at = profile.updated_at.to_rfc3339();
     let mut engine = SyncEngine::new(crdt_doc, Some(channel), Box::new(transport))
-        .with_attachments(attachments_dir, attachment_manifest);
+        .with_attachments(attachments_dir, attachment_manifest)
+        .with_metadata(updated_at, profile_json);
     let result = engine.sync_responder()?;
     crate::log_to_file(&format!(
-        "[SYNC-R] sync done dir={:?} sent={} recv={}",
-        result.direction, result.bytes_sent, result.bytes_received
+        "[SYNC-R] sync done dir={:?} sent={} recv={} att_sent={} att_recv={} att_bytes_sent={} att_bytes_recv={} att_incomplete={}",
+        result.direction, result.bytes_sent, result.bytes_received,
+        result.attachments_sent, result.attachments_received,
+        result.attachment_bytes_sent, result.attachment_bytes_received,
+        result.attachment_incomplete
     ));
 
     // 7. If we pulled changes, encrypt and save updated profile
@@ -1281,4 +1338,172 @@ pub fn frb_plugin_consent_response(
 #[frb]
 pub fn frb_plugin_force_unload(plugin_id: String) -> Result<(), String> {
     crate::plugin::with_manager(|m| m.force_unload(&plugin_id))
+}
+
+/// TEMP helper: inspect a backup file and log its contents
+/// NOTE: key must be provided by the caller to avoid reentrant deadlock on ACCOUNT_MANAGER.
+fn inspect_backup_file(path: &std::path::Path, label: &str, key: &[u8; 32]) -> Result<(), String> {
+    let encrypted = std::fs::read(path).map_err(|e| format!("Read backup failed: {}", e))?;
+    let plaintext = crate::crypto::decrypt_profile_data(&key, &encrypted)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
+    let json_str = String::from_utf8(plaintext.to_vec()).map_err(|e| format!("Invalid UTF-8: {}", e))?;
+
+    let mut obj_count = 0;
+    let mut type_ids = Vec::new();
+    let mut has_identity = false;
+    let mut has_travel = false;
+    let mut has_financial = false;
+    let mut has_professional = false;
+
+    if let Ok(val) = serde_json::from_str::<serde_json::Value>(&json_str) {
+        has_identity = val.get("identity").is_some();
+        has_travel = val.get("travel").is_some();
+        has_financial = val.get("financial").is_some();
+        has_professional = val.get("professional").is_some();
+        if let Some(arr) = val.get("unified_objects").and_then(|u| u.get("objects")).and_then(|o| o.as_array()) {
+            obj_count = arr.len();
+            for obj in arr.iter().take(30) {
+                if let Some(tid) = obj.get("typeId").and_then(|t| t.as_str()) {
+                    type_ids.push(tid.to_string());
+                }
+            }
+        }
+    }
+
+    crate::log_to_file(&format!(
+        "[BACKUP-INSPECT-{}] path={}, len={}, has_identity={}, has_travel={}, has_financial={}, has_professional={}, obj_count={}, type_ids={:?}",
+        label, path.display(), json_str.len(), has_identity, has_travel, has_financial, has_professional, obj_count, type_ids
+    ));
+    Ok(())
+}
+
+/// TEMP: Inspect a backup file to check if it contains real data
+#[frb]
+pub fn frb_inspect_backup(backup_path: String) -> Result<String, String> {
+    let manager_guard = crate::get_account_manager().map_err(|e| format!("Account manager error: {}", e))?;
+    let manager = manager_guard.as_ref().ok_or("Account manager not initialized")?;
+    let session_key = manager.get_session_key().ok_or("Vault not unlocked")?;
+    let key: [u8; 32] = session_key.as_slice().try_into().map_err(|_| "Invalid session key length")?;
+
+    let encrypted = std::fs::read(&backup_path).map_err(|e| format!("Read backup failed: {}", e))?;
+    let plaintext = crate::crypto::decrypt_profile_data(&key, &encrypted)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
+    let json_str = String::from_utf8(plaintext.to_vec()).map_err(|e| format!("Invalid UTF-8: {}", e))?;
+
+    let mut obj_count = 0;
+    let mut type_ids = Vec::new();
+    let mut has_identity = false;
+    let mut has_travel = false;
+    let mut has_financial = false;
+    let mut has_professional = false;
+
+    if let Ok(val) = serde_json::from_str::<serde_json::Value>(&json_str) {
+        has_identity = val.get("identity").is_some();
+        has_travel = val.get("travel").is_some();
+        has_financial = val.get("financial").is_some();
+        has_professional = val.get("professional").is_some();
+        if let Some(arr) = val.get("unified_objects").and_then(|u| u.get("objects")).and_then(|o| o.as_array()) {
+            obj_count = arr.len();
+            for obj in arr.iter().take(30) {
+                if let Some(tid) = obj.get("typeId").and_then(|t| t.as_str()) {
+                    type_ids.push(tid.to_string());
+                }
+            }
+        }
+    }
+
+    let result = format!(
+        "BACKUP_INSPECT: path={}, len={}, has_identity={}, has_travel={}, has_financial={}, has_professional={}, obj_count={}, type_ids={:?}",
+        backup_path, json_str.len(), has_identity, has_travel, has_financial, has_professional, obj_count, type_ids
+    );
+    crate::log_to_file(&result);
+    Ok(result)
+}
+
+// ============================================================================
+// Export/Import: ZIP package creation and extraction
+// ============================================================================
+
+/// Create a ZIP package from a directory.
+/// Streams files into ZIP to keep memory usage low.
+#[frb]
+pub fn frb_create_zip_package(src_dir: String, dst_path: String) -> Result<(), String> {
+    use std::fs::File;
+    use std::io::{Read, Write};
+    use zip::write::SimpleFileOptions;
+    use zip::ZipWriter;
+
+    let file = File::create(&dst_path)
+        .map_err(|e| format!("Failed to create ZIP file: {}", e))?;
+    let mut zip = ZipWriter::new(file);
+    let options = SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+
+    let walkdir = walkdir::WalkDir::new(&src_dir);
+    let mut buffer = Vec::new();
+
+    for entry in walkdir.into_iter() {
+        let entry = entry.map_err(|e| format!("WalkDir error: {}", e))?;
+        let path = entry.path();
+        let name = path.strip_prefix(&src_dir)
+            .map_err(|e| format!("Path prefix error: {}", e))?;
+
+        if path.is_file() {
+            let mut f = File::open(path)
+                .map_err(|e| format!("Failed to open file: {}", e))?;
+            f.read_to_end(&mut buffer)
+                .map_err(|e| format!("Failed to read file: {}", e))?;
+            zip.start_file_from_path(name, options)
+                .map_err(|e| format!("ZIP start_file error: {}", e))?;
+            zip.write_all(&buffer)
+                .map_err(|e| format!("ZIP write error: {}", e))?;
+            buffer.clear();
+        }
+    }
+
+    zip.finish().map_err(|e| format!("ZIP finish error: {}", e))?;
+    Ok(())
+}
+
+/// Extract a ZIP package to a directory.
+/// Returns the list of extracted file paths.
+#[frb]
+pub fn frb_extract_zip_package(zip_path: String, dst_dir: String) -> Result<Vec<String>, String> {
+    use std::fs::File;
+    use std::io::copy;
+    use zip::ZipArchive;
+
+    let file = File::open(&zip_path)
+        .map_err(|e| format!("Failed to open ZIP file: {}", e))?;
+    let mut archive = ZipArchive::new(file)
+        .map_err(|e| format!("Failed to read ZIP archive: {}", e))?;
+
+    std::fs::create_dir_all(&dst_dir)
+        .map_err(|e| format!("Failed to create extract dir: {}", e))?;
+
+    let mut extracted = Vec::new();
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)
+            .map_err(|e| format!("ZIP by_index error: {}", e))?;
+        let outpath = std::path::Path::new(&dst_dir).join(file.mangled_name());
+
+        if file.name().ends_with('/') {
+            std::fs::create_dir_all(&outpath)
+                .map_err(|e| format!("Failed to create dir: {}", e))?;
+        } else {
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    std::fs::create_dir_all(p)
+                        .map_err(|e| format!("Failed to create parent dir: {}", e))?;
+                }
+            }
+            let mut outfile = File::create(&outpath)
+                .map_err(|e| format!("Failed to create file: {}", e))?;
+            copy(&mut file, &mut outfile)
+                .map_err(|e| format!("Failed to extract file: {}", e))?;
+            extracted.push(outpath.to_string_lossy().to_string());
+        }
+    }
+
+    Ok(extracted)
 }

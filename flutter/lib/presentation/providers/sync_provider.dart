@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/sync_service.dart';
 import 'package:solosoul_flutter/core/utils/solo_log.dart';
 import 'package:solosoul_flutter/frb/api.dart' as frb;
+import 'package:solosoul_flutter/presentation/providers/profile_provider.dart';
 import 'package:solosoul_flutter/presentation/utils/device_utils.dart';
 
 /// Sync state for the current session
@@ -137,6 +138,7 @@ class SyncNotifier extends Notifier<SyncState> {
         accountId: accountId,
         pairingKey: pairingKey,
         deviceSalt: deviceSalt,
+        onLog: addSyncLog,
       );
       if (!_shouldListen) return;
       state = state.copyWith(
@@ -144,6 +146,8 @@ class SyncNotifier extends Notifier<SyncState> {
         status: SyncStatus.success,
         lastResult: result,
       );
+      // Refresh profile after sync
+      await ref.read(profileNotifierProvider.notifier).loadProfile();
     } on Exception catch (e) {
       if (!_shouldListen) return;
       state = state.copyWith(
@@ -202,6 +206,8 @@ class SyncNotifier extends Notifier<SyncState> {
         status: SyncStatus.success,
         lastResult: result,
       );
+      // Refresh profile after sync
+      await ref.read(profileNotifierProvider.notifier).loadProfile();
     } on Exception catch (e) {
       if (e.toString().contains('Cancelled')) {
         state = state.copyWith(status: SyncStatus.idle);
@@ -245,6 +251,8 @@ class SyncNotifier extends Notifier<SyncState> {
         status: SyncStatus.success,
         lastResult: result,
       );
+      // Refresh profile after sync
+      await ref.read(profileNotifierProvider.notifier).loadProfile();
     } on Exception catch (e) {
       if (e.toString().contains('Cancelled')) {
         state = state.copyWith(status: SyncStatus.idle);

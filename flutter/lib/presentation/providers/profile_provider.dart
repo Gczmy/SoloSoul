@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solosoul_flutter/core/services/profile_storage_service.dart';
 import 'package:solosoul_flutter/presentation/providers/services/profile_persistence_notifier.dart';
@@ -46,7 +48,10 @@ class ProfileNotifier extends AsyncNotifier<ProfileData?> {
   Future<void> loadProfile() async {
     state = const AsyncLoading();
     try {
-      final profile = await _loadFromStorage();
+      final profile = await _loadFromStorage().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw TimeoutException('Profile load timed out after 15s'),
+      );
       state = AsyncData(profile);
     } on Object catch (e, st) {
       state = AsyncError(e, st);

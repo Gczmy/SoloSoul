@@ -10,7 +10,7 @@ import 'plugin/manager.dart';
 import 'plugin/manifest.dart';
 part 'api.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `decrypt_profile_data_bytes`, `encrypt_profile_data_bytes`, `get_session_key`
+// These functions are ignored because they are not marked as `pub`: `decrypt_profile_data_bytes`, `encrypt_profile_data_bytes`, `get_session_key`, `inspect_backup_file`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DeriveKeyResult`, `FrbKdfPreset`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`
 
@@ -230,9 +230,9 @@ Future<SyncResult> frbSyncInitiator({
 /// Sync profile with a remote device as the responder (receives state vector first).
 ///
 /// [account_id] identifies the account to sync.
-/// [remote_addr] is the remote device address (e.g. "192.168.1.5:9900").
+/// [remote_addr] is the address to listen on (e.g. "0.0.0.0:9900").
 /// [pairing_key] is the shared pairing key for Noise handshake.
-/// [device_salt] is this device's unique identifier for key derivation.
+/// [device_salt] is this device's unique identifier for key derivation (unused).
 Future<SyncResult> frbSyncResponder({
   required String accountId,
   required String remoteAddr,
@@ -345,6 +345,30 @@ Future<void> frbPluginConsentResponse({
 /// 强制卸载插件
 Future<void> frbPluginForceUnload({required String pluginId}) =>
     RustLib.instance.api.crateApiFrbPluginForceUnload(pluginId: pluginId);
+
+/// TEMP: Inspect a backup file to check if it contains real data
+Future<String> frbInspectBackup({required String backupPath}) =>
+    RustLib.instance.api.crateApiFrbInspectBackup(backupPath: backupPath);
+
+/// Create a ZIP package from a directory.
+/// Streams files into ZIP to keep memory usage low.
+Future<void> frbCreateZipPackage({
+  required String srcDir,
+  required String dstPath,
+}) => RustLib.instance.api.crateApiFrbCreateZipPackage(
+  srcDir: srcDir,
+  dstPath: dstPath,
+);
+
+/// Extract a ZIP package to a directory.
+/// Returns the list of extracted file paths.
+Future<List<String>> frbExtractZipPackage({
+  required String zipPath,
+  required String dstDir,
+}) => RustLib.instance.api.crateApiFrbExtractZipPackage(
+  zipPath: zipPath,
+  dstDir: dstDir,
+);
 
 /// Account info from Rust vault
 @freezed

@@ -63,13 +63,10 @@ class UnifiedObjectNotifier extends Notifier<UnifiedObjectData> {
 
     final data = profile.unifiedObjects;
     if (data == null) {
-      // Profile 存在但 unifiedObjects 缺失：同样创建默认结构
-      final defaultData = _createDefaultStructure(
-        const UnifiedObjectData(objects: [], customTypes: []),
-      );
-      state = defaultData;
-      final updatedProfile = profile.copyWith(unifiedObjects: defaultData);
-      await ref.read(profileNotifierProvider.notifier).saveProfileImmediate(updatedProfile);
+      // Profile 存在但 unifiedObjects 缺失：可能是数据损坏，不创建默认结构
+      // 让 login_page 的 _promptRestoreIfEmpty 检测到空数据并提示恢复备份
+      SoloLog.w('UNIFIED_OBJECTS', 'Profile exists but unifiedObjects is null — possible data corruption, leaving empty for restore prompt');
+      state = const UnifiedObjectData(objects: [], customTypes: []);
       return;
     }
 

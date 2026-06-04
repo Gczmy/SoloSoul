@@ -27,30 +27,26 @@ SoloSoul stores everything locally. You can create an encrypted backup at any ti
 
 ---
 
-## Export
+## Export & Import
 
-Individual objects or entire sections can be exported as JSON.
+SoloSoul supports exporting your account data to an encrypted `.solosoul` package file for backup or migration, and importing data from such files into your current account.
 
-1. Open the object or section you want to export.
-2. Tap the **Export** button.
-3. Choose whether to encrypt the export file with a password.
-4. Select a destination folder.
+### Export
 
-| Export Option | Encrypted | Use Case |
-|---------------|-----------|----------|
-| With password | Yes | Secure transfer to another device |
-| Without password | No | Quick local copy or printing |
+1. Go to **Settings → Data Management → Export / Import**.
+2. Switch to the **Export** tab.
+3. Tap the **Export** button and verify your master password.
+4. Choose a save location. The default file name is `{AccountName}_{AccountID}.solosoul`.
 
----
+### Import
 
-## Import
+1. Go to **Settings → Data Management → Export / Import**.
+2. Switch to the **Import** tab.
+3. Select a `.solosoul` file and enter the export password.
+4. Review the import preview (select collections, map target pages).
+5. Confirm to complete the import.
 
-Import JSON files from other sources or from a previous SoloSoul export.
-
-1. Go to **Settings → Data Management → Import**.
-2. Select a JSON file.
-3. During import, map fields to existing object types or create new ones.
-4. Review the import summary before confirming.
+> **Note**: For detailed instructions, see the **Import & Export** guide. The `.solosoul` format uses Argon2id + AES-256-GCM encryption and supports selective import with attachment migration.
 
 ---
 

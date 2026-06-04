@@ -97,9 +97,12 @@ class SyncService {
         attachmentsDir: attachmentsDir,
       ).timeout(const Duration(seconds: 30));
 
-      log('INFO', 'Sync complete: direction=${result.direction}, '
-          'bytes=${result.bytesSent} sent / ${result.bytesReceived} received, '
-          'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received');
+      log('INFO', 'CRDT sync complete: direction=${result.direction}, '
+          'bytes=${result.bytesSent} sent / ${result.bytesReceived} received');
+      log('INFO', 'Attachment sync: ${result.attachmentsSent} files sent / ${result.attachmentsReceived} files received, '
+          '${result.attachmentBytesSent} bytes sent / ${result.attachmentBytesReceived} bytes received, '
+          'incomplete=${result.attachmentIncomplete}');
+      log('INFO', 'Sync complete with $remoteAddr');
       SoloLog.endTimer(timer);
       return result;
     } on Exception catch (e, st) {
@@ -141,9 +144,12 @@ class SyncService {
         attachmentsDir: attachmentsDir,
       ).timeout(const Duration(seconds: 90));
 
-      log('INFO', 'Sync complete: direction=${result.direction}, '
-          'bytes=${result.bytesSent} sent / ${result.bytesReceived} received, '
-          'attachments=${result.attachmentsSent} sent / ${result.attachmentsReceived} received');
+      log('INFO', 'CRDT sync complete: direction=${result.direction}, '
+          'bytes=${result.bytesSent} sent / ${result.bytesReceived} received');
+      log('INFO', 'Attachment sync: ${result.attachmentsSent} files sent / ${result.attachmentsReceived} files received, '
+          '${result.attachmentBytesSent} bytes sent / ${result.attachmentBytesReceived} bytes received, '
+          'incomplete=${result.attachmentIncomplete}');
+      log('INFO', 'Sync complete with remote peer');
       SoloLog.endTimer(timer);
       return result;
     } on Exception catch (e, st) {

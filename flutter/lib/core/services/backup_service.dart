@@ -20,7 +20,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -38,16 +37,26 @@ class BackupEntry {
   final String fileName;
   final DateTime createdAt;
   final int sizeBytes;
+  final bool isSpecial;
+
+  String get displayName => isSpecial ? fileName.replaceAll('.backup', '') : fileName;
+
+  String get displayTime =>
+      '${createdAt.year}-${_two(createdAt.month)}-${_two(createdAt.day)} '
+      '${_two(createdAt.hour)}:${_two(createdAt.minute)}:${_two(createdAt.second)}';
+
+  String get displaySize {
+    if (sizeBytes < 1024) return '${sizeBytes}B';
+    if (sizeBytes < 1024 * 1024) return '${(sizeBytes / 1024).toStringAsFixed(1)}KB';
+    return '${(sizeBytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+  }
 
   const BackupEntry({
     required this.fileName,
     required this.createdAt,
     required this.sizeBytes,
+    this.isSpecial = false,
   });
-
-  String get displayTime =>
-      '${createdAt.year}-${_two(createdAt.month)}-${_two(createdAt.day)} '
-      '${_two(createdAt.hour)}:${_two(createdAt.minute)}:${_two(createdAt.second)}';
 
   static String _two(int n) => n.toString().padLeft(2, '0');
 }
@@ -146,8 +155,9 @@ class BackupService {
     return Uint8List.fromList(utf8.encode(jsonString));
   }
 
-  static Future<Uint8List> _encodeProfileInIsolate(Map<String, dynamic> json) {
-    return Isolate.run(() => encodeProfileToBytes(json));
+  static Future<Uint8List> _encodeProfileInIsolate(Map<String, dynamic> json) async {
+    // Run on main thread (Isolate.run can hang on macOS Release builds)
+    return encodeProfileToBytes(json);
   }
 
   static ProfileData decodeProfileFromString(String jsonString) {
@@ -155,8 +165,9 @@ class BackupService {
     return ProfileData.fromJson(json);
   }
 
-  static Future<ProfileData> _decodeProfileInIsolate(String jsonString) {
-    return Isolate.run(() => decodeProfileFromString(jsonString));
+  static Future<ProfileData> _decodeProfileInIsolate(String jsonString) async {
+    // Run on main thread (Isolate.run can hang on macOS Release builds)
+    return decodeProfileFromString(jsonString);
   }
 
   // -------------------------------------------------------------------------
@@ -496,6 +507,7 @@ class BackupService {
           fileName: name,
           createdAt: stat.modified,
           sizeBytes: stat.size,
+          isSpecial: false,
         ));
       }
 
@@ -504,6 +516,15 @@ class BackupService {
     } on FileSystemException catch (_) {
       return const [];
     }
+  }
+
+  /// 列出所有备份（常规 + 特殊），按时间从新到旧排序。
+  Future<List<BackupEntry>> listAllBackups(String accountId) async {
+    final regular = await listBackups(accountId);
+    final special = await listSpecialBackups(accountId);
+    final all = [...regular, ...special];
+    all.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return all;
   }
 
   /// 从指定备份文件恢复数据到 Vault（含附件）。
@@ -522,6 +543,9 @@ class BackupService {
       if (decrypted == null) return false;
 
       final jsonString = utf8.decode(decrypted);
+      final hasUnified = jsonString.contains('"unified_objects"');
+      final preview = jsonString.length > 500 ? '${jsonString.substring(0, 500)}...' : jsonString;
+      DebugLogger.instance.logInfo('BACKUP', 'restoreBackup: file=$fileName, has_unified_objects=$hasUnified, length=${jsonString.length}, preview=$preview');
       final profile = await _decodeProfileInIsolate(jsonString);
 
       // 2. 创建保护性备份（覆盖数据前）
@@ -653,6 +677,7 @@ class BackupService {
           fileName: name,
           createdAt: stat.modified,
           sizeBytes: stat.size,
+          isSpecial: true,
         ));
       }
 
@@ -723,13 +748,31 @@ class BackupService {
       if (decrypted == null) return false;
 
       final jsonString = utf8.decode(decrypted);
+      final hasUnifiedObjects = jsonString.contains('"unified_objects"');
+      final hasUnifiedObjectsCamel = jsonString.contains('"unifiedObjects"');
+      final hasIdentity = jsonString.contains('"identity"');
+      final hasTravel = jsonString.contains('"travel"');
+      final hasFinancial = jsonString.contains('"financial"');
+      final hasProfessional = jsonString.contains('"professional"');
+      DebugLogger.instance.logInfo(
+        'BACKUP',
+        'restoreSpecialBackup raw JSON: length=${jsonString.length}, '
+        'has_unified_objects=$hasUnifiedObjects, has_unifiedObjects=$hasUnifiedObjectsCamel, '
+        'has_identity=$hasIdentity, has_travel=$hasTravel, has_financial=$hasFinancial, has_professional=$hasProfessional',
+      );
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
       final profile = ProfileData.fromJson(json);
+      DebugLogger.instance.logInfo(
+        'BACKUP',
+        'restoreSpecialBackup parsed: unifiedObjects=${profile.unifiedObjects != null}, '
+        'schemaVersion=${profile.schemaVersion}, objectCount=${profile.unifiedObjects?.objects.length ?? 0}',
+      );
 
       // 创建保护性备份（覆盖数据前）
       await createBackup(accountId);
 
-      final saved = await ProfileStorageService.instance.saveProfile(accountId, profile);
+      final saved = await ProfileStorageService.instance.saveProfile(accountId, profile, preserveCache: false);
+      DebugLogger.instance.logInfo('BACKUP', 'restoreSpecialBackup saveProfile result: $saved');
       if (!saved) return false;
 
       // 恢复附件

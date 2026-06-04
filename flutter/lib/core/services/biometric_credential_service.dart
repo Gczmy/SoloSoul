@@ -65,33 +65,48 @@ class BiometricCredentialService {
   // ==========================================================================
 
   Future<void> _ensureDeviceKey() async {
-    final existing = await _rawSecureStorage.read(key: _deviceKeyId);
-    if (existing != null && existing.isNotEmpty) return;
+    try {
+      final existing = await _rawSecureStorage.read(key: _deviceKeyId);
+      if (existing != null && existing.isNotEmpty) return;
 
-    final deviceKey = await frb.frbGenerateSalt(length: 32);
+      final deviceKey = await frb.frbGenerateSalt(length: 32);
 
-    await _rawSecureStorage.write(
-      key: _deviceKeyId,
-      value: base64Encode(deviceKey),
-    );
-    _secureWipe(deviceKey);
-    SoloLog.d('BioCred', 'deviceKey generated and stored');
+      await _rawSecureStorage.write(
+        key: _deviceKeyId,
+        value: base64Encode(deviceKey),
+      );
+      _secureWipe(deviceKey);
+      SoloLog.d('BioCred', 'deviceKey generated and stored');
+    } on Exception catch (e, st) {
+      SoloLog.w('BioCred', 'deviceKey storage unavailable (Keychain error): $e');
+      // Graceful degradation: biometric unlock is disabled
+    }
   }
 
   Future<Uint8List?> _readDeviceKey() async {
-    final encoded = await _rawSecureStorage.read(key: _deviceKeyId);
-    if (encoded == null || encoded.isEmpty) return null;
     try {
-      return base64Decode(encoded);
-    } on FormatException {
+      final encoded = await _rawSecureStorage.read(key: _deviceKeyId);
+      if (encoded == null || encoded.isEmpty) return null;
+      try {
+        return base64Decode(encoded);
+      } on FormatException {
+        return null;
+      }
+    } on Exception catch (e) {
+      SoloLog.w('BioCred', 'Keychain read error in _readDeviceKey: $e');
       return null;
     }
   }
 
   /// Whether a deviceKey exists in secure storage.
   Future<bool> isDeviceKeyAvailable() async {
-    final key = await _rawSecureStorage.read(key: _deviceKeyId);
-    return key != null && key.isNotEmpty;
+    try {
+      final key = await _rawSecureStorage.read(key: _deviceKeyId);
+      return key != null && key.isNotEmpty;
+    } on Exception catch (e) {
+      SoloLog.w('BioCred', 'Keychain read error in isDeviceKeyAvailable: $e');
+      return false;
+    }
   }
 
   // ==========================================================================
@@ -266,10 +281,15 @@ class BiometricCredentialService {
 
   /// Whether a biometric credential exists for the account.
   Future<bool> hasBiometricCredential(String accountId) async {
-    final value = await _rawSecureStorage.read(
-      key: '$_credentialKeyPrefix$accountId',
-    );
-    return value != null && value.isNotEmpty;
+    try {
+      final value = await _rawSecureStorage.read(
+        key: '$_credentialKeyPrefix$accountId',
+      );
+      return value != null && value.isNotEmpty;
+    } on Exception catch (e) {
+      SoloLog.w('BioCred', 'Keychain read error in hasBiometricCredential: $e');
+      return false;
+    }
   }
 
   /// Clear the biometric credential for an account.

@@ -58,6 +58,10 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # SHA-256 for plugin handshake
 sha2 = "0.10"
 
+# ZIP archive for export/import
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+walkdir = "2.5"
+
 # Base64 encoding
 base64 = "0.21"
 

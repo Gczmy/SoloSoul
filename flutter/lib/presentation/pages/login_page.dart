@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +43,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _showCreateAccount = false;
   bool _accountsExpanded = false;
 
+  /// Write debug log to file for Release build diagnostics
+  void _debugLog(String msg) {
+    try {
+      final f = File('/tmp/solosoul_dart.log');
+      final now = DateTime.now().toIso8601String();
+      f.writeAsStringSync('[$now] $msg\n', mode: FileMode.append);
+    } on Exception {
+      // ignore
+    }
+  }
+
   // Password verification error state
   bool _hasPasswordError = false;
   String? _passwordErrorMessage;
@@ -77,16 +89,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // 检查是否已处理过恢复提示（跳过或恢复）
     final storage = FallbackSecureStorage();
-    final handled = await storage.read(key: _restoreHandledKey(accountId));
-    if (handled == 'skipped' || handled == 'restored') {
-      SoloLog.d('LOGIN', 'Restore prompt already handled ($handled), skipping');
-      return;
+    String? handled;
+    try {
+      handled = await storage.read(key: _restoreHandledKey(accountId));
+    } on Exception catch (e) {
+      SoloLog.w('LOGIN', 'Failed to read restore handled flag: $e');
+      handled = null;
     }
-
+    // 如果之前标记为 restored 但数据仍然为空（只有默认结构），重新提示恢复
     final profile = ref.read(profileNotifierProvider).value;
     final unifiedData = ref.read(unifiedObjectProvider);
-    final objectCount = unifiedData.objects.length;
     final activeCount = unifiedData.objects.where((o) => !o.isDeleted).length;
+    final hasRealData = profile?.unifiedObjects != null &&
+        activeCount > 0 &&
+        unifiedData.objects.any((o) => o.typeId != 'page' && o.typeId != 'collection');
+
+    if (handled == 'skipped') {
+      SoloLog.d('LOGIN', 'Restore prompt already skipped, skipping');
+      return;
+    }
+    if (handled == 'restored' && hasRealData) {
+      SoloLog.d('LOGIN', 'Restore prompt already restored and data exists, skipping');
+      return;
+    }
+    if (handled == 'restored' && !hasRealData) {
+      SoloLog.w('LOGIN', 'Previously restored but data still empty — re-prompting restore');
+    }
+
+    final objectCount = unifiedData.objects.length;
 
     SoloLog.d(
       'LOGIN',
@@ -95,55 +125,102 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       'objects=$objectCount, active=$activeCount',
     );
 
-    // 保守策略：只要 Vault 中有有效数据，就不提示恢复
-    if (profile != null) {
-      if (profile.unifiedObjects != null && activeCount > 0) {
-        return; // 有有效数据，无需恢复
-      }
-      if (profile.unifiedObjects != null && activeCount == 0) {
-        // unifiedObjects 存在但为空，继续检查备份
-      }
-      if (profile.unifiedObjects == null) {
-        SoloLog.w(
-          'LOGIN',
-          'Legacy profile detected without unified_objects, skipping restore prompt',
-        );
-        return;
-      }
+    if (hasRealData) {
+      return; // 有有效用户数据，无需恢复
     }
 
-    final backups = await BackupService.instance.listBackups(accountId);
+    SoloLog.w(
+      'LOGIN',
+      'Data appears empty or corrupted (hasRealData=$hasRealData), checking backups',
+    );
+
+    final backups = await BackupService.instance.listAllBackups(accountId);
     if (backups.isEmpty) return; // 无备份，无需恢复
 
     if (!context.mounted) return;
 
     final l10n = AppLocalizations.of(context);
-    final latest = backups.first;
-    final shouldRestore = await showSoloGlassDialog<bool>(
+
+    // Show backup list selection dialog using standard AlertDialog
+    BackupEntry? selectedBackup;
+    final dialogResult = await showDialog<bool>(
       context: context,
-      title: l10n.loginDataRecoveryTitle,
-      message:
-          l10n.loginDataRecoveryMessage(latest.displayTime),
-      actions: [
-        SoloGlassDialogAction(
-          label: l10n.loginSkip,
-          onPressed: () => Navigator.of(context).pop(false),
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.loginDataRecoveryTitle),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 320,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('检测到 ${backups.length} 个可用备份，请选择一个恢复：'),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: backups.length,
+                  itemBuilder: (listCtx, index) {
+                    final b = backups[index];
+                    final label = b.isSpecial ? '特殊备份' : '自动备份';
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              b.displayName,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Chip(
+                            label: Text(label, style: const TextStyle(fontSize: 10)),
+                            padding: EdgeInsets.zero,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            backgroundColor: b.isSpecial ? const Color(0xFFE8F5E9) : const Color(0xFFE3F2FD),
+                            labelStyle: TextStyle(
+                              fontSize: 10,
+                              color: b.isSpecial ? const Color(0xFF2E7D32) : const Color(0xFF1565C0),
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Text(
+                        '${b.displayTime}  ·  ${b.displaySize}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                      onTap: () {
+                        selectedBackup = b;
+                        Navigator.of(listCtx).pop(true);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
-        SoloGlassDialogAction(
-          label: l10n.loginRestoreBackup,
-          isPrimary: true,
-          onPressed: () => Navigator.of(context).pop(true),
-        ),
-      ],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.loginSkip),
+          ),
+        ],
+      ),
     );
 
-    if (shouldRestore == true) {
-      final success = await BackupService.instance.restoreBackup(
-        accountId,
-        latest.fileName,
-      );
+    if (dialogResult == true && selectedBackup != null) {
+      final b = selectedBackup!;
+      SoloLog.d('LOGIN', 'Restoring backup: ${b.fileName} (special=${b.isSpecial})');
+      final success = b.isSpecial
+          ? await BackupService.instance.restoreSpecialBackup(accountId, b.fileName)
+          : await BackupService.instance.restoreBackup(accountId, b.fileName);
       if (success && context.mounted) {
-        // 恢复成功：重新加载数据到 provider，无需重启
         await ref.read(profileNotifierProvider.notifier).loadProfile();
         await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
         await storage.write(key: _restoreHandledKey(accountId), value: 'restored');
@@ -160,8 +237,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           SnackBar(content: Text(l10n.loginRestoreFailed)),
         );
       }
-    } else if (shouldRestore == false) {
-      // 用户明确跳过，记录标志防止重复提示
+    } else if (dialogResult == false) {
       await storage.write(key: _restoreHandledKey(accountId), value: 'skipped');
     }
   }
@@ -224,40 +300,47 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _checkBiometrics() async {
-    // Ensure security settings and biometric credential service are ready
-    await SecurityService.instance.loadSettings();
-    await BiometricCredentialService.instance.initialize();
+    try {
+      // Ensure security settings and biometric credential service are ready
+      await SecurityService.instance.loadSettings();
+      await BiometricCredentialService.instance.initialize();
 
-    final biometric = BiometricService.instance;
-    final available = await biometric.isAvailable();
-    final settings = SecurityService.instance.settings;
-    final availableBiometrics = await biometric.getAvailableBiometrics();
+      final biometric = BiometricService.instance;
+      final available = await biometric.isAvailable();
+      final settings = SecurityService.instance.settings;
+      final availableBiometrics = await biometric.getAvailableBiometrics();
 
-    final authNotifier = ref.read(authNotifierProvider.notifier);
-    final accountId = authNotifier.selectedAccountId;
-    final hasCredential = accountId != null &&
-        await BiometricCredentialService.instance.hasBiometricCredential(accountId) &&
-        await BiometricCredentialService.instance.isDeviceKeyAvailable();
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+      final accountId = authNotifier.selectedAccountId;
+      final hasCredential = accountId != null &&
+          await BiometricCredentialService.instance.hasBiometricCredential(accountId) &&
+          await BiometricCredentialService.instance.isDeviceKeyAvailable();
 
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
-    String biometricType = l10n.loginBiometricGeneric;
-    if (availableBiometrics.isNotEmpty) {
-      if (availableBiometrics.any((b) => b == BiometricType.face)) {
-        biometricType = l10n.loginBiometricFaceId;
-      } else if (availableBiometrics.any(
-        (b) => b == BiometricType.fingerprint,
-      )) {
-        biometricType = l10n.loginBiometricTouchId;
-      } else if (availableBiometrics.any((b) => b == BiometricType.iris)) {
-        biometricType = l10n.loginBiometricIris;
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      String biometricType = l10n.loginBiometricGeneric;
+      if (availableBiometrics.isNotEmpty) {
+        if (availableBiometrics.any((b) => b == BiometricType.face)) {
+          biometricType = l10n.loginBiometricFaceId;
+        } else if (availableBiometrics.any(
+          (b) => b == BiometricType.fingerprint,
+        )) {
+          biometricType = l10n.loginBiometricTouchId;
+        } else if (availableBiometrics.any((b) => b == BiometricType.iris)) {
+          biometricType = l10n.loginBiometricIris;
+        }
+      }
+
+      setState(() {
+        _biometricsEnabled = (settings.biometricsEnabled || settings.faceIdEnabled) && available && hasCredential;
+        _biometricType = biometricType;
+      });
+    } on Exception catch (e, st) {
+      SoloLog.w('LOGIN', 'Biometric check failed: $e');
+      if (mounted) {
+        setState(() => _biometricsEnabled = false);
       }
     }
-
-    setState(() {
-      _biometricsEnabled = (settings.biometricsEnabled || settings.faceIdEnabled) && available && hasCredential;
-      _biometricType = biometricType;
-    });
   }
 
   Future<void> _handleBiometricUnlock() async {
@@ -322,12 +405,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } on Exception catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
         showOverlaySnackBar(
           context,
           content: '${AppLocalizations.of(context).commonError}: $e',
           type: SnackBarType.error,
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -366,44 +452,52 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   /// record metadata, and navigate to home.
   Future<void> _postLoginSetup() async {
     final authNotifier = ref.read(authNotifierProvider.notifier);
+    _debugLog('_postLoginSetup start');
 
     // Pre-load profile before navigating to home
-    SoloLog.d('LOGIN', 'Loading profile...');
+    _debugLog('calling loadProfile...');
     try {
       await ref.read(profileNotifierProvider.notifier).loadProfile().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          SoloLog.e('LOGIN', 'loadProfile timed out');
+          _debugLog('loadProfile timed out');
         },
       );
-      SoloLog.d('LOGIN', 'Profile loaded OK');
+      _debugLog('loadProfile done');
     } on Exception catch (e, st) {
-      SoloLog.e('LOGIN', 'loadProfile exception', e, st);
+      _debugLog('loadProfile exception: $e');
     }
-    SoloLog.d('LOGIN', 'Calling loadFromProfile...');
+
+    _debugLog('calling loadFromProfile...');
     try {
       await ref.read(unifiedObjectProvider.notifier).loadFromProfile();
-      SoloLog.d('LOGIN', 'loadFromProfile OK');
+      _debugLog('loadFromProfile done');
     } on Exception catch (e, st) {
-      SoloLog.e('LOGIN', 'loadFromProfile exception', e, st);
+      _debugLog('loadFromProfile exception: $e');
     }
+
     final unifiedData = ref.read(unifiedObjectProvider);
-    SoloLog.d(
-      'LOGIN',
-      'After loadFromProfile: objects=${unifiedData.objects.length}, customTypes=${unifiedData.customTypes.length}',
-    );
+    _debugLog('unifiedData objects=${unifiedData.objects.length}');
 
     // 首次启动/空数据检测：若 Vault 无数据但存在备份，提示恢复
     final accountId = authNotifier.selectedAccountId;
+    _debugLog('accountId=$accountId, mounted=$mounted');
     if (mounted) {
-      await _promptRestoreIfEmpty(context, ref, accountId);
+      _debugLog('calling _promptRestoreIfEmpty...');
+      try {
+        await _promptRestoreIfEmpty(context, ref, accountId);
+        _debugLog('_promptRestoreIfEmpty done');
+      } on Exception catch (e, st) {
+        _debugLog('_promptRestoreIfEmpty exception: $e');
+      }
     }
 
-    // Pre-register all form fields for sensitivity settings
+    _debugLog('registering forms...');
     ref.read(formFieldRegistryProvider.notifier).registerAllForms();
 
     // Record login metadata (lastLoginAt + device)
     if (accountId != null) {
+      _debugLog('updating account metadata...');
       await authNotifier.updateAccountMetadata(
         lastLoginAt: DateTime.now(),
         device: DeviceInfo(
@@ -411,13 +505,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           lastUsed: DateTime.now(),
         ).toJson(),
       ).timeout(const Duration(seconds: 5), onTimeout: () {
-        SoloLog.w('LOGIN', 'updateAccountMetadata timed out');
+        _debugLog('updateAccountMetadata timed out');
       });
     }
 
+    _debugLog('navigating to home...');
     if (mounted) {
       context.go(AppRoutes.home);
     }
+    _debugLog('_postLoginSetup end');
   }
 
   Future<void> _handleUnlock() async {
@@ -464,7 +560,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       return;
     }
 
-    await _postLoginSetup();
+    try {
+      await _postLoginSetup();
+    } on Exception catch (e, st) {
+      SoloLog.e('LOGIN', '_postLoginSetup failed', e, st);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('登录后初始化失败: $e')),
+        );
+      }
+    } finally {
+      // Always reset loading state so UI doesn't get stuck
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _handleCreateAccount() async {

@@ -4354,4 +4354,100 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get syncFirewallHint => '请确保两台设备在同一网络，并允许系统防火墙弹窗（如有）。';
+
+  @override
+  String get exportImportTitle => '导出 / 导入';
+
+  @override
+  String get exportButton => '导出';
+
+  @override
+  String get importButton => '导入';
+
+  @override
+  String get exportPasswordPrompt => '请输入主密码以导出数据';
+
+  @override
+  String get exportFilePickerTitle => '选择导出文件保存位置';
+
+  @override
+  String get exportSuccess => '导出成功';
+
+  @override
+  String get exportFailed => '导出失败';
+
+  @override
+  String get exportDescription => '导出您的账户数据到加密包文件（.solosoul），可用于备份或迁移到其他设备。';
+
+  @override
+  String get accountName => '账户名';
+
+  @override
+  String get accountId => '账户 ID';
+
+  @override
+  String get exportInProgress => '正在导出...';
+
+  @override
+  String get importDescription => '从 .solosoul 加密包导入数据到当前账户。';
+
+  @override
+  String get importFilePickerTitle => '选择要导入的文件';
+
+  @override
+  String get importParseFailed => '解析导入文件失败';
+
+  @override
+  String get importDecryptFailed => '解密失败，请检查密码';
+
+  @override
+  String get importWrongPassword => '密码错误';
+
+  @override
+  String get importSuccess => '导入成功';
+
+  @override
+  String get importSelectFile => '选择文件';
+
+  @override
+  String get importObjectCount => '对象数量';
+
+  @override
+  String get importAttachmentCount => '附件数量';
+
+  @override
+  String get importPasswordHint => '密码提示';
+
+  @override
+  String get importPreviewButton => '预览';
+
+  @override
+  String get importPreviewTitle => '导入预览';
+
+  @override
+  String importPreviewSelectedCount(int selectedCount, int totalItems) {
+    return '已选择 $selectedCount 个集合，共 $totalItems 个项目';
+  }
+
+  @override
+  String importObjectsCount(int count) {
+    return '$count 个对象';
+  }
+
+  @override
+  String importRelationCount(int count, int crossCount) {
+    return '$count 个关系属性（跨分区：$crossCount）';
+  }
+
+  @override
+  String get importTargetPageLabel => '目标页面';
+
+  @override
+  String get importConfirm => '确认导入';
+
+  @override
+  String get importInProgress => '正在导入...';
+
+  @override
+  String get exportImportSubtitle => '导出账户数据到加密包，或从加密包导入数据';
 }

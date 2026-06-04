@@ -4494,4 +4494,105 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syncFirewallHint =>
       'Ensure both devices are on the same network and allow SoloSoul through the firewall if prompted.';
+
+  @override
+  String get exportImportTitle => 'Export / Import';
+
+  @override
+  String get exportButton => 'Export';
+
+  @override
+  String get importButton => 'Import';
+
+  @override
+  String get exportPasswordPrompt =>
+      'Enter your master password to export data';
+
+  @override
+  String get exportFilePickerTitle => 'Choose save location for export file';
+
+  @override
+  String get exportSuccess => 'Export successful';
+
+  @override
+  String get exportFailed => 'Export failed';
+
+  @override
+  String get exportDescription =>
+      'Export your account data to an encrypted package (.solosoul) for backup or migration.';
+
+  @override
+  String get accountName => 'Account Name';
+
+  @override
+  String get accountId => 'Account ID';
+
+  @override
+  String get exportInProgress => 'Exporting...';
+
+  @override
+  String get importDescription =>
+      'Import data from a .solosoul encrypted package into the current account.';
+
+  @override
+  String get importFilePickerTitle => 'Select file to import';
+
+  @override
+  String get importParseFailed => 'Failed to parse import file';
+
+  @override
+  String get importDecryptFailed =>
+      'Decryption failed, please check your password';
+
+  @override
+  String get importWrongPassword => 'Wrong password';
+
+  @override
+  String get importSuccess => 'Import successful';
+
+  @override
+  String get importSelectFile => 'Select File';
+
+  @override
+  String get importObjectCount => 'Object Count';
+
+  @override
+  String get importAttachmentCount => 'Attachment Count';
+
+  @override
+  String get importPasswordHint => 'Password Hint';
+
+  @override
+  String get importPreviewButton => 'Preview';
+
+  @override
+  String get importPreviewTitle => 'Import Preview';
+
+  @override
+  String importPreviewSelectedCount(int selectedCount, int totalItems) {
+    return 'Selected $selectedCount collections, $totalItems items total';
+  }
+
+  @override
+  String importObjectsCount(int count) {
+    return '$count objects';
+  }
+
+  @override
+  String importRelationCount(int count, int crossCount) {
+    return '$count relation properties (cross-partition: $crossCount)';
+  }
+
+  @override
+  String get importTargetPageLabel => 'Target Page';
+
+  @override
+  String get importConfirm => 'Confirm Import';
+
+  @override
+  String get importInProgress => 'Importing...';
+
+  @override
+  String get exportImportSubtitle =>
+      'Export account data to encrypted package, or import from package';
 }

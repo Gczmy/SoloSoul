@@ -125,7 +125,7 @@ class FallbackSecureStorage {
     try {
       final value = await _secureStorage
           .read(key: key)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
       return value;
     } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
@@ -135,6 +135,9 @@ class FallbackSecureStorage {
         DebugLogger.instance.logError(
             'FALLBACK_STORAGE', 'Keychain read error for $key: $e');
       }
+    } on Exception catch (e) {
+      DebugLogger.instance.logWarning(
+          'FALLBACK_STORAGE', 'Keychain read timeout/other error for $key: $e. Using fallback.');
     }
     return _readFallback(key);
   }
@@ -144,7 +147,7 @@ class FallbackSecureStorage {
     try {
       await _secureStorage
           .write(key: key, value: value)
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
       return;
     } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
@@ -154,6 +157,9 @@ class FallbackSecureStorage {
         DebugLogger.instance.logError(
             'FALLBACK_STORAGE', 'Keychain write error for $key: $e');
       }
+    } on Exception catch (e) {
+      DebugLogger.instance.logWarning(
+          'FALLBACK_STORAGE', 'Keychain write timeout/other error for $key: $e. Using fallback.');
     }
     await _writeFallback(key, value);
   }
@@ -161,7 +167,7 @@ class FallbackSecureStorage {
   /// Delete value from both Keychain and fallback storage.
   Future<void> delete({required String key}) async {
     try {
-      await _secureStorage.delete(key: key);
+      await _secureStorage.delete(key: key).timeout(const Duration(seconds: 30));
     } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
         DebugLogger.instance.logDebug(
@@ -170,6 +176,9 @@ class FallbackSecureStorage {
         DebugLogger.instance.logError(
             'FALLBACK_STORAGE', 'Keychain delete error for $key: $e');
       }
+    } on Exception catch (e) {
+      DebugLogger.instance.logWarning(
+          'FALLBACK_STORAGE', 'Keychain delete timeout/other error for $key: $e');
     }
     await _deleteFallback(key);
   }
@@ -177,7 +186,7 @@ class FallbackSecureStorage {
   /// Delete all values from both Keychain and fallback storage.
   Future<void> deleteAll() async {
     try {
-      await _secureStorage.deleteAll();
+      await _secureStorage.deleteAll().timeout(const Duration(seconds: 30));
     } on PlatformException catch (e) {
       if (_isKeychainError(e)) {
         DebugLogger.instance.logDebug(
@@ -186,6 +195,9 @@ class FallbackSecureStorage {
         DebugLogger.instance
             .logError('FALLBACK_STORAGE', 'Keychain deleteAll error: $e');
       }
+    } on Exception catch (e) {
+      DebugLogger.instance.logWarning(
+          'FALLBACK_STORAGE', 'Keychain deleteAll timeout/other error: $e');
     }
     final dir = await _getFallbackDir();
     if (await dir.exists()) {

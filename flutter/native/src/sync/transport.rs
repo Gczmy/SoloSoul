@@ -57,6 +57,9 @@ impl TcpTransport {
                         .set_nonblocking(false)
                         .map_err(|e| format!("restore blocking: {}", e))?;
                     stream
+                        .set_nonblocking(false)
+                        .map_err(|e| format!("restore stream blocking: {}", e))?;
+                    stream
                         .set_read_timeout(Some(Duration::from_secs(30)))
                         .map_err(|e| format!("set_read_timeout: {}", e))?;
                     stream

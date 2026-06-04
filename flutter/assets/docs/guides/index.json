@@ -138,6 +138,34 @@
       }
     },
     {
+      "id": "export_import",
+      "title": "导入与导出",
+      "titleEn": "Import & Export",
+      "description": "将账户数据导出为加密包文件，或从加密包导入数据到当前账户",
+      "descriptionEn": "Export account data to an encrypted package file, or import data from a package into the current account",
+      "keywords": [
+        "导出",
+        "导入",
+        "export",
+        "import",
+        "solosoul",
+        "加密包",
+        "数据迁移",
+        "跨设备",
+        "备份",
+        "迁移",
+        "转移",
+        "预览",
+        "集合",
+        "附件",
+        "密码验证"
+      ],
+      "files": {
+        "zh": "assets/docs/guides/export_import_zh.md",
+        "en": "assets/docs/guides/export_import.md"
+      }
+    },
+    {
       "id": "plugins",
       "title": "插件功能",
       "titleEn": "Plugins",

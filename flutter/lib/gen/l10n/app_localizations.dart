@@ -8123,6 +8123,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ensure both devices are on the same network and allow SoloSoul through the firewall if prompted.'**
   String get syncFirewallHint;
+
+  /// No description provided for @exportImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export / Import'**
+  String get exportImportTitle;
+
+  /// No description provided for @exportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportButton;
+
+  /// No description provided for @importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importButton;
+
+  /// No description provided for @exportPasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your master password to export data'**
+  String get exportPasswordPrompt;
+
+  /// No description provided for @exportFilePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose save location for export file'**
+  String get exportFilePickerTitle;
+
+  /// No description provided for @exportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Export successful'**
+  String get exportSuccess;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed'**
+  String get exportFailed;
+
+  /// No description provided for @exportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Export your account data to an encrypted package (.solosoul) for backup or migration.'**
+  String get exportDescription;
+
+  /// No description provided for @accountName.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Name'**
+  String get accountName;
+
+  /// No description provided for @accountId.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID'**
+  String get accountId;
+
+  /// No description provided for @exportInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting...'**
+  String get exportInProgress;
+
+  /// No description provided for @importDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Import data from a .solosoul encrypted package into the current account.'**
+  String get importDescription;
+
+  /// No description provided for @importFilePickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select file to import'**
+  String get importFilePickerTitle;
+
+  /// No description provided for @importParseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to parse import file'**
+  String get importParseFailed;
+
+  /// No description provided for @importDecryptFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Decryption failed, please check your password'**
+  String get importDecryptFailed;
+
+  /// No description provided for @importWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong password'**
+  String get importWrongPassword;
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Import successful'**
+  String get importSuccess;
+
+  /// No description provided for @importSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select File'**
+  String get importSelectFile;
+
+  /// No description provided for @importObjectCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Object Count'**
+  String get importObjectCount;
+
+  /// No description provided for @importAttachmentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment Count'**
+  String get importAttachmentCount;
+
+  /// No description provided for @importPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Password Hint'**
+  String get importPasswordHint;
+
+  /// No description provided for @importPreviewButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get importPreviewButton;
+
+  /// No description provided for @importPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Preview'**
+  String get importPreviewTitle;
+
+  /// No description provided for @importPreviewSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected {selectedCount} collections, {totalItems} items total'**
+  String importPreviewSelectedCount(int selectedCount, int totalItems);
+
+  /// No description provided for @importObjectsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} objects'**
+  String importObjectsCount(int count);
+
+  /// No description provided for @importRelationCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} relation properties (cross-partition: {crossCount})'**
+  String importRelationCount(int count, int crossCount);
+
+  /// No description provided for @importTargetPageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Page'**
+  String get importTargetPageLabel;
+
+  /// No description provided for @importConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Import'**
+  String get importConfirm;
+
+  /// No description provided for @importInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Importing...'**
+  String get importInProgress;
+
+  /// No description provided for @exportImportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export account data to encrypted package, or import from package'**
+  String get exportImportSubtitle;
 }
 
 class _AppLocalizationsDelegate

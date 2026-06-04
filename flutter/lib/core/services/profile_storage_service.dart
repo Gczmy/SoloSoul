@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:solosoul_flutter/core/models/profile_data.dart';
@@ -207,22 +206,45 @@ class ProfileStorageService {
         return null;
       }
 
-      final (profile, needsSave, logs) = await Isolate.run(() {
-        final json = jsonDecode(decrypted) as Map<String, dynamic>;
-        final profile = ProfileData.fromJson(json);
-        final migratedProfile = ProfileStorageService.migrateIfNeeded(profile, json);
-        final (repairedProfile, wasRepaired) = ProfileStorageService.validateAndRepairProfile(migratedProfile);
-        final logs = <String>[];
-        if (wasRepaired) {
-          logs.add('Data integrity repairs applied during load');
-        }
-        return (repairedProfile, wasRepaired, logs);
-      });
+      // DEBUG: log the raw JSON structure to file (works in Release builds)
+      final preview = decrypted.length > 1000 ? '${decrypted.substring(0, 1000)}...' : decrypted;
+      final hasUnified = decrypted.contains('"unified_objects"');
+      final hasUnifiedCamel = decrypted.contains('"unifiedObjects"');
+      final hasIdentity = decrypted.contains('"identity"');
+      final hasTravel = decrypted.contains('"travel"');
+      final hasFinancial = decrypted.contains('"financial"');
+      final hasProfessional = decrypted.contains('"professional"');
+      try {
+        final f = File('/tmp/solosoul_dart.log');
+        final now = DateTime.now().toIso8601String();
+        f.writeAsStringSync(
+          '[$now] [PROFILE] loadProfile raw: len=${decrypted.length}, '
+          'has_unified_objects=$hasUnified, has_unifiedObjects=$hasUnifiedCamel, '
+          'has_identity=$hasIdentity, has_travel=$hasTravel, has_financial=$hasFinancial, has_professional=$hasProfessional\n'
+          '[$now] [PROFILE] preview: $preview\n',
+          mode: FileMode.append,
+        );
+      } on Exception {}
 
-      // Replay isolate logs on main thread
-      for (final msg in logs) {
-        DebugLogger.instance.logInfo('PROFILE', msg);
+      // Run JSON parsing on main thread (Isolate.run can hang on macOS Release builds)
+      final json = jsonDecode(decrypted) as Map<String, dynamic>;
+      final profile = ProfileData.fromJson(json);
+      try {
+        final f = File('/tmp/solosoul_dart.log');
+        final now = DateTime.now().toIso8601String();
+        f.writeAsStringSync(
+          '[$now] [PROFILE] parsed: unifiedObjects=${profile.unifiedObjects != null}, '
+          'schemaVersion=${profile.schemaVersion}, '
+          'objectCount=${profile.unifiedObjects?.objects.length ?? 0}\n',
+          mode: FileMode.append,
+        );
+      } on Exception {}
+      final migratedProfile = ProfileStorageService.migrateIfNeeded(profile, json);
+      final (repairedProfile, wasRepaired) = ProfileStorageService.validateAndRepairProfile(migratedProfile);
+      if (wasRepaired) {
+        DebugLogger.instance.logInfo('PROFILE', 'Data integrity repairs applied during load');
       }
+      final needsSave = wasRepaired;
 
       // Persist repairs so they don't need to be re-applied next load
       if (needsSave) {
@@ -238,12 +260,6 @@ class ProfileStorageService {
       }
       _addToCache(accountId, profile);
       return profile;
-    } on RemoteError catch (e) {
-      DebugLogger.instance.logError(
-        'PROFILE',
-        'Profile load failed in isolate: ${e.toString()}',
-      );
-      return null;
     } on Exception catch (e, st) {
       DebugLogger.instance.logError('PROFILE', 'loadProfile failed: $e\n$st');
       return null;
@@ -252,16 +268,27 @@ class ProfileStorageService {
 
   /// Save profile data for an account
   /// Encrypts and stores via RustVaultService
-  Future<bool> saveProfile(String accountId, ProfileData profile) async {
+  Future<bool> saveProfile(
+    String accountId,
+    ProfileData profile, {
+    bool preserveCache = true,
+  }) async {
     try {
       // Data protection: prevent accidental loss of unifiedObjects
-      final existing = _profileCache[accountId];
-      final existingObjects = existing?.unifiedObjects;
-      if (existingObjects != null && profile.unifiedObjects == null) {
-        profile = profile.copyWith(unifiedObjects: existingObjects);
+      if (preserveCache) {
+        final existing = _profileCache[accountId];
+        final existingObjects = existing?.unifiedObjects;
+        if (existingObjects != null && profile.unifiedObjects == null) {
+          profile = profile.copyWith(unifiedObjects: existingObjects);
+          DebugLogger.instance.logWarning(
+            'PROFILE',
+            'saveProfile cache protection triggered for $accountId — using cached unifiedObjects',
+          );
+        }
       }
 
-      final json = await Isolate.run(() => jsonEncode(profile.toJson()));
+      // Run JSON encode on main thread (Isolate.run can hang on macOS Release builds)
+      final json = jsonEncode(profile.toJson());
 
       final result = await _rustVault.saveProfileEncrypted(accountId, json);
 

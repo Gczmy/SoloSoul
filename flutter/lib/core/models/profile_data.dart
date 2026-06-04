@@ -22,8 +22,16 @@ class ProfileData {
     this.schemaVersion,
   });
 
-  factory ProfileData.fromJson(Map<String, dynamic> json) =>
-      _$ProfileDataFromJson(json);
+  factory ProfileData.fromJson(Map<String, dynamic> json) {
+    // 兼容 Rust 旧版本序列化：尝试 unified_objects，回退到 unifiedObjects
+    final unifiedRaw = json['unified_objects'] ?? json['unifiedObjects'];
+    return ProfileData(
+      unifiedObjects: unifiedRaw == null
+          ? null
+          : UnifiedObjectData.fromJson(unifiedRaw as Map<String, dynamic>),
+      schemaVersion: (json['schema_version'] as num?)?.toInt(),
+    );
+  }
 
   Map<String, dynamic> toJson() => _$ProfileDataToJson(this);
 

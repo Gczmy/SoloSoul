@@ -13,8 +13,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::io::{Read, Write};
 
-use super::crdt::SoloDoc;
+use super::crdt::{DocMeta, SoloDoc};
 use super::protocol::{SecureChannel, Transport};
+use crate::vault::ProfileData;
 
 /// Direction of sync result
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,19 +48,27 @@ pub struct SyncResult {
 /// Sync protocol messages exchanged between devices
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SyncMessage {
-    /// Request with sender's state vector
+    /// Request with sender's state vector and full profile json
     StateVectorRequest {
         account_id: String,
         state_vector: Vec<u8>,
         #[serde(default)]
         supports_attachments: bool,
+        #[serde(default)]
+        updated_at: String,
+        #[serde(default)]
+        profile_json: String,
     },
-    /// Response with receiver's state vector and optional diff
+    /// Response with receiver's state vector, optional diff, and full profile json
     StateVectorResponse {
         state_vector: Vec<u8>,
         diff: Option<Vec<u8>>,
         #[serde(default)]
         supports_attachments: bool,
+        #[serde(default)]
+        updated_at: String,
+        #[serde(default)]
+        profile_json: String,
     },
     /// Update payload (encrypted diff)
     Update { encrypted_update: Vec<u8> },
@@ -91,8 +100,11 @@ pub struct AttachmentManifestItem {
     pub size: u64,
 }
 
-/// Chunk size for attachment transfer: 8 MiB (fits within 16 MiB message limit)
-const ATTACHMENT_CHUNK_SIZE: usize = 8 * 1024 * 1024;
+/// Chunk size for attachment transfer: 10 KiB
+/// JSON serialization of Vec<u8> uses integer array (e.g. "255," = 5 bytes).
+/// Worst-case expansion: 5x. 10KB raw * 5 = 50KB JSON + 200B overhead + 16B MAC
+/// = ~50.2KB ciphertext, well under Noise 64KB limit (14KB safety margin).
+const ATTACHMENT_CHUNK_SIZE: usize = 10 * 1024;
 
 /// Sync engine coordinating CRDT doc, encryption, and transport
 pub struct SyncEngine {
@@ -103,6 +115,10 @@ pub struct SyncEngine {
     pub attachments_dir: Option<String>,
     /// Local attachment manifest (file_id + encrypted .solo size)
     pub local_attachment_manifest: Vec<AttachmentManifestItem>,
+    /// Local profile updated_at (RFC3339) for fallback conflict resolution
+    pub local_updated_at: String,
+    /// Local profile JSON for fallback conflict resolution
+    pub local_profile_json: String,
 }
 
 impl SyncEngine {
@@ -118,7 +134,16 @@ impl SyncEngine {
             transport,
             attachments_dir: None,
             local_attachment_manifest: Vec::new(),
+            local_updated_at: String::new(),
+            local_profile_json: String::new(),
         }
+    }
+
+    /// Set metadata for fallback conflict resolution
+    pub fn with_metadata(mut self, updated_at: String, profile_json: String) -> Self {
+        self.local_updated_at = updated_at;
+        self.local_profile_json = profile_json;
+        self
     }
 
     /// Set attachment sync context (call before sync_initiator/sync_responder)
@@ -154,6 +179,8 @@ impl SyncEngine {
             account_id: String::new(),
             state_vector: local_sv,
             supports_attachments: local_supports,
+            updated_at: self.local_updated_at.clone(),
+            profile_json: self.local_profile_json.clone(),
         };
         let payload = serde_json::to_vec(&request).map_err(|e| format!("Serialize failed: {}", e))?;
         let payload = self.maybe_encrypt(&payload)?;
@@ -170,12 +197,14 @@ impl SyncEngine {
             .map_err(|e| format!("Deserialize SV response: {}", e))?;
         crate::log_to_file("[ENGINE-I] step2: received");
 
-        let (remote_sv, remote_diff, remote_supports) = match response {
+        let (remote_sv, remote_diff, remote_supports, remote_updated_at, remote_profile_json) = match response {
             SyncMessage::StateVectorResponse {
                 state_vector,
                 diff,
                 supports_attachments,
-            } => (state_vector, diff, supports_attachments),
+                updated_at,
+                profile_json,
+            } => (state_vector, diff, supports_attachments, updated_at, profile_json),
             _ => return Err("Expected StateVectorResponse".to_string()),
         };
 
@@ -209,10 +238,41 @@ impl SyncEngine {
 
         // 5. Apply remote diff
         crate::log_to_file("[ENGINE-I] step5: apply remote diff");
+        let before = self.crdt.to_profile().ok();
         if let Some(diff) = remote_diff {
             if !diff.is_empty() {
                 self.crdt.apply_update(&diff)?;
             }
+        }
+        let after = self.crdt.to_profile().ok();
+        let mut overridden = false;
+        match (before, after) {
+            (Some(b), Some(a)) => {
+                let b_json = serde_json::to_string(&b).unwrap_or_default();
+                let a_json = serde_json::to_string(&a).unwrap_or_default();
+                if b_json == a_json {
+                    crate::log_to_file("[ENGINE-I] WARNING: apply_update did not change data");
+                    // Fallback: if remote is newer, override with remote profile json
+                    if !remote_updated_at.is_empty()
+                        && remote_updated_at > self.local_updated_at
+                        && !remote_profile_json.is_empty()
+                    {
+                        if let Ok(remote_profile) = serde_json::from_str::<ProfileData>(&remote_profile_json) {
+                            let meta = DocMeta {
+                                profile_id: String::new(),
+                                version: 1,
+                                last_modified: remote_updated_at.clone(),
+                            };
+                            self.crdt = SoloDoc::from_profile(&remote_profile, &meta);
+                            crate::log_to_file("[ENGINE-I] Overrode local data with remote profile_json");
+                            overridden = true;
+                        }
+                    }
+                } else {
+                    crate::log_to_file("[ENGINE-I] apply_update changed data");
+                }
+            }
+            _ => crate::log_to_file("[ENGINE-I] could not compare before/after"),
         }
 
         // 6. Attachment sync
@@ -262,12 +322,14 @@ impl SyncEngine {
             .map_err(|e| format!("Deserialize SV request: {}", e))?;
         crate::log_to_file("[ENGINE-R] step1: received");
 
-        let (remote_sv, remote_supports) = match request {
+        let (remote_sv, remote_supports, remote_updated_at, remote_profile_json) = match request {
             SyncMessage::StateVectorRequest {
                 state_vector,
                 supports_attachments,
+                updated_at,
+                profile_json,
                 ..
-            } => (state_vector, supports_attachments),
+            } => (state_vector, supports_attachments, updated_at, profile_json),
             _ => return Err("Expected StateVectorRequest".to_string()),
         };
 
@@ -290,6 +352,8 @@ impl SyncEngine {
             state_vector: local_sv,
             diff,
             supports_attachments: local_supports,
+            updated_at: self.local_updated_at.clone(),
+            profile_json: self.local_profile_json.clone(),
         };
         let resp_payload = serde_json::to_vec(&response).map_err(|e| format!("Serialize failed: {}", e))?;
         let resp_payload = self.maybe_encrypt(&resp_payload)?;
@@ -317,10 +381,39 @@ impl SyncEngine {
 
         // 4. Apply remote diff
         crate::log_to_file("[ENGINE-R] step4: apply remote diff");
+        let before = self.crdt.to_profile().ok();
         if let Some(diff) = remote_diff {
             if !diff.is_empty() {
                 self.crdt.apply_update(&diff)?;
             }
+        }
+        let after = self.crdt.to_profile().ok();
+        match (before, after) {
+            (Some(b), Some(a)) => {
+                let b_json = serde_json::to_string(&b).unwrap_or_default();
+                let a_json = serde_json::to_string(&a).unwrap_or_default();
+                if b_json == a_json {
+                    crate::log_to_file("[ENGINE-R] WARNING: apply_update did not change data");
+                    // Fallback: if remote is newer, override with remote profile json
+                    if !remote_updated_at.is_empty()
+                        && remote_updated_at > self.local_updated_at
+                        && !remote_profile_json.is_empty()
+                    {
+                        if let Ok(remote_profile) = serde_json::from_str::<ProfileData>(&remote_profile_json) {
+                            let meta = DocMeta {
+                                profile_id: String::new(),
+                                version: 1,
+                                last_modified: remote_updated_at.clone(),
+                            };
+                            self.crdt = SoloDoc::from_profile(&remote_profile, &meta);
+                            crate::log_to_file("[ENGINE-R] Overrode local data with remote profile_json");
+                        }
+                    }
+                } else {
+                    crate::log_to_file("[ENGINE-R] apply_update changed data");
+                }
+            }
+            _ => crate::log_to_file("[ENGINE-R] could not compare before/after"),
         }
 
         // 5. Attachment sync
@@ -389,54 +482,35 @@ impl SyncEngine {
         let remote_ids: HashSet<_> = remote_manifest.keys().cloned().collect();
 
         // 2. Compute missing files for each side
-        let (my_missing, their_missing) = if is_initiator {
-            (
-                remote_ids
-                    .difference(&local_ids)
-                    .map(|id| AttachmentManifestItem {
-                        file_id: id.clone(),
-                        size: *remote_manifest.get(id).unwrap_or(&0),
-                    })
-                    .collect::<Vec<_>>(),
-                local_ids
-                    .difference(&remote_ids)
-                    .map(|id| AttachmentManifestItem {
-                        file_id: id.clone(),
-                        size: *local_sizes.get(id).unwrap_or(&0),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-        } else {
-            (
-                local_ids
-                    .difference(&remote_ids)
-                    .map(|id| AttachmentManifestItem {
-                        file_id: id.clone(),
-                        size: *local_sizes.get(id).unwrap_or(&0),
-                    })
-                    .collect::<Vec<_>>(),
-                remote_ids
-                    .difference(&local_ids)
-                    .map(|id| AttachmentManifestItem {
-                        file_id: id.clone(),
-                        size: *remote_manifest.get(id).unwrap_or(&0),
-                    })
-                    .collect::<Vec<_>>(),
-            )
-        };
+        // my_missing = files the remote has but we don't (what we need to pull)
+        // their_missing = files we have but the remote doesn't (what we need to push)
+        let my_missing: Vec<AttachmentManifestItem> = remote_ids
+            .difference(&local_ids)
+            .map(|id| AttachmentManifestItem {
+                file_id: id.clone(),
+                size: *remote_manifest.get(id).unwrap_or(&0),
+            })
+            .collect();
+        let their_missing: Vec<AttachmentManifestItem> = local_ids
+            .difference(&remote_ids)
+            .map(|id| AttachmentManifestItem {
+                file_id: id.clone(),
+                size: *local_sizes.get(id).unwrap_or(&0),
+            })
+            .collect();
 
-        // Phase 1: initiator requests, responder provides
+        // Phase 1: initiator serves first, responder requests first
+        // This ensures the side that needs files sends requests while the other is listening
         if is_initiator {
+            self.serve_requests(&their_missing, &dir, &mut stats)?;
+            self.send_done()?;
             for item in &my_missing {
                 if let Err(e) = self.request_attachment(item, &dir, &mut stats) {
                     eprintln!("[sync] Failed to receive {}: {}", item.file_id, e);
                     stats.incomplete = true;
                 }
             }
-            self.send_done()?;
-            self.serve_requests(&their_missing, &dir, &mut stats)?;
         } else {
-            self.serve_requests(&their_missing, &dir, &mut stats)?;
             for item in &my_missing {
                 if let Err(e) = self.request_attachment(item, &dir, &mut stats) {
                     eprintln!("[sync] Failed to receive {}: {}", item.file_id, e);
@@ -444,6 +518,7 @@ impl SyncEngine {
                 }
             }
             self.send_done()?;
+            self.serve_requests(&their_missing, &dir, &mut stats)?;
         }
 
         Ok(stats)
@@ -464,6 +539,7 @@ impl SyncEngine {
         stats: &mut AttachmentSyncStats,
     ) -> Result<(), String> {
         // Send request
+        crate::log_to_file(&format!("[sync] Requesting attachment {} ({} bytes)", item.file_id, item.size));
         let req = SyncMessage::AttachmentRequest {
             file_id: item.file_id.clone(),
         };
@@ -522,11 +598,15 @@ impl SyncEngine {
         std::fs::rename(&part_path, &final_path)
             .map_err(|e| format!("Rename {}: {}", item.file_id, e))?;
 
+        crate::log_to_file(&format!(
+            "[sync] Received attachment {} ({} bytes)",
+            item.file_id, total_received
+        ));
         stats.received += 1;
         Ok(())
     }
 
-    /// Serve attachment requests from remote until AttachmentDone is received.
+    /// Serve attachment requests from remote until all expected files are sent.
     fn serve_requests(
         &mut self,
         available: &[AttachmentManifestItem],
@@ -534,6 +614,8 @@ impl SyncEngine {
         stats: &mut AttachmentSyncStats,
     ) -> Result<(), String> {
         let available_map: HashMap<_, _> = available.iter().map(|i| (&i.file_id, i.size)).collect();
+        let total = available.len();
+        let mut served = 0;
 
         loop {
             let req_raw = self.transport.recv()?;
@@ -542,13 +624,18 @@ impl SyncEngine {
                 .map_err(|e| format!("Deserialize request: {}", e))?;
 
             match req {
-                SyncMessage::AttachmentDone => break,
+                SyncMessage::AttachmentDone => {
+                    if served >= total {
+                        break;
+                    }
+                }
                 SyncMessage::AttachmentRequest { file_id } => {
                     if let Some(&expected_size) = available_map.get(&file_id) {
                         if let Err(e) = self.send_attachment_chunks(&file_id, dir, expected_size, stats) {
                             eprintln!("[sync] Failed to send {}: {}", file_id, e);
                             stats.incomplete = true;
                         }
+                        served += 1;
                     } else {
                         // File not available — send empty done signal per file
                         // (simplified: just log and continue)
@@ -578,6 +665,10 @@ impl SyncEngine {
         let file_size = file.metadata().map(|m| m.len()).unwrap_or(0);
         let total_chunks =
             ((file_size + ATTACHMENT_CHUNK_SIZE as u64 - 1) / ATTACHMENT_CHUNK_SIZE as u64) as u32;
+        crate::log_to_file(&format!(
+            "[sync] Sending attachment {} ({} bytes, {} chunks)",
+            file_id, file_size, total_chunks
+        ));
 
         let mut buffer = vec![0u8; ATTACHMENT_CHUNK_SIZE];
         let mut chunk_index = 0u32;
@@ -607,6 +698,10 @@ impl SyncEngine {
             stats.bytes_sent += n;
 
             if is_last {
+                crate::log_to_file(&format!(
+                    "[sync] Sent attachment {} ({} chunks, {} bytes)",
+                    file_id, chunk_index, file_size
+                ));
                 break;
             }
         }
@@ -699,6 +794,25 @@ pub fn extract_attachment_manifest(profile_json: &str, attachments_dir: &str) ->
                         if prop_type == "attachment" {
                             if let Some(file_id) = prop.get("fileId").and_then(|v| v.as_str()) {
                                 file_ids.push(file_id.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Fallback: if JSON has no attachment references, scan the attachments_dir directly
+    if file_ids.is_empty() {
+        if let Ok(entries) = std::fs::read_dir(attachments_dir) {
+            for entry in entries.flatten() {
+                if let Ok(meta) = entry.metadata() {
+                    if meta.is_file() {
+                        let name = entry.file_name().to_string_lossy().to_string();
+                        if name.ends_with(".solo") {
+                            let file_id = name.trim_end_matches(".solo").to_string();
+                            if !file_id.is_empty() {
+                                file_ids.push(file_id);
                             }
                         }
                     }
