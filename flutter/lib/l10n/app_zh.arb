@@ -2069,5 +2069,6 @@
   "importTargetPageLabel": "目标页面",
   "importConfirm": "确认导入",
   "importInProgress": "正在导入...",
-  "exportImportSubtitle": "导出账户数据到加密包，或从加密包导入数据"
+  "exportImportSubtitle": "导出账户数据到加密包，或从加密包导入数据",
+  "importEnterPassword": "请输入导出密码"
 }

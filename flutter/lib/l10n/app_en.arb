@@ -2549,5 +2549,6 @@
   "importTargetPageLabel": "Target Page",
   "importConfirm": "Confirm Import",
   "importInProgress": "Importing...",
-  "exportImportSubtitle": "Export account data to encrypted package, or import from package"
+  "exportImportSubtitle": "Export account data to encrypted package, or import from package",
+  "importEnterPassword": "Enter export password"
 }

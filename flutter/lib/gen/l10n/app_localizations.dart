@@ -8303,6 +8303,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export account data to encrypted package, or import from package'**
   String get exportImportSubtitle;
+
+  /// No description provided for @importEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter export password'**
+  String get importEnterPassword;
 }
 
 class _AppLocalizationsDelegate

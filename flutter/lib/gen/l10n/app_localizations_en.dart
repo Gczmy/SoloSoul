@@ -4595,4 +4595,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get exportImportSubtitle =>
       'Export account data to encrypted package, or import from package';
+
+  @override
+  String get importEnterPassword => 'Enter export password';
 }

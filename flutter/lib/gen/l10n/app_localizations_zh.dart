@@ -4450,4 +4450,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get exportImportSubtitle => '导出账户数据到加密包，或从加密包导入数据';
+
+  @override
+  String get importEnterPassword => '请输入导出密码';
 }

@@ -191,8 +191,14 @@ class _ImportSection extends ConsumerStatefulWidget {
 class _ImportSectionState extends ConsumerState<_ImportSection> {
   bool _isParsing = false;
   bool _isImporting = false;
-  String? _passwordHint;
   ImportPreview? _preview;
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _onSelectFile() async {
     final l10n = AppLocalizations.of(context);
@@ -321,19 +327,15 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
               Text('${l10n.importObjectCount}: ${_preview!.manifest.objectCount}'),
               Text('${l10n.importAttachmentCount}: ${_preview!.manifest.attachmentCount}'),
               const SizedBox(height: 16),
-              if (_passwordHint != null)
-                Text('${l10n.importPasswordHint}: $_passwordHint'),
-              const SizedBox(height: 8),
               SoloGlassTextField(
-                placeholder: l10n.importPasswordHint,
+                controller: _passwordController,
+                placeholder: l10n.importEnterPassword,
                 obscureText: true,
                 onSubmitted: _onVerifyPassword,
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: _isParsing ? null : () {
-                  // Trigger password verification
-                },
+                onPressed: _isParsing ? null : () => _onVerifyPassword(_passwordController.text),
                 child: Text(_isParsing ? l10n.commonLoading : l10n.importPreviewButton),
               ),
             ],
