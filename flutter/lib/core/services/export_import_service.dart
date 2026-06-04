@@ -70,11 +70,10 @@ class ExportImportService {
           exportAt: DateTime.now().toIso8601String(),
           objectCount: profile.unifiedObjects?.objects.length ?? 0,
           attachmentCount: await AttachmentStorageService().getAttachmentCount(accountId),
+          exportSalt: base64Encode(exportSalt),
         );
-        final manifestMap = manifest.toJson();
-        manifestMap['export_salt'] = base64Encode(exportSalt);
         final manifestFile = File('${workDir.path}/manifest.json');
-        await manifestFile.writeAsString(jsonEncode(manifestMap));
+        await manifestFile.writeAsString(jsonEncode(manifest.toJson()));
 
         // 6. Encrypt account.enc (independent verify token)
         final exportVerifyPlain = Uint8List.fromList(
@@ -250,10 +249,9 @@ class ExportImportService {
       // For now, let's store export_salt in manifest.json during export
       // and read it from there. I'll update the export code above.
       
-      // For now, read export_salt from manifest if available
-      final manifestJson = preview.manifest.toJson();
-      final exportSaltBase64 = manifestJson['export_salt'] as String?;
-      if (exportSaltBase64 == null) {
+      // Read export_salt from manifest
+      final exportSaltBase64 = preview.manifest.exportSalt;
+      if (exportSaltBase64.isEmpty) {
         SoloLog.w('IMPORT', 'export_salt not found in manifest');
         throw const WrongPasswordException();
       }

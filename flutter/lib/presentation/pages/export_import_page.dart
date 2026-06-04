@@ -191,6 +191,7 @@ class _ImportSection extends ConsumerStatefulWidget {
 class _ImportSectionState extends ConsumerState<_ImportSection> {
   bool _isParsing = false;
   bool _isImporting = false;
+  bool _obscurePassword = true;
   ImportPreview? _preview;
   final _passwordController = TextEditingController();
 
@@ -330,7 +331,10 @@ class _ImportSectionState extends ConsumerState<_ImportSection> {
               SoloGlassTextField(
                 controller: _passwordController,
                 placeholder: l10n.importEnterPassword,
-                obscureText: true,
+                obscureText: _obscurePassword,
+                enableInteractiveSelection: false,
+                suffixIcon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                onSuffixTap: () => setState(() => _obscurePassword = !_obscurePassword),
                 onSubmitted: _onVerifyPassword,
               ),
               const SizedBox(height: 8),

@@ -125,6 +125,7 @@ class SoloGlassTextField extends StatelessWidget {
   final bool enabled;
   final bool readOnly;
   final bool autofocus;
+  final bool enableInteractiveSelection;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
@@ -151,6 +152,7 @@ class SoloGlassTextField extends StatelessWidget {
     this.enabled = true,
     this.readOnly = false,
     this.autofocus = false,
+    this.enableInteractiveSelection = true,
     this.onChanged,
     this.onSubmitted,
     this.inputFormatters,
@@ -203,6 +205,7 @@ class SoloGlassTextField extends StatelessWidget {
       enabled: enabled,
       readOnly: readOnly,
       autofocus: autofocus,
+      enableInteractiveSelection: enableInteractiveSelection,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       inputFormatters: inputFormatters,

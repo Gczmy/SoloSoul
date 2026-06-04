@@ -81,6 +81,7 @@ class GlassTextField extends StatefulWidget {
     this.enabled = true,
     this.readOnly = false,
     this.autofocus = false,
+    this.enableInteractiveSelection = true,
     this.onChanged,
     this.onSubmitted,
     this.inputFormatters,
@@ -154,6 +155,9 @@ class GlassTextField extends StatefulWidget {
 
   /// Whether the text field should auto-focus.
   final bool autofocus;
+
+  /// Whether to enable interactive selection.
+  final bool enableInteractiveSelection;
 
   /// Called when the text changes.
   final ValueChanged<String>? onChanged;
@@ -383,6 +387,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
               enabled: widget.enabled,
               readOnly: widget.readOnly,
               autofocus: widget.autofocus,
+              enableInteractiveSelection: widget.enableInteractiveSelection,
               onChanged: widget.onChanged,
               onSubmitted: widget.onSubmitted,
               onTapOutside: widget.onTapOutside ??

@@ -25,12 +25,14 @@ class ExportPackageManifest {
   final String exportAt;
   final int objectCount;
   final int attachmentCount;
+  final String exportSalt;
 
   const ExportPackageManifest({
     required this.version,
     required this.exportAt,
     required this.objectCount,
     required this.attachmentCount,
+    required this.exportSalt,
   });
 
   Map<String, dynamic> toJson() => {
@@ -38,6 +40,7 @@ class ExportPackageManifest {
     'exportAt': exportAt,
     'objectCount': objectCount,
     'attachmentCount': attachmentCount,
+    'export_salt': exportSalt,
   };
 
   factory ExportPackageManifest.fromJson(Map<String, dynamic> json) {
@@ -46,6 +49,7 @@ class ExportPackageManifest {
       exportAt: json['exportAt'] as String? ?? '',
       objectCount: json['objectCount'] as int? ?? 0,
       attachmentCount: json['attachmentCount'] as int? ?? 0,
+      exportSalt: json['export_salt'] as String? ?? '',
     );
   }
 }
