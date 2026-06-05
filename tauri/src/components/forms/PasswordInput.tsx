@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { Lock, Eye, EyeOff, HelpCircle, X } from 'lucide-react';
 
 interface SecurePasswordInputProps {
@@ -7,7 +8,7 @@ interface SecurePasswordInputProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  label?: string;
+  label?: string | ReactNode;
   error?: string | null;
   autoComplete?: string;
   /** Password hint shown via the hint button tooltip */
@@ -148,78 +149,76 @@ export function SecurePasswordInput({
             </button>
           )}
 
-          {/* 8.3 — 提示按钮（自动隐藏） */}
-          {hasHint && (
-            <div style={{ position: 'relative', display: 'flex' }}>
-              <button
-                type="button"
-                onClick={handleTooltipToggle}
-                aria-label="Password hint"
-                aria-pressed={tooltipOpen}
-                tabIndex={-1}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: 4, borderRadius: 4,
-                  display: 'flex', alignItems: 'center',
-                  color: tooltipOpen ? 'var(--accent-primary)' : 'var(--text-tertiary)',
-                  transition: 'color 0.15s',
+          {/* 8.3 — 提示按钮（始终显示） */}
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <button
+              type="button"
+              onClick={handleTooltipToggle}
+              aria-label="Password hint"
+              aria-pressed={tooltipOpen}
+              tabIndex={-1}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: 4, borderRadius: 4,
+                display: 'flex', alignItems: 'center',
+                color: tooltipOpen ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
+              onMouseLeave={(e) => {
+                if (!tooltipOpen) e.currentTarget.style.color = 'var(--text-tertiary)';
+              }}
+            >
+              <HelpCircle size={16} />
+            </button>
+
+            {/* 8.3 — Tooltip 浮层 */}
+            {tooltipOpen && (
+              <div
+                ref={tooltipRef}
+                role="tooltip"
+                onMouseEnter={() => {
+                  if (tooltipTimeoutRef.current) {
+                    clearTimeout(tooltipTimeoutRef.current);
+                    tooltipTimeoutRef.current = undefined;
+                  }
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                onMouseLeave={(e) => {
-                  if (!tooltipOpen) e.currentTarget.style.color = 'var(--text-tertiary)';
+                onMouseLeave={handleTooltipClose}
+                style={{
+                  position: 'absolute', bottom: 'calc(100% + 6px)',
+                  right: 0,
+                  maxWidth: 240,
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  lineHeight: 1.4,
+                  color: 'var(--text-secondary)',
+                  background: 'var(--bg-elevated)',
+                  boxShadow: 'var(--shadow-md)',
+                  zIndex: 100,
+                  wordBreak: 'break-word',
                 }}
               >
-                <HelpCircle size={16} />
-              </button>
-
-              {/* 8.3 — Tooltip 浮层 */}
-              {tooltipOpen && (
-                <div
-                  ref={tooltipRef}
-                  role="tooltip"
-                  onMouseEnter={() => {
-                    if (tooltipTimeoutRef.current) {
-                      clearTimeout(tooltipTimeoutRef.current);
-                      tooltipTimeoutRef.current = undefined;
-                    }
-                  }}
-                  onMouseLeave={handleTooltipClose}
-                  style={{
-                    position: 'absolute', bottom: 'calc(100% + 6px)',
-                    right: 0,
-                    maxWidth: 240,
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    fontSize: 11,
-                    lineHeight: 1.4,
-                    color: 'var(--text-secondary)',
-                    background: 'var(--bg-elevated)',
-                    boxShadow: 'var(--shadow-md)',
-                    zIndex: 100,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-                    <span style={{ flex: 1 }}>{hint}</span>
-                    <button
-                      type="button"
-                      onClick={() => setTooltipOpen(false)}
-                      aria-label="Close hint"
-                      tabIndex={-1}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        padding: 0, display: 'flex',
-                        color: 'var(--text-tertiary)',
-                        flexShrink: 0, marginTop: 1,
-                      }}
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                  <span style={{ flex: 1 }}>{hasHint ? hint : 'No hint available'}</span>
+                  <button
+                    type="button"
+                    onClick={() => setTooltipOpen(false)}
+                    aria-label="Close hint"
+                    tabIndex={-1}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: 0, display: 'flex',
+                      color: 'var(--text-tertiary)',
+                      flexShrink: 0, marginTop: 1,
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {error && (
