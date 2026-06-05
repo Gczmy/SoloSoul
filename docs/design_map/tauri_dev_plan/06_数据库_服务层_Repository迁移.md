@@ -1,0 +1,285 @@
+# 06 — 数据库、服务层与 Repository 迁移
+
+> **前置阅读**：`04_Rust_Crate拆分与后端架构.md`、`05_密码学库选型与核心实现.md`
+> **Manifesto 对齐**：🏠 本地优先 | 🔒 隐私优先 | 📋 最少惊喜
+> **源文档**：`tauri_refactor/服务迁移与数据库.md`
+>
+> ⚠️ **术语迁移（审批通过）**：开发时使用新术语，但本文档中的代码示例保留旧术语作为参考对照。
+> 旧→新：`UnifiedObject` → `Object`, `PropertyDefinition` → `Property`, `unified_objects` 表 → `objects` 表。
+> 详见文档 17 的术语规范。
+
+---
+
+## 1. 服务迁移总览
+
+| Flutter Service | Rust 对应 | 复杂度 |
+|----------------|----------|--------|
+| `NativeCryptoService` | `crates/solosoul-crypto/` | 高 |
+| `RustVaultService` | `crates/solosoul-vault/` | 高 |
+| `ProfileStorageService` | `services/profile_service.rs` | 中 |
+| `UnifiedObjectService` | `services/unified_object_service.rs` | 中 |
+| `SearchService` | `services/search_service.rs` | 中 |
+| `ExportImportService` | `services/export_import_service.rs` | 中 |
+| `BiometricService` | `commands/auth.rs` + Tauri plugin | 中 |
+| `KeychainService` | `commands/auth.rs` + Tauri plugin | 中 |
+| `OcrService` | `services/ocr_service.rs` | 高 |
+| `LlmService` | `services/llm_service.rs` | 高 |
+| `PluginService` | `services/plugin_service.rs` | 高 |
+| `SyncService` | `services/sync_service.rs` | 高 |
+
+---
+
+## 2. 数据库访问层
+
+### 2.1 SQLite 连接管理
+
+```rust
+// src-tauri/src/db/connection.rs
+use rusqlite::Connection;
+use std::sync::{Arc, Mutex};
+
+pub struct DbPool {
+    connections: Arc<Mutex<Vec<Connection>>>,
+    db_path: String,
+}
+
+impl DbPool {
+    pub fn new(db_path: &Path) -> Result<Self>;
+    pub fn get_connection(&self) -> Result<PooledConnection>;
+}
+```
+
+### 2.2 Schema 迁移策略
+
+```rust
+// src-tauri/src/db/migrations.rs
+pub const CURRENT_SCHEMA_VERSION: i32 = 6;
+
+pub fn run_migrations(conn: &Connection) -> Result<()> {
+    let user_version: i32 = conn.query_row(
+        "PRAGMA user_version", [], |row| row.get(0))?;
+
+    if user_version < 1 { migrate_v0_to_v1(conn)?; }
+    if user_version < 2 { migrate_v1_to_v2(conn)?; }
+    // ... 逐版本迁移
+
+    conn.execute(&format!("PRAGMA user_version = {}",
+        CURRENT_SCHEMA_VERSION), [])?;
+    Ok(())
+}
+```
+
+### 2.3 核心数据表
+
+```sql
+-- profiles: 用户档案
+CREATE TABLE IF NOT EXISTS profiles (
+    account_id TEXT PRIMARY KEY,
+    full_name TEXT, date_of_birth TEXT, gender TEXT,
+    nationality TEXT, email TEXT, phone TEXT, address TEXT,
+    education_json TEXT DEFAULT '[]',
+    passports_json TEXT DEFAULT '[]',
+    bank_accounts_json TEXT DEFAULT '[]',
+    -- ... 更多字段
+    created_at TEXT, updated_at TEXT,
+    sensitivity_json TEXT DEFAULT '{}'
+);
+
+-- unified_objects: 统一对象
+CREATE TABLE IF NOT EXISTS unified_objects (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    section_type TEXT NOT NULL,
+    section_data_json TEXT NOT NULL,
+    sensitivity_level TEXT DEFAULT 'internal',
+    created_at TEXT, updated_at TEXT, deleted_at TEXT,
+    FOREIGN KEY (account_id) REFERENCES profiles(account_id)
+);
+
+-- attachments: 附件
+CREATE TABLE IF NOT EXISTS attachments (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    file_name TEXT NOT NULL, file_path TEXT NOT NULL,
+    file_size INTEGER, mime_type TEXT,
+    section_type TEXT, object_id TEXT,
+    created_at TEXT
+);
+```
+
+### 2.4 ❌ 已移除的表（重要）
+
+```sql
+-- ❌ app_settings 表已移除 —— 用户偏好改为加密文件存储
+--    见文档 13_用户数据边界与加密存储.md
+-- ❌ operation_logs 表已移除 —— 审计日志改为加密文件存储
+```
+
+### 2.5 Repository 模式
+
+```rust
+// src-tauri/src/db/repositories/profile_repo.rs
+pub struct ProfileRepository<'a> {
+    conn: &'a Connection,
+}
+
+impl<'a> ProfileRepository<'a> {
+    pub fn new(conn: &'a Connection) -> Self { Self { conn } }
+    pub fn get_by_account(&self, account_id: &str) -> Result<Option<ProfileData>>;
+    pub fn upsert(&self, data: &ProfileData) -> Result<()>;
+    pub fn delete(&self, account_id: &str) -> Result<()>;
+}
+```
+
+---
+
+## 3. 业务服务层
+
+### 3.1 服务层设计模式
+
+```rust
+// 每个 Service 持有数据库连接引用
+// 业务逻辑在 Service 中，不在 Command 中
+// Command 仅负责参数解析 + 调用 Service + 错误转换
+
+pub struct ProfileService<'a> {
+    conn: &'a Connection,
+}
+
+impl<'a> ProfileService<'a> {
+    pub fn new(conn: &'a Connection) -> Self;
+    pub fn get_profile(&self, account_id: &str) -> Result<ProfileData, AppError>;
+    pub fn update_profile(&self, data: &ProfileData) -> Result<(), AppError>;
+    pub fn update_field(&self, account_id: &str, section: &str,
+        field: &str, value: &FieldValue) -> Result<(), AppError>;
+}
+```
+
+### 3.2 UnifiedObjectService
+
+```rust
+pub struct UnifiedObjectService<'a> { conn: &'a Connection }
+
+impl<'a> UnifiedObjectService<'a> {
+    pub fn list(&self, account_id: &str, filter: Option<ObjectFilter>,
+        sort: Option<SortConfig>) -> Result<Vec<UnifiedObject>, AppError>;
+    pub fn get(&self, account_id: &str, object_id: &str) -> Result<UnifiedObject, AppError>;
+    pub fn create(&self, account_id: &str, data: UnifiedObjectInput) -> Result<UnifiedObject, AppError>;
+    pub fn update(&self, account_id: &str, object_id: &str, data: UnifiedObjectInput) -> Result<UnifiedObject, AppError>;
+    pub fn delete(&self, account_id: &str, object_id: &str) -> Result<(), AppError>;        // 软删除
+    pub fn permanently_delete(&self, account_id: &str, object_id: &str) -> Result<(), AppError>; // 硬删除
+}
+```
+
+### 3.3 SearchService
+
+```rust
+pub struct SearchService<'a> { conn: &'a Connection }
+
+impl<'a> SearchService<'a> {
+    pub fn unified_search(&self, account_id: &str, query: &str,
+        options: SearchOptions) -> Result<SearchResult, AppError>;
+}
+```
+
+搜索范围：
+1. Profile 字段（full_name, email, phone, identity_number）
+2. UnifiedObjects（name + section_data_json LIKE 匹配）
+3. 按相关性排序，分页返回
+
+### 3.4 UserDataService（替代旧 SettingsService）
+
+> **重要**：用户偏好（设置）现为加密存储。详见文档 13。
+
+```rust
+pub struct UserDataService<'a> {
+    vault: &'a Vault,
+}
+
+impl<'a> UserDataService<'a> {
+    // 偏好数据
+    pub fn get_preferences(&self) -> Result<UserPreferences, AppError>;
+    pub fn update_preference(&self, key: &str, value: Value) -> Result<(), AppError>;
+    pub fn reset_preferences_to_default(&self) -> Result<(), AppError>;
+
+    // 行为数据
+    pub fn get_audit_log(&self) -> Result<AuditLog, AppError>;
+    pub fn get_search_history(&self) -> Result<SearchHistory, AppError>;
+    pub fn append_search_history(&self, query: &str, ...) -> Result<(), AppError>;
+    pub fn clear_search_history(&self) -> Result<(), AppError>;
+}
+```
+
+---
+
+## 4. 数据模型映射：Rust ↔ TypeScript
+
+| Rust (snake_case) | TypeScript (camelCase, tauri-specta 自动转换) |
+|-------------------|----------------------------------------------|
+| `account_id: String` | `accountId: string` |
+| `full_name: Option<String>` | `fullName?: string` |
+| `date_of_birth: Option<String>` | `dateOfBirth?: string` |
+| `section_data_json: String` | `sectionDataJson: string` |
+| `created_at: Option<String>` | `createdAt?: string` |
+
+---
+
+## 5. 操作日志（OperationEntry）
+
+每次 CRUD 操作必须生成 `OperationEntry`：
+
+```rust
+pub struct OperationEntry {
+    pub id: String,
+    pub timestamp: DateTime<Utc>,
+    pub action: String,          // "create" | "update" | "delete"
+    pub entity_type: String,     // "profile" | "unified_object" | "attachment"
+    pub entity_id: String,
+    pub before: Option<String>,  // JSON snapshot before
+    pub after: Option<String>,   // JSON snapshot after
+}
+```
+
+操作日志写入加密的 `audit_log.enc`，不解密无法读取。
+
+---
+
+## 6. 与 Manifesto 对齐检查清单
+
+| 检查项 | 状态 |
+|--------|------|
+| 数据库使用本地 SQLite，无网络依赖 | ✅ |
+| 用户偏好不存储在明文中 | ✅（加密文件） |
+| 操作日志加密存储 | ✅ |
+| Vault 锁定后不可访问任何用户数据 | ✅ |
+| 软删除支持 30 天回收站 | ✅ |
+
+---
+
+## 7. 从零实现顺序
+
+1. DbPool 实现 + 连接测试
+2. Schema 迁移（profiles + unified_objects + attachments）
+3. ProfileRepository + 单元测试（内存数据库）
+4. UnifiedObjectRepository + 单元测试
+5. ProfileService + UnifiedObjectService
+6. SearchService（全文本搜索）
+7. UserDataService（加密偏好读写）
+
+---
+
+## 8. 完成标准
+
+- [ ] `cargo test` 全部通过（Repository 使用内存数据库）
+- [ ] Schema 迁移可处理所有版本（v0→v6）
+- [ ] Profile CRUD 完整工作
+- [ ] UnifiedObject 软删除 + 30 天回收站逻辑正确
+- [ ] 搜索支持中英文关键词
+- [ ] 操作日志在每次 CRUD 后自动生成
+
+---
+
+*文档版本：v1.0*
+*创建日期：2026-06-05*
+*对应开发阶段：Phase 1（数据库与服务层）*
