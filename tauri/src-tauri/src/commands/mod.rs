@@ -13,3 +13,4 @@ pub mod discovery;
 pub mod log;
 pub mod backup;
 pub mod settings;
+pub mod sync;

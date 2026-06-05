@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { invoke } from '@tauri-apps/api/core';
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
@@ -12,8 +13,8 @@ interface SettingsState {
   settings: AppSettings;
   isLoading: boolean;
 
-  loadSettings: () => Promise<void>;
-  updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
+  loadSettings: (accountId: string) => Promise<void>;
+  updateSetting: (accountId: string, key: keyof AppSettings, value: string | number | boolean) => Promise<void>;
   clearOnVaultLock: () => void;
 }
 
@@ -29,21 +30,31 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   isLoading: false,
 
-  loadSettings: async () => {
+  loadSettings: async (accountId) => {
     set({ isLoading: true });
     try {
-      // TODO: load from Rust Vault
-      set({ isLoading: false });
+      const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', { accountId });
+      const parsed = { ...DEFAULT_SETTINGS };
+      if (prefs.theme && ['light', 'dark', 'system'].includes(prefs.theme as string)) {
+        parsed.theme = prefs.theme as AppSettings['theme'];
+      }
+      if (prefs.locale) parsed.locale = prefs.locale as string;
+      if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
+      if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
+      if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
+      set({ settings: parsed, isLoading: false });
     } catch {
       set({ isLoading: false });
     }
   },
 
-  updateSetting: async (key, value) => {
+  updateSetting: async (accountId, key, value) => {
     const oldValue = get().settings[key];
     set((s) => ({ settings: { ...s.settings, [key]: value } }));
     try {
-      // TODO: save to Rust Vault
+      await invoke('user_data_update_preference', {
+        payload: { accountId, preferences: { [key]: value } },
+      });
     } catch {
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
     }

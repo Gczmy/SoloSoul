@@ -108,6 +108,11 @@ pub fn run() {
             // Settings / user_data commands
             commands::settings::user_data_get_preferences,
             commands::settings::user_data_update_preference,
+            // Sync commands
+            commands::sync::sync_discover,
+            commands::sync::sync_get_status,
+            commands::sync::sync_enable,
+            commands::sync::sync_with_device,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

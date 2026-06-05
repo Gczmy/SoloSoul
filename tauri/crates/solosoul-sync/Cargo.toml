@@ -18,6 +18,9 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
 
+# Random
+rand = { workspace = true }
+
 # mDNS
 mdns-sd = "0.11"
 
