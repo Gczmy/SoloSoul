@@ -1,0 +1,26 @@
+[package]
+name = "solosoul-sync"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+solosoul-crypto = { path = "../solosoul-crypto" }
+solosoul-vault = { path = "../solosoul-vault" }
+
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+
+# mDNS
+mdns-sd = "0.11"
+
+# Noise
+snow = "0.9"
+x25519-dalek = { version = "2", features = ["static_secrets"] }

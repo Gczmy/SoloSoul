@@ -1,7 +1,7 @@
 # 04 — Rust Crate 拆分与后端架构
 
 > **前置阅读**：`03_项目顶层结构规划.md`
-> **Manifesto 对齐**：📐 依赖最小化 | 🛡️ 安全默认
+> **Manifesto 对齐**：依赖最小化 | 安全默认
 > **源文档**：`tauri_refactor/Crate拆分与Rust架构.md`
 
 ---
@@ -10,10 +10,10 @@
 
 | Crate | 路径 | 职责 | Tauri 依赖 |
 |-------|------|------|-----------|
-| `solosoul-crypto` | `crates/solosoul-crypto/` | Argon2id KDF + AES-256-GCM + 安全内存 | ❌ 无 |
-| `solosoul-vault` | `crates/solosoul-vault/` | Vault 管理 + 文件存储 + 加密层 | ❌ 无 |
-| `solosoul-sync` | `crates/solosoul-sync/` | CRDT + Noise 协议 + mDNS 发现 | ❌ 无 |
-| `src-tauri` | `src-tauri/` | Tauri 应用 + IPC 命令 + 服务层 | ✅ tauri |
+| `solosoul-crypto` | `crates/solosoul-crypto/` | Argon2id KDF + AES-256-GCM + 安全内存 | [错误] 无 |
+| `solosoul-vault` | `crates/solosoul-vault/` | Vault 管理 + 文件存储 + 加密层 | [错误] 无 |
+| `solosoul-sync` | `crates/solosoul-sync/` | CRDT + Noise 协议 + mDNS 发现 | [错误] 无 |
+| `src-tauri` | `src-tauri/` | Tauri 应用 + IPC 命令 + 服务层 | [正确] tauri |
 
 ---
 

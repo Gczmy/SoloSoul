@@ -1,7 +1,7 @@
 # 10 — 状态管理：Zustand Store 设计
 
 > **前置阅读**：`07_IPC命令接口完整规范.md`、`08_前端技术架构与组件映射.md`
-> **Manifesto 对齐**：🔒 隐私优先 | 🛡️ 安全默认 | 📋 最少惊喜
+> **Manifesto 对齐**：隐私优先 | 安全默认 | 最少惊喜
 > **源文档**：`tauri_refactor/状态管理方案.md`
 
 ---
@@ -28,7 +28,7 @@ src/stores/
 ├── profileStore.ts        # Profile 数据 + CRUD + 乐观更新
 ├── unifiedObjectStore.ts  # UnifiedObject 数据
 ├── uiStore.ts             # 侧边栏、Toast、Modal、Loading
-├── settingsStore.ts       # 用户偏好（❌ 不用 localStorage）
+├── settingsStore.ts       # 用户偏好（[错误] 不用 localStorage）
 ├── pluginStore.ts         # 插件状态
 ├── syncStore.ts           # 同步状态
 ├── searchStore.ts         # 搜索状态
@@ -90,7 +90,7 @@ interface ProfileStoreState {
 
   loadProfile: (accountId: string) => Promise<void>;
   updateField: (sectionType: string, fieldKey: string, value: FieldValue) => Promise<void>;
-  clearOnVaultLock: () => void;  // ✅ Vault 锁定时清空
+  clearOnVaultLock: () => void;  // [正确] Vault 锁定时清空
 }
 
 // 乐观更新模式
@@ -123,10 +123,10 @@ updateField: async (sectionType, fieldKey, value) => {
 
 ## 5. settingsStore（关键变更）
 
-### ❌ 禁止：localStorage 持久化用户偏好
+### [错误] 禁止：localStorage 持久化用户偏好
 
 ```typescript
-// ❌ 错误：
+// [错误] 错误：
 export const useSettingsStore = create(
   persist(immer(...), {
     name: 'solosoul-settings',
@@ -134,7 +134,7 @@ export const useSettingsStore = create(
   })
 );
 
-// ✅ 正确：通过 IPC → Rust Vault 加密存储
+// [正确] 正确：通过 IPC → Rust Vault 加密存储
 export const useSettingsStore = create<SettingsState>()(
   immer((set, get) => ({
     settings: DEFAULT_SETTINGS,
@@ -170,12 +170,12 @@ export const useSettingsStore = create<SettingsState>()(
 
 | Store | 持久化方式 | 理由 |
 |-------|-----------|------|
-| authStore | ❌ 不持久化 | 敏感状态，每次启动重新验证 |
-| vaultStore | ❌ 不持久化 | Vault 始终从 Locked 开始 |
-| profileStore | ❌ 不持久化 | 从后端加载 |
-| **uiStore** | ✅ localStorage（仅非敏感部分） | sidebarCollapsed 等纯 UI 状态 |
-| **settingsStore** | ❌ 不持久化到 localStorage | 通过 IPC → Rust Vault 加密存储 |
-| **searchStore** | ❌ 不持久化到 localStorage | 搜索历史是敏感数据，通过 IPC 加密存储 |
+| authStore | [错误] 不持久化 | 敏感状态，每次启动重新验证 |
+| vaultStore | [错误] 不持久化 | Vault 始终从 Locked 开始 |
+| profileStore | [错误] 不持久化 | 从后端加载 |
+| **uiStore** | [正确] localStorage（仅非敏感部分） | sidebarCollapsed 等纯 UI 状态 |
+| **settingsStore** | [错误] 不持久化到 localStorage | 通过 IPC → Rust Vault 加密存储 |
+| **searchStore** | [错误] 不持久化到 localStorage | 搜索历史是敏感数据，通过 IPC 加密存储 |
 
 ---
 
@@ -200,8 +200,8 @@ useEffect(() => {
 ## 8. Store 间通信
 
 ```typescript
-// ❌ 禁止循环依赖：authStore import profileStore，profileStore import authStore
-// ✅ 正确：在 App.tsx 中协调
+// [错误] 禁止循环依赖：authStore import profileStore，profileStore import authStore
+// [正确] 正确：在 App.tsx 中协调
 useEffect(() => {
   if (isAuthenticated && currentAccount) {
     useProfileStore.getState().loadProfile(currentAccount.id);

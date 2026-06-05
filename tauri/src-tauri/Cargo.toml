@@ -1,0 +1,58 @@
+[package]
+name = "solosoul-app"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-http = "2"
+
+# Workspace crates
+solosoul-crypto = { path = "../crates/solosoul-crypto" }
+solosoul-vault = { path = "../crates/solosoul-vault" }
+solosoul-sync = { path = "../crates/solosoul-sync" }
+
+# 序列化
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# 错误处理
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# 异步
+tokio = { workspace = true }
+
+# 日志
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# 时间
+chrono = { workspace = true }
+
+# 数据库
+rusqlite = { workspace = true }
+
+# 工具
+uuid = { workspace = true }
+hex = { workspace = true }
+base64 = { workspace = true }
+rand = { workspace = true }
+zeroize = { workspace = true }
+sha2 = { workspace = true }
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+walkdir = "2.5"
+mdns-sd = "0.11"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
